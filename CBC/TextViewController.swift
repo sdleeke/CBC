@@ -337,6 +337,29 @@ class TextViewController : UIViewController
         didSet {
             Thread.onMainThread {
                 self.syncButton.isEnabled = true
+                self.activityIndicator?.stopAnimating()
+                
+                if let transcript = self.transcript {
+                    if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                        let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
+                        
+                        if transcriptString != transcriptFromWordsString {
+                            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
+                        }
+                        
+                        if  (globals.mediaPlayer.mediaItem == transcript.mediaItem),
+                            (transcript.mediaItem?.playing == transcript.purpose),
+                            (transcriptString.lowercased() != transcriptFromWordsString.lowercased()) {
+                            if let text = transcript.mediaItem?.text {
+                                alertActionsOkay( viewController: self,
+                                                  title: "Transcript Sync Warning",
+                                                  message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
+                                    alertActions: nil,
+                                    okayAction: nil)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -410,6 +433,19 @@ class TextViewController : UIViewController
             navigationItem.leftBarButtonItems?.append(syncButton)
         } else {
             navigationItem.leftBarButtonItem = syncButton
+        }
+        
+        activityIndicator = UIActivityIndicatorView()
+        activityIndicator.activityIndicatorViewStyle = .gray
+        activityIndicator.hidesWhenStopped = true
+        
+        activityBarButton = UIBarButtonItem(customView: activityIndicator)
+        activityBarButton.isEnabled = true
+        
+        navigationItem.leftBarButtonItems?.append(activityBarButton)
+        
+        if following == nil {
+            activityIndicator.startAnimating()
         }
     }
     
@@ -506,11 +542,11 @@ class TextViewController : UIViewController
     var track = false
     {
         didSet {
-            if track {
-                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    self?.following = self?.transcript?.following
-                }
-            }
+//            if track {
+//                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                    self?.following = self?.transcript?.following
+//                }
+//            }
         }
     }
     
@@ -661,6 +697,9 @@ class TextViewController : UIViewController
         keyboardShowing = false
     }
     
+    var activityIndicator : UIActivityIndicatorView!
+    var activityBarButton : UIBarButtonItem!
+
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -690,6 +729,19 @@ class TextViewController : UIViewController
             } else {
                 navigationItem.leftBarButtonItem = syncButton
             }
+
+            activityIndicator = UIActivityIndicatorView()
+            activityIndicator.activityIndicatorViewStyle = .gray
+            activityIndicator.hidesWhenStopped = true
+                
+            activityBarButton = UIBarButtonItem(customView: activityIndicator)
+            activityBarButton.isEnabled = true
+
+            navigationItem.leftBarButtonItems?.append(activityBarButton)
+
+            if following == nil {
+                activityIndicator.startAnimating()
+            }
         }
 
         saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done))
@@ -707,6 +759,8 @@ class TextViewController : UIViewController
     }
     
     var mask = false
+    
+    var creatingFollowing = false
     
     override func viewWillAppear(_ animated: Bool)
     {
@@ -743,6 +797,22 @@ class TextViewController : UIViewController
 
         if let changedText = changedText {
             self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        }
+        
+        if track, following == nil, !creatingFollowing {
+            self.creatingFollowing = true
+
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.following = self?.transcript?.following
+                self?.creatingFollowing = false
+            }
+
+//            process(viewController: self, work: { () -> (Any?) in
+//                self.following = self.transcript?.following
+//                return nil
+//            }, completion: { (data:Any?) in
+//                self.creatingFollowing = false
+//            })
         }
     }
     
@@ -1319,7 +1389,7 @@ class TextViewController : UIViewController
 //            }
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)

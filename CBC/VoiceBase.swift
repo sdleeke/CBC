@@ -19,6 +19,59 @@ extension NSMutableData {
 
 extension VoiceBase // Class Methods
 {
+    static var mediaIDs : [String]?
+    
+    static func mediaID(search:(id:String?,title:String?,purpose:String?)?,completion:@escaping ([String]?)->(Void))
+    {
+        guard let search = search else {
+            return
+        }
+
+        mediaIDs = [String]()
+
+        func processMediaItem(_ mediaItems : [[String:Any]]?)
+        {
+            guard var mediaItems = mediaItems, mediaItems.count > 0 else {
+                completion(mediaIDs)
+                return
+            }
+
+            let mediaItem = mediaItems.removeFirst()
+
+            guard let title = search.title, let metadata = mediaItem["metadata"] as? [String:Any], (metadata["title"] as? String)?.range(of: title) != nil else {
+                processMediaItem(mediaItems)
+                return
+            }
+            
+            guard let mediaID = mediaItem["mediaId"] as? String else {
+                return
+            }
+            
+            VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+                if let media = json?["media"] as? [String:Any], let mediaID = media["mediaId"] as? String {
+                    if let metadata = media["metadata"] as? [String:Any] {
+                        if let mediaItem = metadata["mediaItem"] as? [String:Any] {
+                            if let id = mediaItem["id"] as? String {
+                                if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
+                                    if search.id == id, search.purpose == purpose {
+                                        mediaIDs?.append(mediaID)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                processMediaItem(mediaItems)
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                processMediaItem(mediaItems)
+            })
+        }
+
+        VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+            processMediaItem(json?["media"] as? [[String:Any]])
+        },onError: nil)
+    }
+    
     static func url(mediaID:String?,path:String?) -> String
     {
         return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "")
@@ -702,15 +755,41 @@ class VoiceBase {
     }
     
     var transcribing = false
+    {
+        didSet {
+            guard transcribing != oldValue else {
+                return
+            }
+            
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.mediaItemSettings?["transcribing."+purpose] = transcribing ? "YES" : "NO"
+        }
+    }
     
     var aligning = false
     {
         didSet {
-            print("")
+            guard aligning != oldValue else {
+                return
+            }
+            
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.mediaItemSettings?["aligning."+purpose] = aligning ? "YES" : "NO"
         }
     }
     
     var percentComplete:String?
+    {
+        didSet {
+//            print(percentComplete)
+        }
+    }
     
     var uploadJSON:[String:Any]?
     
@@ -977,29 +1056,39 @@ class VoiceBase {
                         print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
                         completed = false
                         // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                        if !aligning {
-//                            remove()
-//                        }
+                        //                        if !aligning {
+                        //                            remove()
+                        //                        }
                     }
                 } else {
                     completed = false
                 }
+            }
+
+            if !completed && transcribing && !aligning && (_transcript == nil) && (self.resultsTimer == nil) {
+                Thread.onMainThread() {
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
+                }
             } else {
-                if !transcribing && (_transcript == nil) && (self.resultsTimer == nil) {
-                    transcribing = true
-                    
-                    Thread.onMainThread() {
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
-                    }
-                } else {
-                    // Overkill to make sure the cloud storage is cleaned-up?
-                    //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                    if self.resultsTimer != nil {
-                        print("TIMER NOT NIL!")
-                    }
+                // Overkill to make sure the cloud storage is cleaned-up?
+                //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                if self.resultsTimer != nil {
+                    print("TIMER NOT NIL!")
                 }
             }
-            
+
+            if completed && !transcribing && aligning && (self.resultsTimer == nil) {
+                Thread.onMainThread() {
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                }
+            } else {
+                // Overkill to make sure the cloud storage is cleaned-up?
+                //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                if self.resultsTimer != nil {
+                    print("TIMER NOT NIL!")
+                }
+            }
+
             return _transcript
         }
         
@@ -1441,6 +1530,14 @@ class VoiceBase {
         if let completed = mediaItem.mediaItemSettings?["completed."+purpose] {
             self.completed = completed == "YES"
         }
+        
+        if let transcribing = mediaItem.mediaItemSettings?["transcribing."+purpose] {
+            self.transcribing = transcribing == "YES"
+        }
+        
+        if let aligning = mediaItem.mediaItemSettings?["aligning."+purpose] {
+            self.aligning = aligning == "YES"
+        }
     }
     
     func createBody(parameters: [String: String],boundary: String) -> NSData
@@ -1627,7 +1724,7 @@ class VoiceBase {
                         let finished = tasks.filter({ (key: String, value: Any) -> Bool in
                             if let dict = value as? [String:Any] {
                                 if let status = dict["status"] as? String {
-                                    return status == "finished"
+                                    return (status == "finished") || (status == "completed")
                                 }
                             }
                             
@@ -2118,7 +2215,7 @@ class VoiceBase {
                         let finished = tasks.filter({ (key: String, value: Any) -> Bool in
                             if let dict = value as? [String:Any] {
                                 if let status = dict["status"] as? String {
-                                    return status == "finished"
+                                    return (status == "finished") || (status == "completed")
                                 }
                             }
                             
@@ -2192,8 +2289,9 @@ class VoiceBase {
         
         aligning = true
 
+        // WHY are we calling progress?  To see if the media is on VB.
         progress(completion: { (json:[String : Any]?) -> (Void) in
-            let parameters:[String:String] = ["configuration":"{\"configuration\":{\"executor\":\"v2\"}}","transcript":transcript]
+            let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
             
             self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -2300,128 +2398,188 @@ class VoiceBase {
             }
             
             // Not on VoiceBase
-            
-            if let text = self.mediaItem?.text {
-                globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
-            } else {
-                globals.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
-            }
-            
-            // Upload then align
-            self.mediaID = nil
-            
-            let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
-            
-            self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
-                self.uploadJSON = json
-                
-                if let status = json?["status"] as? String, status == "accepted" {
-                    if let mediaID = json?["mediaId"] as? String {
-                        // We do get a new mediaID
-                        self.mediaID = mediaID
+            VoiceBase.mediaID(search: (id: self.mediaItem?.id, title: self.mediaItem?.text, purpose: self.purpose), completion: { (mediaIDs:[String]?) -> (Void) in
+                guard mediaIDs?.count > 0 else {
+                    if let text = self.mediaItem?.text {
+                        globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+                    } else {
+                        globals.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+                    }
+                    
+                    // Upload then align
+                    self.mediaID = nil
+                    
+                    let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                    
+                    self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                        self.uploadJSON = json
                         
-                        if let text = self.mediaItem?.text {
-                            globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
-                        }
-                        
-                        var userInfo = [String:Any]()
-                        
-                        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
-                            if let status = json?["status"] as? String, status == "finished" {
-                                self.percentComplete = nil
+                        if let status = json?["status"] as? String, status == "accepted" {
+                            if let mediaID = json?["mediaId"] as? String {
+                                // We do get a new mediaID
+                                self.mediaID = mediaID
                                 
-                                self.resultsTimer?.invalidate()
-                                self.resultsTimer = nil
-
-                                // Don't do any of this since we are just re-uploading.
-//                                self.transcribing = false
-//                                self.completed = true
-//                                
-//                                // These will delete the existing versions.
-//                                self.transcript = nil
-//                                self.transcriptSRT = nil
-//                                
-//                                // Really should compare the old and new version...
-//                                
-//                                // Get the new versions.
-//                                self.getTranscript()
-//                                self.getTranscriptSRT()
-//                                
-//                                // Delete the transcripts, keywords, and topics.
-//                                self.mediaJSON = nil
-//                                
-//                                // Get the new ones.
-//                                self.details()
+                                if let text = self.mediaItem?.text {
+                                    globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
+                                }
                                 
-                                // Now do the relignment
-                                let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                var userInfo = [String:Any]()
                                 
-                                self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
-                                    self.uploadJSON = json
-                                    
-                                    // If it is on VB, upload the transcript for realignment
-                                    if let status = json?["status"] as? String, status == "accepted" {
-                                        if let mediaID = json?["mediaId"] as? String {
-                                            guard self.mediaID == mediaID else {
-                                                self.aligning = false
-                                                self.resultsTimer?.invalidate()
-                                                self.resultsTimer = nil
-                                                
-                                                var error : String?
-                                                
-                                                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                                    error = message
-                                                }
-                                                
-                                                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                                    error = message
-                                                }
-                                                
-                                                var message : String?
-                                                
-                                                if let text = self.mediaItem?.text {
-                                                    if let error = error {
-                                                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                                    } else {
-                                                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+                                    if let status = json?["status"] as? String, status == "finished" {
+                                        self.percentComplete = nil
+                                        
+                                        self.resultsTimer?.invalidate()
+                                        self.resultsTimer = nil
+                                        
+                                        // Don't do any of this since we are just re-uploading.
+                                        //                                self.transcribing = false
+                                        //                                self.completed = true
+                                        //
+                                        //                                // These will delete the existing versions.
+                                        //                                self.transcript = nil
+                                        //                                self.transcriptSRT = nil
+                                        //
+                                        //                                // Really should compare the old and new version...
+                                        //
+                                        //                                // Get the new versions.
+                                        //                                self.getTranscript()
+                                        //                                self.getTranscriptSRT()
+                                        //
+                                        //                                // Delete the transcripts, keywords, and topics.
+                                        //                                self.mediaJSON = nil
+                                        //
+                                        //                                // Get the new ones.
+                                        //                                self.details()
+                                        
+                                        // Now do the relignment
+                                        let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                        
+                                        self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                                            self.uploadJSON = json
+                                            
+                                            // If it is on VB, upload the transcript for realignment
+                                            if let status = json?["status"] as? String, status == "accepted" {
+                                                if let mediaID = json?["mediaId"] as? String {
+                                                    guard self.mediaID == mediaID else {
+                                                        self.aligning = false
+                                                        self.resultsTimer?.invalidate()
+                                                        self.resultsTimer = nil
+                                                        
+                                                        var error : String?
+                                                        
+                                                        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                                            error = message
+                                                        }
+                                                        
+                                                        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                                            error = message
+                                                        }
+                                                        
+                                                        var message : String?
+                                                        
+                                                        if let text = self.mediaItem?.text {
+                                                            if let error = error {
+                                                                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                            } else {
+                                                                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                            }
+                                                        } else {
+                                                            if let error = error {
+                                                                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                                            } else {
+                                                                message = "The transcript realignment failed to start.  Please try again."
+                                                            }
+                                                        }
+                                                        
+                                                        if let message = message {
+                                                            globals.alert(title: "Transcript Alignment Failed",message: message)
+                                                        }
+                                                        
+                                                        return
                                                     }
-                                                } else {
-                                                    if let error = error {
-                                                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                                                    } else {
-                                                        message = "The transcript realignment failed to start.  Please try again."
+                                                    
+                                                    // Don't do this because we're just re-aligning.
+                                                    //                        self.transcribing = true
+                                                    //                        self.completed = false
+                                                    
+                                                    self.aligning = true
+                                                    
+                                                    if let text = self.mediaItem?.text {
+                                                        globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                                                     }
-                                                }
-                                                
-                                                if let message = message {
-                                                    globals.alert(title: "Transcript Alignment Failed",message: message)
-                                                }
-                                                
-                                                return
-                                            }
-                                            
-                                            // Don't do this because we're just re-aligning.
-                                            //                        self.transcribing = true
-                                            //                        self.completed = false
-                                            
-                                            self.aligning = true
-                                            
-                                            if let text = self.mediaItem?.text {
-                                                globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
-                                            }
-                                            
-                                            if self.resultsTimer == nil {
-                                                Thread.onMainThread() {
-                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                                                    
+                                                    if self.resultsTimer == nil {
+                                                        Thread.onMainThread() {
+                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                                                        }
+                                                    } else {
+                                                        print("TIMER NOT NIL!")
+                                                    }
                                                 }
                                             } else {
-                                                print("TIMER NOT NIL!")
+                                                // Not accepted.
+                                            }
+                                        }, onError: { (json:[String : Any]?) -> (Void) in
+                                            self.aligning = false
+                                            self.resultsTimer?.invalidate()
+                                            self.resultsTimer = nil
+                                            
+                                            var error : String?
+                                            
+                                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                                error = message
+                                            }
+                                            
+                                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                                error = message
+                                            }
+                                            
+                                            var message : String?
+                                            
+                                            if let text = self.mediaItem?.text {
+                                                if let error = error {
+                                                    message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                } else {
+                                                    message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                }
+                                            } else {
+                                                if let error = error {
+                                                    message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                                } else {
+                                                    message = "The transcript realignment failed to start.  Please try again."
+                                                }
+                                            }
+                                            
+                                            if let message = message {
+                                                globals.alert(title: "Transcript Alignment Failed",message: message)
+                                            }
+                                        })
+                                    } else {
+                                        if let progress = json?["progress"] as? [String:Any] {
+                                            if let tasks = progress["tasks"] as? [String:Any] {
+                                                let count = tasks.count
+                                                let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+                                                    if let dict = value as? [String:Any] {
+                                                        if let status = dict["status"] as? String {
+                                                            return (status == "finished") || (status == "completed")
+                                                        }
+                                                    }
+                                                    
+                                                    return false
+                                                }).count
+                                                
+                                                self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+                                                
+                                                if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+                                                    print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                                                }
                                             }
                                         }
-                                    } else {
-                                        // Not accepted.
                                     }
-                                }, onError: { (json:[String : Any]?) -> (Void) in
+                                }
+                                
+                                userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
                                     self.aligning = false
                                     self.resultsTimer?.invalidate()
                                     self.resultsTimer = nil
@@ -2440,127 +2598,177 @@ class VoiceBase {
                                     
                                     if let text = self.mediaItem?.text {
                                         if let error = error {
-                                            message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                            message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
                                         } else {
-                                            message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                            message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
                                         }
                                     } else {
                                         if let error = error {
-                                            message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                            message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
                                         } else {
-                                            message = "The transcript realignment failed to start.  Please try again."
+                                            message = "The transcript was not realigned.  Please try again."
                                         }
                                     }
                                     
                                     if let message = message {
                                         globals.alert(title: "Transcript Alignment Failed",message: message)
                                     }
-                                })
-                            } else {
-                                if let progress = json?["progress"] as? [String:Any] {
-                                    if let tasks = progress["tasks"] as? [String:Any] {
-                                        let count = tasks.count
-                                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                                            if let dict = value as? [String:Any] {
-                                                if let status = dict["status"] as? String {
-                                                    return status == "finished"
-                                                }
-                                            }
-                                            
-                                            return false
-                                        }).count
-                                        
-                                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-
-                                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
-                                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
-                                        }
+                                }
+                                
+                                if self.resultsTimer == nil {
+                                    Thread.onMainThread() {
+                                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
                                     }
-                                }
-                            }
-                        }
-                        
-                        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-                            self.aligning = false
-                            self.resultsTimer?.invalidate()
-                            self.resultsTimer = nil
-                            
-                            var error : String?
-                            
-                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                error = message
-                            }
-                            
-                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                error = message
-                            }
-                            
-                            var message : String?
-                            
-                            if let text = self.mediaItem?.text {
-                                if let error = error {
-                                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
                                 } else {
-                                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                                    print("TIMER NOT NIL!")
                                 }
-                            } else {
-                                if let error = error {
-                                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
-                                } else {
-                                    message = "The transcript was not realigned.  Please try again."
-                                }
-                            }
-                            
-                            if let message = message {
-                                globals.alert(title: "Transcript Alignment Failed",message: message)
-                            }
-                        }
-                        
-                        if self.resultsTimer == nil {
-                            Thread.onMainThread() {
-                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
                             }
                         } else {
-                            print("TIMER NOT NIL!")
+                            // No accepted.
+                        }
+                    }, onError: { (json:[String : Any]?) -> (Void) in
+                        self.aligning = false
+                        self.resultsTimer?.invalidate()
+                        self.resultsTimer = nil
+                        
+                        var error : String?
+                        
+                        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                            error = message
+                        }
+                        
+                        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                            error = message
+                        }
+                        
+                        var message : String?
+                        
+                        if let text = self.mediaItem?.text {
+                            if let error = error {
+                                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                            } else {
+                                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                            }
+                        } else {
+                            if let error = error {
+                                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                            } else {
+                                message = "The transcript realignment failed to start.  Please try again."
+                            }
+                        }
+                        
+                        if let message = message {
+                            globals.alert(title: "Transcript Alignment Failed",message: message)
+                        }
+                    })
+                    return
+                }
+
+                // Got valid mediaID
+
+                self.mediaID = mediaIDs?.first
+
+                let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+
+                self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                    self.uploadJSON = json
+
+                    // If it is on VB, upload the transcript for realignment
+                    if let status = json?["status"] as? String, status == "accepted" {
+                        if let mediaID = json?["mediaId"] as? String {
+                            guard self.mediaID == mediaID else {
+                                self.aligning = false
+                                self.resultsTimer?.invalidate()
+                                self.resultsTimer = nil
+
+                                var error : String?
+
+                                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                    error = message
+                                }
+
+                                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                    error = message
+                                }
+
+                                var message : String?
+
+                                if let text = self.mediaItem?.text {
+                                    if let error = error {
+                                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                    } else {
+                                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                    }
+                                } else {
+                                    if let error = error {
+                                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                    } else {
+                                        message = "The transcript realignment failed to start.  Please try again."
+                                    }
+                                }
+
+                                if let message = message {
+                                    globals.alert(title: "Transcript Alignment Failed",message: message)
+                                }
+
+                                return
+                            }
+
+                            // Don't do this because we're just re-aligning.
+                            //                        self.transcribing = true
+                            //                        self.completed = false
+
+                            if let text = self.mediaItem?.text {
+                                globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                            }
+
+                            if self.resultsTimer == nil {
+                                Thread.onMainThread() {
+                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                                }
+                            } else {
+                                print("TIMER NOT NIL!")
+                            }
+                        }
+                    } else {
+                        // Not accepted
+
+                    }
+                }, onError: { (json:[String : Any]?) -> (Void) in
+                    self.aligning = false
+                    self.resultsTimer?.invalidate()
+                    self.resultsTimer = nil
+
+                    var error : String?
+
+                    if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                        error = message
+                    }
+
+                    if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                        error = message
+                    }
+
+                    var message : String?
+
+                    if let text = self.mediaItem?.text {
+                        if let error = error {
+                            message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                        } else {
+                            message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                        }
+                    } else {
+                        if let error = error {
+                            message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                        } else {
+                            message = "The transcript realignment failed to start.  Please try again."
                         }
                     }
-                } else {
-                    // No accepted.
-                }
-            }, onError: { (json:[String : Any]?) -> (Void) in
-                self.aligning = false
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
-                
-                var error : String?
-                
-                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                    error = message
-                }
-                
-                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                    error = message
-                }
-                
-                var message : String?
-                
-                if let text = self.mediaItem?.text {
-                    if let error = error {
-                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                    } else {
-                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+
+                    if let message = message {
+                        globals.alert(title: "Transcript Alignment Failed",message: message)
                     }
-                } else {
-                    if let error = error {
-                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                    } else {
-                        message = "The transcript realignment failed to start.  Please try again."
-                    }
-                }
-                
-                if let message = message {
-                    globals.alert(title: "Transcript Alignment Failed",message: message)
-                }
+                })
             })
         })
     }
@@ -3174,7 +3382,7 @@ class VoiceBase {
                         let finished = tasks.filter({ (key: String, value: Any) -> Bool in
                             if let dict = value as? [String:Any] {
                                 if let status = dict["status"] as? String {
-                                    return status == "finished"
+                                    return (status == "finished") || (status == "completed")
                                 }
                             }
                             
@@ -3402,6 +3610,17 @@ class VoiceBase {
                 }))
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, action: {
+                    guard !self.aligning else {
+                        if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                        }
+                        return
+                    }
+                    
                     if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
                         let textPopover = navigationController.viewControllers[0] as? TextViewController {
                         navigationController.modalPresentationStyle = .overCurrentContext
@@ -3436,29 +3655,7 @@ class VoiceBase {
                             self.transcript = text
                         }
                         
-                        let transcriptString = self.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                            
-                        let transcriptFromWordsString = self.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-
-                        if  let transcriptString = transcriptString,
-                            let transcriptFromWordsString = transcriptFromWordsString,
-                            transcriptString != transcriptFromWordsString {
-                            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
-                        }
-
-                        viewController.present(navigationController, animated: true, completion: {
-                            if  (globals.mediaPlayer.mediaItem == self.mediaItem),
-                                (self.mediaItem?.playing == self.purpose),
-                                (transcriptString?.lowercased() != transcriptFromWordsString?.lowercased()) {
-                                if let text = self.mediaItem?.text {
-                                    alertActionsOkay( viewController: viewController,
-                                                      title: "Transcript Sync Warning",
-                                                      message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
-                                        alertActions: nil,
-                                        okayAction: nil)
-                                }
-                            }
-                        })
+                        viewController.present(navigationController, animated: true, completion: nil)
                     } else {
                         print("ERROR")
                     }
@@ -3523,6 +3720,12 @@ class VoiceBase {
                                                     message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                     alertActions: nil,
                                     cancelAction: nil)
+                            } else {
+                                alertActionsCancel( viewController: viewController,
+                                                    title: "Alignment Underway",
+                                                    message: "There is an alignment already underway.\n\nPlease try again later.",
+                                    alertActions: nil,
+                                    cancelAction: nil)
                             }
                             return
                         }
@@ -3567,6 +3770,17 @@ class VoiceBase {
                 }
                 
                 alertActions.append(AlertAction(title: "Restore", style: .destructive, action: {
+                    guard !self.aligning else {
+                        if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                        }
+                        return
+                    }
+                    
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, action: {
@@ -3643,6 +3857,17 @@ class VoiceBase {
                 }))
                 
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
+                    guard !self.aligning else {
+                        if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                        }
+                        return
+                    }
+                    
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {

@@ -465,7 +465,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     for key in keys {
                         if let values = self.stringIndex?[key] {
                             for value in values {
-                                if (value["title"] as? String)?.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                                if (value["title"] as? String)?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE,with: " ").range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
                                     if searchIndex?[key] == nil {
                                         searchIndex?[key] = [[String:Any]]()
                                     }
@@ -1996,7 +1996,7 @@ class MediaTableViewController : UIViewController // MediaController
             // Should we alert the user to what is being loaded from VB or how many?
             
             Thread.onMainThread() {
-                transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: true), repeats: true)
+                transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: true), repeats: true)
             }
             
             if let text = mediaItem.text {

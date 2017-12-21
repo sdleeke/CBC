@@ -39,7 +39,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             return false
         }
         
-        return true
+        return search
     }
     
     func updateSearchResults()
@@ -59,7 +59,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             for key in keys {
                 if let values = unfilteredSection.stringIndex?[key] {
                     for value in values {
-                        if value.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                        if value.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ").range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
                             if filteredStringIndex[key] == nil {
                                 filteredStringIndex[key] = [String]()
                             }
@@ -328,6 +328,10 @@ class PopoverTableViewController : UIViewController
     
     func follow()
     {
+        guard !searchActive else {
+            return
+        }
+        
         guard let srtComponents = section.strings else {
             return
         }
@@ -1361,10 +1365,10 @@ class PopoverTableViewController : UIViewController
                         
                         self?.activityIndicator.stopAnimating()
                         self?.activityIndicator?.isHidden = true
-//                        
-//                        if self?.purpose == .selectingTime {
-//                            self?.follow()
-//                        }
+                        
+                        if self?.purpose == .selectingTime, let search = self?.search, !search {
+                            self?.follow()
+                        }
                     }
                 }
             }
@@ -1483,7 +1487,7 @@ class PopoverTableViewController : UIViewController
         
         tableView.flashScrollIndicators()
         
-        if purpose == .selectingTime {
+        if purpose == .selectingTime, section.strings != nil, !search {
             follow()
         }
     }
@@ -1595,7 +1599,7 @@ extension PopoverTableViewController : UITableViewDataSource
             return cell
         }
         
-        guard let string = section.strings?[index] else {
+        guard let string = section.strings?[index].replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ") else {
             print("ERROR")
             return cell
         }
