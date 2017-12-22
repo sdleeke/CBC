@@ -112,6 +112,8 @@ enum PIP {
 }
 
 class MediaPlayer : NSObject {
+    var isSeeking = false
+    
     var sliderTimerReturn:Any? = nil
     var playerTimerReturn:Any? = nil
     

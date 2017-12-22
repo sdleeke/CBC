@@ -607,37 +607,37 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             popover.html.fontSize = 12
                             popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
                             
-                            if let media = json?["media"] as? [String:Any], let mediaID = media["mediaId"] as? String {
-                                if let metadata = media["metadata"] as? [String:Any] {
-                                    if let mediaItem = metadata["mediaItem"] as? [String:Any] {
-                                        if let id = mediaItem["id"] as? String {
-                                            if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
-                                                if let mediaList = globals.media.all?.list {
-                                                    if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
-                                                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                                                            return transcript.mediaID == mediaID
-                                                        }).count == 1
-                                                    }).count == 0 {
-                                                        if  let mediaItem = globals.mediaRepository.index?[id],
-                                                            mediaItem.transcripts[purpose]?.mediaID == nil {
-                                                            self.actionButton = UIBarButtonItem(title: Constants.FA.PLUS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseLoad))
-                                                            
-                                                            self.voiceBasePurpose = purpose
-                                                            self.voiceBaseMediaID = mediaID
-                                                            self.voiceBaseMediaItemID = mediaItem.id
-                                                            self.actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
-                                                            
-                                                            popover.navigationItem.rightBarButtonItem = self.actionButton
-                                                        }
-                                                    } else {
-                                                        
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+//                            if let media = json?["media"] as? [String:Any], let mediaID = media["mediaId"] as? String {
+//                                if let metadata = media["metadata"] as? [String:Any] {
+//                                    if let mediaItem = metadata["mediaItem"] as? [String:Any] {
+//                                        if let id = mediaItem["id"] as? String {
+//                                            if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
+//                                                if let mediaList = globals.media.all?.list {
+//                                                    if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+//                                                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//                                                            return transcript.mediaID == mediaID
+//                                                        }).count == 1
+//                                                    }).count == 0 {
+//                                                        if  let mediaItem = globals.mediaRepository.index?[id],
+//                                                            mediaItem.transcripts[purpose]?.mediaID == nil {
+//                                                            self.actionButton = UIBarButtonItem(title: Constants.FA.PLUS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseLoad))
+//
+//                                                            self.voiceBasePurpose = purpose
+//                                                            self.voiceBaseMediaID = mediaID
+//                                                            self.voiceBaseMediaItemID = mediaItem.id
+//                                                            self.actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+//
+//                                                            popover.navigationItem.rightBarButtonItem = self.actionButton
+//                                                        }
+//                                                    } else {
+//
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
                             
                             popover.search = true
                             popover.content = .html
@@ -1960,52 +1960,52 @@ class MediaTableViewController : UIViewController // MediaController
         present(alert, animated: true, completion: nil)
     }
     
-    var voiceBaseMediaID:String?
-    var voiceBaseMediaItemID:String?
-    var voiceBasePurpose:String?
-
-    func voiceBaseLoad()
-    {
-        guard   let voiceBasePurpose = voiceBasePurpose,
-                let voiceBaseMediaID = voiceBaseMediaID,
-                let voiceBaseMediaItemID = voiceBaseMediaItemID,
-                let mediaItem = globals.mediaRepository.index?[voiceBaseMediaItemID] else {
-            return
-        }
-        
-        var transcript : VoiceBase?
-        
-        switch voiceBasePurpose.uppercased() {
-        case Purpose.audio:
-            transcript = mediaItem.audioTranscript
-            
-        case Purpose.video:
-            transcript = mediaItem.videoTranscript
-            
-        default:
-            break
-        }
-        
-        if  transcript?.transcript == nil,
-            transcript?.mediaID == nil,
-            transcript?.resultsTimer == nil,
-            let transcribing = transcript?.transcribing, !transcribing {
-            transcript?.mediaID = voiceBaseMediaID
-            transcript?.transcribing = true
-            
-            // Should we alert the user to what is being loaded from VB or how many?
-            
-            Thread.onMainThread() {
-                transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: true), repeats: true)
-            }
-            
-            if let text = mediaItem.text {
-                globals.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
-            }
-            
-            actionButton?.isEnabled = false
-        }
-    }
+//    var voiceBaseMediaID:String?
+//    var voiceBaseMediaItemID:String?
+//    var voiceBasePurpose:String?
+//
+//    func voiceBaseLoad()
+//    {
+//        guard   let voiceBasePurpose = voiceBasePurpose,
+//                let voiceBaseMediaID = voiceBaseMediaID,
+//                let voiceBaseMediaItemID = voiceBaseMediaItemID,
+//                let mediaItem = globals.mediaRepository.index?[voiceBaseMediaItemID] else {
+//            return
+//        }
+//
+//        var transcript : VoiceBase?
+//
+//        switch voiceBasePurpose.uppercased() {
+//        case Purpose.audio:
+//            transcript = mediaItem.audioTranscript
+//
+//        case Purpose.video:
+//            transcript = mediaItem.videoTranscript
+//
+//        default:
+//            break
+//        }
+//
+//        if  transcript?.transcript == nil,
+//            transcript?.mediaID == nil,
+//            transcript?.resultsTimer == nil,
+//            let transcribing = transcript?.transcribing, !transcribing {
+//            transcript?.mediaID = voiceBaseMediaID
+//            transcript?.transcribing = true
+//
+//            // Should we alert the user to what is being loaded from VB or how many?
+//
+//            Thread.onMainThread() {
+//                transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: true), repeats: true)
+//            }
+//
+//            if let text = mediaItem.text {
+//                globals.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
+//            }
+//
+//            actionButton?.isEnabled = false
+//        }
+//    }
     
     func voiceBaseActions()
     {

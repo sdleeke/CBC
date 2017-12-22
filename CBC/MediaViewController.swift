@@ -489,9 +489,21 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                var strings = [String]()
+                popover.search = true
+                popover.searchInteractive = false
+                popover.searchActive = true
+                popover.searchText = string
+                popover.wholeWordsOnly = true
                 
-                if let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents {
+                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+                popover.stringsFunction = {
+                    guard let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents else {
+                        return nil
+                    }
+                    
+                    var strings = [String]()
+                    
                     for time in times {
                         for srtComponent in srtComponents {
                             if srtComponent.contains(time+" --> ") { //
@@ -520,21 +532,17 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    popover.editActionsAtIndexPath = popover.transcript?.rowActions
-
-                    popover.search = true
-                    popover.searchInteractive = false
-                    popover.searchActive = true
-                    popover.searchText = string
-                    popover.wholeWordsOnly = true
-                    
-                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
-                    //                    ?.map({ (string:String) -> String in
-                    //                    return secondsToHMS(seconds: string) ?? "ERROR"
-                    //                })
-                    
-                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+                    return strings
                 }
+                
+                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+
+//                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
+                //                    ?.map({ (string:String) -> String in
+                //                    return secondsToHMS(seconds: string) ?? "ERROR"
+                //                })
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -598,16 +606,22 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 
         case .selectingTime:
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
+                globals.mediaPlayer.isSeeking = true
                 globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
-                    if finished, let ptvc = self.popover?.navigationController?.visibleViewController as? PopoverTableViewController, ptvc.isTracking {
-                        if ptvc.trackingTimer == nil {
-                            Thread.onMainThread() {
-                                ptvc.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: ptvc as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
-                            }
-                        } else {
-                            print("ptvc.trackingTimer not nil")
-                        }
-                    }
+                    globals.mediaPlayer.isSeeking = false
+                    // post a notification rather than doing this
+//                    if finished, let ptvc = self.popover?.navigationController?.visibleViewController as? PopoverTableViewController {
+//                        if ptvc.track, !ptvc.isTracking {
+//                            Thread.onMainThread() {
+//                                ptvc.follow()
+//                            }
+//                        }
+//                        if ptvc.track, ptvc.isTracking, ptvc.trackingTimer == nil {
+//                            Thread.onMainThread() {
+//                                ptvc.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: ptvc as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+//                            }
+//                        }
+//                    }
                 })
             }
             break

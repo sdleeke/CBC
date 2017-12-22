@@ -1253,7 +1253,7 @@ class PopoverTableViewController : UIViewController
     }
     
     var mask = false
-    
+
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1306,7 +1306,7 @@ class PopoverTableViewController : UIViewController
             
             if let vc = vc {
                 process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
-                    // Why are we doing this?
+                    // When mask is set to false this will end
                     while self.mask {
                         Thread.sleep(forTimeInterval: 0.1)
                     }
@@ -1353,6 +1353,10 @@ class PopoverTableViewController : UIViewController
                 
                 self?.section.strings = self?.stringsFunction?()
                 
+                while globals.mediaPlayer.isSeeking {
+                    Thread.sleep(forTimeInterval: 0.1)
+                }
+                
                 if self?.section.strings != nil {
                     Thread.onMainThread() {
                         self?.tableView.reloadData()
@@ -1366,7 +1370,8 @@ class PopoverTableViewController : UIViewController
                         self?.activityIndicator.stopAnimating()
                         self?.activityIndicator?.isHidden = true
                         
-                        if self?.purpose == .selectingTime, let search = self?.search, !search {
+                        // Must use stringsFunction with .selectingTime.
+                        if self?.purpose == .selectingTime {
                             self?.follow()
                         }
                     }
@@ -1479,6 +1484,10 @@ class PopoverTableViewController : UIViewController
         }
         
         searchBar.isUserInteractionEnabled = searchInteractive
+        
+//        if purpose == .selectingTime, search {
+//            follow()
+//        }
     }
 
     override func viewDidAppear(_ animated: Bool)
@@ -1486,13 +1495,10 @@ class PopoverTableViewController : UIViewController
         super.viewDidAppear(animated)
         
         tableView.flashScrollIndicators()
-        
-        if purpose == .selectingTime, section.strings != nil, !search {
-            follow()
-        }
     }
     
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
@@ -1791,10 +1797,17 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        if let transcript = transcript {
+        if  (transcript !=  nil) && (purpose == .selectingTime) && (!track || searchActive) {
+            // .selectingTime using Timed Words
+            return false
+        }
+        
+        if let transcript = transcript, purpose == .selectingTime {
+            // .selectingTime using Timed Segments
             return transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath) != nil
         }
         
+        // Otherwise
         return editActionsAtIndexPath?(self,tableView,indexPath) != nil
     }
     
@@ -1958,6 +1971,7 @@ extension PopoverTableViewController : UITableViewDelegate
                     return string
                 }
                 
+                // Must use stringsFunction with .selectingTime.
                 popover.stringsFunction = { (Void) -> [String]? in
                     return self.transcript?.srtComponents?.filter({ (string:String) -> Bool in
                         return string.components(separatedBy: "\n").count > 1
