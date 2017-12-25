@@ -1125,7 +1125,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                         }
                     }
                     
-                    if let className = mediaItem.className {
+                    if mediaItem.hasClassName, let className = mediaItem.className {
                         if classes == nil {
                             classes = [className]
                         } else {
@@ -1133,7 +1133,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                         }
                     }
                     
-                    if let eventName = mediaItem.eventName {
+                    if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                         if events == nil {
                             events = [eventName]
                         } else {

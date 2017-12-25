@@ -2459,7 +2459,7 @@ func tokensFromString(_ string:String?) -> [String]?
             return
         }
         
-        let excludedWords = ["and", "are", "can", "for", "the"]
+        let excludedWords = [String]() //["and", "are", "can", "for", "the"]
         
         for word in excludedWords {
             if token.lowercased() == word.lowercased() {
@@ -2472,11 +2472,11 @@ func tokensFromString(_ string:String?) -> [String]?
             token = Constants.EMPTY_STRING
         }
         
-        if token.lowercased() != "it's" {
-            if let range = token.lowercased().range(of: "'s") {
-                token = token.substring(to: range.lowerBound)
-            }
-        }
+//        if token.lowercased() != "it's" {
+//            if let range = token.lowercased().range(of: "'s") {
+//                token = token.substring(to: range.lowerBound)
+//            }
+//        }
         
         if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
             //                print("\(token)")
@@ -2557,7 +2557,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             return
         }
         
-        let excludedWords = ["and", "are", "can", "for", "the"]
+        let excludedWords = [String]() // ["and", "are", "can", "for", "the"]
         
         for word in excludedWords {
             if token.lowercased() == word.lowercased() {
@@ -2570,17 +2570,21 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             token = Constants.EMPTY_STRING
         }
         
-        if token.lowercased() != "it's" {
-            if let range = token.lowercased().range(of: "'s") {
-                token = token.substring(to: range.lowerBound)
-            }
-        }
+//        print(token)
+        
+//        if token.lowercased() != "it's" {
+//            if let range = token.lowercased().range(of: "'s") {
+//                token = token.substring(to: range.lowerBound)
+//            }
+//        }
         
         if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
 //                print("\(token)")
             token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
 //                print("\(token)")
         }
+        
+//        print(token)
         
         if token != Constants.EMPTY_STRING {
 //                print(token.uppercased())
@@ -4132,13 +4136,13 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     }
                     
                     if globals.grouping != GROUPING.CLASS {
-                        if let className = mediaItem.className, !className.isEmpty {
+                        if mediaItem.hasClassName {
                             order.append("class")
                         }
                     }
                     
                     if globals.grouping != GROUPING.EVENT {
-                        if let eventName = mediaItem.eventName, !eventName.isEmpty {
+                        if mediaItem.hasEventName {
                             order.append("event")
                         }
                     }

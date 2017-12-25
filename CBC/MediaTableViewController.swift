@@ -561,9 +561,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.present(alert, animated: true, completion: nil)
             })
             
-            actions.append(AlertAction(title: "ID", style: .default) {
+            actions.append(AlertAction(title: "Media ID", style: .default) {
                 let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                message: nil,
+                                                message: title,
                                                 preferredStyle: .alert)
                 alert.makeOpaque()
                 
@@ -848,7 +848,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     actions.append(AlertAction(title: "Media ID", style: .default, action: {
                         let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                        message: nil,
+                                                        message: title,
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
 
@@ -4489,9 +4489,14 @@ extension MediaTableViewController : UITableViewDelegate
                 alertActions.append(actions)
             }
             
+            var message = "Machine Generated Transcript"
+            
+            if let text = mediaItem.text {
+                message += "\n\n\(text)"
+            }
             alertActionsCancel( viewController: self,
                                 title: "VoiceBase",
-                                message: "Machine Generated Transcript",
+                                message: message,
                                 alertActions: alertActions,
                                 cancelAction: nil)
         }

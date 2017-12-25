@@ -85,9 +85,13 @@ class MediaTableViewCell: UITableViewCell
         
         clear()
 
+        guard let mediaItem = mediaItem else {
+            return
+        }
+        
         let titleString = NSMutableAttributedString()
         
-        if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
+        if mediaItem.searchHit(searchText).formattedDate, let formattedDate = mediaItem.formattedDate {
             var string:String?
             var before:String?
             var after:String?
@@ -108,7 +112,7 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            if let formattedDate = mediaItem?.formattedDate {
+            if let formattedDate = mediaItem.formattedDate {
                 titleString.append(NSAttributedString(string:formattedDate, attributes: Constants.Fonts.Attributes.normal))
             }
         }
@@ -116,11 +120,11 @@ class MediaTableViewCell: UITableViewCell
         if !titleString.string.isEmpty {
             titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
         }
-        if let service = mediaItem?.service {
+        if let service = mediaItem.service {
             titleString.append(NSAttributedString(string: service, attributes: Constants.Fonts.Attributes.normal))
         }
         
-        if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
+        if mediaItem.hasSpeaker, mediaItem.searchHit(searchText).speaker, let speaker = mediaItem.speaker {
             var string:String?
             var before:String?
             var after:String?
@@ -148,7 +152,7 @@ class MediaTableViewCell: UITableViewCell
             if !titleString.string.isEmpty {
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
-            if let speaker = mediaItem?.speaker {
+            if mediaItem.hasSpeaker, let speaker = mediaItem.speaker {
                 titleString.append(NSAttributedString(string:speaker, attributes: Constants.Fonts.Attributes.normal))
             }
         }
@@ -160,7 +164,7 @@ class MediaTableViewCell: UITableViewCell
         var title:String?
         
         if searchText == nil,
-            let string = mediaItem?.title,
+            let string = mediaItem.title,
             let rangeTo = string.range(of: " (Part"),
             let rangeFrom = string.range(of: " (Part ") {
             // This causes searching for "(Part " to present a blank title.
@@ -168,10 +172,10 @@ class MediaTableViewCell: UITableViewCell
             let second = string.substring(from: rangeFrom.upperBound)
             title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
         } else {
-            title = mediaItem?.title
+            title = mediaItem.title
         }
         
-        if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
+        if mediaItem.searchHit(searchText).title {
             var string:String?
             var before:String?
             var after:String?
@@ -192,12 +196,12 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            if let title = title {
+            if let title = title, !title.isEmpty {
                 detailString.append(NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold))
             }
         }
         
-        if let searchHit = mediaItem?.searchHit(searchText).scriptureReference, searchHit, let scriptureReference = mediaItem?.scriptureReference {
+        if mediaItem.searchHit(searchText).scriptureReference, let scriptureReference = mediaItem.scriptureReference {
             var string:String?
             var before:String?
             var after:String?
@@ -221,7 +225,7 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            if let scriptureReference = mediaItem?.scriptureReference {
+            if let scriptureReference = mediaItem.scriptureReference {
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
@@ -229,15 +233,15 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        if let className = mediaItem?.searchHit(searchText).className, className {
+        if mediaItem.hasClassName, mediaItem.searchHit(searchText).className {
             var string:String?
             var before:String?
             var after:String?
             
-            if let searchText = searchText, let range = mediaItem?.className?.lowercased().range(of: searchText.lowercased()) {
-                before = mediaItem?.className?.substring(to: range.lowerBound)
-                string = mediaItem?.className?.substring(with: range)
-                after = mediaItem?.className?.substring(from: range.upperBound)
+            if let searchText = searchText, let range = mediaItem.className?.lowercased().range(of: searchText.lowercased()) {
+                before = mediaItem.className?.substring(to: range.lowerBound)
+                string = mediaItem.className?.substring(with: range)
+                after = mediaItem.className?.substring(from: range.upperBound)
                 
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
@@ -253,7 +257,7 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            if let className = mediaItem?.className {
+            if mediaItem.hasClassName, let className = mediaItem.className {
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
@@ -261,15 +265,15 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        if let eventName = mediaItem?.searchHit(searchText).eventName, eventName {
+        if mediaItem.hasEventName, mediaItem.searchHit(searchText).eventName {
             var string:String?
             var before:String?
             var after:String?
             
-            if let searchText = searchText, let range = mediaItem?.eventName?.lowercased().range(of: searchText.lowercased()) {
-                before = mediaItem?.eventName?.substring(to: range.lowerBound)
-                string = mediaItem?.eventName?.substring(with: range)
-                after = mediaItem?.eventName?.substring(from: range.upperBound)
+            if let searchText = searchText, let range = mediaItem.eventName?.lowercased().range(of: searchText.lowercased()) {
+                before = mediaItem.eventName?.substring(to: range.lowerBound)
+                string = mediaItem.eventName?.substring(with: range)
+                after = mediaItem.eventName?.substring(from: range.upperBound)
                 
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
@@ -285,7 +289,7 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            if let eventName = mediaItem?.eventName {
+            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
@@ -294,6 +298,18 @@ class MediaTableViewCell: UITableViewCell
         }
         
         self.detail.attributedText = detailString
+
+//        if var rect = icons.attributedText?.boundingRect(with: self.bounds.size, options: .usesLineFragmentOrigin, context: nil) {
+//            rect.origin = icons.frame.origin
+//            rect = self.convert(rect, to: detailText)
+//            let path = UIBezierPath(rect: rect)
+//            self.detailText.textContainer.exclusionPaths = [path]
+//        }
+//        self.detailText.backgroundColor = UIColor.clear
+//        self.detailText.textAlignment = .left
+//        self.detailText.textContainer.lineBreakMode = .byWordWrapping
+//        self.detailText.textContainer.maximumNumberOfLines = 4
+//        self.detailText.attributedText = detailString
     }
     
     func stopEditing()
@@ -370,6 +386,7 @@ class MediaTableViewCell: UITableViewCell
     
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var detail: UILabel!
+    @IBOutlet weak var detailText: UITextView!
     @IBOutlet weak var icons: UILabel!
     
     func setupIcons()

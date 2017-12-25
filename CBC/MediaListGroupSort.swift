@@ -64,7 +64,7 @@ class MediaListGroupSort {
                     index?[id] = mediaItem
                 }
                 
-                if let className = mediaItem.className {
+                if mediaItem.hasClassName, let className = mediaItem.className {
                     if classes == nil {
                         classes = [className]
                     } else {
@@ -72,7 +72,7 @@ class MediaListGroupSort {
                     }
                 }
                 
-                if let eventName = mediaItem.eventName {
+                if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                     if events == nil {
                         events = [eventName]
                     } else {
@@ -564,7 +564,7 @@ class MediaListGroupSort {
                 index?[id] = mediaItem
             }
             
-            if let className = mediaItem.className {
+            if mediaItem.hasClassName, let className = mediaItem.className {
                 if classes == nil {
                     classes = [className]
                 } else {
@@ -572,7 +572,7 @@ class MediaListGroupSort {
                 }
             }
             
-            if let eventName = mediaItem.eventName {
+            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                 if events == nil {
                     events = [eventName]
                 } else {

@@ -250,6 +250,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 if self.mediaItem != nil {
                     self.html.string = insertHead(stripHead(self.mediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                } else
+                if self.transcript != nil {
+                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 } else {
                     self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 }
@@ -389,6 +392,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                 
                 popover.section.showIndex = true
+                popover.section.indexStringsTransform = nil
                 
                 popover.search = true
                 
@@ -414,8 +418,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 if let transcript = transcript {
                     popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
-                    
-                    popover.section.indexStringsTransform = nil
                     
                     popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"

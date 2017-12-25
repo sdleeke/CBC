@@ -891,7 +891,7 @@ class VoiceBase {
                             if characterAfter == "." {
                                 if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
                                     let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                         skip = true
                                     }
                                 }
@@ -1031,6 +1031,8 @@ class VoiceBase {
         }
     }
     
+    var settingTimer = false // Prevents a background thread from creating multiple timers accidentally by accessing transcript before the timer creation on the main thread is complete.
+    
     var transcript:String?
     {
         get {
@@ -1076,9 +1078,11 @@ class VoiceBase {
                 }
             }
 
-            if !completed && transcribing && !aligning && (_transcript == nil) && (self.resultsTimer == nil) {
+            if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
+                settingTimer = true
                 Thread.onMainThread() {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
+                    self.settingTimer = false
                 }
             } else {
                 // Overkill to make sure the cloud storage is cleaned-up?
@@ -1088,9 +1092,11 @@ class VoiceBase {
                 }
             }
 
-            if completed && !transcribing && aligning && (self.resultsTimer == nil) {
+            if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
+                settingTimer = true
                 Thread.onMainThread() {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                    self.settingTimer = false
                 }
             } else {
                 // Overkill to make sure the cloud storage is cleaned-up?
@@ -1643,7 +1649,7 @@ class VoiceBase {
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
         
         let sessionConfig = URLSessionConfiguration.default
-        sessionConfig.timeoutIntervalForRequest = 300.0
+        sessionConfig.timeoutIntervalForRequest = 30.0 * 60.0
         let session = URLSession(configuration: sessionConfig)
 
         // URLSession.shared
@@ -1725,9 +1731,9 @@ class VoiceBase {
                 
                 self.percentComplete = nil
                 
-                self.getTranscript(alert:alert) {
-                    self.getTranscriptSRT(alert:alert) {
-                        self.details(alert:alert) {
+                self.getTranscript(alert:false) {
+                    self.getTranscriptSRT(alert:false) {
+                        self.details(alert:false) {
                             self.transcribing = false
                             self.completed = true
                         }
@@ -3466,15 +3472,15 @@ class VoiceBase {
             return nil
         }
         
+        guard let text = mediaItem?.text else {
+            return nil
+        }
+        
         func mgtUpdate()
         {
             let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(percentComplete!)% complete)" : "")
             
             var title = "Machine Generated Transcript "
-            
-            guard let text = mediaItem?.text else {
-                return
-            }
             
             var message = "You will be notified when the machine generated transcript for\n\n\(text)\(completion) "
             
@@ -3486,7 +3492,7 @@ class VoiceBase {
                 
                 actions.append(AlertAction(title: "Media ID", style: .default, action: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                    message: nil,
+                                                    message: text + " (\(self.transcriptPurpose))",
                                                     preferredStyle: .alert)
                     alert.makeOpaque()
                     
@@ -3628,7 +3634,7 @@ class VoiceBase {
 
                     alertActionsCancel( viewController: viewController,
                                         title: "View",
-                                        message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
+                                        message: "This is a machine generated transcript for \n\n\(text) (\(self.transcriptPurpose))\n\nIt may lack proper formatting and have signifcant errors.",
                                         alertActions: alertActions,
                                         cancelAction: nil)
                 }))
@@ -3687,7 +3693,7 @@ class VoiceBase {
                 
                 alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                    message: nil,
+                                                    message: text + " (\(self.transcriptPurpose))",
                                                     preferredStyle: .alert)
                     alert.makeOpaque()
                     
@@ -3706,7 +3712,7 @@ class VoiceBase {
                 if globals.isVoiceBaseAvailable ?? false {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text, let mediaID = self.mediaID {
+                            if let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: "Delete", style: .destructive, action: {
@@ -3723,15 +3729,15 @@ class VoiceBase {
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
                                 
-                                globals.alert(title:"On VoiceBase", message:"A transcript for\n" + text + "\nwith mediaID \(mediaID) is on VoiceBase.", actions:actions)
+                                globals.alert(title:"On VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis on VoiceBase.", actions:actions)
                             }
                         }, onError:  { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text, let mediaID = self.mediaID {
+                            if let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
                                 
-                                globals.alert(title:"Not on VoiceBase", message:"A transcript for\n" + text + "\nwith mediaID \(mediaID) is not on VoiceBase.", actions:actions)
+                                globals.alert(title:"Not on VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis not on VoiceBase.", actions:actions)
                             }
                         })
                     }))
@@ -3776,7 +3782,7 @@ class VoiceBase {
                             
                             alertActionsCancel( viewController: viewController,
                                                 title: "Select Source for Realignment",
-                                                message: nil,
+                                                message: text,
                                                 alertActions: alertActions,
                                                 cancelAction: nil)
                         }))
@@ -3874,7 +3880,7 @@ class VoiceBase {
                     if let text = self.mediaItem?.text {
                         alertActionsCancel( viewController: viewController,
                                             title: "Restore Options",
-                                            message: "For\n\(text) (\(self.transcriptPurpose))",
+                                            message: "\(text) (\(self.transcriptPurpose))",
                             alertActions: alertActions,
                             cancelAction: nil)
                     }
@@ -3911,8 +3917,8 @@ class VoiceBase {
                 }))
                 
                 alertActionsCancel(  viewController: viewController,
-                                     title: "Machine Generated Transcript (\(self.transcriptPurpose))",
-                    message: nil,
+                                     title: "Machine Generated Transcript",
+                    message: text + " (\(self.transcriptPurpose))",
                     alertActions: alertActions,
                     cancelAction: nil)
             }

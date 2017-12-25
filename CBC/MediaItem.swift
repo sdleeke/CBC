@@ -29,62 +29,94 @@ class SearchHit {
     
     var title:Bool {
         get {
-            guard let searchText = searchText else {
+            guard let mediaItem = mediaItem else {
                 return false
             }
-            return mediaItem?.title?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            
+            guard mediaItem.hasTitle, let searchText = searchText else {
+                return false
+            }
+            return mediaItem.title?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var formattedDate:Bool {
         get {
+            guard let mediaItem = mediaItem else {
+                return false
+            }
+            
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem?.formattedDate?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.formattedDate?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var speaker:Bool {
         get {
-            guard let searchText = searchText else {
+            guard let mediaItem = mediaItem else {
                 return false
             }
-            return mediaItem?.speaker?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            
+            guard mediaItem.hasSpeaker, let searchText = searchText else {
+                return false
+            }
+            return mediaItem.speaker?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var scriptureReference:Bool {
         get {
+            guard let mediaItem = mediaItem else {
+                return false
+            }
+            
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem?.scriptureReference?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.scriptureReference?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var className:Bool {
         get {
-            guard let searchText = searchText else {
+            guard let mediaItem = mediaItem else {
                 return false
             }
-            return mediaItem?.className?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            
+            guard mediaItem.hasClassName, let searchText = searchText else {
+                return false
+            }
+            return mediaItem.className?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var eventName:Bool {
         get {
-            guard let searchText = searchText else {
+            guard let mediaItem = mediaItem else {
                 return false
             }
-            return mediaItem?.eventName?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            
+            guard mediaItem.hasEventName, let searchText = searchText else {
+                return false
+            }
+            return mediaItem.eventName?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var tags:Bool {
         get {
+            guard let mediaItem = mediaItem else {
+                return false
+            }
+            
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem?.tags?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.tags?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var transcriptHTML:Bool {
         get {
+            guard let mediaItem = mediaItem else {
+                return false
+            }
+            
             guard let searchText = searchText else {
                 return false
             }
@@ -93,7 +125,7 @@ class SearchHit {
 //                return false
 //            }
             
-            return mediaItem?.notesHTML?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesHTML?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 }
@@ -1306,7 +1338,11 @@ class MediaItem : NSObject
     
     var title:String? {
         get {
-            return dict?[Field.title]
+            guard let title = dict?[Field.title], !title.isEmpty else {
+                return Constants.Strings.None
+            }
+            
+            return title
         }
     }
     
@@ -1318,7 +1354,11 @@ class MediaItem : NSObject
     
     var scriptureReference:String? {
         get {
-            return dict?[Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms ")
+            guard let scriptureReference = dict?[Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms "), !scriptureReference.isEmpty else {
+                return Constants.Strings.Selected_Scriptures
+            }
+            
+            return scriptureReference
         }
     }
     
@@ -1335,13 +1375,21 @@ class MediaItem : NSObject
     
     var classSection:String! {
         get {
-            return className ?? Constants.Strings.None
+            guard let className = className, !className.isEmpty else {
+                return Constants.Strings.None
+            }
+            
+            return className
         }
     }
     
     var className:String? {
         get {
-            return dict?[Field.className]
+            guard let className = dict?[Field.className], !className.isEmpty else {
+                return Constants.Strings.None
+            }
+            
+            return className
         }
     }
     
@@ -1353,13 +1401,21 @@ class MediaItem : NSObject
     
     var eventSection:String! {
         get {
-            return eventName ?? Constants.Strings.None
+            guard let eventName = eventName, !eventName.isEmpty else {
+                return Constants.Strings.None
+            }
+            
+            return eventName
         }
     }
     
     var eventName:String? {
         get {
-            return dict?[Field.eventName]
+            guard let eventName = dict?[Field.eventName], !eventName.isEmpty else {
+                return Constants.Strings.None
+            }
+            
+            return eventName
         }
     }
     
@@ -1375,13 +1431,21 @@ class MediaItem : NSObject
     
     var speakerSection:String! {
         get {
-            return speaker ?? Constants.Strings.None
+            guard let speaker = speaker, !speaker.isEmpty else {
+                return Constants.Strings.None
+            }
+
+            return speaker
         }
     }
     
     var speaker:String? {
         get {
-            return dict?[Field.speaker]
+            guard let speaker = dict?[Field.speaker], !speaker.isEmpty else {
+                return Constants.Strings.None
+            }
+
+            return speaker
         }
     }
     
@@ -1609,10 +1673,16 @@ class MediaItem : NSObject
             
             tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : savedTags
             
-            tags = tags != nil ? tags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : dynamicTags
+            if let dynamicTags = self.dynamicTags {
+                tags = tags != nil ? (tags! + "|" + dynamicTags) : dynamicTags
+            }
+
+            if let constantTags = self.constantTags {
+                tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
+            }
             
-            tags = tags != nil ? tags! + (constantTags != nil ? "|" + constantTags! : "") : constantTags
-            
+            // What does proposedTags() do?
+            // It looks for tags with hyphens - why?
             if let proposedTags = proposedTags(jsonTags) {
                 tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
             }
@@ -1625,9 +1695,17 @@ class MediaItem : NSObject
                 tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
             }
             
-//            print(tags)
+            if let proposedTags = proposedTags(constantTags) {
+                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+            }
             
-            return tags
+            // This coalesces the tags so there are no duplicates
+            if let tagsArray = tagsArrayFromTagsString(tags), let tagsString = tagsSetToString(Set(tagsArray)) {
+//                print(tagsString)
+                return tagsString // tags
+            } else {
+                return nil
+            }
         }
     }
     
@@ -1735,7 +1813,9 @@ class MediaItem : NSObject
             return nil
         }
         
-        let array = Array(tagsSet)
+        let array = Array(tagsSet).sorted { (first:String, second:String) -> Bool in
+            return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
+        }
         
         guard array.count > 0 else {
             return nil
@@ -1933,7 +2013,7 @@ class MediaItem : NSObject
                             if characterAfter == "." {
                                 if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
                                     let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                         skip = true
                                     }
                                 }
@@ -2644,7 +2724,7 @@ class MediaItem : NSObject
                     
                 case "speaker":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
-                    if let speaker = self.speaker {
+                    if hasSpeaker, let speaker = self.speaker {
                         bodyString = bodyString! + speaker
                     }
                     bodyString = bodyString! + "</td>"
@@ -2652,7 +2732,7 @@ class MediaItem : NSObject
                     
                 case "class":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
-                    if let className = self.className {
+                    if hasClassName, let className = self.className {
                         bodyString = bodyString! + className
                     }
                     bodyString = bodyString! + "</td>"
@@ -2660,7 +2740,7 @@ class MediaItem : NSObject
                     
                 case "event":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
-                    if let eventName = self.eventName {
+                    if hasEventName, let eventName = self.eventName {
                         bodyString = bodyString! + eventName
                     }
                     bodyString = bodyString! + "</td>"
@@ -2710,19 +2790,19 @@ class MediaItem : NSObject
                     break
                     
                 case "speaker":
-                    if let speaker = self.speaker {
+                    if hasSpeaker, let speaker = self.speaker {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + speaker // Constants.SINGLE_SPACE +
                     }
                     break
                     
                 case "class":
-                    if let className = self.className {
+                    if hasClassName, let className = self.className {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + className // Constants.SINGLE_SPACE +
                     }
                     break
                     
                 case "event":
-                    if let eventName = self.eventName {
+                    if hasEventName, let eventName = self.eventName {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + eventName // Constants.SINGLE_SPACE +
                     }
                     break
@@ -2767,7 +2847,7 @@ class MediaItem : NSObject
                 }
             }
             
-            if hasScripture, let scriptureReference = scriptureReference {
+            if let scriptureReference = scriptureReference {
                 string = string + "\n\(scriptureReference)"
             }
             
@@ -2959,11 +3039,11 @@ class MediaItem : NSObject
     
     var hasTitle : Bool
     {
-        guard let isEmpty = title?.isEmpty else {
+        guard let title = title else {
             return false
         }
         
-        return !isEmpty
+        return !title.isEmpty && (title != Constants.Strings.None)
     }
     
     var playingAudio : Bool
@@ -2988,33 +3068,33 @@ class MediaItem : NSObject
     var hasScripture:Bool
         {
         get {
-            guard let isEmpty = scriptureReference?.isEmpty else {
+            guard let scriptureReference = scriptureReference else {
                 return false
             }
             
-            return !isEmpty
+            return !scriptureReference.isEmpty && (scriptureReference != Constants.Strings.None)
         }
     }
     
     var hasClassName:Bool
         {
         get {
-            guard let isEmpty = className?.isEmpty else {
+            guard let className = className else {
                 return false
             }
             
-            return !isEmpty
+            return !className.isEmpty && (className != Constants.Strings.None)
         }
     }
     
     var hasEventName:Bool
         {
         get {
-            guard let isEmpty = eventName?.isEmpty else {
+            guard let eventName = eventName else {
                 return false
             }
             
-            return !isEmpty
+            return !eventName.isEmpty && (eventName != Constants.Strings.None)
         }
     }
     
@@ -3050,15 +3130,21 @@ class MediaItem : NSObject
     var hasSpeaker:Bool
     {
         get {
-            guard let isEmpty = speaker?.isEmpty else {
+            guard let speaker = speaker else {
                 return false
             }
             
-            if isEmpty {
-                print("speaker is empty")
-            }
-            
-            return !isEmpty
+            return !speaker.isEmpty && (speaker != Constants.Strings.None)
+
+//            guard let isEmpty = ?.isEmpty else {
+//                return false
+//            }
+//            
+//            if isEmpty {
+//                print("speaker is empty")
+//            }
+//            
+//            return !isEmpty
         }
     }
     

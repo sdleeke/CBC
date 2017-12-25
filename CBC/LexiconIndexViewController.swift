@@ -616,7 +616,8 @@ class LexiconIndexViewController : UIViewController
                     ptvc.segments = true
 
                     ptvc.section.showIndex = true
-
+                    ptvc.section.indexStringsTransform = nil
+                    
                     ptvc.section.strings = self.mediaListGroupSort?.lexicon?.section.strings
                 }
                 break
@@ -857,13 +858,13 @@ class LexiconIndexViewController : UIViewController
                         }
                         
                         if globals.grouping != GROUPING.CLASS {
-                            if let className = mediaItem.className, !className.isEmpty {
+                            if mediaItem.hasClassName, let className = mediaItem.className {
                                 order.append("class")
                             }
                         }
                         
                         if globals.grouping != GROUPING.EVENT {
-                            if let eventName = mediaItem.eventName, !eventName.isEmpty {
+                            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                                 order.append("event")
                             }
                         }
