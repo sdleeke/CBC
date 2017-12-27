@@ -616,7 +616,6 @@ class LexiconIndexViewController : UIViewController
                     ptvc.segments = true
 
                     ptvc.section.showIndex = true
-                    ptvc.section.indexStringsTransform = nil
                     
                     ptvc.section.strings = self.mediaListGroupSort?.lexicon?.section.strings
                 }
@@ -1318,6 +1317,7 @@ extension LexiconIndexViewController : UITableViewDelegate
         var download:AlertAction!
         var transcript:AlertAction!
         var scripture:AlertAction!
+        var share:AlertAction!
         
         if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
             var title = ""
@@ -1440,6 +1440,11 @@ extension LexiconIndexViewController : UITableViewDelegate
             }
         }
         
+        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+            mediaItem.share(viewController: self)
+            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+        }
+        
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0]
@@ -1474,6 +1479,8 @@ extension LexiconIndexViewController : UITableViewDelegate
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
         }
+        
+        actions.append(share)
         
         if mediaItem.hasAudio && (download != nil) {
             actions.append(download)

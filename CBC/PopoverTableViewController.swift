@@ -583,7 +583,7 @@ class PopoverTableViewController : UIViewController
     var shouldSelect:((IndexPath)->Bool)?
     var didSelect:((IndexPath)->Void)?
     
-    var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes {
+    var indexStringsTransform:((String?)->String?)? {
         willSet {
             
         }

@@ -264,7 +264,7 @@ class Section
             }
         }
     }
-    var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes
+    var indexStringsTransform:((String?)->String?)?
     var indexHeadersTransform:((String?)->String?)?
     
     var indexSort:((String?,String?)->Bool)?

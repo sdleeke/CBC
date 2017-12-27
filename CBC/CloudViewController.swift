@@ -431,7 +431,7 @@ class CloudViewController: UIViewController
             let activityViewController = UIActivityViewController(activityItems: [snapshotImage,mediaItem?.text], applicationActivities: nil)
             
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-            activityViewController.excludedActivityTypes = [UIActivityType.airDrop]
+            activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
             
             let popoverPresentationController = activityViewController.popoverPresentationController
             
@@ -794,7 +794,6 @@ class CloudViewController: UIViewController
                     ptvc.search = false
                     
                     ptvc.section.showIndex = false
-                    ptvc.section.indexStringsTransform = nil
 
                     ptvc.sort.method = Constants.Sort.Frequency
 

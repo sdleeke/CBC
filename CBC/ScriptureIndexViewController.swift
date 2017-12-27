@@ -127,10 +127,6 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
             default:
                 break
             }
@@ -1625,6 +1621,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         var download:AlertAction!
         var transcript:AlertAction!
         var scripture:AlertAction!
+        var share:AlertAction!
         
         if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
             var title = ""
@@ -1748,6 +1745,11 @@ extension ScriptureIndexViewController : UITableViewDelegate
             }
         }
         
+        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+            mediaItem.share(viewController: self)
+            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+        }
+        
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0]
@@ -1782,6 +1784,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
         }
+        
+        actions.append(share)
         
         if mediaItem.hasAudio && (download != nil) {
             actions.append(download)

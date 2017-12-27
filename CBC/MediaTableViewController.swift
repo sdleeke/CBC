@@ -2387,12 +2387,14 @@ class MediaTableViewController : UIViewController // MediaController
                 
             case GROUPING.TITLE:
                 popover.section.showIndex = true
+                popover.indexStringsTransform = stringWithoutPrefixes
                 popover.section.strings = globals.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
+                popover.indexStringsTransform = stringWithoutPrefixes
                 popover.section.strings = globals.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
@@ -3272,7 +3274,8 @@ class MediaTableViewController : UIViewController // MediaController
             popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
             
             popover.section.showIndex = true
-            
+            popover.indexStringsTransform = stringWithoutPrefixes
+
             popover.section.strings = tagsMenu()
             
             popover.search = popover.section.strings?.count > 10
@@ -4178,6 +4181,7 @@ extension MediaTableViewController : UITableViewDelegate
             return nil
         }
         
+        var share:AlertAction!
         var tags:AlertAction!
         var download:AlertAction!
         var search:AlertAction!
@@ -4387,9 +4391,9 @@ extension MediaTableViewController : UITableViewDelegate
                 popover.selectedMediaItem = mediaItem
                 
                 popover.section.showIndex = true
-                
+
                 popover.section.strings = tokens
-                
+
                 popover.vc = self.splitViewController
                 
                 popover.segments = true
@@ -4501,6 +4505,11 @@ extension MediaTableViewController : UITableViewDelegate
                                 cancelAction: nil)
         }
         
+        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+            mediaItem.share(viewController: self)
+            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+        }
+        
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0]
@@ -4541,6 +4550,8 @@ extension MediaTableViewController : UITableViewDelegate
             actions.append(words)
             actions.append(transcript)
         }
+        
+        actions.append(share)
         
         if mediaItem.hasAudio && (download != nil) {
             actions.append(download)

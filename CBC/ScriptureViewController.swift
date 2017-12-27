@@ -30,24 +30,26 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 
     func shareHTML(_ htmlString:String?)
     {
-        guard htmlString != nil else {
+        guard let htmlString = htmlString else {
             return
         }
         
-        let activityItems = [htmlString as Any]
-        
-        activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
+        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+        let margin:CGFloat = 0.5 * 72
+        print.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
+        activityViewController = UIActivityViewController(activityItems:[htmlString,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
-        activityViewController?.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        activityViewController?.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
         
         activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
         if let activityViewController = self.activityViewController {
             // present the view controller
             Thread.onMainThread() {
-                self.present(activityViewController, animated: false, completion: nil)
+                self.present(activityViewController, animated: true, completion: nil)
             }
         }
     }

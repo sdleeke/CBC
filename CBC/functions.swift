@@ -2551,11 +2551,12 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     func processToken()
     {
-        guard (token.endIndex > String.Index(encodedOffset: 2)) else {
-//            print(token)
-            token = Constants.EMPTY_STRING
-            return
-        }
+        // Only if we want to eliminate everything 2 characters and shorter.
+//        guard (token.endIndex > String.Index(encodedOffset: 2)) else {
+////            print(token)
+//            token = Constants.EMPTY_STRING
+//            return
+//        }
         
         let excludedWords = [String]() // ["and", "are", "can", "for", "the"]
         
@@ -3452,9 +3453,15 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
 
     if let html = html {
         let formatter = UIMarkupTextPrintFormatter(markupText: html)
-        formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
-        
-        pic.printFormatter = formatter
+        let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
+        formatter.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+//        pic.printFormatter = formatter
+
+        let renderer = UIPrintPageRenderer()
+        renderer.headerHeight = margin
+        renderer.footerHeight = margin
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        pic.printPageRenderer = renderer
         
         pi.orientation = orientation
     }
@@ -3740,23 +3747,21 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
         return
     }
     
-    guard htmlString != nil else {
+    guard let htmlString = htmlString else {
         return
     }
 
-    let activityItems = [htmlString as Any]
-    
-    let activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
+    let activityViewController = UIActivityViewController(activityItems:[htmlString] , applicationActivities: nil)
     
     // exclude some activity types from the list (optional)
     
-    activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+    activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
     
     activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
     // present the view controller
     Thread.onMainThread() {
-        viewController.present(activityViewController, animated: false, completion: nil)
+        viewController.present(activityViewController, animated: true, completion: nil)
     }
 }
 

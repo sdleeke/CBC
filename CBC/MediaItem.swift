@@ -524,6 +524,81 @@ extension MediaItem : URLSessionDownloadDelegate
     }
 }
 
+extension MediaItem : UIActivityItemSource
+{
+    func share(viewController:UIViewController)
+    {
+        guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
+            return
+        }
+        
+        let print = UIMarkupTextPrintFormatter(markupText: series)
+        let margin:CGFloat = 0.5 * 72
+        print.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        
+        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+        
+        // present the view controller
+        Thread.onMainThread() {
+            viewController.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    {
+        guard let text = self.text else {
+            return nil
+        }
+        
+        guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
+            return nil
+        }
+        
+        if activityType == UIActivityType.mail {
+            return series
+        } else if activityType == UIActivityType.print {
+            return series
+        }
+
+        var string : String!
+        
+        if let path = self.websiteURL?.absoluteString {
+            string = text + "\n\n" + path
+        } else {
+            string = text
+        }
+
+        return string
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return self.text ?? ""
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        if activityType == UIActivityType.mail {
+            return "public.text"
+        } else if activityType == UIActivityType.print {
+            return "public.text"
+        }
+        
+        return "public.plain-text"
+    }
+}
+
 class MediaItem : NSObject
 {
     static func ==(lhs: MediaItem, rhs: MediaItem) -> Bool

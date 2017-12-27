@@ -401,9 +401,9 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 //            shareHTML(viewController: self, htmlString: mediaItem?.webLink)
 //            break
             
-        case Constants.Strings.Share_All:
-            shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
-            break
+//        case Constants.Strings.Share_All:
+//            shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
+//            break
             
         case Constants.Strings.Refresh_Document:
             fallthrough
@@ -2309,12 +2309,13 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        actionMenu.append(Constants.Strings.Print)
+//        actionMenu.append(Constants.Strings.Print)
+        
 //        actionMenu.append(Constants.Strings.Share)
         
-        if mediaItems.count > 1 {
-            actionMenu.append(Constants.Strings.Share_All)
-        }
+//        if mediaItems.count > 1 {
+//            actionMenu.append(Constants.Strings.Share_All)
+//        }
 
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -5069,7 +5070,8 @@ extension MediaViewController : UITableViewDataSource
         }
         
         share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+            mediaItem.share(viewController: self)
+//            shareHTML(viewController: self, htmlString: mediaItem.webLink)
         }
 
         transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
@@ -5158,9 +5160,15 @@ extension MediaViewController : UITableViewDataSource
                 }
             }
             
+            var message = "Machine Generated Transcript"
+            
+            if let text = mediaItem.text {
+                message += "\n\n\(text)"
+            }
+            
             alertActionsCancel( viewController: self,
                                 title: "VoiceBase",
-                                message: "Machine Generated Transcript",
+                                message: message,
                                 alertActions: alertActions,
                                 cancelAction: nil)
         }
