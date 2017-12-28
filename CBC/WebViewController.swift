@@ -72,6 +72,76 @@ struct HTML {
     var zoomScale = 0.0
 }
 
+extension WebViewController : UIActivityItemSource
+{
+    func share()
+    {
+        guard let htmlString = html.string else {
+            return
+        }
+        
+        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+        let margin:CGFloat = 0.5 * 72
+        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        
+        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+        
+        //        if let cell = cell {
+        //            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
+        //            activityViewController.popoverPresentationController?.sourceView = cell
+        //        } else {
+        //            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+        //        }
+        
+        // present the view controller
+        Thread.onMainThread() {
+            self.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    {
+        if activityType == UIActivityType.mail {
+            return html.string
+        } else if activityType == UIActivityType.print {
+            return html.string
+        }
+        
+        if let string = stripHTML(html.string) {
+            return string
+        }
+        
+        return nil
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return self.navigationItem.title ?? ""
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        if activityType == UIActivityType.mail {
+            return "public.text"
+        } else if activityType == UIActivityType.print {
+            return "public.text"
+        }
+        
+        return "public.plain-text"
+    }
+}
+
 extension WebViewController : UIAdaptivePresentationControllerDelegate
 {
     // MARK: UIAdaptivePresentationControllerDelegate
@@ -143,29 +213,29 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //        dismiss(animated: true, completion: nil)
 //    }
     
-    func shareHTML(_ htmlString:String?)
-    {
-        guard let htmlString = htmlString else {
-            return
-        }
-        
-        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-        let margin:CGFloat = 0.5 * 72
-        print.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-        
-        let activityViewController = UIActivityViewController(activityItems:[htmlString,print] , applicationActivities: nil)
-
-        // exclude some activity types from the list (optional)
-        
-        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-        
-        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-        // present the view controller
-        Thread.onMainThread() {
-            self.present(activityViewController, animated: true, completion: nil)
-        }
-    }
+//    func shareHTML(_ htmlString:String?)
+//    {
+//        guard let htmlString = htmlString else {
+//            return
+//        }
+//        
+//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+//        let margin:CGFloat = 0.5 * 72
+//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+//        
+//        let activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print] , applicationActivities: nil)
+//
+//        // exclude some activity types from the list (optional)
+//        
+//        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+//        
+//        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//        
+//        // present the view controller
+//        Thread.onMainThread() {
+//            self.present(activityViewController, animated: true, completion: nil)
+//        }
+//    }
     
     func showFullScreen()
     {
@@ -232,7 +302,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Share:
-            shareHTML(html.string)
+            share()
             break
             
         case Constants.Strings.Search:
@@ -377,17 +447,37 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 var segmentActions = [SegmentAction]()
                 
                 segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                    popover.sort.method = Constants.Sort.Alphabetical
-                    popover.section.showIndex = true
-                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    popover.tableView.reloadData()
+                    let strings = popover.sort.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                    if popover.segmentedControl.selectedSegmentIndex == 0 {
+                        popover.sort.method = Constants.Sort.Alphabetical
+                        popover.section.strings = strings
+                        popover.section.showIndex = true
+                        popover.tableView?.reloadData()
+                    }
                 }))
+                
                 segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                    popover.sort.method = Constants.Sort.Frequency
-                    popover.section.showIndex = false
-                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    popover.tableView.reloadData()
+                    let strings = popover.sort.function?(Constants.Sort.Frequency,popover.section.strings)
+                    if popover.segmentedControl.selectedSegmentIndex == 1 {
+                        popover.sort.method = Constants.Sort.Frequency
+                        popover.section.strings = strings
+                        popover.section.showIndex = false
+                        popover.tableView?.reloadData()
+                    }
                 }))
+
+//                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+//                    popover.sort.method = Constants.Sort.Alphabetical
+//                    popover.section.showIndex = true
+//                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+//                    popover.tableView.reloadData()
+//                }))
+//                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+//                    popover.sort.method = Constants.Sort.Frequency
+//                    popover.section.showIndex = false
+//                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+//                    popover.tableView.reloadData()
+//                }))
                 
                 popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                 
@@ -765,12 +855,10 @@ class WebViewController: UIViewController
                     
                     var skip = false
                     
-                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                    
                     if wholeWordsOnly {
                         if let characterAfter:Character = stringAfter.first {
                             if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
-                                !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -786,7 +874,7 @@ class WebViewController: UIViewController
                         }
                         if let characterBefore:Character = stringBefore.last {
                             if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
-                                !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }

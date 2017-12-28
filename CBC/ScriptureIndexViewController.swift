@@ -1746,7 +1746,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         }
         
         share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self)
+            mediaItem.share(viewController: self,cell: cell)
             //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
         }
         

@@ -705,6 +705,11 @@ enum Constants {
     static let HTML_MIN_FONT_SIZE = 4
     
     enum Strings {
+        static let TokenDelimiters = "$\"' :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+        static let TrimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
+        static let BreakChars = "\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
+        static let NumberChars = "$0123456789"
+        
         static let Selected_Scriptures  = "Selected Scriptures"
         
         static let Individual_Media     = "Single Part Media"
@@ -817,6 +822,9 @@ enum Constants {
         
         static let Print_Slides = "Print Slides"
         static let Print_Transcript = "Print Transcript"
+        
+        static let Share_Slides = "Share Slides"
+        static let Share_Transcript = "Share Transcript"
         
         static let Refresh_Document = "Refresh Document"
         

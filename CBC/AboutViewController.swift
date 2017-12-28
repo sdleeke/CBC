@@ -73,7 +73,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Share_This_App:
-                shareHTML(viewController: self, htmlString: "Countryside Bible Church app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
+                share()
                 break
                 
             default:
@@ -97,6 +97,21 @@ extension AboutViewController : UIPopoverPresentationControllerDelegate
 
 class AboutViewController: UIViewController
 {
+    func share()
+    {
+        let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
+        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church app",url], applicationActivities: nil)
+        
+        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
+        
+        let popoverPresentationController = activityViewController.popoverPresentationController
+        
+        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        present(activityViewController, animated: true, completion: nil)
+    }
+    
     override var canBecomeFirstResponder : Bool
     {
         return true

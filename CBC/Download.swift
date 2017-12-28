@@ -273,24 +273,22 @@ class Download : NSObject {
     
     func delete()
     {
-        guard let fileSystemURL = fileSystemURL else {
+        guard let fileSystemURL = fileSystemURL, state == .downloaded else {
             return
         }
         
-        if (state == .downloaded) {
-            // Check if file exists and if so, delete it.
-            if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
-                do {
-                    try FileManager.default.removeItem(at: fileSystemURL)
-                } catch let error as NSError {
-                    print("failed to delete download: \(error.localizedDescription)")
-                }
+        // Check if file exists and if so, delete it.
+        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
+            do {
+                try FileManager.default.removeItem(at: fileSystemURL)
+            } catch let error as NSError {
+                print("failed to delete download: \(error.localizedDescription)")
             }
-            
-            state = .none // MUST delete file first as state change updates UI.
-            totalBytesWritten = 0
-            totalBytesExpectedToWrite = 0
         }
+        
+        state = .none // MUST delete file first as state change updates UI.
+        totalBytesWritten = 0
+        totalBytesExpectedToWrite = 0
     }
     
     func cancelOrDelete()
@@ -311,15 +309,17 @@ class Download : NSObject {
     
     func cancel()
     {
-        if (active) {
-            state = .none
-
-            task?.cancel()
-            task = nil
-            
-            totalBytesWritten = 0
-            totalBytesExpectedToWrite = 0
+        guard active else {
+            return
         }
+
+        state = .none
+        
+        task?.cancel()
+        task = nil
+        
+        totalBytesWritten = 0
+        totalBytesExpectedToWrite = 0
     }
 }
 

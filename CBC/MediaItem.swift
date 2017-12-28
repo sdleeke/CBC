@@ -526,7 +526,7 @@ extension MediaItem : URLSessionDownloadDelegate
 
 extension MediaItem : UIActivityItemSource
 {
-    func share(viewController:UIViewController)
+    func share(viewController:UIViewController, cell:MediaTableViewCell?)
     {
         guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
             return
@@ -534,15 +534,22 @@ extension MediaItem : UIActivityItemSource
         
         let print = UIMarkupTextPrintFormatter(markupText: series)
         let margin:CGFloat = 0.5 * 72
-        print.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
         
         let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
         activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-        
+
         activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+
+//        if let cell = cell {
+//            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
+//            activityViewController.popoverPresentationController?.sourceView = cell
+//        } else {
+//            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+//        }
         
         // present the view controller
         Thread.onMainThread() {
@@ -2061,20 +2068,18 @@ class MediaItem : NSObject
                 
                 var skip = false
                 
-                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                
                 if wholeWordsOnly {
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
@@ -2082,13 +2087,13 @@ class MediaItem : NSObject
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         } else {
                             if characterAfter == "." {
                                 if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
                                     let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                         skip = true
                                     }
                                 }

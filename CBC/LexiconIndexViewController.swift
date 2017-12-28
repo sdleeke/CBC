@@ -565,42 +565,59 @@ class LexiconIndexViewController : UIViewController
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        self.ptvc.sort.method = Constants.Sort.Alphabetical
-                        self.ptvc.section.showIndex = true
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
+                        
                         self.updateLocateButton()
+                        
                         DispatchQueue.global(qos: .background).async { [weak self] in
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+                            let strings = self?.ptvc.sort.function?(Constants.Sort.Alphabetical,self?.ptvc.section.strings)
+
                             Thread.onMainThread(block: { (Void) -> (Void) in
+                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 0 {
+                                    self?.ptvc.sort.method = Constants.Sort.Alphabetical
+                                    self?.ptvc.section.showIndex = true
+                                    self?.ptvc.section.strings = strings
+                                }
+                                
                                 self?.ptvc.tableView.isHidden = false
                                 self?.ptvc.tableView.reloadData()
                                 
                                 if self?.lexicon?.creating == false {
                                     self?.ptvc.activityIndicator.stopAnimating()
                                 }
+                                
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
                             })
                         }
                     }))
+                    
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        self.ptvc.sort.method = Constants.Sort.Frequency
-                        self.ptvc.section.showIndex = false
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
+
                         self.updateLocateButton()
+                        
                         DispatchQueue.global(qos: .background).async { [weak self] in
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+                            let strings = self?.ptvc.sort.function?(Constants.Sort.Frequency,self?.ptvc.section.strings)
+                            
                             Thread.onMainThread(block: { (Void) -> (Void) in
+                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 1 {
+                                    self?.ptvc.sort.method = Constants.Sort.Frequency
+                                    self?.ptvc.section.showIndex = false
+                                    self?.ptvc.section.strings = strings
+                                }
+                                
                                 self?.ptvc.tableView.isHidden = false
                                 self?.ptvc.tableView.reloadData()
                                 
                                 if self?.lexicon?.creating == false {
                                     self?.ptvc.activityIndicator.stopAnimating()
                                 }
+                                
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
                             })
@@ -1441,7 +1458,7 @@ extension LexiconIndexViewController : UITableViewDelegate
         }
         
         share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self)
+            mediaItem.share(viewController: self, cell: cell)
             //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
         }
         

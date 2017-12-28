@@ -743,10 +743,8 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 var skip = false
                 
                 if wholeWordsOnly {
-                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                    
                     if let characterAfter:Character = stringAfter.first {
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -761,7 +759,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         }
                     }
                     if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
                     }
@@ -824,10 +822,8 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
             var skip = false
             
             if wholeWordsOnly {
-                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                
                 if let characterAfter:Character = stringAfter.first {
-                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
                     
@@ -842,7 +838,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                     }
                 }
                 if let characterBefore:Character = stringBefore.last {
-                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
                 }
@@ -2449,15 +2445,13 @@ func tokensFromString(_ string:String?) -> [String]?
     //        print(string)
     
     var token = Constants.EMPTY_STRING
-    let trimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
-    let breakChars = "\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
 
     func processToken()
     {
-        guard (token.endIndex > String.Index(encodedOffset: 2)) else { // "XX".endIndex
-            token = Constants.EMPTY_STRING
-            return
-        }
+//        guard (token.endIndex > String.Index(encodedOffset: 2)) else { // "XX".endIndex
+//            token = Constants.EMPTY_STRING
+//            return
+//        }
         
         let excludedWords = [String]() //["and", "are", "can", "for", "the"]
         
@@ -2468,9 +2462,9 @@ func tokensFromString(_ string:String?) -> [String]?
             }
         }
         
-        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
-            token = Constants.EMPTY_STRING
-        }
+//        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+//            token = Constants.EMPTY_STRING
+//        }
         
 //        if token.lowercased() != "it's" {
 //            if let range = token.lowercased().range(of: "'s") {
@@ -2478,9 +2472,9 @@ func tokensFromString(_ string:String?) -> [String]?
 //            }
 //        }
         
-        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
             //                print("\(token)")
-            token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
             //                print("\(token)")
         }
         
@@ -2494,12 +2488,12 @@ func tokensFromString(_ string:String?) -> [String]?
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: breakChars).contains(unicodeScalar) {
+            if CharacterSet(charactersIn: Constants.Strings.BreakChars).contains(unicodeScalar) {
                 //                print(token)
                 processToken()
             } else {
-                if !CharacterSet(charactersIn: "$0123456789").contains(unicodeScalar) {
-                    if !CharacterSet(charactersIn: trimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
+                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
+                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
                         //                        print(token)
                         token.append(char)
@@ -2546,8 +2540,6 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     //        print(string)
     
     var token = Constants.EMPTY_STRING
-    let trimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
-    let breakChars = "\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
     
     func processToken()
     {
@@ -2567,9 +2559,9 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             }
         }
         
-        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
-            token = Constants.EMPTY_STRING
-        }
+//        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+//            token = Constants.EMPTY_STRING
+//        }
         
 //        print(token)
         
@@ -2579,9 +2571,9 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
 //            }
 //        }
         
-        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
 //                print("\(token)")
-            token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
 //                print("\(token)")
         }
         
@@ -2602,12 +2594,12 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: breakChars).contains(unicodeScalar) {
+            if CharacterSet(charactersIn: Constants.Strings.BreakChars).contains(unicodeScalar) {
 //                print(token)
                 processToken()
             } else {
-                if !CharacterSet(charactersIn: "$0123456789").contains(unicodeScalar) {
-                    if !CharacterSet(charactersIn: trimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
+                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
+                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
 //                        print(token)
                         token.append(char)
@@ -3454,7 +3446,7 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     if let html = html {
         let formatter = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
-        formatter.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 //        pic.printFormatter = formatter
 
         let renderer = UIPrintPageRenderer()
@@ -3740,43 +3732,47 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
     }
 }
 
-func shareHTML(viewController:UIViewController,htmlString:String?)
-{
-    guard Thread.isMainThread else {
-        alert(viewController:viewController,title: "Not Main Thread", message: "functions:shareHTML", completion: nil)
-        return
-    }
-    
-    guard let htmlString = htmlString else {
-        return
-    }
+//func shareHTML(viewController:UIViewController,htmlString:String?)
+//{
+//    guard Thread.isMainThread else {
+//        alert(viewController:viewController,title: "Not Main Thread", message: "functions:shareHTML", completion: nil)
+//        return
+//    }
+//
+//    guard let htmlString = htmlString else {
+//        return
+//    }
+//
+//    let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+//    let margin:CGFloat = 0.5 * 72
+//    print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+//
+//    let activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print], applicationActivities: nil)
+//
+//    // exclude some activity types from the list (optional)
+//
+//    activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+//
+//    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+//
+//    // present the view controller
+//    Thread.onMainThread() {
+//        viewController.present(activityViewController, animated: true, completion: nil)
+//    }
+//}
 
-    let activityViewController = UIActivityViewController(activityItems:[htmlString] , applicationActivities: nil)
-    
-    // exclude some activity types from the list (optional)
-    
-    activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-    
-    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-
-    // present the view controller
-    Thread.onMainThread() {
-        viewController.present(activityViewController, animated: true, completion: nil)
-    }
-}
-
-func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)
-{
-    guard (mediaItems != nil) && (stringFunction != nil) else {
-        return
-    }
-    
-    process(viewController: viewController, work: {
-        return stringFunction?(mediaItems)
-    }, completion: { (data:Any?) in
-        shareHTML(viewController: viewController, htmlString: data as? String)
-    })
-}
+//func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)
+//{
+//    guard (mediaItems != nil) && (stringFunction != nil) else {
+//        return
+//    }
+//    
+//    process(viewController: viewController, work: {
+//        return stringFunction?(mediaItems)
+//    }, completion: { (data:Any?) in
+//        shareHTML(viewController: viewController, htmlString: data as? String)
+//    })
+//}
 
 func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
 {
@@ -3872,7 +3868,8 @@ func stripLinks(_ string:String?) -> String?
         }
     }
     
-    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
+//    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/>", with: "")
 
     while bodyString?.range(of: "<a") != nil {
         if let startRange = bodyString?.range(of: "<a") {
@@ -3965,8 +3962,13 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "&ccedil;", with: "C")
     
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
+    bodyString = bodyString?.replacingOccurrences(of: "</br>", with: "\n")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "<span>", with: "")
     
     bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "<center>", with: "")
     
     bodyString = bodyString?.replacingOccurrences(of: "<tr>", with: "")
 
@@ -3988,7 +3990,11 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "</tr>", with: "\n")
     
     bodyString = bodyString?.replacingOccurrences(of: "</table>", with: "")
-
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</center>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</span>", with: "")
+    
     bodyString = bodyString?.replacingOccurrences(of: "</font>", with: "")
     
     bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
@@ -3999,9 +4005,15 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "<em>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</em>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<p>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "<i>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</i>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "<p>", with: "\n\n")
     bodyString = bodyString?.replacingOccurrences(of: "</p>", with: "")
     
+    bodyString = bodyString?.replacingOccurrences(of: "<b>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</b>", with: "")
+
 //        print(bodyString)
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)

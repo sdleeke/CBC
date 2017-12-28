@@ -28,31 +28,31 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
 
-    func shareHTML(_ htmlString:String?)
-    {
-        guard let htmlString = htmlString else {
-            return
-        }
-        
-        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-        let margin:CGFloat = 0.5 * 72
-        print.contentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-
-        activityViewController = UIActivityViewController(activityItems:[htmlString,print] , applicationActivities: nil)
-        
-        // exclude some activity types from the list (optional)
-        
-        activityViewController?.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-        
-        activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-        if let activityViewController = self.activityViewController {
-            // present the view controller
-            Thread.onMainThread() {
-                self.present(activityViewController, animated: true, completion: nil)
-            }
-        }
-    }
+//    func shareHTML(_ htmlString:String?)
+//    {
+//        guard let htmlString = htmlString else {
+//            return
+//        }
+//        
+//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+//        let margin:CGFloat = 0.5 * 72
+//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+//
+//        activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print] , applicationActivities: nil)
+//        
+//        // exclude some activity types from the list (optional)
+//        
+//        activityViewController?.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+//        
+//        activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//        
+//        if let activityViewController = self.activityViewController {
+//            // present the view controller
+//            Thread.onMainThread() {
+//                self.present(activityViewController, animated: true, completion: nil)
+//            }
+//        }
+//    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
@@ -113,9 +113,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-            case Constants.Strings.Share:
-                shareHTML(webViewController?.html.string)
-                break
+//            case Constants.Strings.Share:
+//                shareHTML(viewController: self, htmlString: webViewController?.html.string)
+//                break
                 
             default:
                 break
@@ -534,6 +534,8 @@ class ScriptureViewController : UIViewController
                         self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
 
+                    self.webViewController?.view.isHidden = false
+
 //                    _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                 }
             } else {
@@ -566,6 +568,8 @@ class ScriptureViewController : UIViewController
 //                            _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                         }
                     }
+
+                    self.webViewController?.view.isHidden = false
                 }
             }
         }
@@ -855,6 +859,8 @@ class ScriptureViewController : UIViewController
         setupBarButtons()
         
         if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
+            webViewController?.view.isHidden = true
+            
             DispatchQueue.global(qos: .background).async { [weak self] in
                 self?.scripture?.reference = reference
                 self?.scripture?.load() // reference

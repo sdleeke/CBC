@@ -864,20 +864,18 @@ class VoiceBase {
                 
                 var skip = false
                 
-                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                
                 if wholeWordsOnly {
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
@@ -885,13 +883,13 @@ class VoiceBase {
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         } else {
                             if characterAfter == "." {
                                 if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
                                     let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                                         skip = true
                                     }
                                 }

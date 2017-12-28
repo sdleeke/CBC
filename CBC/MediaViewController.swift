@@ -117,6 +117,26 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func share()
+    {
+        guard let url = selectedMediaItem?.downloadURL else {
+            return
+        }
+        
+        let data = try? Data(contentsOf: url)
+        
+        let activityViewController = UIActivityViewController(activityItems: [url,data], applicationActivities: nil)
+        
+        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
+        
+        let popoverPresentationController = activityViewController.popoverPresentationController
+        
+        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        present(activityViewController, animated: true, completion: nil)
+    }
+    
     func actionMenu(action:String?,mediaItem:MediaItem?)
     {
         guard let action = action else {
@@ -136,6 +156,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             fallthrough
         case Constants.Strings.Print_Transcript:
             printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+            break
+            
+        case Constants.Strings.Share_Slides:
+            fallthrough
+        case Constants.Strings.Share_Transcript:
+            share()
             break
             
 //        case Constants.Strings.Add_to_Favorites:
@@ -411,7 +437,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             fallthrough
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
-            download?.cancelOrDelete()
+            document?.download?.cancelOrDelete()
             document?.loaded = false
             setupDocumentsAndVideo()
             break
@@ -2203,14 +2229,16 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
+        if let purpose = document?.purpose { // UIPrintInteractionController.isPrintingAvailable
             switch purpose {
             case Purpose.notes:
-                actionMenu.append(Constants.Strings.Print_Transcript)
+//                actionMenu.append(Constants.Strings.Print_Transcript)
+                actionMenu.append(Constants.Strings.Share_Transcript)
                 break
                 
             case Purpose.slides:
-                actionMenu.append(Constants.Strings.Print_Slides)
+//                actionMenu.append(Constants.Strings.Print_Slides)
+                actionMenu.append(Constants.Strings.Share_Slides)
                 break
                 
             default:
@@ -5070,7 +5098,7 @@ extension MediaViewController : UITableViewDataSource
         }
         
         share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self)
+            mediaItem.share(viewController: self,cell: cell)
 //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
         }
 

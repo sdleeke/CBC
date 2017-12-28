@@ -426,8 +426,6 @@ class CloudViewController: UIViewController
         if (success) {
             let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
             
-//            NSURL *appURL = [NSURL URLWithString:@"https://itunes.apple.com/app/lion-lamb-admiring-jesus-christ/id1018992236?mt=8&at=1010l3f4"];
-
             let activityViewController = UIActivityViewController(activityItems: [snapshotImage,mediaItem?.text], applicationActivities: nil)
             
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
@@ -684,8 +682,6 @@ class CloudViewController: UIViewController
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        self.ptvc.sort.method = Constants.Sort.Alphabetical
-                        self.ptvc.section.showIndex = true
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
@@ -705,10 +701,15 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+                            let strings = self?.ptvc.sort.function?(Constants.Sort.Alphabetical,self?.ptvc.section.strings)
 
                             Thread.onMainThread {
-                                self?.ptvc.tableView.reloadData()
+                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 0 {
+                                    self?.ptvc.sort.method = Constants.Sort.Alphabetical
+                                    self?.ptvc.section.showIndex = true
+                                    self?.ptvc.section.strings = strings
+                                    self?.ptvc.tableView.reloadData()
+                                }
                                 
 //                                DispatchQueue.global(qos: .background).async {
 //                                    guard var cloudWords = self?.cloudWords else {
@@ -735,8 +736,6 @@ class CloudViewController: UIViewController
                         }
                     }))
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        self.ptvc.sort.method = Constants.Sort.Frequency
-                        self.ptvc.section.showIndex = false
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
@@ -756,11 +755,16 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+                            let strings = self?.ptvc.sort.function?(Constants.Sort.Frequency,self?.ptvc.section.strings)
 
                             Thread.onMainThread {
-                                self?.ptvc.tableView.reloadData()
-                        
+                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 1 {
+                                    self?.ptvc.sort.method = Constants.Sort.Frequency
+                                    self?.ptvc.section.showIndex = false
+                                    self?.ptvc.section.strings = strings
+                                    self?.ptvc.tableView.reloadData()
+                                }
+
 //                                DispatchQueue.global(qos: .background).async {
 //                                    guard var cloudWords = self?.cloudWords else {
 //                                        return

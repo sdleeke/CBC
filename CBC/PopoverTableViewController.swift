@@ -1613,7 +1613,6 @@ extension PopoverTableViewController : UITableViewDataSource
         if search, searchActive, let searchText = searchText?.lowercased(), string.lowercased().contains(searchText) {
             var titleString = NSMutableAttributedString()
             
-            let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
             var before:String?
             var during:String?
             var after:String?
@@ -1647,8 +1646,8 @@ extension PopoverTableViewController : UITableViewDataSource
                     }
                     
                     if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
-                        if  let before = UnicodeScalar(String(characterBefore)), CharacterSet(charactersIn: tokenDelimiters).contains(before),
-                            let after = UnicodeScalar(String(characterAfter)), CharacterSet(charactersIn: tokenDelimiters).contains(after) {
+                        if  let before = UnicodeScalar(String(characterBefore)), CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before),
+                            let after = UnicodeScalar(String(characterAfter)), CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
                             break
                         }
                     }

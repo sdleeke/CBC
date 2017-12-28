@@ -4404,17 +4404,23 @@ extension MediaTableViewController : UITableViewDelegate
                 var segmentActions = [SegmentAction]()
                 
                 segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                    popover.sort.method = Constants.Sort.Alphabetical
-                    popover.section.showIndex = true
-                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    popover.tableView?.reloadData()
+                    let strings = popover.sort.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                    if popover.segmentedControl.selectedSegmentIndex == 0 {
+                        popover.sort.method = Constants.Sort.Alphabetical
+                        popover.section.strings = strings
+                        popover.section.showIndex = true
+                        popover.tableView?.reloadData()
+                    }
                 }))
                 
                 segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                    popover.sort.method = Constants.Sort.Frequency
-                    popover.section.showIndex = false
-                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    popover.tableView?.reloadData()
+                    let strings = popover.sort.function?(Constants.Sort.Frequency,popover.section.strings)
+                    if popover.segmentedControl.selectedSegmentIndex == 1 {
+                        popover.sort.method = Constants.Sort.Frequency
+                        popover.section.strings = strings
+                        popover.section.showIndex = false
+                        popover.tableView?.reloadData()
+                    }
                 }))
                 
                 popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
@@ -4506,7 +4512,7 @@ extension MediaTableViewController : UITableViewDelegate
         }
         
         share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self)
+            mediaItem.share(viewController: self,cell: cell)
             //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
         }
         
