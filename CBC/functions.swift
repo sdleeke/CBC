@@ -2736,7 +2736,16 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     //        print(name)
     //        print(string)
     
+//    var startIndex : String.Index?
+    
     var token = Constants.EMPTY_STRING
+//    {
+//        didSet {
+//            if token == Constants.EMPTY_STRING {
+//                startIndex = nil
+//            }
+//        }
+//    }
     
     func processToken()
     {
@@ -2789,25 +2798,89 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         }
     }
     
-    for char in str {
+    for index in str.indices {
         //        print(char)
+        
+        let char = str[index]
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
             if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                print(token)
                 processToken()
+                
+//                var charBefore:Character?
+//                var charAfter:Character?
+//
+//                var charNext:Character?
+//
+//                if let startIndex = startIndex, startIndex > str.startIndex {
+//                    let before = str.index(startIndex,offsetBy: -1)
+//                    charBefore = str[before]
+//                }
+//
+//                if let startIndex = startIndex, startIndex < str.index(str.endIndex,offsetBy: -token.count) {
+//                    let after = str.index(startIndex,offsetBy: token.count)
+//                    charAfter = str[after]
+//                }
+//
+//                if index < str.index(str.endIndex,offsetBy: -1) {
+//                    let next = str.index(index,offsetBy: 1)
+//                    charNext = str[next]
+//                }
+//
+//                var process = true
+//
+//                if token.count == 1 {
+//                    if String(char) != "." {
+//                        if let charBefore = charBefore, let before = UnicodeScalar(String(charBefore)) {
+//                            if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(before) {
+//                                process = false
+//                            }
+//                        }
+//                    } else {
+//                        if let charBefore = charBefore, let before = UnicodeScalar(String(charBefore)) {
+//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before) {
+//                                process = false
+//                            }
+//                        }
+//
+//                        if let charAfter = charAfter, let after = UnicodeScalar(String(charAfter)) {
+//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
+//                                process = false
+//                            }
+//                        }
+//
+//                        if let charNext = charNext, let next = UnicodeScalar(String(charNext)) {
+//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(next) {
+//                                process = false
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                if process {
+//                    processToken()
+//                } else {
+//                    print(char,charNext,token,charBefore,charAfter)
+//                    token = Constants.EMPTY_STRING
+//                }
             } else {
                 if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
                     if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
 //                        print(token)
+                        
+//                        if token == Constants.EMPTY_STRING {
+//                            startIndex = index
+//                        }
+                        
                         token.append(char)
 //                        print(token)
                     }
                 }
             }
         }
-        
+
         if globals.isRefreshing {
             break
         }

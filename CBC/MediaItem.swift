@@ -2090,14 +2090,14 @@ class MediaItem : NSObject
                         if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         } else {
-                            if characterAfter == "." {
-                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
-                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                                        skip = true
-                                    }
-                                }
-                            }
+//                            if characterAfter == "." {
+//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+//                                        skip = true
+//                                    }
+//                                }
+//                            }
                         }
                         
 //                            print(characterAfter)

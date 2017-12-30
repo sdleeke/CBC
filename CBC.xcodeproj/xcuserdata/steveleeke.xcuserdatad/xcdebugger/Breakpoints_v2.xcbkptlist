@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.712889"
+            timestampString = "536363922.01705"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1315"
-            endingLineNumber = "1315"
+            startingLineNumber = "1327"
+            endingLineNumber = "1327"
             landmarkName = "showMenu(action:mediaItem:)"
             landmarkType = "7">
             <Locations>
@@ -26,11 +26,11 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v28/CBC/MediaTableViewController.swift"
-                  timestampString = "536345506.944475"
+                  timestampString = "536362718.32418"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1315"
-                  endingLineNumber = "1315"
+                  startingLineNumber = "1327"
+                  endingLineNumber = "1327"
                   offsetFromSymbolStart = "1500">
                </Location>
                <Location
@@ -41,11 +41,11 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v28/CBC/MediaTableViewController.swift"
-                  timestampString = "536345506.949114"
+                  timestampString = "536362718.327124"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1316"
-                  endingLineNumber = "1316"
+                  startingLineNumber = "1328"
+                  endingLineNumber = "1328"
                   offsetFromSymbolStart = "32">
                </Location>
             </Locations>
@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.714377"
+            timestampString = "536363922.017419"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1383"
-            endingLineNumber = "1383"
+            startingLineNumber = "1395"
+            endingLineNumber = "1395"
             landmarkName = "showMenu(action:mediaItem:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.715042"
+            timestampString = "536363922.017507"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1385"
-            endingLineNumber = "1385"
+            startingLineNumber = "1397"
+            endingLineNumber = "1397"
             landmarkName = "showMenu(action:mediaItem:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -90,7 +90,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.715613"
+            timestampString = "536363922.017588"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "398"
@@ -106,7 +106,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.716177"
+            timestampString = "536363922.017664"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "453"
@@ -122,7 +122,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.716654"
+            timestampString = "536363922.017739"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "537"
@@ -138,7 +138,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.716974"
+            timestampString = "536363922.017799"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "811"
@@ -154,12 +154,60 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "536345506.717292"
+            timestampString = "536363922.017859"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "980"
             endingLineNumber = "980"
             landmarkName = "detailAction(tableView:indexPath:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/functions.swift"
+            timestampString = "536363922.017923"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2893"
+            endingLineNumber = "2893"
+            landmarkName = "tokensAndCountsFromString(_:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/functions.swift"
+            timestampString = "536363922.01816"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2887"
+            endingLineNumber = "2887"
+            landmarkName = "tokensAndCountsFromString(_:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/LexiconIndexViewController.swift"
+            timestampString = "536363922.018239"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "427"
+            endingLineNumber = "427"
+            landmarkName = "panGestureAction(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

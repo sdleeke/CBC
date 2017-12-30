@@ -367,6 +367,65 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
 
 class LexiconIndexViewController : UIViewController
 {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            self.setTableViewHeightConstraint(change:0)
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            self.setTableViewHeightConstraint(change:0)
+        }
+    }
+    
+    func setTableViewHeightConstraint(change:CGFloat)
+    {
+        let newConstraintConstant = tableViewHeightConstraint.constant + change
+        
+        let max = self.view.bounds.height * 2 / 3
+        
+        if (newConstraintConstant >= 0) && (newConstraintConstant <= max) {
+            tableViewHeightConstraint.constant = newConstraintConstant
+        } else {
+            if newConstraintConstant < 0 { tableViewHeightConstraint.constant = 0 }
+            if newConstraintConstant > max { tableViewHeightConstraint.constant =  max }
+        }
+        
+        self.view.setNeedsLayout()
+        self.view.layoutSubviews()
+    }
+    
+    @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet var panGesture: UIPanGestureRecognizer!
+    @IBAction func panGestureAction(_ pan: UIPanGestureRecognizer)
+    {
+        switch pan.state {
+        case .began:
+//            panning = true
+            break
+            
+        case .ended:
+//            panning = false
+            break
+            
+        case .changed:
+            let translation = pan.translation(in: pan.view)
+            let change = -translation.y
+            if change != 0 {
+                pan.setTranslation(CGPoint.zero, in: pan.view)
+                setTableViewHeightConstraint(change:change)
+                
+                self.view.setNeedsLayout()
+                self.view.layoutSubviews()
+            }
+            break
+            
+        default:
+            break
+        }
+
+    }
+    
     var mediaListGroupSort:MediaListGroupSort?
     
     var root:StringNode?
@@ -403,7 +462,7 @@ class LexiconIndexViewController : UIViewController
 
     var selectedMediaItem:MediaItem?
     
-    @IBOutlet weak var logo: UIImageView!
+//    @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
     @IBOutlet weak var spinner: UIActivityIndicatorView!
@@ -702,7 +761,10 @@ class LexiconIndexViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-        
+
+        // This works because we never use "Back" to get here...
+        tableViewHeightConstraint.constant = self.view.bounds.height / 2
+
         selectedWord.text = searchText
 
         updateLocateButton()
@@ -1226,7 +1288,7 @@ class LexiconIndexViewController : UIViewController
         spinner.isHidden = true
         spinner.stopAnimating()
         
-        logo.isHidden = searchText != nil
+//        logo.isHidden = searchText != nil
         
         updateToolbar()
         

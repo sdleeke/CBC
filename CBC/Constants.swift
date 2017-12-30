@@ -705,15 +705,15 @@ enum Constants {
     static let HTML_MIN_FONT_SIZE = 4
     
     enum Strings {
-        static let TokenDelimiters = "\r\n$\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + "'"
+        static let NumberChars = "$0123456789"
+        
+        static let TokenDelimiters = "\r\n$\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + NumberChars // + "'"
 
 //        static let PossessiveTokenDelimiters = NonPossessiveTokenDelimiters.replacingOccurrences(of: Constants.QUOTES, with: Constants.DOUBLE_QUOTES).replacingOccurrences(of: "'", with: "")
         
         //        static let BreakChars = "\r\n\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
         
         static let TrimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
-        
-        static let NumberChars = "$0123456789"
         
         static let Selected_Scriptures  = "Selected Scriptures"
         

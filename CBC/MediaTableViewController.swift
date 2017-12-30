@@ -1079,6 +1079,18 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             } else {
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_LEXICON_INDEX, sender: nil)
                 
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    popover.search = true
+//
+//                    popover.navigationItem.title = "Lexicon Index"
+//
+//                    popover.purpose = .selectingLexicon
+//                    popover.section.strings = globals.media.active?.lexicon?.section.strings
+//
+//                    self.navigationController?.pushViewController(popover, animated: true)
+//                }
+
 //                if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
 //                    viewController.mediaListGroupSort = globals.media.active
 //
