@@ -338,6 +338,18 @@ class CloudViewController: UIViewController
     
     @IBOutlet weak var cloudView: UIView!
     
+    @IBOutlet weak var wordOrientation: UISegmentedControl!
+    {
+        didSet {
+            wordOrientation.selectedSegmentIndex = 2
+        }
+    }
+    
+    @IBAction func wordOrientationAction(_ sender: UISegmentedControl)
+    {
+        cancelAndRelayoutCloudWords()
+    }
+    
     let debug = false
     
 //    var allowVertical = true
@@ -568,6 +580,7 @@ class CloudViewController: UIViewController
                                                                containerSize:cloudView.bounds.size,
                                                                containerScale:UIScreen.main.scale,
                                                                cloudFont: cloudFont,
+                                                               orientation: wordOrientation.selectedSegmentIndex,
                                                                delegate:self)
             
             cloudLayoutOperationQueue?.addOperation(newCloudLayoutOperation)

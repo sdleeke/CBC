@@ -10,7 +10,18 @@ import UIKit
 import WebKit
 import MessageUI
 
-struct HTML {
+class HTML {
+    weak var webViewController: WebViewController?
+    
+    var operationQueue : OperationQueue!
+
+    var text : String?
+    {
+        didSet {
+//            print(text)
+        }
+    }
+    
     var original:String?
     
     var string:String?
@@ -48,6 +59,24 @@ struct HTML {
                         }
                     }
                 }
+
+                Thread.onMainThread {
+                    self.webViewController?.activityButtonIndicator?.startAnimating()
+                }
+                
+                operationQueue = OperationQueue()
+                operationQueue.underlyingQueue = DispatchQueue(label: "HTML")
+                operationQueue.qualityOfService = .userInteractive
+
+//                operationQueue.cancelAllOperations()
+//                operationQueue.waitUntilAllOperationsAreFinished()
+
+                operationQueue.addOperation { [weak self] in
+                    self?.text = stripHTML(self?.string)
+                    Thread.onMainThread {
+                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
+                    }
+                }
             }
         }
     }
@@ -72,6 +101,40 @@ struct HTML {
     var zoomScale = 0.0
 }
 
+//class StripHTMLActivity : UIActivityItemProvider
+//{
+//    override var item : Any {
+//        get {
+//            return stripHTML(placeholderItem as? String)
+//        }
+//    }
+//}
+
+//extension Data {
+//    var html2AttributedString: NSAttributedString? {
+//        do {
+////            var options = ["DocumentReadingOptionKey" : ".html", .characterEncoding: String.Encoding.utf8.rawValue]
+//            // options: [:],
+//            return try NSAttributedString(data: self, options: [NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType, NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue], documentAttributes: nil)
+//        } catch {
+//            print("error:", error)
+//            return  nil
+//        }
+//    }
+//    var html2String: String? {
+//        return html2AttributedString?.string
+//    }
+//}
+//
+//extension String {
+//    var html2AttributedString: NSAttributedString? {
+//        return Data(utf8).html2AttributedString
+//    }
+//    var html2String: String? {
+//        return html2AttributedString?.string
+//    }
+//}
+
 extension WebViewController : UIActivityItemSource
 {
     func share()
@@ -79,16 +142,16 @@ extension WebViewController : UIActivityItemSource
         guard let htmlString = html.string else {
             return
         }
-        
+
         let print = UIMarkupTextPrintFormatter(markupText: htmlString)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-        
+
         let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
-        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
@@ -110,19 +173,20 @@ extension WebViewController : UIActivityItemSource
         return ""
     }
     
+    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
     {
-        if activityType == UIActivityType.mail {
-            return html.string
-        } else if activityType == UIActivityType.print {
-            return html.string
+        if #available(iOS 11.0, *) {
+            WebViewController.cases.append(.markupAsPDF)
         }
-        
-        if let string = stripHTML(html.string) {
-            return string
+
+        if WebViewController.cases.contains(activityType) {
+            return html.string
+        } else {
+//            html.operationQueue.waitUntilAllOperationsAreFinished()
+            return html.text ?? "HTML to text conversion still in process.  Please try again later."
         }
-        
-        return nil
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
@@ -132,13 +196,15 @@ extension WebViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
     {
-        if activityType == UIActivityType.mail {
-            return "public.text"
-        } else if activityType == UIActivityType.print {
-            return "public.text"
+        guard let activityType = activityType else {
+            return "public.plain-text"
         }
         
-        return "public.plain-text"
+        if WebViewController.cases.contains(activityType) {
+            return "public.text"
+        } else {
+            return "public.plain-text"
+        }
     }
 }
 
@@ -651,7 +717,7 @@ extension WebViewController : WKNavigationDelegate
             
             self.barButtonItems(isEnabled: true)
             
-            DispatchQueue.global(qos: .background).async { // [weak self] in
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
                 
                 Thread.onMainThread() {
@@ -808,12 +874,19 @@ class WebViewController: UIViewController
     var actionButton:UIBarButtonItem?
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
+    var activityButton:UIBarButtonItem?
+    var activityButtonIndicator:UIActivityIndicatorView!
     
     var wkWebView:WKWebView?
 
     var content:Content = .document
     
-    var html = HTML()
+    lazy var html:HTML! = {
+        [weak self] in
+        let html = HTML()
+        html.webViewController = self
+        return html
+    }()
     
     var loadTimer:Timer?
     
@@ -1230,11 +1303,20 @@ class WebViewController: UIViewController
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
+        activityButtonIndicator = UIActivityIndicatorView()
+        activityButtonIndicator.activityIndicatorViewStyle = .gray
+        activityButtonIndicator.hidesWhenStopped = true
+        
+        activityButton = UIBarButtonItem(customView: activityButtonIndicator)
+        activityButton?.isEnabled = true
+        
+
         if let presentationStyle = navigationController?.modalPresentationStyle {
             guard   let actionButton = actionButton,
                     let fullScreenButton = fullScreenButton,
                     let minusButton = minusButton,
-                    let plusButton = plusButton else {
+                    let plusButton = plusButton,
+                    let activityButton = activityButton else {
                 return
             }
             
@@ -1242,14 +1324,14 @@ class WebViewController: UIViewController
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-                    
                     navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
                         navigationItem.rightBarButtonItems?.append(minusButton)
                         navigationItem.rightBarButtonItems?.append(plusButton)
+                        navigationItem.rightBarButtonItems?.append(activityButton)
                     } else {
-                        navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                        navigationItem.setRightBarButtonItems([minusButton,plusButton,activityButton], animated: true)
                     }
                 }
                 
@@ -1257,10 +1339,10 @@ class WebViewController: UIViewController
                 fallthrough
             case .overFullScreen:
                 navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                 
             default:
-                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                 break
             }
         }
@@ -1873,6 +1955,10 @@ class WebViewController: UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        if html.operationQueue.operationCount > 0 {
+            activityButtonIndicator.startAnimating()
+        }
         
         if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
             var vc : UIViewController?

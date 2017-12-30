@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import Speech
 
 extension NSMutableData {
     func appendString(_ string: String) {
@@ -75,9 +76,13 @@ extension VoiceBase // Class Methods
 //        },onError: nil)
 //    }
     
-    static func url(mediaID:String?,path:String?) -> String
+    static func url(mediaID:String?,path:String?,query:String?) -> String
     {
-        return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "")
+        if mediaID == nil, path == nil, query == nil {
+            return Constants.URL.VOICE_BASE_ROOT + "?limit=1000"
+        } else {
+            return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "") + (query != nil ? "?" + query! : "")
+        }
     }
     
     static func loadAll()
@@ -374,7 +379,7 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-    static func get(accept:String?,mediaID:String?,path:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard globals.isVoiceBaseAvailable == nil || globals.isVoiceBaseAvailable! else {
             return
@@ -384,7 +389,7 @@ extension VoiceBase // Class Methods
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path, query:query)) else {
             return
         }
 
@@ -464,22 +469,22 @@ extension VoiceBase // Class Methods
     
     static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept: nil, mediaID: mediaID, path: "metadata", completion: completion, onError: onError)
+        get(accept: nil, mediaID: mediaID, path: "metadata", query: nil, completion: completion, onError: onError)
     }
 
     static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: mediaID, path: "progress", completion: completion, onError: onError)
+        get(accept:nil, mediaID: mediaID, path: "progress", query: nil, completion: completion, onError: onError)
     }
     
     static func details(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: mediaID, path: nil, completion: completion, onError: onError)
+        get(accept:nil, mediaID: mediaID, path: nil, query: nil, completion: completion, onError: onError)
     }
 
     static func all(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: nil, path: nil, completion: completion, onError: onError)
+        get(accept:nil, mediaID: nil, path: nil, query: nil, completion: completion, onError: onError)
     }
     
     static func delete(mediaID:String?)
@@ -498,7 +503,7 @@ extension VoiceBase // Class Methods
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:nil)) else {
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:nil, query:nil)) else {
             return
         }
         
@@ -579,7 +584,7 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.deleteAllMedia")
         
-        get(accept: nil, mediaID: nil, path: nil, completion: { (json:[String : Any]?) -> (Void) in
+        get(accept: nil, mediaID: nil, path: nil, query: nil, completion: { (json:[String : Any]?) -> (Void) in
             if let mediaItems = json?["media"] as? [[String:Any]] {
                 if mediaItems.count > 0 {
                     if mediaItems.count > 1 {
@@ -825,6 +830,25 @@ class VoiceBase {
         }
     }
     
+    var fileSystemURL:URL? {
+        get {
+            guard let purpose = purpose else {
+                return nil
+            }
+            
+            switch purpose {
+            case Purpose.video:
+                return mediaItem?.videoDownload?.fileSystemURL
+                
+            case Purpose.audio:
+                return mediaItem?.audioDownload?.fileSystemURL
+                
+            default:
+                return nil
+            }
+        }
+    }
+    
     func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
     {
         guard (stripHead(fullHTML) != nil) else {
@@ -933,7 +957,7 @@ class VoiceBase {
         }
         
         var newString:String = Constants.EMPTY_STRING
-        var string:String = html ?? Constants.EMPTY_STRING
+        var string:String = html
         
         while let searchRange = string.range(of: "<") {
             let searchString = string.substring(to: searchRange.lowerBound)
@@ -1146,7 +1170,7 @@ class VoiceBase {
                     }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async { // [weak self] in
+                DispatchQueue.global(qos: .background).async { [weak self] in
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -1540,18 +1564,18 @@ class VoiceBase {
 
         if let mediaID = mediaItem.mediaItemSettings?["mediaID."+purpose] {
             self.mediaID = mediaID
-        }
-        
-        if let completed = mediaItem.mediaItemSettings?["completed."+purpose] {
-            self.completed = (completed == "YES") && (mediaID != nil)
-        }
-        
-        if let transcribing = mediaItem.mediaItemSettings?["transcribing."+purpose] {
-            self.transcribing = (transcribing == "YES") && (mediaID != nil)
-        }
-        
-        if let aligning = mediaItem.mediaItemSettings?["aligning."+purpose] {
-            self.aligning = (aligning == "YES") && (mediaID != nil)
+            
+            if let completed = mediaItem.mediaItemSettings?["completed."+purpose] {
+                self.completed = (completed == "YES") // && (mediaID != nil)
+            }
+            
+            if let transcribing = mediaItem.mediaItemSettings?["transcribing."+purpose] {
+                self.transcribing = (transcribing == "YES") // && (mediaID != nil)
+            }
+            
+            if let aligning = mediaItem.mediaItemSettings?["aligning."+purpose] {
+                self.aligning = (aligning == "YES") // && (mediaID != nil)
+            }
         }
     }
     
@@ -1629,7 +1653,7 @@ class VoiceBase {
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path, query:nil)) else {
             return
         }
         
@@ -1878,7 +1902,7 @@ class VoiceBase {
     
     func progress(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        VoiceBase.get(accept:nil, mediaID: mediaID, path: "progress", completion: completion, onError: onError)
+        VoiceBase.get(accept:nil, mediaID: mediaID, path: "progress", query: nil, completion: completion, onError: onError)
     }
     
     @objc func monitor(_ timer:Timer?)
@@ -1910,7 +1934,7 @@ class VoiceBase {
 //        let service = VoiceBase.url(mediaID:mediaID, path:nil)
         //        print(service)
 
-        guard let url = URL(string: VoiceBase.url(mediaID:mediaID, path:nil)) else {
+        guard let url = URL(string: VoiceBase.url(mediaID:mediaID, path:nil, query: nil)) else {
             return
         }
         
@@ -2184,7 +2208,7 @@ class VoiceBase {
     
     func metadata(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        VoiceBase.get(accept: nil, mediaID: mediaID, path: "metadata", completion: completion, onError: onError)
+        VoiceBase.get(accept: nil, mediaID: mediaID, path: "metadata", query: nil, completion: completion, onError: onError)
     }
     
     func addMetaData()
@@ -2804,7 +2828,7 @@ class VoiceBase {
             return
         }
         
-        VoiceBase.get(accept:"text/plain",mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
+        VoiceBase.get(accept:"text/plain",mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
             if let text = json?["text"] as? String {
                 self.transcript = text
 
@@ -3251,7 +3275,7 @@ class VoiceBase {
     
     func getTranscriptSRT(alert:Bool, atEnd:(()->())?)
     {
-        VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
+        VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
             if let srt = json?["text"] as? String {
                 self._transcriptSRT = nil // Without this the new SRT will not be processed correctly.
 
@@ -3296,8 +3320,8 @@ class VoiceBase {
             return
         }
         
-        var service = VoiceBase.url(mediaID: nil, path: nil)
-        service = service + "q=" + string
+        var service = VoiceBase.url(mediaID: nil, path: nil, query: nil)
+        service = service + "?query=" + string
         
         guard let url = URL(string:service) else {
             return
@@ -3464,6 +3488,8 @@ class VoiceBase {
         return userInfo.count > 0 ? userInfo : nil
     }
     
+//    var recognitionTask : Any?
+    
     func recognizeAlertActions(viewController:UIViewController,tableView:UITableView) -> AlertAction?
     {
         guard let purpose = purpose else {
@@ -3576,6 +3602,42 @@ class VoiceBase {
                             print("THEY ARE THE SAME!")
                         }
                         
+                        // APPLE only allows 60 seconds of audio to be recognized! Thank You God for VoiceBase!
+//                        if #available(iOS 10.0, *) {
+//                            SFSpeechRecognizer.requestAuthorization { authStatus in
+//                                switch authStatus {
+//                                case .authorized:
+//                                    if let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")), speechRecognizer.isAvailable, let url = self.fileSystemURL, FileManager.default.fileExists(atPath: url.path) {
+//                                        let recognitionRequest = SFSpeechURLRecognitionRequest(url: url)
+//                                        recognitionRequest.shouldReportPartialResults = false
+//                                        recognitionRequest.taskHint = .dictation
+//                                        recognitionRequest.interactionIdentifier = self.mediaItem?.id
+//
+//                                        speechRecognizer.recognitionTask(with: recognitionRequest, resultHandler: { (result, error) in
+//                                            if let error = error {
+//                                                print("There was an problem: \(error)")
+//                                            } else {
+//                                                if let result = result {
+//                                                    if result.isFinal {
+//                                                        print(result.bestTranscription.formattedString)
+//                                                    }
+//                                                }
+//                                            }
+//                                        })
+//                                    }
+//                                    break
+//
+//                                case .denied:
+//                                    globals.alert(title: "Speech Recognition Not Allowed", message: nil)
+//
+//                                case .restricted, .notDetermined:
+//                                    globals.alert(title: "Could not start the speech recognizer", message: "Check your internect connection and try again")
+//                                }
+//                            }
+//                        } else {
+//                            // Fallback on earlier versions
+//                        }
+
                         popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.fullHTML)
                     }))
                     

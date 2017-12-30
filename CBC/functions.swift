@@ -2488,7 +2488,7 @@ func tokensFromString(_ string:String?) -> [String]?
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: Constants.Strings.BreakChars).contains(unicodeScalar) {
+            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                 //                print(token)
                 processToken()
             } else {
@@ -2512,9 +2512,206 @@ func tokensFromString(_ string:String?) -> [String]?
         processToken()
     }
     
-    return Array(tokens).sorted() {
+    let tokenArray = Array(tokens).sorted() {
         $0.lowercased() < $1.lowercased()
     }
+    
+    return tokenArray.count > 0 ? tokenArray : nil
+}
+
+func lemmasFromString(string:String?) -> [(String,String)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [(String,String)]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeLemma, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
+        tokens.append((token,tag))
+        //        print("\(token): \(tag)") // \n\(sentence)\n
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+func namesFromString(string:String?) -> [(String,String)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [(String,String)]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameType, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
+        tokens.append((token,tag))
+        //        print("\(token): \(tag)") // \n\(sentence)\n
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+func partsOfSpeechFromString(string:String?) -> [(String,String)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [(String,String)]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeLexicalClass, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
+        tokens.append((token,tag))
+        //        print("\(token): \(tag)") // \n\(sentence)\n
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+func tokensFromString(string:String?) -> [(String,String)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [(String,String)]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeTokenType, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
+        tokens.append((token,tag))
+        //        print("\(token): \(tag)") // \n\(sentence)\n
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+func tagsFromString(string:String?) -> [(String,String)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [(String,String)]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
+        tokens.append((token,tag))
+        //        print("\(token): \(tag)") // \n\(sentence)\n
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
 }
 
 func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
@@ -2529,7 +2726,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     var tokens = [String:Int]()
     
-    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
+    var str = string // .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //.replacingOccurrences(of: "\r\n", with: " ")
     
     // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
     if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
@@ -2543,6 +2740,8 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     func processToken()
     {
+        token = token.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        
         // Only if we want to eliminate everything 2 characters and shorter.
 //        guard (token.endIndex > String.Index(encodedOffset: 2)) else {
 ////            print(token)
@@ -2594,7 +2793,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: Constants.Strings.BreakChars).contains(unicodeScalar) {
+            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                print(token)
                 processToken()
             } else {
@@ -3855,8 +4054,8 @@ func stripLinks(_ string:String?) -> String?
 {
     var bodyString = string
     
-    while bodyString?.range(of: "<div") != nil {
-        if let startRange = bodyString?.range(of: "<div") {
+    while bodyString?.range(of: "<div>Locations") != nil {
+        if let startRange = bodyString?.range(of: "<div>Locations") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
                     let string = to + from
@@ -3886,6 +4085,8 @@ func stripLinks(_ string:String?) -> String?
     
     bodyString = bodyString?.replacingOccurrences(of: "</a>", with: "")
     
+    bodyString = bodyString?.replacingOccurrences(of: "(Return to Top)", with: "")
+
     return bodyString
 }
 
@@ -3901,10 +4102,13 @@ func stripHTML(_ string:String?) -> String?
         if let startRange = bodyString?.range(of: "<p ") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-                        bodyString = to + from
+                    if let from = bodyString?.substring(from: (to + from).endIndex) {
+                        bodyString = to + "\n\n" + from
                     }
+//                    let string = to + from
+//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                        bodyString = to + from
+//                    }
                 }
             }
         }
@@ -3914,10 +4118,13 @@ func stripHTML(_ string:String?) -> String?
         if let startRange = bodyString?.range(of: "<span ") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                    if let from = bodyString?.substring(from: (to + from).endIndex) {
                         bodyString = to + from
                     }
+//                    let string = to + from
+//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                        bodyString = to + from
+//                    }
                 }
             }
         }
@@ -3927,23 +4134,45 @@ func stripHTML(_ string:String?) -> String?
         if let startRange = bodyString?.range(of: "<font") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                    if let from = bodyString?.substring(from: (to + from).endIndex) {
                         bodyString = to + from
                     }
+//                    let string = to + from
+//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                        bodyString = to + from
+//                    }
                 }
             }
         }
     }
     
-    while bodyString?.range(of: "<sup") != nil {
-        if let startRange = bodyString?.range(of: "<sup") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+//    while bodyString?.range(of: "<sup") != nil {
+//        if let startRange = bodyString?.range(of: "<sup") {
+//            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+//                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+//                    if let from = bodyString?.substring(from: (to + from).endIndex) {
+//                        bodyString = to + from
+//                    }
+////                    let string = to + from
+////                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+////                        bodyString = to + from
+////                    }
+//                }
+//            }
+//        }
+//    }
+    
+    while bodyString?.range(of: "<sup>") != nil {
+        if let startRange = bodyString?.range(of: "<sup>") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</sup>") {
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                    if let from = bodyString?.substring(from: (to + from).endIndex) {
                         bodyString = to + from
                     }
+//                    let string = to + from
+//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                        bodyString = to + from
+//                    }
                 }
             }
         }
@@ -3997,14 +4226,20 @@ func stripHTML(_ string:String?) -> String?
     
     bodyString = bodyString?.replacingOccurrences(of: "</font>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
+//    bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
     
     bodyString = bodyString?.replacingOccurrences(of: "</body>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</html>", with: "")
 
     bodyString = bodyString?.replacingOccurrences(of: "<em>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</em>", with: "")
+
+    bodyString = bodyString?.replacingOccurrences(of: "<div>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</div>", with: "")
     
+    bodyString = bodyString?.replacingOccurrences(of: "<mark>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</mark>", with: "")
+
     bodyString = bodyString?.replacingOccurrences(of: "<i>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</i>", with: "")
     

@@ -13,12 +13,12 @@ class Lexicon : NSObject {
     
     var selected:String?
     
-    init(_ mlgs:MediaListGroupSort?)
-    {
-        super.init()
-        
-        self.mediaListGroupSort = mlgs
-    }
+//    init(_ mlgs:MediaListGroupSort?)
+//    {
+//        super.init()
+//
+//        self.mediaListGroupSort = mlgs
+//    }
     
     var tokens:[String]? {
         get {

@@ -237,7 +237,7 @@ class LiveViewController: UIViewController
 
         view.isHidden = false
 
-        DispatchQueue.global(qos: .background).async { // [weak self] in
+        DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.sleep(forTimeInterval: 0.1)
             globals.mediaPlayer.play()
         }

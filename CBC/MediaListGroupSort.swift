@@ -88,14 +88,18 @@ class MediaListGroupSort {
     
     lazy var lexicon:Lexicon? = {
         [unowned self] in
-        return Lexicon(self)
+        let lexicon = Lexicon()
+        lexicon.mediaListGroupSort = self
+        return lexicon
     }()
     
     var searches:[String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     lazy var scriptureIndex:ScriptureIndex? = {
         [unowned self] in
-        return ScriptureIndex(self)
+        let scriptureIndex = ScriptureIndex()
+        scriptureIndex.mediaListGroupSort = self
+        return scriptureIndex
     }()
     
     var groupSort:MediaGroupSort?
@@ -362,10 +366,10 @@ class MediaListGroupSort {
     class Section {
         weak var mlgs:MediaListGroupSort?
         
-        init(_ mlgs:MediaListGroupSort?)
-        {
-            self.mlgs = mlgs
-        }
+//        init(_ mlgs:MediaListGroupSort?)
+//        {
+//            self.mlgs = mlgs
+//        }
         
         var headerStrings:[String]? {
             get {
@@ -394,7 +398,9 @@ class MediaListGroupSort {
     
     lazy var section:Section? = {
         [unowned self] in
-        return Section(self)
+        let section = Section()
+        section.mlgs = self
+        return section
     }()
     
     func sectionIndexTitles(grouping:String?,sorting:String?) -> [String]?

@@ -120,7 +120,7 @@ class CloudWord : NSObject
         return (fitsHorizontal && !fitsVertical) || (!fitsHorizontal && fitsVertical)
     }
     
-    func determineRandomWordOrientationInContainerWithSize(containerSize:CGSize, scale:CGFloat, fontName:String)
+    func determineWordOrientation(orientation:Int, containerSize:CGSize, scale:CGFloat, fontName:String)
     {
         // Assign random word orientation
         
@@ -134,15 +134,30 @@ class CloudWord : NSObject
             random = arc4random_uniform(UInt32(chance))
         }
         
-        if delta > 0 {
-            random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
-        }
+//        if delta > 0 {
+//            print(containerSize.height/containerSize.width)
+//            random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
+//        }
+//
+//        if delta < 0 {
+//            print(containerSize.width/containerSize.height)
+//            random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
+//        }
+
+//        print(containerSize.width/containerSize.height)
+        random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
+//        print(random)
+
+        switch orientation {
+        case 0,1:
+            sizeWord(isVertical: (orientation == 0), scale: scale, fontName: fontName) //
         
-        if delta < 0 {
-            random = arc4random_uniform(UInt32(chance * containerSize.height/containerSize.width))
+        case 2:
+            sizeWord(isVertical: (random == 0), scale: scale, fontName: fontName) //
+
+        default:
+            break
         }
-        
-        sizeWord(isVertical: (random == 0), scale: scale, fontName: fontName)
         
         // Check word size against container smallest dimension
         
@@ -157,7 +172,7 @@ class CloudWord : NSObject
         }
     }
     
-    func determineRandomWordPlacementInContainerWithSize(containerSize:CGSize, scale:CGFloat)
+    func determineRandomWordPlacement(containerSize:CGSize, scale:CGFloat)
     {
         var randomGaussianPoint = randomGaussian()
         
@@ -178,7 +193,7 @@ class CloudWord : NSObject
         boundsCenter = CGPoint(x: round(value:xOffset, scale:scale), y: round(value:yOffset, scale:scale))
     }
     
-    func determineNewWordPlacementFromSavedCenter(center:CGPoint, xOffset:CGFloat, yOffset:CGFloat, scale:CGFloat)
+    func determineNewWordPlacement(center:CGPoint, xOffset:CGFloat, yOffset:CGFloat, scale:CGFloat)
     {
         // Assign an integral point
         

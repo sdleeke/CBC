@@ -297,7 +297,7 @@ enum Constants {
     enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
-        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" // 
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" //3
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
@@ -705,9 +705,14 @@ enum Constants {
     static let HTML_MIN_FONT_SIZE = 4
     
     enum Strings {
-        static let TokenDelimiters = "$\"' :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+        static let TokenDelimiters = "\r\n$\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + "'"
+
+//        static let PossessiveTokenDelimiters = NonPossessiveTokenDelimiters.replacingOccurrences(of: Constants.QUOTES, with: Constants.DOUBLE_QUOTES).replacingOccurrences(of: "'", with: "")
+        
+        //        static let BreakChars = "\r\n\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
+        
         static let TrimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
-        static let BreakChars = "\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
+        
         static let NumberChars = "$0123456789"
         
         static let Selected_Scriptures  = "Selected Scriptures"

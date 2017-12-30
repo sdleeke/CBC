@@ -396,8 +396,10 @@ class StringIndex : NSObject
 
         for mediaItem in mediaItems {
             if  let mediaID = mediaItem["mediaId"] as? String,
+                let dateCreated = mediaItem["dateCreated"] as? String,
+                let status = mediaItem["status"] as? String,
                 let metadata = mediaItem["metadata"] as? [String:Any],
-                let title = metadata["title"] as? String { //,
+                var title = metadata["title"] as? String { //,
 //                let device = metadata["device"] as? [String:String],
 //                var deviceName = device["name"] {
 //                if deviceName == UIDevice.current.deviceName {
@@ -406,18 +408,52 @@ class StringIndex : NSObject
 
                 var category = "Other"
                 
-                if title.range(of: " (audio)") != nil {
+                if let range = title.range(of: " (audio)") {
+                    title = title.substring(to: range.lowerBound)
                     category = Constants.Strings.Audio
                 }
                 
-                if title.range(of: " (video)") != nil {
+                if let range = title.range(of: " (video)") {
+                    title = title.substring(to: range.lowerBound)
                     category = Constants.Strings.Video
                 }
                 
+                var newDict = ["title":title,"mediaId":mediaID,"status":status,"metadata":metadata as Any]
+                
+                if let lengthDict = metadata["length"] as? [String:Any], let length = lengthDict["milliseconds"] as? Int, let hms = secondsToHMS(seconds: "\(Double(length) / 1000.0)") {
+                    newDict["length"] = hms
+                }
+                
+                let dateStringFormatter = DateFormatter()
+                
+                dateStringFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                
+                dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+                
+                if let date = dateStringFormatter.date(from: dateCreated) {
+//                    print(date.mdyhm)
+                    newDict["dateCreated"] = date.mdyhm
+                }
+
+                if var title = newDict["title"] as? String {
+                    title += "\nSource: \(category)"
+                    
+                    if let length = newDict["length"] {
+                        title += "\nLength: \(length)"
+                    }
+                    if let dateCreated = newDict["dateCreated"] {
+                        title += "\nCreated: \(dateCreated)"
+                    }
+                    if let status = newDict["status"] {
+                        title += "\nStatus: \(status)"
+                    }
+                    newDict["title"] = title
+                }
+                
                 if dict[category] == nil {
-                    dict[category] = [["title":title,"mediaId":mediaID,"metadata":metadata as Any]]
+                    dict[category] = [newDict]
                 } else {
-                    dict[category]?.append(["title":title,"mediaId":mediaID,"metadata":metadata as Any])
+                    dict[category]?.append(newDict)
                 }
             } else {
                 print("Unable to add: \(mediaItem)")
@@ -499,7 +535,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         if let mediaID = value["mediaId"] as? String,let title = value["title"] as? String {
             actions.append(AlertAction(title: Constants.Strings.Delete, style: .destructive) {
                 let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
-                                                message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
+                                                message: title, //  + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)"
                     preferredStyle: .alert)
                 
                 alert.makeOpaque()
@@ -773,7 +809,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     actions.append(AlertAction(title: "Delete", style: .destructive, action: {
                         let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
-                                                        message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
+                                                        message: title, //  + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)"
                             preferredStyle: .alert)
                         alert.makeOpaque()
 
@@ -941,7 +977,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: nil))
 
-                    globals.alert(title:"VoiceBase Media Item\nNot in Use", message:"While created on this device:\n\n\(title)\n\nno longer appears to be in use.", actions:actions)
+                    globals.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions) // "While created on this device:\n\n\(title)\n\nno longer appears to be in use."
                 }
             }
         }
@@ -1349,7 +1385,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             return
                         }
                         
-                        // Begin by separating media into what was created on this device and what was created on something else.
                         self.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
                             if  var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
                                 var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
@@ -2606,7 +2641,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func loadLive(completion:(()->(Void))?)
     {
-        DispatchQueue.global(qos: .background).async { // [weak self] in
+        DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.sleep(forTimeInterval: 0.25)
         
             if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {

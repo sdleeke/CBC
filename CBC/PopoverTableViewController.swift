@@ -39,6 +39,10 @@ extension PopoverTableViewController: UISearchBarDelegate
             return false
         }
         
+        guard section.strings != nil else {
+            return false
+        }
+        
         return search
     }
     

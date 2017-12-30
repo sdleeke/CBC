@@ -23,6 +23,7 @@ class CloudLayoutOperation : Operation
     var cloudWords : [CloudWord]?
     var containerSize : CGSize?
     var containerScale : CGFloat = 0.0
+    var orientation:Int = 2
     var delegate:CloudLayoutOperationDelegate?
     var boundingRects : QuadTree?
     
@@ -33,7 +34,7 @@ class CloudLayoutOperation : Operation
         }
     }
     
-    init(cloudWords:[[String:Any]]?, title:String?, containerSize:CGSize, containerScale:CGFloat, cloudFont: UIFont?, delegate:CloudLayoutOperationDelegate)
+    init(cloudWords:[[String:Any]]?, title:String?, containerSize:CGSize, containerScale:CGFloat, cloudFont: UIFont?, orientation:Int, delegate:CloudLayoutOperationDelegate)
     {
         super.init()
         
@@ -59,7 +60,9 @@ class CloudLayoutOperation : Operation
         self.delegate = delegate
         
         self.cloudFont = cloudFont
-
+        
+        self.orientation = orientation
+        
         self.boundingRects = QuadTree(frame: CGRect(x: 0.0, y: 0.0, width: containerSize.width, height: containerSize.height))
     }
     
@@ -183,7 +186,7 @@ class CloudLayoutOperation : Operation
                 
 //                print(cloudWord.wordCount,minWordCount,deltaWordCount,cloudWord.pointSize,fontMin,fontRange,fontStep,scale)
                 
-                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize: containerSize, scale:containerScale, fontName:cloudFont.fontName)
+                cloudWord.determineWordOrientation(orientation: orientation, containerSize: containerSize, scale:containerScale, fontName:cloudFont.fontName)
                 
                 // Check to see if the current word fits in the container
                 
@@ -251,7 +254,7 @@ class CloudLayoutOperation : Operation
             }
             
             // Assign a new preferred location for each word, as the size may have changed
-            cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
+            cloudWord.determineRandomWordPlacement(containerSize:containerSize, scale:containerScale)
         }
     }
     
@@ -386,8 +389,8 @@ class CloudLayoutOperation : Operation
             
             while !hasFoundConcentricPlacementForWord(word: cloudWord) {
                 // No placement found centered on preferred location. Pick a new location at random
-                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize:containerSize, scale:containerScale, fontName:fontName)
-                cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
+                cloudWord.determineWordOrientation(orientation: orientation, containerSize:containerSize, scale:containerScale, fontName:fontName)
+                cloudWord.determineRandomWordPlacement(containerSize:containerSize, scale:containerScale)
                 
                 if (isCancelled) {
                     return
@@ -519,7 +522,7 @@ class CloudLayoutOperation : Operation
                 let x:CGFloat = cos(radians) * radius
                 let y:CGFloat = sin(radians) * radius
                 
-                word.determineNewWordPlacementFromSavedCenter(center: savedCenter, xOffset:x, yOffset:y, scale:containerScale)
+                word.determineNewWordPlacement(center: savedCenter, xOffset:x, yOffset:y, scale:containerScale)
                 
                 let wordRect = word.paddedFrame
                 

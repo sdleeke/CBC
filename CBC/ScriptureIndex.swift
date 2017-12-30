@@ -14,10 +14,10 @@ class ScriptureIndex {
     
     weak var mediaListGroupSort:MediaListGroupSort?
     
-    init(_ mlgs:MediaListGroupSort?)
-    {
-        self.mediaListGroupSort = mlgs
-    }
+//    init(_ mlgs:MediaListGroupSort?)
+//    {
+//        self.mediaListGroupSort = mlgs
+//    }
     
     var sectionsIndex = [String:[String:[MediaItem]]]()
     

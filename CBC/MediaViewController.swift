@@ -119,22 +119,41 @@ extension MediaViewController : PopoverTableViewControllerDelegate
     
     func share()
     {
-        guard let url = selectedMediaItem?.downloadURL else {
+        guard let downloadURL = selectedMediaItem?.downloadURL else {
             return
         }
         
-        let data = try? Data(contentsOf: url)
+        guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
+            return
+        }
         
-        let activityViewController = UIActivityViewController(activityItems: [url,data], applicationActivities: nil)
-        
-        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
-        
-        let popoverPresentationController = activityViewController.popoverPresentationController
-        
-        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-        present(activityViewController, animated: true, completion: nil)
+        if FileManager.default.fileExists(atPath: fileSystemURL.path), let data = try? Data(contentsOf: fileSystemURL) {
+            let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,data], applicationActivities: nil)
+            
+            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+            activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+            
+            let popoverPresentationController = activityViewController.popoverPresentationController
+            
+            popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
+            present(activityViewController, animated: true, completion: nil)
+        } else {
+            process(viewController: self, work: {
+                return try? Data(contentsOf: downloadURL)
+            }, completion: { (data:Any?) in
+                let activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,data], applicationActivities: nil)
+                
+                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+                
+                let popoverPresentationController = activityViewController.popoverPresentationController
+                
+                popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+                
+                self.present(activityViewController, animated: true, completion: nil)
+            })
+        }
     }
     
     func actionMenu(action:String?,mediaItem:MediaItem?)
