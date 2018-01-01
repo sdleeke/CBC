@@ -892,22 +892,34 @@ class VoiceBase {
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
+                            }
+                            
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                    skip = true
+                                }
                             }
                         }
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
+                            }
+                            
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                    skip = true
+                                }
                             }
                         }
                     }
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         } else {
 //                            if characterAfter == "." {
@@ -920,7 +932,8 @@ class VoiceBase {
 //                            }
                         }
                         
-                        //                            print(characterAfter)
+//                            print(characterAfter)
+                        
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                                 skip = true
@@ -928,6 +941,15 @@ class VoiceBase {
                             if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                 skip = true
                             }
+                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                                skip = true
+                            }
+                        }
+                    }
+                    if let characterBefore:Character = stringBefore.last {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)),
+                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
                         }
                     }
                 }
@@ -955,7 +977,7 @@ class VoiceBase {
             
             return newString == Constants.EMPTY_STRING ? string : newString
         }
-        
+
         var newString:String = Constants.EMPTY_STRING
         var string:String = html
         

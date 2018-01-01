@@ -110,31 +110,6 @@ class HTML {
 //    }
 //}
 
-//extension Data {
-//    var html2AttributedString: NSAttributedString? {
-//        do {
-////            var options = ["DocumentReadingOptionKey" : ".html", .characterEncoding: String.Encoding.utf8.rawValue]
-//            // options: [:],
-//            return try NSAttributedString(data: self, options: [NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType, NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue], documentAttributes: nil)
-//        } catch {
-//            print("error:", error)
-//            return  nil
-//        }
-//    }
-//    var html2String: String? {
-//        return html2AttributedString?.string
-//    }
-//}
-//
-//extension String {
-//    var html2AttributedString: NSAttributedString? {
-//        return Data(utf8).html2AttributedString
-//    }
-//    var html2String: String? {
-//        return html2AttributedString?.string
-//    }
-//}
-
 extension WebViewController : UIActivityItemSource
 {
     func share()
@@ -236,7 +211,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         
         self.dismiss(animated: true, completion: nil)
 
-        self.navigationController?.popToRootViewController(animated: true)
+        self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
         
         var searchText = string
         
@@ -641,7 +616,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingWord:
-            self.navigationController?.popToRootViewController(animated: true)
+            self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
             
             var searchText = string
             
@@ -920,57 +895,96 @@ class WebViewController: UIViewController
             var foundString:String = Constants.EMPTY_STRING
             
             while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                //                print(string)
+                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+                    break
+                }
                 
-                if let range = string.lowercased().range(of: searchText.lowercased()) {
-                    stringBefore = string.substring(to: range.lowerBound)
-                    stringAfter = string.substring(from: range.upperBound)
-                    
-                    var skip = false
-                    
-                    if wholeWordsOnly {
-                        if let characterAfter:Character = stringAfter.first {
-                            if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
-                                !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                stringBefore = string.substring(to: range.lowerBound)
+                stringAfter = string.substring(from: range.upperBound)
+                
+                var skip = false
+                
+                if wholeWordsOnly {
+                    if stringBefore == "" {
+                        if  let characterBefore:Character = newString.last,
+                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
                             }
                             
-                            //                            print(characterAfter)
-                            if stringAfter.endIndex >= "'s".endIndex {
-                                if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                    skip = true
-                                }
-                                if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
                         }
-                        if let characterBefore:Character = stringBefore.last {
-                            if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
-                                !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                    } else {
+                        if  let characterBefore:Character = stringBefore.last,
+                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                                skip = true
+                            }
+                            
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                    skip = true
+                                }
+                            }
+                        }
+                    }
+                    
+                    if let characterAfter:Character = stringAfter.first {
+                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
+                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        } else {
+//                            if characterAfter == "." {
+//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+//                                        skip = true
+//                                    }
+//                                }
+//                            }
+                        }
+
+                        //                            print(characterAfter)
+                        
+                        if stringAfter.endIndex >= "'s".endIndex {
+                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                skip = true
+                            }
+                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                skip = true
+                            }
+                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
                                 skip = true
                             }
                         }
                     }
-                    
-                    foundString = string.substring(from: range.lowerBound)
-                    if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                        foundString = foundString.substring(to: newRange.upperBound)
+                    if let characterBefore:Character = stringBefore.last {
+                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
+                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
                     }
-                    
-                    if !skip {
-                        markCounter += 1
-                        foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                    }
-                    
-                    newString = newString + stringBefore + foundString
-                    
-                    stringBefore = stringBefore + foundString
-                    
-                    string = stringAfter
-                } else {
-                    break
                 }
+                
+                foundString = string.substring(from: range.lowerBound)
+                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                    foundString = foundString.substring(to: newRange.upperBound)
+                }
+                
+                if !skip {
+                    markCounter += 1
+                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                }
+                
+                newString = newString + stringBefore + foundString
+                
+                stringBefore = stringBefore + foundString
+                
+                string = stringAfter
             }
             
             newString = newString + stringAfter

@@ -1302,7 +1302,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     class Display {
         var mediaItems:[MediaItem]?
-        var section = Section()
+        var section = Section(stringsAction: nil)
     }
     
     var display = Display()

@@ -30,18 +30,17 @@ extension UIApplication
     }
 }
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, UISplitViewControllerDelegate
+extension AppDelegate : UISplitViewControllerDelegate
 {
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool
     {
-//        if ((primaryViewController as? UINavigationController)?.visibleViewController as? LexiconIndexViewController) != nil {
-//            primaryViewController.navigationController?.popToRootViewController(animated: false)
-//        }
-//        
-//        if ((primaryViewController as? UINavigationController)?.visibleViewController as? ScriptureIndexViewController) != nil {
-//            primaryViewController.navigationController?.popToRootViewController(animated: false)
-//        }
+        //        if ((primaryViewController as? UINavigationController)?.visibleViewController as? LexiconIndexViewController) != nil {
+        //            primaryViewController.navigationController?.popToRootViewController(animated: false)
+        //        }
+        //
+        //        if ((primaryViewController as? UINavigationController)?.visibleViewController as? ScriptureIndexViewController) != nil {
+        //            primaryViewController.navigationController?.popToRootViewController(animated: false)
+        //        }
         
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else {
             return false
@@ -59,6 +58,196 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         return false
     }
     
+    func primaryViewController(forExpanding splitViewController: UISplitViewController) -> UIViewController?
+    {
+//        guard UIDevice.current.userInterfaceIdiom == .pad else {
+//            return nil
+//        }
+        
+        if let master = splitViewController.viewControllers[0] as? UINavigationController, master.viewControllers.count > 0 {
+            guard let mtvc = master.viewControllers[0] as? MediaTableViewController else {
+                return nil
+            }
+            
+            if master.viewControllers.count > 1, let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
+                if master.visibleViewController == sivc {
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        return sivc.navigationController
+                    } else {
+                        mtvc.navigationController?.popToRootViewController(animated: false)
+                        return mtvc.navigationController
+                    }
+                }
+            }
+            
+            if master.viewControllers.count > 1, let livc = master.viewControllers[1] as? LexiconIndexViewController {
+                if master.visibleViewController == livc {
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        return livc.navigationController
+                    } else {
+                        mtvc.navigationController?.popToRootViewController(animated: false)
+                        return mtvc.navigationController
+                    }
+                }
+            }
+            
+//            if master.viewControllers.count > 2, let mvc = master.viewControllers[2] as? MediaViewController {
+//                if master.visibleViewController == mvc {
+//                    return sivc
+//                }
+//            }
+//            if master.viewControllers.count > 2, let mvc = master.viewControllers[2] as? MediaViewController {
+//                if master.visibleViewController == mvc {
+//                    return livc
+//                }
+//            }
+
+            let nvc = master.viewControllers[master.viewControllers.count - 1] as? UINavigationController
+            
+            switch master.viewControllers.count {
+            case 0:
+                // Should not happen
+                break
+
+            case 1:
+                return mtvc.navigationController
+                
+            case 2,3:
+                if let mvc = nvc?.viewControllers[0] as? MediaViewController {
+                    if master.visibleViewController == mvc {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            mtvc.navigationController?.popToRootViewController(animated: false)
+                        }
+                        return mtvc.navigationController
+                    }
+                }
+                
+                if let sivc = nvc?.viewControllers[0] as? ScriptureIndexViewController {
+                    if master.visibleViewController == sivc {
+                        return sivc.navigationController
+                    }
+                }
+                
+                if let livc = nvc?.viewControllers[0] as? LexiconIndexViewController {
+                    if master.visibleViewController == livc {
+                        return livc.navigationController
+                    }
+                }
+                break
+            
+            default:
+                // Should not happen
+                break
+            }
+        }
+        
+        if let master = splitViewController.viewControllers[0] as? MediaTableViewController {
+            return master.navigationController
+        }
+
+        return nil
+    }
+    
+    func splitViewController(_ splitViewController: UISplitViewController, separateSecondaryFrom primaryViewController: UIViewController) -> UIViewController?
+    {
+//        guard UIDevice.current.userInterfaceIdiom == .pad else {
+//            return nil
+//        }
+        
+        if let master = splitViewController.viewControllers[0] as? UINavigationController {
+            switch master.viewControllers.count {
+            case 0:
+                // SHOULD NEVER HAPPEN
+                break
+                
+            case 1:
+                if (master.viewControllers[0] as? MediaTableViewController) != nil {
+
+                }
+                break
+                
+            case 2:
+                if (master.viewControllers[0] as? MediaTableViewController) != nil {
+                    if let viewControllers = (master.viewControllers[1] as? UINavigationController)?.viewControllers {
+                        if let mvc = viewControllers[0] as? MediaViewController {
+                            return mvc.navigationController
+                        }
+                    }
+                    if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            // do nothing
+                        }
+                    }
+                    if let livc = master.viewControllers[1] as? LexiconIndexViewController {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            // do nothing
+                        }
+                    }
+                }
+                break
+                
+            case 3:
+                if (master.viewControllers[0] as? MediaTableViewController) != nil {
+                    if let mvc = master.viewControllers[1] as? MediaViewController {
+                        // SHOULD NEVER HAPPEN
+                    }
+                    if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
+                        if let mvc = (master.viewControllers[2] as? UINavigationController)?.viewControllers[0] as? MediaViewController {
+                            return mvc.navigationController
+                        }
+                    }
+                    if let livc = master.viewControllers[1] as? LexiconIndexViewController {
+                        if let mvc = (master.viewControllers[2] as? UINavigationController)?.viewControllers[0] as? MediaViewController {
+                            return mvc.navigationController
+                        }
+                    }
+                }
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+            let mvc = navigationController.viewControllers[0] as? MediaViewController {
+            // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
+//            mvc.selectedMediaItem = globals.selectedMediaItem.detail
+//            DispatchQueue.main.async {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+//            }
+            print("BLANK MVC")
+            return navigationController
+        }
+        
+        return nil
+    }
+    
+    func primaryViewController(forCollapsing splitViewController: UISplitViewController) -> UIViewController?
+    {
+//        guard UIDevice.current.userInterfaceIdiom == .pad else {
+//            return nil
+//        }
+        
+        if let master = splitViewController.viewControllers[0] as? UINavigationController {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                return master.visibleViewController?.navigationController
+            } else {
+                return (master.viewControllers[0] as? MediaTableViewController)?.navigationController
+            }
+        }
+        
+        if let master = splitViewController.viewControllers[0] as? MediaTableViewController {
+            return master.navigationController
+        }
+        
+        return nil
+    }
+}
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
+{
     var window: UIWindow?
     
     func downloadFailed()

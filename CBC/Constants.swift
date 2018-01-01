@@ -396,8 +396,11 @@ enum Constants {
         static let WORD_CLOUD               = "Word Cloud"
         
         static let SCRIPTURE_INDEX          = "Scripture Index"
-        static let LEXICON_INDEX            = "Lexicon Index"
+        static let SCRIPTURE_INDEX_NAV      = "Scripture Index Nav"
         
+        static let LEXICON_INDEX            = "Lexicon Index"
+        static let LEXICON_INDEX_NAV        = "Lexicon Index Nav"
+
         static let LEXICON                  = "Lexicon"
         
         static let INDEX_MEDIA_ITEM         = "IndexMediaItem"

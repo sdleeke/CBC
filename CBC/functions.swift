@@ -12,6 +12,176 @@ import AVKit
 import MessageUI
 import UserNotifications
 
+extension Data {
+    var html2AttributedString: NSAttributedString? {
+        do {
+            //            var options = ["DocumentReadingOptionKey" : ".html", .characterEncoding: String.Encoding.utf8.rawValue]
+            // options: [:],
+            return try NSAttributedString(data: self, options: [NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType, NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue], documentAttributes: nil)
+        } catch {
+            print("error:", error)
+            return  nil
+        }
+    }
+    var html2String: String? {
+        return html2AttributedString?.string
+    }
+}
+
+extension String {
+    var html2AttributedString: NSAttributedString? {
+        return Data(utf8).html2AttributedString
+    }
+    var html2String: String? {
+        return html2AttributedString?.string
+    }
+}
+
+extension Date
+{
+    //MARK: Date extension
+    
+    // VERY Computationally Expensive
+    init?(dateString:String)
+    {
+        let dateStringFormatter = DateFormatter()
+        
+        dateStringFormatter.dateFormat = "yyyy-MM-dd"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        guard let d = dateStringFormatter.date(from: dateString) else {
+            return nil
+        }
+        
+        self = Date(timeInterval:0, since:d)
+    }
+    
+    // VERY Computationally Expensive
+    init?(string:String)
+    {
+        let dateStringFormatter = DateFormatter()
+        
+        dateStringFormatter.dateFormat = "MMM dd, yyyy"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        guard let d = dateStringFormatter.date(from: string) else {
+            return nil
+        }
+        
+        self = Date(timeInterval:0, since:d)
+    }
+    
+    // VERY Computationally Expensive
+    var ymd : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "yyyy-MM-dd"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var mdyhm : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            dateStringFormatter.amSymbol = "AM"
+            dateStringFormatter.pmSymbol = "PM"
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var mdy : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM d, yyyy"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var year : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "yyyy"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var month : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var day : String
+    {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "dd"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    func isNewerThan(_ dateToCompare : Date) -> Bool
+    {
+        return (self.compare(dateToCompare) == ComparisonResult.orderedDescending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
+    }
+    
+    
+    func isOlderThan(_ dateToCompare : Date) -> Bool
+    {
+        return (self.compare(dateToCompare) == ComparisonResult.orderedAscending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
+    }
+    
+    
+    func isEqualTo(_ dateToCompare : Date) -> Bool
+    {
+        return self.compare(dateToCompare) == ComparisonResult.orderedSame
+    }
+    
+    func addDays(_ daysToAdd : Int) -> Date
+    {
+        let secondsInDays : TimeInterval = Double(daysToAdd) * 60 * 60 * 24
+        let dateWithDaysAdded : Date = self.addingTimeInterval(secondsInDays)
+        
+        //Return Result
+        return dateWithDaysAdded
+    }
+    
+    func addHours(_ hoursToAdd : Int) -> Date
+    {
+        let secondsInHours : TimeInterval = Double(hoursToAdd) * 60 * 60
+        let dateWithHoursAdded : Date = self.addingTimeInterval(secondsInHours)
+        
+        //Return Result
+        return dateWithHoursAdded
+    }
+}
+
 func startAudio()
 {
     let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
@@ -460,151 +630,6 @@ func jsonFromURL(url:String,filename:String) -> Any?
     }
 }
 
-extension Date
-{
-    //MARK: Date extension
-
-    // VERY Computationally Expensive
-    init?(dateString:String)
-    {
-        let dateStringFormatter = DateFormatter()
-        
-        dateStringFormatter.dateFormat = "yyyy-MM-dd"
-        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-        
-        guard let d = dateStringFormatter.date(from: dateString) else {
-            return nil
-        }
-
-        self = Date(timeInterval:0, since:d)
-    }
-    
-    // VERY Computationally Expensive
-    init?(string:String)
-    {
-        let dateStringFormatter = DateFormatter()
-        
-        dateStringFormatter.dateFormat = "MMM dd, yyyy"
-        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-
-        guard let d = dateStringFormatter.date(from: string) else {
-            return nil
-        }
-        
-        self = Date(timeInterval:0, since:d)
-    }
-    
-    // VERY Computationally Expensive
-    var ymd : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "yyyy-MM-dd"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    // VERY Computationally Expensive
-    var mdyhm : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            dateStringFormatter.amSymbol = "AM"
-            dateStringFormatter.pmSymbol = "PM"
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    // VERY Computationally Expensive
-    var mdy : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM d, yyyy"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    // VERY Computationally Expensive
-    var year : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "yyyy"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    // VERY Computationally Expensive
-    var month : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    // VERY Computationally Expensive
-    var day : String
-    {
-        get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "dd"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
-        }
-    }
-    
-    func isNewerThan(_ dateToCompare : Date) -> Bool
-    {
-        return (self.compare(dateToCompare) == ComparisonResult.orderedDescending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
-    }
-    
-    
-    func isOlderThan(_ dateToCompare : Date) -> Bool
-    {
-        return (self.compare(dateToCompare) == ComparisonResult.orderedAscending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
-    }
-    
-
-    func isEqualTo(_ dateToCompare : Date) -> Bool
-    {
-        return self.compare(dateToCompare) == ComparisonResult.orderedSame
-    }
-
-    func addDays(_ daysToAdd : Int) -> Date
-    {
-        let secondsInDays : TimeInterval = Double(daysToAdd) * 60 * 60 * 24
-        let dateWithDaysAdded : Date = self.addingTimeInterval(secondsInDays)
-        
-        //Return Result
-        return dateWithDaysAdded
-    }
-    
-    func addHours(_ hoursToAdd : Int) -> Date
-    {
-        let secondsInHours : TimeInterval = Double(hoursToAdd) * 60 * 60
-        let dateWithHoursAdded : Date = self.addingTimeInterval(secondsInHours)
-        
-        //Return Result
-        return dateWithHoursAdded
-    }
-}
-
 func stringWithoutPrefixes(_ fromString:String?) -> String?
 {
     if let range = fromString?.range(of: "A is "), range.lowerBound == "a".startIndex {
@@ -728,60 +753,100 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
     {
         var string = input
         
-        var stringBefore    = String()
-        var stringAfter     = String()
-        var newString       = String()
-        var foundString     = String()
-        
+        var stringBefore:String = Constants.EMPTY_STRING
+        var stringAfter:String = Constants.EMPTY_STRING
+        var newString:String = Constants.EMPTY_STRING
+        var foundString:String = Constants.EMPTY_STRING
+
         while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-            //                print(string)
+            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+                break
+            }
             
-            if let range = string.lowercased().range(of: searchText.lowercased()) {
-                stringBefore = string.substring(to: range.lowerBound)
-                stringAfter = string.substring(from: range.upperBound)
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if let characterAfter:Character = stringAfter.first {
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+            stringBefore = string.substring(to: range.lowerBound)
+            stringAfter = string.substring(from: range.upperBound)
+            
+            var skip = false
+            
+            if wholeWordsOnly {
+                if stringBefore == "" {
+                    if  let characterBefore:Character = newString.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         }
                         
-                        //                            print(characterAfter)
-                        if stringAfter.endIndex >= "'s".endIndex {
-                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                skip = true
-                            }
-                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
                                 skip = true
                             }
                         }
                     }
-                    if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                } else {
+                    if  let characterBefore:Character = stringBefore.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                }
+                
+                if let characterAfter:Character = stringAfter.first {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)),
+                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        skip = true
+                    } else {
+//                            if characterAfter == "." {
+//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+//                                        skip = true
+//                                    }
+//                                }
+//                            }
+                    }
+
+                    //                            print(characterAfter)
+                    if stringAfter.endIndex >= "'s".endIndex {
+                        if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            skip = true
+                        }
+                        if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            skip = true
+                        }
+                        if (stringAfter.substring(to: "'d".endIndex) == "'d") {
                             skip = true
                         }
                     }
                 }
-                
-                foundString = string.substring(from: range.lowerBound)
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = foundString.substring(to: newRange.upperBound)
+                if let characterBefore:Character = stringBefore.last {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)),
+                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        skip = true
+                    }
                 }
-                
-                if !skip {
-                    foundString = "<mark>" + foundString + "</mark>"
-                }
-                
-                newString = newString + stringBefore + foundString
-                
-                stringBefore = stringBefore + foundString
-                
-                string = stringAfter
-            } else {
-                break
             }
+            
+            foundString = string.substring(from: range.lowerBound)
+            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                foundString = foundString.substring(to: newRange.upperBound)
+            }
+            
+            if !skip {
+                foundString = "<mark>" + foundString + "</mark>"
+            }
+            
+            newString = newString + stringBefore + foundString
+            
+            stringBefore = stringBefore + foundString
+            
+            string = stringAfter
         }
         
         newString = newString + stringAfter
@@ -833,6 +898,9 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                             skip = true
                         }
                         if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            skip = true
+                        }
+                        if (stringAfter.substring(to: "'d".endIndex) == "'d") {
                             skip = true
                         }
                     }
@@ -4177,6 +4245,22 @@ func stripHTML(_ string:String?) -> String?
                 if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
                     if let from = bodyString?.substring(from: (to + from).endIndex) {
                         bodyString = to + "\n\n" + from
+                    }
+//                    let string = to + from
+//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                        bodyString = to + from
+//                    }
+                }
+            }
+        }
+    }
+    
+    while bodyString?.range(of: "<br ") != nil {
+        if let startRange = bodyString?.range(of: "<br ") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    if let from = bodyString?.substring(from: (to + from).endIndex) {
+                        bodyString = to + from
                     }
 //                    let string = to + from
 //                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {

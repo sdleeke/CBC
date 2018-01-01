@@ -39,7 +39,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             return false
         }
         
-        guard section.strings != nil else {
+        guard unfilteredSection.strings != nil else {
             return false
         }
         
@@ -185,7 +185,11 @@ extension PopoverTableViewController: UISearchBarDelegate
             follow()
         }
         
-        filteredSection = Section()
+        filteredSection = Section(stringsAction: { (strings:[String]?) in
+            Thread.onMainThread() {
+                self.segmentedControl?.isEnabled = strings != nil
+            }
+        })
     }
 }
 
@@ -537,6 +541,10 @@ class PopoverTableViewController : UIViewController
     @IBOutlet weak var segmentedControl: UISegmentedControl!
     {
         didSet {
+            if section.strings == nil {
+                segmentedControl.isEnabled = false
+            }
+            
             if segments {
                 segmentedControl.removeAllSegments()
                 
@@ -555,6 +563,10 @@ class PopoverTableViewController : UIViewController
 
     @IBAction func segmentedControlAction(_ sender: UISegmentedControl)
     {
+        guard section.strings != nil else {
+            return
+        }
+        
         if let segmentActions = segmentActions {
             for segmentAction in segmentActions {
                 if segmentAction.position == segmentedControl.selectedSegmentIndex {
@@ -599,8 +611,22 @@ class PopoverTableViewController : UIViewController
     
     var stringSelected : String?
     
-    var filteredSection = Section()
-    var unfilteredSection = Section()
+    lazy var filteredSection:Section! = {
+        let section = Section(stringsAction: { (strings:[String]?) in
+            Thread.onMainThread() {
+                self.segmentedControl?.isEnabled = strings != nil
+            }
+        })
+        return section
+    }()
+    lazy var unfilteredSection:Section! = {
+        let section = Section(stringsAction: { (strings:[String]?) in
+            Thread.onMainThread() {
+                self.segmentedControl?.isEnabled = strings != nil
+            }
+        })
+        return section
+    }()
     
     var section:Section! {
         get {
@@ -1301,7 +1327,7 @@ class PopoverTableViewController : UIViewController
             if presentingViewController == globals.splitViewController.viewControllers[0] {
                 vc = globals.splitViewController.viewControllers[1]
             }
-            
+
             if presentingViewController == globals.splitViewController.viewControllers[1] {
                 vc = globals.splitViewController.viewControllers[0]
             }
@@ -1411,7 +1437,7 @@ class PopoverTableViewController : UIViewController
             
         if (stringsArray != nil) && (self.section.strings == nil) {
             self.section.strings = self.stringsArray
-            
+
             self.setPreferredContentSize()
         } else
             
@@ -1479,7 +1505,7 @@ class PopoverTableViewController : UIViewController
             if let indexPath = section.indexPath(from: stringSelected) {
                 tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
-
+            
             activityIndicator?.stopAnimating()
             activityIndicator?.isHidden = true
         } else {

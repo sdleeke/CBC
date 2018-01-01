@@ -1352,7 +1352,7 @@ class MediaItem : NSObject
         
         loadNotesHTML()
 
-        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML))
+        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML)) // notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
     }
     
     // VERY Computationally Expensive
@@ -2052,12 +2052,12 @@ class MediaItem : NSObject
         func mark(_ input:String) -> String
         {
             var string = input
-
+            
             var stringBefore:String = Constants.EMPTY_STRING
             var stringAfter:String = Constants.EMPTY_STRING
             var newString:String = Constants.EMPTY_STRING
             var foundString:String = Constants.EMPTY_STRING
-
+            
             while (string.lowercased().range(of: searchText.lowercased()) != nil) {
                 guard let range = string.lowercased().range(of: searchText.lowercased()) else {
                     break
@@ -2072,35 +2072,47 @@ class MediaItem : NSObject
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
+                            }
+                            
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                    skip = true
+                                }
                             }
                         }
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
+                            }
+                            
+                            if searchText.count == 1 {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                    skip = true
+                                }
                             }
                         }
                     }
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         } else {
-//                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
-//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-//                                        skip = true
-//                                    }
-//                                }
-//                            }
+                            //                            if characterAfter == "." {
+                            //                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+                            //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+                            //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            //                                        skip = true
+                            //                                    }
+                            //                                }
+                            //                            }
                         }
                         
-//                            print(characterAfter)
+                        //                            print(characterAfter)
                         
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
@@ -2109,22 +2121,31 @@ class MediaItem : NSObject
                             if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                 skip = true
                             }
+                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                                skip = true
+                            }
+                        }
+                    }
+                    if let characterBefore:Character = stringBefore.last {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)),
+                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
                         }
                     }
                 }
-
+                
                 foundString = string.substring(from: range.lowerBound)
                 if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
                     foundString = foundString.substring(to: newRange.upperBound)
                 } else {
                     // ???
                 }
-
+                
                 if !skip {
                     markCounter += 1
                     foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
                 }
-
+                
                 newString = newString + stringBefore + foundString
                 
                 stringBefore = stringBefore + foundString

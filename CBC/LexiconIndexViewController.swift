@@ -380,9 +380,13 @@ class LexiconIndexViewController : UIViewController
     
     func setTableViewHeightConstraint(change:CGFloat)
     {
+        guard tableViewHeightConstraint.isActive else {
+            return
+        }
+        
         let newConstraintConstant = tableViewHeightConstraint.constant + change
         
-        let max = self.view.bounds.height * 2 / 3
+        let max = view.bounds.height - 300
         
         if (newConstraintConstant >= 0) && (newConstraintConstant <= max) {
             tableViewHeightConstraint.constant = newConstraintConstant
@@ -391,11 +395,77 @@ class LexiconIndexViewController : UIViewController
             if newConstraintConstant > max { tableViewHeightConstraint.constant =  max }
         }
         
-        self.view.setNeedsLayout()
-        self.view.layoutSubviews()
+        view.setNeedsLayout()
+        view.layoutSubviews()
     }
     
+    func resetConstraint()
+    {
+        tableViewHeightConstraint.constant = view.bounds.height / 2
+        setTableViewHeightConstraint(change: 0)
+        
+        view.setNeedsLayout()
+        view.layoutSubviews()
+    }
+    
+    func zeroConstraint()
+    {
+        tableViewHeightConstraint.constant = 0
+        
+        view.setNeedsLayout()
+        view.layoutSubviews()
+    }
+    
+    @IBOutlet weak var locateView: UIView!
+    {
+        didSet {
+            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(LexiconIndexViewController.resetConstraint))
+            doubleTap.numberOfTapsRequired = 2
+            locateView.addGestureRecognizer(doubleTap)
+            
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(LexiconIndexViewController.zeroConstraint))
+            singleTap.numberOfTapsRequired = 1
+            locateView.addGestureRecognizer(singleTap)
+            
+            singleTap.require(toFail: doubleTap)
+            panGesture.require(toFail: singleTap)
+        }
+    }
+
+    //    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+//                           shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool
+//    {
+//        // Don't recognize a double tap until a pan fails.
+//        if gestureRecognizer == tapGesture, otherGestureRecognizer == panGesture {
+//            return true
+//        }
+//        return false
+//    }
+    
     @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
+
+//    @IBOutlet var tapGesture: UITapGestureRecognizer!
+//    @IBAction func tapGestureAction(_ tap: UITapGestureRecognizer)
+//    {
+//        switch tap.state {
+//        case .began:
+//            tableViewHeightConstraint.constant = view.bounds.height / 2
+//
+//            view.setNeedsLayout()
+//            view.layoutSubviews()
+//            break
+//
+//        case .ended:
+//            break
+//
+//        case .changed:
+//            break
+//
+//        default:
+//            break
+//        }
+//    }
+    
     @IBOutlet var panGesture: UIPanGestureRecognizer!
     @IBAction func panGestureAction(_ pan: UIPanGestureRecognizer)
     {
@@ -423,7 +493,6 @@ class LexiconIndexViewController : UIViewController
         default:
             break
         }
-
     }
     
     var mediaListGroupSort:MediaListGroupSort?
@@ -553,6 +622,17 @@ class LexiconIndexViewController : UIViewController
     }
     
     var ptvc:PopoverTableViewController!
+    
+//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
+//    {
+//        switch identifier {
+//        case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
+//            return false
+//            
+//        default:
+//            return true
+//        }
+//    }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
@@ -761,9 +841,6 @@ class LexiconIndexViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-
-        // This works because we never use "Back" to get here...
-        tableViewHeightConstraint.constant = self.view.bounds.height / 2
 
         selectedWord.text = searchText
 

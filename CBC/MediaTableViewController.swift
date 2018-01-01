@@ -429,6 +429,7 @@ class StringIndex : NSObject
                 dateStringFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
                 
                 dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+                dateStringFormatter.timeZone = TimeZone(abbreviation: "UTC")
                 
                 if let date = dateStringFormatter.date(from: dateCreated) {
 //                    print(date.mdyhm)
@@ -447,6 +448,19 @@ class StringIndex : NSObject
                     if let status = newDict["status"] {
                         title += "\nStatus: \(status)"
                     }
+                    
+                    if let mediaList = globals.media.all?.list {
+                        if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+                            return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                                return transcript.mediaID == mediaID
+                            }).count == 1
+                        }).count == 1 {
+                            title += "\nLocal"
+                        } else {
+                            
+                        }
+                    }
+
                     newDict["title"] = title
                 }
                 
@@ -725,11 +739,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
         if let mediaID = value["mediaId"] as? String {
             if let mediaList = globals.media.all?.list {
-                if let mediaItem = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+                let mediaItems = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
                     return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                         return transcript.mediaID == mediaID
                     }).count == 1
-                }).first {
+                })
+                if mediaItems.count == 1, let mediaItem = mediaItems.first {
                     actions.append(AlertAction(title: "Locate", style: .default) {
                         self.dismiss(animated: true, completion: nil)
                         self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
@@ -1009,6 +1024,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
     }
     
+    func done()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -1068,6 +1088,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //
 //                    navigationController?.pushViewController(viewController, animated: true)
 //                }
+
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX_NAV) as? UINavigationController,
+//                    let scriptureIndexViewController = navigationController.viewControllers[0] as? ScriptureIndexViewController {
+//                    navigationController.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.done)), animated: true)
+//                    scriptureIndexViewController.mediaListGroupSort = globals.media.active
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    present(navigationController, animated: true)
+//                }
             }
             break
             
@@ -1091,10 +1119,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                    self.navigationController?.pushViewController(popover, animated: true)
 //                }
 
-//                if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
-//                    viewController.mediaListGroupSort = globals.media.active
-//
-//                    navigationController?.pushViewController(viewController, animated: true)
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX_NAV) as? UINavigationController,
+//                    let lexiconIndexViewController = navigationController.viewControllers[0] as? LexiconIndexViewController {
+//                    navigationController.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.done)), animated: true)
+//                    lexiconIndexViewController.mediaListGroupSort = globals.media.active
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    present(navigationController, animated: true)
 //                }
             }
             break
@@ -1540,7 +1570,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case .selectingLexicon:
+        case .selectingLexicon: // No longer in use.  Replaced by .selectingCellSearch
             _ = navigationController?.popViewController(animated: true)
             
             if let range = string.range(of: " (") {
@@ -2274,6 +2304,7 @@ class MediaTableViewController : UIViewController // MediaController
                 //Nothing to show
             }
             
+
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
@@ -2281,9 +2312,27 @@ class MediaTableViewController : UIViewController // MediaController
                     showMenu.append(Constants.Strings.Scripture_Index)
                 }
                 
+                var li = false
+                
+                if let list = globals.media.active?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                    return mediaItem.hasNotesHTML
+                }), list.count > 0 {
+                    li = true
+                }
+
                 if (globals.media.active?.lexicon?.eligible != nil) {
+                    li = true
+                } else {
+                    if li {
+                        print("ACTIVE LI but LEXICON NO LI!")
+                    }
+                }
+                
+                if li {
                     showMenu.append(Constants.Strings.Lexicon_Index)
                 }
+            } else {
+                
             }
             
             showMenu.append(Constants.Strings.History)
@@ -3942,60 +3991,84 @@ class MediaTableViewController : UIViewController // MediaController
     {
         super.viewWillTransition(to: size, with: coordinator)
         
-        var livc : LexiconIndexViewController?
+//        var livc : LexiconIndexViewController?
+//
+//        if let viewControllers = navigationController?.viewControllers {
+//            for viewController in viewControllers {
+//                if let _ = viewController as? LexiconIndexViewController {
+//                    livc = viewController as? LexiconIndexViewController
+//                }
+//            }
+//        }
+//
+//        var sivc : ScriptureIndexViewController?
+//
+//        if let viewControllers = navigationController?.viewControllers {
+//            for viewController in viewControllers {
+//                if let _ = viewController as? ScriptureIndexViewController {
+//                    sivc = viewController as? ScriptureIndexViewController
+//                }
+//            }
+//        }
         
-        if let viewControllers = navigationController?.viewControllers {
-            for viewController in viewControllers {
-                if let _ = viewController as? LexiconIndexViewController {
-                    livc = viewController as? LexiconIndexViewController
-                }
-            }
+//        let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
+        
+//        if let isCollapsed = splitViewController?.isCollapsed, (UIDevice.current.userInterfaceIdiom == .phone) && !isCollapsed {
+//            // Why?
+////        if DeviceType.IS_IPHONE_6P_7P {
+//            tableView.reloadData()
+//        }
+        
+//        if UIDevice.current.userInterfaceIdiom == .phone {
+//            if navigationController?.viewControllers.filter({ (viewController:UIViewController) -> Bool in
+//                return (viewController as? ScriptureIndexViewController) != nil
+//            }).count > 0 {
+//                _ = self.navigationController?.popToRootViewController(animated: false)
+//            }
+//            
+//            if navigationController?.viewControllers.filter({ (viewController:UIViewController) -> Bool in
+//                return (viewController as? LexiconIndexViewController) != nil
+//            }).count > 0 {
+//                _ = self.navigationController?.popToRootViewController(animated: false)
+//            }
+//        }
+        
+//        if navigationController?.visibleViewController != self,(navigationController?.visibleViewController as? MediaViewController) == nil { // (livc != nil) || (sivc != nil)
+//            _ = self.navigationController?.popToRootViewController(animated: false)
+//        }
+        
+//        if wasNotFullScreen { // DeviceType.IS_IPHONE_6P_7P
+//            // This is a HACK.
+//
+//            // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
+//            // the device is rotation and the SplitViewController will show TWO viewControllers when it finishes, then the SVC or LVC will be
+//            // put in the detail view controller's position!
+//
+//            // Unfortuantely I know of NO way to determine if the device is rotating or whether the split view controller is going from one view controller to two.
+//
+//            // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
+//            // causes popping to root in lots of other cases where I wish it did not.
+//        }
+
+        if self.presentingVC?.popoverPresentationController?.presentationStyle == .popover {
+            self.dismiss(animated: true, completion: {
+                self.presentingVC = nil
+            })
         }
-        
-        var sivc : ScriptureIndexViewController?
-        
-        if let viewControllers = navigationController?.viewControllers {
-            for viewController in viewControllers {
-                if let _ = viewController as? ScriptureIndexViewController {
-                    sivc = viewController as? ScriptureIndexViewController
-                }
-            }
-        }
-        
-        let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
-        
-        if let isCollapsed = splitViewController?.isCollapsed, (UIDevice.current.userInterfaceIdiom == .phone) && !isCollapsed {
-            // Why?
-//        if DeviceType.IS_IPHONE_6P_7P {
-            tableView.reloadData()
-        }
-        
-        if let isCollapsed = splitViewController?.isCollapsed, wasNotFullScreen || ((traitCollection.verticalSizeClass == .compact) && !isCollapsed) { // DeviceType.IS_IPHONE_6P_7P
-            // This is a HACK.
-            
-            // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
-            // the device is rotation and the SplitViewController will show TWO viewControllers when it finishes, then the SVC or LVC will be 
-            // put in the detail view controller's position!
-            
-            // Unfortuantely I know of NO way to determine if the device is rotating or whether the split view controller is going from one view controller to two.
-            
-            // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
-            // causes popping to root in lots of other cases where I wish it did not.
-            
-            if (livc != nil) || (sivc != nil) {
-                _ = self.navigationController?.popToRootViewController(animated: false)
-            }
-            
-            if presentingVC?.popoverPresentationController?.presentationStyle == .popover {
-                self.dismiss(animated: true, completion: {
-                    self.presentingVC = nil
-                })
-            }
-        }
-        
+
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//            if self.traitCollection.verticalSizeClass == .compact, self.traitCollection.horizontalSizeClass == .compact,
+//                let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+//                if let livc = livc {
+//                    self.navigationController?.pushViewController(livc, animated: false)
+//                }
+//                if let sivc = sivc {
+//                    self.navigationController?.pushViewController(sivc, animated: false)
+//                }
+//            }
+            
             self.setupTitle()
         }
     }

@@ -1328,7 +1328,8 @@ class MediaViewController: UIViewController // MediaController
     
     @IBOutlet weak var progressIndicator: UIProgressView!
 
-    @IBOutlet weak var verticalSplit: UIView! {
+    @IBOutlet weak var verticalSplit: UIView!
+    {
         didSet {
             let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
             tap.numberOfTapsRequired = 2
@@ -2000,7 +2001,8 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    @IBOutlet weak var elapsed: UILabel! {
+    @IBOutlet weak var elapsed: UILabel!
+    {
         didSet {
             let doubleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
             doubleTap.numberOfTapsRequired = 2
@@ -2265,7 +2267,7 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
+        if document != nil, let purpose = document?.purpose { // globals.cacheDownloads,
             switch purpose {
             case Purpose.notes:
                 actionMenu.append(Constants.Strings.Refresh_Transcript)
@@ -3597,15 +3599,16 @@ class MediaViewController: UIViewController // MediaController
 
             self.updateUI()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if self.videoLocation == .withTableView {
-                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
-            } else {
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-            }
-            
-            self.setupWKContentOffsets()
-
-            self.updateUI()
+            // This killed the auto loading.
+//            if self.videoLocation == .withTableView {
+//                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+//            } else {
+//                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+//            }
+//            
+//            self.setupWKContentOffsets()
+//
+//            self.updateUI()
         }
     }
     
@@ -4187,6 +4190,20 @@ class MediaViewController: UIViewController // MediaController
     {
         super.viewDidAppear(animated)
         
+        if selectedMediaItem == nil, globals.selectedMediaItem.detail != nil {
+            selectedMediaItem = globals.selectedMediaItem.detail
+            updateUI()
+            
+            tableView.reloadData()
+            
+            //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                Thread.onMainThread() {
+                    self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                }
+            }
+        }
+        
 //        // UGLY Hack to fix iOS 11 constraint problem.
 //        // Will NOT work viewWillAppear
 //        if #available(iOS 11.0, *) {
@@ -4199,6 +4216,9 @@ class MediaViewController: UIViewController // MediaController
 //            // Fallback on earlier versions
 //        }
 
+        
+        // The following seems to be supeseded by the SplitViewController Delegate call in AppDelegate: splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool
+        
         // Seems like a strange way to force MTVC to be the visible view controller.  Not sure this ever happens since it would only be during loading while the splitViewController is collapsed.
         // Which means either on an iPhone (not plus) or iPad in split screen model w/ compact width.
         if globals.isLoading, navigationController?.visibleViewController == self, let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
@@ -4324,6 +4344,10 @@ class MediaViewController: UIViewController // MediaController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+        
+        if selectedMediaItem == globals.mediaPlayer.mediaItem {
+            globals.mediaPlayer.view?.removeFromSuperview()
+        }
         
         navigationItem.rightBarButtonItem = nil
         

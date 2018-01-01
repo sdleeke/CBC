@@ -10,6 +10,13 @@ import Foundation
 
 class Section
 {
+    var stringsAction : (([String]?) -> (Void))?
+    
+    init(stringsAction : (([String]?) -> (Void))?)
+    {
+        self.stringsAction = stringsAction
+    }
+    
     func indexPath(from string:String?) -> IndexPath?
     {
         guard let indexes = self.indexes else {
@@ -120,6 +127,8 @@ class Section
             
         }
         didSet {
+            stringsAction?(strings)
+            
             guard let strings = strings else {
                 self.counts = nil
                 self.indexes = nil

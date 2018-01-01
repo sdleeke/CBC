@@ -132,7 +132,7 @@ class Lexicon : NSObject {
     var pauseUpdates = false
     var completed = false
     
-    var section = Section()
+    var section = Section(stringsAction: nil)
     
     var entries:[MediaItem]? {
         get {

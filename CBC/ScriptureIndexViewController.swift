@@ -833,6 +833,18 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
+//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
+//    {
+//        switch identifier {
+//        case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
+//            return false
+//            
+//        default:
+//            return false
+//        }
+//
+//    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -885,6 +897,8 @@ class ScriptureIndexViewController : UIViewController
 //        return show
 //    }
 
+    var mask = false
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -894,6 +908,32 @@ class ScriptureIndexViewController : UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
         })
+        
+        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+            var vc : UIViewController?
+            
+            if presentingViewController == globals.splitViewController.viewControllers[0] {
+                vc = globals.splitViewController.viewControllers[1]
+            }
+            
+            if presentingViewController == globals.splitViewController.viewControllers[1] {
+                vc = globals.splitViewController.viewControllers[0]
+            }
+            
+            mask = true
+            
+            if let vc = vc {
+                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
+                    // When mask is set to false this will end
+                    while self.mask {
+                        Thread.sleep(forTimeInterval: 0.1)
+                    }
+                    return nil
+                },completion:{ (data:Any?) -> Void in
+                    
+                })
+            }
+        }
         
         navigationItem.hidesBackButton = false
         
@@ -911,6 +951,8 @@ class ScriptureIndexViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+        
+        mask = false
         
         NotificationCenter.default.removeObserver(self)
     }
