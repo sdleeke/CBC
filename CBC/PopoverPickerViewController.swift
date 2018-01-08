@@ -247,6 +247,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         
         if stringTree != nil {
             pickerSelections[component] = row
+            spinner.startAnimating()
             
             DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 self?.updatePickerSelections()
@@ -1017,6 +1018,10 @@ class PopoverPickerViewController : UIViewController
             self.setPreferredContentSize()
 
             self.string = self.wordFromPicker()
+            
+            if self.stringTree?.completed == true {
+                self.spinner.stopAnimating()
+            }
         }
     }
     

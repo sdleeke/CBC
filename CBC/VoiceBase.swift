@@ -1601,6 +1601,10 @@ class VoiceBase {
         }
     }
     
+    deinit {
+        
+    }
+    
     func createBody(parameters: [String: String],boundary: String) -> NSData
     {
         let body = NSMutableData()
@@ -3512,7 +3516,7 @@ class VoiceBase {
     
 //    var recognitionTask : Any?
     
-    func recognizeAlertActions(viewController:UIViewController,tableView:UITableView) -> AlertAction?
+    func recognizeAlertActions(viewController:UIViewController) -> AlertAction? // ,tableView:UITableView
     {
         guard let purpose = purpose else {
             return nil
@@ -3536,7 +3540,7 @@ class VoiceBase {
                 
                 var actions = [AlertAction]()
                 
-                actions.append(AlertAction(title: "Media ID", style: .default, action: {
+                actions.append(AlertAction(title: "Media ID", style: .default, handler: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                     message: text + " (\(self.transcriptPurpose))",
                                                     preferredStyle: .alert)
@@ -3554,7 +3558,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                 
                 globals.alert(title:title, message:message, actions:actions)
             } else {
@@ -3592,13 +3596,13 @@ class VoiceBase {
                     if globals.reachability.isReachable {
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .default, action: {
+                        alertActions.append(AlertAction(title: "Yes", style: .default, handler: {
                             self.getTranscript(alert: true) {}
-                            tableView.setEditing(false, animated: true)
+//                            tableView.setEditing(false, animated: true)
                             mgtUpdate()
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3616,10 +3620,10 @@ class VoiceBase {
             } else {
                 var alertActions = [AlertAction]()
                 
-                alertActions.append(AlertAction(title: "View", style: .default, action: {
+                alertActions.append(AlertAction(title: "View", style: .default, handler: {
                     var alertActions = [AlertAction]()
                     
-                    alertActions.append(AlertAction(title: "Transcript", style: .default, action: {
+                    alertActions.append(AlertAction(title: "Transcript", style: .default, handler: {
                         if self.transcript == self.transcriptFromWords {
                             print("THEY ARE THE SAME!")
                         }
@@ -3663,7 +3667,7 @@ class VoiceBase {
                         popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.fullHTML)
                     }))
                     
-                    alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, action: {
+                    alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
                         process(viewController: viewController, work: { () -> (Any?) in
                             var htmlString = "<!DOCTYPE html><html><body>"
                             
@@ -3721,7 +3725,7 @@ class VoiceBase {
                                         cancelAction: nil)
                 }))
                 
-                alertActions.append(AlertAction(title: "Edit", style: .default, action: {
+                alertActions.append(AlertAction(title: "Edit", style: .default, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3773,7 +3777,7 @@ class VoiceBase {
                     }
                 }))
                 
-                alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
+                alertActions.append(AlertAction(title: "Media ID", style: .default, handler: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                     message: text + " (\(self.transcriptPurpose))",
                                                     preferredStyle: .alert)
@@ -3792,24 +3796,24 @@ class VoiceBase {
                 }))
                 
                 if globals.isVoiceBaseAvailable ?? false {
-                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
+                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, handler: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
-                                actions.append(AlertAction(title: "Delete", style: .destructive, action: {
+                                actions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                                     var actions = [AlertAction]()
                                     
-                                    actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+                                    actions.append(AlertAction(title: "Yes", style: .destructive, handler: { (Void) -> (Void) in
                                         VoiceBase.delete(mediaID: self.mediaID)
                                     }))
                                     
-                                    actions.append(AlertAction(title: "No", style: .default, action:nil))
+                                    actions.append(AlertAction(title: "No", style: .default, handler:nil))
                                     
                                     globals.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
                                 }))
                                 
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                 
                                 globals.alert(title:"On VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis on VoiceBase.", actions:actions)
                             }
@@ -3817,14 +3821,14 @@ class VoiceBase {
                             if let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                 
                                 globals.alert(title:"Not on VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis not on VoiceBase.", actions:actions)
                             }
                         })
                     }))
                     
-                    alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
+                    alertActions.append(AlertAction(title: "Align", style: .destructive, handler: {
                         guard !self.aligning else {
                             if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
                                 alertActionsCancel( viewController: viewController,
@@ -3844,22 +3848,22 @@ class VoiceBase {
                         
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                             var alertActions = [AlertAction]()
                             
-                            alertActions.append(AlertAction(title: "Transcript", style: .default, action: {
+                            alertActions.append(AlertAction(title: "Transcript", style: .default, handler: {
                                 self.align(self.transcript)
-                                tableView.setEditing(false, animated: true)
+//                                tableView.setEditing(false, animated: true)
                             }))
                             
-                            alertActions.append(AlertAction(title: "Segments", style: .default, action: {
+                            alertActions.append(AlertAction(title: "Segments", style: .default, handler: {
                                 self.align(self.transcriptFromSRTs)
-                                tableView.setEditing(false, animated: true)
+//                                tableView.setEditing(false, animated: true)
                             }))
                             
-                            alertActions.append(AlertAction(title: "Words", style: .default, action: {
+                            alertActions.append(AlertAction(title: "Words", style: .default, handler: {
                                 self.align(self.transcriptFromWords)
-                                tableView.setEditing(false, animated: true)
+//                                tableView.setEditing(false, animated: true)
                             }))
                             
                             alertActionsCancel( viewController: viewController,
@@ -3869,7 +3873,7 @@ class VoiceBase {
                                                 cancelAction: nil)
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3881,7 +3885,7 @@ class VoiceBase {
                     }))
                 }
                 
-                alertActions.append(AlertAction(title: "Restore", style: .destructive, action: {
+                alertActions.append(AlertAction(title: "Restore", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3895,14 +3899,14 @@ class VoiceBase {
                     
                     var alertActions = [AlertAction]()
                     
-                    alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, action: {
+                    alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, handler: {
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                             self.transcript = self.transcriptFromWords
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3914,12 +3918,12 @@ class VoiceBase {
                     }))
                     
                     if globals.isVoiceBaseAvailable ?? false {
-                        alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
+                        alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {
                                     var alertActions = [AlertAction]()
                                     
-                                    alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                                    alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                                         globals.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
                                         
                                         if self.resultsTimer != nil {
@@ -3927,7 +3931,7 @@ class VoiceBase {
                                             
                                             var actions = [AlertAction]()
                                             
-                                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                             
                                             globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                         } else {
@@ -3937,7 +3941,7 @@ class VoiceBase {
                                         }
                                     }))
                                     
-                                    alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                                    alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
                                     
                                     if let text = self.mediaItem?.text {
                                         alertActionsCancel( viewController: viewController,
@@ -3951,7 +3955,7 @@ class VoiceBase {
                                 if let text = self.mediaItem?.text {
                                     var actions = [AlertAction]()
                                     
-                                    actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                    actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                     
                                     globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
                                 }
@@ -3968,7 +3972,7 @@ class VoiceBase {
                     }
                 }))
                 
-                alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
+                alertActions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -3982,12 +3986,12 @@ class VoiceBase {
                     
                     var alertActions = [AlertAction]()
                     
-                    alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                    alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                         self.remove()
-                        tableView.setEditing(false, animated: true)
+//                        tableView.setEditing(false, animated: true)
                     }))
                     
-                    alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                    alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
                     
                     if let text = self.mediaItem?.text {
                         alertActionsCancel( viewController: viewController,
@@ -4134,14 +4138,14 @@ class VoiceBase {
         return actions.count > 0 ? actions : nil
     }
 
-    func keywordAlertActions(viewController:UIViewController,tableView:UITableView,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
+    func keywordAlertActions(viewController:UIViewController,completion:((PopoverTableViewController)->(Void))?) -> AlertAction? // ,tableView:UITableView
     {
         var action : AlertAction!
         
         action = AlertAction(title: "Timing Index", style: .default) {
             var alertActions = [AlertAction]()
             
-            alertActions.append(AlertAction(title: "By Keyword", style: .default, action: {
+            alertActions.append(AlertAction(title: "By Keyword", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .overCurrentContext
@@ -4179,7 +4183,7 @@ class VoiceBase {
                 }
             }))
             
-            alertActions.append(AlertAction(title: "By Timed Segment", style: .default, action: {
+            alertActions.append(AlertAction(title: "By Timed Segment", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     
                     navigationController.modalPresentationStyle = .overCurrentContext
@@ -4257,7 +4261,7 @@ class VoiceBase {
                 }
             }))
             
-            alertActions.append(AlertAction(title: "By Timed Word", style: .default, action: {
+            alertActions.append(AlertAction(title: "By Timed Word", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     
                     navigationController.modalPresentationStyle = .overCurrentContext

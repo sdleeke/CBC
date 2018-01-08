@@ -845,7 +845,7 @@ class PopoverTableViewController : UIViewController
     {
         var actions = [AlertAction]()
         
-        actions.append(AlertAction(title: "Interactive", style: .default, action: {
+        actions.append(AlertAction(title: "Interactive", style: .default, handler: {
             func auto(_ srtComponents:[String]?)
             {
                 if var srtComponents = srtComponents, srtComponents.count > 0 {
@@ -863,7 +863,7 @@ class PopoverTableViewController : UIViewController
             auto(self.section.strings)
         }))
         
-        actions.append(AlertAction(title: "Automatic", style: .default, action: {
+        actions.append(AlertAction(title: "Automatic", style: .default, handler: {
             func auto(_ srtComponents:[String]?)
             {
                 if var srtComponents = srtComponents, srtComponents.count > 0 {
@@ -881,7 +881,7 @@ class PopoverTableViewController : UIViewController
             auto(self.section.strings)
         }))
         
-        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: nil))
+        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
@@ -1859,7 +1859,7 @@ extension PopoverTableViewController : UITableViewDelegate
             if let alertActions = alertActions {
                 for alertAction in alertActions {
                     let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.action?()
+                        alertAction.handler?()
                     })
                     alert.addAction(action)
                 }

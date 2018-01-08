@@ -4979,7 +4979,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,actions
     if let alertActions = actions {
         for alertAction in alertActions {
             let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                alertAction.action?()
+                alertAction.handler?()
             })
             alert.addAction(action)
         }
@@ -5066,7 +5066,7 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
 struct AlertAction {
     let title : String
     let style : UIAlertActionStyle
-    let action : (()->(Void))?
+    let handler : (()->(Void))?
 }
 
 func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
@@ -5079,7 +5079,7 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
     if let alertActions = alertActions {
         for alertAction in alertActions {
             let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                alertAction.action?()
+                alertAction.handler?()
             })
             alert.addAction(action)
         }
@@ -5105,7 +5105,7 @@ func alertActionsOkay(viewController:UIViewController,title:String?,message:Stri
     if let alertActions = alertActions {
         for alertAction in alertActions {
             let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                alertAction.action?()
+                alertAction.handler?()
             })
             alert.addAction(action)
         }

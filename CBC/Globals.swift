@@ -254,7 +254,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             if let alertActions = alert.actions {
                 for alertAction in alertActions {
                     let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.action?()
+                        alertAction.handler?()
                     })
                     alertVC.addAction(action)
                 }
@@ -430,6 +430,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
         
         priorReachabilityStatus = reachability.currentReachabilityStatus
+    }
+    
+    deinit {
+        
     }
     
     override init()
@@ -611,7 +615,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
     
     lazy var search:Search! = {
-        [unowned self] in
+//        [weak self] in
         var search = Search()
         search.globals = self
         return search
@@ -736,7 +740,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
     
     lazy var selectedMediaItem:SelectedMediaItem! = {
-        [unowned self] in
+//        [weak self] in
         let selectedMediaItem = SelectedMediaItem()
         selectedMediaItem.globals = self
         return selectedMediaItem
@@ -810,23 +814,27 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         func saveSettingsBackground()
         {
-            if allowSaveSettings {
-                print("saveSettingsBackground")
-                
-                DispatchQueue.global(qos: .background).async { [weak self] in
-                    self?.saveSettings()
-                }
+            guard allowSaveSettings else {
+                return
+            }
+
+            print("saveSettingsBackground")
+            
+            DispatchQueue.global(qos: .background).async { // [weak self] in
+                self.saveSettings()
             }
         }
         
         func saveSettings()
         {
-            if allowSaveSettings {
-                print("saveSettings")
-                let defaults = UserDefaults.standard
-                defaults.set(settings, forKey: Constants.SETTINGS.CATEGORY)
-                defaults.synchronize()
+            guard allowSaveSettings else {
+                return
             }
+            
+            print("saveSettings")
+            let defaults = UserDefaults.standard
+            defaults.set(settings, forKey: Constants.SETTINGS.CATEGORY)
+            defaults.synchronize()
         }
         
         subscript(key:String) -> String? {
@@ -1167,7 +1175,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
     
     lazy var mediaRepository:MediaRepository! = {
-        [unowned self] in
+//        [weak self] in
         let mediaRepository = MediaRepository()
         mediaRepository.globals = self
         return mediaRepository
@@ -1230,7 +1238,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
         
         lazy var tags:Tags! = {
-            [unowned self] in
+//            [unowned self] in
             var tags = Tags()
             tags.globals = self.globals
             return tags
@@ -1294,7 +1302,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
     
     lazy var media:Media! = {
-        [unowned self] in
+//        [weak self] in
         var media = Media()
         media.globals = self
         return media
@@ -1349,8 +1357,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         print("saveSettingsBackground")
         
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            self?.saveSettings()
+        DispatchQueue.global(qos: .background).async { // [weak self] in
+            self.saveSettings()
         }
     }
     

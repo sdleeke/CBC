@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="13772" systemVersion="17C88" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="LexiconEntry" representedClassName="LexiconEntry" syncable="YES">
+        <attribute name="count" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="lexiconTranscript" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LexiconTranscript" inverseName="lexiconEntries" inverseEntity="LexiconTranscript" syncable="YES"/>
+        <relationship name="lexiconWord" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LexiconWord" inverseName="lexiconEntries" inverseEntity="LexiconWord" syncable="YES"/>
+    </entity>
+    <entity name="LexiconStringNode" representedClassName="LexiconStringNode" syncable="YES">
+        <attribute name="string" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="wordEnding" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="stringNodes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="LexiconStringNode" syncable="YES"/>
+    </entity>
+    <entity name="LexiconTranscript" representedClassName="LexiconTranscript" syncable="YES">
+        <attribute name="category" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="lexiconEntries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LexiconEntry" inverseName="lexiconTranscript" inverseEntity="LexiconEntry" syncable="YES"/>
+    </entity>
+    <entity name="LexiconWord" representedClassName="LexiconWord" syncable="YES">
+        <attribute name="word" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="lexiconEntries" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="LexiconEntry" inverseName="lexiconWord" inverseEntity="LexiconEntry" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="LexiconEntry" positionX="-414" positionY="-180" width="128" height="88"/>
+        <element name="LexiconWord" positionX="-243" positionY="-28" width="128" height="73"/>
+        <element name="LexiconTranscript" positionX="-614" positionY="-306" width="128" height="88"/>
+        <element name="LexiconStringNode" positionX="-623" positionY="-36" width="128" height="88"/>
+    </elements>
+</model>

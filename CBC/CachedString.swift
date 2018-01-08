@@ -68,4 +68,8 @@ class CachedString {
             NotificationCenter.default.addObserver(self, selector: #selector(CachedString.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
+    
+    deinit {
+        
+    }
 }

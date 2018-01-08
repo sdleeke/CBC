@@ -28,6 +28,10 @@ class StringTree
         self.incremental = incremental
     }
     
+    deinit {
+        
+    }
+    
     func build(strings:[String]?)
     {
         guard !building else {

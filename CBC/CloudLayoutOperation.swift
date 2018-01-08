@@ -66,6 +66,10 @@ class CloudLayoutOperation : Operation
         self.boundingRects = QuadTree(frame: CGRect(x: 0.0, y: 0.0, width: containerSize.width, height: containerSize.height))
     }
     
+    deinit {
+        
+    }
+    
     override func main()
     {
 //        if isCancelled {
@@ -280,31 +284,47 @@ class CloudLayoutOperation : Operation
 
     func reorderWordsByDescendingWordArea()
     {
+        // Words that only fit one way go to the top of the list.
+        cloudWords = cloudWords?.sorted(by: { (first:CloudWord, second:CloudWord) -> Bool in
+            //            print(first.wordText!,first.onlyFitsOneWay(containerSize:self.containerSize),second.wordText!,second.onlyFitsOneWay(containerSize:self.containerSize))
+            switch (first.onlyFitsOneWay(containerSize:self.containerSize), second.onlyFitsOneWay(containerSize:self.containerSize)) {
+            case (false, true):
+                return false
+                
+            default:
+                return true
+            }
+            
+            //            if first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
+            //                return false
+            //            } else
+            //            if first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
+            //                return false
+            //            } else
+            //            if !first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
+            //                return true
+            //            } else
+            //            if !first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
+            //                return false
+            //            }
+            //            return false
+        })
+        
+//        cloudWords?.forEach({
+//            print($0.description,$0.onlyFitsOneWay(containerSize: self.containerSize))
+//        })
+        
         var sortDescriptors = [NSSortDescriptor]()
+        
+        sortDescriptors.append(NSSortDescriptor(key: #keyPath(CloudWord.pointSize), ascending: false))
         
         sortDescriptors.append(NSSortDescriptor(key: #keyPath(CloudWord.boundsArea), ascending: false))
         
-        sortDescriptors.append(NSSortDescriptor(key: #keyPath(CloudWord.pointSize), ascending: false))
-
         cloudWords = (cloudWords as NSArray?)?.sortedArray(using: sortDescriptors) as? [CloudWord]
-
-        cloudWords = cloudWords?.sorted(by: { (first:CloudWord, second:CloudWord) -> Bool in
-//            print(first.wordText!,first.onlyFitsOneWay(containerSize:self.containerSize),second.wordText!,second.onlyFitsOneWay(containerSize:self.containerSize))
-            
-            if first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
-                return false
-            }
-            if first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
-                return true
-            }
-            if !first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
-                return true
-            }
-            if !first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
-                return false
-            }
-            return true
-        })
+        
+//        cloudWords?.forEach({
+//            print($0.description,$0.onlyFitsOneWay(containerSize: self.containerSize))
+//        })
         
 //        sortedArrayUsingDescriptors:@[primarySortDescriptor, secondarySortDescriptor]];
 

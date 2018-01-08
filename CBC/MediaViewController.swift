@@ -69,6 +69,10 @@ class Document : NSObject {
         self.mediaItem = mediaItem
     }
     
+    deinit {
+        
+    }
+    
     func showing(_ mediaItem:MediaItem?) -> Bool
     {
         return (mediaItem == self.mediaItem) && (mediaItem?.showing == purpose)
@@ -4978,321 +4982,325 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActions(cell: nil,mediaItem:mediaItems?[indexPath.row]) != nil
+        guard let mediaItem = mediaItems?[indexPath.row] else {
+            return false
+        }
+        
+        return mediaItem.editActions(viewController: self) != nil
     }
 
-    func editActions(cell: MediaTableViewCell?,mediaItem:MediaItem?) -> [AlertAction]?
-    {
-        // Causes recursive call to cellForRowAt
-//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//    func editActions(cell: MediaTableViewCell?,mediaItem:MediaItem?) -> [AlertAction]?
+//    {
+//        // Causes recursive call to cellForRowAt
+////        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+////            return nil
+////        }
+//        
+//        guard let mediaItem = mediaItem else {
 //            return nil
 //        }
-        
-        guard let mediaItem = mediaItem else {
-            return nil
-        }
-        
-        var actions = [AlertAction]()
-        
-        var share:AlertAction!
-        var openOnCBC:AlertAction!
-        var favorites:AlertAction!
-        var download:AlertAction!
-        var transcript:AlertAction!
-        var scripture:AlertAction!
-        var voiceBase:AlertAction!
-        var topics:AlertAction!
-        
-        if mediaItem.hasAudio, let audioDownload = mediaItem.audioDownload {
-            var title = ""
-            var style = UIAlertActionStyle.default
-            
-            switch audioDownload.state {
-            case .none:
-                title = Constants.Strings.Download_Audio
-                break
-                
-            case .downloading:
-                title = Constants.Strings.Cancel_Audio_Download
-                break
-            case .downloaded:
-                title = Constants.Strings.Delete_Audio_Download
-                style = UIAlertActionStyle.destructive
-                break
-            }
-            
-            download = AlertAction(title: title, style: style, action: {
-                switch title {
-                case Constants.Strings.Download_Audio:
-                    mediaItem.audioDownload?.download()
-                    Thread.onMainThread(block: {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
-                    })
-                    break
-                    
-                case Constants.Strings.Delete_Audio_Download:
-                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                    message: nil,
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        mediaItem.audioDownload?.delete()
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(cancel)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    break
-                    
-                case Constants.Strings.Cancel_Audio_Download:
-                    if let state = mediaItem.audioDownload?.state {
-                        switch state {
-                        case .downloading:
-                            mediaItem.audioDownload?.cancel()
-                            break
-                            
-                        case .downloaded:
-                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                            message: nil,
-                                                            preferredStyle: .alert)
-                            alert.makeOpaque()
-                            
-                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                mediaItem.audioDownload?.delete()
-                            })
-                            alert.addAction(yesAction)
-                            
-                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                
-                            })
-                            alert.addAction(noAction)
-                            
-                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                
-                            })
-                            alert.addAction(cancel)
-                            
-                            self.present(alert, animated: true, completion: nil)
-                            break
-                            
-                        default:
-                            break
-                        }
-                    }
-                    break
-                    
-                default:
-                    break
-                }
-            })
-        }
-        
-        var title:String
-        
-        if mediaItem.hasFavoritesTag {
-            title = Constants.Strings.Remove_From_Favorites
-        } else {
-            title = Constants.Strings.Add_to_Favorites
-        }
-
-        favorites = AlertAction(title: title, style: .default) {
-            switch title {
-            case Constants.Strings.Add_to_Favorites:
-                // This blocks this thread until it finishes.
-                globals.queue.sync {
-                    self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
-                }
-                break
-                
-            case Constants.Strings.Remove_From_Favorites:
-                // This blocks this thread until it finishes.
-                globals.queue.sync {
-                    self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
-                }
-                break
-                
-            default:
-                break
-            }
-        }
-        
-        openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
-            if let url = mediaItem.websiteURL {
-                open(scheme: url.absoluteString) {
-                    networkUnavailable(self,"Unable to open: \(url)")
-                }
-            }
-        }
-        
-        share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self,cell: cell)
-//            shareHTML(viewController: self, htmlString: mediaItem.webLink)
-        }
-
-        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
-            let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0]
-            
-            if mediaItem.notesHTML != nil {
-                var htmlString:String?
-                
-                htmlString = mediaItem.fullNotesHTML
-                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-            } else {
-                guard globals.reachability.isReachable else {
-                    networkUnavailable(self,"HTML transcript unavailable.")
-                    return
-                }
-                
-                process(viewController: self, work: { () -> (Any?) in
-                    mediaItem.loadNotesHTML()
-
-                    return mediaItem.fullNotesHTML
-                }, completion: { (data:Any?) in
-                    if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                    } else {
-                        networkUnavailable(self,"HTML Transcript Unavailable.")
-                    }
-                })
-            }
-        }
-        
-        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
-            let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0]
-            
-            if let reference = mediaItem.scriptureReference {
-                if mediaItem.scripture?.html?[reference] != nil {
-                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
-                } else {
-                    guard globals.reachability.isReachable else {
-                        networkUnavailable(self,"Scripture text unavailable.")
-                        return
-                    }
-                    
-                    process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load()
-                        return mediaItem.scripture?.html?[reference]
-                    }, completion: { (data:Any?) in
-                        if let htmlString = data as? String {
-                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                        } else {
-                            networkUnavailable(self,"Scripture text unavailable.")
-                        }
-                    })
-                }
-            }
-        }
-        
-        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
-            var alertActions = [AlertAction]()
-            
-            if let actions = mediaItem.audioTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
-                alertActions.append(actions)
-            }
-            if let actions = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
-                alertActions.append(actions)
-            }
-            
-            // At most, only ONE of the following TWO will be added.
-            if let actions = mediaItem.audioTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
-                self.popover = popover
-            }) {
-                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == self.selectedMediaItem)  {
-                    if mediaItem.audioTranscript?.keywords != nil {
-                        alertActions.append(actions)
-                    }
-                }
-            }
-            if let actions = mediaItem.videoTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
-                self.popover = popover
-            }) {
-                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == self.selectedMediaItem)  {
-                    if mediaItem.videoTranscript?.keywords != nil {
-                        alertActions.append(actions)
-                    }
-                }
-            }
-            
-            var message = "Machine Generated Transcript"
-            
-            if let text = mediaItem.text {
-                message += "\n\n\(text)"
-            }
-            
-            alertActionsCancel( viewController: self,
-                                title: "VoiceBase",
-                                message: message,
-                                alertActions: alertActions,
-                                cancelAction: nil)
-        }
-        
-        topics = AlertAction(title: "List", style: .default) {
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = "Topics"
-                
-                popover.selectedMediaItem = mediaItem
-                
-                popover.search = true
-                
-                popover.delegate = self
-                popover.purpose = .selectingTopic
-                popover.section.strings = mediaItem.audioTranscript?.topics?.sorted()
-                
-                self.present(navigationController, animated: true, completion: {
-                    self.popover = popover
-                })
-            }
-        }
-        
-        if mediaItem.books != nil {
-            actions.append(scripture)
-        }
-
-        actions.append(favorites)
-        
-        actions.append(openOnCBC)
-        
-        actions.append(share)
-
-        if mediaItem.hasNotesHTML {
-            actions.append(transcript)
-        }
-        
-        if mediaItem.hasAudio && (download != nil) {
-            actions.append(download)
-        }
-        
-        if globals.allowMGTs {
-            actions.append(voiceBase)
-        }
-        
-        return actions.count > 0 ? actions : nil
-    }
+//        
+//        var actions = [AlertAction]()
+//        
+//        var share:AlertAction!
+//        var openOnCBC:AlertAction!
+//        var favorites:AlertAction!
+//        var download:AlertAction!
+//        var transcript:AlertAction!
+//        var scripture:AlertAction!
+//        var voiceBase:AlertAction!
+//        var topics:AlertAction!
+//        
+//        if mediaItem.hasAudio, let audioDownload = mediaItem.audioDownload {
+//            var title = ""
+//            var style = UIAlertActionStyle.default
+//            
+//            switch audioDownload.state {
+//            case .none:
+//                title = Constants.Strings.Download_Audio
+//                break
+//                
+//            case .downloading:
+//                title = Constants.Strings.Cancel_Audio_Download
+//                break
+//            case .downloaded:
+//                title = Constants.Strings.Delete_Audio_Download
+//                style = UIAlertActionStyle.destructive
+//                break
+//            }
+//            
+//            download = AlertAction(title: title, style: style, action: {
+//                switch title {
+//                case Constants.Strings.Download_Audio:
+//                    mediaItem.audioDownload?.download()
+//                    Thread.onMainThread(block: {
+//                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+//                    })
+//                    break
+//                    
+//                case Constants.Strings.Delete_Audio_Download:
+//                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                    message: nil,
+//                                                    preferredStyle: .alert)
+//                    alert.makeOpaque()
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        mediaItem.audioDownload?.delete()
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancel)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                    break
+//                    
+//                case Constants.Strings.Cancel_Audio_Download:
+//                    if let state = mediaItem.audioDownload?.state {
+//                        switch state {
+//                        case .downloading:
+//                            mediaItem.audioDownload?.cancel()
+//                            break
+//                            
+//                        case .downloaded:
+//                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                            message: nil,
+//                                                            preferredStyle: .alert)
+//                            alert.makeOpaque()
+//                            
+//                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                mediaItem.audioDownload?.delete()
+//                            })
+//                            alert.addAction(yesAction)
+//                            
+//                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                
+//                            })
+//                            alert.addAction(noAction)
+//                            
+//                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                
+//                            })
+//                            alert.addAction(cancel)
+//                            
+//                            self.present(alert, animated: true, completion: nil)
+//                            break
+//                            
+//                        default:
+//                            break
+//                        }
+//                    }
+//                    break
+//                    
+//                default:
+//                    break
+//                }
+//            })
+//        }
+//        
+//        var title:String
+//        
+//        if mediaItem.hasFavoritesTag {
+//            title = Constants.Strings.Remove_From_Favorites
+//        } else {
+//            title = Constants.Strings.Add_to_Favorites
+//        }
+//
+//        favorites = AlertAction(title: title, style: .default) {
+//            switch title {
+//            case Constants.Strings.Add_to_Favorites:
+//                // This blocks this thread until it finishes.
+//                globals.queue.sync {
+//                    self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
+//                }
+//                break
+//                
+//            case Constants.Strings.Remove_From_Favorites:
+//                // This blocks this thread until it finishes.
+//                globals.queue.sync {
+//                    self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
+//                }
+//                break
+//                
+//            default:
+//                break
+//            }
+//        }
+//        
+//        openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
+//            if let url = mediaItem.websiteURL {
+//                open(scheme: url.absoluteString) {
+//                    networkUnavailable(self,"Unable to open: \(url)")
+//                }
+//            }
+//        }
+//        
+//        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+//            mediaItem.share(viewController: self,cell: cell)
+////            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+//        }
+//
+//        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+//            
+//            if mediaItem.notesHTML != nil {
+//                var htmlString:String?
+//                
+//                htmlString = mediaItem.fullNotesHTML
+//                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//            } else {
+//                guard globals.reachability.isReachable else {
+//                    networkUnavailable(self,"HTML transcript unavailable.")
+//                    return
+//                }
+//                
+//                process(viewController: self, work: { () -> (Any?) in
+//                    mediaItem.loadNotesHTML()
+//
+//                    return mediaItem.fullNotesHTML
+//                }, completion: { (data:Any?) in
+//                    if let htmlString = data as? String {
+//                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                    } else {
+//                        networkUnavailable(self,"HTML Transcript Unavailable.")
+//                    }
+//                })
+//            }
+//        }
+//        
+//        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+//            
+//            if let reference = mediaItem.scriptureReference {
+//                if mediaItem.scripture?.html?[reference] != nil {
+//                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
+//                } else {
+//                    guard globals.reachability.isReachable else {
+//                        networkUnavailable(self,"Scripture text unavailable.")
+//                        return
+//                    }
+//                    
+//                    process(viewController: self, work: { () -> (Any?) in
+//                        mediaItem.scripture?.load()
+//                        return mediaItem.scripture?.html?[reference]
+//                    }, completion: { (data:Any?) in
+//                        if let htmlString = data as? String {
+//                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                        } else {
+//                            networkUnavailable(self,"Scripture text unavailable.")
+//                        }
+//                    })
+//                }
+//            }
+//        }
+//        
+//        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
+//            var alertActions = [AlertAction]()
+//            
+//            if let actions = mediaItem.audioTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+//                alertActions.append(actions)
+//            }
+//            if let actions = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+//                alertActions.append(actions)
+//            }
+//            
+//            // At most, only ONE of the following TWO will be added.
+//            if let actions = mediaItem.audioTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+//                self.popover = popover
+//            }) {
+//                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == self.selectedMediaItem)  {
+//                    if mediaItem.audioTranscript?.keywords != nil {
+//                        alertActions.append(actions)
+//                    }
+//                }
+//            }
+//            if let actions = mediaItem.videoTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+//                self.popover = popover
+//            }) {
+//                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == self.selectedMediaItem)  {
+//                    if mediaItem.videoTranscript?.keywords != nil {
+//                        alertActions.append(actions)
+//                    }
+//                }
+//            }
+//            
+//            var message = "Machine Generated Transcript"
+//            
+//            if let text = mediaItem.text {
+//                message += "\n\n\(text)"
+//            }
+//            
+//            alertActionsCancel( viewController: self,
+//                                title: "VoiceBase",
+//                                message: message,
+//                                alertActions: alertActions,
+//                                cancelAction: nil)
+//        }
+//        
+//        topics = AlertAction(title: "List", style: .default) {
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.navigationItem.title = "Topics"
+//                
+//                popover.selectedMediaItem = mediaItem
+//                
+//                popover.search = true
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingTopic
+//                popover.section.strings = mediaItem.audioTranscript?.topics?.sorted()
+//                
+//                self.present(navigationController, animated: true, completion: {
+//                    self.popover = popover
+//                })
+//            }
+//        }
+//        
+//        if mediaItem.books != nil {
+//            actions.append(scripture)
+//        }
+//
+//        actions.append(favorites)
+//        
+//        actions.append(openOnCBC)
+//        
+//        actions.append(share)
+//
+//        if mediaItem.hasNotesHTML {
+//            actions.append(transcript)
+//        }
+//        
+//        if mediaItem.hasAudio && (download != nil) {
+//            actions.append(download)
+//        }
+//        
+//        if globals.allowMGTs {
+//            actions.append(voiceBase)
+//        }
+//        
+//        return actions.count > 0 ? actions : nil
+//    }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
@@ -5303,10 +5311,10 @@ extension MediaViewController : UITableViewDataSource
                                                 preferredStyle: .alert)
                 alert.makeOpaque()
                 
-                if let alertActions = self.editActions(cell: cell, mediaItem: cell.mediaItem) {
+                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
                     for alertAction in alertActions {
                         let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                            alertAction.action?()
+                            alertAction.handler?()
                         })
                         alert.addAction(action)
                     }

@@ -206,6 +206,10 @@ class Scripture : NSObject
         setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
     }
     
+    deinit {
+        
+    }
+    
     lazy var html:CachedString? = {
         return CachedString(index: nil)
     }()

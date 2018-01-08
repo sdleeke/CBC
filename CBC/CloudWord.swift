@@ -57,6 +57,10 @@ class CloudWord : NSObject
         self.wordCount = wordCount
     }
     
+    deinit {
+        
+    }
+    
     override var description : String
         {
         get {

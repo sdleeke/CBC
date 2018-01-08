@@ -17,6 +17,10 @@ class Section
         self.stringsAction = stringsAction
     }
     
+    deinit {
+        
+    }
+    
     func indexPath(from string:String?) -> IndexPath?
     {
         guard let indexes = self.indexes else {

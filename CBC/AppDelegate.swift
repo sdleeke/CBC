@@ -49,9 +49,10 @@ extension AppDelegate : UISplitViewControllerDelegate
         guard let topAsDetailController = secondaryAsNavController.topViewController as? MediaViewController else {
             return false
         }
-        
+
         if topAsDetailController.selectedMediaItem == nil {
             // Return true to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
+            // This is what causes a collapsed split view controller to always start w/ the master view.
             return true
         }
         
@@ -64,11 +65,16 @@ extension AppDelegate : UISplitViewControllerDelegate
 //            return nil
 //        }
         
+        // SVC vc[0] is a navCon
         if let master = splitViewController.viewControllers[0] as? UINavigationController, master.viewControllers.count > 0 {
+            // First vc in master navCon vc's better be an MTVC
             guard let mtvc = master.viewControllers[0] as? MediaTableViewController else {
                 return nil
             }
             
+            // If the second vc in master navCon is an SIVC *and* it is the visible vc, then
+            // if it is on an iPad, return its navCon,
+            // but if it is on a phone, i.e. a plus size phone, then pop to the root VC, i.e. the MTVC, and return the MTVC's navCon.
             if master.viewControllers.count > 1, let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
                 if master.visibleViewController == sivc {
                     if UIDevice.current.userInterfaceIdiom == .pad {
@@ -79,7 +85,8 @@ extension AppDelegate : UISplitViewControllerDelegate
                     }
                 }
             }
-            
+
+            // Same for LIVC
             if master.viewControllers.count > 1, let livc = master.viewControllers[1] as? LexiconIndexViewController {
                 if master.visibleViewController == livc {
                     if UIDevice.current.userInterfaceIdiom == .pad {
@@ -102,6 +109,9 @@ extension AppDelegate : UISplitViewControllerDelegate
 //                }
 //            }
 
+            // Check for the possibility that there is a navCon view controller,
+            // which will always be found in the last vc in the master's vc's,
+            // which we take to be the detail vc collapsed on to the master vc's.
             let nvc = master.viewControllers[master.viewControllers.count - 1] as? UINavigationController
             
             switch master.viewControllers.count {
@@ -110,9 +120,13 @@ extension AppDelegate : UISplitViewControllerDelegate
                 break
 
             case 1:
+                // This would only happen if the mtvc is the master's visible vc and there is no detail vc.
+                // So return the mtvc's navCon
                 return mtvc.navigationController
                 
             case 2,3:
+                // If the detail view is showing an MVC as the visible view controller then return the mtvc's navCon
+                // But if on a phone, make sure to pop to the root vc before doing so.  No SIVC or LIVC can be left in the VC hierarchy.
                 if let mvc = nvc?.viewControllers[0] as? MediaViewController {
                     if master.visibleViewController == mvc {
                         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -122,6 +136,8 @@ extension AppDelegate : UISplitViewControllerDelegate
                     }
                 }
                 
+                // If the SIVC or LIVC is in the NVC and it is the master's visible vc, return its navCon.
+                // Apparently this only occurs on iPad's and not iPhone Pluses.
                 if let sivc = nvc?.viewControllers[0] as? ScriptureIndexViewController {
                     if master.visibleViewController == sivc {
                         return sivc.navigationController
@@ -141,10 +157,13 @@ extension AppDelegate : UISplitViewControllerDelegate
             }
         }
         
+        // In some cases the MTVC is not in a navCon in the SVC vc's, not sure why.
         if let master = splitViewController.viewControllers[0] as? MediaTableViewController {
             return master.navigationController
         }
 
+        // Out of options, let the system figure it out.
+        // This should never happen.
         return nil
     }
     
@@ -154,52 +173,73 @@ extension AppDelegate : UISplitViewControllerDelegate
 //            return nil
 //        }
         
-        if let master = splitViewController.viewControllers[0] as? UINavigationController {
+        // The master is always a navCon - there is NEVER a vc[1] since this SVC is collapsed.
+        if let master = splitViewController.viewControllers[0] as? UINavigationController, master.viewControllers.count > 0 {
+            // If there is one or more, then the first one must be a MTVC.
+            guard let mtvc = master.viewControllers[0] as? MediaTableViewController else {
+                return nil
+            }
+            
+            // Check for the possibility that there is a navCon view controller,
+            // which will always be found in the last vc in the master's vc's,
+            // which we take to be the detail vc collapsed on to the master vc's.
+            let nvc = master.viewControllers[master.viewControllers.count - 1] as? UINavigationController
+
             switch master.viewControllers.count {
             case 0:
                 // SHOULD NEVER HAPPEN
                 break
                 
             case 1:
-                if (master.viewControllers[0] as? MediaTableViewController) != nil {
-
-                }
+                // If there is only one vc it better be an MTVC since that one should *always* be there.
+                // But there is nothing to be done for the detail except punt and send a blank one (see below).
                 break
                 
             case 2:
-                if (master.viewControllers[0] as? MediaTableViewController) != nil {
-                    if let viewControllers = (master.viewControllers[1] as? UINavigationController)?.viewControllers {
-                        if let mvc = viewControllers[0] as? MediaViewController {
-                            return mvc.navigationController
-                        }
+                // If the second/last is a navCon
+                if let viewControllers = nvc?.viewControllers {
+                    // And if the first one of that is an MVC then return it's navCon.  I don't worry about visible vc since nothing is ever in detail but MVC's.
+                    if let mvc = viewControllers[0] as? MediaViewController {
+                        return mvc.navigationController
                     }
-                    if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            // do nothing
-                        }
-                    }
-                    if let livc = master.viewControllers[1] as? LexiconIndexViewController {
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            // do nothing
-                        }
-                    }
+                    // Otherwise do nothing, i.e. send back a blank MVC
+                    // This assumes there would never be anything but an MVC in the navCon
+                }
+                
+                // We're assuming that an MVC would never appear outside of a navCon
+                if let mvc = master.viewControllers[1] as? MediaViewController {
+                    // SHOULD NEVER HAPPEN
+                }
+                
+                // If the second is an SIVC or LIVC then do nothing, i.e. return a blank MVC
+                if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
+                    // do nothing, i.e. send back a blank MVC
+                }
+                if let livc = master.viewControllers[1] as? LexiconIndexViewController {
+                    // do nothing, i.e. send back a blank MVC
                 }
                 break
                 
             case 3:
-                if (master.viewControllers[0] as? MediaTableViewController) != nil {
-                    if let mvc = master.viewControllers[1] as? MediaViewController {
-                        // SHOULD NEVER HAPPEN
+                // We're assuming that an MVC would never appear outside of a navCon
+                if let mvc = master.viewControllers[1] as? MediaViewController {
+                    // SHOULD NEVER HAPPEN - since in this case what is the third?
+                }
+                if let mvc = master.viewControllers[2] as? MediaViewController {
+                    // SHOULD NEVER HAPPEN - since in this case what is the third?
+                }
+                // If the second is an SIVC or LIVC then the third should be an MVC
+                // and since detail only has MVC's, again, I don't bother to check that the MVC is the visible view controller in the navCon, just return the MVC navCon
+                if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
+                    // We're assuming the third is always a navCon and represents the detail vc
+                    if let mvc = nvc?.viewControllers[0] as? MediaViewController {
+                        return mvc.navigationController
                     }
-                    if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
-                        if let mvc = (master.viewControllers[2] as? UINavigationController)?.viewControllers[0] as? MediaViewController {
-                            return mvc.navigationController
-                        }
-                    }
-                    if let livc = master.viewControllers[1] as? LexiconIndexViewController {
-                        if let mvc = (master.viewControllers[2] as? UINavigationController)?.viewControllers[0] as? MediaViewController {
-                            return mvc.navigationController
-                        }
+                }
+                if let livc = master.viewControllers[1] as? LexiconIndexViewController {
+                    // We're assuming the third is always a navCon and represents the detail vc
+                    if let mvc = nvc?.viewControllers[0] as? MediaViewController {
+                        return mvc.navigationController
                     }
                 }
                 break
@@ -209,6 +249,7 @@ extension AppDelegate : UISplitViewControllerDelegate
             }
         }
         
+        // Hand back a blank MVC and let the system load it from user defaults.
         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
             let mvc = navigationController.viewControllers[0] as? MediaViewController {
             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
@@ -220,27 +261,37 @@ extension AppDelegate : UISplitViewControllerDelegate
             return navigationController
         }
         
+        // This should never happen.
         return nil
     }
     
     func primaryViewController(forCollapsing splitViewController: UISplitViewController) -> UIViewController?
     {
+        // For phones this is only called by plus sized phones.
+        // And in plus sized phones neither an SIVC nor an LIVC can be anywhere in the SVC vc's when the SVC is expanded
+        // So neither an SIVC nor an LIVC should ever show up as the primary after collapsing
+        
 //        guard UIDevice.current.userInterfaceIdiom == .pad else {
 //            return nil
 //        }
         
+        // If the SVC has a navCon in first position, i.e. master
         if let master = splitViewController.viewControllers[0] as? UINavigationController {
             if UIDevice.current.userInterfaceIdiom == .pad {
+                // On an iPad hand back whatever is the visible vc in the master, could be an SIVC or LIVC
                 return master.visibleViewController?.navigationController
             } else {
+                // On an iPhone hand back only the MTVC
                 return (master.viewControllers[0] as? MediaTableViewController)?.navigationController
             }
         }
         
+        // If the SVC has an MTVC in first position, i.e. master
         if let master = splitViewController.viewControllers[0] as? MediaTableViewController {
             return master.navigationController
         }
-        
+
+        // We can ignore SVC vc[1] since this is asking for the primary for a collapsing SVC
         return nil
     }
 }

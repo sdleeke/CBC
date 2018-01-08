@@ -453,7 +453,8 @@ class ScriptureIndexViewController : UIViewController
         return Scripture(reference: nil)
     }()
     
-    var mediaListGroupSort:MediaListGroupSort? {
+    var mediaListGroupSort:MediaListGroupSort?
+    {
         willSet {
             
         }
@@ -462,7 +463,8 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
-    var scriptureIndex:ScriptureIndex? {
+    var scriptureIndex:ScriptureIndex?
+    {
         get {
             return mediaListGroupSort?.scriptureIndex
         }
@@ -471,7 +473,7 @@ class ScriptureIndexViewController : UIViewController
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
-    @IBOutlet weak var switchesLabel: UILabel!
+//    @IBOutlet weak var switchesLabel: UILabel!
     
     @IBOutlet weak var bookLabel: UILabel!
     @IBOutlet weak var bookSwitch: UISwitch!
@@ -1410,7 +1412,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         directionLabel.isHidden = state
-        switchesLabel.isHidden = state
+//        switchesLabel.isHidden = state
         
         bookLabel.isHidden = state
         bookSwitch.isHidden = state
@@ -1537,8 +1539,15 @@ class ScriptureIndexViewController : UIViewController
         updateText()
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
+        
+        // We should close.
+        if navigationController?.visibleViewController == self {
+            navigationController?.popToRootViewController(animated: true)
+        }
+        
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
@@ -1644,201 +1653,201 @@ extension ScriptureIndexViewController : UITableViewDelegate
             }
         }
         
-        return editActions(cell: nil, mediaItem: mediaItem) != nil
+        return mediaItem?.editActions(viewController: self) != nil
     }
     
-    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [AlertAction]?
-    {
-        // causes recursive call to cellForRowAt
-//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [AlertAction]?
+//    {
+//        // causes recursive call to cellForRowAt
+////        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+////            return nil
+////        }
+//        
+//        guard let mediaItem = mediaItem else {
 //            return nil
 //        }
-        
-        guard let mediaItem = mediaItem else {
-            return nil
-        }
-        
-        var actions = [AlertAction]()
-        
-        var download:AlertAction!
-        var transcript:AlertAction!
-        var scripture:AlertAction!
-        var share:AlertAction!
-        
-        if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-            var title = ""
-            var style = UIAlertActionStyle.default
-            
-            switch state {
-            case .none:
-                title = Constants.Strings.Download_Audio
-                break
-                
-            case .downloading:
-                title = Constants.Strings.Cancel_Audio_Download
-                break
-            case .downloaded:
-                title = Constants.Strings.Delete_Audio_Download
-                style = UIAlertActionStyle.destructive
-                break
-            }
-            
-            download = AlertAction(title: title, style: style, action: {
-                switch title {
-                case Constants.Strings.Download_Audio:
-                    mediaItem.audioDownload?.download()
-                    break
-                    
-                case Constants.Strings.Delete_Audio_Download:
-                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                    message: nil,
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        mediaItem.audioDownload?.delete()
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(cancel)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    break
-                    
-                case Constants.Strings.Cancel_Audio_Download:
-                    if let state = mediaItem.audioDownload?.state {
-                        switch state {
-                        case .downloading:
-                            mediaItem.audioDownload?.cancel()
-                            break
-                            
-                        case .downloaded:
-                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                            message: nil,
-                                                            preferredStyle: .alert)
-                            alert.makeOpaque()
-                            
-                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                mediaItem.audioDownload?.delete()
-                            })
-                            alert.addAction(yesAction)
-                            
-                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                
-                            })
-                            alert.addAction(noAction)
-                            
-                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                                (action : UIAlertAction!) -> Void in
-                                
-                            })
-                            alert.addAction(cancel)
-                            
-                            self.present(alert, animated: true, completion: nil)
-                            break
-                            
-                        default:
-                            break
-                        }
-                    }
-                    break
-                    
-                default:
-                    break
-                }
-            })
-        }
-        
-        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
-            let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0]
-            
-            if mediaItem.notesHTML != nil {
-                var htmlString:String?
-                
-                htmlString = mediaItem.fullNotesHTML
-                
-                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-            } else {
-                process(viewController: self, work: { () -> (Any?) in
-                    mediaItem.loadNotesHTML()
-                    
-                    return mediaItem.fullNotesHTML
-                }, completion: { (data:Any?) in
-                    if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                    } else {
-                        networkUnavailable(self,"HTML transcript unavailable.")
-                    }
-                })
-            }
-        }
-        
-        share = AlertAction(title: Constants.Strings.Share, style: .default) {
-            mediaItem.share(viewController: self,cell: cell)
-            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
-        }
-        
-        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
-            let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0]
-            
-            if let reference = mediaItem.scriptureReference {
-                if mediaItem.scripture?.html?[reference] != nil {
-                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
-                } else {
-                    guard globals.reachability.isReachable else {
-                        networkUnavailable(self,"Scripture text unavailable.")
-                        return
-                    }
-                    
-                    process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load() // reference
-                        return mediaItem.scripture?.html?[reference]
-                    }, completion: { (data:Any?) in
-                        if let htmlString = data as? String {
-                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                        } else {
-                            networkUnavailable(self,"Scripture text unavailable.")
-                        }
-                    })
-                }
-            }
-        }
-        
-        if mediaItem.books != nil {
-            actions.append(scripture)
-        }
-        
-        if mediaItem.hasNotesHTML {
-            actions.append(transcript)
-        }
-        
-        actions.append(share)
-        
-        if mediaItem.hasAudio && (download != nil) {
-            actions.append(download)
-        }
-        
-        if actions.count == 0 {
-            print("")
-        }
-        
-        return actions.count > 0 ? actions : nil
-    }
+//        
+//        var actions = [AlertAction]()
+//        
+//        var download:AlertAction!
+//        var transcript:AlertAction!
+//        var scripture:AlertAction!
+//        var share:AlertAction!
+//        
+//        if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
+//            var title = ""
+//            var style = UIAlertActionStyle.default
+//            
+//            switch state {
+//            case .none:
+//                title = Constants.Strings.Download_Audio
+//                break
+//                
+//            case .downloading:
+//                title = Constants.Strings.Cancel_Audio_Download
+//                break
+//            case .downloaded:
+//                title = Constants.Strings.Delete_Audio_Download
+//                style = UIAlertActionStyle.destructive
+//                break
+//            }
+//            
+//            download = AlertAction(title: title, style: style, action: {
+//                switch title {
+//                case Constants.Strings.Download_Audio:
+//                    mediaItem.audioDownload?.download()
+//                    break
+//                    
+//                case Constants.Strings.Delete_Audio_Download:
+//                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                    message: nil,
+//                                                    preferredStyle: .alert)
+//                    alert.makeOpaque()
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        mediaItem.audioDownload?.delete()
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancel)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                    break
+//                    
+//                case Constants.Strings.Cancel_Audio_Download:
+//                    if let state = mediaItem.audioDownload?.state {
+//                        switch state {
+//                        case .downloading:
+//                            mediaItem.audioDownload?.cancel()
+//                            break
+//                            
+//                        case .downloaded:
+//                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                            message: nil,
+//                                                            preferredStyle: .alert)
+//                            alert.makeOpaque()
+//                            
+//                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                mediaItem.audioDownload?.delete()
+//                            })
+//                            alert.addAction(yesAction)
+//                            
+//                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                
+//                            })
+//                            alert.addAction(noAction)
+//                            
+//                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                                (action : UIAlertAction!) -> Void in
+//                                
+//                            })
+//                            alert.addAction(cancel)
+//                            
+//                            self.present(alert, animated: true, completion: nil)
+//                            break
+//                            
+//                        default:
+//                            break
+//                        }
+//                    }
+//                    break
+//                    
+//                default:
+//                    break
+//                }
+//            })
+//        }
+//        
+//        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+//            
+//            if mediaItem.notesHTML != nil {
+//                var htmlString:String?
+//                
+//                htmlString = mediaItem.fullNotesHTML
+//                
+//                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//            } else {
+//                process(viewController: self, work: { () -> (Any?) in
+//                    mediaItem.loadNotesHTML()
+//                    
+//                    return mediaItem.fullNotesHTML
+//                }, completion: { (data:Any?) in
+//                    if let htmlString = data as? String {
+//                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                    } else {
+//                        networkUnavailable(self,"HTML transcript unavailable.")
+//                    }
+//                })
+//            }
+//        }
+//        
+//        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+//            mediaItem.share(viewController: self,cell: cell)
+//            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+//        }
+//        
+//        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+//            
+//            if let reference = mediaItem.scriptureReference {
+//                if mediaItem.scripture?.html?[reference] != nil {
+//                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
+//                } else {
+//                    guard globals.reachability.isReachable else {
+//                        networkUnavailable(self,"Scripture text unavailable.")
+//                        return
+//                    }
+//                    
+//                    process(viewController: self, work: { () -> (Any?) in
+//                        mediaItem.scripture?.load() // reference
+//                        return mediaItem.scripture?.html?[reference]
+//                    }, completion: { (data:Any?) in
+//                        if let htmlString = data as? String {
+//                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                        } else {
+//                            networkUnavailable(self,"Scripture text unavailable.")
+//                        }
+//                    })
+//                }
+//            }
+//        }
+//        
+//        if mediaItem.books != nil {
+//            actions.append(scripture)
+//        }
+//        
+//        if mediaItem.hasNotesHTML {
+//            actions.append(transcript)
+//        }
+//        
+//        actions.append(share)
+//        
+//        if mediaItem.hasAudio && (download != nil) {
+//            actions.append(download)
+//        }
+//        
+//        if actions.count == 0 {
+//            print("")
+//        }
+//        
+//        return actions.count > 0 ? actions : nil
+//    }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
@@ -1852,10 +1861,10 @@ extension ScriptureIndexViewController : UITableViewDelegate
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
-            if let alertActions = self.editActions(cell: cell, mediaItem: cell.mediaItem) {
+            if let alertActions = cell.mediaItem?.editActions(viewController: self) {
                 for alertAction in alertActions {
                     let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.action?()
+                        alertAction.handler?()
                     })
                     alert.addAction(action)
                 }

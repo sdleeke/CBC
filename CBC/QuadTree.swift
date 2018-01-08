@@ -87,6 +87,10 @@ class QuadTree {
         self.frame = CGRect.zero
     }
     
+    deinit {
+        
+    }
+    
     func debugDescription()
     {
         print("Frame: \(frame?.minX) \(frame?.maxX) \(frame?.minY) \(frame?.maxY)\n\nBoudning Rects: \(boundingRects)\n\n\(topLeft?.debugDescription)\n\n\(topRight?.debugDescription)\n\n\(bottomRight?.debugDescription)\n\n\(bottomRight?.debugDescription)")

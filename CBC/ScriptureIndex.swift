@@ -14,10 +14,14 @@ class ScriptureIndex {
     
     weak var mediaListGroupSort:MediaListGroupSort?
     
-//    init(_ mlgs:MediaListGroupSort?)
-//    {
-//        self.mediaListGroupSort = mlgs
-//    }
+    init(_ mediaListGroupSort:MediaListGroupSort?)
+    {
+        self.mediaListGroupSort = mediaListGroupSort
+    }
+    
+    deinit {
+        
+    }
     
     var sectionsIndex = [String:[String:[MediaItem]]]()
     
@@ -47,8 +51,8 @@ class ScriptureIndex {
     }
     
     lazy var html:CachedString? = {
-        [unowned self] in
-        return CachedString(index:self.index)
+        [weak self] in
+        return CachedString(index:self?.index)
     }()
     
     func index() -> String? {

@@ -579,7 +579,7 @@ class TextViewController : UIViewController
         if text != textView.attributedText.string, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
             var actions = [AlertAction]()
             
-            actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+            actions.append(AlertAction(title: "Yes", style: .destructive, handler: { (Void) -> (Void) in
                 if self.isTracking {
                     self.stopTracking()
                 }
@@ -587,7 +587,7 @@ class TextViewController : UIViewController
                 self.completion?(self.textView.attributedText.string)
             }))
             
-            actions.append(AlertAction(title: "No", style: .default, action:nil))
+            actions.append(AlertAction(title: "No", style: .default, handler:nil))
             
             alert(viewController:self,title:confirmationTitle, message:self.confirmationMessage, actions:actions)
         } else {
@@ -614,7 +614,7 @@ class TextViewController : UIViewController
     {
         var actions = [AlertAction]()
         
-        actions.append(AlertAction(title: "Interactive", style: .default, action: {
+        actions.append(AlertAction(title: "Interactive", style: .default, handler: {
             let text = self.textView.attributedText.string
             
             process(viewController: self, work: { () -> (Any?) in
@@ -634,7 +634,7 @@ class TextViewController : UIViewController
             }
         }))
         
-        actions.append(AlertAction(title: "Automatic", style: .default, action: {
+        actions.append(AlertAction(title: "Automatic", style: .default, handler: {
             let text = self.textView.attributedText.string
             
             process(viewController: self, work: { () -> (Any?) in
@@ -654,7 +654,7 @@ class TextViewController : UIViewController
             }
         }))
         
-        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: nil))
+        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
@@ -1104,7 +1104,7 @@ class TextViewController : UIViewController
             if !automatic {
                 var actions = [AlertAction]()
                 
-                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: {
+                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
                     
                 }))
                 
@@ -1238,7 +1238,7 @@ class TextViewController : UIViewController
                 if interactive {
                     var actions = [AlertAction]()
                     
-                    actions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                    actions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                         text.replaceSubrange(range, with: value)
                         
                         completion?(text)
@@ -1253,12 +1253,12 @@ class TextViewController : UIViewController
                         }
                     }))
                     
-                    actions.append(AlertAction(title: "No", style: .default, action: {
+                    actions.append(AlertAction(title: "No", style: .default, handler: {
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
                     }))
                     
-                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: {
+                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
                         
                     }))
                     

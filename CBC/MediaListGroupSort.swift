@@ -21,7 +21,9 @@ typealias Words = [String:[MediaItem:Int]]
 class MediaListGroupSort {
     @objc func freeMemory()
     {
-        lexicon = nil
+        lexicon = Lexicon(self) // Side effects?
+        
+        scriptureIndex = ScriptureIndex(self) // side effects?
         
         guard searches != nil else {
             return
@@ -87,19 +89,19 @@ class MediaListGroupSort {
     var events:[String]?
     
     lazy var lexicon:Lexicon? = {
-        [unowned self] in
-        let lexicon = Lexicon()
-        lexicon.mediaListGroupSort = self
-        return lexicon
+//        [weak self] in
+//        let lexicon = Lexicon(self)
+//        lexicon.mediaListGroupSort = self
+        return Lexicon(self) // lexicon
     }()
     
     var searches:[String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     lazy var scriptureIndex:ScriptureIndex? = {
-        [unowned self] in
-        let scriptureIndex = ScriptureIndex()
-        scriptureIndex.mediaListGroupSort = self
-        return scriptureIndex
+//        [weak self] in
+//        let scriptureIndex = ScriptureIndex()
+//        scriptureIndex.mediaListGroupSort = self
+        return ScriptureIndex(self) // scriptureIndex
     }()
     
     var groupSort:MediaGroupSort?
@@ -364,43 +366,47 @@ class MediaListGroupSort {
     }
     
     class Section {
-        weak var mlgs:MediaListGroupSort?
+        weak var mediaListGroupSort:MediaListGroupSort?
         
-//        init(_ mlgs:MediaListGroupSort?)
-//        {
-//            self.mlgs = mlgs
-//        }
+        init(_ mediaListGroupSort:MediaListGroupSort?)
+        {
+            self.mediaListGroupSort = mediaListGroupSort
+        }
+        
+        deinit {
+            
+        }
         
         var headerStrings:[String]? {
             get {
-                return mlgs?.sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
+                return mediaListGroupSort?.sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
             }
         }
         
         var counts:[Int]? {
             get {
-                return mlgs?.sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
+                return mediaListGroupSort?.sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
             }
         }
         
         var indexes:[Int]? {
             get {
-                return mlgs?.sectionIndexes(grouping: globals.grouping,sorting: globals.sorting)
+                return mediaListGroupSort?.sectionIndexes(grouping: globals.grouping,sorting: globals.sorting)
             }
         }
         
         var indexStrings:[String]? {
             get {
-                return mlgs?.sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
+                return mediaListGroupSort?.sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
             }
         }
     }
     
     lazy var section:Section? = {
-        [unowned self] in
-        let section = Section()
-        section.mlgs = self
-        return section
+//        [weak self] in
+//        let section = Section()
+//        section.mlgs = self
+        return Section(self) // section
     }()
     
     func sectionIndexTitles(grouping:String?,sorting:String?) -> [String]?
@@ -549,6 +555,10 @@ class MediaListGroupSort {
             
             return prior
         })
+    }
+    
+    deinit {
+        
     }
     
     init(mediaItems:[MediaItem]?)

@@ -27,6 +27,10 @@ class SearchHit {
         self.searchText = searchText
     }
     
+    deinit {
+        
+    }
+    
     var title:Bool {
         get {
             guard let mediaItem = mediaItem else {
@@ -526,7 +530,7 @@ extension MediaItem : URLSessionDownloadDelegate
 
 extension MediaItem : UIActivityItemSource
 {
-    func share(viewController:UIViewController, cell:MediaTableViewCell?)
+    func share(viewController:UIViewController)
     {
         guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
             return
@@ -544,13 +548,6 @@ extension MediaItem : UIActivityItemSource
 
         activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
-//        if let cell = cell {
-//            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
-//            activityViewController.popoverPresentationController?.sourceView = cell
-//        } else {
-//            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-//        }
-        
         // present the view controller
         Thread.onMainThread() {
             viewController.present(activityViewController, animated: true, completion: nil)
@@ -623,6 +620,8 @@ class MediaItem : NSObject
 
     func freeMemory()
     {
+        // What are the side effects of this?
+        
         notesHTML = nil
         notesTokens = nil
         
@@ -644,6 +643,10 @@ class MediaItem : NSObject
         }
     }
     
+    deinit {
+        
+    }
+    
     var downloads = [String:Download]()
     
     //    lazy var downloads:[String:Download]? = {
@@ -651,7 +654,7 @@ class MediaItem : NSObject
     //    }()
     
     lazy var audioDownload:Download? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasAudio else {
             return nil
         }
@@ -667,7 +670,7 @@ class MediaItem : NSObject
     }()
     
     lazy var videoDownload:Download? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasVideo else {
             return nil
         }
@@ -683,7 +686,7 @@ class MediaItem : NSObject
     }()
     
     lazy var slidesDownload:Download? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasSlides else {
             return nil
         }
@@ -699,7 +702,7 @@ class MediaItem : NSObject
     }()
     
     lazy var notesDownload:Download? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasNotes else {
             return nil
         }
@@ -715,7 +718,7 @@ class MediaItem : NSObject
     }()
     
     lazy var outlineDownload:Download? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasOutline else {
             return nil
         }
@@ -1445,7 +1448,7 @@ class MediaItem : NSObject
     }
     
     lazy var scripture:Scripture? = {
-        [unowned self] in
+//        [unowned self] in
         return Scripture(reference:self.scriptureReference)
     }()
     
@@ -2741,7 +2744,7 @@ class MediaItem : NSObject
     var transcripts = [String:VoiceBase]()
     
     lazy var audioTranscript:VoiceBase? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasAudio else {
             return nil
         }
@@ -2755,7 +2758,7 @@ class MediaItem : NSObject
     }()
     
     lazy var videoTranscript:VoiceBase? = {
-        [unowned self] in
+//        [unowned self] in
         guard self.hasVideo else {
             return nil
         }
@@ -3018,6 +3021,10 @@ class MediaItem : NSObject
             self.mediaItem = mediaItem
         }
         
+        deinit {
+            
+        }
+        
         subscript(key:String) -> String? {
             get {
                 guard let mediaItem = mediaItem else {
@@ -3054,7 +3061,7 @@ class MediaItem : NSObject
     }
     
     lazy var mediaItemSettings:MediaItemSettings? = {
-        [unowned self] in
+//        [unowned self] in
         return MediaItemSettings(mediaItem:self)
     }()
     
@@ -3066,6 +3073,10 @@ class MediaItem : NSObject
                 print("nil mediaItem in Settings init!")
             }
             self.mediaItem = mediaItem
+        }
+        
+        deinit {
+            
         }
         
         subscript(key:String) -> String? {
@@ -3107,7 +3118,7 @@ class MediaItem : NSObject
     }
     
     lazy var multiPartSettings:MultiPartSettings? = {
-        [unowned self] in
+//        [unowned self] in
         return MultiPartSettings(mediaItem:self)
     }()
     
@@ -3331,5 +3342,507 @@ class MediaItem : NSObject
             
             return tagsSet.contains(Constants.Strings.Favorites)
         }
+    }
+
+    func editActions(viewController: UIViewController) -> [AlertAction]?
+    {
+        var actions = [AlertAction]()
+        
+        var scripture:AlertAction!
+        var share:AlertAction!
+        var openOnCBC:AlertAction!
+        var favorites:AlertAction!
+        var download:AlertAction!
+        var transcript:AlertAction!
+        var words:AlertAction!
+        var search:AlertAction!
+        var tags:AlertAction!
+        var voiceBase:AlertAction!
+        var topics:AlertAction!
+        
+        if hasAudio, let audioDownload = audioDownload {
+            var title = ""
+            var style = UIAlertActionStyle.default
+            
+            switch audioDownload.state {
+            case .none:
+                title = Constants.Strings.Download_Audio
+                break
+                
+            case .downloading:
+                title = Constants.Strings.Cancel_Audio_Download
+                break
+            case .downloaded:
+                title = Constants.Strings.Delete_Audio_Download
+                style = UIAlertActionStyle.destructive
+                break
+            }
+            
+            download = AlertAction(title: title, style: style, handler: {
+                switch title {
+                case Constants.Strings.Download_Audio:
+                    audioDownload.download()
+                    Thread.onMainThread(block: {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: audioDownload)
+                    })
+                    break
+                    
+                case Constants.Strings.Delete_Audio_Download:
+                    var alertActions = [AlertAction]()
+
+                    let yesAction = AlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        () -> Void in
+                        audioDownload.delete()
+                    })
+                    alertActions.append(yesAction)
+                    
+                    let noAction = AlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        () -> Void in
+                        
+                    })
+                    alertActions.append(noAction)
+                    
+                    let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                        () -> Void in
+                        
+                    })
+                    alertActions.append(cancel)
+                    
+//                    present(alert, animated: true, completion: nil)
+                    
+                    globals.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                    break
+                    
+                case Constants.Strings.Cancel_Audio_Download:
+                    switch audioDownload.state {
+                    case .downloading:
+                        audioDownload.cancel()
+                        break
+                        
+                    case .downloaded:
+                        var alertActions = [AlertAction]()
+                        
+//                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                            message: nil,
+//                                                            preferredStyle: .alert)
+//                            alert.makeOpaque()
+                        
+                        let yesAction = AlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                            () -> Void in
+                            self.audioDownload?.delete()
+                        })
+                        alertActions.append(yesAction)
+                        
+                        let noAction = AlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                            () -> Void in
+                            
+                        })
+                        alertActions.append(noAction)
+                        
+                        let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            () -> Void in
+                            
+                        })
+                        alertActions.append(cancel)
+                        
+//                            self.present(alert, animated: true, completion: nil)
+                        
+                        globals.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                        break
+                        
+                    default:
+                        break
+                    }
+                
+                default:
+                    break
+                }
+            })
+        }
+        
+        var title:String
+        
+        if hasFavoritesTag {
+            title = Constants.Strings.Remove_From_Favorites
+        } else {
+            title = Constants.Strings.Add_to_Favorites
+        }
+        
+        favorites = AlertAction(title: title, style: .default) {
+            switch title {
+            case Constants.Strings.Add_to_Favorites:
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
+                    self.addTag(Constants.Strings.Favorites)
+                }
+                break
+                
+            case Constants.Strings.Remove_From_Favorites:
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
+                    self.removeTag(Constants.Strings.Favorites)
+                }
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
+            if let url = self.websiteURL {
+                open(scheme: url.absoluteString) {
+                    globals.alert(title: "Network Error",message: "Unable to open: \(url)")
+//                    networkUnavailable(self,"Unable to open: \(url)")
+                }
+            }
+        }
+        
+        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+            self.share(viewController: viewController)
+            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+        }
+        
+        tags = AlertAction(title: Constants.Strings.Tags, style: .default) {
+            guard let mtvc = viewController as? MediaTableViewController else {
+                return
+            }
+            
+            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                
+                navigationController.popoverPresentationController?.delegate = mtvc
+                
+                navigationController.popoverPresentationController?.barButtonItem = mtvc.tagsButton
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                
+                popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
+                
+                popover.delegate = mtvc
+                popover.purpose = .selectingTags
+                
+                popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+                
+                popover.section.strings = self.tagsArray
+                popover.section.strings?.insert(Constants.Strings.All,at: 0)
+                
+                popover.vc = mtvc
+                
+                mtvc.present(navigationController, animated: true, completion: nil)
+            }
+        }
+        
+        search = AlertAction(title: Constants.Strings.Search, style: .default) {
+            guard let mtvc = viewController as? MediaTableViewController else {
+                return
+            }
+            
+            if let searchStrings = self.searchStrings(),
+                let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                viewController.dismiss(animated: true, completion: {
+                    mtvc.presentingVC = nil
+                })
+                
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                
+                navigationController.popoverPresentationController?.delegate = mtvc
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.sourceView = mtvc.view
+                navigationController.popoverPresentationController?.sourceRect = mtvc.searchBar.frame
+                
+                popover.navigationItem.title = Constants.Strings.Search
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.delegate = mtvc
+                popover.purpose = .selectingCellSearch
+                
+                popover.selectedMediaItem = self
+                
+                popover.section.strings = searchStrings
+                
+                popover.vc = mtvc.splitViewController
+                
+                mtvc.present(navigationController, animated: true, completion:{
+                    mtvc.presentingVC = navigationController
+                })
+            }
+        }
+        
+        words = AlertAction(title: Constants.Strings.Words, style: .default) {
+            guard self.hasNotesHTML else {
+                return
+            }
+            
+            guard let mtvc = viewController as? MediaTableViewController else {
+                return
+            }
+            
+            func transcriptTokens()
+            {
+                guard Thread.isMainThread else {
+                    alert(viewController:viewController,title: "Not Main Thread", message: "MediaTableViewController:transcriptTokens", completion: nil)
+                    return
+                }
+                
+                guard let tokens = self.notesTokens?.map({ (string:String,count:Int) -> String in
+                    return "\(string) (\(count))"
+                }).sorted() else {
+                    networkUnavailable(viewController,"HTML transcript vocabulary unavailable.")
+                    return
+                }
+                
+                if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    mtvc.dismiss(animated: true, completion: {
+                        mtvc.presentingVC = nil
+                    })
+                    
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                    
+                    navigationController.popoverPresentationController?.delegate = mtvc
+                    
+                    popover.navigationItem.title = Constants.Strings.Search
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    popover.parser = { (string:String) -> [String] in
+                        return [string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)]
+                    }
+                    
+                    popover.delegate = mtvc
+                    popover.purpose = .selectingCellSearch
+                    
+                    popover.selectedMediaItem = self
+                    
+                    popover.section.showIndex = true
+                    
+                    popover.section.strings = tokens
+                    
+                    popover.vc = viewController.splitViewController
+                    
+                    popover.segments = true
+                    
+                    popover.sort.function = sort
+                    popover.sort.method = Constants.Sort.Alphabetical
+                    
+                    var segmentActions = [SegmentAction]()
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                        let strings = popover.sort.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                        if popover.segmentedControl.selectedSegmentIndex == 0 {
+                            popover.sort.method = Constants.Sort.Alphabetical
+                            popover.section.strings = strings
+                            popover.section.showIndex = true
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                        let strings = popover.sort.function?(Constants.Sort.Frequency,popover.section.strings)
+                        if popover.segmentedControl.selectedSegmentIndex == 1 {
+                            popover.sort.method = Constants.Sort.Frequency
+                            popover.section.strings = strings
+                            popover.section.showIndex = false
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+                    
+                    popover.search = popover.section.strings?.count > 10
+                    
+                    mtvc.present(navigationController, animated: true, completion: {
+                        mtvc.presentingVC = navigationController
+                    })
+                }
+            }
+            
+            if self.notesTokens == nil {
+                guard globals.reachability.isReachable else {
+                    networkUnavailable(viewController,"HTML transcript words unavailable.")
+                    return
+                }
+                
+                process(viewController: mtvc, work: { () -> (Any?) in
+                    self.loadNotesTokens()
+                }, completion: { (data:Any?) in
+                    transcriptTokens()
+                })
+            } else {
+                transcriptTokens()
+            }
+        }
+        
+        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+            
+            if self.notesHTML != nil {
+                var htmlString:String?
+                
+                htmlString = self.fullNotesHTML
+                popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+            } else {
+                guard globals.reachability.isReachable else {
+                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+                    return
+                }
+                
+                process(viewController: globals.splitViewController, work: { () -> (Any?) in
+                    self.loadNotesHTML()
+                    
+                    return self.fullNotesHTML
+                }, completion: { (data:Any?) in
+                    if let htmlString = data as? String {
+                        popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                    } else {
+                        globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+                    }
+                })
+            }
+        }
+        
+        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
+//            let sourceView = cell?.subviews[0]
+//            let sourceRectView = cell?.subviews[0]
+            
+            if let reference = self.scriptureReference {
+                if self.scripture?.html?[reference] != nil {
+                    popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:self.scripture?.html?[reference])
+                } else {
+                    guard globals.reachability.isReachable else {
+                        networkUnavailable(viewController,"Scripture text unavailable.")
+//                        globals.alert(title: "Network Error",message: "Scripture text unavailable.")
+                        return
+                    }
+                    
+                    process(viewController: viewController, work: { () -> (Any?) in
+                        self.scripture?.load()
+                        return self.scripture?.html?[reference]
+                    }, completion: { (data:Any?) in
+                        if let htmlString = data as? String {
+                            popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                        } else {
+                            networkUnavailable(viewController,"Scripture text unavailable.")
+                        }
+                    })
+                }
+            }
+        }
+        
+        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
+            var alertActions = [AlertAction]()
+            
+            if let actions = self.audioTranscript?.recognizeAlertActions(viewController:viewController) {
+                alertActions.append(actions)
+            }
+            if let actions = self.videoTranscript?.recognizeAlertActions(viewController:viewController) {
+                alertActions.append(actions)
+            }
+            
+            // At most, only ONE of the following TWO will be added.
+            if let actions = self.audioTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                (viewController as? MediaTableViewController)?.popover = popover
+                (viewController as? MediaViewController)?.popover = popover
+            }) {
+                let mvc = viewController as? MediaViewController
+
+                if (self == globals.mediaPlayer.mediaItem) && (self.playing == Playing.audio) && (self == mvc?.selectedMediaItem)  {
+                    if self.audioTranscript?.keywords != nil {
+                        alertActions.append(actions)
+                    }
+                }
+            }
+            if let actions = self.videoTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                (viewController as? MediaTableViewController)?.popover = popover
+                (viewController as? MediaViewController)?.popover = popover
+            }) {
+                let mvc = viewController as? MediaViewController
+                
+                if (self == globals.mediaPlayer.mediaItem) && (self.playing == Playing.video) && (self == mvc?.selectedMediaItem)  {
+                    if self.videoTranscript?.keywords != nil {
+                        alertActions.append(actions)
+                    }
+                }
+            }
+            
+            var message = "Machine Generated Transcript"
+            
+            if let text = self.text {
+                message += "\n\n\(text)"
+            }
+            
+            alertActionsCancel( viewController: viewController,
+                                title: "VoiceBase",
+                                message: message,
+                                alertActions: alertActions,
+                                cancelAction: nil)
+        }
+        
+        topics = AlertAction(title: "List", style: .default) {
+            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = "Topics"
+                
+                popover.selectedMediaItem = self
+                
+                popover.search = true
+                
+                popover.delegate = viewController as? PopoverTableViewControllerDelegate
+                popover.purpose = .selectingTopic
+                popover.section.strings = self.audioTranscript?.topics?.sorted()
+                
+                viewController.present(navigationController, animated: true, completion: {
+                    (viewController as? MediaTableViewController)?.popover = popover
+                    (viewController as? MediaViewController)?.popover = popover
+                })
+            }
+        }
+        
+        if books != nil {
+            actions.append(scripture)
+        }
+
+        if (viewController as? MediaTableViewController) != nil {
+            if hasTags {
+                actions.append(tags)
+            }
+            
+            actions.append(search)
+
+            if hasNotesHTML {
+                actions.append(words)
+            }
+        }
+        
+        if hasNotesHTML {
+            actions.append(transcript)
+        }
+        
+        actions.append(favorites)
+        
+        actions.append(openOnCBC)
+
+        actions.append(share)
+        
+        if hasAudio && (download != nil) {
+            actions.append(download)
+        }
+        
+        if globals.allowMGTs {
+            actions.append(voiceBase)
+        }
+        
+        return actions.count > 0 ? actions : nil
     }
 }

@@ -15,7 +15,8 @@ enum State {
     case none
 }
 
-class Download : NSObject {
+class Download : NSObject
+{
     init(mediaItem:MediaItem?,purpose:String?,downloadURL:URL?,fileSystemURL:URL?)
     {
         self.mediaItem = mediaItem
@@ -30,6 +31,10 @@ class Download : NSObject {
                 self.state = .downloaded
             }
         }
+    }
+    
+    deinit {
+        
     }
     
     weak var mediaItem:MediaItem?

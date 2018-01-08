@@ -30,8 +30,8 @@ class OBSlider: UISlider
             self.scrubbingSpeed = Float(num)
         }
 	}
-    
-	override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
+
+    override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
     {
         guard let superview = superview else {
             return false

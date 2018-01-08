@@ -70,6 +70,10 @@ class PlayerStateTime {
         startTime = mediaItem?.currentTime
     }
     
+    deinit {
+        
+    }
+    
     func log()
     {
         var stateName:String?

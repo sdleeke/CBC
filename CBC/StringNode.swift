@@ -16,6 +16,10 @@ class StringNode {
         self.string = string
     }
     
+    deinit {
+        
+    }
+    
     var wordEnding = false
     
     var stringNodes:[StringNode]?
