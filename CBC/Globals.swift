@@ -224,8 +224,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var splitViewController:UISplitViewController!
+    var topViewController:UIViewController?
     
+    var splitViewController:UISplitViewController!
+
     func alertViewer()
     {
         for alert in alerts {
@@ -266,7 +268,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
             
             Thread.onMainThread() {
-                self.splitViewController.present(alertVC, animated: true, completion: {
+                let viewController = self.topViewController ?? self.splitViewController
+                
+                viewController?.present(alertVC, animated: true, completion: {
                     if self.alerts.count > 0 {
                         self.alerts.remove(at: 0)
                     }
@@ -1238,6 +1242,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
         
         lazy var tags:Tags! = {
+            // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //            [unowned self] in
             var tags = Tags()
             tags.globals = self.globals

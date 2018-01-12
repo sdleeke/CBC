@@ -654,6 +654,7 @@ class MediaItem : NSObject
     //    }()
     
     lazy var audioDownload:Download? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasAudio else {
             return nil
@@ -670,6 +671,7 @@ class MediaItem : NSObject
     }()
     
     lazy var videoDownload:Download? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasVideo else {
             return nil
@@ -686,6 +688,7 @@ class MediaItem : NSObject
     }()
     
     lazy var slidesDownload:Download? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasSlides else {
             return nil
@@ -702,6 +705,7 @@ class MediaItem : NSObject
     }()
     
     lazy var notesDownload:Download? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasNotes else {
             return nil
@@ -718,6 +722,7 @@ class MediaItem : NSObject
     }()
     
     lazy var outlineDownload:Download? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasOutline else {
             return nil
@@ -1448,6 +1453,7 @@ class MediaItem : NSObject
     }
     
     lazy var scripture:Scripture? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return Scripture(reference:self.scriptureReference)
     }()
@@ -2117,6 +2123,7 @@ class MediaItem : NSObject
                         
                         //                            print(characterAfter)
                         
+                        // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                                 skip = true
@@ -2744,6 +2751,7 @@ class MediaItem : NSObject
     var transcripts = [String:VoiceBase]()
     
     lazy var audioTranscript:VoiceBase? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasAudio else {
             return nil
@@ -2758,6 +2766,7 @@ class MediaItem : NSObject
     }()
     
     lazy var videoTranscript:VoiceBase? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         guard self.hasVideo else {
             return nil
@@ -3061,6 +3070,7 @@ class MediaItem : NSObject
     }
     
     lazy var mediaItemSettings:MediaItemSettings? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return MediaItemSettings(mediaItem:self)
     }()
@@ -3118,6 +3128,7 @@ class MediaItem : NSObject
     }
     
     lazy var multiPartSettings:MultiPartSettings? = {
+        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return MultiPartSettings(mediaItem:self)
     }()
@@ -3683,8 +3694,13 @@ class MediaItem : NSObject
             
             if self.notesHTML != nil {
                 var htmlString:String?
+
+                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
+                    htmlString = self.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
+                } else {
+                    htmlString = self.fullNotesHTML
+                }
                 
-                htmlString = self.fullNotesHTML
                 popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
             } else {
                 guard globals.reachability.isReachable else {

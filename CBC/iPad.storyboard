@@ -2712,7 +2712,7 @@ Web site: www.countrysidebible.org</string>
         <!--Navigation Controller-->
         <scene sceneID="J6j-zN-fNx">
             <objects>
-                <navigationController storyboardIdentifier="TextViewController" automaticallyAdjustsScrollViewInsets="NO" id="MSU-7N-mYR" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="Text View" automaticallyAdjustsScrollViewInsets="NO" id="MSU-7N-mYR" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="ghH-gd-ksd">

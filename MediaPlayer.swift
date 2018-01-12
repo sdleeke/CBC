@@ -117,6 +117,16 @@ enum PIP {
 
 class MediaPlayer : NSObject {
     var isSeeking = false
+    {
+        didSet {
+            if isSeeking != oldValue, !isSeeking {
+                seekingCompletion?()
+                seekingCompletion = nil
+            }
+        }
+    }
+    
+    var seekingCompletion : (()->(Void))?
     
     var sliderTimerReturn:Any? = nil
     var playerTimerReturn:Any? = nil

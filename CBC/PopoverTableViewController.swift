@@ -319,14 +319,39 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        globals.mediaPlayer.play()
+        if let state = globals.mediaPlayer.state {
+            switch state {
+            case .none:
+                globals.mediaPlayer.play()
+                break
+                
+            case .paused:
+                globals.mediaPlayer.play()
+                break
+                
+            case .playing:
+                break
+                
+            case .seekingForward:
+                globals.mediaPlayer.play()
+                break
+                
+            case .seekingBackward:
+                globals.mediaPlayer.play()
+                break
+                
+            case .stopped:
+//                globals.mediaPlayer.play()
+                break
+            }
+        }
         
         if trackingTimer == nil {
             if let indexPath = tableView.indexPathForSelectedRow {
                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
             
-            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
         } else {
             print("ERROR: trackingTimer not nil!")
         }
@@ -336,6 +361,15 @@ class PopoverTableViewController : UIViewController
     
     func follow()
     {
+        guard globals.mediaPlayer.currentTime != nil else {
+            trackingTimer?.invalidate()
+            trackingTimer = nil
+            syncButton.title = "Sync"
+            syncButton.isEnabled = false
+            assistButton.isEnabled = true
+            return
+        }
+        
         guard !searchActive else {
             return
         }
@@ -894,6 +928,8 @@ class PopoverTableViewController : UIViewController
         assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit))
         syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
 
+        syncButton.isEnabled = globals.mediaPlayer.mediaItem != nil
+        
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
@@ -1375,6 +1411,19 @@ class PopoverTableViewController : UIViewController
         navigationController?.isToolbarHidden = true
         
         if (stringsFunction != nil) && (self.section.strings == nil) {
+            if purpose == .selectingTime {
+                if globals.mediaPlayer.isSeeking {
+                    globals.mediaPlayer.seekingCompletion = {
+                        Thread.onMainThread {
+                            self.follow()
+                            
+                            self.activityIndicator.stopAnimating()
+                            self.activityIndicator?.isHidden = true
+                        }
+                    }
+                }
+            }
+            
             DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.onMainThread() {
                     self?.activityIndicator.startAnimating()
@@ -1383,10 +1432,6 @@ class PopoverTableViewController : UIViewController
                 
                 self?.section.strings = self?.stringsFunction?()
                 
-                while globals.mediaPlayer.isSeeking {
-                    Thread.sleep(forTimeInterval: 0.1)
-                }
-                
                 if self?.section.strings != nil {
                     Thread.onMainThread() {
                         self?.tableView.reloadData()
@@ -1394,15 +1439,13 @@ class PopoverTableViewController : UIViewController
                         self?.setPreferredContentSize()
                         
                         if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
-                            self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                            self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+//                            self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                         }
                         
-                        self?.activityIndicator.stopAnimating()
-                        self?.activityIndicator?.isHidden = true
-                        
-                        // Must use stringsFunction with .selectingTime.
-                        if self?.purpose == .selectingTime {
-                            self?.follow()
+                        if !globals.mediaPlayer.isSeeking {
+                            self?.activityIndicator.stopAnimating()
+                            self?.activityIndicator?.isHidden = true
                         }
                     }
                 }
@@ -1944,8 +1987,18 @@ extension PopoverTableViewController : UITableViewDelegate
             return
         }
         
-        trackingTimer?.invalidate()
-        trackingTimer = nil
+        if trackingTimer != nil {
+            trackingTimer?.invalidate()
+            trackingTimer = nil
+            
+            activityIndicator.startAnimating()
+            globals.mediaPlayer.seekingCompletion = {
+                Thread.onMainThread {
+                    self.activityIndicator.stopAnimating()
+                    self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                }
+            }
+        }
         
         if searchActive {
             self.searchBar.resignFirstResponder()
@@ -2028,6 +2081,8 @@ extension PopoverTableViewController : UITableViewDelegate
 
                 popover.track = true
                 popover.assist = true
+                
+                popover.stringSelected = string
                 
                 self.navigationController?.pushViewController(popover, animated: true)
             }

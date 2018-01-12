@@ -813,6 +813,8 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     }
 
                     //                            print(characterAfter)
+                    
+                    // What happens with other types of apostrophes?
                     if stringAfter.endIndex >= "'s".endIndex {
                         if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                             skip = true
@@ -857,85 +859,6 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
     let htmlString = "<!DOCTYPE html><html><body>" + mark(string) + "</body></html>"
     
     return htmlString
-}
-
-func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wholeWordsOnly:Bool) -> NSAttributedString?
-{
-    guard var string = string, !string.isEmpty else {
-        return nil
-    }
-    
-    guard let searchText = searchText, !searchText.isEmpty else {
-        return NSAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal)
-    }
-    
-    var stringBefore    = String()
-    var stringAfter     = String()
-    
-    var foundString     = String()
-    
-    let newAttrString       = NSMutableAttributedString()
-    var foundAttrString     = NSAttributedString()
-    
-    while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-        //                print(string)
-        
-        if let range = string.lowercased().range(of: searchText.lowercased()) {
-            stringBefore = string.substring(to: range.lowerBound)
-            stringAfter = string.substring(from: range.upperBound)
-            
-            var skip = false
-            
-            if wholeWordsOnly {
-                if let characterAfter:Character = stringAfter.first {
-                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                        skip = true
-                    }
-                    
-                    //                            print(characterAfter)
-                    if stringAfter.endIndex >= "'s".endIndex {
-                        if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                            skip = true
-                        }
-                        if (stringAfter.substring(to: "'t".endIndex) == "'t") {
-                            skip = true
-                        }
-                        if (stringAfter.substring(to: "'d".endIndex) == "'d") {
-                            skip = true
-                        }
-                    }
-                }
-                if let characterBefore:Character = stringBefore.last {
-                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                        skip = true
-                    }
-                }
-            }
-            
-            foundString = string.substring(from: range.lowerBound)
-            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                foundString = foundString.substring(to: newRange.upperBound)
-            }
-            
-            if !skip {
-                foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
-            }
-            
-            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
-                
-            newAttrString.append(foundAttrString)
-            
-//                stringBefore = stringBefore + foundString
-            
-            string = stringAfter
-        } else {
-            break
-        }
-    }
-    
-    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
-    
-    return newAttrString
 }
 
 func verifyNASB()
@@ -4067,7 +3990,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
         popover.navigationController?.isNavigationBarHidden = false
         
         Thread.onMainThread() {
-            viewController.present(navigationController, animated: true, completion: nil)
+            viewController.present(navigationController, animated: true, completion: {
+                globals.topViewController = navigationController
+            })
         }
     }
 }

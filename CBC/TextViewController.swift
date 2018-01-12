@@ -28,6 +28,91 @@ extension TextViewController: UISearchBarDelegate
 {
     //MARK: SearchBarDelegate
     
+    func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wholeWordsOnly:Bool) -> NSAttributedString?
+    {
+        guard var workingString = string, !workingString.isEmpty else {
+            return nil
+        }
+        
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+        }
+        
+        var stringBefore    = String()
+        var stringAfter     = String()
+        
+        var foundString     = String()
+        
+        let newAttrString       = NSMutableAttributedString()
+        var foundAttrString     = NSAttributedString()
+        
+        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
+            //                print(string)
+            
+            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
+                stringBefore = workingString.substring(to: range.lowerBound)
+                stringAfter = workingString.substring(from: range.upperBound)
+                
+                var skip = false
+                
+                if wholeWordsOnly {
+                    if let characterAfter:Character = stringAfter.first {
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        //                            print(characterAfter)
+                        
+                        // What happens with other types of apostrophes?
+                        if stringAfter.endIndex >= "'s".endIndex {
+                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                skip = true
+                            }
+                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                skip = true
+                            }
+                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                                skip = true
+                            }
+                        }
+                    }
+                    if let characterBefore:Character = stringBefore.last {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                    }
+                }
+                
+                foundString = workingString.substring(from: range.lowerBound)
+                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                    foundString = foundString.substring(to: newRange.upperBound)
+                }
+                
+                if !skip {
+                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+                }
+                
+                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+                
+                newAttrString.append(foundAttrString)
+                
+                //                stringBefore = stringBefore + foundString
+                
+                workingString = stringAfter
+            } else {
+                break
+            }
+        }
+        
+        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+        
+        if newAttrString.string.isEmpty, let string = string {
+            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
+        }
+        
+        return newAttrString
+    }
+
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
@@ -91,6 +176,8 @@ extension TextViewController: UISearchBarDelegate
         if let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
             textView.scrollToRange(range)
             lastRange = range
+        } else {
+            globals.alert(title: "Not Found", message: "")
         }
     }
     
@@ -120,6 +207,8 @@ extension TextViewController: UISearchBarDelegate
             if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
                 textView.scrollToRange(range)
                 lastRange = range
+            } else {
+                globals.alert(title: "Not Found", message: "")
             }
         }
     }
@@ -219,7 +308,26 @@ class TextViewController : UIViewController
     var changedText : String?
     {
         didSet {
+            updateBarButtons()
+        }
+    }
+    
+    func updateBarButtons()
+    {
+        Thread.onMainThread {
+            if self.changedText != nil, self.changedText != self.text {
+                self.saveButton?.isEnabled = true
+                self.cancelButton?.title = "Cancel"
+            } else {
+                self.saveButton?.isEnabled = false
+                self.cancelButton?.title = "Done"
+            }
             
+            if self.isTracking {
+                self.syncButton?.title = "Stop"
+            } else {
+                self.syncButton?.title = "Sync"
+            }
         }
     }
     
@@ -227,8 +335,9 @@ class TextViewController : UIViewController
 
     var search = false
     
+    var fullScreenButton : UIBarButtonItem!
     var syncButton : UIBarButtonItem!
-    
+
     func disableBarButtons()
     {
         Thread.onMainThread() {
@@ -260,6 +369,8 @@ class TextViewController : UIViewController
                     barButtonItem.isEnabled = true
                 }
             }
+            
+            self.updateBarButtons()
         }
     }
 
@@ -336,7 +447,7 @@ class TextViewController : UIViewController
     {
         didSet {
             Thread.onMainThread {
-                self.syncButton.isEnabled = true
+                self.syncButton?.isEnabled = true
                 self.activityIndicator?.stopAnimating()
                 
                 if let transcript = self.transcript {
@@ -372,7 +483,11 @@ class TextViewController : UIViewController
             return
         }
         
-        navigationItem.rightBarButtonItems = [saveButton]
+        guard saveButton != nil else {
+            return
+        }
+        
+        navigationItem.rightBarButtonItems = fullScreenButton != nil ? [fullScreenButton,saveButton] : [saveButton]
     }
     
     func restoreAssist()
@@ -390,9 +505,13 @@ class TextViewController : UIViewController
         }
         
         if navigationItem.rightBarButtonItems != nil {
+//            if fullScreenButton != nil {
+//                navigationItem.rightBarButtonItems?.append(fullScreenButton)
+//            }
             navigationItem.rightBarButtonItems?.append(assistButton)
         } else {
-            navigationItem.rightBarButtonItem = assistButton
+            navigationItem.rightBarButtonItems = fullScreenButton != nil ? [fullScreenButton,saveButton,assistButton] : [saveButton,assistButton]
+//            navigationItem.rightBarButtonItem = assistButton
         }
     }
     
@@ -556,13 +675,13 @@ class TextViewController : UIViewController
             if isTracking != oldValue {
                 if !isTracking {
                     oldRange = nil
-                    syncButton.title = "Sync"
+                    syncButton?.title = "Sync"
                     stopTracking()
                     restoreAssist()
                 }
                 
                 if isTracking {
-                    syncButton.title = "Stop"
+                    syncButton?.title = "Stop"
                     startTracking()
                     removeAssist()
                 }
@@ -604,11 +723,13 @@ class TextViewController : UIViewController
         if isTracking {
             stopTracking()
         }
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            globals.topViewController = nil
+        })
         onCancel?()
     }
     
-    let operationQueue = OperationQueue()
+    var operationQueue : OperationQueue!
     
     func autoEdit()
     {
@@ -700,15 +821,91 @@ class TextViewController : UIViewController
     var activityIndicator : UIActivityIndicatorView!
     var activityBarButton : UIBarButtonItem!
 
+    func showFullScreen()
+    {
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? TextViewController {
+            dismiss(animated: false, completion: nil)
+            
+            navigationController.modalPresentationStyle = .overFullScreen
+//            navigationController.popoverPresentationController?.delegate = popover
+            
+            popover.navigationItem.title = self.navigationItem.title
+
+            popover.text = self.text
+            popover.changedText = self.changedText
+
+            popover.assist = self.assist
+            
+            popover.track = self.track
+            
+            // The full scren view will create its own trackingTime
+//            popover.trackingTimer = self.trackingTimer
+
+            popover.search = self.search
+            popover.searchText = self.searchText
+            popover.searchActive = self.searchActive
+            popover.searchInteractive = self.searchInteractive
+            
+            popover.transcript = self.transcript
+
+            popover.completion = self.completion
+            
+            popover.automatic = self.automatic
+            popover.automaticCompletion = self.automaticCompletion
+            popover.automaticInteractive = self.automaticInteractive
+
+            popover.confirmation = self.confirmation
+            popover.confirmationTitle = self.confirmationTitle
+            popover.confirmationMessage = self.confirmationMessage
+
+            // Can't copy this or the sync button may never become active because the following data structure is never setup in the full screen view
+//            popover.creatingFollowing = self.creatingFollowing
+            
+            popover.editingActive = self.editingActive
+            
+            popover.following = self.following
+            
+            popover.isTracking = self.isTracking
+            
+            popover.keyboardShowing = self.keyboardShowing
+            
+            popover.lastRange = self.lastRange
+            
+            popover.mask = self.mask
+            
+            popover.onCancel = self.onCancel
+            
+            popover.operationQueue = self.operationQueue
+            
+            popover.oldRange = self.oldRange
+            
+            popover.wasPlaying = self.wasPlaying
+            popover.wasTracking = self.wasTracking
+            
+            popover.shrink = self.shrink
+            
+            popover.wholeWordsOnly = self.wholeWordsOnly
+
+            popover.navigationController?.isNavigationBarHidden = false
+            
+            globals.splitViewController.present(navigationController, animated: true, completion: {
+                globals.topViewController = navigationController
+            })
+        }
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        
+        operationQueue = OperationQueue()
         
         NotificationCenter.default.addObserver(self, selector: #selector(TextViewController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(TextViewController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         
         syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.tracking))
-        syncButton.isEnabled = false
+        syncButton.isEnabled = following != nil
         
         cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
         
@@ -719,6 +916,15 @@ class TextViewController : UIViewController
         if !search {
             searchBar.removeFromSuperview()
             textViewToTop.constant = 14
+        } else {
+            // iOS 11 changed the height of search bars by 12 points!
+            if #available(iOS 11.0, *) {
+                textViewToTop.constant += 12
+            } else {
+                // Fallback on earlier versions
+            }
+            
+//            self.view.setNeedsLayout()
         }
         
         navigationItem.leftBarButtonItem = cancelButton
@@ -744,10 +950,36 @@ class TextViewController : UIViewController
             }
         }
 
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.showFullScreen))
+                fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+                
+                if navigationItem.rightBarButtonItems != nil {
+                    navigationItem.rightBarButtonItems?.append(fullScreenButton)
+                } else {
+                    navigationItem.rightBarButtonItem = fullScreenButton
+                }
+                
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                break
+                
+            default:
+                break
+            }
+        }
+
         saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done))
         assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))
         
-        navigationItem.rightBarButtonItem = saveButton
+        if navigationItem.rightBarButtonItems != nil {
+            navigationItem.rightBarButtonItems?.append(saveButton)
+        } else {
+            navigationItem.rightBarButtonItem = saveButton
+        }
         
         if assist {
             if navigationItem.rightBarButtonItems != nil {
@@ -814,6 +1046,8 @@ class TextViewController : UIViewController
 //                self.creatingFollowing = false
 //            })
         }
+        
+        updateBarButtons()
     }
     
     func words() -> [String:String]?
@@ -1363,7 +1597,13 @@ class TextViewController : UIViewController
     {
         super.viewDidAppear(animated)
         
-        textView.scrollRangeToVisible(NSMakeRange(0, 0))
+        if isTracking {
+            //            startTracking()
+            //            removeAssist()
+            oldRange = nil // Forces the range to be highlighted.
+        } else {
+            textView.scrollRangeToVisible(NSMakeRange(0, 0))
+        }
         
         if automatic {
             process(viewController: self, work: { () -> (Any?) in

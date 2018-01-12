@@ -387,7 +387,8 @@ enum Constants {
         static let SETTINGS_NAVCON          = "Settings NavCon"
         
         static let WEB_VIEW                 = "Web View"
-        
+        static let TEXT_VIEW                = "Text View"
+
         static let MEDIAITEM                = "MediaItem"
         static let MULTIPART_MEDIAITEM      = "MultiPartMediaItem"
         

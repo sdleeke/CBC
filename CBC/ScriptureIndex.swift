@@ -51,8 +51,9 @@ class ScriptureIndex {
     }
     
     lazy var html:CachedString? = {
-        [weak self] in
-        return CachedString(index:self?.index)
+        // unowned self MIGHT BE needed because we are capturing a function in self that is used by the object owned by self.
+        [unowned self] in
+        return CachedString(index:self.index)
     }()
     
     func index() -> String? {

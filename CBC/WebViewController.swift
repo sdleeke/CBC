@@ -166,7 +166,7 @@ extension WebViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return self.navigationItem.title ?? ""
+        return mediaItem?.text ?? (transcript?.mediaItem?.text ?? (self.navigationItem.title ?? ""))
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
@@ -300,7 +300,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            globals.splitViewController.present(navigationController, animated: true, completion: nil)
+            globals.splitViewController.present(navigationController, animated: true, completion: {
+                globals.topViewController = navigationController
+            })
         }
     }
 
@@ -464,7 +466,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                 
-                present(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion:  {
+                    globals.topViewController = navigationController
+                })
             }
             break
             
@@ -549,7 +553,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let transcript = transcript {
                     popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
                     
-                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+                    // If the transcript has been edited some of these words may not be found.
+//                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+//                        return "\(word) (\(count))"
+//                    }).sorted()
+
+                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
                     }).sorted()
                 }
@@ -950,6 +959,7 @@ class WebViewController: UIViewController
 
                         //                            print(characterAfter)
                         
+                        // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                                 skip = true
@@ -1183,7 +1193,9 @@ class WebViewController: UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            globals.topViewController = nil
+        })
     }
     
     var ptvc:PopoverTableViewController?
@@ -1323,7 +1335,6 @@ class WebViewController: UIViewController
         
         activityButton = UIBarButtonItem(customView: activityButtonIndicator)
         activityButton?.isEnabled = true
-        
 
         if let presentationStyle = navigationController?.modalPresentationStyle {
             guard   let actionButton = actionButton,

@@ -195,7 +195,7 @@ extension VoiceBase // Class Methods
                         // Should we alert the user to what is being loaded from VB or how many?
 
                         Thread.onMainThread() {
-                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
+                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false,detailedAlerts:false), repeats: true)
                         }
                     }
                 }, onError: { (json:[String : Any]?) -> (Void) in
@@ -934,6 +934,7 @@ class VoiceBase {
                         
 //                            print(characterAfter)
                         
+                        // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                                 skip = true
@@ -1125,7 +1126,7 @@ class VoiceBase {
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
                 Thread.onMainThread() {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
             } else {
@@ -1139,7 +1140,7 @@ class VoiceBase {
             if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
                 Thread.onMainThread() {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
             } else {
@@ -1764,7 +1765,7 @@ class VoiceBase {
         task.resume()
     }
     
-    func uploadUserInfo(alert:Bool) -> [String:Any]?
+    func uploadUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
         var userInfo = [String:Any]()
         
@@ -1779,9 +1780,9 @@ class VoiceBase {
                 
                 self.percentComplete = nil
                 
-                self.getTranscript(alert:false) {
-                    self.getTranscriptSRT(alert:false) {
-                        self.details(alert:false) {
+                self.getTranscript(alert:detailedAlerts) {
+                    self.getTranscriptSRT(alert:detailedAlerts) {
+                        self.details(alert:detailedAlerts) {
                             self.transcribing = false
                             self.completed = true
                         }
@@ -1876,7 +1877,7 @@ class VoiceBase {
                     
                     if self.resultsTimer == nil {
                         Thread.onMainThread() {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
+                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                         }
                     } else {
                         print("TIMER NOT NIL!")
@@ -2248,7 +2249,7 @@ class VoiceBase {
         })
     }
     
-    func alignUserInfo(alert:Bool) -> [String:Any]?
+    func alignUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
         var userInfo = [String:Any]()
         
@@ -2272,9 +2273,9 @@ class VoiceBase {
 //                self._transcriptSRT = nil
                 
                 // Get the new versions.
-                self.getTranscript(alert:alert) {
-                    self.getTranscriptSRT(alert:alert) {
-                        self.details(alert:alert) {
+                self.getTranscript(alert:detailedAlerts) {
+                    self.getTranscriptSRT(alert:detailedAlerts) {
+                        self.details(alert:detailedAlerts) {
                             self.aligning = false
                         }
                     }
@@ -2421,7 +2422,7 @@ class VoiceBase {
                         
                         if self.resultsTimer == nil {
                             Thread.onMainThread() {
-                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                             }
                         } else {
                             print("TIMER NOT NIL!")
@@ -2585,7 +2586,7 @@ class VoiceBase {
                                                     
                                                     if self.resultsTimer == nil {
                                                         Thread.onMainThread() {
-                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
+                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                         }
                                                     } else {
                                                         print("TIMER NOT NIL!")
@@ -3737,12 +3738,35 @@ class VoiceBase {
                         return
                     }
                     
-                    if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+                    if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
                         let textPopover = navigationController.viewControllers[0] as? TextViewController {
-                        navigationController.modalPresentationStyle = .overCurrentContext
+//                        navigationController.modalPresentationStyle = .overCurrentContext
                         
                         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                         
+                        if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
+                            let hClass = viewController.traitCollection.horizontalSizeClass
+                            
+                            if hClass == .compact {
+                                navigationController.modalPresentationStyle = .fullScreen
+                            } else {
+                                // I don't think this ever happens: collapsed and regular
+                                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                                
+                                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                            }
+                        } else {
+                            if viewController.splitViewController?.displayMode == .primaryHidden {
+                                navigationController.modalPresentationStyle = .fullScreen // Used to be .popover
+                            } else {
+                                navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+                            }
+                            
+                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                        }
+
                         textPopover.navigationController?.isNavigationBarHidden = false
                         
                         textPopover.navigationItem.title = self.mediaItem?.title // "Edit Text"
@@ -3771,7 +3795,9 @@ class VoiceBase {
                             self.transcript = text
                         }
                         
-                        viewController.present(navigationController, animated: true, completion: nil)
+                        viewController.present(navigationController, animated: true, completion: {
+                            globals.topViewController = navigationController
+                        })
                     } else {
                         print("ERROR")
                     }
@@ -4039,7 +4065,7 @@ class VoiceBase {
 //            print(srtTiming,string)
             return string.contains(srtTiming)
         }).first,
-            let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+            let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
             let textPopover = navigationController.viewControllers[0] as? TextViewController,
             let srtIndex = self.srtComponents?.index(of: first),
             let range = string.range(of:timing+"\n") {

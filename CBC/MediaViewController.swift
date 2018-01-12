@@ -117,48 +117,115 @@ extension MediaViewController : UIAdaptivePresentationControllerDelegate
     }
 }
 
-extension MediaViewController : PopoverTableViewControllerDelegate
+extension MediaViewController : UIActivityItemSource
 {
-    // MARK: PopoverTableViewControllerDelegate
-    
     func share()
     {
+//        guard let downloadURL = selectedMediaItem?.downloadURL else {
+//            return
+//        }
+//
+//        guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
+//            return
+//        }
+
+        let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
+        
+        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+        activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+        
+        let popoverPresentationController = activityViewController.popoverPresentationController
+        
+        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        present(activityViewController, animated: true, completion: nil)
+
+//        if FileManager.default.fileExists(atPath: fileSystemURL.path), let data = try? Data(contentsOf: fileSystemURL) {
+//            let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
+//
+//            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+//            activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+//
+//            let popoverPresentationController = activityViewController.popoverPresentationController
+//
+//            popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//
+//            present(activityViewController, animated: true, completion: nil)
+//        } else {
+//            process(viewController: self, work: {
+//                return try? Data(contentsOf: downloadURL)
+//            }, completion: { (data:Any?) in
+//                let activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,data], applicationActivities: nil)
+//
+//                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+//                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+//
+//                let popoverPresentationController = activityViewController.popoverPresentationController
+//
+//                popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+//
+//                self.present(activityViewController, animated: true, completion: nil)
+//            })
+//        }
+    }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        return ""
+    }
+    
+    static var cases : [UIActivityType] = [.message,.mail,.print,.openInIBooks]
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    {
+        if #available(iOS 11.0, *) {
+            MediaViewController.cases.append(.markupAsPDF)
+        }
+        
         guard let downloadURL = selectedMediaItem?.downloadURL else {
-            return
+            return nil
         }
         
         guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
-            return
+            return nil
         }
         
-        if FileManager.default.fileExists(atPath: fileSystemURL.path), let data = try? Data(contentsOf: fileSystemURL) {
-            let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,data], applicationActivities: nil)
-            
-            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-            activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-            
-            let popoverPresentationController = activityViewController.popoverPresentationController
-            
-            popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-            present(activityViewController, animated: true, completion: nil)
+        var data : Any?
+        
+        if FileManager.default.fileExists(atPath: fileSystemURL.path) {
+            data = try? Data(contentsOf: fileSystemURL)
         } else {
-            process(viewController: self, work: {
-                return try? Data(contentsOf: downloadURL)
-            }, completion: { (data:Any?) in
-                let activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,data], applicationActivities: nil)
-                
-                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-                
-                let popoverPresentationController = activityViewController.popoverPresentationController
-                
-                popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-                
-                self.present(activityViewController, animated: true, completion: nil)
-            })
+            data = try? Data(contentsOf: downloadURL)
+        }
+
+        if MediaViewController.cases.contains(activityType) {
+            return data
+        } else {
+            return selectedMediaItem?.text
         }
     }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return selectedMediaItem?.text ?? (self.navigationItem.title ?? "")
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        guard let activityType = activityType else {
+            return "public.plain-text"
+        }
+        
+        if MediaViewController.cases.contains(activityType) {
+            return "com.adobe.pdf" // public.composite-content and public.content didn't work
+        } else {
+            return "public.plain-text"
+        }
+    }
+}
+
+extension MediaViewController : PopoverTableViewControllerDelegate
+{
+    // MARK: PopoverTableViewControllerDelegate
     
     func actionMenu(action:String?,mediaItem:MediaItem?)
     {
@@ -654,6 +721,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
 
         case .selectingTime:
+            guard globals.mediaPlayer.currentTime != nil else {
+                break
+            }
+            
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
                 globals.mediaPlayer.isSeeking = true
                 globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
@@ -1765,6 +1836,11 @@ class MediaViewController: UIViewController // MediaController
             
         case .stopped:
             showState("stopped")
+//            if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
+//                playCurrentMediaItem(selectedMediaItem)
+//            } else {
+//                playNewMediaItem(selectedMediaItem)
+//            }
             break
             
         case .seekingForward:
