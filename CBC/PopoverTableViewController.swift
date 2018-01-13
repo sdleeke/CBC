@@ -10,6 +10,8 @@ import UIKit
 
 protocol PopoverTableViewControllerDelegate
 {
+    var popover : PopoverTableViewController? { get set }
+    
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
@@ -98,6 +100,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         if !searchActive {
             filteredSection.showIndex = unfilteredSection.showIndex
             filteredSection.showHeaders = unfilteredSection.showHeaders
+
+            filteredSection.indexSort = unfilteredSection.indexSort
             filteredSection.indexStringsTransform = unfilteredSection.indexStringsTransform
             filteredSection.indexHeadersTransform = unfilteredSection.indexHeadersTransform
         }
@@ -284,6 +288,8 @@ class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class PopoverTableViewController : UIViewController
 {
+    var popover : PopoverTableViewController?
+    
     var alertController : UIAlertController?
     
     var vc:UIViewController?
@@ -1444,6 +1450,7 @@ class PopoverTableViewController : UIViewController
                         }
                         
                         if !globals.mediaPlayer.isSeeking {
+                            self?.follow()
                             self?.activityIndicator.stopAnimating()
                             self?.activityIndicator?.isHidden = true
                         }
@@ -2049,6 +2056,15 @@ extension PopoverTableViewController : UITableViewDelegate
                 
                 popover.section.showIndex = true
                 popover.section.indexStringsTransform = century
+                popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                    guard let first = first else {
+                        return false
+                    }
+                    guard let second = second else {
+                        return true
+                    }
+                    return Int(first) < Int(second)
+                }
                 popover.section.indexHeadersTransform = { (string:String?)->(String?) in
                     return string
                 }

@@ -95,22 +95,86 @@ extension AboutViewController : UIPopoverPresentationControllerDelegate
     }
 }
 
-class AboutViewController: UIViewController
+extension AboutViewController : UIActivityItemSource
 {
+//    func share()
+//    {
+//        let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
+//        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church app",url], applicationActivities: nil)
+//
+//        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+//        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
+//
+//        let popoverPresentationController = activityViewController.popoverPresentationController
+//
+//        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//
+//        present(activityViewController, animated: true, completion: nil)
+//    }
+    
     func share()
     {
+//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+//        let margin:CGFloat = 0.5 * 72
+//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
         let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
-        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church app",url], applicationActivities: nil)
+        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
+
+//        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
-        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
+        // exclude some activity types from the list (optional)
         
-        let popoverPresentationController = activityViewController.popoverPresentationController
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
         
-        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
-        present(activityViewController, animated: true, completion: nil)
+        // present the view controller
+        Thread.onMainThread() {
+            self.present(activityViewController, animated: true, completion: nil)
+        }
     }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    static var cases : [UIActivityType] = [.mail,.message]
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    {
+        let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
+
+        if WebViewController.cases.contains(activityType) {
+            return url
+        } else {
+            return "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8"
+        }
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return "Countryside Bible Church Media App"
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        guard let activityType = activityType else {
+            return "public.plain-text"
+        }
+        
+        if WebViewController.cases.contains(activityType) {
+            return "public.text"
+        } else {
+            return "public.plain-text"
+        }
+    }
+}
+
+class AboutViewController: UIViewController
+{
+    var popover : PopoverTableViewController?
     
     override var canBecomeFirstResponder : Bool
     {

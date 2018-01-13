@@ -336,6 +336,106 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
+        case .selectingKeyword:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?.selectedMediaItem
+                popover.transcript = self.popover?.transcript
+                
+                //                popover.detail = true
+                //                popover.detailAction = srtAction
+                
+                popover.vc = self.popover
+                
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+                
+                popover.search = true
+                popover.searchInteractive = false
+                popover.searchActive = true
+                popover.searchText = string
+                popover.wholeWordsOnly = true
+                
+                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+                popover.stringsFunction = {
+                    guard let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents else {
+                        return nil
+                    }
+                    
+                    var strings = [String]()
+                    
+                    for time in times {
+                        for srtComponent in srtComponents {
+                            if srtComponent.contains(time+" --> ") { //
+                                var srtArray = srtComponent.components(separatedBy: "\n")
+                                
+                                if srtArray.count > 2  {
+                                    let count = srtArray.removeFirst()
+                                    let timeWindow = srtArray.removeFirst()
+                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                    
+                                    if  let start = times.first,
+                                        let end = times.last,
+                                        let range = srtComponent.range(of: timeWindow+"\n") {
+                                        let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let string = "\(count)\n\(start) to \(end)\n" + text
+                                        
+                                        //                                    for string in srtArray {
+                                        //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                        //                                    }
+                                        
+                                        strings.append(string)
+                                    }
+                                }
+                                break
+                            }
+                        }
+                    }
+                    
+                    return strings
+                }
+                
+                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+                
+                //                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
+                //                    ?.map({ (string:String) -> String in
+                //                    return secondsToHMS(seconds: string) ?? "ERROR"
+                //                })
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTime:
+            guard globals.mediaPlayer.currentTime != nil else {
+                break
+            }
+            
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
+                globals.mediaPlayer.isSeeking = true
+                globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
+                    globals.mediaPlayer.isSeeking = false
+                })
+            }
+            break
+            
         default:
             break
         }
@@ -367,6 +467,8 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
 
 class LexiconIndexViewController : UIViewController
 {
+    var popover : PopoverTableViewController?
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         super.viewWillTransition(to: size, with: coordinator)

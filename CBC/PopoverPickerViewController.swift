@@ -347,6 +347,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
 class PopoverPickerViewController : UIViewController
 {
+    var popover : PopoverTableViewController?
+    
     var delegate : PopoverPickerControllerDelegate?
     
     var stringTree : StringTree?

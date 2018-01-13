@@ -1052,13 +1052,13 @@ enum VideoLocation {
 
 class MediaViewController: UIViewController // MediaController
 {
+    var popover : PopoverTableViewController?
+    
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
     
     var searchText:String?
-    
-    var popover : PopoverTableViewController?
     
     var videoLocation : VideoLocation = .withDocuments
     

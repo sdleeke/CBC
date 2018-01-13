@@ -407,6 +407,8 @@ extension ScriptureViewController : UIPopoverPresentationControllerDelegate
 
 class ScriptureViewController : UIViewController
 {
+    var popover : PopoverTableViewController?
+    
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
 

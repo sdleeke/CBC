@@ -134,15 +134,16 @@ class Section
             stringsAction?(strings)
             
             guard let strings = strings else {
-                self.counts = nil
-                self.indexes = nil
-                self.headerStrings = nil
+                counts = nil
+                indexes = nil
+                headerStrings = nil
+                indexStrings = nil
                 return
             }
 
             guard showIndex else {
-                self.counts = [strings.count]
-                self.indexes = [0]
+                counts = [strings.count]
+                indexes = [0]
                 return
             }
             
@@ -291,6 +292,11 @@ class Section
         }
     }
     var headerStrings:[String]?
+//    {
+//        didSet {
+//            print("")
+//        }
+//    }
     
     var headers:[String]?
     {

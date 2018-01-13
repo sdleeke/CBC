@@ -846,6 +846,8 @@ extension WebViewController: UIPopoverPresentationControllerDelegate
 
 class WebViewController: UIViewController
 {
+    var popover : PopoverTableViewController?
+
     var search = false
     var searchText:String?
     

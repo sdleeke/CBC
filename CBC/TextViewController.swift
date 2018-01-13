@@ -621,8 +621,14 @@ class TextViewController : UIViewController
             
             index = max(index,0)
             
-            if let text = (following[index]["text"] as? String), let range = changedText?.range(of: text) {
-                if range != oldRange {
+            if let text = (following[index]["text"] as? String) {
+                var range = changedText?.range(of: text)
+                
+                if range == nil {
+                    range = changedText?.range(of: text.replacingOccurrences(of: ".  ", with: ". "))
+                }
+                
+                if range != oldRange, let range = range {
                     if  let before = changedText?.substring(to: range.lowerBound),
                         let text = changedText?.substring(with: range),
                         let after = changedText?.substring(from: range.upperBound) {
@@ -1606,8 +1612,10 @@ class TextViewController : UIViewController
         }
         
         if automatic {
+            let text = self.textView.attributedText.string
+            
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: self.automaticInteractive, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: self.automaticInteractive), completion: { (string:String) -> (Void) in
+                self.changeText(interactive: self.automaticInteractive, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: self.automaticInteractive), completion: { (string:String) -> (Void) in
                     self.changedText = string
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })

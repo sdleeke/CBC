@@ -2895,13 +2895,15 @@ func lastNameFromName(_ name:String?) -> String?
 
 func century(_ strings:String?) -> String?
 {
-    if let string = strings?.components(separatedBy: "\n").first {
-        if let number = Int(string) {
-            let value = number/100 * 100
-            return "\(value == 0 ? 1 : value)"
-        }
+    guard let string = strings?.components(separatedBy: "\n").first else {
+        return nil
     }
     
+    if let number = Int(string) {
+        let value = number/100 * 100
+        return "\(value == 0 ? 1 : value)"
+    }
+
     return nil
 }
 

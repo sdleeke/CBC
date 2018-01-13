@@ -230,6 +230,8 @@ extension CloudViewController : CloudLayoutOperationDelegate
 
 class CloudViewController: UIViewController
 {
+    var popover : PopoverTableViewController?
+    
     var ptvc:PopoverTableViewController!
     
     var wordLabels : [String:UILabel]?

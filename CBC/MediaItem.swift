@@ -3761,28 +3761,24 @@ class MediaItem : NSObject
             }
             
             // At most, only ONE of the following TWO will be added.
-            if let actions = self.audioTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
-                (viewController as? MediaTableViewController)?.popover = popover
-                (viewController as? MediaViewController)?.popover = popover
+            if  var vc = viewController as? PopoverTableViewControllerDelegate,
+                let actions = self.audioTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                vc.popover = popover
             }) {
-                let mvc = viewController as? MediaViewController
-
-                if (self == globals.mediaPlayer.mediaItem) && (self.playing == Playing.audio) && (self == mvc?.selectedMediaItem)  {
-                    if self.audioTranscript?.keywords != nil {
-                        alertActions.append(actions)
-                    }
+//                let mvc = viewController as? MediaViewController // self == mvc?.selectedMediaItem,
+                
+                if self == globals.mediaPlayer.mediaItem, self.playing == Playing.audio, self.audioTranscript?.keywords != nil {
+                    alertActions.append(actions)
                 }
             }
-            if let actions = self.videoTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
-                (viewController as? MediaTableViewController)?.popover = popover
-                (viewController as? MediaViewController)?.popover = popover
+            if  var vc = viewController as? PopoverTableViewControllerDelegate,
+                let actions = self.videoTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                vc.popover = popover
             }) {
-                let mvc = viewController as? MediaViewController
+//                let mvc = viewController as? MediaViewController // self == mvc?.selectedMediaItem, 
                 
-                if (self == globals.mediaPlayer.mediaItem) && (self.playing == Playing.video) && (self == mvc?.selectedMediaItem)  {
-                    if self.videoTranscript?.keywords != nil {
-                        alertActions.append(actions)
-                    }
+                if self == globals.mediaPlayer.mediaItem, self.playing == Playing.video, self.videoTranscript?.keywords != nil {
+                    alertActions.append(actions)
                 }
             }
             
