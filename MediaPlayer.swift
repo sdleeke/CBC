@@ -339,7 +339,7 @@ class MediaPlayer : NSObject {
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
                     }
                 }
-                
+
                 setupPlayingInfoCenter()
                 break
                 

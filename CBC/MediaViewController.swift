@@ -1805,6 +1805,16 @@ class MediaViewController: UIViewController // MediaController
             return
         }
 
+        // Without this there can be a play/pause loop that creates a slow mo miasma
+        // that is only broken by switching between audio and video
+        // or playing a different media item if there is only one media type.
+        if let timeElapsed = globals.mediaPlayer.stateTime?.timeElapsed {
+            if timeElapsed < 1.0 {
+                print("STOP HITTING THE PLAY PAUSE BUTTON SO QUICKLY!")
+                return
+            }
+        }
+        
         func showState(_ state:String)
         {
             print(state)
@@ -3010,8 +3020,8 @@ class MediaViewController: UIViewController // MediaController
             document.loadTimer = nil
         } else {
             if let wkWebView = document.wkWebView {
-                progressIndicator.isHidden = !wkWebView.isHidden
-                activityIndicator.isHidden = !wkWebView.isHidden
+                progressIndicator.isHidden = !(wkWebView.isHidden && document.showing(selectedMediaItem))
+                activityIndicator.isHidden = !(wkWebView.isHidden && document.showing(selectedMediaItem))
             }
             
             if !activityIndicator.isHidden {
