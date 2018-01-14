@@ -357,7 +357,7 @@ class PopoverTableViewController : UIViewController
                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
             
-            trackingTimer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
         } else {
             print("ERROR: trackingTimer not nil!")
         }
@@ -407,8 +407,11 @@ class PopoverTableViewController : UIViewController
                 
                 if  let start = timeWindow.components(separatedBy: " to ").first,
                     let end = timeWindow.components(separatedBy: " to ").last {
+                    let startSeconds = hmsToSeconds(string: start)
+                    let endSeconds = hmsToSeconds(string: end)
                     
-                    if (seconds >= hmsToSeconds(string: start)) && (seconds <= hmsToSeconds(string: end))  {
+                    if (seconds > startSeconds) && (seconds < endSeconds)  {
+                        print(startSeconds!,seconds,endSeconds!)
                         timeWindowFound = true
                         break
                     } else {
@@ -1420,22 +1423,30 @@ class PopoverTableViewController : UIViewController
             if purpose == .selectingTime {
                 if globals.mediaPlayer.isSeeking {
                     globals.mediaPlayer.seekingCompletion = {
-                        Thread.onMainThread {
-                            self.follow()
-                            
-                            self.activityIndicator.stopAnimating()
-                            self.activityIndicator?.isHidden = true
+                        //                        Thread.sleep(forTimeInterval: 0.4)
+                        if self.section.strings != nil {
+                            Thread.onMainThread {
+                                if let indexPath = self.section.indexPath(from: self.stringSelected) {
+                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+//                                    self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                } else {
+                                    self.follow()
+                                }
+     
+                                self.activityIndicator.stopAnimating()
+                                self.activityIndicator.isHidden = true
+                            }
                         }
                     }
                 }
             }
             
+            Thread.onMainThread() {
+                self.activityIndicator.startAnimating()
+                self.activityIndicator.isHidden = false
+            }
+            
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMainThread() {
-                    self?.activityIndicator.startAnimating()
-                    self?.activityIndicator?.isHidden = false
-                }
-                
                 self?.section.strings = self?.stringsFunction?()
                 
                 if self?.section.strings != nil {
@@ -1443,16 +1454,22 @@ class PopoverTableViewController : UIViewController
                         self?.tableView.reloadData()
                         
                         self?.setPreferredContentSize()
-                        
-                        if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
-                            self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-//                            self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                        }
-                        
-                        if !globals.mediaPlayer.isSeeking {
-                            self?.follow()
-                            self?.activityIndicator.stopAnimating()
-                            self?.activityIndicator?.isHidden = true
+
+                        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                            Thread.onMainThread() {
+                                
+                                if !globals.mediaPlayer.isSeeking {
+                                    if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
+                                        self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+//                                        self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                    } else {
+                                        self?.follow()
+                                    }
+                                    
+                                    self?.activityIndicator.stopAnimating()
+                                    self?.activityIndicator.isHidden = true
+                                }
+                            }
                         }
                     }
                 }
@@ -2000,9 +2017,10 @@ extension PopoverTableViewController : UITableViewDelegate
             
             activityIndicator.startAnimating()
             globals.mediaPlayer.seekingCompletion = {
+                // This stops jumping to the prior row
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
-                    self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                    self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
                 }
             }
         }
@@ -2079,7 +2097,7 @@ extension PopoverTableViewController : UITableViewDelegate
                         if srtArray.count > 2  {
                             let count = srtArray.removeFirst()
                             let timeWindow = srtArray.removeFirst()
-                            let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                            let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
                             
                             if  let start = times.first,
                                 let end = times.last,

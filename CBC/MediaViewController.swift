@@ -628,7 +628,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                 if srtArray.count > 2  {
                                     let count = srtArray.removeFirst()
                                     let timeWindow = srtArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                    let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
                                     
                                     if  let start = times.first,
                                         let end = times.last,
@@ -726,9 +726,8 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
-                globals.mediaPlayer.isSeeking = true
-                globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
-                    globals.mediaPlayer.isSeeking = false
+                globals.mediaPlayer.seek(to: seconds)
+                
                     // post a notification rather than doing this
 //                    if finished, let ptvc = self.popover?.navigationController?.visibleViewController as? PopoverTableViewController {
 //                        if ptvc.track, !ptvc.isTracking {
@@ -742,7 +741,6 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 //                            }
 //                        }
 //                    }
-                })
             }
             break
             

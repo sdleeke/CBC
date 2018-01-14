@@ -911,7 +911,7 @@ enum Constants {
     
     static let FONT_SIZE = 12
     
-    static let CMTime_Resolution = Int32(100)
+    static let CMTime_Resolution = Int32(10)
     
     static let APP_ID = "org.countrysidebible.CBC"
     

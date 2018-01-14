@@ -119,9 +119,24 @@ class MediaPlayer : NSObject {
     var isSeeking = false
     {
         didSet {
-            if isSeeking != oldValue, !isSeeking {
-                seekingCompletion?()
-                seekingCompletion = nil
+            if isSeeking != oldValue, !isSeeking, let state = state {
+                switch state {
+                case .playing:
+                    if let startTime = currentTime {
+                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                            repeat {
+                                Thread.sleep(forTimeInterval: 0.1)
+                            } while self?.currentTime <= startTime
+                            
+                            self?.seekingCompletion?()
+                            self?.seekingCompletion = nil
+                        }
+                    }
+
+                default:
+                    self.seekingCompletion?()
+                    self.seekingCompletion = nil
+                }
             }
         }
     }
@@ -954,8 +969,10 @@ class MediaPlayer : NSObject {
     
     func seek(to: Double?)
     {
+        isSeeking = true
         seek(to: to,completion:{ (finished:Bool) in
             if finished {
+                self.isSeeking = false
                 Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
                 }

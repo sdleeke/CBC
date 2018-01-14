@@ -3854,26 +3854,38 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
 
 func hmsToSeconds(string:String?) -> Double?
 {
-    guard var string = string?.replacingOccurrences(of: ",", with: ".") else {
+    // WRONG - after , comes milliseconds
+//    guard var string = string?.replacingOccurrences(of: ",", with: ".") else {
+//        return nil
+//    }
+    
+    guard var str = string else {
         return nil
+    }
+    
+    var milliseconds : Double = 0
+    
+    if let range = str.range(of: ","), let ms = Int(str.substring(from: range.upperBound)) {
+        milliseconds = Double(ms)/1000
+        str = str.substring(to: range.lowerBound)
     }
     
     var numbers = [Double]()
     
     repeat {
-        if let index = string.range(of: ":") {
-            let numberString = string.substring(to: index.lowerBound)
+        if let index = str.range(of: ":") {
+            let numberString = str.substring(to: index.lowerBound)
             
             if let number = Double(numberString) {
                 numbers.append(number)
             }
 
-            string = string.substring(from: index.upperBound)
+            str = str.substring(from: index.upperBound)
         }
-    } while string.range(of: ":") != nil
+    } while str.range(of: ":") != nil
 
-    if !string.isEmpty {
-        if let number = Double(string) {
+    if !str.isEmpty {
+        if let number = Double(str) {
             numbers.append(number)
         }
     }
@@ -3885,6 +3897,8 @@ func hmsToSeconds(string:String?) -> Double?
         seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
         counter += 1
     }
+    
+    seconds += milliseconds
     
     return seconds
 }

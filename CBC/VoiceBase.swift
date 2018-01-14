@@ -3685,7 +3685,7 @@ class VoiceBase {
                                     if srtArray.count > 2  {
                                         let count = srtArray.removeFirst()
                                         let timeWindow = srtArray.removeFirst()
-                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                        let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
                                         
                                         if  let start = times.first,
                                             let end = times.last,
@@ -4059,7 +4059,7 @@ class VoiceBase {
         var srtArray = string.components(separatedBy: "\n")
         let count = srtArray.removeFirst() // Count
         let timing = srtArray.removeFirst() // Timing
-        let srtTiming = timing.replacingOccurrences(of: ".", with: ",").replacingOccurrences(of: "to", with: "-->") // Timing
+        let srtTiming = timing.replacingOccurrences(of: "to", with: "-->") // Timing // replacingOccurrences(of: ".", with: ",").
         
         if  let first = srtComponents?.filter({ (string:String) -> Bool in
 //            print(srtTiming,string)
@@ -4262,7 +4262,7 @@ class VoiceBase {
                             if srtArray.count > 2  {
                                 let count = srtArray.removeFirst()
                                 let timeWindow = srtArray.removeFirst()
-                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
                                 
                                 if  let start = times.first,
                                     let end = times.last,

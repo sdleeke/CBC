@@ -1905,7 +1905,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 if srtArray.count > 2  {
                                     let count = srtArray.removeFirst()
                                     let timeWindow = srtArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                    let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
                                     
                                     if  let start = times.first,
                                         let end = times.last,
@@ -1945,10 +1945,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
-                globals.mediaPlayer.isSeeking = true
-                globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
-                    globals.mediaPlayer.isSeeking = false
-                })
+                print(time,seconds)
+                globals.mediaPlayer.seek(to: seconds)
             }
             break
             
