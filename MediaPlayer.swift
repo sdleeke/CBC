@@ -121,17 +121,17 @@ class MediaPlayer : NSObject {
         didSet {
             if isSeeking != oldValue, !isSeeking, let state = state {
                 switch state {
-                case .playing:
-                    if let startTime = currentTime {
-                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                            repeat {
-                                Thread.sleep(forTimeInterval: 0.1)
-                            } while self?.currentTime <= startTime
-                            
-                            self?.seekingCompletion?()
-                            self?.seekingCompletion = nil
-                        }
-                    }
+//                case .playing:
+//                    if let startTime = currentTime {
+//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                            repeat {
+//                                Thread.sleep(forTimeInterval: 0.1)
+//                            } while self?.currentTime <= startTime
+//                            
+//                            self?.seekingCompletion?()
+//                            self?.seekingCompletion = nil
+//                        }
+//                    }
 
                 default:
                     self.seekingCompletion?()
@@ -980,6 +980,15 @@ class MediaPlayer : NSObject {
         })
     }
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "SEEK")
+        operationQueue.qualityOfService = .userInteractive
+        return operationQueue
+    }()
+
+    var lastSeek:Double?
+    
     func seek(to: Double?,completion:((Bool)->(Void))?)
     {
         guard let to = to else {
@@ -1011,13 +1020,90 @@ class MediaPlayer : NSObject {
                 }
                 
                 mediaItem?.atEnd = seek >= length
-                
-                if let completion = completion {
-                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-                                 completionHandler: completion)
-                } else {
-                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+
+                operationQueue.cancelAllOperations()
+                operationQueue.waitUntilAllOperationsAreFinished()
+
+                operationQueue.addOperation {
+                    self.player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+                                      toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+                                      completionHandler: { (finished:Bool) in
+                                        if finished {
+                                            self.lastSeek = to
+                                            completion?(finished)
+
+                                            // There is simply no avoiding the fact that currentTime may not be what you try to set it to, often less.
+                                            
+//                                            if let currentTime = self.currentTime, currentTime.seconds < to {
+//                                                print(currentTime.seconds,to)
+//                                                let newTime = CMTimeMakeWithSeconds(currentTime.seconds + 0.1,Int32(10))
+//                                                self.player?.seek(to: newTime, toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+//                                                                  toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+//                                                                  completionHandler: { (finished:Bool) in
+//                                                                    if finished {
+//                                                                        completion?(finished)
+//                                                                    }
+//                                                })
+//                                            } else {
+//                                                completion?(finished)
+//                                            }
+
+//                                            var counter:Double = 1
+//                                            while let currentTime = self.currentTime, currentTime.seconds < to {
+//                                                let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
+//                                                print(newTime.seconds)
+//                                                self.player?.seek(to: newTime)
+//                                                Thread.sleep(forTimeInterval: 0.1)
+//                                                counter += 1
+//                                            }
+//                                            completion?(finished)
+                                        }
+                    })
                 }
+
+                
+//                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+//                             completionHandler: { (finished:Bool) in
+//                                if finished {
+//                                    self.operationQueue.addOperation {
+//                                        var counter:Double = 1
+//                                        while let currentTime = self.currentTime, currentTime.seconds < to {
+//                                            let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
+//                                            print(newTime.seconds)
+//                                            self.player?.seek(to: newTime)
+//                                            Thread.sleep(forTimeInterval: 0.1)
+//                                            counter += 1
+//                                        }
+//                                        completion?(finished)
+//                                    }
+//
+////                                    DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+////                                        var counter:Double = 1
+////                                        while let currentTime = self?.currentTime, currentTime.seconds < to {
+////                                            let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
+////                                            print(newTime.seconds)
+////                                            self?.player?.seek(to: newTime)
+////                                            Thread.sleep(forTimeInterval: 0.1)
+////                                            counter += 1
+////                                        }
+////                                        completion?(finished)
+////                                    }
+//                                }
+//                })
+
+//                if let completion = completion {
+//                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+//                                 completionHandler: { (finished:Bool) in
+//                                    if finished {
+//                                        while let currentTime = self.currentTime, currentTime < CMTimeMakeWithSeconds(to,Constants.CMTime_Resolution) {
+//                                            self.player?.seek(to: currentTime + CMTimeMakeWithSeconds(0.001,Constants.CMTime_Resolution))
+//                                        }
+//                                        completion(finished)
+//                                    }
+//                    })
+//                } else {
+//                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+//                }
                 
                 mediaItem?.currentTime = seek.description
                 stateTime?.startTime = seek.description

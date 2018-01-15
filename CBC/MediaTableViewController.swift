@@ -1888,6 +1888,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.searchText = string
                 popover.wholeWordsOnly = true
                 
+                popover.section.showIndex = true
+                popover.section.indexStringsTransform = century
+                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                    return string
+                }
+                
                 // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
                 // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
                 popover.stringsFunction = {

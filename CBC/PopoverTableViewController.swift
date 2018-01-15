@@ -313,10 +313,12 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        globals.mediaPlayer.pause()
+//        globals.mediaPlayer.pause()
         
         trackingTimer?.invalidate()
         trackingTimer = nil
+        
+        syncButton.title = "Sync"
     }
     
     func startTracking()
@@ -325,32 +327,32 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        if let state = globals.mediaPlayer.state {
-            switch state {
-            case .none:
-                globals.mediaPlayer.play()
-                break
-                
-            case .paused:
-                globals.mediaPlayer.play()
-                break
-                
-            case .playing:
-                break
-                
-            case .seekingForward:
-                globals.mediaPlayer.play()
-                break
-                
-            case .seekingBackward:
-                globals.mediaPlayer.play()
-                break
-                
-            case .stopped:
+//        if let state = globals.mediaPlayer.state {
+//            switch state {
+//            case .none:
 //                globals.mediaPlayer.play()
-                break
-            }
-        }
+//                break
+//
+//            case .paused:
+//                globals.mediaPlayer.play()
+//                break
+//
+//            case .playing:
+//                break
+//
+//            case .seekingForward:
+//                globals.mediaPlayer.play()
+//                break
+//
+//            case .seekingBackward:
+//                globals.mediaPlayer.play()
+//                break
+//
+//            case .stopped:
+////                globals.mediaPlayer.play()
+//                break
+//            }
+//        }
         
         if trackingTimer == nil {
             if let indexPath = tableView.indexPathForSelectedRow {
@@ -361,6 +363,8 @@ class PopoverTableViewController : UIViewController
         } else {
             print("ERROR: trackingTimer not nil!")
         }
+
+        syncButton.title = "Stop Sync"
     }
     
     var lastFollow : IndexPath?
@@ -384,7 +388,15 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        guard let seconds = globals.mediaPlayer.currentTime?.seconds else {
+        var time:Double?
+        
+        if isTracking {
+            time = globals.mediaPlayer.currentTime?.seconds
+        } else {
+            time = globals.mediaPlayer.lastSeek
+        }
+        
+        guard let seconds = time else {
             return
         }
         
@@ -406,16 +418,28 @@ class PopoverTableViewController : UIViewController
                 srtArray.remove(at: 0)
                 
                 if  let start = timeWindow.components(separatedBy: " to ").first,
-                    let end = timeWindow.components(separatedBy: " to ").last {
-                    let startSeconds = hmsToSeconds(string: start)
-                    let endSeconds = hmsToSeconds(string: end)
-                    
-                    if (seconds > startSeconds) && (seconds < endSeconds)  {
-                        print(startSeconds!,seconds,endSeconds!)
-                        timeWindowFound = true
-                        break
+                    let end = timeWindow.components(separatedBy: " to ").last,
+                    let startSeconds = hmsToSeconds(string: start),
+                    let endSeconds = hmsToSeconds(string: end) {
+//                    print(startSeconds,seconds,endSeconds)
+
+                    if isTracking {
+                        // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within 100ms.
+                        // This is an heuristic, empirical solution.  It may not work in all cases.
+                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.1)) {
+//                            print("isTracking time window found")
+                            timeWindowFound = true
+                            break
+                        } else {
+//                            print("Tail end of time window")
+                        }
                     } else {
-                        if (seconds < hmsToSeconds(string: start))  {
+                        if (seconds >= startSeconds) && (seconds <= endSeconds) {
+//                            print("NOT isTracking time window found")
+                            timeWindowFound = true
+                            break
+                        } else if (seconds < startSeconds) {
+//                            print("Next time window found")
                             timeWindowFound = true
                             break
                         }
@@ -529,13 +553,13 @@ class PopoverTableViewController : UIViewController
         didSet {
             if isTracking != oldValue {
                 if !isTracking {
-                    syncButton.title = "Sync"
+//                    syncButton.title = "Sync"
                     stopTracking()
                     restoreAssist()
                 }
                 
                 if isTracking {
-                    syncButton.title = "Stop"
+//                    syncButton.title = "Stop"
                     startTracking()
                     removeAssist()
                 }
@@ -547,6 +571,7 @@ class PopoverTableViewController : UIViewController
     
     var doneButton : UIBarButtonItem!
     var syncButton : UIBarButtonItem!
+    var playPauseButton : UIBarButtonItem!
     var assistButton : UIBarButtonItem!
         
     var search          = false
@@ -876,9 +901,9 @@ class PopoverTableViewController : UIViewController
     
     func done()
     {
-        if self.isTracking {
-            self.stopTracking()
-        }
+//        if self.isTracking {
+//            self.stopTracking()
+//        }
         dismiss(animated: true, completion: nil)
     }
     
@@ -929,15 +954,66 @@ class PopoverTableViewController : UIViewController
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
+    func actions()
+    {
+        guard track else {
+            return
+        }
+        
+        var actions = [AlertAction]()
+        
+        if syncButton.isEnabled, var title = syncButton.title {
+            if title == "Stop" {
+                title = "Stop Sync"
+            }
+            
+            actions.append(AlertAction(title: title, style: .default, handler: {
+                self.tracking()
+            }))
+        }
+        
+        if playPauseButton.isEnabled, let title = playPauseButton.title {
+            actions.append(AlertAction(title: title, style: .default, handler: {
+                self.playPause()
+            }))
+        }
+        
+        if assistButton.isEnabled, let title = assistButton.title {
+            actions.append(AlertAction(title: title, style: .default, handler: {
+                self.autoEdit()
+            }))
+        }
+
+        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+        
+        alert(viewController:self,title:"Actions",message:nil,actions:actions)
+    }
+    
+    func playPause()
+    {
+        guard let title = playPauseButton.title else {
+            return
+        }
+        
+        switch title {
+        case "Play":
+            globals.mediaPlayer.play()
+            playPauseButton.title = "Pause"
+
+        case "Pause":
+            globals.mediaPlayer.pause()
+            playPauseButton.title = "Play"
+            
+        default:
+            break
+        }
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
     
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done))
-        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit))
-        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-
-        syncButton.isEnabled = globals.mediaPlayer.mediaItem != nil
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -953,22 +1029,76 @@ class PopoverTableViewController : UIViewController
             }
         }
 
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit))
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.playPause))
+        
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+
+        syncButton.isEnabled = globals.mediaPlayer.mediaItem != nil
+
         if track {
-            if navigationItem.rightBarButtonItems != nil {
-                navigationItem.rightBarButtonItems?.append(syncButton)
+//            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.actions))
+//
+//            if navigationItem.rightBarButtonItems != nil {
+//                navigationItem.rightBarButtonItems?.append(actionsButton)
+//            } else {
+//                navigationItem.rightBarButtonItem = actionsButton
+//            }
+            
+            if assist && (transcript != nil) && (purpose == .selectingTime) {
+                if toolbarItems != nil {
+                    toolbarItems?.append(spaceButton)
+                    toolbarItems?.append(assistButton)
+                } else {
+                    toolbarItems = [spaceButton,assistButton]
+                }
+            }
+            if toolbarItems != nil {
+                toolbarItems?.append(spaceButton)
+                toolbarItems?.append(syncButton)
             } else {
-                navigationItem.rightBarButtonItem = syncButton
+                toolbarItems = [spaceButton,syncButton]
+            }
+            if toolbarItems != nil {
+                toolbarItems?.append(spaceButton)
+                toolbarItems?.append(playPauseButton)
+            } else {
+                toolbarItems = [spaceButton,playPauseButton]
+            }
+
+//            if assist && (transcript != nil) && (purpose == .selectingTime) {
+//                if navigationItem.rightBarButtonItems != nil {
+//                    navigationItem.rightBarButtonItems?.append(assistButton)
+//                } else {
+//                    navigationItem.rightBarButtonItem = assistButton
+//                }
+//            }
+//            if navigationItem.rightBarButtonItems != nil {
+//                navigationItem.rightBarButtonItems?.append(syncButton)
+//            } else {
+//                navigationItem.rightBarButtonItem = syncButton
+//            }
+//            if navigationItem.rightBarButtonItems != nil {
+//                navigationItem.rightBarButtonItems?.append(playPauseButton)
+//            } else {
+//                navigationItem.rightBarButtonItem = playPauseButton
+//            }
+        } else {
+            if assist && (transcript != nil) && (purpose == .selectingTime) {
+                if toolbarItems != nil {
+                    toolbarItems?.append(spaceButton)
+                    toolbarItems?.append(assistButton)
+                } else {
+                    toolbarItems = [spaceButton,assistButton]
+                }
             }
         }
-        
-        if assist && (transcript != nil) && (purpose == .selectingTime) {
-            if navigationItem.rightBarButtonItems != nil {
-                navigationItem.rightBarButtonItems?.append(assistButton)
-            } else {
-                navigationItem.rightBarButtonItem = assistButton
-            }
+
+        if toolbarItems?.count > 0 {
+            toolbarItems?.append(spaceButton)
         }
-        
+
         searchBar.autocapitalizationType = .none
 
         if refresh != nil {
@@ -1333,6 +1463,19 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
+        self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+
+        if let state = globals.mediaPlayer.state {
+            switch state {
+            case .playing:
+                playPauseButton.title = "Pause"
+                
+            default:
+                playPauseButton.title = "Play"
+                break
+            }
+        }
+        
         if tableViewTopConstraint.isActive {
             var searchBarHeight:CGFloat = 0.0
 
@@ -1417,8 +1560,6 @@ class PopoverTableViewController : UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
-        navigationController?.isToolbarHidden = true
-        
         if (stringsFunction != nil) && (self.section.strings == nil) {
             if purpose == .selectingTime {
                 if globals.mediaPlayer.isSeeking {
@@ -1433,6 +1574,8 @@ class PopoverTableViewController : UIViewController
                                     self.follow()
                                 }
      
+                                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+
                                 self.activityIndicator.stopAnimating()
                                 self.activityIndicator.isHidden = true
                             }
@@ -1446,7 +1589,7 @@ class PopoverTableViewController : UIViewController
                 self.activityIndicator.isHidden = false
             }
             
-            DispatchQueue.global(qos: .background).async { [weak self] in
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
                 
                 if self?.section.strings != nil {
@@ -1465,6 +1608,8 @@ class PopoverTableViewController : UIViewController
                                     } else {
                                         self?.follow()
                                     }
+                                    
+                                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
                                     
                                     self?.activityIndicator.stopAnimating()
                                     self?.activityIndicator.isHidden = true
@@ -2011,18 +2156,44 @@ extension PopoverTableViewController : UITableViewDelegate
             return
         }
         
-        if trackingTimer != nil {
-            trackingTimer?.invalidate()
-            trackingTimer = nil
-            
+        if purpose == .selectingTime {
             activityIndicator.startAnimating()
+
+            if trackingTimer != nil {
+                trackingTimer?.invalidate()
+                trackingTimer = nil
+            }
+            
             globals.mediaPlayer.seekingCompletion = {
-                // This stops jumping to the prior row
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
-                    self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                    if self.isTracking {
+                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                    }
                 }
             }
+            
+//            if trackingTimer != nil {
+//                trackingTimer?.invalidate()
+//                trackingTimer = nil
+//
+//                activityIndicator.startAnimating()
+//                globals.mediaPlayer.seekingCompletion = {
+//                    // This stops jumping to the prior row
+//                    Thread.onMainThread {
+//                        self.activityIndicator.stopAnimating()
+//                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+//                    }
+//                }
+//            } else {
+//                activityIndicator.startAnimating()
+//                globals.mediaPlayer.seekingCompletion = {
+//                    // This stops jumping to the prior row
+//                    Thread.onMainThread {
+//                        self.activityIndicator.stopAnimating()
+//                    }
+//                }
+//            }
         }
         
         if searchActive {

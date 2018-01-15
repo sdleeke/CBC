@@ -3926,7 +3926,10 @@ func secondsToHMS(seconds:String?) -> String?
         hms = "00:" //Constants.EMPTY_STRING
     }
     
-    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%.3f",fraction).trimmingCharacters(in: CharacterSet(charactersIn: "0.")))"
+    // \(String(format: "%.3f",fraction)
+    // .trimmingCharacters(in: CharacterSet(charactersIn: "0."))
+    
+    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)),\(String(format: "%d",Int(fraction * 1000)))"
     
     return hms
 }

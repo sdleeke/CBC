@@ -1448,7 +1448,7 @@ class VoiceBase {
                 }
                 return false
             }).map({ (key: String, value: [String : Any]) -> String in
-                return key
+                return key.uppercased()
             }) {
                 return keywords
             } else {
@@ -2913,7 +2913,7 @@ class VoiceBase {
                 if let times = srtArrayTimes(srtArray: srtArray), let startTime = times.first {
                     if let tokens = tokensFromString(srtArrayText(srtArray: srtArray)) {
                         for token in tokens {
-                            let key = token.lowercased()
+                            let key = token //.lowercased()
                             
                             if tokenTimes[key] == nil {
                                 tokenTimes[key] = [startTime]
@@ -4195,7 +4195,7 @@ class VoiceBase {
 
                     popover.stringsFunction = { (Void) -> [String]? in
                         return self.srtTokens?.map({ (string:String) -> String in
-                            return string.lowercased()
+                            return string //.lowercased()
                         }).sorted()
                     }
 
@@ -4327,7 +4327,7 @@ class VoiceBase {
                         return self.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }).map({ (dict:[String:Any]) -> String in
-                            //                            print("srtComponent: ",srtComponent)
+//                            print("srtComponent: ",dict)
                             
                             if  let position = dict["p"] as? Int,
                                 let start = dict["s"] as? Int,
