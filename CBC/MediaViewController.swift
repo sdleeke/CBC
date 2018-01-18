@@ -590,7 +590,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.transcript = self.popover?.transcript
                 
 //                popover.detail = true
-//                popover.detailAction = srtAction
+//                popover.detailAction = transcriptSegmentAction
                 
                 popover.vc = self.popover
                 
@@ -620,30 +620,30 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
                 // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
                 popover.stringsFunction = {
-                    guard let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents else {
+                    guard let times = popover.transcript?.transcriptSegmentTokenTimes(token: string), let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else {
                         return nil
                     }
                     
                     var strings = [String]()
                     
                     for time in times {
-                        for srtComponent in srtComponents {
-                            if srtComponent.contains(time+" --> ") { //
-                                var srtArray = srtComponent.components(separatedBy: "\n")
+                        for transcriptSegmentComponent in transcriptSegmentComponents {
+                            if transcriptSegmentComponent.contains(time+" --> ") { //
+                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                                 
-                                if srtArray.count > 2  {
-                                    let count = srtArray.removeFirst()
-                                    let timeWindow = srtArray.removeFirst()
-                                    let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
+                                if transcriptSegmentArray.count > 2  {
+                                    let count = transcriptSegmentArray.removeFirst()
+                                    let timeWindow = transcriptSegmentArray.removeFirst()
+                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
                                     
                                     if  let start = times.first,
                                         let end = times.last,
-                                        let range = srtComponent.range(of: timeWindow+"\n") {
-                                        let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
-                                        //                                    for string in srtArray {
-                                        //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                        //                                    for string in transcriptSegmentArray {
+                                        //                                        text = text + string + (transcriptSegmentArray.index(of: string) == (transcriptSegmentArray.count - 1) ? "" : " ")
                                         //                                    }
                                         
                                         strings.append(string)
@@ -659,7 +659,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.editActionsAtIndexPath = popover.transcript?.rowActions
 
-//                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
+//                    popover.section.strings = strings // popover.transcript?.transcriptSegmentTokenTimes(token: string)
                 //                    ?.map({ (string:String) -> String in
                 //                    return secondsToHMS(seconds: string) ?? "ERROR"
                 //                })
@@ -3114,19 +3114,21 @@ class MediaViewController: UIViewController // MediaController
         if #available(iOS 9.0, *) {
             if globals.cacheDownloads, let download = document.download {
                 if download.state != .downloaded {
-                    if document.showing(selectedMediaItem) {
-                        self.activityIndicator.isHidden = false
-                        self.activityIndicator.startAnimating()
+                    if globals.reachability.isReachable {
+                        if document.showing(selectedMediaItem) {
+                            self.activityIndicator.isHidden = false
+                            self.activityIndicator.startAnimating()
+                            
+                            self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+                            self.progressIndicator.isHidden = false
+                        }
                         
-                        self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                        self.progressIndicator.isHidden = false
+                        Thread.onMainThread(block: {
+                            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document.download)
+                        })
+                        
+                        download.download()
                     }
-
-                    Thread.onMainThread(block: {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document.download)
-                    })
-
-                    download.download()
                 } else {
                     if let fileSystemURL = download.fileSystemURL {
                         if document.showing(self.selectedMediaItem) {
@@ -3324,22 +3326,37 @@ class MediaViewController: UIViewController // MediaController
         
         if var showing = selectedMediaItem.showing {
             // Account for the use of the cache.
-            if !globals.cacheDownloads && (globals.reachability.currentReachabilityStatus == .notReachable) {
-                switch showing {
-                case Showing.slides:
-                    alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
-                    break
+            
+            if !globals.reachability.isReachable {
+                func noShow()
+                {
+                    switch showing {
+                    case Showing.slides:
+                        alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
+                        break
+                        
+                    case Showing.notes:
+                        alert(viewController: self, title: "Transcript Not Available", message: nil, completion: nil)
+                        break
+                        
+                    default:
+                        break
+                    }
                     
-                case Showing.notes:
-                    alert(viewController: self, title: "Transcript Not Available", message: nil, completion: nil)
-                    break
-                    
-                default:
-                    break
+                    showing = Showing.none
                 }
                 
-                showing = Showing.none
+                if globals.cacheDownloads {
+                    if let isDownloaded = document?.download?.isDownloaded, !isDownloaded {
+                        noShow()
+                    }
+                } else {
+                    noShow()
+                }
             }
+            
+//            if !globals.cacheDownloads, !globals.reachability.isReachable { // currentReachabilityStatus == .notReachable
+//            }
             
             switch showing {
             case Showing.notes:
@@ -4879,7 +4896,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        if globals.reachability.currentReachabilityStatus == .notReachable {
+        if !globals.reachability.isReachable { // currentReachabilityStatus == .notReachable
             var doNotPlay = true
             
             if (mediaItem.playing == Playing.audio) {

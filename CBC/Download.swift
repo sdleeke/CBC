@@ -250,11 +250,19 @@ class Download : NSObject
             return
         }
         
+        guard let purpose = purpose else {
+            return
+        }
+        
+        guard let id = mediaItem?.id else {
+            return
+        }
+        
         state = .downloading
 
         let downloadRequest = URLRequest(url: downloadURL)
         
-        let configuration = URLSessionConfiguration.ephemeral
+        let configuration = URLSessionConfiguration.default // background(withIdentifier: id + purpose)
         
         // This allows the downloading to continue even if the app goes into the background or terminates.
         //            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)

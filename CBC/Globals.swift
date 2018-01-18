@@ -173,6 +173,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func checkVoiceBaseAvailability()
     {
+        guard globals.reachability.isReachable else {
+            self.isVoiceBaseAvailable = false
+            return
+        }
+        
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
             self.isVoiceBaseAvailable = true
         }, onError: { (json:[String : Any]?) -> (Void) in

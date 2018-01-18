@@ -367,16 +367,28 @@ class PopoverTableViewController : UIViewController
         syncButton.title = "Stop Sync"
     }
     
+    func stopped()
+    {
+        trackingTimer?.invalidate()
+        trackingTimer = nil
+        
+        isTracking = false
+        
+        syncButton.title = "Sync"
+        syncButton.isEnabled = false
+        
+        playPauseButton.title = "Play"
+        playPauseButton.isEnabled = false
+        
+        assistButton.isEnabled = true
+    }
+    
     var lastFollow : IndexPath?
     
     func follow()
     {
         guard globals.mediaPlayer.currentTime != nil else {
-            trackingTimer?.invalidate()
-            trackingTimer = nil
-            syncButton.title = "Sync"
-            syncButton.isEnabled = false
-            assistButton.isEnabled = true
+            stopped()
             return
         }
         
@@ -384,7 +396,7 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        guard let srtComponents = section.strings else {
+        guard let transcriptSegmentComponents = section.strings else {
             return
         }
         
@@ -407,15 +419,15 @@ class PopoverTableViewController : UIViewController
         
         var index = 0
 
-        for srtComponent in srtComponents {
-            var srtArray = srtComponent.components(separatedBy: "\n")
+        for transcriptSegmentComponent in transcriptSegmentComponents {
+            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
             
-            if let count = srtArray.first, !count.isEmpty {
-                srtArray.remove(at: 0)
+            if let count = transcriptSegmentArray.first, !count.isEmpty {
+                transcriptSegmentArray.remove(at: 0)
             }
             
-            if let timeWindow = srtArray.first, !timeWindow.isEmpty {
-                srtArray.remove(at: 0)
+            if let timeWindow = transcriptSegmentArray.first, !timeWindow.isEmpty {
+                transcriptSegmentArray.remove(at: 0)
                 
                 if  let start = timeWindow.components(separatedBy: " to ").first,
                     let end = timeWindow.components(separatedBy: " to ").last,
@@ -424,9 +436,9 @@ class PopoverTableViewController : UIViewController
 //                    print(startSeconds,seconds,endSeconds)
 
                     if isTracking {
-                        // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within 100ms.
+                        // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
-                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.1)) {
+                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.5)) {
 //                            print("isTracking time window found")
                             timeWindowFound = true
                             break
@@ -914,13 +926,13 @@ class PopoverTableViewController : UIViewController
         var actions = [AlertAction]()
         
         actions.append(AlertAction(title: "Interactive", style: .default, handler: {
-            func auto(_ srtComponents:[String]?)
+            func auto(_ transcriptSegmentComponents:[String]?)
             {
-                if var srtComponents = srtComponents, srtComponents.count > 0 {
-                    let srtComponent = srtComponents.removeFirst()
-                    if let indexPath = self.section.indexPath(from: srtComponent) {
-                        self.transcript?.editSRT(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:true,automaticCompletion:{
-                            auto(srtComponents)
+                if var transcriptSegmentComponents = transcriptSegmentComponents, transcriptSegmentComponents.count > 0 {
+                    let transcriptSegmentComponent = transcriptSegmentComponents.removeFirst()
+                    if let indexPath = self.section.indexPath(from: transcriptSegmentComponent) {
+                        self.transcript?.editTranscriptSegment(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:true,automaticCompletion:{
+                            auto(transcriptSegmentComponents)
                         })
                     }
                 } else {
@@ -932,13 +944,13 @@ class PopoverTableViewController : UIViewController
         }))
         
         actions.append(AlertAction(title: "Automatic", style: .default, handler: {
-            func auto(_ srtComponents:[String]?)
+            func auto(_ transcriptSegmentComponents:[String]?)
             {
-                if var srtComponents = srtComponents, srtComponents.count > 0 {
-                    let srtComponent = srtComponents.removeFirst()
-                    if let indexPath = self.section.indexPath(from: srtComponent) {
-                        self.transcript?.editSRT(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:false,automaticCompletion:{
-                            auto(srtComponents)
+                if var transcriptSegmentComponents = transcriptSegmentComponents, transcriptSegmentComponents.count > 0 {
+                    let transcriptSegmentComponent = transcriptSegmentComponents.removeFirst()
+                    if let indexPath = self.section.indexPath(from: transcriptSegmentComponent) {
+                        self.transcript?.editTranscriptSegment(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:false,automaticCompletion:{
+                            auto(transcriptSegmentComponents)
                         })
                     }
                 } else {
@@ -1556,6 +1568,8 @@ class PopoverTableViewController : UIViewController
             searchBar.text = searchText
         }
         
+        NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -2156,7 +2170,7 @@ extension PopoverTableViewController : UITableViewDelegate
             return
         }
         
-        if purpose == .selectingTime {
+        if purpose == .selectingTime, globals.mediaPlayer.currentTime != nil {
             activityIndicator.startAnimating()
 
             if trackingTimer != nil {
@@ -2260,20 +2274,20 @@ extension PopoverTableViewController : UITableViewDelegate
                 
                 // Must use stringsFunction with .selectingTime.
                 popover.stringsFunction = { (Void) -> [String]? in
-                    return self.transcript?.srtComponents?.filter({ (string:String) -> Bool in
+                    return self.transcript?.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
                         return string.components(separatedBy: "\n").count > 1
-                    }).map({ (srtComponent:String) -> String in
-                        var srtArray = srtComponent.components(separatedBy: "\n")
+                    }).map({ (transcriptSegmentComponent:String) -> String in
+                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                         
-                        if srtArray.count > 2  {
-                            let count = srtArray.removeFirst()
-                            let timeWindow = srtArray.removeFirst()
-                            let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
+                        if transcriptSegmentArray.count > 2  {
+                            let count = transcriptSegmentArray.removeFirst()
+                            let timeWindow = transcriptSegmentArray.removeFirst()
+                            let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
                             
                             if  let start = times.first,
                                 let end = times.last,
-                                let range = srtComponent.range(of: timeWindow+"\n") {
-                                let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                 let string = "\(count)\n\(start) to \(end)\n" + text
                                 
                                 return string
@@ -2309,7 +2323,13 @@ extension PopoverTableViewController : UITableViewDelegate
         
         if self.stringsAnyArray != nil {
             if index < self.stringsAnyArray?.count {
-                stringsAny = self.stringsAnyArray?[index]
+                if searchActive, let searchText = searchText {
+                    stringsAny = self.stringsAnyArray?.filter({ (dict:[String:Any]) -> Bool in
+                        return (dict["w"] as? String)?.lowercased().range(of: (searchText.lowercased())) != nil
+                    })[index]
+                } else {
+                    stringsAny = self.stringsAnyArray?[index]
+                }
 
 //                stringsAny = stringsAny?[string] as? [String : Any]
 //                stringsArray = stringsAny?[string] as? [String]

@@ -3854,21 +3854,20 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
 
 func hmsToSeconds(string:String?) -> Double?
 {
-    // WRONG - after , comes milliseconds
-//    guard var string = string?.replacingOccurrences(of: ",", with: ".") else {
-//        return nil
-//    }
-    
-    guard var str = string else {
+    guard var str = string?.replacingOccurrences(of: ",", with: ".") else {
         return nil
     }
     
-    var milliseconds : Double = 0
+//    guard var str = string else {
+//        return nil
+//    }
     
-    if let range = str.range(of: ","), let ms = Int(str.substring(from: range.upperBound)) {
-        milliseconds = Double(ms)/1000
-        str = str.substring(to: range.lowerBound)
-    }
+//    var milliseconds : Double = 0
+//
+//    if let range = str.range(of: ","), let ms = Int(str.substring(from: range.upperBound)) {
+//        milliseconds = Double(ms)/1000
+//        str = str.substring(to: range.lowerBound)
+//    }
     
     var numbers = [Double]()
     
@@ -3898,7 +3897,7 @@ func hmsToSeconds(string:String?) -> Double?
         counter += 1
     }
     
-    seconds += milliseconds
+//    seconds += milliseconds
     
     return seconds
 }
@@ -3929,7 +3928,7 @@ func secondsToHMS(seconds:String?) -> String?
     // \(String(format: "%.3f",fraction)
     // .trimmingCharacters(in: CharacterSet(charactersIn: "0."))
     
-    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)),\(String(format: "%d",Int(fraction * 1000)))"
+    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
     
     return hms
 }

@@ -668,6 +668,7 @@ class MediaPlayer : NSObject {
                 Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
                 }
             }
             break
@@ -697,6 +698,7 @@ class MediaPlayer : NSObject {
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
             }
             break
         }
@@ -716,10 +718,10 @@ class MediaPlayer : NSObject {
         //        print(duration?.seconds)
         
         pause()
-        
-        Thread.onMainThread() {
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-        }
+
+//        Thread.onMainThread() {
+//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+//        }
         
         mediaItem?.atEnd = true
         
@@ -890,6 +892,7 @@ class MediaPlayer : NSObject {
         
         Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: old)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
         }
 
         setupPlayingInfoCenter()

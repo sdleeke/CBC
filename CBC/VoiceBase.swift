@@ -85,127 +85,128 @@ extension VoiceBase // Class Methods
         }
     }
     
-    static func loadAll()
-    {
-        all(completion: { (json:[String : Any]?) -> (Void) in
-            guard let mediaItems = json?["media"] as? [[String:Any]] else {
-                return
-            }
-            
-            for mediaItem in mediaItems {
-                guard let mediaID = mediaItem["mediaId"] as? String else {
-                    continue
-                }
-                
-//                guard let metadata = mediaItem["metadata"] as? [String:Any] else {
+//    static func loadAll()
+//    {
+//        all(completion: { (json:[String : Any]?) -> (Void) in
+//            guard let mediaItems = json?["media"] as? [[String:Any]] else {
+//                return
+//            }
+//
+//            for mediaItem in mediaItems {
+//                guard let mediaID = mediaItem["mediaId"] as? String else {
 //                    continue
 //                }
 //
-//                guard let mimd = metadata["mediaItem"] as? [String:Any] else {
-//                    continue
-//                }
+////                guard let metadata = mediaItem["metadata"] as? [String:Any] else {
+////                    continue
+////                }
+////
+////                guard let mimd = metadata["mediaItem"] as? [String:Any] else {
+////                    continue
+////                }
+////
+////                guard let id = mimd["id"] as? String else {
+////                    continue
+////                }
+////
+////                guard let purpose = mimd["purpose"] as? String else {
+////                    continue
+////                }
+////
+////                guard let mediaItem = globals.mediaRepository.index?[id] else {
+////                    continue
+////                }
+////
+////                var transcript : VoiceBase?
+////
+////                switch purpose.uppercased() {
+////                case Purpose.audio:
+////                    transcript = mediaItem.audioTranscript
+////
+////                case Purpose.video:
+////                    transcript = mediaItem.videoTranscript
+////
+////                default:
+////                    break
+////                }
+////
+////                if  transcript?.transcript == nil,
+////                    transcript?.mediaID == nil,
+////                    transcript?.resultsTimer == nil,
+////                    let transcribing = transcript?.transcribing, !transcribing {
+////                    transcript?.mediaID = mediaID
+////                    transcript?.transcribing = true
+////
+////                    // Should we alert the user to what is being loaded from VB or how many?
+////
+////                    Thread.onMainThread() {
+////                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
+////                    }
+////                }
 //
-//                guard let id = mimd["id"] as? String else {
-//                    continue
-//                }
+//                Thread.sleep(forTimeInterval: 5.0) // in lieu of serializing the calls.
 //
-//                guard let purpose = mimd["purpose"] as? String else {
-//                    continue
-//                }
+//                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+////                    print(json)
 //
-//                guard let mediaItem = globals.mediaRepository.index?[id] else {
-//                    continue
-//                }
-//
-//                var transcript : VoiceBase?
-//
-//                switch purpose.uppercased() {
-//                case Purpose.audio:
-//                    transcript = mediaItem.audioTranscript
-//
-//                case Purpose.video:
-//                    transcript = mediaItem.videoTranscript
-//
-//                default:
-//                    break
-//                }
-//
-//                if  transcript?.transcript == nil,
-//                    transcript?.mediaID == nil,
-//                    transcript?.resultsTimer == nil,
-//                    let transcribing = transcript?.transcribing, !transcribing {
-//                    transcript?.mediaID = mediaID
-//                    transcript?.transcribing = true
-//
-//                    // Should we alert the user to what is being loaded from VB or how many?
-//
-//                    Thread.onMainThread() {
-//                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
+//                    guard let media = json?["media"] as? [String:Any] else {
+//                        return
 //                    }
-//                }
-                
-                Thread.sleep(forTimeInterval: 5.0)
-                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                    print(json)
-
-                    guard let media = json?["media"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    guard let metadata = media["metadata"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    guard let mimd = metadata["mediaItem"] as? [String:Any] else {
-                        return
-                    }
-
-                    guard let id = mimd["id"] as? String else {
-                        return
-                    }
-
-                    guard let purpose = mimd["purpose"] as? String else {
-                        return
-                    }
-
-                    guard let mediaItem = globals.mediaRepository.index?[id] else {
-                        return
-                    }
-
-                    var transcript : VoiceBase?
-
-                    switch purpose.uppercased() {
-                    case Purpose.audio:
-                        transcript = mediaItem.audioTranscript
-
-                    case Purpose.video:
-                        transcript = mediaItem.videoTranscript
-
-                    default:
-                        break
-                    }
-
-                    if  transcript?.transcript == nil,
-                        transcript?.mediaID == nil,
-                        transcript?.resultsTimer == nil,
-                        let transcribing = transcript?.transcribing, !transcribing {
-                        transcript?.mediaID = mediaID
-                        transcript?.transcribing = true
-
-                        // Should we alert the user to what is being loaded from VB or how many?
-
-                        Thread.onMainThread() {
-                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false,detailedAlerts:false), repeats: true)
-                        }
-                    }
-                }, onError: { (json:[String : Any]?) -> (Void) in
-
-                })
-            }
-        }, onError: { (json:[String : Any]?) -> (Void) in
-            
-        })
-    }
+//
+//                    guard let metadata = media["metadata"] as? [String:Any] else {
+//                        return
+//                    }
+//
+//                    guard let mimd = metadata["mediaItem"] as? [String:Any] else {
+//                        return
+//                    }
+//
+//                    guard let id = mimd["id"] as? String else {
+//                        return
+//                    }
+//
+//                    guard let purpose = mimd["purpose"] as? String else {
+//                        return
+//                    }
+//
+//                    guard let mediaItem = globals.mediaRepository.index?[id] else {
+//                        return
+//                    }
+//
+//                    var transcript : VoiceBase?
+//
+//                    switch purpose.uppercased() {
+//                    case Purpose.audio:
+//                        transcript = mediaItem.audioTranscript
+//
+//                    case Purpose.video:
+//                        transcript = mediaItem.videoTranscript
+//
+//                    default:
+//                        break
+//                    }
+//
+//                    if  transcript?.transcript == nil,
+//                        transcript?.mediaID == nil,
+//                        transcript?.resultsTimer == nil,
+//                        let transcribing = transcript?.transcribing, !transcribing {
+//                        transcript?.mediaID = mediaID
+//                        transcript?.transcribing = true
+//
+//                        // Should we alert the user to what is being loaded from VB or how many?
+//
+//                        Thread.onMainThread() {
+//                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false,detailedAlerts:false), repeats: true)
+//                        }
+//                    }
+//                }, onError: { (json:[String : Any]?) -> (Void) in
+//
+//                })
+//            }
+//        }, onError: { (json:[String : Any]?) -> (Void) in
+//
+//        })
+//    }
     
     static func html(_ json:[String:Any]?) -> String?
     {
@@ -403,7 +404,7 @@ extension VoiceBase // Class Methods
             request.addValue(accept, forHTTPHeaderField: "Accept")
         }
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: mediaID ?? UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -513,7 +514,7 @@ extension VoiceBase // Class Methods
         
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: mediaID)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -1221,7 +1222,7 @@ class VoiceBase {
             }
             
             if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                return self._transcript != nil
+                return transcript._transcript != nil // self._
             }).count == 0 {
                 // This blocks this thread until it finishes.
                 globals.queue.sync {
@@ -1697,7 +1698,7 @@ class VoiceBase {
         request.httpBody = body as Data
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: self.mediaItem?.id != nil ? self.mediaItem!.id + self.transcriptPurpose : (mediaID ?? UUID().uuidString))
         sessionConfig.timeoutIntervalForRequest = 30.0 * 60.0
         let session = URLSession(configuration: sessionConfig)
 
@@ -1765,29 +1766,24 @@ class VoiceBase {
         task.resume()
     }
     
-    func uploadUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
+    func userInfo(alert:Bool,detailedAlerts:Bool,
+                  finishedTitle:String?,finishedMessage:String?,onFinished:(()->(Void))?,
+                  errorTitle:String?,errorMessage:String?,onError:(()->(Void))?) -> [String:Any]?
     {
         var userInfo = [String:Any]()
         
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
-                if alert, let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
+                if alert, let finishedTitle = finishedTitle {
+                    globals.alert(title: finishedTitle,message: finishedMessage)
                 }
-
+                
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
                 self.percentComplete = nil
                 
-                self.getTranscript(alert:detailedAlerts) {
-                    self.getTranscriptSRT(alert:detailedAlerts) {
-                        self.details(alert:detailedAlerts) {
-                            self.transcribing = false
-                            self.completed = true
-                        }
-                    }
-                }
+                onFinished?()
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1813,8 +1809,6 @@ class VoiceBase {
         }
         
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-            self.remove()
-            
             var error : String?
             
             if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
@@ -1825,33 +1819,168 @@ class VoiceBase {
                 error = message
             }
             
-            var message : String?
-            
-            if let text = self.mediaItem?.text {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again."
-                } else {
-                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again."
+            if let error = error {
+                if alert, let errorTitle = errorTitle {
+                    globals.alert(title: errorTitle,message: (errorMessage ?? "") + "\n\nError: \(error)")
                 }
+                
+                onError?()
             } else {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript was not completed.  Please try again."
+                if let text = self.mediaItem?.text {
+                    print("An unknown error occured while monitoring the transcription of \n\n\(text).")
                 } else {
-                    message = "The transcript was not completed.  Please try again."
+                    print("An unknown error occured while monitoring a transcription.")
                 }
-            }
-            
-            if let message = message {
-                globals.alert(title: "Transcript Failed",message: message)
-            }
-            
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
             }
         }
-
+        
         return userInfo.count > 0 ? userInfo : nil
+    }
+    
+    func uploadUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
+    {
+        guard let text = self.mediaItem?.text else {
+            return nil
+        }
+        
+        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+                        finishedTitle: "Transcription Completed", finishedMessage: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.", onFinished: {
+                            self.getTranscript(alert:detailedAlerts) {
+                                self.getTranscriptSegments(alert:detailedAlerts) {
+                                    self.details(alert:detailedAlerts) {
+                                        self.transcribing = false
+                                        self.completed = true
+                                    }
+                                }
+                            }
+                        },
+                        errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
+                            self.remove()
+                            
+                            Thread.onMainThread() {
+                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+                            }
+                        })
+        
+//        var userInfo = [String:Any]()
+//
+//        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+//            if let status = json?["status"] as? String, status == "finished" {
+//                if alert, let text = self.mediaItem?.text {
+//                    globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
+//                }
+//
+//                self.resultsTimer?.invalidate()
+//                self.resultsTimer = nil
+//
+//                self.percentComplete = nil
+//
+//                self.getTranscript(alert:detailedAlerts) {
+//                    self.getTranscriptSegments(alert:detailedAlerts) {
+//                        self.details(alert:detailedAlerts) {
+//                            self.transcribing = false
+//                            self.completed = true
+//                        }
+//                    }
+//                }
+//            } else {
+//                if let progress = json?["progress"] as? [String:Any] {
+//                    if let tasks = progress["tasks"] as? [String:Any] {
+//                        let count = tasks.count
+//                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+//                            if let dict = value as? [String:Any] {
+//                                if let status = dict["status"] as? String {
+//                                    return (status == "finished") || (status == "completed")
+//                                }
+//                            }
+//
+//                            return false
+//                        }).count
+//
+//                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+//
+//                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+//                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+//            var error : String?
+//
+//            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+//                error = message
+//            }
+//
+//            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+//                error = message
+//            }
+//
+//            if let error = error {
+//                self.remove()
+//
+//                var message : String?
+//
+//                if let text = self.mediaItem?.text {
+//                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again."
+//                } else {
+//                    message = "Error: \(error)\n\n" + "The transcript was not completed.  Please try again."
+//                }
+//
+//                if let message = message {
+//                    globals.alert(title: "Transcript Failed",message: message)
+//                }
+//
+//                Thread.onMainThread() {
+//                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+//                }
+//            } else {
+//                if let text = self.mediaItem?.text {
+//                    print("An unknown error occured while monitoring the transcription of \n\n\(text).")
+//                } else {
+//                    print("An unknown error occured while monitoring a transcription.")
+//                }
+//            }
+//        }
+//
+//        return userInfo.count > 0 ? userInfo : nil
+    }
+    
+    func uploadNotAccepted(_ json:[String:Any]?)
+    {
+        var error : String?
+        
+        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+            error = message
+        }
+        
+        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+            error = message
+        }
+        
+        var message : String?
+        
+        if let text = self.mediaItem?.text {
+            if let error = error {
+                message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+            } else {
+                message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+            }
+        } else {
+            if let error = error {
+                message = "Error: \(error)\n\n" + "The transcript failed to start.  Please try again."
+            } else {
+                message = "The transcript failed to start.  Please try again."
+            }
+        }
+        
+        if let message = message {
+            globals.alert(title: "Transcription Failed",message: message)
+        }
     }
     
     func upload()
@@ -1885,40 +2014,15 @@ class VoiceBase {
                 }
             } else {
                 // Not accepted.
+                self.transcribing = false
+                
+                self.uploadNotAccepted(json)
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
             self.transcribing = false
             
-            var error : String?
+            self.uploadNotAccepted(json)
             
-            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                error = message
-            }
-            
-            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                error = message
-            }
-            
-            var message : String?
-            
-            if let text = self.mediaItem?.text {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                } else {
-                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                }
-            } else {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript failed to start.  Please try again."
-                } else {
-                    message = "The transcript failed to start.  Please try again."
-                }
-            }
-
-            if let message = message {
-                globals.alert(title: "Transcript Failed",message: message)
-            }
-
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
@@ -1971,7 +2075,7 @@ class VoiceBase {
         
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: self.mediaItem?.id != nil ? self.mediaItem!.id + self.transcriptPurpose : mediaID)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -2062,7 +2166,7 @@ class VoiceBase {
         resultsTimer = nil
         
         transcript = nil
-        transcriptSRT = nil
+        transcriptSegments = nil
     }
     
     func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
@@ -2251,97 +2355,179 @@ class VoiceBase {
     
     func alignUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
-        var userInfo = [String:Any]()
-        
-        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
-            if let status = json?["status"] as? String, status == "finished" {
-                if alert, let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
-                }
+        guard let text = self.mediaItem?.text else {
+            return nil
+        }
 
-                self.percentComplete = nil
-                
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
-                
-                // Don't do this because we're just re-uploading
-                //                                self.transcribing = false
-                //                                self.completed = true
-                
-//                // These will NOT delete the existing versions.
-//                self._transcript = nil
-//                self._transcriptSRT = nil
-                
-                // Get the new versions.
-                self.getTranscript(alert:detailedAlerts) {
-                    self.getTranscriptSRT(alert:detailedAlerts) {
-                        self.details(alert:detailedAlerts) {
-                            self.aligning = false
-                        }
-                    }
-                }
-                
-//                // This will NOT delete the existing versions.
-//                self._mediaJSON = nil
-            } else {
-                if let progress = json?["progress"] as? [String:Any] {
-                    if let tasks = progress["tasks"] as? [String:Any] {
-                        let count = tasks.count
-                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                            if let dict = value as? [String:Any] {
-                                if let status = dict["status"] as? String {
-                                    return (status == "finished") || (status == "completed")
+        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+                        finishedTitle: "Transcript Realignment Complete", finishedMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.", onFinished: {
+                            // Get the new versions.
+                            self.getTranscript(alert:detailedAlerts) {
+                                self.getTranscriptSegments(alert:detailedAlerts) {
+                                    self.details(alert:detailedAlerts) {
+                                        self.aligning = false
+                                    }
                                 }
                             }
-                            
-                            return false
-                        }).count
-                        
-                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-                        
-                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
-                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
-                        }
-                    }
-                }
+                        },
+                        errorTitle: "Transcript Alignment Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.", onError: {
+                            self.remove()
+                        })
+        
+//        var userInfo = [String:Any]()
+//
+//        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+//            if let status = json?["status"] as? String, status == "finished" {
+//                if alert, let text = self.mediaItem?.text {
+//                    globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
+//                }
+//
+//                self.percentComplete = nil
+//
+//                self.resultsTimer?.invalidate()
+//                self.resultsTimer = nil
+//
+//                // Don't do this because we're just re-uploading
+//                //                                self.transcribing = false
+//                //                                self.completed = true
+//
+////                // These will NOT delete the existing versions.
+////                self._transcript = nil
+////                self._transcriptSegments = nil
+//
+//                // Get the new versions.
+//                self.getTranscript(alert:detailedAlerts) {
+//                    self.getTranscriptSegments(alert:detailedAlerts) {
+//                        self.details(alert:detailedAlerts) {
+//                            self.aligning = false
+//                        }
+//                    }
+//                }
+//
+////                // This will NOT delete the existing versions.
+////                self._mediaJSON = nil
+//            } else {
+//                if let progress = json?["progress"] as? [String:Any] {
+//                    if let tasks = progress["tasks"] as? [String:Any] {
+//                        let count = tasks.count
+//                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+//                            if let dict = value as? [String:Any] {
+//                                if let status = dict["status"] as? String {
+//                                    return (status == "finished") || (status == "completed")
+//                                }
+//                            }
+//
+//                            return false
+//                        }).count
+//
+//                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+//
+//                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+//                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+//            var error : String?
+//
+//            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+//                error = message
+//            }
+//
+//            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+//                error = message
+//            }
+//
+//            if let error = error {
+//                self.remove()
+//
+//                var message : String?
+//
+//                if let text = self.mediaItem?.text {
+//                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+//                } else {
+//                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
+//                }
+//
+//                if let message = message {
+//                    globals.alert(title: "Transcript Alignment Failed",message: message)
+//                }
+//            } else {
+//                if let text = self.mediaItem?.text {
+//                    print("An error occured while monitoring the alignment of the transcript for\n\n\(text) (\(self.transcriptPurpose))")
+//                } else {
+//                    print("An error occured while monitoring the alignment of a transcript")
+//                }
+//            }
+//        }
+//
+//        return userInfo.count > 0 ? userInfo : nil
+    }
+
+    func realignmentNotAccepted(_ json:[String:Any]?)
+    {
+        var error : String?
+        
+        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+            error = message
+        }
+        
+        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+            error = message
+        }
+        
+        var message : String?
+        
+        if let text = self.mediaItem?.text {
+            if let error = error {
+                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+            } else {
+                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+            }
+        } else {
+            if let error = error {
+                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+            } else {
+                message = "The transcript realignment failed to start.  Please try again."
             }
         }
         
-        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-            self.remove()
-            
-            var error : String?
-            
-            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                error = message
-            }
-            
-            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                error = message
-            }
-            
-            var message : String?
-            
-            if let text = self.mediaItem?.text {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                } else {
-                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                }
-            } else {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
-                } else {
-                    message = "The transcript was not realigned.  Please try again."
-                }
-            }
-            
-            if let message = message {
-                globals.alert(title: "Transcript Alignment Failed",message: message)
-            }
-        }
+//        if let message = message {
+//            globals.alert(title: "Transcript Alignment Failed",message: message)
+//        }
+//
+//        var error : String?
+//
+//        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+//            error = message
+//        }
+//
+//        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+//            error = message
+//        }
+//
+//        var message : String?
+//
+//        if let text = self.mediaItem?.text {
+//            if let error = error {
+//                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+//            } else {
+//                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+//            }
+//        } else {
+//            if let error = error {
+//                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+//            } else {
+//                message = "The transcript realignment failed to start.  Please try again."
+//            }
+//        }
 
-        return userInfo.count > 0 ? userInfo : nil
+        if let message = message {
+            globals.alert(title: "Transcript Alignment Failed",message: message)
+        }
     }
     
     func align(_ transcript:String?)
@@ -2376,39 +2562,12 @@ class VoiceBase {
                     if let mediaID = json?["mediaId"] as? String {
                         guard self.mediaID == mediaID else {
                             self.aligning = false
+                            
                             self.resultsTimer?.invalidate()
                             self.resultsTimer = nil
                             
-                            var error : String?
-                            
-                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                error = message
-                            }
-                            
-                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                error = message
-                            }
-                            
-                            var message : String?
-                            
-                            if let text = self.mediaItem?.text {
-                                if let error = error {
-                                    message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                } else {
-                                    message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                }
-                            } else {
-                                if let error = error {
-                                    message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                                } else {
-                                    message = "The transcript realignment failed to start.  Please try again."
-                                }
-                            }
-                            
-                            if let message = message {
-                                globals.alert(title: "Transcript Alignment Failed",message: message)
-                            }
-                            
+                            self.realignmentNotAccepted(json)
+
                             return
                         }
 
@@ -2430,312 +2589,269 @@ class VoiceBase {
                     }
                 } else {
                     // Not accepted
+                    self.aligning = false
                     
+                    self.resultsTimer?.invalidate()
+                    self.resultsTimer = nil
+                    
+                    self.realignmentNotAccepted(json)
                 }
             }, onError: { (json:[String : Any]?) -> (Void) in
                 self.aligning = false
+
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
-                
-                var error : String?
-                
-                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                    error = message
-                }
-                
-                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                    error = message
-                }
-                
-                var message : String?
-                
-                if let text = self.mediaItem?.text {
-                    if let error = error {
-                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                    } else {
-                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                    }
-                } else {
-                    if let error = error {
-                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                    } else {
-                        message = "The transcript realignment failed to start.  Please try again."
-                    }
-                }
-                
-                if let message = message {
-                    globals.alert(title: "Transcript Alignment Failed",message: message)
-                }
+
+                self.realignmentNotAccepted(json)
             })
         }, onError: { (json:[String : Any]?) -> (Void) in
             guard let url = self.url else {
+                // Alert?
                 return
             }
             
             // Not on VoiceBase
+            
 //            VoiceBase.mediaID(search: (id: self.mediaItem?.id, title: self.mediaItem?.text, purpose: self.purpose), completion: { (mediaIDs:[String]?) -> (Void) in
 //                guard mediaIDs?.count > 0 else {
-                    if let text = self.mediaItem?.text {
-                        globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
-                    } else {
-                        globals.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
-                    }
-                    
-                    // Upload then align
-                    self.mediaID = nil
-                    
-                    let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
-                    
-                    self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
-                        self.uploadJSON = json
+            
+            if let text = self.mediaItem?.text {
+                globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+            } else {
+                globals.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+            }
+            
+            // Upload then align
+            self.mediaID = nil
+            
+            let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            
+            self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                self.uploadJSON = json
+                
+                if let status = json?["status"] as? String, status == "accepted" {
+                    if let mediaID = json?["mediaId"] as? String {
+                        // We do get a new mediaID
+                        self.mediaID = mediaID
                         
-                        if let status = json?["status"] as? String, status == "accepted" {
-                            if let mediaID = json?["mediaId"] as? String {
-                                // We do get a new mediaID
-                                self.mediaID = mediaID
-                                
-                                if let text = self.mediaItem?.text {
-                                    globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
-                                }
-                                
-                                var userInfo = [String:Any]()
-                                
-                                userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
-                                    if let status = json?["status"] as? String, status == "finished" {
-                                        self.percentComplete = nil
-                                        
-                                        self.resultsTimer?.invalidate()
-                                        self.resultsTimer = nil
-                                        
-                                        // Don't do any of this since we are just re-uploading.
-                                        //                                self.transcribing = false
-                                        //                                self.completed = true
-                                        //
-                                        //                                // These will delete the existing versions.
-                                        //                                self.transcript = nil
-                                        //                                self.transcriptSRT = nil
-                                        //
-                                        //                                // Really should compare the old and new version...
-                                        //
-                                        //                                // Get the new versions.
-                                        //                                self.getTranscript()
-                                        //                                self.getTranscriptSRT()
-                                        //
-                                        //                                // Delete the transcripts, keywords, and topics.
-                                        //                                self.mediaJSON = nil
-                                        //
-                                        //                                // Get the new ones.
-                                        //                                self.details()
-                                        
-                                        // Now do the relignment
-                                        let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
-                                        
-                                        self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
-                                            self.uploadJSON = json
-                                            
-                                            // If it is on VB, upload the transcript for realignment
-                                            if let status = json?["status"] as? String, status == "accepted" {
-                                                if let mediaID = json?["mediaId"] as? String {
-                                                    guard self.mediaID == mediaID else {
+                        if let text = self.mediaItem?.text {
+                            globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
+                        }
+                        
+//                        var userInfo = [String:Any]()
+//
+//                        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+//                            if let status = json?["status"] as? String, status == "finished" {
+//                                self.percentComplete = nil
+//
+//                                self.resultsTimer?.invalidate()
+//                                self.resultsTimer = nil
+//
+//                                // Don't do any of this since we are just re-uploading.
+//                                //                                self.transcribing = false
+//                                //                                self.completed = true
+//                                //
+//                                //                                // These will delete the existing versions.
+//                                //                                self.transcript = nil
+//                                //                                self.transcriptSegments = nil
+//                                //
+//                                //                                // Really should compare the old and new version...
+//                                //
+//                                //                                // Get the new versions.
+//                                //                                self.getTranscript()
+//                                //                                self.getTranscriptSegments()
+//                                //
+//                                //                                // Delete the transcripts, keywords, and topics.
+//                                //                                self.mediaJSON = nil
+//                                //
+//                                //                                // Get the new ones.
+//                                //                                self.details()
+//
+//                                // Now do the relignment
+//                                let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+//
+//                                self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+//                                    self.uploadJSON = json
+//
+//                                    // If it is on VB, upload the transcript for realignment
+//                                    if let status = json?["status"] as? String, status == "accepted" {
+//                                        if let mediaID = json?["mediaId"] as? String {
+//                                            guard self.mediaID == mediaID else {
+//                                                self.aligning = false
+//
+//                                                self.resultsTimer?.invalidate()
+//                                                self.resultsTimer = nil
+//
+//                                                self.realignmentNotAccepted(json)
+//
+//                                                return
+//                                            }
+//
+//                                            // Don't do this because we're just re-aligning.
+//                                            //                        self.transcribing = true
+//                                            //                        self.completed = false
+//
+//                                            self.aligning = true
+//
+//                                            if let text = self.mediaItem?.text {
+//                                                globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+//                                            }
+//
+//                                            if self.resultsTimer == nil {
+//                                                Thread.onMainThread() {
+//                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                                                }
+//                                            } else {
+//                                                print("TIMER NOT NIL!")
+//                                            }
+//                                        }
+//                                    } else {
+//                                        // Not accepted.
+//                                        self.aligning = false
+//
+//                                        self.resultsTimer?.invalidate()
+//                                        self.resultsTimer = nil
+//
+//                                        self.realignmentNotAccepted(json)
+//                                    }
+//                                }, onError: { (json:[String : Any]?) -> (Void) in
+//                                    self.aligning = false
+//
+//                                    self.resultsTimer?.invalidate()
+//                                    self.resultsTimer = nil
+//
+//                                    self.realignmentNotAccepted(json)
+//                                })
+//                            } else {
+//                                if let progress = json?["progress"] as? [String:Any] {
+//                                    if let tasks = progress["tasks"] as? [String:Any] {
+//                                        let count = tasks.count
+//                                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+//                                            if let dict = value as? [String:Any] {
+//                                                if let status = dict["status"] as? String {
+//                                                    return (status == "finished") || (status == "completed")
+//                                                }
+//                                            }
+//
+//                                            return false
+//                                        }).count
+//
+//                                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+//
+//                                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+//                                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+//                            self.aligning = false
+//
+//                            self.resultsTimer?.invalidate()
+//                            self.resultsTimer = nil
+//
+//                            self.realignmentNotAccepted(json)
+//                        }
+                        
+                        if self.resultsTimer == nil {
+                            let newUserInfo = self.userInfo(alert: false, detailedAlerts: false,
+                                                    finishedTitle: nil, finishedMessage: nil, onFinished: {
+                                                        // Now do the relignment
+                                                        let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                                        
+                                                        self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                                                            self.uploadJSON = json
+                                                            
+                                                            // If it is on VB, upload the transcript for realignment
+                                                            if let status = json?["status"] as? String, status == "accepted" {
+                                                                if let mediaID = json?["mediaId"] as? String {
+                                                                    guard self.mediaID == mediaID else {
+                                                                        self.aligning = false
+                                                                        
+                                                                        self.resultsTimer?.invalidate()
+                                                                        self.resultsTimer = nil
+                                                                        
+                                                                        self.realignmentNotAccepted(json)
+                                                                        
+                                                                        return
+                                                                    }
+                                                                    
+                                                                    // Don't do this because we're just re-aligning.
+                                                                    //                        self.transcribing = true
+                                                                    //                        self.completed = false
+                                                                    
+                                                                    self.aligning = true
+                                                                    
+                                                                    if let text = self.mediaItem?.text {
+                                                                        globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                                                                    }
+                                                                    
+                                                                    if self.resultsTimer == nil {
+                                                                        Thread.onMainThread() {
+                                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                                                                        }
+                                                                    } else {
+                                                                        print("TIMER NOT NIL!")
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                // Not accepted.
+                                                                self.aligning = false
+                                                                
+                                                                self.resultsTimer?.invalidate()
+                                                                self.resultsTimer = nil
+                                                                
+                                                                self.realignmentNotAccepted(json)
+                                                            }
+                                                        }, onError: { (json:[String : Any]?) -> (Void) in
+                                                            self.aligning = false
+                                                            
+                                                            self.resultsTimer?.invalidate()
+                                                            self.resultsTimer = nil
+                                                            
+                                                            self.realignmentNotAccepted(json)
+                                                        })
+                                                    },
+                                                    errorTitle: nil, errorMessage: nil, onError: {
                                                         self.aligning = false
-                                                        self.resultsTimer?.invalidate()
-                                                        self.resultsTimer = nil
-                                                        
-                                                        var error : String?
-                                                        
-                                                        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                                            error = message
-                                                        }
-                                                        
-                                                        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                                            error = message
-                                                        }
-                                                        
-                                                        var message : String?
-                                                        
-                                                        if let text = self.mediaItem?.text {
-                                                            if let error = error {
-                                                                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                                            } else {
-                                                                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                                            }
-                                                        } else {
-                                                            if let error = error {
-                                                                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                                                            } else {
-                                                                message = "The transcript realignment failed to start.  Please try again."
-                                                            }
-                                                        }
-                                                        
-                                                        if let message = message {
-                                                            globals.alert(title: "Transcript Alignment Failed",message: message)
-                                                        }
-                                                        
-                                                        return
-                                                    }
-                                                    
-                                                    // Don't do this because we're just re-aligning.
-                                                    //                        self.transcribing = true
-                                                    //                        self.completed = false
-                                                    
-                                                    self.aligning = true
-                                                    
-                                                    if let text = self.mediaItem?.text {
-                                                        globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
-                                                    }
-                                                    
-                                                    if self.resultsTimer == nil {
-                                                        Thread.onMainThread() {
-                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                                                        }
-                                                    } else {
-                                                        print("TIMER NOT NIL!")
-                                                    }
-                                                }
-                                            } else {
-                                                // Not accepted.
-                                            }
-                                        }, onError: { (json:[String : Any]?) -> (Void) in
-                                            self.aligning = false
-                                            self.resultsTimer?.invalidate()
-                                            self.resultsTimer = nil
-                                            
-                                            var error : String?
-                                            
-                                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                                error = message
-                                            }
-                                            
-                                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                                error = message
-                                            }
-                                            
-                                            var message : String?
-                                            
-                                            if let text = self.mediaItem?.text {
-                                                if let error = error {
-                                                    message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                                } else {
-                                                    message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                                                }
-                                            } else {
-                                                if let error = error {
-                                                    message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                                                } else {
-                                                    message = "The transcript realignment failed to start.  Please try again."
-                                                }
-                                            }
-                                            
-                                            if let message = message {
-                                                globals.alert(title: "Transcript Alignment Failed",message: message)
-                                            }
-                                        })
-                                    } else {
-                                        if let progress = json?["progress"] as? [String:Any] {
-                                            if let tasks = progress["tasks"] as? [String:Any] {
-                                                let count = tasks.count
-                                                let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                                                    if let dict = value as? [String:Any] {
-                                                        if let status = dict["status"] as? String {
-                                                            return (status == "finished") || (status == "completed")
-                                                        }
-                                                    }
-                                                    
-                                                    return false
-                                                }).count
-                                                
-                                                self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-                                                
-                                                if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
-                                                    print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-                                    self.aligning = false
-                                    self.resultsTimer?.invalidate()
-                                    self.resultsTimer = nil
-                                    
-                                    var error : String?
-                                    
-                                    if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                                        error = message
-                                    }
-                                    
-                                    if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                                        error = message
-                                    }
-                                    
-                                    var message : String?
-                                    
-                                    if let text = self.mediaItem?.text {
-                                        if let error = error {
-                                            message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                                        } else {
-                                            message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                                        }
-                                    } else {
-                                        if let error = error {
-                                            message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
-                                        } else {
-                                            message = "The transcript was not realigned.  Please try again."
-                                        }
-                                    }
-                                    
-                                    if let message = message {
-                                        globals.alert(title: "Transcript Alignment Failed",message: message)
-                                    }
-                                }
-                                
-                                if self.resultsTimer == nil {
-                                    Thread.onMainThread() {
-                                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
-                                    }
-                                } else {
-                                    print("TIMER NOT NIL!")
-                                }
+                                                        self.realignmentNotAccepted(json)
+                                                    })
+                            
+                            Thread.onMainThread() {
+                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: newUserInfo, repeats: true)
                             }
                         } else {
-                            // No accepted.
+                            print("TIMER NOT NIL!")
                         }
-                    }, onError: { (json:[String : Any]?) -> (Void) in
+                    } else {
+                        // No media ID???
                         self.aligning = false
+                        
                         self.resultsTimer?.invalidate()
                         self.resultsTimer = nil
                         
-                        var error : String?
-                        
-                        if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                            error = message
-                        }
-                        
-                        if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                            error = message
-                        }
-                        
-                        var message : String?
-                        
-                        if let text = self.mediaItem?.text {
-                            if let error = error {
-                                message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                            } else {
-                                message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                            }
-                        } else {
-                            if let error = error {
-                                message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
-                            } else {
-                                message = "The transcript realignment failed to start.  Please try again."
-                            }
-                        }
-                        
-                        if let message = message {
-                            globals.alert(title: "Transcript Alignment Failed",message: message)
-                        }
-                    })
+                        self.realignmentNotAccepted(json)
+                    }
+                } else {
+                    // Not accepted.
+                    self.aligning = false
+                    
+                    self.resultsTimer?.invalidate()
+                    self.resultsTimer = nil
+                    
+                    self.realignmentNotAccepted(json)
+                }
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                self.aligning = false
+                
+                self.resultsTimer?.invalidate()
+                self.resultsTimer = nil
+                
+                self.realignmentNotAccepted(json)
+            })
+            
 //                    return
 //                }
 //
@@ -2845,6 +2961,7 @@ class VoiceBase {
 //                    }
 //                })
 //            })
+            
         })
     }
     
@@ -2856,6 +2973,20 @@ class VoiceBase {
         }
         
         VoiceBase.get(accept:"text/plain",mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            if let error = error {
+                print(error)
+            }
+            
             if let text = json?["text"] as? String {
                 self.transcript = text
 
@@ -2867,51 +2998,81 @@ class VoiceBase {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
                 }
             } else {
-                if alert, let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                if let error = error {
+                    if alert, let text = self.mediaItem?.text {
+                        globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.\n\nError: \(error)")
+                    }
+                } else {
+                    if alert, let text = self.mediaItem?.text {
+                        globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                    }
                 }
             }
             
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
-            if alert, let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            var message : String?
+            
+            if let text = self.mediaItem?.text {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcription of\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                } else {
+                    message = "The transcription of\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                }
             } else {
-                globals.alert(title: "Transcript Not Available",message: "The transcript is not available.")
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcription failed to start.  Please try again."
+                } else {
+                    message = "The transcription failed to start.  Please try again."
+                }
+            }
+            
+            if let message = message {
+                globals.alert(title: "Transcription Failed",message: message)
             }
             
             atEnd?()
         })
     }
     
-    var srtArrays:[[String]]?
+    var transcriptSegmentArrays:[[String]]?
     {
         get {
-            guard _srtArrays == nil else {
-                return _srtArrays
+            guard _transcriptSegmentArrays == nil else {
+                return _transcriptSegmentArrays
             }
             
-            let _ = transcriptSRT
+            let _ = transcriptSegments
             
-            return _srtArrays
+            return _transcriptSegmentArrays
         }
         set {
-            _srtArrays = newValue
+            _transcriptSegmentArrays = newValue
         }
     }
     
-    var _srtArrays:[[String]]?
+    var _transcriptSegmentArrays:[[String]]?
     {
         didSet {
-            guard let srtArrays = _srtArrays else {
+            guard let transcriptSegmentArrays = _transcriptSegmentArrays else {
                 return
             }
             
             var tokenTimes = [String:[String]]()
             
-            for srtArray in srtArrays {
-                if let times = srtArrayTimes(srtArray: srtArray), let startTime = times.first {
-                    if let tokens = tokensFromString(srtArrayText(srtArray: srtArray)) {
+            for transcriptSegmentArray in transcriptSegmentArrays {
+                if let times = transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
+                    if let tokens = tokensFromString(transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)) {
                         for token in tokens {
                             let key = token //.lowercased()
                             
@@ -2928,73 +3089,73 @@ class VoiceBase {
                 }
             }
             
-            srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
+            transcriptSegmentTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
         }
     }
     
-    var srtTokens : [String]?
+    var transcriptSegmentTokens : [String]?
     {
-        return srtTokensTimes?.keys.sorted()
+        return transcriptSegmentTokensTimes?.keys.sorted()
     }
     
-    func srtTokenTimes(token:String) -> [String]?
+    func transcriptSegmentTokenTimes(token:String) -> [String]?
     {
-        return srtTokensTimes?[token]
+        return transcriptSegmentTokensTimes?[token]
     }
     
-    var srtTokensTimes : [String:[String]]?
+    var transcriptSegmentTokensTimes : [String:[String]]?
     {
         get {
-            guard _srtTokensTimes == nil else {
-                return _srtTokensTimes
+            guard _transcriptSegmentTokensTimes == nil else {
+                return _transcriptSegmentTokensTimes
             }
             
-            let _ = transcriptSRT
+            let _ = transcriptSegments
             
-            return _srtTokensTimes
+            return _transcriptSegmentTokensTimes
         }
         set {
-            _srtTokensTimes = newValue
+            _transcriptSegmentTokensTimes = newValue
         }
     }
     
-    var _srtTokensTimes : [String:[String]]?
+    var _transcriptSegmentTokensTimes : [String:[String]]?
     {
         didSet {
             
         }
     }
     
-    func srtArrayStartTime(srtArray:[String]?) -> Double?
+    func transcriptSegmentArrayStartTime(transcriptSegmentArray:[String]?) -> Double?
     {
-        return hmsToSeconds(string: srtArrayTimes(srtArray: srtArray)?.first)
+        return hmsToSeconds(string: transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.first)
     }
     
-    func srtArrayEndTime(srtArray:[String]?) -> Double?
+    func transcriptSegmentArrayEndTime(transcriptSegmentArray:[String]?) -> Double?
     {
-        return hmsToSeconds(string: srtArrayTimes(srtArray: srtArray)?.last)
+        return hmsToSeconds(string: transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.last)
     }
     
-    func srtArrayIndex(srtArray:[String]?) -> String?
+    func transcriptSegmentArrayIndex(transcriptSegmentArray:[String]?) -> String?
     {
-        if let count = srtArray?.first {
+        if let count = transcriptSegmentArray?.first {
             return count
         } else {
             return nil
         }
     }
     
-    func srtArrayTimes(srtArray:[String]?) -> [String]?
+    func transcriptSegmentArrayTimes(transcriptSegmentArray:[String]?) -> [String]?
     {
-        guard let srtArray = srtArray else {
+        guard let transcriptSegmentArray = transcriptSegmentArray else {
             return nil
         }
         
-        guard srtArray.count > 1 else {
+        guard transcriptSegmentArray.count > 1 else {
             return nil
         }
         
-        var array = srtArray
+        var array = transcriptSegmentArray
         
         if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
@@ -3013,19 +3174,19 @@ class VoiceBase {
         }
     }
     
-    func srtArrayText(srtArray:[String]?) -> String?
+    func transcriptSegmentArrayText(transcriptSegmentArray:[String]?) -> String?
     {
-        guard let srtArray = srtArray else {
+        guard let transcriptSegmentArray = transcriptSegmentArray else {
             return nil
         }
         
-        guard srtArray.count > 1 else {
+        guard transcriptSegmentArray.count > 1 else {
             return nil
         }
         
         var string = String()
         
-        var array = srtArray
+        var array = transcriptSegmentArray
         
         if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
@@ -3046,65 +3207,65 @@ class VoiceBase {
         return !string.isEmpty ? string : nil
     }
     
-    func searchSRTArrays(string:String) -> [[String]]?
+    func searchTranscriptSegmentArrays(string:String) -> [[String]]?
     {
-        guard let srtArrays = srtArrays else {
+        guard let transcriptSegmentArrays = transcriptSegmentArrays else {
             return nil
         }
         
         var results = [[String]]()
         
-        for srtArray in srtArrays {
-            if let contains = srtArrayText(srtArray: srtArray)?.contains(string.lowercased()), contains {
-                results.append(srtArray)
+        for transcriptSegmentArray in transcriptSegmentArrays {
+            if let contains = transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)?.contains(string.lowercased()), contains {
+                results.append(transcriptSegmentArray)
             }
         }
         
         return results.count > 0 ? results : nil
     }
     
-    var srtComponents:[String]?
+    var transcriptSegmentComponents:[String]?
     {
         get {
-            guard _srtComponents == nil else {
-                return _srtComponents
+            guard _transcriptSegmentComponents == nil else {
+                return _transcriptSegmentComponents
             }
             
-            let _ = transcriptSRT
+            let _ = transcriptSegments
             
-            return _srtComponents
+            return _transcriptSegmentComponents
         }
         set {
-            _srtComponents = newValue
+            _transcriptSegmentComponents = newValue
         }
     }
     
-    var _srtComponents:[String]?
+    var _transcriptSegmentComponents:[String]?
     {
         didSet {
-            guard let srtComponents = _srtComponents else {
+            guard let transcriptSegmentComponents = _transcriptSegmentComponents else {
                 return
             }
             
-            var srtArrays = [[String]]()
+            var transcriptSegmentArrays = [[String]]()
             
-            for srtComponent in srtComponents {
-                srtArrays.append(srtComponent.components(separatedBy: "\n"))
+            for transcriptSegmentComponent in transcriptSegmentComponents {
+                transcriptSegmentArrays.append(transcriptSegmentComponent.components(separatedBy: "\n"))
             }
             
-            self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
+            self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
         }
     }
     
-    var transcriptSRT:String?
+    var transcriptSegments:String?
     {
         get {
             guard completed else {
                 return nil
             }
             
-            guard _transcriptSRT == nil else {
-                return _transcriptSRT
+            guard _transcriptSegments == nil else {
+                return _transcriptSegments
             }
             
             guard let mediaItem = mediaItem else {
@@ -3119,20 +3280,34 @@ class VoiceBase {
                 return nil
             }
             
+            //Legacy
             if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).srt") {
                 do {
-                    try _transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
+                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
                 } catch let error as NSError {
-                    print("failed to load machine generated transcriptSRT for \(mediaItem.description): \(error.localizedDescription)")
+                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
                     
                     // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    if completed && !aligning {
-//                        remove()
-//                    }
+                    //                    if completed && !aligning {
+                    //                        remove()
+                    //                    }
                 }
             }
             
-            return _transcriptSRT
+            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).segments") {
+                do {
+                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
+                } catch let error as NSError {
+                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+                    
+                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+                    //                    if completed && !aligning {
+                    //                        remove()
+                    //                    }
+                }
+            }
+            
+            return _transcriptSegments
         }
         
         set {
@@ -3152,58 +3327,92 @@ class VoiceBase {
             
             var value = newValue
             
-            if _transcriptSRT == nil {
-                if var srtComponents = value?.components(separatedBy: "\n\n") {
-                    for srtComponent in srtComponents {
-                        var srtArray = srtComponent.components(separatedBy: "\n")
-                        if srtArray.count > 2 {
-                            let count = srtArray.removeFirst()
-                            let timeWindow = srtArray.removeFirst()
+            if _transcriptSegments == nil {
+                // Why do we do this?  To strip any header like SRT or WebVTT and remove newlines and add separator
+                if var transcriptSegmentComponents = value?.components(separatedBy: "\n\n") {
+                    for transcriptSegmentComponent in transcriptSegmentComponents {
+                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                        if transcriptSegmentArray.count > 2 {
+                            let count = transcriptSegmentArray.removeFirst()
+                            let timeWindow = transcriptSegmentArray.removeFirst()
                             
-                            if let range = srtComponent.range(of: timeWindow + "\n") {
-                                let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                            if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
+                                let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                 
-                                if let index = srtComponents.index(of: srtComponent) {
-                                    srtComponents[index] = "\(count)\n\(timeWindow)\n" + text
+                                if let index = transcriptSegmentComponents.index(of: transcriptSegmentComponent) {
+                                    transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
                                     changed = true
                                 }
                             }
                         }
                     }
-                    if changed {
+                    if changed { // Essentially guaranteed to happen.
                         value = nil
-                        for srtComponent in srtComponents {
-                            value = (value != nil ? value! + VoiceBase.separator : "") + srtComponent
+                        for transcriptSegmentComponent in transcriptSegmentComponents {
+                            let transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                            if transcriptSegmentArray.count > 2 { // This removes anything w/o text, i.e. only count and timeWindow - or less, like a header, e.g. WebVTT (a nice side effect)
+                                value = (value != nil ? value! + VoiceBase.separator : "") + transcriptSegmentComponent
+                            }
                         }
                     }
                 }
             }
             
-            _transcriptSRT = value
+            _transcriptSegments = value
             
             DispatchQueue.global(qos: .background).async { [weak self] in
                 let fileManager = FileManager.default
                 
-                if self?._transcriptSRT != nil {
+                if self?._transcriptSegments != nil {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).segments") {
+                        // Check if file exist
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
+                            }
+                        }
+                        
+                        do {
+                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                        } catch let error as NSError {
+                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
+                    }
+                    
+                    //Legacy clean-up
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
                             } catch let error as NSError {
-                                print("failed to remove machine generated SRT transcript: \(error.localizedDescription)")
+                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
                             }
-                        }
-                        
-                        do {
-                            try self?._transcriptSRT?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                        } catch let error as NSError {
-                            print("failed to write SRT transcript to cache directory: \(error.localizedDescription)")
                         }
                     } else {
                         print("failed to get destinationURL")
                     }
                 } else {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).segments") {
+                        // Check if file exist
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                            }
+                        } else {
+                            print("machine generated transcript file doesn't exist")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
+                    }
+                    
+                    //Legacy clean-up
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -3223,22 +3432,22 @@ class VoiceBase {
         }
     }
     
-    var _transcriptSRT:String?
+    var _transcriptSegments:String?
     {
         didSet {
-            srtComponents = _transcriptSRT?.components(separatedBy: VoiceBase.separator)
-            //            print(srtComponents)
+            transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator)
+            //            print(transcriptSegmentComponents)
         }
     }
     
-    var transcriptSRTFromWords:String?
+    var transcriptSegmentsFromWords:String?
     {
         get {
             var str : String?
             
             if let following = following {
                 var count = 1
-                var srtComponents = [String]()
+                var transcriptSegmentComponents = [String]()
                 
                 for element in following {
                     if  let start = element["start"] as? Double,
@@ -3246,13 +3455,13 @@ class VoiceBase {
                         let end = element["end"] as? Double,
                         let endSeconds = secondsToHMS(seconds: "\(end)"),
                         let text = element["text"] as? String {
-                        srtComponents.append("\(count)\n\(startSeconds) --> \(endSeconds)\n\(text)")
+                        transcriptSegmentComponents.append("\(count)\n\(startSeconds) --> \(endSeconds)\n\(text)")
                     }
                     count += 1
                 }
 
-                for srtComponent in srtComponents {
-                    str = (str != nil ? str! + VoiceBase.separator : "") + srtComponent
+                for transcriptSegmentComponent in transcriptSegmentComponents {
+                    str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
                 }
             }
             
@@ -3260,14 +3469,14 @@ class VoiceBase {
         }
     }
     
-    var transcriptSRTFromSRTs:String?
+    var transcriptSegmentsFromTranscriptSegments:String?
     {
         get {
             var str : String?
             
-            if let srtComponents = srtComponents {
-                for srtComponent in srtComponents {
-                    str = (str != nil ? str! + VoiceBase.separator : "") + srtComponent
+            if let transcriptSegmentComponents = transcriptSegmentComponents {
+                for transcriptSegmentComponent in transcriptSegmentComponents {
+                    str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
                 }
             }
             
@@ -3275,21 +3484,21 @@ class VoiceBase {
         }
     }
     
-    var transcriptFromSRTs:String?
+    var transcriptFromTranscriptSegments:String?
     {
         get {
             var str : String?
             
-            if let srtComponents = srtComponents {
-                for srtComponent in srtComponents {
-                    var strings = srtComponent.components(separatedBy: "\n")
+            if let transcriptSegmentComponents = transcriptSegmentComponents {
+                for transcriptSegmentComponent in transcriptSegmentComponents {
+                    var strings = transcriptSegmentComponent.components(separatedBy: "\n")
                     
                     if strings.count > 2 {
                         _ = strings.removeFirst() // count
                         let timing = strings.removeFirst() // time
                         
-                        if let range = srtComponent.range(of:timing+"\n") {
-                            let string = srtComponent.substring(from:range.upperBound)
+                        if let range = transcriptSegmentComponent.range(of:timing+"\n") {
+                            let string = transcriptSegmentComponent.substring(from:range.upperBound)
                             str = (str != nil ? str! + " " : "") + string
                         }
                     }
@@ -3300,29 +3509,29 @@ class VoiceBase {
         }
     }
     
-    func getTranscriptSRT(alert:Bool, atEnd:(()->())?)
+    func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
     {
-        VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
-            if let srt = json?["text"] as? String {
-                self._transcriptSRT = nil // Without this the new SRT will not be processed correctly.
+        VoiceBase.get(accept: "text/vtt", mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
+            if let transcriptSegments = json?["text"] as? String {
+                self._transcriptSegments = nil // Without this the new transcript segments will not be processed correctly.
 
-                self.transcriptSRT = srt
+                self.transcriptSegments = transcriptSegments
 
                 if alert, let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
+                    globals.alert(title: "Transcript Segments Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
             } else {
                 if alert, let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                    globals.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
             
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                globals.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             } else {
-                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT is not available.")
+                globals.alert(title: "Transcript Segments Not Available",message: "The transcript segments is not available.")
             }
             
             atEnd?()
@@ -3362,7 +3571,7 @@ class VoiceBase {
         
         //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: self.mediaItem?.id != nil ? self.mediaItem!.id + self.transcriptPurpose : (mediaID ?? UUID().uuidString))
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -3446,7 +3655,7 @@ class VoiceBase {
                 
                 // Get the new versions.
                 self.getTranscript(alert: true) {
-                    self.getTranscriptSRT(alert: true) {
+                    self.getTranscriptSegments(alert: true) {
                         self.details(alert: true) {
                             if let text = self.mediaItem?.text {
                                 globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
@@ -3672,37 +3881,37 @@ class VoiceBase {
                         process(viewController: viewController, work: { () -> (Any?) in
                             var htmlString = "<!DOCTYPE html><html><body>"
                             
-                            var srtHTML = String()
+                            var transcriptSegmentHTML = String()
                             
-                            srtHTML = srtHTML + "<table>"
+                            transcriptSegmentHTML = transcriptSegmentHTML + "<table>"
                             
-                            srtHTML = srtHTML + "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+                            transcriptSegmentHTML = transcriptSegmentHTML + "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
                             //  valign=\"bottom\"
-                            if let srtComponents = self.srtComponents {
-                                for srtComponent in srtComponents {
-                                    var srtArray = srtComponent.components(separatedBy: "\n")
+                            if let transcriptSegmentComponents = self.transcriptSegmentComponents {
+                                for transcriptSegmentComponent in transcriptSegmentComponents {
+                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                                     
-                                    if srtArray.count > 2  {
-                                        let count = srtArray.removeFirst()
-                                        let timeWindow = srtArray.removeFirst()
-                                        let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
+                                    if transcriptSegmentArray.count > 2  {
+                                        let count = transcriptSegmentArray.removeFirst()
+                                        let timeWindow = transcriptSegmentArray.removeFirst()
+                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
                                         
                                         if  let start = times.first,
                                             let end = times.last,
-                                            let range = srtComponent.range(of: timeWindow+"\n") {
-                                            let text = srtComponent.substring(from: range.upperBound)
+                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                            let text = transcriptSegmentComponent.substring(from: range.upperBound)
                                             
                                             let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
                                             //  valign=\"top\"
-                                            srtHTML = srtHTML + row
+                                            transcriptSegmentHTML = transcriptSegmentHTML + row
                                         }
                                     }
                                 }
                             }
                             
-                            srtHTML = srtHTML + "</table>"
+                            transcriptSegmentHTML = transcriptSegmentHTML + "</table>"
 
-                            htmlString = htmlString + self.headerHTML + srtHTML + "</body></html>"
+                            htmlString = htmlString + self.headerHTML + transcriptSegmentHTML + "</body></html>"
 
 //                            if  let purpose = self.purpose,
 //                                let headerHTML = self.mediaItem?.headerHTML {
@@ -3782,7 +3991,7 @@ class VoiceBase {
                         textPopover.search = true
                         
 //                            textPopover.confirmation = { ()->Bool in
-//                                return true // self.transcript == self.transcriptFromSRTs
+//                                return true // self.transcript == self.transcriptFromTranscriptSegments
 //                            }
 //                            textPopover.confirmationTitle = "Confirm Saving Changes to Transcript"
 //                            textPopover.confirmationMessage = "If you save these changes and later change a transcript element, the transcript may be overwritten and your changes lost."
@@ -3883,7 +4092,7 @@ class VoiceBase {
                             }))
                             
                             alertActions.append(AlertAction(title: "Segments", style: .default, handler: {
-                                self.align(self.transcriptFromSRTs)
+                                self.align(self.transcriptFromTranscriptSegments)
 //                                tableView.setEditing(false, animated: true)
                             }))
                             
@@ -4039,12 +4248,12 @@ class VoiceBase {
         return action
     }
     
-    func editSRT(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath)
+    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath)
     {
-        editSRT(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticInteractive:false,automaticCompletion:nil)
+        editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticInteractive:false,automaticCompletion:nil)
     }
     
-    func editSRT(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath,automatic:Bool,automaticInteractive:Bool,automaticCompletion:(()->(Void))?)
+    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath,automatic:Bool,automaticInteractive:Bool,automaticCompletion:(()->(Void))?)
     {
         let stringIndex = popover.section.index(indexPath)
         
@@ -4056,18 +4265,18 @@ class VoiceBase {
         
         globals.mediaPlayer.pause()
         
-        var srtArray = string.components(separatedBy: "\n")
-        let count = srtArray.removeFirst() // Count
-        let timing = srtArray.removeFirst() // Timing
-        let srtTiming = timing.replacingOccurrences(of: "to", with: "-->") // Timing // replacingOccurrences(of: ".", with: ",").
+        var transcriptSegmentArray = string.components(separatedBy: "\n")
+        let count = transcriptSegmentArray.removeFirst() // Count
+        let timing = transcriptSegmentArray.removeFirst() // Timing
+        let transcriptSegmentTiming = timing.replacingOccurrences(of: "to", with: "-->") // Timing // replacingOccurrences(of: ".", with: ",").
         
-        if  let first = srtComponents?.filter({ (string:String) -> Bool in
-//            print(srtTiming,string)
-            return string.contains(srtTiming)
+        if  let first = transcriptSegmentComponents?.filter({ (string:String) -> Bool in
+//            print(transcriptSegmentTiming,string)
+            return string.contains(transcriptSegmentTiming)
         }).first,
             let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
             let textPopover = navigationController.viewControllers[0] as? TextViewController,
-            let srtIndex = self.srtComponents?.index(of: first),
+            let transcriptSegmentIndex = self.transcriptSegmentComponents?.index(of: first),
             let range = string.range(of:timing+"\n") {
             navigationController.modalPresentationStyle = .overCurrentContext
             
@@ -4101,14 +4310,14 @@ class VoiceBase {
                     return
                 }
                 
-                self.srtComponents?[srtIndex] = "\(count)\n\(srtTiming)\n\(text)"
+                self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
                 if popover.searchActive {
                     popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
                 }
-                popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing)\n\(text)"
+                popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
                 
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    self?.transcriptSRT = self?.transcriptSRTFromSRTs
+                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
                 }
                 
                 Thread.onMainThread {
@@ -4155,7 +4364,7 @@ class VoiceBase {
         var edit:AlertAction!
         
         edit = AlertAction(title: "Edit", style: .default) {
-            self.editSRT(popover:popover,tableView:tableView,indexPath:indexPath)
+            self.editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath)
         }
 //        edit.backgroundColor = UIColor.cyan//controlBlue()
         
@@ -4194,12 +4403,12 @@ class VoiceBase {
                     popover.section.showIndex = true
 
                     popover.stringsFunction = { (Void) -> [String]? in
-                        return self.srtTokens?.map({ (string:String) -> String in
+                        return self.transcriptSegmentTokens?.map({ (string:String) -> String in
                             return string //.lowercased()
                         }).sorted()
                     }
 
-//                    popover.section.strings = self.srtTokens?.map({ (string:String) -> String in
+//                    popover.section.strings = self.transcriptSegmentTokens?.map({ (string:String) -> String in
 //                        return string.lowercased()
 //                    }).sorted()
                     
@@ -4253,21 +4462,21 @@ class VoiceBase {
                     
                     // Must use stringsFunction with .selectingTime.
                     popover.stringsFunction = { (Void) -> [String]? in
-                        return self.srtComponents?.filter({ (string:String) -> Bool in
+                        return self.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
                             return string.components(separatedBy: "\n").count > 1
-                        }).map({ (srtComponent:String) -> String in
-                            //                            print("srtComponent: ",srtComponent)
-                            var srtArray = srtComponent.components(separatedBy: "\n")
+                        }).map({ (transcriptSegmentComponent:String) -> String in
+                            //                            print("transcriptSegmentComponent: ",transcriptSegmentComponent)
+                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                             
-                            if srtArray.count > 2  {
-                                let count = srtArray.removeFirst()
-                                let timeWindow = srtArray.removeFirst()
-                                let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
+                            if transcriptSegmentArray.count > 2  {
+                                let count = transcriptSegmentArray.removeFirst()
+                                let timeWindow = transcriptSegmentArray.removeFirst()
+                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
                                 
                                 if  let start = times.first,
                                     let end = times.last,
-                                    let range = srtComponent.range(of: timeWindow+"\n") {
-                                    let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                    let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                     let string = "\(count)\n\(start) to \(end)\n" + text
                                     
                                     return string
@@ -4327,7 +4536,7 @@ class VoiceBase {
                         return self.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }).map({ (dict:[String:Any]) -> String in
-//                            print("srtComponent: ",dict)
+//                            print("transcriptSegmentComponent: ",dict)
                             
                             if  let position = dict["p"] as? Int,
                                 let start = dict["s"] as? Int,

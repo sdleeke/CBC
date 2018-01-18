@@ -1340,6 +1340,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.VoiceBase_Media:
             guard globals.reachability.isReachable else {
+                globals.alert(title:"Network Error",message:"VoiceBase media not available.")
                 return
             }
             
@@ -1867,7 +1868,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.transcript = self.popover?.transcript
                 
                 //                popover.detail = true
-                //                popover.detailAction = srtAction
+                //                popover.detailAction = transcriptSegmentAction
                 
                 popover.vc = self.popover
                 
@@ -1897,30 +1898,30 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
                 // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
                 popover.stringsFunction = {
-                    guard let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents else {
+                    guard let times = popover.transcript?.transcriptSegmentTokenTimes(token: string), let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else {
                         return nil
                     }
                     
                     var strings = [String]()
                     
                     for time in times {
-                        for srtComponent in srtComponents {
-                            if srtComponent.contains(time+" --> ") { //
-                                var srtArray = srtComponent.components(separatedBy: "\n")
+                        for transcriptSegmentComponent in transcriptSegmentComponents {
+                            if transcriptSegmentComponent.contains(time+" --> ") { //
+                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                                 
-                                if srtArray.count > 2  {
-                                    let count = srtArray.removeFirst()
-                                    let timeWindow = srtArray.removeFirst()
-                                    let times = timeWindow.components(separatedBy: " --> ") // replacingOccurrences(of: ",", with: ".").
+                                if transcriptSegmentArray.count > 2  {
+                                    let count = transcriptSegmentArray.removeFirst()
+                                    let timeWindow = transcriptSegmentArray.removeFirst()
+                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
                                     
                                     if  let start = times.first,
                                         let end = times.last,
-                                        let range = srtComponent.range(of: timeWindow+"\n") {
-                                        let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
-                                        //                                    for string in srtArray {
-                                        //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                        //                                    for string in transcriptSegmentArray {
+                                        //                                        text = text + string + (transcriptSegmentArray.index(of: string) == (transcriptSegmentArray.count - 1) ? "" : " ")
                                         //                                    }
                                         
                                         strings.append(string)
@@ -1936,7 +1937,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
-                //                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
+                //                    popover.section.strings = strings // popover.transcript?.transcriptSegmentTokenTimes(token: string)
                 //                    ?.map({ (string:String) -> String in
                 //                    return secondsToHMS(seconds: string) ?? "ERROR"
                 //                })
@@ -2236,33 +2237,33 @@ class MediaTableViewController : UIViewController // MediaController
 //        }
 //    }
     
-    func voiceBaseActions()
-    {
-        let alert = UIAlertController(  title: "VoiceBase Actions",
-                                        message: nil,
-                                        preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        let deleteAllAction = UIAlertAction(title: "Delete All", style: UIAlertActionStyle.destructive, handler: {
-            (action : UIAlertAction!) -> Void in
-            self.deleteAllMedia()
-        })
-        alert.addAction(deleteAllAction)
-        
-        let loadAllAction = UIAlertAction(title: "Load All", style: UIAlertActionStyle.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            VoiceBase.loadAll()
-        })
-        alert.addAction(loadAllAction)
-        
-        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
-        alert.addAction(cancel)
-        
-        present(alert, animated: true, completion: nil)
-    }
+//    func voiceBaseActions()
+//    {
+//        let alert = UIAlertController(  title: "VoiceBase Actions",
+//                                        message: nil,
+//                                        preferredStyle: .alert)
+//        alert.makeOpaque()
+//        
+//        let deleteAllAction = UIAlertAction(title: "Delete All", style: UIAlertActionStyle.destructive, handler: {
+//            (action : UIAlertAction!) -> Void in
+//            self.deleteAllMedia()
+//        })
+//        alert.addAction(deleteAllAction)
+//        
+//        let loadAllAction = UIAlertAction(title: "Load All", style: UIAlertActionStyle.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//            VoiceBase.loadAll()
+//        })
+//        alert.addAction(loadAllAction)
+//        
+//        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//            
+//        })
+//        alert.addAction(cancel)
+//        
+//        present(alert, animated: true, completion: nil)
+//    }
     
     func downloadFailed(_ notification:NSNotification)
     {
