@@ -80,14 +80,16 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
             switch strings[index] {
             case Constants.Strings.View_List:
-                process(viewController: self, work: { () -> (Any?) in
-                    if self.scriptureIndex?.html?.string == nil {
-                        self.scriptureIndex?.html?.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
+                process(viewController: self, work: { [weak self] () -> (Any?) in
+                    if self?.scriptureIndex?.html?.string == nil {
+                        self?.scriptureIndex?.html?.string = self?.setupMediaItemsHTMLScripture(self?.mediaItems, includeURLs: true, includeColumns: true)
                     }
                     
-                    return self.scriptureIndex?.html?.string
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                    return self?.scriptureIndex?.html?.string
+                }, completion: { [weak self] (data:Any?) in
+                    if let vc = self {
+                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                    }
                 })
                 break
                 
@@ -97,14 +99,18 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     if scripture?.html?[reference] != nil {
                         popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scripture?.html?[reference])
                     } else {
-                        process(viewController: self, work: { () -> (Any?) in
-                            self.scripture?.load() // reference
-                            return self.scripture?.html?[reference]
-                        }, completion: { (data:Any?) in
+                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                            self?.scripture?.load() // reference
+                            return self?.scripture?.html?[reference]
+                        }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
-                                popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                                if let vc = self {
+                                    popoverHTML(vc,mediaItem:nil,title:reference,barButtonItem:self?.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                                }
                             } else {
-                                networkUnavailable(self,"Scripture text unavailable.")
+                                if let vc = self {
+                                    networkUnavailable(vc,"Scripture text unavailable.")
+                                }
                             }
                         })
                     }
@@ -1009,7 +1015,7 @@ class ScriptureIndexViewController : UIViewController
 //        return show
 //    }
 
-    var mask = false
+//    var mask = false
     
     override func viewWillAppear(_ animated: Bool)
     {
@@ -1021,31 +1027,31 @@ class ScriptureIndexViewController : UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
         })
         
-        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-            var vc : UIViewController?
-            
-            if presentingViewController == globals.splitViewController.viewControllers[0] {
-                vc = globals.splitViewController.viewControllers[1]
-            }
-            
-            if presentingViewController == globals.splitViewController.viewControllers[1] {
-                vc = globals.splitViewController.viewControllers[0]
-            }
-            
-            mask = true
-            
-            if let vc = vc {
-                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
-                    // When mask is set to false this will end
-                    while self.mask {
-                        Thread.sleep(forTimeInterval: 0.1)
-                    }
-                    return nil
-                },completion:{ (data:Any?) -> Void in
-                    
-                })
-            }
-        }
+//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//            var vc : UIViewController?
+//            
+//            if presentingViewController == globals.splitViewController.viewControllers[0] {
+//                vc = globals.splitViewController.viewControllers[1]
+//            }
+//            
+//            if presentingViewController == globals.splitViewController.viewControllers[1] {
+//                vc = globals.splitViewController.viewControllers[0]
+//            }
+//            
+//            mask = true
+//            
+//            if let vc = vc {
+//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
+//                    // When mask is set to false this will end
+//                    while self?.mask == true {
+//                        Thread.sleep(forTimeInterval: 0.5)
+//                    }
+//                    return nil
+//                },completion:{ [weak self] (data:Any?) -> Void in
+//                    
+//                })
+//            }
+//        }
         
         navigationItem.hidesBackButton = false
         
@@ -1064,7 +1070,7 @@ class ScriptureIndexViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
-        mask = false
+//        mask = false
         
         NotificationCenter.default.removeObserver(self)
     }
@@ -1397,7 +1403,19 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
-    override func viewDidLoad() {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+        
+        }
+    }
+    
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         
         let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.index(_:)))

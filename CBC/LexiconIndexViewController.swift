@@ -131,7 +131,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.View_Words:
-            process(viewController: self, work: { () -> (Any?) in
+            process(viewController: self, work: { [weak self] () -> (Any?) in
                 var bodyHTML = "<!DOCTYPE html>"
                 
                 var wordsHTML = ""
@@ -139,7 +139,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 bodyHTML = bodyHTML + "<html><body>"
                 
-                if let words = self.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+                if let words = self?.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
                     return lhs < rhs
                 }) {
                     let roots = Array(Set(words.map({ (word:String) -> String in
@@ -196,15 +196,15 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.View_List:
-            process(viewController: self, work: { () -> (Any?) in
-                if self.results?.html?.string == nil {
-                    self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
+            process(viewController: self, work: { [weak self] () -> (Any?) in
+                if self?.results?.html?.string == nil {
+                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
                 }
                 
-                return self.results?.html?.string
-            }, completion: { (data:Any?) in
-                if let searchText = self.searchText {
-                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
+                return self?.results?.html?.string
+            }, completion: { [weak self] (data:Any?) in
+                if let searchText = self?.searchText, let vc = self {
+                    presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
                 }
             })
             break

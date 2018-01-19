@@ -96,10 +96,12 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                                       firstTitle: "Yes",
                                       firstAction: {
-                                        process(viewController: self, work: { () -> (Any?) in
-                                            return stripLinks(self.webViewController?.html.string)
-                                        }, completion: { (data:Any?) in
-                                            printHTML(viewController: self, htmlString: data as? String)
+                                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                                            return stripLinks(self?.webViewController?.html.string)
+                                        }, completion: { [weak self] (data:Any?) in
+                                            if let vc = self {
+                                                printHTML(viewController: vc, htmlString: data as? String)
+                                            }
                                         })
                     }, firstStyle: .default,
                                       secondTitle: "No",
@@ -541,15 +543,15 @@ class ScriptureViewController : UIViewController
 //                    _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                 }
             } else {
-                process(viewController: self, work: { () -> (Any?) in
-                    self.scripture?.load() // reference
-                    return self.scripture?.html?[reference]
-                }) { (data:Any?) in
+                process(viewController: self, work: { [weak self] () -> (Any?) in
+                    self?.scripture?.load() // reference
+                    return self?.scripture?.html?[reference]
+                }) { [weak self] (data:Any?) in
                     if let string = data as? String {
-                        self.webViewController?.html.string = string
+                        self?.webViewController?.html.string = string
                         
-                        if let url = self.webViewController?.html.fileURL {
-                            self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        if let url = self?.webViewController?.html.fileURL {
+                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                         }
 
 //                        _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
@@ -561,17 +563,17 @@ class ScriptureViewController : UIViewController
                         bodyString = bodyString + "</html></body>"
                         
                         if let string = insertHead(bodyString,fontSize:Constants.FONT_SIZE) {
-                            self.webViewController?.html.string = string
+                            self?.webViewController?.html.string = string
                             
-                            if let url = self.webViewController?.html.fileURL {
-                                self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                            if let url = self?.webViewController?.html.fileURL {
+                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                             }
 
 //                            _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                         }
                     }
 
-                    self.webViewController?.view.isHidden = false
+                    self?.webViewController?.view.isHidden = false
                 }
             }
         }
@@ -607,6 +609,8 @@ class ScriptureViewController : UIViewController
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
+            case .formSheet:
+                fallthrough
             case .overCurrentContext:
                 fallthrough
             case .fullScreen:

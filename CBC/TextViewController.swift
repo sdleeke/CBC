@@ -316,6 +316,8 @@ class TextViewController : UIViewController
     {
         Thread.onMainThread {
             if self.changedText != nil, self.changedText != self.text {
+                print(prettyFirstDifferenceBetweenStrings(self.changedText! as NSString, self.text! as NSString))
+
                 self.saveButton?.isEnabled = true
                 self.cancelButton?.title = "Cancel"
             } else {
@@ -449,28 +451,6 @@ class TextViewController : UIViewController
             Thread.onMainThread {
                 self.syncButton?.isEnabled = true
                 self.activityIndicator?.stopAnimating()
-                
-                if let transcript = self.transcript {
-                    if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                        let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
-                        
-                        if transcriptString != transcriptFromWordsString {
-                            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
-                        }
-                        
-                        if  (globals.mediaPlayer.mediaItem == transcript.mediaItem),
-                            (transcript.mediaItem?.playing == transcript.purpose),
-                            (transcriptString.lowercased() != transcriptFromWordsString.lowercased()) {
-                            if let text = transcript.mediaItem?.text {
-                                alertActionsOkay( viewController: self,
-                                                  title: "Transcript Sync Warning",
-                                                  message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
-                                    alertActions: nil,
-                                    okayAction: nil)
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -741,42 +721,50 @@ class TextViewController : UIViewController
     {
         var actions = [AlertAction]()
         
-        actions.append(AlertAction(title: "Interactive", style: .default, handler: {
-            let text = self.textView.attributedText.string
+        actions.append(AlertAction(title: "Interactive", style: .default, handler: { [weak self] in
+            guard let vc = self else {
+                return
+            }
             
-            process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: true, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
-                    self.changedText = string
-                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+            let text = self?.textView.attributedText.string
+            
+            process(viewController: vc, work: { [weak self] () -> (Any?) in
+                self?.changeText(interactive: true, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
+                    self?.changedText = string
+                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
 
-                self.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.operationQueue.waitUntilAllOperationsAreFinished()
 //                while self.operationQueue.operationCount > 0 {
 //
 //                }
 
                 return nil
-            }) { (data:Any?) in
+            }) { [weak self] (data:Any?) in
                 
             }
         }))
         
-        actions.append(AlertAction(title: "Automatic", style: .default, handler: {
-            let text = self.textView.attributedText.string
+        actions.append(AlertAction(title: "Automatic", style: .default, handler: { [weak self] in
+            guard let vc = self else {
+                return
+            }
             
-            process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: false, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
-                    self.changedText = string
-                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+            let text = self?.textView.attributedText.string
+            
+            process(viewController: vc, work: { [weak self] () -> (Any?) in
+                self?.changeText(interactive: false, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
+                    self?.changedText = string
+                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
-                self.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.operationQueue.waitUntilAllOperationsAreFinished()
 //                while self.operationQueue.operationCount > 0 {
 //                    
 //                }
 
                 return nil
-            }) { (data:Any?) in
+            }) { [weak self] (data:Any?) in
                 
             }
         }))
@@ -878,7 +866,7 @@ class TextViewController : UIViewController
             
             popover.lastRange = self.lastRange
             
-            popover.mask = self.mask
+//            popover.mask = self.mask
             
             popover.onCancel = self.onCancel
             
@@ -958,6 +946,8 @@ class TextViewController : UIViewController
 
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
+            case .formSheet:
+                fallthrough
             case .overCurrentContext:
                 fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.showFullScreen))
                 fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
@@ -996,39 +986,62 @@ class TextViewController : UIViewController
         }
     }
     
-    var mask = false
+//    var mask = false
     
     var creatingFollowing = false
+    
+    func checkSync()
+    {
+        guard let transcript = self.transcript else {
+            return
+        }
+        
+        if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
+            
+            if transcriptString != transcriptFromWordsString {
+                print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
+            }
+            
+            if  (globals.mediaPlayer.mediaItem == transcript.mediaItem),
+                (transcript.mediaItem?.playing == transcript.purpose),
+                (transcriptString.lowercased() != transcriptFromWordsString.lowercased()) {
+                if let text = transcript.mediaItem?.text {
+                    globals.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
+                }
+            }
+        }
+    }
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
         
-        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-            var vc : UIViewController?
-            
-            if presentingViewController == globals.splitViewController.viewControllers[0] {
-                vc = globals.splitViewController.viewControllers[1]
-            }
-            
-            if presentingViewController == globals.splitViewController.viewControllers[1] {
-                vc = globals.splitViewController.viewControllers[0]
-            }
-            
-            mask = true
-            
-            if let vc = vc {
-                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
-                    // Why are we doing this?
-                    while self.mask {
-                        Thread.sleep(forTimeInterval: 0.1)
-                    }
-                    return nil
-                },completion:{ (data:Any?) -> Void in
-                    
-                })
-            }
-        }
+//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//            var vc : UIViewController?
+//            
+//            if presentingViewController == globals.splitViewController.viewControllers[0] {
+//                vc = globals.splitViewController.viewControllers[1]
+//            }
+//            
+//            if presentingViewController == globals.splitViewController.viewControllers[1] {
+//                vc = globals.splitViewController.viewControllers[0]
+//            }
+//            
+//            mask = true
+//            
+//            if let vc = vc {
+//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
+//                    // Why are we doing this?
+//                    while self?.mask == true {
+//                        Thread.sleep(forTimeInterval: 0.5)
+//                    }
+//                    return nil
+//                },completion:{ [weak self] (data:Any?) -> Void in
+//                    
+//                })
+//            }
+//        }
         
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
@@ -1345,7 +1358,7 @@ class TextViewController : UIViewController
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                    
+                    self.updateBarButtons()
                 }))
                 
                 globals.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
@@ -1510,12 +1523,12 @@ class TextViewController : UIViewController
                         completion?(text)
                     }
                     
-                    operationQueue.addOperation {
+                    operationQueue.addOperation { [weak self] in
                         let before = text.substring(to: range.lowerBound)
                         
                         if let completedRange = text.range(of: before + value) {
                             let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
-                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                            self?.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
                         } else {
                             // ERROR
                         }
@@ -1526,9 +1539,9 @@ class TextViewController : UIViewController
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
                 } else {
-                    operationQueue.addOperation {
+                    operationQueue.addOperation { [weak self] in
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                        self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                        self?.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
                     }
                 }
             }
@@ -1542,12 +1555,12 @@ class TextViewController : UIViewController
                 }
                 self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
             } else {
-                operationQueue.addOperation {
+                operationQueue.addOperation { [weak self] in
                     masterChanges[masterKey]?[key] = nil
                     if masterChanges[masterKey]?.count == 0 {
                         masterChanges[masterKey] = nil
                     }
-                    self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
+                    self?.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
                 }
             }
         }
@@ -1603,6 +1616,8 @@ class TextViewController : UIViewController
     {
         super.viewDidAppear(animated)
         
+        checkSync()
+
         if isTracking {
             //            startTracking()
             //            removeAssist()
@@ -1614,19 +1629,19 @@ class TextViewController : UIViewController
         if automatic {
             let text = self.textView.attributedText.string
             
-            process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: self.automaticInteractive, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: self.automaticInteractive), completion: { (string:String) -> (Void) in
-                    self.changedText = string
-                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+            process(viewController: self, work: { [weak self] () -> (Any?) in
+                self?.changeText(interactive: self?.automaticInteractive == true, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: self?.automaticInteractive == true), completion: { (string:String) -> (Void) in
+                    self?.changedText = string
+                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
-                self.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.operationQueue.waitUntilAllOperationsAreFinished()
 //                while self.operationQueue.operationCount > 0 {
 //                    
 //                }
 
                 return nil
-            }) { (data:Any?) in
+            }) { [weak self] (data:Any?) in
 //                self.dismiss(animated: true, completion: nil)
 //                self.completion?(self.textView.text)
 //                self.automaticCompletion?()
@@ -1638,11 +1653,26 @@ class TextViewController : UIViewController
         }
     }
 
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        guard (self.view.window == nil) else {
+            return
+        }
+        
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+
+        }
+    }
+
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
         
-        mask = false
+//        mask = false
         
         trackingTimer?.invalidate()
         trackingTimer = nil

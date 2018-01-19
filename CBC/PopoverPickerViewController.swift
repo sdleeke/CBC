@@ -289,14 +289,14 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
         case .selectingAction:
             switch string {
             case Constants.Strings.Expanded_View:
-                process(viewController: self, work: { () -> (Any?) in
+                process(viewController: self, work: { [weak self] () -> (Any?) in
                     var bodyHTML = "<!DOCTYPE html>"
                     
                     bodyHTML = bodyHTML + "<html><body>"
                     
                     bodyHTML = bodyHTML + "<center>"
                     
-                    if let roots = self.stringTree?.root?.stringNodes {
+                    if let roots = self?.stringTree?.root?.stringNodes {
                         bodyHTML = bodyHTML + "<table><tr>"
                         
                         for root in roots {
@@ -329,8 +329,10 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     bodyHTML = bodyHTML + "</body></html>"
                     
                     return bodyHTML
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                }, completion: { [weak self] (data:Any?) in
+                    if let vc = self {
+                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    }
                 })
                 break
                 
@@ -384,7 +386,7 @@ class PopoverPickerViewController : UIViewController
 
     @IBAction func expandedViewAction(_ sender: UIButton)
     {
-        process(viewController: self, work: { () -> (Any?) in
+        process(viewController: self, work: { [weak self] () -> (Any?) in
             var bodyHTML = "<!DOCTYPE html>"
             
             var wordsHTML = ""
@@ -392,7 +394,7 @@ class PopoverPickerViewController : UIViewController
             
             bodyHTML = bodyHTML + "<html><body>"
             
-            if let roots = self.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
+            if let roots = self?.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
                 return lhs.string < rhs.string
             }) {
                 var total = 0
@@ -435,8 +437,10 @@ class PopoverPickerViewController : UIViewController
             bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
             
             return bodyHTML
-        }, completion: { (data:Any?) in
-            presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+        }, completion: { [weak self] (data:Any?) in
+            if let vc = self {
+                presentHTMLModal(viewController: vc, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+            }
         })
     }
     
@@ -867,15 +871,15 @@ class PopoverPickerViewController : UIViewController
             if stringTree?.incremental == true {
                 self.stringTree?.build(strings: self.strings)
             } else {
-                process(viewController: self, work: { () -> (Any?) in
-                    self.stringTree?.build(strings: self.strings)
+                process(viewController: self, work: { [weak self] () -> (Any?) in
+                    self?.stringTree?.build(strings: self?.strings)
                     
                     return nil
-                }, completion: { (data:Any?) in
-                    self.updateActionButton()
+                }, completion: { [weak self] (data:Any?) in
+                    self?.updateActionButton()
                     
-                    self.updatePickerSelections()
-                    self.updatePicker()
+                    self?.updatePickerSelections()
+                    self?.updatePicker()
                 })
             }
         }

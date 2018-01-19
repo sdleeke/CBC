@@ -11,7 +11,7 @@ import UIKit
 protocol PopoverTableViewControllerDelegate
 {
     var popover : PopoverTableViewController? { get set }
-    
+
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
@@ -1025,10 +1025,14 @@ class PopoverTableViewController : UIViewController
     {
         super.viewDidLoad()
     
+        navigationController?.toolbar.isTranslucent = false
+
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done))
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
+            case .formSheet:
+                fallthrough
             case .overCurrentContext:
                 fallthrough
             case .fullScreen:
@@ -1226,7 +1230,7 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillDisappear(animated)
 
-        mask = false
+//        mask = false
         
         NotificationCenter.default.removeObserver(self)
         
@@ -1469,7 +1473,7 @@ class PopoverTableViewController : UIViewController
         self.dismiss(animated: true, completion: nil)
     }
     
-    var mask = false
+//    var mask = false
 
     override func viewWillAppear(_ animated: Bool)
     {
@@ -1521,31 +1525,31 @@ class PopoverTableViewController : UIViewController
             self.view.setNeedsLayout()
         }
         
-        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-            var vc : UIViewController?
-            
-            if presentingViewController == globals.splitViewController.viewControllers[0] {
-                vc = globals.splitViewController.viewControllers[1]
-            }
-
-            if presentingViewController == globals.splitViewController.viewControllers[1] {
-                vc = globals.splitViewController.viewControllers[0]
-            }
-            
-            mask = true
-            
-            if let vc = vc {
-                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
-                    // When mask is set to false this will end
-                    while self.mask {
-                        Thread.sleep(forTimeInterval: 0.1)
-                    }
-                    return nil
-                },completion:{ (data:Any?) -> Void in
-                    
-                })
-            }
-        }
+//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//            var vc : UIViewController?
+//
+//            if presentingViewController == globals.splitViewController.viewControllers[0] {
+//                vc = globals.splitViewController.viewControllers[1]
+//            }
+//
+//            if presentingViewController == globals.splitViewController.viewControllers[1] {
+//                vc = globals.splitViewController.viewControllers[0]
+//            }
+//
+//            mask = true
+//
+//            if let vc = vc {
+//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
+//                    // When mask is set to false this will end
+//                    while self?.mask == true {
+//                        Thread.sleep(forTimeInterval: 0.5)
+//                    }
+//                    return nil
+//                },completion:{ [weak self] (data:Any?) -> Void in
+//
+//                })
+//            }
+//        }
         
         if segments, let method = sort.method {
             switch method {

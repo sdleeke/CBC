@@ -631,7 +631,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             if let popover = self.popover {
                 actions.append(AlertAction(title: "Information", style: .default) {
-                    process(viewController: popover, work: { () -> (Any?) in
+                    process(viewController: popover, work: { [weak self] () -> (Any?) in
                         var data : Any?
                         
                         VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
@@ -648,10 +648,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         return data
-                    }, completion: { (data:Any?) in
+                    }, completion: { [weak self] (data:Any?) in
                         let json = data as? [String:Any]
                         
-                        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                             let popover = navigationController.viewControllers[0] as? WebViewController {
                             
                             popover.html.fontSize = 12
@@ -692,15 +692,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             popover.search = true
                             popover.content = .html
                             
-                            popover.navigationItem.title = self.popover?.navigationItem.title // "VoiceBase Media Item"
+                            popover.navigationItem.title = self?.popover?.navigationItem.title // "VoiceBase Media Item"
                             
-                            self.popover?.navigationController?.pushViewController(popover, animated: true)
+                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
                         }
                     })
                 })
 
                 actions.append(AlertAction(title: "Inspector", style: .default) {
-                    process(viewController: popover, work: { () -> (Any?) in
+                    process(viewController: popover, work: { [weak self] () -> (Any?) in
                         var data : Any?
                         
                         VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
@@ -718,10 +718,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         return data
-                    }, completion: { (data:Any?) in
+                    }, completion: { [weak self] (data:Any?) in
                         let json = data as? [String:Any]
                         
-                        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                        if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                             popover.search = true
                             
@@ -730,7 +730,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             popover.stringsAny = json
                             popover.purpose = .showingVoiceBaseMediaItem
                             
-                            self.popover?.navigationController?.pushViewController(popover, animated: true)
+                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
                         }
                     })
                 })
@@ -917,7 +917,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     if let popover = self.popover {
                         actions.append(AlertAction(title: "Details", style: .default, handler: {
-                            process(viewController: popover, work: { () -> (Any?) in
+                            process(viewController: popover, work: { [weak self] () -> (Any?) in
                                 var data : Any?
 
                                 VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
@@ -934,10 +934,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 }
 
                                 return data
-                            }, completion: { (data:Any?) in
+                            }, completion: { [weak self] (data:Any?) in
                                 let json = data as? [String:Any]
 
-                                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                                if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? WebViewController {
 
                                     popover.html.fontSize = 12
@@ -948,13 +948,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                                     popover.navigationItem.title = "VoiceBase Media Item"
 
-                                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
                                 }
                             })
                         }))
 
                         actions.append(AlertAction(title: "Inspector", style: .default, handler: {
-                            process(viewController: popover, work: { () -> (Any?) in
+                            process(viewController: popover, work: { [weak self] () -> (Any?) in
                                 var data : Any?
 
                                 VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
@@ -972,10 +972,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 }
 
                                 return data
-                            }, completion: { (data:Any?) in
+                            }, completion: { [weak self] (data:Any?) in
                                 let json = data as? [String:Any]
 
-                                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                                if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                                     popover.search = true
 
@@ -984,7 +984,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     popover.stringsAny = json
                                     popover.purpose = .showingVoiceBaseMediaItem
 
-                                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
                                 }
                             })
                         }))
@@ -1837,13 +1837,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 if let string = globals.media.active?.html?.string {
                     presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: string)
                 } else {
-                    process(viewController: self, work: { () -> (Any?) in
+                    process(viewController: self, work: { [weak self] () -> (Any?) in
                         if globals.media.active?.html?.string == nil {
                             globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
                         }
                         return globals.media.active?.html?.string
-                    }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                    }, completion: { [weak self] (data:Any?) in
+                        if let vc = self {
+                            presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                        }
                     })
                 }
                 break

@@ -327,10 +327,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                                   firstTitle: "Yes",
                                   firstAction: {
-                                        process(viewController: self, work: { () -> (Any?) in
-                                            return stripLinks(self.html.string)
-                                        }, completion: { (data:Any?) in
-                                            printHTML(viewController: self, htmlString: data as? String)
+                                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                                            return stripLinks(self?.html.string)
+                                        }, completion: { [weak self] (data:Any?) in
+                                            if let vc = self {
+                                                printHTML(viewController: vc, htmlString: data as? String)
+                                            }
                                         })
                                     }, firstStyle: .default,
                                   secondTitle: "No",
@@ -1348,17 +1350,20 @@ class WebViewController: UIViewController
             }
             
             switch presentationStyle {
+            case .formSheet:
+                fallthrough
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-                    navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                    navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
+                        navigationItem.rightBarButtonItems?.append(actionButton)
                         navigationItem.rightBarButtonItems?.append(minusButton)
                         navigationItem.rightBarButtonItems?.append(plusButton)
                         navigationItem.rightBarButtonItems?.append(activityButton)
                     } else {
-                        navigationItem.setRightBarButtonItems([minusButton,plusButton,activityButton], animated: true)
+                        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                     }
                 }
                 
@@ -1977,7 +1982,7 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-    var mask = false
+//    var mask = false
     
     override func viewWillAppear(_ animated: Bool)
     {
@@ -1987,31 +1992,31 @@ class WebViewController: UIViewController
             activityButtonIndicator.startAnimating()
         }
         
-        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-            var vc : UIViewController?
-            
-            if presentingViewController == globals.splitViewController.viewControllers[0] {
-                vc = globals.splitViewController.viewControllers[1]
-            }
-            
-            if presentingViewController == globals.splitViewController.viewControllers[1] {
-                vc = globals.splitViewController.viewControllers[0]
-            }
-            
-            mask = true
-            
-            if let vc = vc {
-                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
-                    // Why are we doing this?
-                    while self.mask {
-                        Thread.sleep(forTimeInterval: 0.1)
-                    }
-                    return nil
-                },completion:{ (data:Any?) -> Void in
-                    
-                })
-            }
-        }
+//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//            var vc : UIViewController?
+//
+//            if presentingViewController == globals.splitViewController.viewControllers[0] {
+//                vc = globals.splitViewController.viewControllers[1]
+//            }
+//
+//            if presentingViewController == globals.splitViewController.viewControllers[1] {
+//                vc = globals.splitViewController.viewControllers[0]
+//            }
+//
+//            mask = true
+//
+//            if let vc = vc {
+//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
+//                    // Why are we doing this?
+//                    while self?.mask == true {
+//                        Thread.sleep(forTimeInterval: 0.5)
+//                    }
+//                    return nil
+//                },completion:{ [weak self] (data:Any?) -> Void in
+//
+//                })
+//            }
+//        }
         
         orientation = UIDevice.current.orientation
         
@@ -2091,7 +2096,7 @@ class WebViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
-        mask = false
+//        mask = false
         
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil

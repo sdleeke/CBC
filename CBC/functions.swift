@@ -3959,7 +3959,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
             let hClass = viewController.traitCollection.horizontalSizeClass
 
             if hClass == .compact {
-                navigationController.modalPresentationStyle = .fullScreen
+                navigationController.modalPresentationStyle = .overFullScreen
             } else {
                 // I don't think this ever happens: collapsed and regular
                 navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
@@ -3969,13 +3969,21 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
             }
         } else {
             if viewController.splitViewController?.displayMode == .primaryHidden {
-                navigationController.modalPresentationStyle = .fullScreen // Used to be .popover
+                if !UIApplication.shared.isRunningInFullScreen() {
+                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                } else {
+                    navigationController.modalPresentationStyle = .formSheet // Used to be .popover
+                }
             } else {
-                navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+                if !UIApplication.shared.isRunningInFullScreen() {
+                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                } else {
+                    navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                }
             }
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         }
         
         if sourceView != nil {

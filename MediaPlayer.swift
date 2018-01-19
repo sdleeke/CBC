@@ -814,8 +814,8 @@ class MediaPlayer : NSObject {
         observerActive = true
         observedItem = currentItem
         
-        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { (time:CMTime) in // [weak self] 
-            self.playerTimer()
+        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in //
+            self?.playerTimer()
         })
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
@@ -970,18 +970,19 @@ class MediaPlayer : NSObject {
         }
     }
     
-    func seek(to: Double?)
-    {
-        isSeeking = true
-        seek(to: to,completion:{ (finished:Bool) in
-            if finished {
-                self.isSeeking = false
-                Thread.onMainThread() {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-                }
-            }
-        })
-    }
+//    func seek(to: Double?)
+//    {
+//        isSeeking = true
+//
+//        seek(to: to,completion:{ [weak self] (finished:Bool) in
+//            if finished {
+//                self?.isSeeking = false
+//                Thread.onMainThread() {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+//                }
+//            }
+//        })
+//    }
     
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -992,7 +993,7 @@ class MediaPlayer : NSObject {
 
     var lastSeek:Double?
     
-    func seek(to: Double?,completion:((Bool)->(Void))?)
+    func seek(to: Double?) // ,completion:((Bool)->(Void))?
     {
         guard let to = to else {
             return
@@ -1022,18 +1023,32 @@ class MediaPlayer : NSObject {
                     seek = 0
                 }
                 
+//                self.isSeeking = false
+                
                 mediaItem?.atEnd = seek >= length
 
-                operationQueue.cancelAllOperations()
-                operationQueue.waitUntilAllOperationsAreFinished()
-
-                operationQueue.addOperation {
-                    self.player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+//                operationQueue.cancelAllOperations()
+//                operationQueue.waitUntilAllOperationsAreFinished()
+//
+                operationQueue.addOperation { [weak self] in
+                    self?.isSeeking = true
+                    
+                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
                                       toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
                                       completionHandler: { (finished:Bool) in
-                                        if finished {
-                                            self.lastSeek = to
-                                            completion?(finished)
+                                        if finished { // , self?.isSeeking == true
+                                            self?.isSeeking = false
+                                            self?.lastSeek = to
+                                            
+                                            self?.mediaItem?.currentTime = seek.description
+                                            self?.stateTime?.startTime = seek.description
+                                            
+                                            self?.setupPlayingInfoCenter()
+
+                                            Thread.onMainThread() {
+                                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+                                            }
+//                                            completion?(finished)
 
                                             // There is simply no avoiding the fact that currentTime may not be what you try to set it to, often less.
                                             
@@ -1107,11 +1122,6 @@ class MediaPlayer : NSObject {
 //                } else {
 //                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
 //                }
-                
-                mediaItem?.currentTime = seek.description
-                stateTime?.startTime = seek.description
-                
-                setupPlayingInfoCenter()
             }
             break
         }

@@ -316,8 +316,35 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.vc = self
                 
-                navigationController.modalPresentationStyle = .overCurrentContext
+//                navigationController.modalPresentationStyle = .overCurrentContext
                 
+                if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                    let hClass = self.traitCollection.horizontalSizeClass
+                    
+                    if hClass == .compact {
+                        navigationController.modalPresentationStyle = .overFullScreen
+                    } else {
+                        // I don't think this ever happens: collapsed and regular
+                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
+                    }
+                } else {
+                    if self.splitViewController?.displayMode == .primaryHidden {
+                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                    } else {
+                        if !UIApplication.shared.isRunningInFullScreen() {
+                            navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                        } else {
+                            navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                        }
+                    }
+                    
+                    //                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    //                            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                }
+
                 navigationController.popoverPresentationController?.delegate = self
                 
 //                navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -506,10 +533,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Print:
-            process(viewController: self, work: {
-                return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
-            }, completion: { (data:Any?) in
-                printHTML(viewController: self, htmlString: data as? String)
+            process(viewController: self, work: { [weak self] in
+                return setupMediaItemsHTML(self?.mediaItems,includeURLs:false,includeColumns:true)
+            }, completion: { [weak self] (data:Any?) in
+                if let vc = self {
+                    printHTML(viewController: vc, htmlString: data as? String)
+                }
             })
             break
             

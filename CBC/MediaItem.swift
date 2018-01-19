@@ -3678,9 +3678,9 @@ class MediaItem : NSObject
                     return
                 }
                 
-                process(viewController: mtvc, work: { () -> (Any?) in
-                    self.loadNotesTokens()
-                }, completion: { (data:Any?) in
+                process(viewController: mtvc, work: { [weak self] () -> (Any?) in
+                    self?.loadNotesTokens()
+                }, completion: { [weak self] (data:Any?) in
                     transcriptTokens()
                 })
             } else {
@@ -3708,11 +3708,11 @@ class MediaItem : NSObject
                     return
                 }
                 
-                process(viewController: globals.splitViewController, work: { () -> (Any?) in
-                    self.loadNotesHTML()
+                process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+                    self?.loadNotesHTML()
                     
-                    return self.fullNotesHTML
-                }, completion: { (data:Any?) in
+                    return self?.fullNotesHTML
+                }, completion: { [weak self] (data:Any?) in
                     if let htmlString = data as? String {
                         popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
                     } else {
@@ -3736,10 +3736,10 @@ class MediaItem : NSObject
                         return
                     }
                     
-                    process(viewController: viewController, work: { () -> (Any?) in
-                        self.scripture?.load()
-                        return self.scripture?.html?[reference]
-                    }, completion: { (data:Any?) in
+                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                        self?.scripture?.load()
+                        return self?.scripture?.html?[reference]
+                    }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
                             popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
                         } else {
