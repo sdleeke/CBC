@@ -3968,17 +3968,23 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
                 navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
             }
         } else {
-            if viewController.splitViewController?.displayMode == .primaryHidden {
-                if !UIApplication.shared.isRunningInFullScreen() {
-                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-                } else {
-                    navigationController.modalPresentationStyle = .formSheet // Used to be .popover
-                }
+            let vClass = viewController.traitCollection.verticalSizeClass
+            
+            if vClass == .compact {
+                navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
             } else {
-                if !UIApplication.shared.isRunningInFullScreen() {
-                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                if viewController.splitViewController?.displayMode == .primaryHidden {
+                    if !UIApplication.shared.isRunningInFullScreen() {
+                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                    } else {
+                        navigationController.modalPresentationStyle = .formSheet // Used to be .popover
+                    }
                 } else {
-                    navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                    if !UIApplication.shared.isRunningInFullScreen() {
+                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                    } else {
+                        navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                    }
                 }
             }
             

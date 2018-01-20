@@ -2295,19 +2295,20 @@ class MediaTableViewController : UIViewController // MediaController
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-
-            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                let hClass = traitCollection.horizontalSizeClass
-                
-                if hClass == .compact {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                } else {
-                    // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                }
-            } else {
-                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-            }
+            setModalStyle(navigationController)
+            
+//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//                let hClass = traitCollection.horizontalSizeClass
+//                
+//                if hClass == .compact {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                } else {
+//                    // I don't think this ever happens: collapsed and regular
+//                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                }
+//            } else {
+//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//            }
 
             navigationController.popoverPresentationController?.delegate = self
             
@@ -3466,6 +3467,22 @@ class MediaTableViewController : UIViewController // MediaController
         })
     }
     
+    func setModalStyle(_ navigationController:UINavigationController)
+    {
+        if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+            let hClass = traitCollection.horizontalSizeClass
+            
+            if hClass == .compact {
+                navigationController.modalPresentationStyle = .overCurrentContext
+            } else {
+                // I don't think this ever happens: collapsed and regular
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+            }
+        } else {
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+        }
+    }
+    
     @IBAction func selectingTagsAction(_ sender: UIButton)
     {
         guard Thread.isMainThread else {
@@ -3496,19 +3513,7 @@ class MediaTableViewController : UIViewController // MediaController
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            
-            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                let hClass = traitCollection.horizontalSizeClass
-                
-                if hClass == .compact {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                } else {
-                    // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                }
-            } else {
-                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-            }
+            setModalStyle(navigationController)
 
             navigationController.popoverPresentationController?.delegate = self
 

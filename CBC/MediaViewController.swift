@@ -331,13 +331,19 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                         navigationController.popoverPresentationController?.delegate = self
                     }
                 } else {
-                    if self.splitViewController?.displayMode == .primaryHidden {
+                    let vClass = self.traitCollection.verticalSizeClass
+                    
+                    if vClass == .compact {
                         navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
                     } else {
-                        if !UIApplication.shared.isRunningInFullScreen() {
+                        if self.splitViewController?.displayMode == .primaryHidden {
                             navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
                         } else {
-                            navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                            if !UIApplication.shared.isRunningInFullScreen() {
+                                navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+                            } else {
+                                navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+                            }
                         }
                     }
                     

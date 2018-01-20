@@ -1150,6 +1150,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="uqP-qA-C0U"/>
                     <connections>
+                        <outlet property="bottomLayoutConstraint" destination="Kac-4X-Bdb" id="pp1-Qm-NGh"/>
                         <outlet property="searchBar" destination="VOk-yJ-wJW" id="BwH-db-5Ng"/>
                         <outlet property="textView" destination="z3X-xR-CG6" id="V5M-Xh-Hlc"/>
                         <outlet property="textViewToTop" destination="1bs-rJ-y7S" id="EJu-fu-Dcb"/>
