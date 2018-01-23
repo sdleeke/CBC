@@ -3048,30 +3048,45 @@ class MediaViewController: UIViewController // MediaController
         guard let document = (timer?.userInfo as? Document) else {
             return
         }
+        
+//        guard let isLoading = document.wkWebView?.isLoading else {
+//            return
+//        }
+        
+//        if !isLoading {
+//            document.loadTimer?.invalidate()
+//            document.loadTimer = nil
+//        }
+        
+        if document.showing(selectedMediaItem) {
+//            if isLoading {
+//                if let wkWebView = document.wkWebView {
+//                    progressIndicator.isHidden = !wkWebView.isHidden
+//                    activityIndicator.isHidden = !wkWebView.isHidden
+//                }
+            
+                    mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+//                    mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
 
-        if let isLoading = document.wkWebView?.isLoading, !isLoading {
-            activityIndicator.stopAnimating()
-            activityIndicator.isHidden = true
+//                if !progressIndicator.isHidden {
+//                    if let estimatedProgress = document.wkWebView?.estimatedProgress {
+//                        print(estimatedProgress)
+//                        progressIndicator.progress = Float(estimatedProgress)
+//                    }
+//                }
+
+//                if !activityIndicator.isHidden {
+                    activityIndicator.startAnimating()
+//                }
+//            } else {
+//                activityIndicator.stopAnimating()
+//                activityIndicator.isHidden = true
+//
+//                progressIndicator.isHidden = true
+//            }
             
-            progressIndicator.isHidden = true
-            
-            document.loadTimer?.invalidate()
-            document.loadTimer = nil
-        } else {
-            if let wkWebView = document.wkWebView {
-                progressIndicator.isHidden = !(wkWebView.isHidden && document.showing(selectedMediaItem))
-                activityIndicator.isHidden = !(wkWebView.isHidden && document.showing(selectedMediaItem))
-            }
-            
-            if !activityIndicator.isHidden {
-                activityIndicator.startAnimating()
-            }
-            
-            if document.showing(selectedMediaItem) {
-                if let estimatedProgress = document.wkWebView?.estimatedProgress {
-                    progressIndicator.progress = Float(estimatedProgress)
-                }
-            }
+//            if document.showing(selectedMediaItem) {
+//            }
         }
     }
     
@@ -3184,7 +3199,7 @@ class MediaViewController: UIViewController // MediaController
                     self.activityIndicator.isHidden = false
                     self.activityIndicator.startAnimating()
                     
-                    self.progressIndicator.isHidden = false
+//                    self.progressIndicator.isHidden = false
                 }
                 
                 if document.loadTimer == nil {
@@ -3192,8 +3207,16 @@ class MediaViewController: UIViewController // MediaController
                 }
 
                 if let url = document.download?.downloadURL {
-                    let request = URLRequest(url: url)
-                    _ = document.wkWebView?.load(request)
+                    DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                        if let data = try? Data(contentsOf: url) {
+                            Thread.onMainThread {
+                                document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+                            }
+                        }
+                    }
+                    
+//                    let request = URLRequest(url: url)
+//                    _ = document.wkWebView?.load(request)
                 }
             }
         } else {
@@ -3211,8 +3234,16 @@ class MediaViewController: UIViewController // MediaController
             ///////
             
             if let url = document.download?.downloadURL {
-                let request = URLRequest(url: url)
-                _ = document.wkWebView?.load(request)
+                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                    if let data = try? Data(contentsOf: url) {
+                        Thread.onMainThread {
+                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+                        }
+                    }
+                }
+                
+                //                    let request = URLRequest(url: url)
+                //                    _ = document.wkWebView?.load(request)
             }
         }
     }

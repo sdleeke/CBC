@@ -3647,90 +3647,108 @@ class VoiceBase {
         task.resume()
     }
 
-    func relaodUserInfo() -> [String:Any]?
+    func relaodUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
-        var userInfo = [String:Any]()
+        guard let text = self.mediaItem?.text else {
+            return nil
+        }
         
-        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
-            if let status = json?["status"] as? String, status == "finished" {
-                self.percentComplete = nil
-                
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
-                
-                // Don't do this because we're just re-uploading
-                //                                self.transcribing = false
-                //                                self.completed = true
-                
-                // Get the new versions.
-                self.getTranscript(alert: true) {
-                    self.getTranscriptSegments(alert: true) {
-                        self.details(alert: true) {
-                            if let text = self.mediaItem?.text {
-                                globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
-                            }
-                        }
-                    }
-                }
-            } else {
-                if let progress = json?["progress"] as? [String:Any] {
-                    if let tasks = progress["tasks"] as? [String:Any] {
-                        let count = tasks.count
-                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                            if let dict = value as? [String:Any] {
-                                if let status = dict["status"] as? String {
-                                    return (status == "finished") || (status == "completed")
+        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+                        finishedTitle: "Transcript Reload Completed", finishedMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded.", onFinished: {
+                            self.getTranscript(alert:detailedAlerts) {
+                                self.getTranscriptSegments(alert:detailedAlerts) {
+                                    self.details(alert:detailedAlerts) {
+
+                                    }
                                 }
                             }
-                            
-                            return false
-                        }).count
-                        
-                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-                        
-                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
-                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
-                        }
-                    }
-                }
-            }
-        }
+                        },
+                        errorTitle: "Transcript Reload Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not reloaded.  Please try again.", onError: {
+
+                        })
         
-        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-            self.remove()
-            
-            var error : String?
-            
-            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
-                error = message
-            }
-            
-            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
-                error = message
-            }
-            
-            var message : String?
-            
-            if let text = self.mediaItem?.text {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                } else {
-                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
-                }
-            } else {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
-                } else {
-                    message = "The transcript was not realigned.  Please try again."
-                }
-            }
-            
-            if let message = message {
-                globals.alert(title: "Transcript Alignment Failed",message: message)
-            }
-        }
-        
-        return userInfo.count > 0 ? userInfo : nil
+//        var userInfo = [String:Any]()
+//
+//        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+//            if let status = json?["status"] as? String, status == "finished" {
+//                self.percentComplete = nil
+//
+//                self.resultsTimer?.invalidate()
+//                self.resultsTimer = nil
+//
+//                // Don't do this because we're just re-uploading
+//                //                                self.transcribing = false
+//                //                                self.completed = true
+//
+//                // Get the new versions.
+//                self.getTranscript(alert: detailedAlerts) {
+//                    self.getTranscriptSegments(alert: detailedAlerts) {
+//                        self.details(alert: detailedAlerts) {
+//                            if let text = self.mediaItem?.text {
+//                                globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+//                            }
+//                        }
+//                    }
+//                }
+//            } else {
+//                if let progress = json?["progress"] as? [String:Any] {
+//                    if let tasks = progress["tasks"] as? [String:Any] {
+//                        let count = tasks.count
+//                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+//                            if let dict = value as? [String:Any] {
+//                                if let status = dict["status"] as? String {
+//                                    return (status == "finished") || (status == "completed")
+//                                }
+//                            }
+//
+//                            return false
+//                        }).count
+//
+//                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+//
+//                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+//                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+//            self.remove()
+//
+//            var error : String?
+//
+//            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+//                error = message
+//            }
+//
+//            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+//                error = message
+//            }
+//
+//            var message : String?
+//
+//            if let text = self.mediaItem?.text {
+//                if let error = error {
+//                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+//                } else {
+//                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+//                }
+//            } else {
+//                if let error = error {
+//                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
+//                } else {
+//                    message = "The transcript was not realigned.  Please try again."
+//                }
+//            }
+//
+//            if let message = message {
+//                globals.alert(title: "Transcript Alignment Failed",message: message)
+//            }
+//        }
+//
+//        return userInfo.count > 0 ? userInfo : nil
     }
     
 //    var recognitionTask : Any?
@@ -4144,9 +4162,20 @@ class VoiceBase {
                         alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                             var alertActions = [AlertAction]()
                             
+                            if self.mediaItem?.hasNotesHTML == true {
+                                alertActions.append(AlertAction(title: "HTML Transcript", style: .default, handler: {
+                                    process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+                                        self?.mediaItem?.loadNotesHTML()
+                                    }, completion: { [weak self] (data:Any?) in
+                                        self?.align(stripHTML(self?.mediaItem?.notesHTML))
+                                    })
+                                    //                                tableView.setEditing(false, animated: true)
+                                }))
+                            }
+                            
                             alertActions.append(AlertAction(title: "Transcript", style: .default, handler: {
                                 self.align(self.transcript)
-//                                tableView.setEditing(false, animated: true)
+                                //                                tableView.setEditing(false, animated: true)
                             }))
                             
                             alertActions.append(AlertAction(title: "Segments", style: .default, handler: {
@@ -4229,7 +4258,7 @@ class VoiceBase {
                                             globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                         } else {
                                             Thread.onMainThread() {
-                                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(), repeats: true)
+                                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                             }
                                         }
                                     }))

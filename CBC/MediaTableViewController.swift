@@ -631,108 +631,161 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             if let popover = self.popover {
                 actions.append(AlertAction(title: "Information", style: .default) {
-                    process(viewController: popover, work: { [weak self] () -> (Any?) in
-                        var data : Any?
-                        
-                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                            print(json as Any)
-                            
-                            data = json
-                        }, onError: { (json:[String : Any]?) -> (Void) in
-                            data = "VoiceBase Media Item\nNot Found"
-                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                        
-                        while data == nil {
-                            Thread.sleep(forTimeInterval: 0.1)
-                        }
-                        
-                        return data
-                    }, completion: { [weak self] (data:Any?) in
-                        let json = data as? [String:Any]
-                        
+                    self.popover?.activityIndicator.isHidden = false
+                    self.popover?.activityIndicator.startAnimating()
+                    
+                    VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
                         if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                             let popover = navigationController.viewControllers[0] as? WebViewController {
                             
                             popover.html.fontSize = 12
                             popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
                             
-//                            if let media = json?["media"] as? [String:Any], let mediaID = media["mediaId"] as? String {
-//                                if let metadata = media["metadata"] as? [String:Any] {
-//                                    if let mediaItem = metadata["mediaItem"] as? [String:Any] {
-//                                        if let id = mediaItem["id"] as? String {
-//                                            if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
-//                                                if let mediaList = globals.media.all?.list {
-//                                                    if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
-//                                                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-//                                                            return transcript.mediaID == mediaID
-//                                                        }).count == 1
-//                                                    }).count == 0 {
-//                                                        if  let mediaItem = globals.mediaRepository.index?[id],
-//                                                            mediaItem.transcripts[purpose]?.mediaID == nil {
-//                                                            self.actionButton = UIBarButtonItem(title: Constants.FA.PLUS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseLoad))
-//
-//                                                            self.voiceBasePurpose = purpose
-//                                                            self.voiceBaseMediaID = mediaID
-//                                                            self.voiceBaseMediaItemID = mediaItem.id
-//                                                            self.actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
-//
-//                                                            popover.navigationItem.rightBarButtonItem = self.actionButton
-//                                                        }
-//                                                    } else {
-//
-//                                                    }
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-                            
                             popover.search = true
                             popover.content = .html
                             
-                            popover.navigationItem.title = self?.popover?.navigationItem.title // "VoiceBase Media Item"
-                            
-                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                            Thread.onMainThread() {
+                                self?.popover?.activityIndicator.stopAnimating()
+                                self?.popover?.activityIndicator.isHidden = true
+                                
+                                popover.navigationItem.title = self?.popover?.navigationItem.title // "VoiceBase Media Item"
+                                self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                            }
                         }
+                    }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                        self?.popover?.activityIndicator.stopAnimating()
+                        self?.popover?.activityIndicator.isHidden = true
+                        
+                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
+
+//                    process(viewController: popover, work: { [weak self] () -> (Any?) in
+//                        var data : Any?
+//
+//                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+//                            print(json as Any)
+//
+//                            data = json
+//                        }, onError: { (json:[String : Any]?) -> (Void) in
+//                            data = "VoiceBase Media Item\nNot Found"
+//                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                        })
+//
+//                        while data == nil {
+//                            Thread.sleep(forTimeInterval: 0.1)
+//                        }
+//
+//                        return data
+//                    }, completion: { [weak self] (data:Any?) in
+//                        let json = data as? [String:Any]
+//
+//                        if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                            let popover = navigationController.viewControllers[0] as? WebViewController {
+//
+//                            popover.html.fontSize = 12
+//                            popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
+//
+////                            if let media = json?["media"] as? [String:Any], let mediaID = media["mediaId"] as? String {
+////                                if let metadata = media["metadata"] as? [String:Any] {
+////                                    if let mediaItem = metadata["mediaItem"] as? [String:Any] {
+////                                        if let id = mediaItem["id"] as? String {
+////                                            if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
+////                                                if let mediaList = globals.media.all?.list {
+////                                                    if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+////                                                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+////                                                            return transcript.mediaID == mediaID
+////                                                        }).count == 1
+////                                                    }).count == 0 {
+////                                                        if  let mediaItem = globals.mediaRepository.index?[id],
+////                                                            mediaItem.transcripts[purpose]?.mediaID == nil {
+////                                                            self.actionButton = UIBarButtonItem(title: Constants.FA.PLUS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseLoad))
+////
+////                                                            self.voiceBasePurpose = purpose
+////                                                            self.voiceBaseMediaID = mediaID
+////                                                            self.voiceBaseMediaItemID = mediaItem.id
+////                                                            self.actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+////
+////                                                            popover.navigationItem.rightBarButtonItem = self.actionButton
+////                                                        }
+////                                                    } else {
+////
+////                                                    }
+////                                                }
+////                                            }
+////                                        }
+////                                    }
+////                                }
+////                            }
+//
+//                            popover.search = true
+//                            popover.content = .html
+//
+//                            popover.navigationItem.title = self?.popover?.navigationItem.title // "VoiceBase Media Item"
+//
+//                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                        }
+//                    })
                 })
 
                 actions.append(AlertAction(title: "Inspector", style: .default) {
-                    process(viewController: popover, work: { [weak self] () -> (Any?) in
-                        var data : Any?
-                        
-                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                            print(json as Any)
-                            
-                            data = json
-                            
-                        }, onError: { (json:[String : Any]?) -> (Void) in
-                            data = "VoiceBase Media Item\nNot Found"
-                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                        
-                        while data == nil {
-                            Thread.sleep(forTimeInterval: 0.1)
-                        }
-                        
-                        return data
-                    }, completion: { [weak self] (data:Any?) in
-                        let json = data as? [String:Any]
-                        
+                    self.popover?.activityIndicator.isHidden = false
+                    self.popover?.activityIndicator.startAnimating()
+                    
+                    VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+                        print(json as Any)
                         if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                             popover.search = true
-                            
-                            popover.navigationItem.title = "VoiceBase Media Item"
-                            
                             popover.stringsAny = json
                             popover.purpose = .showingVoiceBaseMediaItem
                             
-                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                            Thread.onMainThread {
+                                self?.popover?.activityIndicator.stopAnimating()
+                                self?.popover?.activityIndicator.isHidden = true
+                                
+                                self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                            }
                         }
+                    }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                        self?.popover?.activityIndicator.stopAnimating()
+                        self?.popover?.activityIndicator.isHidden = true
+                        
+                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
+                    
+//                    process(viewController: popover, work: { [weak self] () -> (Any?) in
+//                        var data : Any?
+//
+//                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+//                            print(json as Any)
+//
+//                            data = json
+//
+//                        }, onError: { (json:[String : Any]?) -> (Void) in
+//                            data = "VoiceBase Media Item\nNot Found"
+//                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                        })
+//
+//                        while data == nil {
+//                            Thread.sleep(forTimeInterval: 0.1)
+//                        }
+//
+//                        return data
+//                    }, completion: { [weak self] (data:Any?) in
+//                        let json = data as? [String:Any]
+//
+//                        if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                            popover.search = true
+//
+//                            popover.navigationItem.title = "VoiceBase Media Item"
+//
+//                            popover.stringsAny = json
+//                            popover.purpose = .showingVoiceBaseMediaItem
+//
+//                            self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                        }
+//                    })
                 })
             }
         }
@@ -916,77 +969,132 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }))
 
                     if let popover = self.popover {
+                        self.popover?.activityIndicator.isHidden = false
+                        self.popover?.activityIndicator.startAnimating()
+                        
                         actions.append(AlertAction(title: "Details", style: .default, handler: {
-                            process(viewController: popover, work: { [weak self] () -> (Any?) in
-                                var data : Any?
-
-                                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                    print(json as Any)
-
-                                    data = json
-                                }, onError: { (json:[String : Any]?) -> (Void) in
-                                    data = "VoiceBase Media Item\nNot Found"
-                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                                })
-
-                                while data == nil {
-                                    Thread.sleep(forTimeInterval: 0.1)
-                                }
-
-                                return data
-                            }, completion: { [weak self] (data:Any?) in
-                                let json = data as? [String:Any]
-
+                            VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+                                print(json as Any)
                                 if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? WebViewController {
-
+                                    
                                     popover.html.fontSize = 12
                                     popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
-
+                                    
                                     popover.search = true
                                     popover.content = .html
-
-                                    popover.navigationItem.title = "VoiceBase Media Item"
-
-                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                                    
+                                    Thread.onMainThread {
+                                        self?.popover?.activityIndicator.stopAnimating()
+                                        self?.popover?.activityIndicator.isHidden = true
+                                        
+                                        popover.navigationItem.title = "VoiceBase Media Item"
+                                        self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                                    }
                                 }
+                            }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                                self?.popover?.activityIndicator.stopAnimating()
+                                self?.popover?.activityIndicator.isHidden = true
+                                
+                                globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
+                            
+//                            process(viewController: popover, work: { [weak self] () -> (Any?) in
+//                                var data : Any?
+//
+//                                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+//                                    print(json as Any)
+//
+//                                    data = json
+//                                }, onError: { (json:[String : Any]?) -> (Void) in
+//                                    data = "VoiceBase Media Item\nNot Found"
+//                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                })
+//
+//                                while data == nil {
+//                                    Thread.sleep(forTimeInterval: 0.1)
+//                                }
+//
+//                                return data
+//                            }, completion: { [weak self] (data:Any?) in
+//                                let json = data as? [String:Any]
+//
+//                                if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                                    let popover = navigationController.viewControllers[0] as? WebViewController {
+//
+//                                    popover.html.fontSize = 12
+//                                    popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
+//
+//                                    popover.search = true
+//                                    popover.content = .html
+//
+//                                    popover.navigationItem.title = "VoiceBase Media Item"
+//
+//                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                                }
+//                            })
                         }))
 
                         actions.append(AlertAction(title: "Inspector", style: .default, handler: {
-                            process(viewController: popover, work: { [weak self] () -> (Any?) in
-                                var data : Any?
-
-                                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                    print(json as Any)
-
-                                    data = json
-
-                                }, onError: { (json:[String : Any]?) -> (Void) in
-                                    data = "VoiceBase Media Item\nNot Found"
-                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                                })
-
-                                while data == nil {
-                                    Thread.sleep(forTimeInterval: 0.1)
-                                }
-
-                                return data
-                            }, completion: { [weak self] (data:Any?) in
-                                let json = data as? [String:Any]
-
+                            self.popover?.activityIndicator.isHidden = false
+                            self.popover?.activityIndicator.startAnimating()
+                            
+                            VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+                                print(json as Any)
                                 if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                                     popover.search = true
-
-                                    popover.navigationItem.title = "VoiceBase Media Item"
-
                                     popover.stringsAny = json
                                     popover.purpose = .showingVoiceBaseMediaItem
+                                    
+                                    Thread.onMainThread {
+                                        self?.popover?.activityIndicator.stopAnimating()
+                                        self?.popover?.activityIndicator.isHidden = true
 
-                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                                        popover.navigationItem.title = "VoiceBase Media Item"
+                                        self?.popover?.navigationController?.pushViewController(popover, animated: true)
+                                    }
                                 }
+                            }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                                self?.popover?.activityIndicator.stopAnimating()
+                                self?.popover?.activityIndicator.isHidden = true
+
+                                globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
+
+//                            process(viewController: popover, work: { [weak self] () -> (Any?) in
+//                                var data : Any?
+//
+//                                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+//                                    print(json as Any)
+//
+//                                    data = json
+//
+//                                }, onError: { (json:[String : Any]?) -> (Void) in
+//                                    data = "VoiceBase Media Item\nNot Found"
+//                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                })
+//
+//                                while data == nil {
+//                                    Thread.sleep(forTimeInterval: 0.1)
+//                                }
+//
+//                                return data
+//                            }, completion: { [weak self] (data:Any?) in
+//                                let json = data as? [String:Any]
+//
+//                                if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                                    popover.search = true
+//
+//                                    popover.navigationItem.title = "VoiceBase Media Item"
+//
+//                                    popover.stringsAny = json
+//                                    popover.purpose = .showingVoiceBaseMediaItem
+//
+//                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                                }
+//                            })
                         }))
                     }
 
@@ -2335,7 +2443,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
     
-    @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
+//    @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
     @IBOutlet weak var searchBar: UISearchBar!
     {
@@ -2858,8 +2966,8 @@ class MediaTableViewController : UIViewController // MediaController
     
     func loadLive(completion:(()->(Void))?)
     {
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.sleep(forTimeInterval: 0.25)
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//            Thread.sleep(forTimeInterval: 0.25)
         
             if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {
                 globals.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
