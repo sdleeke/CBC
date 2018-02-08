@@ -1244,65 +1244,104 @@ class VoiceBase {
                 return nil
             }
             
-            let transcript = transcriptFromWords
+//            let transcript = transcriptFromWords
+            guard let transcript = transcript?.lowercased() else {
+                return nil
+            }
             
-            var segment : String?
+            guard var words = words, words.count > 0 else {
+                return nil
+            }
+            
+//            var segment : String?
             
             var following = [[String:Any]]()
             
-            var start : Int?
-            var end : Int?
+//            var start : Int?
+//            var end : Int?
             
-            if var words = words, words.count > 0 {
+//            if var words = words, words.count > 0 {
+                var offset : String.Index?
+                
                 while words.count > 0 {
                     let word = words.removeFirst()
                     
-                    segment = word["w"] as? String
+                    guard let text = (word["w"] as? String)?.lowercased().trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars)), !text.isEmpty else {
+                        continue
+                    }
                     
-                    start = word["s"] as? Int
-                    end = word["e"] as? Int
+//                    segment = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                     
-                    while (segment != nil), ((transcript?.components(separatedBy: segment!).count > 2) || (segment?.components(separatedBy: " ").count < 10) || (words.first?["m"] != nil)) && (words.count > 0) {
-                        let word = words.removeFirst()
+                    guard let start = word["s"] as? Int else {
+                        continue
+                    }
+                    
+                    guard let end = word["e"] as? Int else {
+                        continue
+                    }
+                    
+//                    while (segment != nil), ((transcript?.components(separatedBy: segment!).count > 2) || (segment?.components(separatedBy: " ").count < 10) || (words.first?["m"] != nil)) && (words.count > 0) {
+//                        let word = words.removeFirst()
+//
+//                        if let string = word["w"] as? String {
+//                            if let metadata = word["m"] as? String, metadata == "punc" {
+//                                var spacing = String()
+//
+//                                switch string {
+//                                case ".":
+//                                    spacing = " "
+//
+//                                default:
+//                                    spacing = ""
+//                                    break
+//                                }
+//
+//                                segment = (segment != nil ? segment! : "") + string + (words.count > 0 ? spacing : " ") // + "  "
+//                            } else {
+//                                segment = (segment != nil ? segment! + (!segment!.isEmpty ? " " : "") : "") + string
+//                            }
+//                        }
+//
+//                        end = word["e"] as? Int
+//                    }
+//
+//                    segment = segment?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+
+//                    if let segment = segment { // let start = start, let end = end,
+                        var dict:[String:Any] = ["start":Double(start) / 1000.0,"end":Double(end) / 1000.0,"text":text]
+//                        if let range = transcript?.range(of: segment) {
+//                            dict["range"] = range
+//                            dict["lowerBound"] = range.lowerBound.encodedOffset
+//                            dict["upperBound"] = range.upperBound.encodedOffset
+//                        } else {
+//                            print("")
+//                        }
+
+                        if offset == nil {
+                            offset = transcript.range(of: text)?.lowerBound
+                        }
                         
-                        if let string = word["w"] as? String {
-                            if let metadata = word["m"] as? String, metadata == "punc" {
-                                var spacing = String()
-                                
-                                switch string {
-                                case ".":
-                                    spacing = " "
-                                    
-                                default:
-                                    spacing = ""
-                                    break
-                                }
-                                
-                                segment = (segment != nil ? segment! : "") + string + (words.count > 0 ? spacing : " ") // + "  "
-                            } else {
-                                segment = (segment != nil ? segment! + (!segment!.isEmpty ? " " : "") : "") + string
+                        if offset != nil {
+                            let startingRange = Range(uncheckedBounds: (lower: offset!, upper: transcript.endIndex))
+                            if let range = transcript.range(of: text, options: [], range: startingRange, locale: nil) {
+                                dict["range"] = range
+                                dict["lowerBound"] = range.lowerBound.encodedOffset
+                                dict["upperBound"] = range.upperBound.encodedOffset
+                                offset = range.upperBound
                             }
                         }
-                        
-                        end = word["e"] as? Int
-                    }
-                    
-                    segment = segment?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
-                    if let start = start, let end = end, let segment = segment {
-                        var dict:[String:Any] = ["start":Double(start) / 1000.0,"end":Double(end) / 1000.0,"text":segment]
-                        if let range = transcript?.range(of: segment) {
-                            dict["lowerBound"] = range.lowerBound.encodedOffset
-                            dict["upperBound"] = range.upperBound.encodedOffset
-                        } else {
-                            print("")
-                        }
+                    if let metadata = word["m"] as? String { // , metadata == "punc"
+                        print(word["w"],metadata)
+                    } else {
                         following.append(dict)
                     }
-                    
-                    segment = nil
+
+//                    }
+//
+//                    segment = nil
                 }
-            }
+//            }
             
             return following.count > 0 ? following : nil
         }
@@ -4543,9 +4582,15 @@ class VoiceBase {
                     popover.section.showIndex = true
 
                     popover.stringsFunction = { (Void) -> [String]? in
-                        return self.transcriptSegmentTokens?.map({ (string:String) -> String in
-                            return string //.lowercased()
-                        }).sorted()
+                        guard let transcriptSegmentTokens = self.transcriptSegmentTokens else {
+                            return nil
+                        }
+                        
+                        return Array(transcriptSegmentTokens).sorted()
+                        
+//                        return self.transcriptSegmentTokens?.map({ (string:String) -> String in
+//                            return string //.lowercased()
+//                        }).sorted()
                     }
 
 //                    popover.section.strings = self.transcriptSegmentTokens?.map({ (string:String) -> String in

@@ -551,8 +551,13 @@ class TextViewController : UIViewController
 
             if editingActive {
                 oldRange = nil
+                
+                navigationItem.rightBarButtonItem = dismissButton
+                
 //                removeTracking()
 //                removeAssist()
+            } else {
+                navigationItem.rightBarButtonItem = nil
             }
 //
 //            if !searchActive && !editingActive {
@@ -577,14 +582,22 @@ class TextViewController : UIViewController
     var onCancel : (()->(Void))?
     
     @IBOutlet weak var textView: UITextView!
+    {
+        didSet {
+            textView.autocorrectionType = .no
+        }
+    }
     
     var transcript:VoiceBase?
     
     var following : [[String:Any]]?
     {
         didSet {
+            if following != nil {
+                checkSync()
+            }
             Thread.onMainThread {
-                self.syncButton?.isEnabled = true
+                self.syncButton?.isEnabled = self.following != nil
                 self.activityIndicator?.stopAnimating()
             }
         }
@@ -775,14 +788,20 @@ class TextViewController : UIViewController
             
             index = max(index,0)
             
-            if let text = (following[index]["text"] as? String) {
-                var range = changedText?.range(of: text)
+            if  // let text = (following[index]["text"] as? String),
+                let range = following[index]["range"] as? Range<String.Index>
+//                let lowerBound = following[index]["lowerBound"] as? String.Index,
+//                let upperBound = following[index]["upperBound"] as? String.Index
+            {
+//                var range = changedText?.range(of: text)
+//
+//                if range == nil {
+//                    range = changedText?.range(of: text.replacingOccurrences(of: ".  ", with: ". "))
+//                }
                 
-                if range == nil {
-                    range = changedText?.range(of: text.replacingOccurrences(of: ".  ", with: ". "))
-                }
+//                let range = Range(uncheckedBounds: (lower: lowerBound, upper: upperBound))
                 
-                if range != oldRange, let range = range {
+                if range != oldRange { // , let range = range
                     if  let before = changedText?.substring(to: range.lowerBound),
                         let text = changedText?.substring(with: range),
                         let after = changedText?.substring(from: range.upperBound) {
@@ -966,7 +985,8 @@ class TextViewController : UIViewController
     var cancelButton : UIBarButtonItem!
     var saveButton : UIBarButtonItem!
     var assistButton : UIBarButtonItem!
-    
+    var dismissButton : UIBarButtonItem!
+
     var keyboardShowing = false
     var shrink:CGFloat = 0.0
 
@@ -988,8 +1008,8 @@ class TextViewController : UIViewController
                 
                 bottomLayoutConstraint.constant += shrink // textView.frame.size.height -
             } else {
-                if (keyboardRect.height != shrink) {
-                    let delta = shrink - keyboardRect.height
+                if (intersectRect.height != shrink) {
+                    let delta = shrink - intersectRect.height
                     shrink -= delta
                     if delta != 0 {
                         bottomLayoutConstraint.constant -= delta // textView.frame.size.height +
@@ -1109,6 +1129,11 @@ class TextViewController : UIViewController
         }
     }
     
+    func dismissKeyboard()
+    {
+        textView.resignFirstResponder()
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -1205,7 +1230,8 @@ class TextViewController : UIViewController
 
         saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done))
         assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))
-        
+        dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.dismissKeyboard))
+
         if assist {
             if toolbarItems != nil {
                 toolbarItems?.append(spaceButton)
@@ -1246,6 +1272,10 @@ class TextViewController : UIViewController
             return
         }
         
+        guard let following = self.following else {
+            return
+        }
+        
         if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
             let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
             
@@ -1254,10 +1284,13 @@ class TextViewController : UIViewController
             }
             
             if  (globals.mediaPlayer.mediaItem == transcript.mediaItem),
-                (transcript.mediaItem?.playing == transcript.purpose),
-                (transcriptString.lowercased() != transcriptFromWordsString.lowercased()) {
-                if let text = transcript.mediaItem?.text {
-                    globals.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
+                (transcript.mediaItem?.playing == transcript.purpose) { // , (transcriptString.lowercased() != transcriptFromWordsString.lowercased())
+                if following.filter({ (dict:[String:Any]) -> Bool in
+                    return dict["range"] == nil
+                }).count > 0 {
+                    if let text = transcript.mediaItem?.text {
+                        globals.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
+                    }
                 }
             }
         }
@@ -1886,8 +1919,6 @@ class TextViewController : UIViewController
     {
         super.viewDidAppear(animated)
         
-        checkSync()
-
         if isTracking {
             //            startTracking()
             //            removeAssist()

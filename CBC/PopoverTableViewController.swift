@@ -166,14 +166,16 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         searchText = nil
         searchActive = false
-        
-        // In case they've changed
-        unfilteredSection.showIndex = filteredSection.showIndex
-        unfilteredSection.showHeaders = filteredSection.showHeaders
 
-        // In case the method changed
-        if let function = sort.function {
-            section.strings = function(sort.method,section.strings)
+        if purpose == .selectingWord {
+            // In case they've changed: alpha vs. freq sorting.
+            unfilteredSection.showIndex = filteredSection.showIndex
+            unfilteredSection.showHeaders = filteredSection.showHeaders
+            
+            // In case the method changed
+            if let function = sort.function {
+                section.strings = function(sort.method,section.strings)
+            }
         }
 
 //        section.buildIndex()
@@ -186,7 +188,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         tableView.reloadData()
         
         if purpose == .selectingTime {
-            follow()
+            self.follow()
         }
         
         filteredSection = Section(stringsAction: { (strings:[String]?) in
@@ -438,7 +440,7 @@ class PopoverTableViewController : UIViewController
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
-                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.5)) {
+                        if (seconds >= startSeconds) && (seconds <= (endSeconds)) { //  - 0.5
 //                            print("isTracking time window found")
                             timeWindowFound = true
                             break
@@ -476,6 +478,7 @@ class PopoverTableViewController : UIViewController
                 
                 let row = index - sectionIndex
 
+                // Number of sections is 1 after search!
                 if (section >= 0) && (section < tableView.numberOfSections) && (row >= 0) && (row < tableView.numberOfRows(inSection: section)) {
                     let indexPath = IndexPath(row: row, section: section)
                     
@@ -785,7 +788,7 @@ class PopoverTableViewController : UIViewController
         let viewWidth = vc.view.frame.width
         
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
-        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
         
         if let title = self.navigationItem.title, !title.isEmpty {
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
@@ -1723,10 +1726,13 @@ class PopoverTableViewController : UIViewController
             
         if section.strings != nil {
             if section.showIndex {
-                if (self.section.indexStrings?.count > 1) {
-
-                } else {
+                if (self.section.indexStrings?.count <= 1) {
+                    // This can be a problem if this PTVC will appear because we are coming back to it and it was in search mode w/ 0 or 1 result.
+                    // If then we get out of search mode and showIndex is copied from the filteredSection to the unfiltereSection and the unfilteredSection
+                    // started w/ showIndex true then it will be set to false.  Right now we're trying avoid this by doing the copy back only for purpose == .selectingWord
+                    // and in those case there is never a push or a back and the copy back is to reflect changes in alpha vs. freq sorting of the words.
                     section.showIndex = false
+                    tableView.reloadData()
                 }
             }
             

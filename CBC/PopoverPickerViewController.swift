@@ -192,7 +192,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             
             var width:CGFloat = 0.0
             
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
             
             if let stringNodes = stringNode?.stringNodes {
                 switch stringNodes.count {
@@ -220,7 +220,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         } else {
             var width:CGFloat = 0.0
             
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
             
             if let strings = strings {
                 for string in strings {

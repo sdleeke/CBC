@@ -840,8 +840,7 @@ extension MediaViewController : WKNavigationDelegate
                  decidePolicyFor navigationResponse: WKNavigationResponse,
                  decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void)
     {
-        guard let statusCode
-            = (navigationResponse.response as? HTTPURLResponse)?.statusCode else {
+        guard let statusCode = (navigationResponse.response as? HTTPURLResponse)?.statusCode else {
                 // if there's no http status code to act on, exit and allow navigation
                 decisionHandler(.allow)
                 return
@@ -849,7 +848,17 @@ extension MediaViewController : WKNavigationDelegate
         
         if statusCode >= 400 {
             // error has occurred
-            if let showing = document?.showing(self.selectedMediaItem), showing {
+            if let showing = document?.showing(self.selectedMediaItem), showing, document?.wkWebView == wkWebView {
+                Thread.onMainThread() {
+                    webView.isHidden = true
+                    
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                    
+                    self.logo.isHidden = false
+                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                }
+                
                 if let purpose = document?.purpose {
                     switch purpose {
                     case Purpose.slides:
@@ -863,13 +872,6 @@ extension MediaViewController : WKNavigationDelegate
                     default:
                         break
                     }
-                }
-                Thread.onMainThread() {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
-                    
-                    self.logo.isHidden = false
-                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
                 }
             }
             
@@ -984,34 +986,61 @@ extension MediaViewController : WKNavigationDelegate
             return
         }
 
-        if !globals.cacheDownloads {
+        guard !globals.cacheDownloads else {
+            return
+        }
+
+        if let showing = document?.showing(self.selectedMediaItem), showing, document?.wkWebView == wkWebView {
             Thread.onMainThread() {
-                for document in documents.values {
-                    if (document.wkWebView == wkWebView) && document.showing(selectedMediaItem) {
-                        self.document?.wkWebView?.isHidden = true
-                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-                        self.logo.isHidden = false
-                        
-                        if let purpose = document.download?.purpose {
-                            switch purpose {
-                            case Purpose.notes:
-                                networkUnavailable(self,"Transcript not available.")
-                                break
-                                
-                            case Purpose.slides:
-                                networkUnavailable(self,"Slides not available.")
-                                break
-                                
-                            default:
-                                break
-                            }
-                        }
-                    }
+                wkWebView.isHidden = true
+                
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.isHidden = true
+                
+                self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                self.logo.isHidden = false
+            }
+            
+            if let purpose = self.document?.download?.purpose {
+                switch purpose {
+                case Purpose.notes:
+                    networkUnavailable(self,"Transcript not available.")
+                    break
+                    
+                case Purpose.slides:
+                    networkUnavailable(self,"Slides not available.")
+                    break
+                    
+                default:
+                    break
                 }
             }
-        } else {
-    
         }
+//        for document in documents.values {
+//            if (document.wkWebView == wkWebView) && document.showing(selectedMediaItem) {
+//                Thread.onMainThread() {
+//                    wkWebView.isHidden = true
+//
+//                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+//                    self.logo.isHidden = false
+//
+//                    if let purpose = document.download?.purpose {
+//                        switch purpose {
+//                        case Purpose.notes:
+//                            networkUnavailable(self,"Transcript not available.")
+//                            break
+//
+//                        case Purpose.slides:
+//                            networkUnavailable(self,"Slides not available.")
+//                            break
+//
+//                        default:
+//                            break
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 }
 
@@ -1560,8 +1589,6 @@ class MediaViewController: UIViewController // MediaController
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
             return
         }
-        
-        // This assumes this action isn't called unless an unselected segment is changed.  Otherwise touching the selected segment would cause it to flip to itself.
         
         var fromView:UIView?
         

@@ -236,8 +236,15 @@ class CloudViewController: UIViewController
     
     var wordLabels : [String:UILabel]?
     
-    var cloudLayoutOperationQueue : OperationQueue?
-    
+//    var cloudLayoutOperationQueue : OperationQueue?
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "CLOUD")
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
     @IBOutlet weak var selectAllButton: UIButton!
     @IBAction func selectAllAction(_ sender: UIButton)
     {
@@ -379,9 +386,9 @@ class CloudViewController: UIViewController
         
         selectTap.require(toFail: layoutTap)
         
-        cloudLayoutOperationQueue = OperationQueue()
-        cloudLayoutOperationQueue?.name = "Cloud layout operation queue"
-        cloudLayoutOperationQueue?.maxConcurrentOperationCount = 1;
+//        cloudLayoutOperationQueue = OperationQueue()
+//        cloudLayoutOperationQueue?.name = "Cloud layout operation queue"
+//        cloudLayoutOperationQueue?.maxConcurrentOperationCount = 1;
     }
     
     func selectCloudWord(_ tap:UITapGestureRecognizer)
@@ -506,7 +513,7 @@ class CloudViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
-        cloudLayoutOperationQueue?.cancelAllOperations()
+        operationQueue?.cancelAllOperations()
         
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
     }
@@ -547,8 +554,8 @@ class CloudViewController: UIViewController
     func cancelAndRelayoutCloudWords()
     {
         // Cancel any in-progress layout
-        cloudLayoutOperationQueue?.cancelAllOperations()
-        cloudLayoutOperationQueue?.waitUntilAllOperationsAreFinished()
+        operationQueue?.cancelAllOperations()
+        operationQueue?.waitUntilAllOperationsAreFinished()
         
         relayoutCloudWords()
     }
@@ -585,7 +592,7 @@ class CloudViewController: UIViewController
                                                                orientation: wordOrientation.selectedSegmentIndex,
                                                                delegate:self)
             
-            cloudLayoutOperationQueue?.addOperation(newCloudLayoutOperation)
+            operationQueue?.addOperation(newCloudLayoutOperation)
         }
     }
     

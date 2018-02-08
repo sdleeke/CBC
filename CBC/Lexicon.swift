@@ -146,10 +146,11 @@ class Lexicon : NSObject {
             
             return Array(Set(
                 words.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
-                    // .map is required below to return an array of MediaItem, otherwise it returns a LazyMapCollection and I haven't figured that out.
-                    return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
-                        return mediaItem
-                    })
+                    return Array(mediaItemFrequency.value.keys)
+                    
+//                    return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
+//                        return mediaItem
+//                    })
                 })
             ))
         }

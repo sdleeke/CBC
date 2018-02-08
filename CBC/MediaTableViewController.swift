@@ -346,9 +346,15 @@ class StringIndex : NSObject
     
     var keys : [String]?
     {
-        return dict?.keys.map({ (string:String) -> String in
-            return string
-        })
+        guard let dict = dict else {
+            return nil
+        }
+        
+        return Array(dict.keys)
+        
+//        return dict?.keys.map({ (string:String) -> String in
+//            return string
+//        })
     }
     
     func stringIndex(key:String,sort:((String,String)->(Bool))?) -> [String:[String]]?
@@ -475,9 +481,11 @@ class StringIndex : NSObject
         }
         
         if let sort = sort {
-            let keys = dict.keys.map({ (string:String) -> String in
-                return string
-            })
+            let keys = Array(dict.keys)
+            
+//            let keys = dict.keys.map({ (string:String) -> String in
+//                return string
+//            })
             
             for key in keys {
                 dict[key] = dict[key]?.sorted(by: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in

@@ -780,9 +780,15 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         var names:[String]? {
             get {
-                return dicts?.keys.map({ (key:String) -> String in
-                    return key
-                }).sorted()
+                guard let dicts = dicts else {
+                    return nil
+                }
+                
+                return Array(dicts.keys).sorted()
+                
+//                return dicts?.keys.map({ (key:String) -> String in
+//                    return key
+//                }).sorted()
             }
         }
         

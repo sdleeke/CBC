@@ -988,6 +988,7 @@ class MediaPlayer : NSObject {
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = DispatchQueue(label: "SEEK")
         operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
 

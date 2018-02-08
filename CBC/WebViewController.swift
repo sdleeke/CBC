@@ -64,9 +64,11 @@ class HTML {
                     self.webViewController?.activityButtonIndicator?.startAnimating()
                 }
                 
+                // Get a new queue - does this ever happen more than once?  Yes, when font size is changed or searching occurs.
                 operationQueue = OperationQueue()
                 operationQueue.underlyingQueue = DispatchQueue(label: "HTML")
                 operationQueue.qualityOfService = .userInteractive
+                operationQueue.maxConcurrentOperationCount = 1
 
 //                operationQueue.cancelAllOperations()
 //                operationQueue.waitUntilAllOperationsAreFinished()
@@ -1749,7 +1751,7 @@ class WebViewController: UIViewController
             return
         }
         
-        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
         
         let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width + 150
         

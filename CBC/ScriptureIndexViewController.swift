@@ -1208,9 +1208,11 @@ class ScriptureIndexViewController : UIViewController
                 
                 let speakerCount = speakerCounts.keys.count
                 
-                let speakers = speakerCounts.keys.map({ (string:String) -> String in
-                    return string
-                }) as [String]
+                let speakers = Array(speakerCounts.keys)
+                
+//                let speakers = speakerCounts.keys.map({ (string:String) -> String in
+//                    return string
+//                }) as [String]
                 
                 if speakerCount == 1{
                     bodyString = bodyString + " by \(speakers[0])"
