@@ -348,7 +348,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         mediaPlayer.startingPIP = false
     }
     
-    var loadSingles = true
+//    var loadSingles = true
     
     var allowSaveSettings = true
     

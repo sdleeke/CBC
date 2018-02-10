@@ -16,7 +16,15 @@ import MediaPlayer
 class Document : NSObject {
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
-    var loaded = false
+    var loaded : Bool {
+        get {
+            if globals.cacheDownloads {
+                return (wkWebView?.isLoading == false) && (wkWebView?.url == download?.fileSystemURL)
+            } else {
+                return (wkWebView?.isLoading == false) && (wkWebView?.url == download?.downloadURL)
+            }
+        }
+    }
     
     var mediaItem:MediaItem?
     
@@ -563,7 +571,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
             document?.download?.cancelOrDelete()
-            document?.loaded = false
+//            document?.loaded = false
             setupDocumentsAndVideo()
             break
             
@@ -924,7 +932,7 @@ extension MediaViewController : WKNavigationDelegate
 
                 setDocumentContentOffsetAndZoomScale(document)
 
-                document.loaded = true
+//                document.loaded = true
             }
         }
     }
@@ -2808,6 +2816,8 @@ class MediaViewController: UIViewController // MediaController
         
         wkWebView.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
+        wkWebView.removeFromSuperview()
+        
         mediaItemNotesAndSlides.addSubview(wkWebView)
         
         mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
@@ -2972,11 +2982,11 @@ class MediaViewController: UIViewController // MediaController
         }
         
         // This reloads all of the documents and sets the zoomscale and content offset correctly.
-        if let id = selectedMediaItem?.id, let keys = documents[id]?.keys {
-            for key in keys {
-                documents[id]?[key]?.loaded = false
-            }
-        }
+//        if let id = selectedMediaItem?.id, let keys = documents[id]?.keys {
+//            for key in keys {
+//                documents[id]?[key]?.loaded = false
+//            }
+//        }
 
         updateUI()
     }
@@ -3134,6 +3144,7 @@ class MediaViewController: UIViewController // MediaController
             }
         }
 
+        // Can't do this as cache setting may change
         if !document.loaded {
             loadDocument(document)
         }

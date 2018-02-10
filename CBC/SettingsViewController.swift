@@ -8,12 +8,12 @@
 
 import UIKit
 
-class SettingsViewController: UIViewController {
-
-    
+class SettingsViewController: UIViewController
+{
     @IBOutlet weak var searchTranscriptsSwitch: UISwitch!
     
-    @IBAction func searchTranscriptsAction(_ sender: UISwitch) {
+    @IBAction func searchTranscriptsAction(_ sender: UISwitch)
+    {
         globals.search.transcripts = sender.isOn
         
         Thread.onMainThread() {
@@ -23,7 +23,8 @@ class SettingsViewController: UIViewController {
     
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
     
-    @IBAction func autoAdvanceAction(_ sender: UISwitch) {
+    @IBAction func autoAdvanceAction(_ sender: UISwitch)
+    {
         globals.autoAdvance = sender.isOn
     }
     
@@ -38,7 +39,7 @@ class SettingsViewController: UIViewController {
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                globals.loadSingles = false
+//                globals.loadSingles = false
     
                 if let mediaItems = globals.mediaRepository.list {
                     for mediaItem in mediaItems {
@@ -47,7 +48,7 @@ class SettingsViewController: UIViewController {
                     }
                 }
                 
-                globals.loadSingles = true
+//                globals.loadSingles = true
 
                 Thread.onMainThread() {
                     self?.updateCacheSize()
@@ -68,11 +69,11 @@ class SettingsViewController: UIViewController {
     func updateCacheSize()
     {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            globals.loadSingles = false
+//            globals.loadSingles = false
             
             let sizeOfCache = globals.cacheSize(Purpose.slides) + globals.cacheSize(Purpose.notes)
             
-            globals.loadSingles = true
+//            globals.loadSingles = true
 
             var size:Float = Float(sizeOfCache)
             
