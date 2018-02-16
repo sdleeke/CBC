@@ -230,11 +230,11 @@ class Scripture : NSObject
 
         while (string.range(of: separator) != nil) {
             if let lowerBound = string.range(of: separator)?.lowerBound {
-                scriptures.append(string.substring(to: lowerBound))
+                scriptures.append(String(string[..<lowerBound]))
             }
             
             if let range = string.range(of: separator) {
-                string = string.substring(from: range.upperBound)
+                string = String(string[range.upperBound...])
             }
         }
         
@@ -255,7 +255,7 @@ class Scripture : NSObject
                 var reference = scripture
                 
                 if let range = scripture.range(of: book) {
-                    reference = scripture.substring(from: range.upperBound)
+                    reference = String(scripture[range.upperBound...])
                 }
                 
                 //                print(book,reference)
@@ -724,7 +724,7 @@ class Scripture : NSObject
                                             }
                                         }
                                         
-                                        text = text.substring(to: lastRange.lowerBound)
+                                        text = String(text[..<lastRange.lowerBound])
                                     }
                                 }
                             }

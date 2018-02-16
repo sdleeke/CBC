@@ -140,7 +140,7 @@ class MediaListGroupSort {
                     
                     if possibleTag.range(of: "-") != nil {
                         while let range = possibleTag.range(of: "-") {
-                            let candidate = possibleTag.substring(to: range.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                             
                             if (Int(candidate) == nil) && !tags.contains(candidate) {
                                 if let count = possibleTags[candidate] {
@@ -150,7 +150,7 @@ class MediaListGroupSort {
                                 }
                             }
 
-                            possibleTag = possibleTag.substring(from: range.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                         }
                         
                         if !possibleTag.isEmpty {
@@ -563,7 +563,7 @@ class MediaListGroupSort {
     
     init(mediaItems:[MediaItem]?)
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaListGroupSort.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         

@@ -350,7 +350,7 @@ class MediaPlayer : NSObject {
                         }
                     }
                     
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
                     }
                 }
@@ -407,7 +407,7 @@ class MediaPlayer : NSObject {
 
         controller?.delegate = globals
         
-        controller?.showsPlaybackControls = globals.mediaPlayer.fullScreen
+        controller?.showsPlaybackControls = fullScreen
         
         if #available(iOS 10.0, *) {
             controller?.updatesNowPlayingInfoCenter = false
@@ -621,7 +621,7 @@ class MediaPlayer : NSObject {
     {
         loadFailed = true
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         }
         
@@ -636,7 +636,7 @@ class MediaPlayer : NSObject {
     {
         loadFailed = true
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
         }
         
@@ -665,7 +665,7 @@ class MediaPlayer : NSObject {
                 stateTime = PlayerStateTime(state:.playing,mediaItem:mediaItem)
                 player?.play()
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
@@ -695,7 +695,7 @@ class MediaPlayer : NSObject {
             break
             
         default:
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
@@ -719,7 +719,7 @@ class MediaPlayer : NSObject {
         
         pause()
 
-//        Thread.onMainThread() {
+//        Thread.onMainThread {
 //            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
 //        }
         
@@ -740,7 +740,7 @@ class MediaPlayer : NSObject {
             stop()
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
         }
     }
@@ -890,7 +890,7 @@ class MediaPlayer : NSObject {
         let old = mediaItem
         mediaItem = nil
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: old)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
         }
@@ -961,12 +961,12 @@ class MediaPlayer : NSObject {
         }
     }
     
-    func doneSeeking()
+    @objc func doneSeeking()
     {
         print("DONE SEEKING")
         
         if isPlaying {
-            globals.mediaPlayer.checkPlayToEnd()
+            checkPlayToEnd()
         }
     }
     
@@ -977,7 +977,7 @@ class MediaPlayer : NSObject {
 //        seek(to: to,completion:{ [weak self] (finished:Bool) in
 //            if finished {
 //                self?.isSeeking = false
-//                Thread.onMainThread() {
+//                Thread.onMainThread {
 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
 //                }
 //            }
@@ -1038,15 +1038,17 @@ class MediaPlayer : NSObject {
                                       toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
                                       completionHandler: { (finished:Bool) in
                                         if finished { // , self?.isSeeking == true
-                                            self?.isSeeking = false
-                                            self?.lastSeek = to
-                                            
                                             self?.mediaItem?.currentTime = seek.description
                                             self?.stateTime?.startTime = seek.description
+
+                                            self?.lastSeek = to
                                             
+                                            // This MUST come last as it triggers the seekingCompletion?() call.
+                                            self?.isSeeking = false
+
                                             self?.setupPlayingInfoCenter()
 
-                                            Thread.onMainThread() {
+                                            Thread.onMainThread {
                                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
                                             }
 //                                            completion?(finished)
@@ -1223,7 +1225,7 @@ class MediaPlayer : NSObject {
 
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                 }
             }
@@ -1267,7 +1269,7 @@ class MediaPlayer : NSObject {
                 }
             }
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
             }
         } else {
@@ -1311,11 +1313,11 @@ class MediaPlayer : NSObject {
                 
                 //                print(nowPlayingInfo)
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
                 }
             } else {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
                 }
             }

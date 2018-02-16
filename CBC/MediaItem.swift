@@ -160,15 +160,16 @@ extension MediaItem : URLSessionDownloadDelegate
             let title = "Download Failed (\(download.downloadPurpose))"
                 
             if download.state != .none {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
                 
-                if let index = downloadTask.taskDescription?.range(of: "."),
-                    let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
-                    let mediaItem = globals.mediaRepository.index?[id] {
-                    globals.alert(title: title, message: mediaItem.title)
+                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
+                    let id = String(taskDescription[..<index.lowerBound])
+                    if let mediaItem = globals.mediaRepository.index?[id] {
+                        globals.alert(title: title, message: mediaItem.title)
+                    }
                 } else {
                     globals.alert(title: title, message: nil)
                 }
@@ -181,7 +182,7 @@ extension MediaItem : URLSessionDownloadDelegate
         }
         
         if let purpose = download.purpose {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
             }
 
@@ -198,7 +199,7 @@ extension MediaItem : URLSessionDownloadDelegate
                 if progress > current {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
                     //                    globals.queue.async(execute: { () -> Void in
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download.mediaItem)
                     }
                 }
@@ -208,7 +209,7 @@ extension MediaItem : URLSessionDownloadDelegate
                 fallthrough
             case Purpose.slides:
                 if progress > current {
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
                     }
                 }
@@ -270,15 +271,17 @@ extension MediaItem : URLSessionDownloadDelegate
             let title = "Download Failed (\(download.downloadPurpose))"
 
             if download.state != .none {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
                 
-                if let index = downloadTask.taskDescription?.range(of: "."),
-                    let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
-                    let mediaItem = globals.mediaRepository.index?[id] {
-                    globals.alert(title: title, message: mediaItem.title)
+                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
+                    let id = String(taskDescription[..<index.lowerBound])
+                
+                    if let mediaItem = globals.mediaRepository.index?[id] {
+                        globals.alert(title: title, message: mediaItem.title)
+                    }
                 } else {
                     globals.alert(title: title, message: nil)
                 }
@@ -337,7 +340,7 @@ extension MediaItem : URLSessionDownloadDelegate
                 download.state = .downloaded
             } else {
                 // Nothing was downloaded
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                 }
                 
@@ -348,7 +351,7 @@ extension MediaItem : URLSessionDownloadDelegate
             download.state = .none
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
     }
@@ -380,18 +383,20 @@ extension MediaItem : URLSessionDownloadDelegate
             let title = "Download Failed (\(download.downloadPurpose))"
 
             if download.state != .none {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
                 
-                if let index = task.taskDescription?.range(of: "."),
-                    let id = task.taskDescription?.substring(to: index.lowerBound),
-                    let message = globals.mediaRepository.index?[id]?.title {
-                    if let error = error {
-                        globals.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
-                    } else {
-                        globals.alert(title: title, message: message)
+                if let taskDescription = task.taskDescription, let index = taskDescription.range(of: ".") {
+                    let id = String(taskDescription[..<index.lowerBound])
+                    
+                    if let message = globals.mediaRepository.index?[id]?.title {
+                        if let error = error {
+                            globals.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+                        } else {
+                            globals.alert(title: title, message: message)
+                        }
                     }
                 } else {
                     if let error = error {
@@ -440,7 +445,7 @@ extension MediaItem : URLSessionDownloadDelegate
             case Purpose.slides:
                 fallthrough
             case Purpose.notes:
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     //                    print(download?.mediaItem)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
                 }
@@ -465,7 +470,7 @@ extension MediaItem : URLSessionDownloadDelegate
         
         session.invalidateAndCancel()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
     }
@@ -515,9 +520,11 @@ extension MediaItem : URLSessionDownloadDelegate
     {
         print("URLSessionDidFinishEventsForBackgroundURLSession")
         
-        guard let filename = session.configuration.identifier?.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex) else {
+        guard let identifier = session.configuration.identifier else {
             return
         }
+        
+        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
         
         if let download = downloads.filter({ (key:String, value:Download) -> Bool in
             //                print("\(filename) \(key)")
@@ -549,7 +556,7 @@ extension MediaItem : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
         // present the view controller
-        Thread.onMainThread() {
+        Thread.onMainThread {
             viewController.present(activityViewController, animated: true, completion: nil)
         }
     }
@@ -559,7 +566,7 @@ extension MediaItem : UIActivityItemSource
         return ""
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
         guard let text = self.text else {
             return nil
@@ -618,7 +625,7 @@ class MediaItem : NSObject
     
     var singleLoaded = false
 
-    func freeMemory()
+    @objc func freeMemory()
     {
         // What are the side effects of this?
         
@@ -638,7 +645,7 @@ class MediaItem : NSObject
         
 //        self.searchHit = SearchHit(mediaItem: self)
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
@@ -762,13 +769,13 @@ class MediaItem : NSObject
     
     var serviceCode:String {
         get {
-            let afterClassCode = id.substring(from: classCode.endIndex)
+            let afterClassCode = String(id[classCode.endIndex...])
             
             let ymd = "YYMMDD"
             
-            let afterDate = afterClassCode.substring(from: ymd.endIndex)
+            let afterDate = String(afterClassCode[ymd.endIndex...])
             
-            let code = afterDate.substring(to: String.Index(encodedOffset: 1)) // "x".endIndex
+            let code = String(afterDate[..<String.Index(encodedOffset: 1)]) // "x".endIndex
             
             //        print(code)
             
@@ -779,13 +786,13 @@ class MediaItem : NSObject
     var conferenceCode:String? {
         get {
             if serviceCode == "s" {
-                let afterClassCode = id.substring(from: classCode.endIndex)
+                let afterClassCode = String(id[classCode.endIndex...])
                 
-                var string = id.substring(to: classCode.endIndex)
+                var string = String(id[..<classCode.endIndex])
                 
                 let ymd = "YYMMDD"
                 
-                string = string + afterClassCode.substring(to: ymd.endIndex)
+                string = string + String(afterClassCode[..<ymd.endIndex])
                 
                 let s = "s"
                 
@@ -802,15 +809,15 @@ class MediaItem : NSObject
     
     var repeatCode:String? {
         get {
-            let afterClassCode = id.substring(from: classCode.endIndex)
+            let afterClassCode = String(id[classCode.endIndex...])
             
-            var string = id.substring(to: classCode.endIndex)
+            var string = String(id[..<classCode.endIndex])
             
             let ymd = "YYMMDD"
             
-            string = string + afterClassCode.substring(to: ymd.endIndex) + serviceCode
+            string = string + String(afterClassCode[..<ymd.endIndex]) + serviceCode
             
-            let code = id.substring(from: string.endIndex)
+            let code = String(id[string.endIndex...])
             
             if code != Constants.EMPTY_STRING  {
                 //            print(code)
@@ -1265,7 +1272,9 @@ class MediaItem : NSObject
     
     var year:Int? {
         get {
-            if let range = date?.range(of: "-"), let year = date?.substring(to: range.lowerBound) {
+            if let date = date, let range = date.range(of: "-") {
+                let year = String(date[..<range.lowerBound])
+                
                 return Int(year)
             } else {
                 return nil
@@ -1282,7 +1291,9 @@ class MediaItem : NSObject
     
     var yearString:String! {
         get {
-            if let range = date?.range(of: "-"), let year = date?.substring(to: range.lowerBound) {
+            if let date = date, let range = date.range(of: "-") {
+                let year = String(date[..<range.lowerBound])
+                
                 return year
             } else {
                 return Constants.Strings.None
@@ -1409,7 +1420,7 @@ class MediaItem : NSObject
     var date:String? {
         get {
             if let date = dict?[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
-                return date.substring(to: range.lowerBound) // last two characters // dict?[Field.title]
+                return String(date[..<range.lowerBound]) // last two characters // dict?[Field.title]
             } else {
                 return nil
             }
@@ -1419,7 +1430,7 @@ class MediaItem : NSObject
     var service:String? {
         get {
             if let date = dict?[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
-                return date.substring(from: range.upperBound) // last two characters // dict?[Field.title]
+                return String(date[range.upperBound...]) // last two characters // dict?[Field.title]
             } else {
                 return nil
             }
@@ -1619,10 +1630,10 @@ class MediaItem : NSObject
     var multiPartName:String? {
         get {
             if (dict?[Field.multi_part_name] == nil) {
-                if let range = title?.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
-                    if let seriesString = title?.substring(to: range.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
-                        dict?[Field.multi_part_name] = seriesString
-                    }
+                if let title = title, let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                    let seriesString = String(title[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                    
+                    dict?[Field.multi_part_name] = seriesString
                 }
             }
             
@@ -1632,13 +1643,16 @@ class MediaItem : NSObject
     
     var part:String? {
         get {
-            if hasMultipleParts && (dict?[Field.part] == nil) {
-                if let range = title?.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
-                    if let partString = title?.substring(from: range.upperBound) {
-                        //                    print(partString)
-                        if let range = partString.range(of: ")") {
-                            dict?[Field.part] = partString.substring(to: range.lowerBound)
-                        }
+            guard let title = title else {
+                return nil
+            }
+            
+            if hasMultipleParts, dict?[Field.part] == nil {
+                if let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                    let partString = String(title[range.upperBound...])
+                    //                    print(partString)
+                    if let range = partString.range(of: ")") {
+                        dict?[Field.part] = String(partString[..<range.lowerBound])
                     }
                 }
             }
@@ -1659,7 +1673,7 @@ class MediaItem : NSObject
                 if possibleTag.range(of: "-") != nil {
                     while possibleTag.range(of: "-") != nil {
                         if let range = possibleTag.range(of: "-") {
-                            let candidate = possibleTag.substring(to: range.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                             
                             if (Int(candidate) == nil) && !tags.contains(candidate) {
                                 if let count = possibleTags[candidate] {
@@ -1669,7 +1683,7 @@ class MediaItem : NSObject
                                 }
                             }
                             
-                            possibleTag = possibleTag.substring(from: range.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                         } else {
                             // ???
                         }
@@ -1841,12 +1855,12 @@ class MediaItem : NSObject
         }
 
         if (globals.media.tags.selected == tag) {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
             }
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
@@ -1888,12 +1902,12 @@ class MediaItem : NSObject
         }
         
         if (globals.media.tags.selected == tag) {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
             }
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
@@ -1940,9 +1954,9 @@ class MediaItem : NSObject
         
         while (tags.range(of: Constants.TAGS_SEPARATOR) != nil) {
             if let range = tags.range(of: Constants.TAGS_SEPARATOR) {
-                tag = tags.substring(to: range.lowerBound)
+                tag = String(tags[..<range.lowerBound])
                 tagsSet.insert(tag)
-                tags = tags.substring(from: range.upperBound)
+                tags = String(tags[range.upperBound...])
             } else {
                 // ???
             }
@@ -2014,11 +2028,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            let tail = video.substring(from: Constants.BASE_URL.VIDEO_PREFIX.endIndex)
+            let tail = String(video[Constants.BASE_URL.VIDEO_PREFIX.endIndex...])
 //            print(tail)
             
             if let range = tail.range(of: ".m") {
-                return tail.substring(to: range.lowerBound)
+                return String(tail[..<range.lowerBound])
             } else {
                 return nil
             }
@@ -2072,8 +2086,8 @@ class MediaItem : NSObject
                     break
                 }
                 
-                stringBefore = string.substring(to: range.lowerBound)
-                stringAfter = string.substring(from: range.upperBound)
+                stringBefore = String(string[..<range.lowerBound])
+                stringAfter = String(string[range.upperBound...])
                 
                 var skip = false
                 
@@ -2112,7 +2126,7 @@ class MediaItem : NSObject
                             skip = true
                         } else {
                             //                            if characterAfter == "." {
-                            //                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+                            //                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
                             //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
                             //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                             //                                        skip = true
@@ -2125,13 +2139,13 @@ class MediaItem : NSObject
                         
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
-                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
                                 skip = true
                             }
                         }
@@ -2144,9 +2158,9 @@ class MediaItem : NSObject
                     }
                 }
                 
-                foundString = string.substring(from: range.lowerBound)
+                foundString = String(string[range.lowerBound...])
                 if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = foundString.substring(to: newRange.upperBound)
+                    foundString = String(foundString[..<newRange.upperBound])
                 } else {
                     // ???
                 }
@@ -2172,21 +2186,21 @@ class MediaItem : NSObject
         var string:String = notesHTML ?? Constants.EMPTY_STRING
         
         while let searchRange = string.range(of: "<") {
-            let searchString = string.substring(to: searchRange.lowerBound)
+            let searchString = String(string[..<searchRange.lowerBound])
 //            print(searchString)
             
             // mark search string
             newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
-            let remainder = string.substring(from: searchRange.lowerBound)
+            let remainder = String(string[searchRange.lowerBound...])
 
             if let htmlRange = remainder.range(of: ">") {
-                let html = remainder.substring(to: htmlRange.upperBound)
+                let html = String(remainder[..<htmlRange.upperBound])
 //                print(html)
                 
                 newString = newString + html
                 
-                string = remainder.substring(from: htmlRange.upperBound)
+                string = String(remainder[htmlRange.upperBound...])
             }
         }
         
@@ -2568,8 +2582,8 @@ class MediaItem : NSObject
         let separator = ";"
         
         while let range = string.range(of: separator) {
-            scriptures.append(string.substring(to: range.lowerBound))
-            string = string.substring(from: range.upperBound)
+            scriptures.append(String(string[..<range.lowerBound]))
+            string = String(string[range.upperBound...])
         }
         
         scriptures.append(string)
@@ -2589,7 +2603,7 @@ class MediaItem : NSObject
                 var reference = scripture
                 
                 if let range = scripture.range(of: book) {
-                    reference = scripture.substring(from: range.upperBound)
+                    reference = String(scripture[range.upperBound...])
                 }
                 
 //                print(book,reference)
@@ -2644,27 +2658,27 @@ class MediaItem : NSObject
                     
                     if (string.range(of: ";") == nil) {
                         if let range = scriptureReference.range(of: thisBook) {
-                            chaptersForBook = chaptersFromScriptureReference(string.substring(from: range.upperBound))
+                            chaptersForBook = chaptersFromScriptureReference(String(string[range.upperBound...]))
                         } else {
                             // ???
                         }
                     } else {
                         while let range = string.range(of: ";") {
-                            var subString = string.substring(to: range.lowerBound)
+                            var subString = String(string[..<range.lowerBound])
                             
                             if let range = subString.range(of: thisBook) {
-                                subString = subString.substring(from: range.upperBound)
+                                subString = String(subString[range.upperBound...])
                             }
                             if let chapters = chaptersFromScriptureReference(subString) {
                                 chaptersForBook?.append(contentsOf: chapters)
                             }
                             
-                            string = string.substring(from: range.upperBound)
+                            string = String(string[range.upperBound...])
                         }
                         
                         //                        print(string)
                         if let range = string.range(of: thisBook) {
-                            string = string.substring(from: range.upperBound)
+                            string = String(string[range.upperBound...])
                         }
                         if let chapters = chaptersFromScriptureReference(string) {
                             chaptersForBook?.append(contentsOf: chapters)
@@ -2684,15 +2698,15 @@ class MediaItem : NSObject
             let separator = ";"
             
             while let range = string.range(of: separator) {
-                scriptures.append(string.substring(to: range.lowerBound))
-                string = string.substring(from: range.upperBound)
+                scriptures.append(String(string[..<range.lowerBound]))
+                string = String(string[range.upperBound...])
             }
             
             scriptures.append(string)
             
             for scripture in scriptures {
                 if let range = scripture.range(of: thisBook) {
-                    if let chapters = chaptersFromScriptureReference(scripture.substring(from: range.upperBound)) {
+                    if let chapters = chaptersFromScriptureReference(String(scripture[range.upperBound...])) {
                         if chaptersForBook == nil {
                             chaptersForBook = chapters
                         } else {
@@ -2951,8 +2965,8 @@ class MediaItem : NSObject
             
             if hasTitle, let title = title {
                 if let rangeTo = title.range(of: " (Part"), let rangeFrom = title.range(of: " (Part "), rangeFrom.lowerBound == rangeTo.lowerBound {
-                    let first = title.substring(to: rangeTo.upperBound)
-                    let second = title.substring(from: rangeFrom.upperBound)
+                    let first = String(title[..<rangeTo.upperBound])
+                    let second = String(title[rangeFrom.upperBound...])
                     let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
                     string = string + "\n\(combined)"
                 } else {

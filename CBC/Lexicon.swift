@@ -93,7 +93,7 @@ class Lexicon : NSObject {
                     if candidate != candidates.first {
                         //                        print(candidate,currentCandidate)
                         if currentCandidate.endIndex <= candidate.endIndex {
-                            if candidate.substring(to: currentCandidate.endIndex) == currentCandidate {
+                            if String(candidate[..<currentCandidate.endIndex]) == currentCandidate {
                                 if let index = finalRoots.index(of: currentCandidate) {
                                     finalRoots.remove(at: index)
                                 }

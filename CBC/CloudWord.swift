@@ -18,13 +18,13 @@ class CloudWord : NSObject
     
     var wordCount : Int = 0
     
-    var pointSize : CGFloat = 0.0
+    @objc var pointSize : CGFloat = 0.0
     
     var boundsCenter : CGPoint = CGPoint.zero
     
     var boundsSize : CGSize = CGSize.zero
     
-    var boundsArea : CGFloat
+    @objc var boundsArea : CGFloat
     {
         get {
             return boundsSize.width * boundsSize.height
@@ -226,7 +226,7 @@ class CloudWord : NSObject
         
         wordOrientationVertical = isVertical;
         
-        let attributes = [NSFontAttributeName: font]
+        let attributes = [NSAttributedStringKey.font: font]
 
         let attributedWord = NSAttributedString(string: wordText, attributes: attributes)
 

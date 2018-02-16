@@ -520,7 +520,7 @@ class PopoverPickerViewController : UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    @objc func actions()
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -571,7 +571,7 @@ class PopoverPickerViewController : UIViewController
         }
     }
 
-    func done()
+    @objc func done()
     {
         dismiss(animated: true, completion: nil)
     }
@@ -1008,7 +1008,7 @@ class PopoverPickerViewController : UIViewController
     
     func updatePicker()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.picker.reloadAllComponents()
 
             var i = 0
@@ -1041,7 +1041,7 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-    func updated()
+    @objc func updated()
     {
         self.updatePickerSelections()
         self.updatePicker()

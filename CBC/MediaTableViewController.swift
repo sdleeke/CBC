@@ -278,7 +278,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
     
     func stringPicked(_ string:String?)
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.dismiss(animated: true, completion: {
                 self.presentingVC = nil
             })
@@ -301,7 +301,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         globals.cancelAllDownloads()
         globals.clearDisplay()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.tableView?.reloadData()
             
             self.tableView?.isHidden = true
@@ -317,7 +317,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         tagLabel.text = nil
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Globals.Media()
+        globals.media = Media()
         globals.media.globals = globals
         
         loadMediaItems()
@@ -415,12 +415,12 @@ class StringIndex : NSObject
                 var category = "Other"
                 
                 if let range = title.range(of: " (audio)") {
-                    title = title.substring(to: range.lowerBound)
+                    title = String(title[..<range.lowerBound])
                     category = Constants.Strings.Audio
                 }
                 
                 if let range = title.range(of: " (video)") {
-                    title = title.substring(to: range.lowerBound)
+                    title = String(title[..<range.lowerBound])
                     category = Constants.Strings.Video
                 }
                 
@@ -596,7 +596,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     popover.section.stringIndex = searchIndex?.stringIndex(key: "title", sort: nil) //.keys.count > 0 ? stringIndex : nil
                     
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         popover.tableView?.isEditing = false
                         popover.tableView?.reloadData()
                         popover.tableView?.reloadData()
@@ -652,7 +652,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             popover.search = true
                             popover.content = .html
                             
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
                                 self?.popover?.activityIndicator.stopAnimating()
                                 self?.popover?.activityIndicator.isHidden = true
                                 
@@ -1114,7 +1114,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
     }
     
-    func historyActions()
+    @objc func historyActions()
     {
         let alert = UIAlertController(title: "Delete History?",
                                       message: nil,
@@ -1135,7 +1135,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         })
         alert.addAction(cancelAction)
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.present(alert, animated: true, completion: nil)
         }
     }
@@ -1297,7 +1297,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Live:
-            guard   globals.streamEntries?.count > 0, globals.reachability.isReachable,
+            guard   globals.mediaStream.streamEntries?.count > 0, globals.reachability.isReachable,
                     let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
                 break
@@ -1341,7 +1341,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     if key == Constants.Strings.Playing {
                         self.dismiss(animated: true, completion: nil)
                         
-                        if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
+                        if let streamEntry = StreamEntry(globals.mediaStream.streamEntryIndex?[key]?[indexPath.row]) {
                             self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
                         }
                     }
@@ -1388,7 +1388,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                     
                     //                                popover.section.strings = globals.streamStrings
-                    popover.section.stringIndex = globals.streamStringIndex
+                    popover.section.stringIndex = globals.mediaStream.streamStringIndex
                     
                     popover.tableView.reloadData()
                 }
@@ -1403,7 +1403,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.activityIndicator.startAnimating()
                 
                 self.loadLive() {
-                    popover.section.stringIndex = globals.streamStringIndex
+                    popover.section.stringIndex = globals.mediaStream.streamStringIndex
                     popover.tableView.reloadData()
                     
                     popover.activityIndicator.stopAnimating()
@@ -1490,17 +1490,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             if  var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
                                 var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
                                 if let range = date0.range(of: " PM") {
-                                    date0 = date0.substring(to: range.lowerBound)
+                                    date0 = String(date0[..<range.lowerBound])
                                 }
                                 if let range = date0.range(of: " AM") {
-                                    date0 = date0.substring(to: range.lowerBound)
+                                    date0 = String(date0[..<range.lowerBound])
                                 }
 
                                 if let range = date1.range(of: " PM") {
-                                    date1 = date1.substring(to: range.lowerBound)
+                                    date1 = String(date1[..<range.lowerBound])
                                 }
                                 if let range = date1.range(of: " AM") {
-                                    date1 = date1.substring(to: range.lowerBound)
+                                    date1 = String(date1[..<range.lowerBound])
                                 }
 
                                 return Date(string: date0) < Date(string: date1)
@@ -1558,17 +1558,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             if  var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
                                 var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
                                 if let range = date0.range(of: " PM") {
-                                    date0 = date0.substring(to: range.lowerBound)
+                                    date0 = String(date0[..<range.lowerBound])
                                 }
                                 if let range = date0.range(of: " AM") {
-                                    date0 = date0.substring(to: range.lowerBound)
+                                    date0 = String(date0[..<range.lowerBound])
                                 }
 
                                 if let range = date1.range(of: " PM") {
-                                    date1 = date1.substring(to: range.lowerBound)
+                                    date1 = String(date1[..<range.lowerBound])
                                 }
                                 if let range = date1.range(of: " AM") {
-                                    date1 = date1.substring(to: range.lowerBound)
+                                    date1 = String(date1[..<range.lowerBound])
                                 }
 
                                 return Date(string: date0) < Date(string: date1)
@@ -1581,10 +1581,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         self.popover?.updateSearchResults()
                         
-                        Thread.onMainThread(block: { (Void) -> (Void) in
+                        Thread.onMainThread {
                             self.popover?.tableView?.reloadData()
                             self.popover?.activityIndicator.stopAnimating()
-                        })
+                        }
                     },onError: nil)
                     
                     self.presentingVC = navigationController
@@ -1633,7 +1633,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             globals.cancelAllDownloads()
             globals.clearDisplay()
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.tableView?.reloadData()
                 
                 self.tableView?.isHidden = true
@@ -1649,7 +1649,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             tagLabel.text = nil
             
             // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-            globals.media = Globals.Media()
+            globals.media = Media()
             globals.media.globals = globals
 
             loadMediaItems()
@@ -1666,7 +1666,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             var searchText = strings[index].uppercased()
             
             if let range = searchText.range(of: " (") {
-                searchText = searchText.substring(to: range.lowerBound)
+                searchText = String(searchText[..<range.lowerBound])
             }
             
             globals.search.active = true
@@ -1713,12 +1713,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             _ = navigationController?.popViewController(animated: true)
             
             if let range = string.range(of: " (") {
-                let searchText = string.substring(to: range.lowerBound).uppercased()
+                let searchText = String(string[..<range.lowerBound]).uppercased()
                 
                 globals.search.active = true
                 globals.search.text = searchText
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.searchBar.text = searchText
                     self.searchBar.showsCancelButton = true
                 }
@@ -1742,7 +1742,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 var mediaItemID:String
                 
                 if let range = history[index].range(of: Constants.TAGS_SEPARATOR) {
-                    mediaItemID = history[index].substring(from: range.upperBound)
+                    mediaItemID = String(history[index][range.upperBound...])
                 } else {
                     mediaItemID = history[index]
                 }
@@ -1806,7 +1806,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                     
                     if (new) {
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             globals.clearDisplay()
                             
                             self?.tableView?.reloadData()
@@ -1820,7 +1820,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self?.updateSearchResults(globals.search.text,completion: nil)
                         }
                         
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             globals.setupDisplay(globals.media.active)
                             
                             self?.tableView?.reloadData()
@@ -1888,7 +1888,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                     globals.setupDisplay(globals.media.active)
                     
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         self?.tableView?.reloadData()
                         
                         self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -1911,7 +1911,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if (globals.media.need.sorting) {
                 globals.clearDisplay()
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.tableView?.reloadData()
                     
                     self.startAnimating()
@@ -1921,7 +1921,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         globals.setupDisplay(globals.media.active)
                         
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             self?.tableView?.reloadData()
                             
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -2035,7 +2035,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     if  let start = times.first,
                                         let end = times.last,
                                         let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
                                         //                                    for string in transcriptSegmentArray {
@@ -2246,9 +2246,9 @@ class MediaTableViewController : UIViewController // MediaController
     
     var stringIndex : StringIndex? // [String:[String]]()
 
-    func finish()
+    @objc func finish()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.popover?.activityIndicator?.stopAnimating()
             
             if self.stringIndex?.dict == nil {
@@ -2343,7 +2343,7 @@ class MediaTableViewController : UIViewController // MediaController
 //
 //            // Should we alert the user to what is being loaded from VB or how many?
 //
-//            Thread.onMainThread() {
+//            Thread.onMainThread {
 //                transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: true), repeats: true)
 //            }
 //
@@ -2383,7 +2383,7 @@ class MediaTableViewController : UIViewController // MediaController
 //        present(alert, animated: true, completion: nil)
 //    }
     
-    func downloadFailed(_ notification:NSNotification)
+    @objc func downloadFailed(_ notification:NSNotification)
     {
 
     }
@@ -2609,7 +2609,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.Strings.History)
 
-            if globals.streamEntries != nil, globals.reachability.isReachable {
+            if globals.mediaStream.streamEntries != nil, globals.reachability.isReachable {
                 showMenu.append(Constants.Strings.Live)
             }
             
@@ -2644,7 +2644,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func disableToolBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = false
@@ -2655,7 +2655,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func disableBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = false
@@ -2674,7 +2674,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func enableToolBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = true
@@ -2685,7 +2685,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func enableBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = true
@@ -2702,7 +2702,7 @@ class MediaTableViewController : UIViewController // MediaController
         enableToolBarButtons()
     }
     
-    func index(_ object:AnyObject?)
+    @objc func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
@@ -2787,7 +2787,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
 
-    func grouping(_ object:AnyObject?)
+    @objc func grouping(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
@@ -2829,7 +2829,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
     
-    func sorting(_ object:AnyObject?)
+    @objc func sorting(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
@@ -2978,7 +2978,7 @@ class MediaTableViewController : UIViewController // MediaController
 //            Thread.sleep(forTimeInterval: 0.25)
         
             if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {
-                globals.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
+                globals.mediaStream.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
                 
                 Thread.onMainThread(block: {
                     completion?()
@@ -3013,7 +3013,7 @@ class MediaTableViewController : UIViewController // MediaController
             self?.setupBarButtons()
             self?.setupListActivityIndicator()
 
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
 
@@ -3060,19 +3060,19 @@ class MediaTableViewController : UIViewController // MediaController
                 }
             }
 
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Loading_Settings
             }
             globals.loadSettings()
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
             }
             
             globals.media.all = MediaListGroupSort(mediaItems: globals.mediaRepository.list)
             
             if globals.search.valid {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.searchBar.text = globals.search.text
                     self?.searchBar.showsCancelButton = true
                 }
@@ -3082,7 +3082,7 @@ class MediaTableViewController : UIViewController // MediaController
 
             globals.setupDisplay(globals.media.active)
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Setting_up_Player
                 
                 if (globals.mediaPlayer.mediaItem != nil) {
@@ -3107,7 +3107,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func setupCategoryButton()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.mediaCategoryButton.setTitle(globals.mediaCategory.selected)
 
             if globals.isLoading || globals.isRefreshing || !globals.search.complete {
@@ -3135,16 +3135,16 @@ class MediaTableViewController : UIViewController // MediaController
     {
         if globals.isLoading || (globals.search.active && !globals.search.complete) {
             if !globals.isRefreshing {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.startAnimating()
                 }
             } else {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.stopAnimating()
                 }
             }
         } else {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.stopAnimating()
             }
         }
@@ -3185,7 +3185,7 @@ class MediaTableViewController : UIViewController // MediaController
 
     func setupSearchBar()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.searchBar.resignFirstResponder()
             self.searchBar.placeholder = nil
             self.searchBar.text = nil
@@ -3193,7 +3193,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
     
-    func handleRefresh(_ refreshControl: UIRefreshControl)
+    @objc func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
@@ -3232,7 +3232,7 @@ class MediaTableViewController : UIViewController // MediaController
         setupBarButtons()
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Globals.Media()
+        globals.media = Media()
         globals.media.globals = globals
 
         switch jsonSource {
@@ -3251,7 +3251,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
 
-    func updateList()
+    @objc func updateList()
     {
         updateSearch()
         
@@ -3280,7 +3280,7 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
 
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.actInd.stopAnimating()
             self.loadingView.isHidden = true
             self.container.isHidden = true
@@ -3301,7 +3301,7 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.container.isHidden = false
             self.loadingView.isHidden = false
             self.actInd.startAnimating()
@@ -3371,7 +3371,7 @@ class MediaTableViewController : UIViewController // MediaController
             if globals.search.active && !globals.search.complete {
                 self.updateSearchResults(globals.search.text,completion: {
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
                         }
                     }
@@ -3486,7 +3486,7 @@ class MediaTableViewController : UIViewController // MediaController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    @objc func actions()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
@@ -3670,7 +3670,7 @@ class MediaTableViewController : UIViewController // MediaController
             globals.setupDisplay(globals.media.active)
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
@@ -3722,7 +3722,7 @@ class MediaTableViewController : UIViewController // MediaController
 
         globals.clearDisplay()
 
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.tableView?.reloadData()
         }
 
@@ -3811,7 +3811,7 @@ class MediaTableViewController : UIViewController // MediaController
                 self?.updateDisplay(searchText:searchText)
             }
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 completion?()
                 
                 globals.search.complete = true
@@ -3919,7 +3919,7 @@ class MediaTableViewController : UIViewController // MediaController
                 return
             }
 
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.tableView?.setEditing(false, animated: true)
                 
                 if (select) {
@@ -3941,7 +3941,7 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             switch showing {
             case Constants.ALL:
                 self.tagLabel.text = Constants.Strings.All // searchBar.placeholder
@@ -4030,7 +4030,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
     
-    func updateSearch()
+    @objc func updateSearch()
     {
         guard globals.search.valid else {
             return
@@ -4039,28 +4039,28 @@ class MediaTableViewController : UIViewController // MediaController
         updateSearchResults(globals.search.text,completion: nil)
     }
     
-    func liveView()
+    @objc func liveView()
     {
         self.dismiss(animated: true, completion: nil)
         performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
     }
     
-    func playingPaused()
+    @objc func playingPaused()
     {
         performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: globals.mediaPlayer.mediaItem ?? globals.selectedMediaItem.detail)
     }
     
-    func lastSegue()
+    @objc func lastSegue()
     {
         performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: globals.selectedMediaItem.detail)
     }
     
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
 
     }
 
-    func stopEditing()
+    @objc func stopEditing()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
@@ -4070,12 +4070,12 @@ class MediaTableViewController : UIViewController // MediaController
         tableView.isEditing = false
     }
     
-    func willEnterForeground()
+    @objc func willEnterForeground()
     {
         
     }
     
-    func didBecomeActive()
+    @objc func didBecomeActive()
     {
         guard !globals.isLoading, globals.mediaRepository.list == nil else {
             return
@@ -4523,7 +4523,7 @@ extension MediaTableViewController : UITableViewDelegate
     func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
     {
         // Tells the delegate that the table view is about to go into editing mode.
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.searchBar.resignFirstResponder()
         }
     }
@@ -4532,7 +4532,7 @@ extension MediaTableViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.tableView?.reloadData()
             }
         }

@@ -52,18 +52,18 @@ class LiveViewController: UIViewController
         textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
     }
 
-    func clearView()
+    @objc func clearView()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             globals.mediaPlayer.view?.isHidden = true
             self.textView.isHidden = true
             self.logo.isHidden = false
         }
     }
     
-    func liveView()
+    @objc func liveView()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.setupLivePlayerView()
             
             globals.mediaPlayer.view?.isHidden = false
@@ -81,7 +81,7 @@ class LiveViewController: UIViewController
         }
     }
     
-    func done()
+    @objc func done()
     {
         if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
 //            self.splitViewController?.preferredDisplayMode = .allVisible

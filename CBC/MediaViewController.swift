@@ -91,17 +91,20 @@ class ControlView : UIView
 {
     var sliding = false
     
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        if !sliding {
-            for view in subviews {
-                if view.frame.contains(point) && view.isUserInteractionEnabled && !view.isHidden {
-                    if let control = view as? UIControl {
-                        if control.isEnabled {
-                            return true
-                        }
-                    } else {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool
+    {
+        guard !sliding else {
+            return false
+        }
+        
+        for view in subviews {
+            if view.frame.contains(point) && view.isUserInteractionEnabled && !view.isHidden {
+                if let control = view as? UIControl {
+                    if control.isEnabled {
                         return true
                     }
+                } else {
+                    return true
                 }
             }
         }
@@ -183,7 +186,7 @@ extension MediaViewController : UIActivityItemSource
     
     static var cases : [UIActivityType] = [.message,.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
         if #available(iOS 11.0, *) {
             MediaViewController.cases.append(.markupAsPDF)
@@ -205,7 +208,7 @@ extension MediaViewController : UIActivityItemSource
             data = try? Data(contentsOf: downloadURL)
         }
 
-        if MediaViewController.cases.contains(activityType) {
+        if MediaViewController.cases.contains(activityType!) {
             return data
         } else {
             return selectedMediaItem?.text
@@ -682,7 +685,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                     if  let start = times.first,
                                         let end = times.last,
                                         let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
                                         //                                    for string in transcriptSegmentArray {
@@ -780,12 +783,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                     // post a notification rather than doing this
 //                    if finished, let ptvc = self.popover?.navigationController?.visibleViewController as? PopoverTableViewController {
 //                        if ptvc.track, !ptvc.isTracking {
-//                            Thread.onMainThread() {
+//                            Thread.onMainThread {
 //                                ptvc.follow()
 //                            }
 //                        }
 //                        if ptvc.track, ptvc.isTracking, ptvc.trackingTimer == nil {
-//                            Thread.onMainThread() {
+//                            Thread.onMainThread {
 //                                ptvc.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: ptvc as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
 //                            }
 //                        }
@@ -828,7 +831,7 @@ extension MediaViewController : WKNavigationDelegate
             decisionHandler(WKNavigationActionPolicy.allow)
         } else {
             if let url = navigationAction.request.url?.absoluteString, let range = url.range(of: "%23") {
-                let tag = url.substring(to: range.lowerBound)
+                let tag = String(url[..<range.lowerBound])
                 
                 if tag == "about:blank" {
                     decisionHandler(WKNavigationActionPolicy.allow)
@@ -857,7 +860,7 @@ extension MediaViewController : WKNavigationDelegate
         if statusCode >= 400 {
             // error has occurred
             if let showing = document?.showing(self.selectedMediaItem), showing, document?.wkWebView == wkWebView {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     webView.isHidden = true
                     
                     self.activityIndicator.stopAnimating()
@@ -999,7 +1002,7 @@ extension MediaViewController : WKNavigationDelegate
         }
 
         if let showing = document?.showing(self.selectedMediaItem), showing, document?.wkWebView == wkWebView {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 wkWebView.isHidden = true
                 
                 self.activityIndicator.stopAnimating()
@@ -1026,7 +1029,7 @@ extension MediaViewController : WKNavigationDelegate
         }
 //        for document in documents.values {
 //            if (document.wkWebView == wkWebView) && document.showing(selectedMediaItem) {
-//                Thread.onMainThread() {
+//                Thread.onMainThread {
 //                    wkWebView.isHidden = true
 //
 //                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
@@ -1181,12 +1184,12 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func updateNotesDocument()
+    @objc func updateNotesDocument()
     {
         updateDocument(document: notesDocument)
     }
     
-    func cancelNotesDocument()
+    @objc func cancelNotesDocument()
     {
         cancelDocument(document: notesDocument,message: "Transcript not available.")
     }
@@ -1214,7 +1217,7 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
                 if let notesDocument = notesDocument {
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: notesDocument.download)
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: notesDocument.download)
                     }
@@ -1269,7 +1272,7 @@ class MediaViewController: UIViewController // MediaController
         case .downloading:
             download.state = .none
             if document.showing(selectedMediaItem) {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                     
@@ -1293,12 +1296,12 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func updateSlidesDocument()
+    @objc func updateSlidesDocument()
     {
         updateDocument(document: slidesDocument)
     }
     
-    func cancelSlidesDocument()
+    @objc func cancelSlidesDocument()
     {
         cancelDocument(document: slidesDocument,message: "Slides not available.")
     }
@@ -1326,7 +1329,7 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
                 if let slidesDocument = slidesDocument {
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: slidesDocument.download)
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: slidesDocument.download)
                     }
@@ -1446,7 +1449,7 @@ class MediaViewController: UIViewController // MediaController
                 
                 globals.selectedMediaItem.detail = selectedMediaItem
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem) //
                 }
             } else {
@@ -1850,7 +1853,7 @@ class MediaViewController: UIViewController // MediaController
                 fontSize = min(audioOrVideoControl.frame.height,segmentWidth) / 1.75
                 
                 if let font = UIFont(name: "FontAwesome", size: fontSize) {
-                    audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: font])
+                    audioOrVideoControl.setTitleTextAttributes([ NSAttributedStringKey.font.rawValue: font])
                 }
             }
         }
@@ -1864,7 +1867,7 @@ class MediaViewController: UIViewController // MediaController
                 fontSize = min(stvControl.frame.height,segmentWidth) / 1.75
                 
                 if let font = UIFont(name: "FontAwesome", size: fontSize) {
-                    stvControl.setTitleTextAttributes([ NSFontAttributeName: font])
+                    stvControl.setTitleTextAttributes([ NSAttributedStringKey.font.rawValue: font])
                 }
             }
         }
@@ -1883,7 +1886,7 @@ class MediaViewController: UIViewController // MediaController
         // that is only broken by switching between audio and video
         // or playing a different media item if there is only one media type.
         if let timeElapsed = globals.mediaPlayer.stateTime?.timeElapsed {
-            if timeElapsed < 1.0 {
+            if timeElapsed < 0.5 { // 1.0
                 print("STOP HITTING THE PLAY PAUSE BUTTON SO QUICKLY!")
                 return
             }
@@ -2180,7 +2183,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
 
-    func elapsedTapAction()
+    @objc func elapsedTapAction()
     {
         guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
             return
@@ -2205,7 +2208,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func remainingTapAction(_ sender: UITapGestureRecognizer)
+    @objc func remainingTapAction(_ sender: UITapGestureRecognizer)
     {
         guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
             return
@@ -2314,7 +2317,7 @@ class MediaViewController: UIViewController // MediaController
         messageComposeViewController.subject = "Recommendation"
         messageComposeViewController.body = mediaItem?.contents
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.present(messageComposeViewController, animated: true, completion: nil)
         }
     }
@@ -2533,7 +2536,7 @@ class MediaViewController: UIViewController // MediaController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    @objc func actions()
     {
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
@@ -2559,7 +2562,7 @@ class MediaViewController: UIViewController // MediaController
             
             popover.vc = self
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
                     self.popover = popover
                 })
@@ -2574,7 +2577,7 @@ class MediaViewController: UIViewController // MediaController
         updateUI()
     }
     
-    func videoLongPress(_ longPress:UILongPressGestureRecognizer)
+    @objc func videoLongPress(_ longPress:UILongPressGestureRecognizer)
     {
         switch longPress.state {
         case .began:
@@ -2601,7 +2604,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func videoPinch(_ pinch:UIPinchGestureRecognizer)
+    @objc func videoPinch(_ pinch:UIPinchGestureRecognizer)
     {
         switch pinch.state {
         case .began:
@@ -2622,7 +2625,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func videoPan(_ pan:UIPanGestureRecognizer)
+    @objc func videoPan(_ pan:UIPanGestureRecognizer)
     {
         guard !globals.mediaPlayer.fullScreen else {
             return
@@ -2837,7 +2840,7 @@ class MediaViewController: UIViewController // MediaController
         mediaItemNotesAndSlides.setNeedsLayout()
     }
     
-    func readyToPlay()
+    @objc func readyToPlay()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
@@ -2894,14 +2897,14 @@ class MediaViewController: UIViewController // MediaController
         setSegmentWidths()
     }
     
-    func paused()
+    @objc func paused()
     {
         setupSpinner()
         setupSliderAndTimes()
         setupPlayPauseButton()
     }
     
-    func failedToLoad()
+    @objc func failedToLoad()
     {
         guard (selectedMediaItem != nil) else {
             return
@@ -2916,7 +2919,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func failedToPlay()
+    @objc func failedToPlay()
     {
         guard (selectedMediaItem != nil) else {
             return
@@ -2931,7 +2934,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func showPlaying()
+    @objc func showPlaying()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
@@ -2959,7 +2962,7 @@ class MediaViewController: UIViewController // MediaController
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         
         DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
         }
@@ -2967,7 +2970,7 @@ class MediaViewController: UIViewController // MediaController
         updateUI()
     }
     
-    func updateView()
+    @objc func updateView()
     {
         selectedMediaItem = globals.selectedMediaItem.detail
         
@@ -2976,7 +2979,7 @@ class MediaViewController: UIViewController // MediaController
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         
         DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
         }
@@ -2991,9 +2994,9 @@ class MediaViewController: UIViewController // MediaController
         updateUI()
     }
     
-    func clearView()
+    @objc func clearView()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.dismiss(animated: true, completion: nil) // In case a dialog is visible.
             
             self.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
@@ -3079,7 +3082,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func loading(_ timer:Timer?)
+    @objc func loading(_ timer:Timer?)
     {
         // Expected to be on the main thread
         guard let document = (timer?.userInfo as? Document) else {
@@ -3150,7 +3153,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func downloadFailed(_ notification:NSNotification)
+    @objc func downloadFailed(_ notification:NSNotification)
     {
         if let download = notification.object as? Download, document?.download == download {
 //            if let purpose = document?.purpose {
@@ -3167,7 +3170,7 @@ class MediaViewController: UIViewController // MediaController
 //                    break
 //                }
 //            }
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.activityIndicator.stopAnimating()
                 self.activityIndicator.isHidden = true
                 
@@ -3608,7 +3611,7 @@ class MediaViewController: UIViewController // MediaController
         tableView.scrollToRow(at: indexPath, at: position, animated: false)
     }
     
-    func setupPlayPauseButton()
+    @objc func setupPlayPauseButton()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
@@ -3666,7 +3669,7 @@ class MediaViewController: UIViewController // MediaController
         playPauseButton.isHidden = false
     }
     
-    func tags(_ object:AnyObject?)
+    @objc func tags(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
@@ -3792,7 +3795,7 @@ class MediaViewController: UIViewController // MediaController
                     x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width,
                     y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height)
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
                 }
             }
@@ -3886,7 +3889,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func resetConstraint()
+    @objc func resetConstraint()
     {
         guard view.subviews.contains(verticalSplit) else {
             return
@@ -4038,7 +4041,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func updateUI()
+    @objc func updateUI()
     {
         guard self.isViewLoaded else {
             return
@@ -4078,7 +4081,7 @@ class MediaViewController: UIViewController // MediaController
         setSegmentWidths()
     }
     
-    func doneSeeking()
+    @objc func doneSeeking()
     {
         controlView.sliding = false
         print("DONE SEEKING")
@@ -4086,7 +4089,7 @@ class MediaViewController: UIViewController // MediaController
     
     var orientation : UIDeviceOrientation?
     
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
         defer {
             switch UIDevice.current.orientation {
@@ -4302,7 +4305,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func stopEditing()
+    @objc func stopEditing()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
@@ -4312,12 +4315,12 @@ class MediaViewController: UIViewController // MediaController
         tableView.isEditing = false
     }
     
-    func willEnterForeground()
+    @objc func willEnterForeground()
     {
         
     }
     
-    func didBecomeActive()
+    @objc func didBecomeActive()
     {
 //        updateUI() // TOO MUCH.  The mediaPlayer.reload in AppDelegate willEnterForeground makes a mess of this.
         setDVCLeftBarButton()
@@ -4370,7 +4373,7 @@ class MediaViewController: UIViewController // MediaController
 
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
         }
@@ -4413,7 +4416,7 @@ class MediaViewController: UIViewController // MediaController
             
             //Without this background/main dispatching there isn't time to scroll correctly after a reload.
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
                 }
             }
@@ -4850,7 +4853,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    func sliderTimer()
+    @objc func sliderTimer()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
@@ -5099,7 +5102,7 @@ class MediaViewController: UIViewController // MediaController
 
     func wkSetZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint)
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             // The effects of the next two calls are strongly order dependent.
             if !scale.isNaN {
                 wkWebView.scrollView.setZoomScale(scale, animated: false)

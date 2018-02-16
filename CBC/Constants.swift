@@ -601,21 +601,21 @@ enum Constants {
         static let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
         
         enum Attributes {
-            static let normal = [ NSFontAttributeName: Fonts.body ]
+            static let normal = [ NSAttributedStringKey.font: Fonts.body ]
             
-            static let bold = [ NSFontAttributeName: Fonts.bold ]
+            static let bold = [ NSAttributedStringKey.font: Fonts.bold ]
             
-            static let marked = [ NSBackgroundColorAttributeName: UIColor.lightGray,
-                                       NSFontAttributeName: Fonts.body ]
+            static let marked = [ NSAttributedStringKey.backgroundColor: UIColor.lightGray,
+                                       NSAttributedStringKey.font: Fonts.body ]
             
-            static let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                       NSFontAttributeName: Fonts.body ]
+            static let highlighted = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
+                                       NSAttributedStringKey.font: Fonts.body ]
             
-            static let destructive = [ NSForegroundColorAttributeName: UIColor.red,
-                                       NSFontAttributeName: Fonts.body ]
+            static let destructive = [ NSAttributedStringKey.foregroundColor: UIColor.red,
+                                       NSAttributedStringKey.font: Fonts.body ]
             
-            static let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                           NSFontAttributeName: Fonts.bold ]
+            static let boldHighlighted = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
+                                           NSAttributedStringKey.font: Fonts.bold ]
         }
     }
     
@@ -629,14 +629,14 @@ enum Constants {
             static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
             
             enum Attributes {
-                static let icons = [ NSFontAttributeName: Fonts.icons ]
+                static let icons = [ NSAttributedStringKey.font: Fonts.icons ]
                 
-                static let highlightedIcons = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                                NSFontAttributeName: Fonts.icons ]
+                static let highlightedIcons = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
+                                                NSAttributedStringKey.font: Fonts.icons ]
                 
-                static let tags = [ NSFontAttributeName: Fonts.tags ]
+                static let tags = [ NSAttributedStringKey.font: Fonts.tags ]
                 
-                static let show = [ NSFontAttributeName: Fonts.show ]
+                static let show = [ NSAttributedStringKey.font: Fonts.show ]
             }
         }
         

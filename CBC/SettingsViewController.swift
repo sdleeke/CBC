@@ -16,7 +16,7 @@ class SettingsViewController: UIViewController
     {
         globals.search.transcripts = sender.isOn
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
         }
     }
@@ -50,7 +50,7 @@ class SettingsViewController: UIViewController
                 
 //                globals.loadSingles = true
 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.updateCacheSize()
                 }
             }
@@ -108,7 +108,7 @@ class SettingsViewController: UIViewController
                 break
             }
 
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
             }
         }
@@ -152,13 +152,13 @@ class SettingsViewController: UIViewController
                 break
             }
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
             }
         }
     }
     
-    func done()
+    @objc func done()
     {
         dismiss(animated: true, completion: nil)
     }

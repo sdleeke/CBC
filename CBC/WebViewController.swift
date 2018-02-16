@@ -140,7 +140,7 @@ extension WebViewController : UIActivityItemSource
         //        }
         
         // present the view controller
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.present(activityViewController, animated: true, completion: nil)
         }
     }
@@ -152,13 +152,13 @@ extension WebViewController : UIActivityItemSource
     
     static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
         if #available(iOS 11.0, *) {
             WebViewController.cases.append(.markupAsPDF)
         }
 
-        if WebViewController.cases.contains(activityType) {
+        if WebViewController.cases.contains(activityType!) {
             return html.string
         } else {
 //            html.operationQueue.waitUntilAllOperationsAreFinished()
@@ -206,6 +206,10 @@ extension WebViewController : PopoverPickerControllerDelegate
     
     func stringPicked(_ string: String?)
     {
+        guard let string = string else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
@@ -217,8 +221,8 @@ extension WebViewController : PopoverPickerControllerDelegate
         
         var searchText = string
         
-        if let range = searchText?.range(of: " (") {
-            searchText = searchText?.substring(to: range.lowerBound)
+        if let range = searchText.range(of: " (") {
+            searchText = String(searchText[..<range.lowerBound])
         }
         
         self.wkWebView?.isHidden = true
@@ -275,12 +279,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
 //        
 //        // present the view controller
-//        Thread.onMainThread() {
+//        Thread.onMainThread {
 //            self.present(activityViewController, animated: true, completion: nil)
 //        }
 //    }
     
-    func showFullScreen()
+    @objc func showFullScreen()
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? WebViewController {
@@ -634,7 +638,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             var searchText = string
             
             if let range = searchText.range(of: " (") {
-                searchText = searchText.substring(to: range.lowerBound)
+                searchText = String(searchText[..<range.lowerBound])
             }
             
             wkWebView?.isHidden = true
@@ -694,7 +698,7 @@ extension WebViewController : WKNavigationDelegate
         setupWKZoomScaleAndContentOffset(wkWebView)
         setupHTMLWKZoomScaleAndContentOffset(wkWebView)
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
             
@@ -708,7 +712,7 @@ extension WebViewController : WKNavigationDelegate
             DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     wkWebView.isHidden = false
                     wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
                     
@@ -914,8 +918,8 @@ class WebViewController: UIViewController
                     break
                 }
                 
-                stringBefore = string.substring(to: range.lowerBound)
-                stringAfter = string.substring(from: range.upperBound)
+                stringBefore = String(string[..<range.lowerBound])
+                stringAfter = String(string[range.upperBound...])
                 
                 var skip = false
                 
@@ -954,7 +958,7 @@ class WebViewController: UIViewController
                             skip = true
                         } else {
 //                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
 //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
 //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                                        skip = true
@@ -967,13 +971,13 @@ class WebViewController: UIViewController
                         
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
-                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
                                 skip = true
                             }
                         }
@@ -986,9 +990,9 @@ class WebViewController: UIViewController
                     }
                 }
                 
-                foundString = string.substring(from: range.lowerBound)
+                foundString = String(string[range.lowerBound...])
                 if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = foundString.substring(to: newRange.upperBound)
+                    foundString = String(foundString[..<newRange.upperBound])
                 }
                 
                 if !skip {
@@ -1012,21 +1016,21 @@ class WebViewController: UIViewController
         var string:String = html.original ?? Constants.EMPTY_STRING
         
         while let searchRange = string.range(of: "<") {
-            let searchString = string.substring(to: searchRange.lowerBound)
+            let searchString = String(string[..<searchRange.lowerBound])
             //            print(searchString)
             
             // mark search string
             newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
-            let remainder = string.substring(from: searchRange.lowerBound)
+            let remainder = String(string[searchRange.lowerBound...])
             
             if let htmlRange = remainder.range(of: ">") {
-                let html = remainder.substring(to: htmlRange.upperBound)
+                let html = String(remainder[..<htmlRange.upperBound])
                 //                print(html)
                 
                 newString = newString + html
                 
-                string = remainder.substring(from: htmlRange.upperBound)
+                string = String(remainder[htmlRange.upperBound...])
             }
         }
         
@@ -1065,7 +1069,7 @@ class WebViewController: UIViewController
         return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
     }
 
-    func updateDownload()
+    @objc func updateDownload()
     {
         if let download = mediaItem?.download {
             switch download.state {
@@ -1082,7 +1086,7 @@ class WebViewController: UIViewController
         }
     }
     
-    func cancelDownload()
+    @objc func cancelDownload()
     {
         if let download = mediaItem?.download {
             switch download.state {
@@ -1092,7 +1096,7 @@ class WebViewController: UIViewController
             case .downloading:
                 download.state = .none
 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                     
@@ -1191,7 +1195,7 @@ class WebViewController: UIViewController
         wkWebView.superview?.setNeedsLayout()
     }
     
-    func done()
+    @objc func done()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:done", completion: nil)
@@ -1208,7 +1212,7 @@ class WebViewController: UIViewController
     
     var activityViewController:UIActivityViewController?
     
-    func actionMenu()
+    @objc func actionMenu()
     {
         //In case we have one already showing
 //        dismiss(animated: true, completion: nil)
@@ -1267,13 +1271,13 @@ class WebViewController: UIViewController
         }
     }
     
-    func increaseFontSize()
+    @objc func increaseFontSize()
     {
         html.fontSize += 1
         
         captureHTMLContentOffsetAndZoomScale()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if self.html.fontSize > Constants.HTML_MIN_FONT_SIZE {
                 self.minusButton?.isEnabled = true
             }
@@ -1293,14 +1297,14 @@ class WebViewController: UIViewController
 //        }
     }
     
-    func decreaseFontSize()
+    @objc func decreaseFontSize()
     {
         if html.fontSize > Constants.HTML_MIN_FONT_SIZE {
             html.fontSize -= 1
             
             captureHTMLContentOffsetAndZoomScale()
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 if self.html.fontSize <= Constants.HTML_MIN_FONT_SIZE {
                     self.minusButton?.isEnabled = false
                 }
@@ -1382,7 +1386,7 @@ class WebViewController: UIViewController
         }
     }
 
-    func loading()
+    @objc func loading()
     {
         if let wkWebView = wkWebView {
             progressIndicator.progress = Float(wkWebView.estimatedProgress)
@@ -1398,7 +1402,7 @@ class WebViewController: UIViewController
     
     func setWKZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint)
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             // The effects of the next two calls are strongly order dependent.
             if !scale.isNaN {
                 wkWebView.scrollView.setZoomScale(scale, animated: false)
@@ -1495,7 +1499,7 @@ class WebViewController: UIViewController
         let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width), //
             y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height)) //
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
         }
     }
@@ -1538,7 +1542,7 @@ class WebViewController: UIViewController
 //        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)),
 //                                    y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height)))
 //
-//        Thread.onMainThread() {
+//        Thread.onMainThread {
 //            wkWebView.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
 //            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
 //        }
@@ -1555,7 +1559,7 @@ class WebViewController: UIViewController
 //        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)), //
 //            y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height))) //
 //
-//        Thread.onMainThread() {
+//        Thread.onMainThread {
 //            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
 //        }
     }
@@ -1672,7 +1676,7 @@ class WebViewController: UIViewController
                     DispatchQueue.global(qos: .background).async { [weak self] in
                         _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                         
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             self?.activityIndicator.stopAnimating()
                             self?.activityIndicator.isHidden = true
                             
@@ -1696,7 +1700,7 @@ class WebViewController: UIViewController
                 }
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         if let activityIndicator = self?.activityIndicator {
                             self?.webView.bringSubview(toFront: activityIndicator)
                         }
@@ -1720,7 +1724,7 @@ class WebViewController: UIViewController
             }
         } else {
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     if let activityIndicator = self?.activityIndicator {
                         self?.webView.bringSubview(toFront: activityIndicator)
                     }
@@ -1744,7 +1748,7 @@ class WebViewController: UIViewController
         }
     }
     
-    func setPreferredContentSize()
+    @objc func setPreferredContentSize()
     {
         guard let title = navigationItem.title?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE),
                 let size = wkWebView?.scrollView.contentSize else {
@@ -1762,7 +1766,7 @@ class WebViewController: UIViewController
     
     var orientation : UIDeviceOrientation?
     
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
         guard let orientation = orientation else {
             return
@@ -1979,7 +1983,7 @@ class WebViewController: UIViewController
         }
     }
     
-    func willResignActive()
+    @objc func willResignActive()
     {
         dismiss(animated: true, completion: nil)
     }

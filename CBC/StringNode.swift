@@ -234,7 +234,7 @@ class StringNode {
         while !isEmpty {
             if let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) {
                 for stringNode in stringNodes {
-                    if stringNode.string?.endIndex >= fragment.endIndex, stringNode.string?.substring(to: fragment.endIndex) == fragment {
+                    if let string = stringNode.string, string.endIndex >= fragment.endIndex, String(string[..<fragment.endIndex]) == fragment {
                         foundNode = stringNode
                         break
                     }
@@ -245,7 +245,7 @@ class StringNode {
                 break
             }
             
-            fragment = fragment.substring(to: fragment.index(before: fragment.endIndex))
+            fragment = String(fragment[..<fragment.index(before: fragment.endIndex)])
             
             isEmpty = fragment.isEmpty
         }
@@ -299,19 +299,19 @@ class StringNode {
         var isEmpty = fragment.isEmpty
         
         while !isEmpty {
-            if string.endIndex >= fragment.endIndex, string.substring(to: fragment.endIndex) == fragment {
+            if string.endIndex >= fragment.endIndex, String(string[..<fragment.endIndex]) == fragment {
                 break
             }
             
-            fragment = fragment.substring(to: fragment.index(before: fragment.endIndex))
+            fragment = String(fragment[..<fragment.index(before: fragment.endIndex)])
             
             isEmpty = fragment.isEmpty
         }
         
         if !isEmpty {
-            let stringRemainder = string.substring(from: fragment.endIndex)
+            let stringRemainder = String(string[fragment.endIndex...])
             
-            let newStringRemainder = newString.substring(from: fragment.endIndex)
+            let newStringRemainder = String(newString[fragment.endIndex...])
             
             if !stringRemainder.isEmpty {
                 let newNode = StringNode(stringRemainder)

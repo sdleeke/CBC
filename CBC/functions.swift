@@ -17,7 +17,9 @@ extension Data {
         do {
             //            var options = ["DocumentReadingOptionKey" : ".html", .characterEncoding: String.Encoding.utf8.rawValue]
             // options: [:],
-            return try NSAttributedString(data: self, options: [NSDocumentTypeDocumentAttribute:NSHTMLTextDocumentType, NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue], documentAttributes: nil)
+            // DocumentAttributeKey.documentType
+            // DocumentAttributeKey.characterEncoding
+            return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue], documentAttributes: nil)
         } catch {
             print("error:", error)
             return  nil
@@ -465,7 +467,7 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
         
         for string in array {
             if let range = string.range(of: fileType) {
-                if fileType == string.substring(from: range.lowerBound) {
+                if fileType == String(string[range.lowerBound...]) {
                     files.append(string)
                 }
             }
@@ -632,11 +634,15 @@ func jsonFromURL(url:String,filename:String) -> Any?
 
 func stringWithoutPrefixes(_ fromString:String?) -> String?
 {
-    if let range = fromString?.range(of: "A is "), range.lowerBound == "a".startIndex {
+    guard let fromString = fromString else {
+        return nil
+    }
+    
+    if let range = fromString.range(of: "A is "), range.lowerBound == "a".startIndex {
         return fromString
     }
     
-    let sourceString = fromString?.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
+    let sourceString = fromString.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
 //    print(sourceString)
     
     let prefixes = ["A ","An ","The "] // "And ",
@@ -644,8 +650,8 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     var sortString = sourceString
     
     for prefix in prefixes {
-        if (sourceString?.endIndex >= prefix.endIndex) && (sourceString?.substring(to: prefix.endIndex).lowercased() == prefix.lowercased()) {
-            sortString = sourceString?.substring(from: prefix.endIndex)
+        if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
+            sortString = String(sourceString[prefix.endIndex...])
             break
         }
     }
@@ -763,8 +769,8 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 break
             }
             
-            stringBefore = string.substring(to: range.lowerBound)
-            stringAfter = string.substring(from: range.upperBound)
+            stringBefore = String(string[..<range.lowerBound])
+            stringAfter = String(string[range.upperBound...])
             
             var skip = false
             
@@ -803,7 +809,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         skip = true
                     } else {
 //                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
 //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
 //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                                        skip = true
@@ -816,13 +822,13 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     
                     // What happens with other types of apostrophes?
                     if stringAfter.endIndex >= "'s".endIndex {
-                        if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
                             skip = true
                         }
-                        if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
                             skip = true
                         }
-                        if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
                             skip = true
                         }
                     }
@@ -835,9 +841,9 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 }
             }
             
-            foundString = string.substring(from: range.lowerBound)
+            foundString = String(string[range.lowerBound...])
             if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                foundString = foundString.substring(to: newRange.upperBound)
+                foundString = String(foundString[..<newRange.upperBound])
             }
             
             if !skip {
@@ -981,7 +987,7 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
     //Is not correct for books with only one chapter
     // e.g. ["Philemon","Jude","2 John","3 John"]
 
-    string = string.substring(from: colon.upperBound)
+    string = String(string[colon.upperBound...])
     
     var chars = Constants.EMPTY_STRING
     
@@ -2083,28 +2089,30 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     
     var books = [String]()
     
-    var string:String?
-    
-    string = scriptureReference
+    var string = scriptureReference
 //        print(string)
     
     var otBooks = [String]()
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        if let range = string?.range(of: book) {
+        if let range = string.range(of: book) {
             otBooks.append(book)
-            if let before = string?.substring(to: range.lowerBound), let after = string?.substring(from: range.upperBound) {
-                string = before + Constants.SINGLE_SPACE + after
-            }
+            
+            let before = String(string[..<range.lowerBound])
+            let after = String(string[range.upperBound...])
+            
+            string = before + Constants.SINGLE_SPACE + after
         }
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-        if let range = string?.range(of: book) {
+        if let range = string.range(of: book) {
             books.append(book)
-            if let before = string?.substring(to: range.lowerBound), let after = string?.substring(from: range.upperBound) {
-                string = before + Constants.SINGLE_SPACE + after
-            }
+            
+            let before = String(string[..<range.lowerBound])
+            let after = String(string[range.upperBound...])
+            
+            string = before + Constants.SINGLE_SPACE + after
         }
     }
     
@@ -2113,7 +2121,7 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     books = otBooks
     books.append(contentsOf: ntBooks)
     
-    string = string?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+    string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
 
 //        print(string)
     
@@ -2391,6 +2399,10 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
         return nil
     }
     
+    guard let string = string else {
+        return nil
+    }
+    
     var tokenCounts = [(String,Int)]()
     
     if let tokens = tokensFromString(string) {
@@ -2398,9 +2410,9 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
             var count = 0
             var string = string
             
-            while let range = string?.range(of: token, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+            while let range = string.range(of: token, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
                 count += 1
-                string = string?.substring(from: range.upperBound)
+                string = String(string[range.upperBound...])
             }
             
             tokenCounts.append((token,count))
@@ -2429,7 +2441,7 @@ func tokensFromString(_ string:String?) -> [String]?
     var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
     
     if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-        str = str.substring(to: range.lowerBound)
+        str = String(str[..<range.lowerBound])
     }
     
     //        print(name)
@@ -2459,7 +2471,7 @@ func tokensFromString(_ string:String?) -> [String]?
         
 //        if token.lowercased() != "it's" {
 //            if let range = token.lowercased().range(of: "'s") {
-//                token = token.substring(to: range.lowerBound)
+//                token = String(token[..<range.lowerBound])
 //            }
 //        }
         
@@ -2536,7 +2548,7 @@ func lemmasFromString(string:String?) -> [(String,String)]?
     
     var ranges : NSArray?
     
-    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeLemma, options: options, tokenRanges: &ranges)
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.lemma.rawValue, options: options, tokenRanges: &ranges)
     
     var index = 0
     for tag in tags {
@@ -2575,7 +2587,7 @@ func namesFromString(string:String?) -> [(String,String)]?
     
     var ranges : NSArray?
     
-    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameType, options: options, tokenRanges: &ranges)
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.nameType.rawValue, options: options, tokenRanges: &ranges)
     
     var index = 0
     for tag in tags {
@@ -2614,7 +2626,7 @@ func partsOfSpeechFromString(string:String?) -> [(String,String)]?
     
     var ranges : NSArray?
     
-    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeLexicalClass, options: options, tokenRanges: &ranges)
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.lexicalClass.rawValue, options: options, tokenRanges: &ranges)
     
     var index = 0
     for tag in tags {
@@ -2653,7 +2665,7 @@ func tokensFromString(string:String?) -> [(String,String)]?
     
     var ranges : NSArray?
     
-    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeTokenType, options: options, tokenRanges: &ranges)
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.tokenType.rawValue, options: options, tokenRanges: &ranges)
     
     var index = 0
     for tag in tags {
@@ -2692,7 +2704,7 @@ func tagsFromString(string:String?) -> [(String,String)]?
     
     var ranges : NSArray?
     
-    let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options, tokenRanges: &ranges)
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.nameTypeOrLexicalClass.rawValue, options: options, tokenRanges: &ranges)
     
     var index = 0
     for tag in tags {
@@ -2721,7 +2733,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
     if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-        str = str.substring(to: range.lowerBound)
+        str = String(str[..<range.lowerBound])
     }
     
     //        print(name)
@@ -2766,7 +2778,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         
 //        if token.lowercased() != "it's" {
 //            if let range = token.lowercased().range(of: "'s") {
-//                token = token.substring(to: range.lowerBound)
+//                token = String(token[..<range.lowerBound])
 //            }
 //        }
         
@@ -2886,8 +2898,12 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
 
 func lastNameFromName(_ name:String?) -> String?
 {
-    if let firstName = firstNameFromName(name), let range = name?.range(of: firstName) {
-        return name?.substring(from: range.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    guard let name = name else {
+        return nil
+    }
+    
+    if let firstName = firstNameFromName(name), let range = name.range(of: firstName) {
+        return String(name[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     } else {
         return name
     }
@@ -2918,7 +2934,7 @@ func firstNameFromName(_ name:String?) -> String?
     var string:String?
     
     if let title = titleFromName(name) {
-        string = name.substring(from: title.endIndex)
+        string = String(name[title.endIndex...])
     } else {
         string = name
     }
@@ -3352,9 +3368,9 @@ func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
 //    var setOfTags = Set<String>()
 //
 //    while let range = tags.range(of: Constants.TAGS_SEPARATOR) {
-//        tag = tags.substring(to: range.lowerBound)
+//        tag = String(tags[..<range.lowerBound])
 //        setOfTags.insert(tag)
-//        tags = tags.substring(from: range.upperBound)
+//        tags = String(tags[range.upperBound...])
 //    }
 //
 //    if !tags.isEmpty {
@@ -3458,7 +3474,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
     
     if MFMailComposeViewController.canSendMail() {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
     } else {
@@ -3484,7 +3500,7 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
     if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
         if dismiss {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 viewController.dismiss(animated: true, completion: nil)
             }
         }
@@ -3503,7 +3519,7 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
 
         popover.navigationController?.isNavigationBarHidden = false
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             viewController.present(navigationController, animated: true, completion: nil)
         }
     }
@@ -3511,7 +3527,13 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
 
 func stripCount(string:String?) -> String?
 {
-    if let range = string?.range(of: " ("), let string = string?.substring(to: range.lowerBound) {
+    guard let string = string else {
+        return nil
+    }
+    
+    if let range = string.range(of: " (") {
+        let string = String(string[..<range.lowerBound])
+        
         return string
     }
     
@@ -3520,9 +3542,15 @@ func stripCount(string:String?) -> String?
 
 func count(string:String?) -> Int?
 {
-    if let range = string?.range(of: " ("), let string = string?.substring(from: range.upperBound) {
+    guard let string = string else {
+        return nil
+    }
+    
+    if let range = string.range(of: " (") {
+        let string = String(string[range.upperBound...])
+        
         if let range = string.range(of: ")") {
-            let string = string.substring(to: range.lowerBound)
+            let string = String(string[..<range.lowerBound])
             return Int(string)
         }
     }
@@ -3547,15 +3575,15 @@ func sort(method:String?,strings:[String]?) -> [String]?
     case Constants.Sort.Frequency:
         let newStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
             if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-                let left = first.substring(from: rangeFirst.upperBound)
-                let right = second.substring(from: rangeSecond.upperBound)
+                let left = String(first[rangeFirst.upperBound...])
+                let right = String(second[rangeSecond.upperBound...])
                 
-                let first = first.substring(to: rangeFirst.lowerBound)
-                let second = second.substring(to: rangeSecond.lowerBound)
+                let first = String(first[..<rangeFirst.lowerBound])
+                let second = String(second[..<rangeSecond.lowerBound])
                 
                 if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
-                    let left = left.substring(to: rangeLeft.lowerBound)
-                    let right = right.substring(to: rangeRight.lowerBound)
+                    let left = String(left[..<rangeLeft.lowerBound])
+                    let right = String(right[..<rangeRight.lowerBound])
                     
 //                    print(first,left,second,right)
                     
@@ -3603,7 +3631,7 @@ func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Boo
         return
     }
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         if disableEnable {
             if let buttons = viewController.navigationItem.rightBarButtonItems {
                 for button in buttons {
@@ -3640,7 +3668,7 @@ func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Boo
         DispatchQueue.global(qos: .background).async {
             let data = work?()
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 if container != viewController.view {
                     container.removeFromSuperview()
                 }
@@ -3684,7 +3712,7 @@ func mailHTML(viewController:UIViewController,to: [String],subject: String, html
     mailComposeViewController.setMessageBody(htmlString, isHTML: true)
     
     if MFMailComposeViewController.canSendMail() {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
     } else {
@@ -3727,7 +3755,7 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
         pic.printingItem = data
     }
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         if let barButtonItem = viewController.navigationItem.rightBarButtonItem {
             pic.present(from: barButtonItem, animated: true, completionHandler: nil)
         }
@@ -3864,22 +3892,22 @@ func hmsToSeconds(string:String?) -> Double?
     
 //    var milliseconds : Double = 0
 //
-//    if let range = str.range(of: ","), let ms = Int(str.substring(from: range.upperBound)) {
+//    if let range = str.range(of: ","), let ms = Int(String(str[range.upperBound...])) {
 //        milliseconds = Double(ms)/1000
-//        str = str.substring(to: range.lowerBound)
+//        str = String(str[..<range.lowerBound])
 //    }
     
     var numbers = [Double]()
     
     repeat {
         if let index = str.range(of: ":") {
-            let numberString = str.substring(to: index.lowerBound)
+            let numberString = String(str[..<index.lowerBound])
             
             if let number = Double(numberString) {
                 numbers.append(number)
             }
 
-            str = str.substring(from: index.upperBound)
+            str = String(str[index.upperBound...])
         }
     } while str.range(of: ":") != nil
 
@@ -4021,7 +4049,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
         
         popover.navigationController?.isNavigationBarHidden = false
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             viewController.present(navigationController, animated: true, completion: {
                 globals.topViewController = navigationController
             })
@@ -4053,7 +4081,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
 //    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 //
 //    // present the view controller
-//    Thread.onMainThread() {
+//    Thread.onMainThread {
 //        viewController.present(activityViewController, animated: true, completion: nil)
 //    }
 //}
@@ -4078,16 +4106,23 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
 
 func stripHead(_ string:String?) -> String?
 {
+    guard let string = string else {
+        return nil
+    }
+    
     var bodyString = string
     
-    while bodyString?.range(of: "<head>") != nil {
-        if let startRange = bodyString?.range(of: "<head>") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</head>") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<head>") != nil {
+        if let startRange = bodyString.range(of: "<head>") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</head>") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                let string = to + from
+                
+                if let range = string.range(of: string) {
+                    let from = String(bodyString[range.upperBound...])
+                    
+                    bodyString = to + from
                 }
             }
         }
@@ -4150,125 +4185,140 @@ func insertHead(_ string:String?,fontSize:Int) -> String?
 
 func stripLinks(_ string:String?) -> String?
 {
+    guard let string = string else {
+        return nil
+    }
+    
     var bodyString = string
     
-    while bodyString?.range(of: "<div>Locations") != nil {
-        if let startRange = bodyString?.range(of: "<div>Locations") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-                        bodyString = to + from
-                    }
-                }
-            }
-        }
-    }
-    
-//    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/>", with: "")
+    while bodyString.range(of: "<div>Locations") != nil {
+        if let startRange = bodyString.range(of: "<div>Locations") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</div>") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                
+                let string = to + from
 
-    while bodyString?.range(of: "<a") != nil {
-        if let startRange = bodyString?.range(of: "<a") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-                        bodyString = to + from
-                    }
+                if let range = string.range(of: string) {
+                    let from = String(bodyString[range.upperBound...])
+                    
+                    bodyString = to + from
                 }
             }
         }
     }
     
-    bodyString = bodyString?.replacingOccurrences(of: "</a>", with: "")
+//    bodyString = bodyString.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/>", with: "")
+
+    while bodyString.range(of: "<a") != nil {
+        if let startRange = bodyString.range(of: "<a") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+
+                let string = to + from
+                
+                if let range = string.range(of: string) {
+                    let from = String(bodyString[range.upperBound...])
+                    
+                    bodyString = to + from
+                }
+            }
+        }
+    }
     
-    bodyString = bodyString?.replacingOccurrences(of: "(Return to Top)", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</a>", with: "")
+    
+    bodyString = bodyString.replacingOccurrences(of: "(Return to Top)", with: "")
 
     return bodyString
 }
 
 func stripHTML(_ string:String?) -> String?
 {
-    var bodyString = stripLinks(stripHead(string))
+    guard let string = string else {
+        return nil
+    }
     
-    bodyString = bodyString?.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "<html>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "<body>", with: "")
+    guard var bodyString = stripLinks(stripHead(string)) else {
+        return nil
+    }
+    
+    bodyString = bodyString.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<html>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<body>", with: "")
 
-    while bodyString?.range(of: "<p ") != nil {
-        if let startRange = bodyString?.range(of: "<p ") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    if let from = bodyString?.substring(from: (to + from).endIndex) {
-                        bodyString = to + "\n\n" + from
-                    }
-//                    let string = to + from
-//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-//                        bodyString = to + from
-//                    }
-                }
+    while bodyString.range(of: "<p ") != nil {
+        if let startRange = bodyString.range(of: "<p ") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+
+                bodyString = to + "\n\n" + String(bodyString[(to + from).endIndex...])
+                //                    let string = to + from
+                //                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
+                //                        bodyString = to + from
+                //                    }
             }
         }
     }
     
-    while bodyString?.range(of: "<br ") != nil {
-        if let startRange = bodyString?.range(of: "<br ") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    if let from = bodyString?.substring(from: (to + from).endIndex) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<br ") != nil {
+        if let startRange = bodyString.range(of: "<br ") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                
+                bodyString = to + String(bodyString[(to + from).endIndex...])
 //                    let string = to + from
-//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
 //                        bodyString = to + from
 //                    }
-                }
             }
         }
     }
     
-    while bodyString?.range(of: "<span ") != nil {
-        if let startRange = bodyString?.range(of: "<span ") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    if let from = bodyString?.substring(from: (to + from).endIndex) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<span ") != nil {
+        if let startRange = bodyString.range(of: "<span ") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                bodyString = to + String(bodyString[(to + from).endIndex...])
+                
 //                    let string = to + from
-//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
 //                        bodyString = to + from
 //                    }
-                }
             }
         }
     }
     
-    while bodyString?.range(of: "<font") != nil {
-        if let startRange = bodyString?.range(of: "<font") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    if let from = bodyString?.substring(from: (to + from).endIndex) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<font") != nil {
+        if let startRange = bodyString.range(of: "<font") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                bodyString = to + String(bodyString[(to + from).endIndex...])
 //                    let string = to + from
-//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
 //                        bodyString = to + from
 //                    }
-                }
             }
         }
     }
     
-//    while bodyString?.range(of: "<sup") != nil {
-//        if let startRange = bodyString?.range(of: "<sup") {
-//            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-//                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-//                    if let from = bodyString?.substring(from: (to + from).endIndex) {
+//    while bodyString.range(of: "<sup") != nil {
+//        if let startRange = bodyString.range(of: "<sup") {
+//            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+//                if let to = String(bodyString?[..<startRange.lowerBound]), let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound]) {
+//                    if let from = String(bodyString[(to + from).endIndex...]) {
 //                        bodyString = to + from
 //                    }
 ////                    let string = to + from
-////                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+////                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
 ////                        bodyString = to + from
 ////                    }
 //                }
@@ -4276,92 +4326,95 @@ func stripHTML(_ string:String?) -> String?
 //        }
 //    }
     
-    while bodyString?.range(of: "<sup>") != nil {
-        if let startRange = bodyString?.range(of: "<sup>") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</sup>") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    if let from = bodyString?.substring(from: (to + from).endIndex) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<sup>") != nil {
+        if let startRange = bodyString.range(of: "<sup>") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</sup>") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+
+                bodyString = to + String(bodyString[(to + from).endIndex...])
+                    
 //                    let string = to + from
-//                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
 //                        bodyString = to + from
 //                    }
-                }
             }
         }
     }
     
-    bodyString = bodyString?.replacingOccurrences(of: "&rsquo;", with: "'")
-    bodyString = bodyString?.replacingOccurrences(of: "&rdquo;", with: "\"")
-    bodyString = bodyString?.replacingOccurrences(of: "&lsquo;", with: "'")
-    bodyString = bodyString?.replacingOccurrences(of: "&ldquo;", with: "\"")
+    bodyString = bodyString.replacingOccurrences(of: "&rsquo;", with: "'")
+    bodyString = bodyString.replacingOccurrences(of: "&rdquo;", with: "\"")
+    bodyString = bodyString.replacingOccurrences(of: "&lsquo;", with: "'")
+    bodyString = bodyString.replacingOccurrences(of: "&ldquo;", with: "\"")
     
-    bodyString = bodyString?.replacingOccurrences(of: "&mdash;", with: "-")
-    bodyString = bodyString?.replacingOccurrences(of: "&ndash;", with: "-")
+    bodyString = bodyString.replacingOccurrences(of: "&mdash;", with: "-")
+    bodyString = bodyString.replacingOccurrences(of: "&ndash;", with: "-")
     
-    bodyString = bodyString?.replacingOccurrences(of: "&nbsp;", with: " ")
+    bodyString = bodyString.replacingOccurrences(of: "&nbsp;", with: " ")
     
-    bodyString = bodyString?.replacingOccurrences(of: "&ccedil;", with: "C")
+    bodyString = bodyString.replacingOccurrences(of: "&ccedil;", with: "C")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
-    bodyString = bodyString?.replacingOccurrences(of: "</br>", with: "\n")
+    bodyString = bodyString.replacingOccurrences(of: "<br/>", with: "\n")
+    bodyString = bodyString.replacingOccurrences(of: "</br>", with: "\n")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<span>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<span>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<table>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<center>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<center>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<tr>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<tr>", with: "")
 
-    while bodyString?.range(of: "<td") != nil {
-        if let startRange = bodyString?.range(of: "<td") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
-                    let string = to + from
-                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
-                        bodyString = to + from
-                    }
+    while bodyString.range(of: "<td") != nil {
+        if let startRange = bodyString.range(of: "<td") {
+            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+                let to = String(bodyString[..<startRange.lowerBound])
+                let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+                
+                let string = to + from
+                if let range = string.range(of: string) {
+                    let from = String(bodyString[range.upperBound...])
+                    
+                    bodyString = to + from
                 }
             }
         }
     }
     
-    bodyString = bodyString?.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
+    bodyString = bodyString.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
     
-    bodyString = bodyString?.replacingOccurrences(of: "</tr>", with: "\n")
+    bodyString = bodyString.replacingOccurrences(of: "</tr>", with: "\n")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</table>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</table>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</center>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</center>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</span>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</span>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</font>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</font>", with: "")
     
 //    bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "</body>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</html>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</body>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</html>", with: "")
 
-    bodyString = bodyString?.replacingOccurrences(of: "<em>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</em>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<em>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</em>", with: "")
 
-    bodyString = bodyString?.replacingOccurrences(of: "<div>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</div>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<div>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</div>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<mark>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</mark>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<mark>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</mark>", with: "")
 
-    bodyString = bodyString?.replacingOccurrences(of: "<i>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</i>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<i>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</i>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<p>", with: "\n\n")
-    bodyString = bodyString?.replacingOccurrences(of: "</p>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<p>", with: "\n\n")
+    bodyString = bodyString.replacingOccurrences(of: "</p>", with: "")
     
-    bodyString = bodyString?.replacingOccurrences(of: "<b>", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "</b>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "<b>", with: "")
+    bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
 
 //        print(bodyString)
     
@@ -4544,8 +4597,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 if let indexTitles = globals.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
-                            if let string = stringWithoutPrefixes(string)?.substring(to: a.endIndex).uppercased() {
-                                return string
+                            if let string = stringWithoutPrefixes(string) {
+                                return String(string[..<a.endIndex]).uppercased()
                             }
                             
                             return "ERROR"
@@ -4558,7 +4611,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     if let indexStrings = globals.media.active?.section?.indexStrings {
                         for indexString in indexStrings {
-                            let key = indexString.substring(to: a.endIndex).uppercased()
+                            let key = String(indexString[..<a.endIndex]).uppercased()
                             
                             if stringIndex[key] == nil {
                                 stringIndex[key] = [String]()
@@ -4912,7 +4965,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
     })
     alert.addAction(action)
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }
@@ -4947,7 +5000,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,actions
         alert.addAction(action)
     }
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }
@@ -4981,7 +5034,7 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
     })
     alert.addAction(cancel)
 
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }
@@ -5015,7 +5068,7 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
     })
     alert.addAction(cancelAction)
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }
@@ -5047,7 +5100,7 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
     })
     alert.addAction(cancelAction)
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }
@@ -5073,7 +5126,7 @@ func alertActionsOkay(viewController:UIViewController,title:String?,message:Stri
     })
     alert.addAction(okayAlertAction)
     
-    Thread.onMainThread() {
+    Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)
     }
 }

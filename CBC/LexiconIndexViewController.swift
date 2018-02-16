@@ -143,7 +143,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     return lhs < rhs
                 }) {
                     let roots = Array(Set(words.map({ (word:String) -> String in
-                        return word.substring(to: String.Index(encodedOffset: 1)) // "A".endIndex
+                        return String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
                     }))).sorted()
 
                     bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
@@ -171,7 +171,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     var section = 0
                     
                     for word in words {
-                        let first = word.substring(to: String.Index(encodedOffset: 1)) // "A".endIndex
+                        let first = String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
 
                         if first != roots[section] {
                             // New Section
@@ -295,9 +295,9 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             
         case .selectingLexicon:
             if let range = string.range(of: " (") {
-                searchText = string.substring(to: range.lowerBound).uppercased()
+                searchText = String(string[..<range.lowerBound]).uppercased()
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.tableView.setEditing(false, animated: true)
                 }
                 
@@ -400,7 +400,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                                     if  let start = times.first,
                                         let end = times.last,
                                         let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
                                         //                                    for string in transcriptSegmentArray {
@@ -637,7 +637,7 @@ class LexiconIndexViewController : UIViewController
 
             ptvc.selectedText = searchText
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.selectedWord.text = self.searchText
 
                 self.updateLocateButton()
@@ -719,7 +719,7 @@ class LexiconIndexViewController : UIViewController
     {
         guard let searchText = searchText else {
             results = nil
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.updateActionMenu()
                 self.tableView.reloadData()
                 self.updateUI()
@@ -732,7 +732,7 @@ class LexiconIndexViewController : UIViewController
             return mediaItemFrequency.key
         }))
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
@@ -791,15 +791,15 @@ class LexiconIndexViewController : UIViewController
                             case Constants.Sort.Frequency:
                                 return strings.sorted(by: { (first:String, second:String) -> Bool in
                                     if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-                                        let left = first.substring(from: rangeFirst.upperBound)
-                                        let right = second.substring(from: rangeSecond.upperBound)
+                                        let left = String(first[rangeFirst.upperBound...])
+                                        let right = String(second[rangeSecond.upperBound...])
                                         
-                                        let first = first.substring(to: rangeFirst.lowerBound)
-                                        let second = second.substring(to: rangeSecond.lowerBound)
+                                        let first = String(first[..<rangeFirst.lowerBound])
+                                        let second = String(second[..<rangeSecond.lowerBound])
                                         
                                         if let rangeLeft = left.range(of: " "), let rangeRight = right.range(of: " ") {
-                                            let left = left.substring(to: rangeLeft.lowerBound)
-                                            let right = right.substring(to: rangeRight.lowerBound)
+                                            let left = String(left[..<rangeLeft.lowerBound])
+                                            let right = String(right[..<rangeRight.lowerBound])
                                             
                                             if let left = Int(left), let right = Int(right) {
                                                 if left == right {
@@ -835,7 +835,7 @@ class LexiconIndexViewController : UIViewController
                         DispatchQueue.global(qos: .background).async { [weak self] in
                             let strings = self?.ptvc.sort.function?(Constants.Sort.Alphabetical,self?.ptvc.section.strings)
 
-                            Thread.onMainThread(block: { (Void) -> (Void) in
+                            Thread.onMainThread {
                                 if self?.ptvc.segmentedControl.selectedSegmentIndex == 0 {
                                     self?.ptvc.sort.method = Constants.Sort.Alphabetical
                                     self?.ptvc.section.showIndex = true
@@ -851,7 +851,7 @@ class LexiconIndexViewController : UIViewController
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
-                            })
+                            }
                         }
                     }))
                     
@@ -865,7 +865,7 @@ class LexiconIndexViewController : UIViewController
                         DispatchQueue.global(qos: .background).async { [weak self] in
                             let strings = self?.ptvc.sort.function?(Constants.Sort.Frequency,self?.ptvc.section.strings)
                             
-                            Thread.onMainThread(block: { (Void) -> (Void) in
+                            Thread.onMainThread {
                                 if self?.ptvc.segmentedControl.selectedSegmentIndex == 1 {
                                     self?.ptvc.sort.method = Constants.Sort.Frequency
                                     self?.ptvc.section.showIndex = false
@@ -881,7 +881,7 @@ class LexiconIndexViewController : UIViewController
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
-                            })
+                            }
                         }
                     }))
                     
@@ -943,7 +943,7 @@ class LexiconIndexViewController : UIViewController
         // Not necessarily called on the main thread.
         
         if (self.searchText != nil) {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.locateButton.isHidden = false
                 
                 if !self.ptvc.tableView.isHidden {
@@ -953,7 +953,7 @@ class LexiconIndexViewController : UIViewController
                 }
             }
         } else {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.locateButton.isHidden = true
                 self.locateButton.isEnabled = false
             }
@@ -1185,7 +1185,9 @@ class LexiconIndexViewController : UIViewController
                         
                         if let indexTitles = results?.section?.indexStrings {
                             let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-                                if string.endIndex >= a.endIndex, let indexString = stringWithoutPrefixes(string)?.substring(to: a.endIndex).uppercased() {
+                                if string.endIndex >= a.endIndex, let string = stringWithoutPrefixes(string) {
+                                    let indexString = String(string[..<a.endIndex]).uppercased()
+                                    
                                     return indexString
                                 } else {
                                     return string
@@ -1196,7 +1198,7 @@ class LexiconIndexViewController : UIViewController
                             
                             if let indexStrings = results?.section?.indexStrings {
                                 for indexString in indexStrings {
-                                    let key = indexString.substring(to: a.endIndex).uppercased()
+                                    let key = String(indexString[..<a.endIndex]).uppercased()
                                     
                                     if stringIndex[key] == nil {
                                         stringIndex[key] = [String]()
@@ -1274,7 +1276,7 @@ class LexiconIndexViewController : UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    @objc func actions()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
@@ -1309,14 +1311,14 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    func started()
+    @objc func started()
     {
         
     }
     
     func updateTitle()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if  let count = self.lexicon?.entries?.count,
                 let total = self.lexicon?.eligible?.count {
                 self.navigationItem.title = "Lexicon Index \(count) of \(total)"
@@ -1324,7 +1326,7 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    func updated()
+    @objc func updated()
     {
         update()
     }
@@ -1346,7 +1348,7 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    func completed()
+    @objc func completed()
     {
         updateTitle()
         
@@ -1364,7 +1366,7 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    func index(_ object:AnyObject?)
+    @objc func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
@@ -1578,7 +1580,7 @@ extension LexiconIndexViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.tableView.reloadData()
             }
         }

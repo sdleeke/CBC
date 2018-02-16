@@ -40,14 +40,14 @@ class Section
         }
         
         if let range = string.range(of: " (") {
-            string = string.substring(to: range.lowerBound) //.uppercased()
+            string = String(string[..<range.lowerBound]) //.uppercased()
         }
         
         guard let index = strings?.index(where: { (str:String) -> Bool in
             var match = str
             
             if let range = str.range(of: " (") {
-                match = str.substring(to: range.lowerBound) //.uppercased()
+                match = String(str[..<range.lowerBound]) //.uppercased()
             }
             
             return match == string
@@ -199,7 +199,7 @@ class Section
                 indexHeaders = Array(Set(indexStrings
                     .map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
-                            return string.substring(to: a.endIndex).uppercased()
+                            return String(string[..<a.endIndex]).uppercased()
                         } else {
                             return string
                         }
@@ -227,7 +227,7 @@ class Section
                     
                     if indexHeadersTransform == nil {
                         if indexString.endIndex >= a.endIndex {
-                            header = indexString.substring(to: a.endIndex)
+                            header = String(indexString[..<a.endIndex])
                         }
                     } else {
                         header = indexHeadersTransform?(indexString)

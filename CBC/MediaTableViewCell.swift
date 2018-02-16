@@ -97,9 +97,9 @@ class MediaTableViewCell: UITableViewCell
             var after:String?
             
             if let searchText = searchText, let range = formattedDate.lowercased().range(of: searchText.lowercased()) {
-                before = formattedDate.substring(to: range.lowerBound)
+                before = String(formattedDate[..<range.lowerBound])
                 string = formattedDate.substring(with: range)
-                after = formattedDate.substring(from: range.upperBound)
+                after = String(formattedDate[range.upperBound...])
                 
                 if let before = before {
                     titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
@@ -130,9 +130,9 @@ class MediaTableViewCell: UITableViewCell
             var after:String?
             
             if let searchText = searchText, let range = speaker.lowercased().range(of: searchText.lowercased()) {
-                before = speaker.substring(to: range.lowerBound)
-                string = speaker.substring(with: range)
-                after = speaker.substring(from: range.upperBound)
+                before = String(speaker[..<range.lowerBound])
+                string = String(speaker[range])
+                after = String(speaker[range.upperBound...])
                 
                 if !titleString.string.isEmpty {
                     titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
@@ -168,8 +168,8 @@ class MediaTableViewCell: UITableViewCell
             let rangeTo = string.range(of: " (Part"),
             let rangeFrom = string.range(of: " (Part ") {
             // This causes searching for "(Part " to present a blank title.
-            let first = string.substring(to: rangeTo.upperBound)
-            let second = string.substring(from: rangeFrom.upperBound)
+            let first = String(string[..<rangeTo.upperBound])
+            let second = String(string[rangeFrom.upperBound...])
             title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
         } else {
             title = mediaItem.title
@@ -180,10 +180,10 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let searchText = searchText, let range = title?.lowercased().range(of: searchText.lowercased()) {
-                before = title?.substring(to: range.lowerBound)
-                string = title?.substring(with: range)
-                after = title?.substring(from: range.upperBound)
+            if let title = title, let searchText = searchText, let range = title.lowercased().range(of: searchText.lowercased()) {
+                before = String(title[..<range.lowerBound])
+                string = String(title[range])
+                after = String(title[range.upperBound...])
                 
                 if let before = before {
                     detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
@@ -207,9 +207,9 @@ class MediaTableViewCell: UITableViewCell
             var after:String?
             
             if let searchText = searchText, let range = scriptureReference.lowercased().range(of: searchText.lowercased()) {
-                before = scriptureReference.substring(to: range.lowerBound)
-                string = scriptureReference.substring(with: range)
-                after = scriptureReference.substring(from: range.upperBound)
+                before = String(scriptureReference[..<range.lowerBound])
+                string = String(scriptureReference[range])
+                after = String(scriptureReference[range.upperBound...])
                 
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
@@ -238,10 +238,10 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let searchText = searchText, let range = mediaItem.className?.lowercased().range(of: searchText.lowercased()) {
-                before = mediaItem.className?.substring(to: range.lowerBound)
-                string = mediaItem.className?.substring(with: range)
-                after = mediaItem.className?.substring(from: range.upperBound)
+            if let className = mediaItem.className, let searchText = searchText, let range = className.lowercased().range(of: searchText.lowercased()) {
+                before = String(className[..<range.lowerBound])
+                string = String(className[range])
+                after = String(className[range.upperBound...])
                 
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
@@ -270,10 +270,10 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let searchText = searchText, let range = mediaItem.eventName?.lowercased().range(of: searchText.lowercased()) {
-                before = mediaItem.eventName?.substring(to: range.lowerBound)
-                string = mediaItem.eventName?.substring(with: range)
-                after = mediaItem.eventName?.substring(from: range.upperBound)
+            if let eventName = mediaItem.eventName, let searchText = searchText, let range = eventName.lowercased().range(of: searchText.lowercased()) {
+                before = String(eventName[..<range.lowerBound])
+                string = String(eventName[range])
+                after = String(eventName[range.upperBound...])
                 
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
@@ -312,7 +312,7 @@ class MediaTableViewCell: UITableViewCell
 //        self.detailText.attributedText = detailString
     }
     
-    func stopEditing()
+    @objc func stopEditing()
     {
         guard Thread.isMainThread else {
             globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
@@ -326,7 +326,7 @@ class MediaTableViewCell: UITableViewCell
         }
     }
     
-    func updateUI()
+    @objc func updateUI()
     {
         guard Thread.isMainThread else {
             globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
@@ -367,14 +367,14 @@ class MediaTableViewCell: UITableViewCell
         }
         didSet {
             if (oldValue != nil) {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
                 }
             }
             
             if (mediaItem != nil) {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                 }

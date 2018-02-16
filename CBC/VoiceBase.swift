@@ -139,7 +139,7 @@ extension VoiceBase // Class Methods
 ////
 ////                    // Should we alert the user to what is being loaded from VB or how many?
 ////
-////                    Thread.onMainThread() {
+////                    Thread.onMainThread {
 ////                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
 ////                    }
 ////                }
@@ -195,7 +195,7 @@ extension VoiceBase // Class Methods
 //
 //                        // Should we alert the user to what is being loaded from VB or how many?
 //
-//                        Thread.onMainThread() {
+//                        Thread.onMainThread {
 //                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false,detailedAlerts:false), repeats: true)
 //                        }
 //                    }
@@ -568,11 +568,11 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     
                 }
             } else {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     
                 }
             }
@@ -746,7 +746,7 @@ class VoiceBase {
             
             mediaItem?.mediaItemSettings?["mediaID."+purpose] = mediaID
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
             }
         }
@@ -765,7 +765,7 @@ class VoiceBase {
             
             mediaItem?.mediaItemSettings?["completed."+purpose] = completed ? "YES" : "NO"
 
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
             }
         }
@@ -884,8 +884,8 @@ class VoiceBase {
                     break
                 }
                 
-                stringBefore = string.substring(to: range.lowerBound)
-                stringAfter = string.substring(from: range.upperBound)
+                stringBefore = String(string[..<range.lowerBound])
+                stringAfter = String(string[range.upperBound...])
                 
                 var skip = false
                 
@@ -924,7 +924,7 @@ class VoiceBase {
                             skip = true
                         } else {
 //                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+//                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
 //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
 //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                                        skip = true
@@ -937,13 +937,13 @@ class VoiceBase {
                         
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
-                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
                                 skip = true
                             }
                         }
@@ -956,9 +956,9 @@ class VoiceBase {
                     }
                 }
                 
-                foundString = string.substring(from: range.lowerBound)
+                foundString = String(string[range.lowerBound...])
                 if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = foundString.substring(to: newRange.upperBound)
+                    foundString = String(foundString[..<newRange.upperBound])
                 } else {
                     // ???
                 }
@@ -984,21 +984,21 @@ class VoiceBase {
         var string:String = html
         
         while let searchRange = string.range(of: "<") {
-            let searchString = string.substring(to: searchRange.lowerBound)
+            let searchString = String(string[..<searchRange.lowerBound])
             //            print(searchString)
             
             // mark search string
             newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
-            let remainder = string.substring(from: searchRange.lowerBound)
+            let remainder = String(string[searchRange.lowerBound...])
             
             if let htmlRange = remainder.range(of: ">") {
-                let html = remainder.substring(to: htmlRange.upperBound)
+                let html = String(remainder[..<htmlRange.upperBound])
                 //                print(html)
                 
                 newString = newString + html
                 
-                string = remainder.substring(from: htmlRange.upperBound)
+                string = String(remainder[htmlRange.upperBound...])
             }
         }
         
@@ -1126,7 +1126,7 @@ class VoiceBase {
 
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
@@ -1140,7 +1140,7 @@ class VoiceBase {
 
             if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
@@ -1801,11 +1801,11 @@ class VoiceBase {
             }
 
             if errorOccured {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     onError?(json)
                 }
             } else {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     completion?(json)
                 }
             }
@@ -1905,7 +1905,7 @@ class VoiceBase {
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
                             self.remove()
                             
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                             }
@@ -1982,7 +1982,7 @@ class VoiceBase {
 //                    globals.alert(title: "Transcript Failed",message: message)
 //                }
 //
-//                Thread.onMainThread() {
+//                Thread.onMainThread {
 //                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
 //                }
@@ -2053,7 +2053,7 @@ class VoiceBase {
                     }
                     
                     if self.resultsTimer == nil {
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                         }
                     } else {
@@ -2071,7 +2071,7 @@ class VoiceBase {
             
             self.uploadNotAccepted(json)
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
@@ -2628,7 +2628,7 @@ class VoiceBase {
                         }
                         
                         if self.resultsTimer == nil {
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
                                 self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                             }
                         } else {
@@ -2746,7 +2746,7 @@ class VoiceBase {
 //                                            }
 //
 //                                            if self.resultsTimer == nil {
-//                                                Thread.onMainThread() {
+//                                                Thread.onMainThread {
 //                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                                                }
 //                                            } else {
@@ -2837,7 +2837,7 @@ class VoiceBase {
                                                                     }
                                                                     
                                                                     if self.resultsTimer == nil {
-                                                                        Thread.onMainThread() {
+                                                                        Thread.onMainThread {
                                                                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                                         }
                                                                     } else {
@@ -2867,7 +2867,7 @@ class VoiceBase {
                                                         self.realignmentNotAccepted(json)
                                                     })
                             
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
                                 self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: newUserInfo, repeats: true)
                             }
                         } else {
@@ -2962,7 +2962,7 @@ class VoiceBase {
 //                            }
 //
 //                            if self.resultsTimer == nil {
-//                                Thread.onMainThread() {
+//                                Thread.onMainThread {
 //                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
 //                                }
 //                            } else {
@@ -3042,7 +3042,7 @@ class VoiceBase {
                     globals.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
                 }
             } else {
@@ -3385,7 +3385,7 @@ class VoiceBase {
                             let timeWindow = transcriptSegmentArray.removeFirst()
                             
                             if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
-                                let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                 
                                 if let index = transcriptSegmentComponents.index(of: transcriptSegmentComponent) {
                                     transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
@@ -3673,11 +3673,11 @@ class VoiceBase {
             }
             
             if errorOccured {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     
                 }
             } else {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     
                 }
             }
@@ -4035,7 +4035,7 @@ class VoiceBase {
                                         if  let start = times.first,
                                             let end = times.last,
                                             let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                            let text = transcriptSegmentComponent.substring(from: range.upperBound)
+                                            let text = String(transcriptSegmentComponent[range.upperBound...])
                                             
                                             let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
                                             //  valign=\"top\"
@@ -4154,7 +4154,7 @@ class VoiceBase {
                                 actions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                                     var actions = [AlertAction]()
                                     
-                                    actions.append(AlertAction(title: "Yes", style: .destructive, handler: { (Void) -> (Void) in
+                                    actions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                                         VoiceBase.delete(mediaID: self.mediaID)
                                     }))
                                     
@@ -4296,7 +4296,7 @@ class VoiceBase {
                                             
                                             globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                         } else {
-                                            Thread.onMainThread() {
+                                            Thread.onMainThread {
                                                 self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                             }
                                         }
@@ -4413,7 +4413,7 @@ class VoiceBase {
                 textPopover.navigationItem.title = count // "Edit Text"
             }
             
-            let text = string.substring(from: range.upperBound)
+            let text = String(string[range.upperBound...])
             
             textPopover.text = text
             textPopover.assist = true
@@ -4581,7 +4581,7 @@ class VoiceBase {
                     
                     popover.section.showIndex = true
 
-                    popover.stringsFunction = { (Void) -> [String]? in
+                    popover.stringsFunction = { () -> [String]? in
                         guard let transcriptSegmentTokens = self.transcriptSegmentTokens else {
                             return nil
                         }
@@ -4699,7 +4699,7 @@ class VoiceBase {
                     //                        popover.section.showHeaders = true
                     
                     // Must use stringsFunction with .selectingTime.
-                    popover.stringsFunction = { (Void) -> [String]? in
+                    popover.stringsFunction = { () -> [String]? in
                         return self.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
                             return string.components(separatedBy: "\n").count > 1
                         }).map({ (transcriptSegmentComponent:String) -> String in
@@ -4714,7 +4714,7 @@ class VoiceBase {
                                 if  let start = times.first,
                                     let end = times.last,
                                     let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                    let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                     let string = "\(count)\n\(start) to \(end)\n" + text
                                     
                                     return string
@@ -4823,7 +4823,7 @@ class VoiceBase {
                     }
                     
                     // Must use stringsFunction with .selectingTime.
-                    popover.stringsFunction = { (Void) -> [String]? in
+                    popover.stringsFunction = { () -> [String]? in
                         return self.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }).map({ (dict:[String:Any]) -> String in

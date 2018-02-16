@@ -192,7 +192,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         filteredSection = Section(stringsAction: { (strings:[String]?) in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.segmentedControl?.isEnabled = strings != nil
             }
         })
@@ -369,7 +369,7 @@ class PopoverTableViewController : UIViewController
         syncButton.title = "Stop Sync"
     }
     
-    func stopped()
+    @objc func stopped()
     {
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -387,7 +387,7 @@ class PopoverTableViewController : UIViewController
     
     var lastFollow : IndexPath?
     
-    func follow()
+    @objc func follow()
     {
         guard globals.mediaPlayer.currentTime != nil else {
             stopped()
@@ -440,7 +440,7 @@ class PopoverTableViewController : UIViewController
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
-                        if (seconds >= startSeconds) && (seconds <= (endSeconds)) { //  - 0.5
+                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.5)) { // 
 //                            print("isTracking time window found")
                             timeWindowFound = true
                             break
@@ -502,7 +502,7 @@ class PopoverTableViewController : UIViewController
         }
     }
     
-    func tracking()
+    @objc func tracking()
     {
         isTracking = !isTracking
     }
@@ -696,7 +696,7 @@ class PopoverTableViewController : UIViewController
     
     lazy var filteredSection:Section! = {
         let section = Section(stringsAction: { (strings:[String]?) in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.segmentedControl?.isEnabled = strings != nil
             }
         })
@@ -704,7 +704,7 @@ class PopoverTableViewController : UIViewController
     }()
     lazy var unfilteredSection:Section! = {
         let section = Section(stringsAction: { (strings:[String]?) in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.segmentedControl?.isEnabled = strings != nil
             }
         })
@@ -866,7 +866,7 @@ class PopoverTableViewController : UIViewController
     
     var isRefreshing = false
     
-    func handleRefresh(_ refreshControl: UIRefreshControl)
+    @objc func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
@@ -895,7 +895,7 @@ class PopoverTableViewController : UIViewController
         } else {
             // Fallback on earlier versions
             if let refreshControl = self.refreshControl {
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self.tableView?.addSubview(refreshControl)
                 }
             }
@@ -908,13 +908,13 @@ class PopoverTableViewController : UIViewController
             tableView.refreshControl = nil
         } else {
             // Fallback on earlier versions
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.refreshControl?.removeFromSuperview()
             }
         }
     }
     
-    func done()
+    @objc func done()
     {
 //        if self.isTracking {
 //            self.stopTracking()
@@ -924,7 +924,7 @@ class PopoverTableViewController : UIViewController
     
 //    let operationQueue = OperationQueue()
     
-    func autoEdit()
+    @objc func autoEdit()
     {
         var actions = [AlertAction]()
         
@@ -1004,7 +1004,7 @@ class PopoverTableViewController : UIViewController
         alert(viewController:self,title:"Actions",message:nil,actions:actions)
     }
     
-    func playPause()
+    @objc func playPause()
     {
         guard let title = playPauseButton.title else {
             return
@@ -1161,7 +1161,7 @@ class PopoverTableViewController : UIViewController
         
         if let selectedText = selectedText,  let index = section.strings?.index(where: { (string:String) -> Bool in
             if let range = string.range(of: " (") {
-                return selectedText.uppercased() == string.substring(to: range.lowerBound).uppercased()
+                return selectedText.uppercased() == String(string[..<range.lowerBound]).uppercased()
             } else {
                 return false
             }
@@ -1181,7 +1181,7 @@ class PopoverTableViewController : UIViewController
                         let row = index - base
                         
                         if self.section.strings?.count > 0 {
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
                                 if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                                     let indexPath = IndexPath(row: row,section: section)
                                     if scroll {
@@ -1203,7 +1203,7 @@ class PopoverTableViewController : UIViewController
                     let row = index
 
                     if self.section.strings?.count > 0 {
-                        Thread.onMainThread() {
+                        Thread.onMainThread {
                             if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                                 let indexPath = IndexPath(row: row,section: section)
                                 if scroll {
@@ -1254,7 +1254,7 @@ class PopoverTableViewController : UIViewController
     
     var orientation : UIDeviceOrientation?
     
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
         // Dismiss any popover
         func action()
@@ -1470,7 +1470,7 @@ class PopoverTableViewController : UIViewController
         }
     }
     
-    func willResignActive()
+    @objc func willResignActive()
     {
         self.alertController?.dismiss(animated: true, completion: nil)
         self.dismiss(animated: true, completion: nil)
@@ -1582,58 +1582,87 @@ class PopoverTableViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         if (stringsFunction != nil) && (self.section.strings == nil) {
-            if purpose == .selectingTime {
-                if globals.mediaPlayer.isSeeking {
-                    globals.mediaPlayer.seekingCompletion = {
-                        //                        Thread.sleep(forTimeInterval: 0.4)
-                        if self.section.strings != nil {
-                            Thread.onMainThread {
-                                if let indexPath = self.section.indexPath(from: self.stringSelected) {
-                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-//                                    self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                } else {
-                                    self.follow()
-                                }
-     
-                                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
-
-                                self.activityIndicator.stopAnimating()
-                                self.activityIndicator.isHidden = true
-                            }
-                        }
-                    }
-                }
-            }
+            // SEE BELOW FOR WHY THE FOLLOWING WAS REPLACED.
             
-            Thread.onMainThread() {
+            // WHAT does the following do?  It catches the case where the mediaPlayer is seeking when stringsFunction is called below.
+//            if purpose == .selectingTime {
+//                if globals.mediaPlayer.isSeeking {
+//                    globals.mediaPlayer.seekingCompletion = {
+//                        //                        Thread.sleep(forTimeInterval: 0.4)
+//                        if self.section.strings != nil {
+//                            Thread.onMainThread {
+//                                self.tableView.reloadData()
+//
+//                                self.setPreferredContentSize()
+//
+//                                if let indexPath = self.section.indexPath(from: self.stringSelected) {
+//                                    // Throwing an exception when pushing in timing index search when row selected
+//                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+////                                    self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//                                } else {
+//                                    self.follow()
+//                                }
+//
+//                                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+//
+//                                self.activityIndicator.stopAnimating()
+//                                self.activityIndicator.isHidden = true
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+            
+            Thread.onMainThread {
                 self.activityIndicator.startAnimating()
                 self.activityIndicator.isHidden = false
             }
             
             DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
-                
-                if self?.section.strings != nil {
-                    Thread.onMainThread() {
-                        self?.tableView.reloadData()
-                        
-                        self?.setPreferredContentSize()
 
+                // We need to reload and turn off the activity indicator regardless!
+//                if self?.section.strings != nil {
+//                }
+                
+                Thread.onMainThread {
+                    self?.tableView.reloadData()
+                    
+                    self?.setPreferredContentSize()
+                    
+                    if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
+                        // If we can find the string, select it!
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                            Thread.onMainThread() {
+                            Thread.onMainThread {
+                                self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                                //                                        self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                                 
-                                if !globals.mediaPlayer.isSeeking {
-                                    if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
-                                        self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-//                                        self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                    } else {
-                                        self?.follow()
-                                    }
+                                self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
+                                
+                                self?.activityIndicator.stopAnimating()
+                                self?.activityIndicator.isHidden = true
+                            }
+                        }
+                    } else {
+                        // If we're going by the media player time to find the row that matches up to time we first need to have th right purpose
+                        if self?.purpose == .selectingTime {
+                            let block = {
+                                Thread.onMainThread {
+                                    self?.follow()
                                     
                                     self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
                                     
                                     self?.activityIndicator.stopAnimating()
                                     self?.activityIndicator.isHidden = true
+                                }
+                            }
+
+                            // Then we need to know if we're still seeking or not and if we are we need to push the same action to be done after seeking completes.
+                            if !globals.mediaPlayer.isSeeking {
+                                block()
+                            } else {
+                                globals.mediaPlayer.seekingCompletion = {
+                                    block()
                                 }
                             }
                         }
@@ -1887,9 +1916,9 @@ extension PopoverTableViewController : UITableViewDataSource
             
             repeat {
                 if let range = range {
-                    before = string.substring(to: range.lowerBound)
-                    during = string.substring(with: range)
-                    after = string.substring(from: range.upperBound)
+                    before = String(string[..<range.lowerBound])
+                    during = String(string[range])
+                    after = String(string[range.upperBound...])
                     
                     titleString = NSMutableAttributedString()
                     
@@ -1970,7 +1999,7 @@ extension PopoverTableViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.tableView.reloadData()
             }
         }
@@ -2188,6 +2217,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 trackingTimer = nil
             }
             
+            // This is a hack because it is being done because we know the delegate call makes a seek.
             globals.mediaPlayer.seekingCompletion = {
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
@@ -2236,8 +2266,8 @@ extension PopoverTableViewController : UITableViewDelegate
             return
         }
         
-        if let range = section.strings?[index].range(of: " (") {
-            selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
+        if let range = string.range(of: " (") {
+            selectedText = String(string[..<range.lowerBound]).uppercased()
         }
 
         if let purpose = purpose {
@@ -2283,7 +2313,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 }
                 
                 // Must use stringsFunction with .selectingTime.
-                popover.stringsFunction = { (Void) -> [String]? in
+                popover.stringsFunction = { () -> [String]? in
                     return self.transcript?.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
                         return string.components(separatedBy: "\n").count > 1
                     }).map({ (transcriptSegmentComponent:String) -> String in
@@ -2297,7 +2327,7 @@ extension PopoverTableViewController : UITableViewDelegate
                             if  let start = times.first,
                                 let end = times.last,
                                 let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                 let string = "\(count)\n\(start) to \(end)\n" + text
                                 
                                 return string

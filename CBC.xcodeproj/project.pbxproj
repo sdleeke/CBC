@@ -63,6 +63,15 @@
 		17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */; };
 		17F549251DBADA26008B5051 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17F549241DBADA26008B5051 /* AVKit.framework */; };
 		17F8EAB41DFE221A00FA2A99 /* PopoverTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F8EAB31DFE221A00FA2A99 /* PopoverTableViewCell.swift */; };
+		17FF98812030D9DB002AD442 /* StreamEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98802030D9DB002AD442 /* StreamEntry.swift */; };
+		17FF98832030DA07002AD442 /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98822030DA07002AD442 /* extensions.swift */; };
+		17FF98852030DA3E002AD442 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98842030DA3E002AD442 /* Search.swift */; };
+		17FF98872030DA5A002AD442 /* SelectedMediaItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */; };
+		17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98882030DA75002AD442 /* MediaCategory.swift */; };
+		17FF988B2030DB01002AD442 /* MediaStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988A2030DB01002AD442 /* MediaStream.swift */; };
+		17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988C2030DB8C002AD442 /* MediaRepository.swift */; };
+		17FF988F2030DBC9002AD442 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988E2030DBC9002AD442 /* Media.swift */; };
+		17FF98912030DC84002AD442 /* Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98902030DC84002AD442 /* Tags.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +154,15 @@
 		17E75EC91B835FC600AE8ED5 /* functions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = functions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		17F549241DBADA26008B5051 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		17F8EAB31DFE221A00FA2A99 /* PopoverTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverTableViewCell.swift; sourceTree = "<group>"; };
+		17FF98802030D9DB002AD442 /* StreamEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntry.swift; sourceTree = "<group>"; };
+		17FF98822030DA07002AD442 /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
+		17FF98842030DA3E002AD442 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
+		17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedMediaItem.swift; sourceTree = "<group>"; };
+		17FF98882030DA75002AD442 /* MediaCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCategory.swift; sourceTree = "<group>"; };
+		17FF988A2030DB01002AD442 /* MediaStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaStream.swift; sourceTree = "<group>"; };
+		17FF988C2030DB8C002AD442 /* MediaRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaRepository.swift; sourceTree = "<group>"; };
+		17FF988E2030DBC9002AD442 /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
+		17FF98902030DC84002AD442 /* Tags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tags.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +220,15 @@
 			children = (
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				17FF988E2030DBC9002AD442 /* Media.swift */,
+				17FF98902030DC84002AD442 /* Tags.swift */,
+				17FF988C2030DB8C002AD442 /* MediaRepository.swift */,
+				17FF988A2030DB01002AD442 /* MediaStream.swift */,
+				17FF98882030DA75002AD442 /* MediaCategory.swift */,
+				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
+				17FF98842030DA3E002AD442 /* Search.swift */,
+				17FF98822030DA07002AD442 /* extensions.swift */,
+				17FF98802030D9DB002AD442 /* StreamEntry.swift */,
 				172B7FCC1F41FBD200C714C0 /* Section.swift */,
 				174A14A61E02122100736CEC /* MediaPlayer.swift */,
 				17763BE21BEA329400BB5556 /* Constants.swift */,
@@ -376,7 +403,7 @@
 					174EEE5F1B74C0DD004F6942 = {
 						CreatedOnToolsVersion = 6.4;
 						DevelopmentTeam = 35U7HMB59T;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0920;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -389,13 +416,13 @@
 					174EEE741B74C0DE004F6942 = {
 						CreatedOnToolsVersion = 6.4;
 						DevelopmentTeam = 35U7HMB59T;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0920;
 						TestTargetID = 174EEE5F1B74C0DD004F6942;
 					};
 					1798C7541CA93CC700CED4A5 = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = 35U7HMB59T;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0920;
 						TestTargetID = 174EEE5F1B74C0DD004F6942;
 					};
 				};
@@ -455,6 +482,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				177A74B11EF5767B00D36BE2 /* ScriptureIndex.swift in Sources */,
+				17FF988B2030DB01002AD442 /* MediaStream.swift in Sources */,
 				1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */,
 				179495601FDC2E87001BB4D8 /* QuadTree.swift in Sources */,
 				17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */,
@@ -478,12 +506,16 @@
 				17E677C32003E690003D022B /* LexiconWord+CoreDataClass.swift in Sources */,
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
+				17FF98832030DA07002AD442 /* extensions.swift in Sources */,
 				17E677C22003E690003D022B /* LexiconEntry+CoreDataProperties.swift in Sources */,
 				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
 				172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */,
+				17FF98872030DA5A002AD442 /* SelectedMediaItem.swift in Sources */,
 				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
 				179495621FDC4811001BB4D8 /* CloudLayoutOperation.swift in Sources */,
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
+				17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */,
+				17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
 				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
@@ -493,12 +525,16 @@
 				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
 				17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */,
 				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
+				17FF98912030DC84002AD442 /* Tags.swift in Sources */,
+				17FF988F2030DBC9002AD442 /* Media.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				177A74B51EF576CB00D36BE2 /* StringTree.swift in Sources */,
 				17DFD9511F029A7C000AC63D /* VoiceBase.swift in Sources */,
+				17FF98812030D9DB002AD442 /* StreamEntry.swift in Sources */,
 				177A74B71EF576EA00D36BE2 /* Lexicon.swift in Sources */,
 				177A74B31EF576A500D36BE2 /* StringNode.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
+				17FF98852030DA3E002AD442 /* Search.swift in Sources */,
 				17E677C12003E690003D022B /* LexiconEntry+CoreDataClass.swift in Sources */,
 				17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */,
 			);
@@ -649,7 +685,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -667,7 +704,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -688,7 +726,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.countrysidebible.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CBC.app/CBC";
 			};
 			name = Debug;
@@ -706,7 +745,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.countrysidebible.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CBC.app/CBC";
 			};
 			name = Release;
@@ -722,7 +762,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.CBCUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = TPS;
 			};
 			name = Debug;
@@ -737,7 +778,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.CBCUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = TPS;
 			};
 			name = Release;

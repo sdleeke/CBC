@@ -29,7 +29,7 @@ extension AboutViewController : MFMailComposeViewControllerDelegate
 {
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             controller.dismiss(animated: true, completion: nil)
         }
     }
@@ -130,7 +130,7 @@ extension AboutViewController : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
         // present the view controller
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.present(activityViewController, animated: true, completion: nil)
         }
     }
@@ -142,11 +142,11 @@ extension AboutViewController : UIActivityItemSource
     
     static var cases : [UIActivityType] = [.mail,.message]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
         let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
 
-        if WebViewController.cases.contains(activityType) {
+        if WebViewController.cases.contains(activityType!) {
             return url
         } else {
             return "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8"
@@ -229,7 +229,7 @@ class AboutViewController: UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions(_ sender: UIBarButtonItem)
+    @objc func actions(_ sender: UIBarButtonItem)
     {
         guard let storyboard = self.storyboard else {
             return
@@ -297,7 +297,7 @@ class AboutViewController: UIViewController
         setupActionButton()
     }
     
-    func reachableTransition()
+    @objc func reachableTransition()
     {
         if mapView.isHidden, globals.reachability.isReachable {
             addMap()
@@ -355,7 +355,7 @@ class AboutViewController: UIViewController
 
         addMap()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         }

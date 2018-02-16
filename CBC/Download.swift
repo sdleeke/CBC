@@ -169,7 +169,7 @@ class Download : NSObject
                     break
                 }
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 }
@@ -183,7 +183,7 @@ class Download : NSObject
                     break
                     
                 case .downloaded:
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
                     }
@@ -279,7 +279,7 @@ class Download : NSObject
         
         task?.resume()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
     }

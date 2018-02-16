@@ -48,7 +48,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //        
 //        if let activityViewController = self.activityViewController {
 //            // present the view controller
-//            Thread.onMainThread() {
+//            Thread.onMainThread {
 //                self.present(activityViewController, animated: true, completion: nil)
 //            }
 //        }
@@ -492,7 +492,7 @@ class ScriptureViewController : UIViewController
     
     func clearView()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             self.navigationItem.title = nil
             self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
             for view in self.view.subviews {
@@ -501,7 +501,7 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    func setPreferredContentSize()
+    @objc func setPreferredContentSize()
     {
         if let widthView = presentingViewController?.view ?? view, let wkWebView = webViewController?.wkWebView {
             preferredContentSize = CGSize(  width:  widthView.frame.width,
@@ -520,7 +520,7 @@ class ScriptureViewController : UIViewController
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.setPreferredContentSize()
             }
         }
@@ -579,17 +579,17 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    func decreaseFontSize()
+    @objc func decreaseFontSize()
     {
         webViewController?.decreaseFontSize()
     }
     
-    func increaseFontSize()
+    @objc func increaseFontSize()
     {
         webViewController?.increaseFontSize()
     }
     
-    func done()
+    @objc func done()
     {
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
@@ -882,7 +882,7 @@ class ScriptureViewController : UIViewController
                     }
                 }
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.updatePicker()
                     self?.showScripture()
                 }

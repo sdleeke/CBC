@@ -125,14 +125,14 @@ extension CloudViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        let word = string.substring(to: startRange.lowerBound)
-        let remainder = string.substring(from: startRange.upperBound)
+        let word = String(string[..<startRange.lowerBound])
+        let remainder = String(string[startRange.upperBound...])
         
         guard let endRange = remainder.range(of: ")") else {
             return
         }
         
-        let count = remainder.substring(to: endRange.lowerBound)
+        let count = String(remainder[..<endRange.lowerBound])
         
         var index = 0
         
@@ -391,7 +391,7 @@ class CloudViewController: UIViewController
 //        cloudLayoutOperationQueue?.maxConcurrentOperationCount = 1;
     }
     
-    func selectCloudWord(_ tap:UITapGestureRecognizer)
+    @objc func selectCloudWord(_ tap:UITapGestureRecognizer)
     {
         switch tap.state {
         case .began:
@@ -417,7 +417,7 @@ class CloudViewController: UIViewController
         }
     }
     
-    func contentSizeCategoryDidChange()
+    @objc func contentSizeCategoryDidChange()
     {
         cancelAndRelayoutCloudWords()
     }
@@ -433,12 +433,12 @@ class CloudViewController: UIViewController
         }
     }
     
-    func done()
+    @objc func done()
     {
         dismiss(animated: true, completion: nil)
     }
     
-    func share()
+    @objc func share()
     {
         UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
 
@@ -551,7 +551,7 @@ class CloudViewController: UIViewController
         }
     }
     
-    func cancelAndRelayoutCloudWords()
+    @objc func cancelAndRelayoutCloudWords()
     {
         // Cancel any in-progress layout
         operationQueue?.cancelAllOperations()
@@ -671,15 +671,15 @@ class CloudViewController: UIViewController
 //                        case Constants.Sort.Frequency:
 //                            return strings.sorted(by: { (first:String, second:String) -> Bool in
 //                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-//                                    let left = first.substring(from: rangeFirst.upperBound)
-//                                    let right = second.substring(from: rangeSecond.upperBound)
+//                                    let left = String(first[rangeFirst.upperBound...])
+//                                    let right = String(second[rangeSecond.upperBound...])
 //
-//                                    let first = first.substring(to: rangeFirst.lowerBound)
-//                                    let second = second.substring(to: rangeSecond.lowerBound)
+//                                    let first = String(first[..<rangeFirst.lowerBound])
+//                                    let second = String(second[..<rangeSecond.lowerBound])
 //
 //                                    if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
-//                                        let left = left.substring(to: rangeLeft.lowerBound)
-//                                        let right = right.substring(to: rangeRight.lowerBound)
+//                                        let left = String(left[..<rangeLeft.lowerBound])
+//                                        let right = String(right[..<rangeRight.lowerBound])
 //
 //                                        if let left = Int(left), let right = Int(right) {
 //                                            if left == right {

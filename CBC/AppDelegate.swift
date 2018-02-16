@@ -318,7 +318,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         
         globals.checkVoiceBaseAvailability()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
         }
 
@@ -354,7 +354,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
             globals.mediaPlayer.pause()
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_ENTER_BACKGROUND), object: nil)
         }
     }
@@ -375,7 +375,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
             }
         }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
         }
     }
@@ -386,7 +386,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
         print("applicationWillResignActive")
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         }
     }
@@ -398,7 +398,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         
         globals.mediaPlayer.setupPlayingInfoCenter()
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
         }
     }
@@ -407,7 +407,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
     {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         print("applicationWillTerminate")
-        Thread.onMainThread() {
+        Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_TERMINATE), object: nil)
         }
     }
@@ -425,7 +425,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         
         var filename:String?
         
-        filename = identifier.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
+        filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
         
         if let mediaItems = globals.mediaRepository.list {
             for mediaItem in mediaItems {

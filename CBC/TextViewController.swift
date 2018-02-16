@@ -10,16 +10,18 @@ import Foundation
 import UIKit
 
 extension UITextView {
-    func scrollToRange(_ range:Range<String.Index>)
+    func scrollRangeToVisible(_ range:Range<String.Index>)
     {
-        let utf16 = attributedText.string.utf16
+//        let utf16 = attributedText.string.utf16
+//
+//        let from = range.lowerBound.samePosition(in: utf16)
+//        let to = range.upperBound.samePosition(in: utf16)
         
-        let from = range.lowerBound.samePosition(in: utf16)
-        let to = range.upperBound.samePosition(in: utf16)
+//        let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
+//                              length: utf16.distance(from: from, to: to))
         
-        let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
-                              length: utf16.distance(from: from, to: to))
-        
+        let nsRange = NSRange(range, in: attributedText.string)
+
         scrollRangeToVisible(nsRange)
     }
 }
@@ -47,7 +49,7 @@ extension TextViewController: UISearchBarDelegate
                 
                 let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
                 
-                attributedText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellow, range: nsRange)
+                attributedText.addAttribute(NSAttributedStringKey.backgroundColor, value: UIColor.yellow, range: nsRange)
                 startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
             }
             
@@ -66,8 +68,8 @@ extension TextViewController: UISearchBarDelegate
             //                print(string)
             
             if let range = workingString.lowercased().range(of: searchText.lowercased()) {
-                stringBefore = workingString.substring(to: range.lowerBound)
-                stringAfter = workingString.substring(from: range.upperBound)
+                stringBefore = String(workingString[..<range.lowerBound])
+                stringAfter = String(workingString[range.upperBound...])
                 
                 var skip = false
                 
@@ -81,13 +83,13 @@ extension TextViewController: UISearchBarDelegate
                         
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
-                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
                                 skip = true
                             }
-                            if (stringAfter.substring(to: "'d".endIndex) == "'d") {
+                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
                                 skip = true
                             }
                         }
@@ -99,9 +101,9 @@ extension TextViewController: UISearchBarDelegate
                     }
                 }
                 
-                foundString = workingString.substring(from: range.lowerBound)
+                foundString = String(workingString[range.lowerBound...])
                 if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = foundString.substring(to: newRange.upperBound)
+                    foundString = String(foundString[..<newRange.upperBound])
                 }
                 
                 if !skip {
@@ -216,7 +218,7 @@ extension TextViewController: UISearchBarDelegate
         
         if !searchText.isEmpty {
             if let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                textView.scrollToRange(range)
+                textView.scrollRangeToVisible(range)
                 lastRange = range
             } else {
                 globals.alert(title: "Not Found", message: "")
@@ -239,7 +241,7 @@ extension TextViewController: UISearchBarDelegate
             let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: textView.attributedText.string.endIndex))
 
             if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-                textView.scrollToRange(range)
+                textView.scrollRangeToVisible(range)
                 self.lastRange = range
             } else {
                 self.lastRange = nil
@@ -248,7 +250,7 @@ extension TextViewController: UISearchBarDelegate
         
         if lastRange == nil {
             if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                textView.scrollToRange(range)
+                textView.scrollRangeToVisible(range)
                 lastRange = range
             } else {
                 globals.alert(title: "Not Found", message: "")
@@ -435,7 +437,7 @@ class TextViewController : UIViewController
     
     func disableToolBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = false
@@ -446,7 +448,7 @@ class TextViewController : UIViewController
     
     func disableBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = false
@@ -465,7 +467,7 @@ class TextViewController : UIViewController
     
     func enableToolBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = true
@@ -476,7 +478,7 @@ class TextViewController : UIViewController
     
     func enableBarButtons()
     {
-        Thread.onMainThread() {
+        Thread.onMainThread {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = true
@@ -735,7 +737,7 @@ class TextViewController : UIViewController
     
     var oldTextRange : UITextRange?
     
-    func follow()
+    @objc func follow()
     {
         guard !searchActive else {
             return
@@ -801,21 +803,20 @@ class TextViewController : UIViewController
                 
 //                let range = Range(uncheckedBounds: (lower: lowerBound, upper: upperBound))
                 
-                if range != oldRange { // , let range = range
-                    if  let before = changedText?.substring(to: range.lowerBound),
-                        let text = changedText?.substring(with: range),
-                        let after = changedText?.substring(from: range.upperBound) {
-                        let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.normal)
-                        let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
-                        let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
-                        
-                        beforeAttr.append(textAttr)
-                        beforeAttr.append(afterAttr)
-                        
-                        textView.attributedText = beforeAttr
-                        
-                        textView.scrollToRange(range)
-                    }
+                if let changedText = changedText, range != oldRange { // , let range = range
+                    let before = String(changedText[..<range.lowerBound])
+                    let text = String(changedText[range])
+                    let after = String(changedText[range.upperBound...])
+                    let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.normal)
+                    let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
+                    let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
+                    
+                    beforeAttr.append(textAttr)
+                    beforeAttr.append(afterAttr)
+                    
+                    textView.attributedText = beforeAttr
+                    
+                    textView.scrollRangeToVisible(range)
                     
                     oldRange = range
                 } else {
@@ -837,7 +838,7 @@ class TextViewController : UIViewController
     var wasTracking : Bool?
     var wasPlaying : Bool?
     
-    func tracking()
+    @objc func tracking()
     {
         isTracking = !isTracking
     }
@@ -877,12 +878,12 @@ class TextViewController : UIViewController
 
     var assist = false
 
-    func done()
+    @objc func done()
     {
         if text != textView.attributedText.string, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
             var actions = [AlertAction]()
             
-            actions.append(AlertAction(title: "Yes", style: .destructive, handler: { (Void) -> (Void) in
+            actions.append(AlertAction(title: "Yes", style: .destructive, handler: { () -> (Void) in
                 if self.isTracking {
                     self.stopTracking()
                 }
@@ -902,7 +903,7 @@ class TextViewController : UIViewController
         }
     }
     
-    func cancel()
+    @objc func cancel()
     {
         if isTracking {
             stopTracking()
@@ -915,7 +916,7 @@ class TextViewController : UIViewController
     
     var operationQueue : OperationQueue!
     
-    func autoEdit()
+    @objc func autoEdit()
     {
         guard !searchActive else {
             return
@@ -990,7 +991,7 @@ class TextViewController : UIViewController
     var keyboardShowing = false
     var shrink:CGFloat = 0.0
 
-    func keyboardWillShow(_ notification: NSNotification)
+    @objc func keyboardWillShow(_ notification: NSNotification)
     {
         if let keyboardRect = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
@@ -1023,7 +1024,7 @@ class TextViewController : UIViewController
         keyboardShowing = true
     }
 
-    func keyboardWillHide(_ notification: NSNotification)
+    @objc func keyboardWillHide(_ notification: NSNotification)
     {
         if keyboardShowing {
             bottomLayoutConstraint.constant -= shrink // textView.frame.size.height +
@@ -1036,7 +1037,7 @@ class TextViewController : UIViewController
     var activityIndicator : UIActivityIndicatorView!
     var activityBarButton : UIBarButtonItem!
 
-    func showFullScreen()
+    @objc func showFullScreen()
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? TextViewController {
@@ -1109,7 +1110,7 @@ class TextViewController : UIViewController
         }
     }
     
-    func playPause()
+    @objc func playPause()
     {
         guard let title = playPauseButton.title else {
             return
@@ -1129,7 +1130,7 @@ class TextViewController : UIViewController
         }
     }
     
-    func dismissKeyboard()
+    @objc func dismissKeyboard()
     {
         textView.resignFirstResponder()
     }
@@ -1296,7 +1297,7 @@ class TextViewController : UIViewController
         }
     }
     
-    func stopped()
+    @objc func stopped()
     {
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -1778,17 +1779,17 @@ class TextViewController : UIViewController
         if let range = range, let value = masterChanges[masterKey]?[key] {
             let attributedString = NSMutableAttributedString()
             
-            let before = "..." + String(text.substring(to: range.lowerBound).dropFirst(max(text.substring(to: range.lowerBound).count - 10,0)))
-            let string = text.substring(with: range)
-            let after = String(text.substring(from: range.upperBound).dropLast(max(text.substring(from: range.upperBound).count - 10,0))) + "..."
+            let before = "..." + String(text[..<range.lowerBound]).dropFirst(max(String(text[..<range.lowerBound]).count - 10,0))
+            let string = String(text[range])
+            let after = String(String(text[range.upperBound...]).dropLast(max(String(text[range.upperBound...]).count - 10,0))) + "..."
             
             attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
             attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
             attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
             
-            let prior = text.substring(to: range.lowerBound).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            let prior = String(text[..<range.lowerBound]).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
-            let following = text.substring(from: range.upperBound).first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            let following = String(text[range.upperBound...]).first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
                 if interactive {
@@ -1799,7 +1800,7 @@ class TextViewController : UIViewController
                         
                         completion?(text)
                         
-                        let before = text.substring(to: range.lowerBound)
+                        let before = String(text[..<range.lowerBound])
                         
                         if let completedRange = text.range(of: before + value) {
                             let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
@@ -1827,7 +1828,7 @@ class TextViewController : UIViewController
                     }
                     
                     operationQueue.addOperation { [weak self] in
-                        let before = text.substring(to: range.lowerBound)
+                        let before = String(text[..<range.lowerBound])
                         
                         if let completedRange = text.range(of: before + value) {
                             let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))

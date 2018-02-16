@@ -10,25 +10,22 @@ class OBSlider: UISlider
 	var realPositionValue: Float = 0.0
 	var beganTrackingLocation: CGPoint?
 	
-	var scrubbingSpeedChangePositions: NSArray = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+	var scrubbingSpeedChangePositions = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 	
-    var scrubbingSpeeds: NSArray = [1.0, 0.5, 0.25, 0.125, 0.00625, 0.0]
+    var scrubbingSpeeds = [1.0, 0.5, 0.25, 0.125, 0.00625, 0.0]
 	
 	required init?(coder: NSCoder)
     {
 		super.init(coder: coder)
-        if let num = self.scrubbingSpeeds[0] as? NSNumber {
-            self.scrubbingSpeed = Float(num)
-        }
-	}
+
+        scrubbingSpeed = Float(scrubbingSpeeds[0])
+    }
 	
 	override init(frame: CGRect)
     {
 		super.init(frame: frame)
         
-        if let num = self.scrubbingSpeeds[0] as? NSNumber {
-            self.scrubbingSpeed = Float(num)
-        }
+        self.scrubbingSpeed = Float(scrubbingSpeeds[0])
 	}
 
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
@@ -70,16 +67,14 @@ class OBSlider: UISlider
 		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation.y)/(view.bounds.height - beganTrackingLocation.y)
 //        print("verticalOffset: \(CGFloat(verticalOffset))")
         
-        var scrubbingSpeedChangePosIndex: NSInteger = self.indexOfLowerScrubbingSpeed(scrubbingSpeedChangePositions, forOffset: verticalOffset)
+        var scrubbingSpeedChangePosIndex = indexOfLowerScrubbingSpeed(scrubbingSpeedChangePositions, forOffset: verticalOffset)
 		
 		if (scrubbingSpeedChangePosIndex == NSNotFound) {
-			scrubbingSpeedChangePosIndex = self.scrubbingSpeeds.count
+			scrubbingSpeedChangePosIndex = scrubbingSpeeds.count
 		}
         
-        if let num = self.scrubbingSpeeds[scrubbingSpeedChangePosIndex - 1] as? NSNumber {
-            self.scrubbingSpeed = Float(num)
-        }
-        
+        self.scrubbingSpeed = Float(scrubbingSpeeds[scrubbingSpeedChangePosIndex - 1])
+
 //        print("scrubbingSpeed: \(self.scrubbingSpeed)")
 		
 		let trackRect: CGRect = self.trackRect(forBounds: self.bounds)
@@ -102,29 +97,27 @@ class OBSlider: UISlider
 
         self.value += valueAdjustment + thumbAdjustment
 		
-		if (self.isContinuous) {
-			self.sendActions(for: UIControlEvents.valueChanged)
+		if isContinuous {
+			sendActions(for: UIControlEvents.valueChanged)
 		}
 		
-		return self.isTracking
+		return isTracking
 	}
 	
-	override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+	override func endTracking(_ touch: UITouch?, with event: UIEvent?)
+    {
 		if (self.isTracking) {
-			self.scrubbingSpeed = 1.0
-			self.sendActions(for: UIControlEvents.valueChanged)
+			scrubbingSpeed = 1.0
+			sendActions(for: UIControlEvents.valueChanged)
 		}
 	}
 	
-	func indexOfLowerScrubbingSpeed (_ scrubbingSpeedPositions: NSArray, forOffset verticalOffset: CGFloat) -> NSInteger {
+	func indexOfLowerScrubbingSpeed (_ scrubbingSpeedPositions: Array<Double>, forOffset verticalOffset: CGFloat) -> NSInteger {
 		for i in 0..<scrubbingSpeedPositions.count {
-            if let scrubbingSpeedOffset = scrubbingSpeedPositions[i] as? NSNumber {
-                //            print("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
-                if (verticalOffset < CGFloat(scrubbingSpeedOffset)) {
-                    return i
-                }
+            //            print("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
+            if (verticalOffset < CGFloat(scrubbingSpeedPositions[i])) {
+                return i
             }
-            
 		}
 	
 		return NSNotFound

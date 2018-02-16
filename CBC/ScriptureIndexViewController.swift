@@ -207,7 +207,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                                     if  let start = times.first,
                                         let end = times.last,
                                         let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = transcriptSegmentComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
                                         //                                    for string in transcriptSegmentArray {
@@ -554,7 +554,7 @@ class ScriptureIndexViewController : UIViewController
             
         }
         didSet {
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 if self.finished > 0 {
                     self.progressIndicator.progress = self.progress / self.finished
                 }
@@ -819,7 +819,7 @@ class ScriptureIndexViewController : UIViewController
         guard let selectedTestament = scriptureIndex.selectedTestament else {
             mediaItems = nil
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self.updateUI()
                 self.tableView.reloadData()
                 self.scripturePicker.isUserInteractionEnabled = true
@@ -831,7 +831,7 @@ class ScriptureIndexViewController : UIViewController
 
         guard let selectedBook = scriptureIndex.selectedBook else {
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -846,7 +846,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 self?.mediaItems = scriptureIndex.byTestament[testament]
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -863,7 +863,7 @@ class ScriptureIndexViewController : UIViewController
             let index = testament + selectedBook
 
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -878,7 +878,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 self?.mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -895,7 +895,7 @@ class ScriptureIndexViewController : UIViewController
             let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)"
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -910,7 +910,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
                 
-                Thread.onMainThread() {
+                Thread.onMainThread {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -926,7 +926,7 @@ class ScriptureIndexViewController : UIViewController
         let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)" + "\(scriptureIndex.selectedVerse)"
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.disableBarButtons()
                 self?.spinner.isHidden = false
                 self?.spinner.startAnimating()
@@ -939,7 +939,7 @@ class ScriptureIndexViewController : UIViewController
             
             self?.mediaItems = nil
             
-            Thread.onMainThread() {
+            Thread.onMainThread {
                 self?.enableBarButtons()
                 self?.updateUI()
                 self?.tableView.reloadData()
@@ -1281,7 +1281,7 @@ class ScriptureIndexViewController : UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actionMenu()
+    @objc func actionMenu()
     {
         //In case we have one already showing
         //        dismiss(animated: true, completion: nil)
@@ -1309,7 +1309,7 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
-    func index(_ object:AnyObject?)
+    @objc func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
@@ -1368,7 +1368,7 @@ class ScriptureIndexViewController : UIViewController
             
             if (select) {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                     }
                 }
@@ -1377,7 +1377,7 @@ class ScriptureIndexViewController : UIViewController
             if (scroll) {
                 //Scrolling when the user isn't expecting it can be jarring.
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread() {
+                    Thread.onMainThread {
                         self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                     }
                 }
@@ -1386,21 +1386,21 @@ class ScriptureIndexViewController : UIViewController
     }
     
     
-    func started()
+    @objc func started()
     {
         
     }
     
-    func updated()
+    @objc func updated()
     {
         
     }
     
-    func completed()
+    @objc func completed()
     {
         updateSearchResults()
         
-        Thread.onMainThread { (Void) -> (Void) in
+        Thread.onMainThread {
             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
         }
     }
