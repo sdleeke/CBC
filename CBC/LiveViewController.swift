@@ -45,18 +45,24 @@ class LiveViewController: UIViewController
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+
         setupLivePlayerView()
         
         // Chage spaces before am/pm to be unbreakable
-        textView.text = textView.text.replacingOccurrences(of: " am", with: "\u{00a0}am")
-        textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
+//        textView.text = textView.text.replacingOccurrences(of: " am", with: "\u{00a0}am")
+//        textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
     }
 
     @objc func clearView()
     {
         Thread.onMainThread {
             globals.mediaPlayer.view?.isHidden = true
-            self.textView.isHidden = true
+//            self.textView.isHidden = true
             self.logo.isHidden = false
         }
     }
@@ -67,18 +73,14 @@ class LiveViewController: UIViewController
             self.setupLivePlayerView()
             
             globals.mediaPlayer.view?.isHidden = false
-            self.textView.isHidden = false
+//            self.textView.isHidden = false
             self.logo.isHidden = true
         }
     }
     
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
-        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LiveViewController.done))
-        } else {
-            navigationItem.rightBarButtonItem = nil
-        }
+    
     }
     
     @objc func done()
@@ -100,24 +102,27 @@ class LiveViewController: UIViewController
         }
     }
     
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        addNotifications()
         
         logo.isHidden = true
 
         setDVCLeftBarButton()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-
         navigationController?.isToolbarHidden = true
         
         navigationItem.title = streamEntry?.name
-        
-        deviceOrientationDidChange()
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -151,47 +156,47 @@ class LiveViewController: UIViewController
     
     @IBOutlet weak var webView: UIView!
 
-    @IBOutlet weak var textView: UITextView!
+//    @IBOutlet weak var textView: UITextView!
+//
+//    @IBOutlet weak var textViewHeight: NSLayoutConstraint!
+//    {
+//        didSet {
+//            textViewHeight.constant = 0
+//        }
+//    }
     
-    @IBOutlet weak var textViewHeight: NSLayoutConstraint!
-    {
-        didSet {
-            textViewHeight.constant = 0
-        }
-    }
-    
-    func showHideNotice(_ pan:UIPanGestureRecognizer)
-    {
-        switch pan.state {
-        case .began:
-            break
-            
-        case .ended:
-            break
-            
-        case .changed:
-            let translation = pan.translation(in: pan.view)
-            
-            if translation.y != 0 {
-                if textViewHeight.constant - translation.y < 0 {
-                    textViewHeight.constant = 0
-                } else
-                    if textViewHeight.constant - translation.y > self.view.bounds.height {
-                        textViewHeight.constant = self.view.bounds.height
-                    } else {
-                    textViewHeight.constant -= translation.y
-                }
-            }
-            
-            self.view.setNeedsLayout()
-            
-            pan.setTranslation(CGPoint.zero, in: pan.view)
-            break
-            
-        default:
-            break
-        }
-    }
+//    func showHideNotice(_ pan:UIPanGestureRecognizer)
+//    {
+//        switch pan.state {
+//        case .began:
+//            break
+//
+//        case .ended:
+//            break
+//
+//        case .changed:
+//            let translation = pan.translation(in: pan.view)
+//
+//            if translation.y != 0 {
+//                if textViewHeight.constant - translation.y < 0 {
+//                    textViewHeight.constant = 0
+//                } else
+//                    if textViewHeight.constant - translation.y > self.view.bounds.height {
+//                        textViewHeight.constant = self.view.bounds.height
+//                    } else {
+//                    textViewHeight.constant -= translation.y
+//                }
+//            }
+//
+//            self.view.setNeedsLayout()
+//
+//            pan.setTranslation(CGPoint.zero, in: pan.view)
+//            break
+//
+//        default:
+//            break
+//        }
+//    }
     
     fileprivate func setupLivePlayerView()
     {
@@ -208,7 +213,7 @@ class LiveViewController: UIViewController
         
         globals.mediaPlayer.showsPlaybackControls = true
         
-        textView.sizeToFit()
+//        textView.sizeToFit()
         
         view.isHidden = true
         view.removeFromSuperview()

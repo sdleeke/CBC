@@ -646,7 +646,7 @@ class MediaItem : NSObject
 //        self.searchHit = SearchHit(mediaItem: self)
         
         Thread.onMainThread {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
     
@@ -3407,9 +3407,9 @@ class MediaItem : NSObject
                 switch title {
                 case Constants.Strings.Download_Audio:
                     audioDownload.download()
-                    Thread.onMainThread(block: {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: audioDownload)
-                    })
+//                    Thread.onMainThread(block: {
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: audioDownload)
+//                    })
                     break
                     
                 case Constants.Strings.Delete_Audio_Download:

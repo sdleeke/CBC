@@ -724,7 +724,8 @@ extension WebViewController : WKNavigationDelegate
     
     func webView(_ wkWebView: WKWebView, didFail navigation: WKNavigation!, withError: Error)
     {
-        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
+//        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
+        if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed || (self == navigationController?.visibleViewController) {
             print("wkDidFail navigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
@@ -739,7 +740,8 @@ extension WebViewController : WKNavigationDelegate
     
     func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error)
     {
-        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
+//        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
+        if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed || (self == navigationController?.visibleViewController) {
             print("wkDidFailProvisionalNavigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
@@ -1141,8 +1143,8 @@ class WebViewController: UIViewController
 
             if mediaItem != nil {
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.mediaItem?.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.mediaItem?.download)
                 }
             }
         }
@@ -1327,16 +1329,16 @@ class WebViewController: UIViewController
     
     fileprivate func setupActionButton()
     {
-        fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.showFullScreen))
+        fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
         fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actionMenu))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actionMenu))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
+        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
+        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         activityButtonIndicator = UIActivityIndicatorView()
@@ -1360,7 +1362,7 @@ class WebViewController: UIViewController
                 fallthrough
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
-                    navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                    navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
                     navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
@@ -1376,7 +1378,7 @@ class WebViewController: UIViewController
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
-                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
                 navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                 
             default:
@@ -1712,7 +1714,7 @@ class WebViewController: UIViewController
                         self?.progressIndicator.isHidden = false
                         
                         if self?.loadTimer == nil, let target = self {
-                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
+                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
                         }
                     }
                     
@@ -1736,7 +1738,7 @@ class WebViewController: UIViewController
                     self?.progressIndicator.isHidden = false
                     
                     if self?.loadTimer == nil {
-                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
+                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
                     }
                 }
                 
@@ -1990,9 +1992,20 @@ class WebViewController: UIViewController
     
 //    var mask = false
     
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        addNotifications()
         
         if html.operationQueue.operationCount > 0 {
             activityButtonIndicator.startAnimating()
@@ -2025,12 +2038,6 @@ class WebViewController: UIViewController
 //        }
         
         orientation = UIDevice.current.orientation
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
 
         if let title = mediaItem?.title {
             navigationItem.title = title

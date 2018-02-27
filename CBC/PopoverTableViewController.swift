@@ -361,7 +361,7 @@ class PopoverTableViewController : UIViewController
                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
             
-            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(follow), userInfo: nil, repeats: true)
         } else {
             print("ERROR: trackingTimer not nil!")
         }
@@ -394,9 +394,9 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        guard !searchActive else {
-            return
-        }
+//        guard !searchActive else {
+//            return
+//        }
         
         guard let transcriptSegmentComponents = section.strings else {
             return
@@ -887,7 +887,7 @@ class PopoverTableViewController : UIViewController
     {
         if refreshControl == nil {
             refreshControl = UIRefreshControl()
-            refreshControl?.addTarget(self, action: #selector(PopoverTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+            refreshControl?.addTarget(self, action: #selector(handleRefresh(_:)), for: UIControlEvents.valueChanged)
         }
         
         if #available(iOS 10.0, *) {
@@ -1030,7 +1030,7 @@ class PopoverTableViewController : UIViewController
     
         navigationController?.toolbar.isTranslucent = false
 
-        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done))
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -1048,16 +1048,16 @@ class PopoverTableViewController : UIViewController
             }
         }
 
-        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit))
-        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.playPause))
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
+        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
         
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
         syncButton.isEnabled = globals.mediaPlayer.mediaItem != nil
 
         if track {
-//            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.actions))
+//            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
 //
 //            if navigationItem.rightBarButtonItems != nil {
 //                navigationItem.rightBarButtonItems?.append(actionsButton)
@@ -1478,6 +1478,15 @@ class PopoverTableViewController : UIViewController
     
 //    var mask = false
 
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1575,13 +1584,31 @@ class PopoverTableViewController : UIViewController
             searchBar.text = searchText
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
+        addNotifications()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-        
-        if (stringsFunction != nil) && (self.section.strings == nil) {
+        if stringsFunction != nil, self.section.strings != nil, self.purpose == .selectingTime {
+            let block = {
+                Thread.onMainThread {
+                    self.follow()
+                }
+            }
+            
+            // Then we need to know if we're still seeking or not and if we are we need to push the same action to be done after seeking completes.
+            if !globals.mediaPlayer.isSeeking {
+                block()
+            } else {
+                globals.mediaPlayer.seekingCompletion = {
+                    block()
+                }
+            }
+            
+            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+            
+            self.activityIndicator.stopAnimating()
+            self.activityIndicator.isHidden = true
+        } else
+            
+        if stringsFunction != nil, self.section.strings == nil {
             // SEE BELOW FOR WHY THE FOLLOWING WAS REPLACED.
             
             // WHAT does the following do?  It catches the case where the mediaPlayer is seeking when stringsFunction is called below.
@@ -1636,11 +1663,6 @@ class PopoverTableViewController : UIViewController
                             Thread.onMainThread {
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
                                 //                                        self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                
-                                self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
-                                
-                                self?.activityIndicator.stopAnimating()
-                                self?.activityIndicator.isHidden = true
                             }
                         }
                     } else {
@@ -1649,11 +1671,6 @@ class PopoverTableViewController : UIViewController
                             let block = {
                                 Thread.onMainThread {
                                     self?.follow()
-                                    
-                                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
-                                    
-                                    self?.activityIndicator.stopAnimating()
-                                    self?.activityIndicator.isHidden = true
                                 }
                             }
 
@@ -1667,11 +1684,16 @@ class PopoverTableViewController : UIViewController
                             }
                         }
                     }
+                    
+                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
+                    
+                    self?.activityIndicator.stopAnimating()
+                    self?.activityIndicator.isHidden = true
                 }
             }
         } else
             
-        if (stringsAny != nil) && (self.section.strings == nil) {
+        if stringsAny != nil, self.section.strings == nil {
             if let keys = self.stringsAny?.keys.sorted() {
                 var strings = [String]()
                 for key in keys {
@@ -1697,13 +1719,13 @@ class PopoverTableViewController : UIViewController
             }
         } else
             
-        if (stringsArray != nil) && (self.section.strings == nil) {
+        if stringsArray != nil, self.section.strings == nil {
             self.section.strings = self.stringsArray
 
             self.setPreferredContentSize()
         } else
             
-        if (stringsAnyArray != nil) && (self.section.strings == nil) {
+        if stringsAnyArray != nil, self.section.strings == nil {
             if let stringsAnyArray = self.stringsAnyArray {
                 var strings = [String]()
                 for stringsAny in stringsAnyArray {
@@ -2222,7 +2244,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
                     if self.isTracking {
-                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.follow), userInfo: nil, repeats: true)
                     }
                 }
             }

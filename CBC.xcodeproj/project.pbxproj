@@ -29,6 +29,8 @@
 		174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE931B74C145004F6942 /* AppDelegate.swift */; };
 		174EEE961B74C1B1004F6942 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE951B74C1B1004F6942 /* LaunchScreen.xib */; };
 		17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17579DDF1B84706500F1424F /* PopoverTableViewController.swift */; };
+		175DF54A203B2EB10087CF0B /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF549203B2EB10087CF0B /* Document.swift */; };
+		175DF54C203B2ED80087CF0B /* ControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF54B203B2ED80087CF0B /* ControlView.swift */; };
 		175EDA261BAC80F600942E6D /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175EDA251BAC80F600942E6D /* Reachability.swift */; };
 		17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */; };
 		17763BE31BEA329400BB5556 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE21BEA329400BB5556 /* Constants.swift */; };
@@ -118,6 +120,8 @@
 		174EEE951B74C1B1004F6942 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
 		174EEE971B74C1E8004F6942 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17579DDF1B84706500F1424F /* PopoverTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverTableViewController.swift; sourceTree = "<group>"; };
+		175DF549203B2EB10087CF0B /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		175DF54B203B2ED80087CF0B /* ControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlView.swift; sourceTree = "<group>"; };
 		175EDA251BAC80F600942E6D /* Reachability.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LexiconIndexViewController.swift; sourceTree = "<group>"; };
 		17763BE21BEA329400BB5556 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -240,7 +244,9 @@
 				177A74B01EF5767B00D36BE2 /* ScriptureIndex.swift */,
 				17763BE41BEA32C700BB5556 /* MediaItem.swift */,
 				17DFD9501F029A7C000AC63D /* VoiceBase.swift */,
+				175DF549203B2EB10087CF0B /* Document.swift */,
 				174A14AA1E02A6F100736CEC /* Download.swift */,
+				175DF54B203B2ED80087CF0B /* ControlView.swift */,
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
 				17E75EC91B835FC600AE8ED5 /* functions.swift */,
@@ -499,6 +505,7 @@
 				17E677832003E087003D022B /* Model.xcdatamodeld in Sources */,
 				17E677BF2003E690003D022B /* LexiconTranscript+CoreDataClass.swift in Sources */,
 				174A14A51E020A0500736CEC /* CachedString.swift in Sources */,
+				175DF54C203B2ED80087CF0B /* ControlView.swift in Sources */,
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,
 				1742C6891F1127F00096B150 /* TextViewController.swift in Sources */,
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
@@ -537,6 +544,7 @@
 				17FF98852030DA3E002AD442 /* Search.swift in Sources */,
 				17E677C12003E690003D022B /* LexiconEntry+CoreDataClass.swift in Sources */,
 				17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */,
+				175DF54A203B2EB10087CF0B /* Document.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -785,6 +785,13 @@ class MediaPlayer : NSObject {
         NotificationCenter.default.removeObserver(self) //, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
     }
     
+    @objc func reachableTransition()
+    {
+        if !loaded, mediaItem != nil {
+            setup(mediaItem,playOnLoad:false)
+        }
+    }
+    
     func observe()
     {
         guard Thread.isMainThread else {
@@ -798,7 +805,7 @@ class MediaPlayer : NSObject {
         
         unobserve()
         
-        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
+        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(playerObserver), userInfo: nil, repeats: true)
         
         if #available(iOS 10.0, *) {
             player?.addObserver( self,
@@ -818,13 +825,13 @@ class MediaPlayer : NSObject {
             self?.playerTimer()
         })
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
 
         // This creates too many problems, not the least because the player buffers and may play on for minutes after the network goes down.  Also, if audio is downloaded stopping is exactly the wrong thing to do!
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.stop), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.reload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
 
         //
         //        // Why was this put here?  To set the state to .paused from .none

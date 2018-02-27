@@ -13,106 +13,6 @@ import MessageUI
 import WebKit
 import MediaPlayer
 
-class Document : NSObject {
-    var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
-    
-    var loaded : Bool {
-        get {
-            if globals.cacheDownloads {
-                return (wkWebView?.isLoading == false) && (wkWebView?.url == download?.fileSystemURL)
-            } else {
-                return (wkWebView?.isLoading == false) && (wkWebView?.url == download?.downloadURL)
-            }
-        }
-    }
-    
-    var mediaItem:MediaItem?
-    
-    var purpose:String?
-    
-    var download:Download? {
-        get {
-            guard let purpose = purpose else {
-                return nil
-            }
-            
-            var download:Download?
-            
-            switch purpose {
-            case Purpose.notes:
-                download = mediaItem?.notesDownload
-                break
-                
-            case Purpose.slides:
-                download = mediaItem?.slidesDownload
-                break
-                
-            default:
-                download = nil
-                break
-            }
-            
-            if download == nil {
-                print("download == nil")
-            }
-            
-            return download
-        }
-    }
-    
-    var wkWebView:WKWebView? {
-        willSet {
-            
-        }
-        didSet {
-            if (wkWebView == nil) {
-                oldValue?.scrollView.delegate = nil
-            }
-        }
-    }
-    
-    init(purpose:String,mediaItem:MediaItem?)
-    {
-        self.purpose = purpose
-        self.mediaItem = mediaItem
-    }
-    
-    deinit {
-        
-    }
-    
-    func showing(_ mediaItem:MediaItem?) -> Bool
-    {
-        return (mediaItem == self.mediaItem) && (mediaItem?.showing == purpose)
-    }
-}
-
-class ControlView : UIView
-{
-    var sliding = false
-    
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool
-    {
-        guard !sliding else {
-            return false
-        }
-        
-        for view in subviews {
-            if view.frame.contains(point) && view.isUserInteractionEnabled && !view.isHidden {
-                if let control = view as? UIControl {
-                    if control.isEnabled {
-                        return true
-                    }
-                } else {
-                    return true
-                }
-            }
-        }
-        
-        return false
-    }
-}
-
 extension MediaViewController : UIAdaptivePresentationControllerDelegate
 {
     // MARK: UIAdaptivePresentationControllerDelegate
@@ -574,7 +474,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
             document?.download?.cancelOrDelete()
-//            document?.loaded = false
+            document?.loaded = false
             setupDocumentsAndVideo()
             break
             
@@ -601,6 +501,9 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             switch string {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
+                Thread.onMainThread {
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                }
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -935,7 +838,8 @@ extension MediaViewController : WKNavigationDelegate
 
                 setDocumentContentOffsetAndZoomScale(document)
 
-//                document.loaded = true
+                document.loaded = true
+                break
             }
         }
     }
@@ -1218,8 +1122,8 @@ class MediaViewController: UIViewController // MediaController
                 
                 if let notesDocument = notesDocument {
                     Thread.onMainThread {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: notesDocument.download)
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: notesDocument.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.updateNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: notesDocument.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.cancelNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: notesDocument.download)
                     }
                     
                     if let purpose = notesDocument.purpose {
@@ -1330,8 +1234,8 @@ class MediaViewController: UIViewController // MediaController
                 
                 if let slidesDocument = slidesDocument {
                     Thread.onMainThread {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: slidesDocument.download)
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: slidesDocument.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.updateSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: slidesDocument.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.cancelSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: slidesDocument.download)
                     }
                     
                     if let purpose = slidesDocument.purpose {
@@ -1450,7 +1354,7 @@ class MediaViewController: UIViewController // MediaController
                 globals.selectedMediaItem.detail = selectedMediaItem
                 
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem) //
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem) //
                 }
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
@@ -1485,7 +1389,7 @@ class MediaViewController: UIViewController // MediaController
     @IBOutlet weak var verticalSplit: UIView!
     {
         didSet {
-            let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            let tap = UITapGestureRecognizer(target: self, action: #selector(resetConstraint))
             tap.numberOfTapsRequired = 2
             verticalSplit?.addGestureRecognizer(tap)
         }
@@ -2171,11 +2075,11 @@ class MediaViewController: UIViewController // MediaController
     @IBOutlet weak var elapsed: UILabel!
     {
         didSet {
-            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(resetConstraint))
             doubleTap.numberOfTapsRequired = 2
             elapsed.addGestureRecognizer(doubleTap)
 
-            let singleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.elapsedTapAction))
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(elapsedTapAction))
             singleTap.numberOfTapsRequired = 1
             elapsed.addGestureRecognizer(singleTap)
             
@@ -2196,11 +2100,11 @@ class MediaViewController: UIViewController // MediaController
     
     @IBOutlet weak var remaining: UILabel! {
         didSet {
-            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(resetConstraint))
             doubleTap.numberOfTapsRequired = 2
             remaining.addGestureRecognizer(doubleTap)
             
-            let singleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.remainingTapAction))
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(remainingTapAction))
             singleTap.numberOfTapsRequired = 1
             remaining.addGestureRecognizer(singleTap)
             
@@ -2759,13 +2663,13 @@ class MediaViewController: UIViewController // MediaController
         }
         
         view.gestureRecognizers = nil
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.videoPan(_:)))
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(videoPan(_:)))
         view.addGestureRecognizer(pan)
         
-        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(MediaViewController.videoPinch(_:)))
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(videoPinch(_:)))
         view.addGestureRecognizer(pinch)
         
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(MediaViewController.videoLongPress(_:)))
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(videoLongPress(_:)))
         view.addGestureRecognizer(longPress)
         
         view.isHidden = true
@@ -3214,9 +3118,9 @@ class MediaViewController: UIViewController // MediaController
                             self.progressIndicator.isHidden = false
                         }
                         
-                        Thread.onMainThread(block: {
-                            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document.download)
-                        })
+                        Thread.onMainThread {
+                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document.download)
+                        }
                         
                         download.download()
                     }
@@ -3269,7 +3173,7 @@ class MediaViewController: UIViewController // MediaController
             }
             
             if document.loadTimer == nil {
-                document.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
+                document.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(loading(_:)), userInfo: document, repeats: true)
             }
 
             ///////
@@ -3431,12 +3335,9 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        if var showing = selectedMediaItem.showing {
-            // Account for the use of the cache.
-            
-            if !globals.reachability.isReachable {
-                func noShow()
-                {
+        if var showing = selectedMediaItem.showing {            
+            if !globals.reachability.isReachable, let loaded = document?.loaded, !loaded {
+                if !globals.cacheDownloads || !(wkWebView?.url == download?.fileSystemURL) || (download?.isDownloaded == false) {
                     switch showing {
                     case Showing.slides:
                         alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
@@ -3452,15 +3353,36 @@ class MediaViewController: UIViewController // MediaController
                     
                     showing = Showing.none
                 }
-                
-                if globals.cacheDownloads {
-                    if let isDownloaded = document?.download?.isDownloaded, !isDownloaded {
-                        noShow()
-                    }
-                } else {
-                    noShow()
-                }
             }
+
+//                func noShow()
+//                {
+//                    switch showing {
+//                    case Showing.slides:
+//                        alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
+//                        break
+//
+//                    case Showing.notes:
+//                        alert(viewController: self, title: "Transcript Not Available", message: nil, completion: nil)
+//                        break
+//
+//                    default:
+//                        break
+//                    }
+//
+//                    showing = Showing.none
+//                }
+                
+//                if globals.cacheDownloads {
+//                    if let isDownloaded = document?.download?.isDownloaded, !isDownloaded {
+//                        noShow()
+//                    }
+//                } else {
+//                    if let loaded = document?.loaded, !loaded {
+//                        noShow()
+//                    }
+//                }
+//            }
             
 //            if !globals.cacheDownloads, !globals.reachability.isReachable { // currentReachabilityStatus == .notReachable
 //            }
@@ -3727,7 +3649,7 @@ class MediaViewController: UIViewController // MediaController
         var barButtons = [UIBarButtonItem]()
         
         if actionMenu()?.count > 0 {
-            actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
+            actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
             actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
             if let actionButton = actionButton {
@@ -3737,9 +3659,9 @@ class MediaViewController: UIViewController // MediaController
     
         if selectedMediaItem.hasTags {
             if (selectedMediaItem.tagsSet?.count > 1) {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(tags(_:)))
             } else {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(tags(_:)))
             }
             
             tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
@@ -4326,32 +4248,44 @@ class MediaViewController: UIViewController // MediaController
         setDVCLeftBarButton()
     }
     
+    @objc func reachableTransition()
+    {
+        // This just triggers the didSet as if we had just selected it all over again.
+        // Which sets up the AVPlayer to show length and position for mediaItems that aren't loaded in the media Player.
+        if let selectedMediaItem = selectedMediaItem {
+            self.selectedMediaItem = selectedMediaItem
+        }
+        
+        updateUI()
+    }
+    
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToLoad), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(failedToLoad), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
         
-        if (self.splitViewController?.viewControllers.count > 1) {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+//        if (self.splitViewController?.viewControllers.count > 1) {
+        if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed {
+            NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }
     }
     
@@ -4586,6 +4520,7 @@ class MediaViewController: UIViewController // MediaController
                         if document.showing(selectedMediaItem) && wkWebView.scrollView.isDecelerating {
                             captureContentOffset(document)
                         }
+                        document.wkWebView = nil
                     }
                 }
             }
@@ -4942,7 +4877,7 @@ class MediaViewController: UIViewController // MediaController
         
         removeSliderObserver()
         
-        self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
+        self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(sliderTimer), userInfo: nil, repeats: true)
     }
 
     func playCurrentMediaItem(_ mediaItem:MediaItem?)
@@ -5248,7 +5183,7 @@ extension MediaViewController : UITableViewDataSource
 //                case Constants.Strings.Download_Audio:
 //                    mediaItem.audioDownload?.download()
 //                    Thread.onMainThread(block: {
-//                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
 //                    })
 //                    break
 //                    

@@ -376,11 +376,11 @@ class CloudViewController: UIViewController
     {
         super.viewDidLoad()
         
-        let selectTap = UITapGestureRecognizer(target: self, action: #selector(CloudViewController.selectCloudWord(_:)))
+        let selectTap = UITapGestureRecognizer(target: self, action: #selector(selectCloudWord(_:)))
         selectTap.numberOfTapsRequired = 1
         cloudView.addGestureRecognizer(selectTap)
         
-        let layoutTap = UITapGestureRecognizer(target: self, action: #selector(CloudViewController.cancelAndRelayoutCloudWords))
+        let layoutTap = UITapGestureRecognizer(target: self, action: #selector(cancelAndRelayoutCloudWords))
         layoutTap.numberOfTapsRequired = 2
         cloudView.addGestureRecognizer(layoutTap)
         
@@ -462,19 +462,24 @@ class CloudViewController: UIViewController
         UIGraphicsEndImageContext();
     }
     
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryDidChange), name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
 
+        addNotifications()
+        
 //        ptvc?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
         
-        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(CloudViewController.done)), animated: true)
+        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
         
-        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(CloudViewController.share)), animated: true)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(self.contentSizeCategoryDidChange), name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
+        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
     }
 
     override func viewDidAppear(_ animated: Bool)

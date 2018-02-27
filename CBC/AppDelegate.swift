@@ -55,8 +55,14 @@ extension AppDelegate : UISplitViewControllerDelegate
             // This is what causes a collapsed split view controller to always start w/ the master view.
             return true
         }
-        
+
         return false
+
+//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//            return false
+//        } else {
+//            return splitViewController.navigationController?.visibleViewController == splitViewController.navigationController?.topViewController
+//        }
     }
     
     func primaryViewController(forExpanding splitViewController: UISplitViewController) -> UIViewController?
@@ -317,10 +323,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         globals = Globals()
         
         globals.checkVoiceBaseAvailability()
-        
-        Thread.onMainThread {
-            globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
-        }
 
         globals.splitViewController = svc
         

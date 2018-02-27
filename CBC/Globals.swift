@@ -46,7 +46,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func checkVoiceBaseAvailability()
     {
-        guard globals.reachability.isReachable else {
+        guard reachability.isReachable else {
             self.isVoiceBaseAvailable = false
             return
         }
@@ -297,7 +297,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
         }
         
-        if priorReachabilityStatus == .notReachable, reachability.isReachable, globals.mediaRepository.list != nil {
+        if priorReachabilityStatus == .notReachable, reachability.isReachable, mediaRepository.list != nil {
             alert(title: "Network Connection Restored",message: "")
 
             isVoiceBaseAvailable = nil
@@ -305,7 +305,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             checkVoiceBaseAvailability()
         }
         
-        if priorReachabilityStatus != .notReachable, !reachability.isReachable, globals.mediaRepository.list != nil {
+        if priorReachabilityStatus != .notReachable, !reachability.isReachable, mediaRepository.list != nil {
             alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
             
             isVoiceBaseAvailable = false
@@ -322,6 +322,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         super.init()
         
+        Thread.onMainThread {
+            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.alertViewer), userInfo: nil, repeats: true)
+        }
+
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:

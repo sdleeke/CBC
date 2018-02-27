@@ -564,7 +564,7 @@ class PopoverPickerViewController : UIViewController
         }
 
         if actionMenu()?.count > 0 {
-            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
             actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
             navigationItem.setRightBarButton(actionButton, animated: false)
@@ -582,7 +582,7 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewDidLoad()
 
-        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.done))
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -626,7 +626,7 @@ class PopoverPickerViewController : UIViewController
     
     var orientation : UIDeviceOrientation?
 
-    func deviceOrientationDidChange()
+    @objc func deviceOrientationDidChange()
     {
         // Dismiss any popover
         func action()
@@ -842,13 +842,18 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
         
         orientation = UIDevice.current.orientation
         
-        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        addNotifications()
         
         updateActionButton()
         
@@ -859,7 +864,7 @@ class PopoverPickerViewController : UIViewController
             }
 
             globals.queue.async(execute: { () -> Void in
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
+                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
             })
         }
         

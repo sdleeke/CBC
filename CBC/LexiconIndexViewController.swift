@@ -967,6 +967,19 @@ class LexiconIndexViewController : UIViewController
             }
         }
     }
+
+    func addNotifications()
+    {
+        guard lexicon != nil else {
+            return
+        }
+
+        globals.queue.async(execute: { () -> Void in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
+        })
+    }
     
     override func viewWillAppear(_ animated: Bool)
     {
@@ -976,13 +989,7 @@ class LexiconIndexViewController : UIViewController
 
         updateLocateButton()
 
-        if lexicon != nil {
-            globals.queue.async(execute: { () -> Void in
-                NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
-            })
-        }
+        addNotifications()
         
         navigationItem.hidesBackButton = false
         
@@ -1415,7 +1422,7 @@ class LexiconIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
         
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.actions))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         navigationItem.setRightBarButton(actionButton, animated: true)
@@ -1480,7 +1487,7 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)

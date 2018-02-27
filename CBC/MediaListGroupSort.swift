@@ -564,7 +564,7 @@ class MediaListGroupSort {
     init(mediaItems:[MediaItem]?)
     {
         Thread.onMainThread {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaListGroupSort.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         
         guard let mediaItems = mediaItems else {

@@ -1270,25 +1270,29 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.stringsFunction = { ()->[String]? in
                     let strings = globals.relevantHistoryList
                     
-                    if strings == nil {
-                        Thread.onMainThread(block: { () -> (Void) in
-                            popover.navigationItem.leftBarButtonItem?.isEnabled = false
-                            popover.activityIndicator.stopAnimating()
-                            alert(viewController:self,title: "History is empty.",
-                                  message: nil,
-                                  completion:{
-                                    self.presentingVC = nil
-                                    self.dismiss(animated: true, completion: nil)
-                            })
-                        })
+//                    if strings == nil {
+//                        Thread.onMainThread(block: { () -> (Void) in
+//                            popover.navigationItem.leftBarButtonItem?.isEnabled = false
+//                            popover.activityIndicator.stopAnimating()
+                    // Pretty self-evident.
+//                            alert(viewController:self,title: "History is empty.",
+//                                  message: nil,
+//                                  completion:{
+//                                    self.presentingVC = nil
+//                                    self.dismiss(animated: true, completion: nil)
+//                            })
+//                        })
+//                    }
+
+                    Thread.onMainThread {
+                        popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.historyActions))
+                        popover.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                     }
                     
                     return strings
                 }
                 
                 popover.vc = self.splitViewController
-                
-                popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.historyActions))
                 
                 present(navigationController, animated: true, completion: {
                     self.presentingVC = navigationController
@@ -1307,7 +1311,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             navigationController.popoverPresentationController?.delegate = self
             
-//            popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Go Live", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.liveView))
+//            popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Go Live", style: UIBarButtonItemStyle.plain, target: self, action: #selector(liveView))
             
             popover.navigationItem.title = Constants.Strings.Live_Events
             
@@ -1467,7 +1471,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                 self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                 
-//                self.actionsButton = UIBarButtonItem(title: Constants.Strings.Actions, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseActions))
+//                self.actionsButton = UIBarButtonItem(title: Constants.Strings.Actions, style: UIBarButtonItemStyle.plain, target: self, action: #selector(voiceBaseActions))
 //
 //                self.popover?.navigationItem.leftBarButtonItem = self.actionsButton
                 
@@ -1687,9 +1691,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             switch string {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
-                Thread.onMainThread(block: {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
-                })
+                Thread.onMainThread {
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                }
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -2466,7 +2470,7 @@ class MediaTableViewController : UIViewController // MediaController
             tableView.register(MediaTableViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "MediaTableViewController")
 
             refreshControl = UIRefreshControl()
-            refreshControl?.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+            refreshControl?.addTarget(self, action: #selector(handleRefresh(_:)), for: UIControlEvents.valueChanged)
 
             if let refreshControl = refreshControl {
                 tableView?.addSubview(refreshControl)
@@ -2883,9 +2887,9 @@ class MediaTableViewController : UIViewController // MediaController
     
     fileprivate func setupSortingAndGroupingOptions()
     {
-        let sortingButton = UIBarButtonItem(title: Constants.Strings.Menu.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
-        let groupingButton = UIBarButtonItem(title: Constants.Strings.Menu.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.index(_:)))
+        let sortingButton = UIBarButtonItem(title: Constants.Strings.Menu.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(sorting(_:)))
+        let groupingButton = UIBarButtonItem(title: Constants.Strings.Menu.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(grouping(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
 
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
@@ -3092,7 +3096,8 @@ class MediaTableViewController : UIViewController // MediaController
 
                 self?.navigationItem.title = Constants.CBC.TITLE.SHORT
                 
-                if (self?.splitViewController?.viewControllers.count > 1) {
+//                if (self.splitViewController?.viewControllers.count > 1) {
+                if let isCollapsed = self?.splitViewController?.isCollapsed, !isCollapsed {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
                 }
                 
@@ -3442,21 +3447,21 @@ class MediaTableViewController : UIViewController // MediaController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lastSegue), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_LAST_SEGUE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(lastSegue), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_LAST_SEGUE), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
     }
 
     override func viewDidLoad()
@@ -3556,7 +3561,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         var barButtons = [UIBarButtonItem]()
         
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         if actionMenu()?.count > 0, let actionButton = actionButton {
@@ -3564,9 +3569,9 @@ class MediaTableViewController : UIViewController // MediaController
         }
         
         if (globals.media.all?.mediaItemTags?.count > 1) {
-            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
         } else {
-            tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
         }
         tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
 
@@ -4211,8 +4216,7 @@ class MediaTableViewController : UIViewController // MediaController
                 if sender != nil {
                     (dvc as? LiveViewController)?.streamEntry = sender as? StreamEntry
                 } else {
-                    let defaults = UserDefaults.standard
-                    if let streamEntry = StreamEntry(defaults.object(forKey: Constants.SETTINGS.LIVE) as? [String:Any]) {
+                    if let streamEntry = StreamEntry(UserDefaults.standard.object(forKey: Constants.SETTINGS.LIVE) as? [String:Any]) {
                         (dvc as? LiveViewController)?.streamEntry = streamEntry
                     }
                 }
@@ -4638,7 +4642,7 @@ extension MediaTableViewController : UITableViewDelegate
 //                case Constants.Strings.Download_Audio:
 //                    mediaItem.audioDownload?.download()
 //                    Thread.onMainThread(block: {
-//                        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
 //                    })
 //                    break
 //                    

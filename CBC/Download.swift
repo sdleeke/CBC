@@ -120,7 +120,7 @@ class Download : NSObject
 //                    if observer == nil {
 //                        observer = #selector(AppDelegate.downloadFailed)
 //                        DispatchQueue.main.async {
-//                            NotificationCenter.default.addObserver(self, selector: #selector(Download.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
 //                        }
 //                    }
                 break

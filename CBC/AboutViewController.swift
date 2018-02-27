@@ -281,7 +281,7 @@ class AboutViewController: UIViewController
     func setupActionButton()
     {
         if actionMenu()?.count > 0 {
-            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(AboutViewController.actions))
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
             actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
             
             navigationItem.rightBarButtonItem = actionButton
@@ -339,10 +339,18 @@ class AboutViewController: UIViewController
         })
     }
 
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-    
+
+        addNotifications()
+        
         setVersion()
         
         if self.navigationController?.visibleViewController == self {
@@ -354,11 +362,6 @@ class AboutViewController: UIViewController
         mapView.isHidden = true
 
         addMap()
-        
-        Thread.onMainThread {
-            NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
-        }
     }
     
     override func viewDidAppear(_ animated: Bool)
