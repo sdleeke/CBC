@@ -1065,27 +1065,40 @@ class MediaItem : NSObject
                     // Avoid simultaneous read and write in dict.
                     let playing = hasAudio ? Playing.audio : (hasVideo ? Playing.video : nil)
                     dict?[Field.playing] = playing
+
+                    // this saves calculated values in defaults between sessions
+                    mediaItemSettings?[Field.playing] = playing
                 }
             }
-            
+
+            // ERROR CHECKING
             if !hasAudio && (dict?[Field.playing] == Playing.audio) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasVideo ? Playing.video : nil
                 dict?[Field.playing] = playing
+
+                // this saves calculated values in defaults between sessions
+                mediaItemSettings?[Field.playing] = playing
             }
 
+            // ERROR CHECKING
             if !hasVideo && (dict?[Field.playing] == Playing.video) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasAudio ? Playing.audio : nil
                 dict?[Field.playing] = playing
+
+                // this saves calculated values in defaults between sessions
+                mediaItemSettings?[Field.playing] = playing
             }
             
+            // Is this ever nil?  Unless it doesn't have audio AND it doesn't have video it is ALWAYS one or the other.
             return dict?[Field.playing]
         }
         
         set {
             if newValue != dict?[Field.playing] {
-                //Changing audio to video or vice versa resets the state and time.
+                //Changing audio to video or vice versa clears the mediaItem in the player, which is what stop does vs. pause
+                //(which also resets the state and time).
                 if globals.mediaPlayer.mediaItem == self {
                     globals.mediaPlayer.stop()
                 }
@@ -1122,6 +1135,9 @@ class MediaItem : NSObject
                     if (!hasSlides && !hasNotes) {
                         dict?[Field.showing] = Showing.none
                     }
+
+                    // this saves calculated values in defaults between sessions
+                    mediaItemSettings?[Field.showing] = dict?[Field.showing]
                 }
             }
             
@@ -1551,7 +1567,6 @@ class MediaItem : NSObject
         }
     }
     
-    // this saves calculated values in defaults between sessions
     var speakerSort:String? {
         get {
             if dict?[Field.speaker_sort] == nil {
@@ -1579,6 +1594,9 @@ class MediaItem : NSObject
 //                    print(speakerSort)
                     
                     dict?[Field.speaker_sort] = speakerSort ?? Constants.Strings.None
+
+                    // this saves calculated values in defaults between sessions - but seems like this might be a source for error if things change in the JSON downloaded.
+//                    mediaItemSettings?[Field.speaker_sort] = dict?[Field.speaker_sort]
                 }
             }
 
@@ -1621,6 +1639,9 @@ class MediaItem : NSObject
                     } else {
 //                        print("multiPartSort is nil")
                     }
+
+                    // this saves calculated values in defaults between sessions - but seems like this might be a source for error if things change in the JSON downloaded.
+//                    mediaItemSettings?[Field.multi_part_name_sort] = dict?[Field.multi_part_name_sort]
                 }
             }
             return dict?[Field.multi_part_name_sort]
@@ -3764,7 +3785,7 @@ class MediaItem : NSObject
             }
         }
         
-        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
+        voiceBase = AlertAction(title: Constants.Strings.VoiceBase, style: .default) {
             var alertActions = [AlertAction]()
             
             if let actions = self.audioTranscript?.recognizeAlertActions(viewController:viewController) {
@@ -3803,7 +3824,7 @@ class MediaItem : NSObject
             }
             
             alertActionsCancel( viewController: viewController,
-                                title: "VoiceBase",
+                                title: Constants.Strings.VoiceBase,
                                 message: message,
                                 alertActions: alertActions,
                                 cancelAction: nil)

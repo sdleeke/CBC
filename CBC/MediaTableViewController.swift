@@ -10,7 +10,8 @@ import UIKit
 import AVFoundation
 import MessageUI
 
-extension UIAlertController {
+extension UIAlertController
+{
     func makeOpaque()
     {
         if  let subView = view.subviews.first,
@@ -2621,7 +2622,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
-            if globals.isVoiceBaseAvailable ?? false {
+            if globals.isVoiceBaseAvailable {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
             }
             

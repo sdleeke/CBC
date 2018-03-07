@@ -365,7 +365,8 @@ class MediaListGroupSort {
         return groupedSortedMediaItems
     }
     
-    class Section {
+    class Section
+    {
         weak var mediaListGroupSort:MediaListGroupSort?
         
         init(_ mediaListGroupSort:MediaListGroupSort?)

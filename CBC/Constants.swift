@@ -727,7 +727,8 @@ enum Constants {
         
         static let VoiceBase_API_Key    = "VoiceBase API Key"
         static let VoiceBase_Media      = "VoiceBase Media"
-        
+        static let VoiceBase            = "VoiceBase"
+
         static let LocalDevice = "This Device"
         static let OtherDevices = "Other Devices"
 

@@ -1402,16 +1402,17 @@ class MediaViewController: UIViewController // MediaController
             audioOrVideoControl.setTitle(Constants.FA.VIDEO, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO) // Video
         }
     }
-    @IBOutlet weak var audioOrVideoWidthConstraint: NSLayoutConstraint!
     
-    @IBAction func audioOrVideoSelection(sender: UISegmentedControl)
+    @IBOutlet weak var audioOrVideoWidthConstraint: NSLayoutConstraint!
+
+    @IBAction func audioOrVideoSelection(_ sender: UISegmentedControl)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
             return
         }
         
-        switch sender.selectedSegmentIndex {
+        switch audioOrVideoControl.selectedSegmentIndex {
         case Constants.AV_SEGMENT_INDEX.AUDIO:
             if let playing = selectedMediaItem?.playing {
                 switch playing {
@@ -1522,8 +1523,8 @@ class MediaViewController: UIViewController // MediaController
         
         var toView:UIView?
         
-        if (sender.selectedSegmentIndex >= 0) && (sender.selectedSegmentIndex < sender.numberOfSegments){
-            switch sender.titleForSegment(at: sender.selectedSegmentIndex)! {
+        if (stvControl.selectedSegmentIndex >= 0) && (stvControl.selectedSegmentIndex < stvControl.numberOfSegments){
+            switch stvControl.titleForSegment(at: stvControl.selectedSegmentIndex)! {
             case Constants.STV_SEGMENT_TITLE.SLIDES:
                 selectedMediaItem?.showing = Showing.slides
                 toView = document?.wkWebView
@@ -3933,7 +3934,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasAudio && selectedMediaItem.hasVideo else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasAudio, selectedMediaItem.hasVideo else {
             self.audioOrVideoControl.isEnabled = false
             self.audioOrVideoControl.isHidden = true
             self.audioOrVideoWidthConstraint.constant = 0

@@ -382,9 +382,13 @@ extension VoiceBase // Class Methods
     
     static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard globals.isVoiceBaseAvailable == nil || globals.isVoiceBaseAvailable! else {
+        guard globals.isVoiceBaseAvailable else {
             return
         }
+        
+//        guard globals.isVoiceBaseAvailable == nil || globals.isVoiceBaseAvailable! else {
+//            return
+//        }
         
         guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
             return
@@ -492,7 +496,7 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
-        guard globals.isVoiceBaseAvailable ?? false else {
+        guard globals.isVoiceBaseAvailable else {
             return
         }
         
@@ -1717,7 +1721,7 @@ class VoiceBase {
     
     func post(path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard globals.isVoiceBaseAvailable ?? false else {
+        guard globals.isVoiceBaseAvailable else {
             return
         }
         
@@ -2098,7 +2102,7 @@ class VoiceBase {
     
     func delete()
     {
-        guard globals.isVoiceBaseAvailable ?? false else {
+        guard globals.isVoiceBaseAvailable else {
             return
         }
         
@@ -3546,7 +3550,7 @@ class VoiceBase {
                         let timing = strings.removeFirst() // time
                         
                         if let range = transcriptSegmentComponent.range(of:timing+"\n") {
-                            let string = transcriptSegmentComponent.substring(from:range.upperBound)
+                            let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
                             str = (str != nil ? str! + " " : "") + string
                         }
                     }
@@ -3588,11 +3592,7 @@ class VoiceBase {
     
     func search(string:String?)
     {
-        guard globals.reachability.isReachable else {
-            return
-        }
-        
-        guard globals.isVoiceBaseAvailable ?? false else {
+        guard globals.isVoiceBaseAvailable else {
             return
         }
         
@@ -4145,7 +4145,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                if globals.isVoiceBaseAvailable ?? false {
+                if globals.isVoiceBaseAvailable {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, handler: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let mediaID = self.mediaID {
@@ -4278,7 +4278,7 @@ class VoiceBase {
                         }
                     }))
                     
-                    if globals.isVoiceBaseAvailable ?? false {
+                    if globals.isVoiceBaseAvailable {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {

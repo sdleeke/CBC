@@ -24,30 +24,50 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     var queue = DispatchQueue(label: "CBC")
     
-    var allowMGTs : Bool
+    var allowMGTs = true
+//    {
+//        get {
+//            return isVoiceBaseAvailable ?? false
+//        }
+//    }
+    
+    var isVoiceBaseAvailable : Bool // = false
     {
         get {
-            return isVoiceBaseAvailable ?? false
+            guard allowMGTs else {
+                return false
+            }
+            
+            guard globals.reachability.isReachable else {
+                return false
+            }
+            
+            return _isVoiceBaseAvailable ?? true
+        }
+        set {
+            _isVoiceBaseAvailable = newValue
         }
     }
-    
-    var isVoiceBaseAvailable : Bool? // = false
+    private var _isVoiceBaseAvailable : Bool? // = false
     {
         didSet {
-            guard isVoiceBaseAvailable != oldValue else {
+            guard _isVoiceBaseAvailable != oldValue else {
                 return
             }
             
+            // Why?
             Thread.onMainThread {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
             }
         }
     }
-    
+
     func checkVoiceBaseAvailability()
     {
+        _isVoiceBaseAvailable = nil
+
         guard reachability.isReachable else {
-            self.isVoiceBaseAvailable = false
+            isVoiceBaseAvailable = false
             return
         }
         
@@ -58,7 +78,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         })
     }
     
-    var voiceBaseAPIKey : String? {
+    var voiceBaseAPIKey : String?
+    {
         get {
             if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
                 if key.isEmpty {
@@ -97,7 +118,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var _voiceBaseAPIKey : String?
     {
         didSet {
-            isVoiceBaseAvailable = nil
             checkVoiceBaseAvailability()
         }
     }
@@ -299,8 +319,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         if priorReachabilityStatus == .notReachable, reachability.isReachable, mediaRepository.list != nil {
             alert(title: "Network Connection Restored",message: "")
-
-            isVoiceBaseAvailable = nil
 
             checkVoiceBaseAvailability()
         }
