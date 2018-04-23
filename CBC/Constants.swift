@@ -310,15 +310,15 @@ enum Constants {
         
         static let DONE_SEEKING             = "DONE SEEKING"
         
-        static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"
-        
-        static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
-
-        static let WILL_TERMINATE           = "WILL TERMINATE"
-        
-        static let WILL_ENTER_FORGROUND     = "WILL ENTER FORGROUND"
-        
-        static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
+//        static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"
+//        
+//        static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
+//
+//        static let WILL_TERMINATE           = "WILL TERMINATE"
+//        
+//        static let WILL_ENTER_FORGROUND     = "WILL ENTER FORGROUND"
+//        
+//        static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
         
         static let VOICE_BASE_FINISHED      = "VOICE BASE FINISHED"
         
@@ -624,9 +624,9 @@ enum Constants {
 
         enum Fonts {
             // These will cause a crash at start-up if UIFont returns nil.
-            static let tags     = UIFont(name: "FontAwesome", size: TAGS_FONT_SIZE)!
-            static let show     = UIFont(name: "FontAwesome", size: SHOW_FONT_SIZE)!
-            static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
+            static let tags     = UIFont(name: FA.name, size: TAGS_FONT_SIZE)!
+            static let show     = UIFont(name: FA.name, size: SHOW_FONT_SIZE)!
+            static let icons    = UIFont(name: FA.name, size: ICONS_FONT_SIZE)!
             
             enum Attributes {
                 static let icons = [ NSAttributedStringKey.font: Fonts.icons ]

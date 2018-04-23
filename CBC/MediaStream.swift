@@ -17,12 +17,13 @@ class MediaStream
         get {
             return streamEntries?.filter({ (dict:[String : Any]) -> Bool in
                 return StreamEntry(dict)?.startDate > Date()
-            }).map({ (dict:[String : Any]) -> String in
-                if let string = StreamEntry(dict)?.text {
-                    return string
-                } else {
-                    return "ERROR"
-                }
+            }).compactMap({ (dict:[String : Any]) -> String? in
+                return StreamEntry(dict)?.text
+//                if let string = StreamEntry(dict)?.text {
+//                    return string
+//                } else {
+//                    return "ERROR"
+//                }
             })
         }
     }

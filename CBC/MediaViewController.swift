@@ -12,6 +12,7 @@ import AVKit
 import MessageUI
 import WebKit
 import MediaPlayer
+import MobileCoreServices
 
 extension MediaViewController : UIAdaptivePresentationControllerDelegate
 {
@@ -38,6 +39,13 @@ extension MediaViewController : UIActivityItemSource
 //
 //        guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
 //            return
+//        }
+
+//        if #available(iOS 10.0, *) {
+//            UIPasteboard.general.addItems([[kUTTypeText as String: selectedMediaItem?.text]])
+//            UIPasteboard.general.addItems([[kUTTypeHTML as String: selectedMediaItem?.description]])
+//        } else {
+//            // Fallback on earlier versions
 //        }
 
         let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
@@ -80,7 +88,8 @@ extension MediaViewController : UIActivityItemSource
 //        }
     }
     
-    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
         return ""
     }
     
@@ -88,13 +97,26 @@ extension MediaViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
+        guard let activityType = activityType else {
+            return nil
+        }
+        
         if #available(iOS 11.0, *) {
             MediaViewController.cases.append(.markupAsPDF)
         }
         
+//        if #available(iOS 10.0, *) {
+//            UIPasteboard.general.addItems([[kUTTypeText as String: selectedMediaItem?.text]])
+//            UIPasteboard.general.addItems([[kUTTypeHTML as String: selectedMediaItem?.description]])
+//        } else {
+//            // Fallback on earlier versions
+//        }
+        
         guard let downloadURL = selectedMediaItem?.downloadURL else {
             return nil
         }
+        
+//        UIPasteboard.general.url = downloadURL
         
         guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
             return nil
@@ -107,9 +129,19 @@ extension MediaViewController : UIActivityItemSource
         } else {
             data = try? Data(contentsOf: downloadURL)
         }
+        
+//        if #available(iOS 10.0, *) {
+//            UIPasteboard.general.addItems([[kUTTypePDF as String: data]])
+//        } else {
+//            // Fallback on earlier versions
+//        }
 
-        if MediaViewController.cases.contains(activityType!) {
-            return data
+        if MediaViewController.cases.contains(activityType) {
+            switch activityType {
+            
+            default:
+                return data
+            }
         } else {
             return selectedMediaItem?.text
         }
@@ -1757,7 +1789,7 @@ class MediaViewController: UIViewController // MediaController
                 
                 fontSize = min(audioOrVideoControl.frame.height,segmentWidth) / 1.75
                 
-                if let font = UIFont(name: "FontAwesome", size: fontSize) {
+                if let font = UIFont(name: Constants.FA.name, size: fontSize) {
                     audioOrVideoControl.setTitleTextAttributes([ NSAttributedStringKey.font.rawValue: font])
                 }
             }
@@ -1771,7 +1803,7 @@ class MediaViewController: UIViewController // MediaController
                 
                 fontSize = min(stvControl.frame.height,segmentWidth) / 1.75
                 
-                if let font = UIFont(name: "FontAwesome", size: fontSize) {
+                if let font = UIFont(name: Constants.FA.name, size: fontSize) {
                     stvControl.setTitleTextAttributes([ NSAttributedStringKey.font.rawValue: font])
                 }
             }
@@ -4240,7 +4272,27 @@ class MediaViewController: UIViewController // MediaController
     
     @objc func willEnterForeground()
     {
+        // Player is refreshed in AppDelegate
         
+        // Refresh the visible document
+//        guard let document = document else {
+//            return
+//        }
+//
+//        document.download?.cancelOrDelete()
+//        document.loaded = false
+//        setupDocumentsAndVideo()
+        
+        // Refresh all documents
+//        let documents = self.documents.values.flatMap { (dict:[String:Document]) -> [Document] in
+//            return Array(dict.values)
+//        }
+//        
+//        for document in documents {
+//            document.download?.cancelOrDelete()
+//            document.loaded = false
+//            setupDocumentsAndVideo()
+//        }
     }
     
     @objc func didBecomeActive()
@@ -4280,8 +4332,11 @@ class MediaViewController: UIViewController // MediaController
         
         NotificationCenter.default.addObserver(self, selector: #selector(stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
         
 //        if (self.splitViewController?.viewControllers.count > 1) {
         if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed {

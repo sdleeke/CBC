@@ -121,6 +121,8 @@ extension AboutViewController : UIActivityItemSource
         let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
         let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
 
+//        UIPasteboard.general.url = url
+
 //        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)

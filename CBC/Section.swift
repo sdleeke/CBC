@@ -189,10 +189,8 @@ class Section
 
             if let indexHeadersTransform = indexHeadersTransform {
                 indexHeaders = Array(Set(
-                    indexStrings.filter({ (string:String) -> Bool in
-                        return indexHeadersTransform(string) != nil
-                    }).map({ (string:String) -> String in
-                        return indexHeadersTransform(string)!
+                    indexStrings.compactMap({ (string:String) -> String? in
+                        return indexHeadersTransform(string)
                     })
                 )) // .sorted()
             } else {

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
     <device id="ipad9_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -100,7 +100,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2mr-qJ-uXH">
-                                                    <rect key="frame" x="746" y="56" width="18" height="33"/>
+                                                    <rect key="frame" x="746" y="58" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="9dN-PR-ji7"/>
                                                     </constraints>
@@ -213,7 +213,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
-                                        <rect key="frame" x="66" y="3" width="20" height="40"/>
+                                        <rect key="frame" x="66" y="5" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="20" id="zH0-7Q-jyh"/>
                                         </constraints>
@@ -1665,7 +1665,7 @@ Web site: www.countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wyR-cL-8vF">
-                                                    <rect key="frame" x="514" y="42" width="82" height="33"/>
+                                                    <rect key="frame" x="515" y="46" width="81" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="lCo-qy-nOu"/>
                                                     </constraints>
@@ -1681,7 +1681,7 @@ Web site: www.countrysidebible.org</string>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UKd-is-tKJ">
-                                                    <rect key="frame" x="556" y="75" width="29" height="14"/>
+                                                    <rect key="frame" x="556" y="77" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -2202,7 +2202,7 @@ Web site: www.countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mkP-1k-bnJ">
-                                                    <rect key="frame" x="514" y="42" width="82" height="33"/>
+                                                    <rect key="frame" x="515" y="46" width="81" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Zca-PZ-Udb"/>
                                                     </constraints>
@@ -2218,7 +2218,7 @@ Web site: www.countrysidebible.org</string>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="027-5m-yFL">
-                                                    <rect key="frame" x="556" y="75" width="29" height="14"/>
+                                                    <rect key="frame" x="556" y="77" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -2227,7 +2227,7 @@ Web site: www.countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="580" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jba-tV-1cD" userLabel="Count">
-                                                    <rect key="frame" x="555" y="42" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="555.5" y="46" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>

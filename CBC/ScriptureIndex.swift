@@ -8,7 +8,8 @@
 
 import Foundation
 
-class ScriptureIndex {
+class ScriptureIndex
+{
     var creating = false
     var completed = false
     

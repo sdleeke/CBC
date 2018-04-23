@@ -446,6 +446,8 @@ class CloudViewController: UIViewController
 
         if (success) {
             let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
+
+//            UIPasteboard.general.image = snapshotImage
             
             let activityViewController = UIActivityViewController(activityItems: [snapshotImage,mediaItem?.text], applicationActivities: nil)
             

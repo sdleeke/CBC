@@ -9,6 +9,7 @@
 import UIKit
 import WebKit
 import MessageUI
+import MobileCoreServices
 
 class HTML {
     weak var webViewController: WebViewController?
@@ -116,15 +117,21 @@ extension WebViewController : UIActivityItemSource
 {
     func share()
     {
-        guard let htmlString = html.string else {
+        guard let html = self.html.string else {
             return
         }
+        
+//        if #available(iOS 10.0, *) {
+//            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
+//        } else {
+//            // Fallback on earlier versions
+//        }
 
-        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
+        let print = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
+        let activityViewController = UIActivityViewController(activityItems:[self,html,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -154,15 +161,39 @@ extension WebViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
+        guard let activityType = activityType else {
+            return nil
+        }
+
+        guard let html = self.html.string else {
+            return nil
+        }
+        
         if #available(iOS 11.0, *) {
             WebViewController.cases.append(.markupAsPDF)
         }
 
-        if WebViewController.cases.contains(activityType!) {
-            return html.string
+//        if #available(iOS 10.0, *) {
+//            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
+//        } else {
+//            // Fallback on earlier versions
+//        }
+
+        if WebViewController.cases.contains(activityType) {
+            return self.html.string
         } else {
 //            html.operationQueue.waitUntilAllOperationsAreFinished()
-            return html.text ?? "HTML to text conversion still in process.  Please try again later."
+            
+            if let text = self.html.text {
+//                if #available(iOS 10.0, *) {
+//                    UIPasteboard.general.addItems([[kUTTypeText as String: text]])
+//                } else {
+//                    // Fallback on earlier versions
+//                }
+                return text
+            } else {
+                return "HTML to text conversion still in process.  Please try again later."
+            }
         }
     }
     
@@ -1994,7 +2025,9 @@ class WebViewController: UIViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         

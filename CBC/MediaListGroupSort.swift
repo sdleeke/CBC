@@ -452,12 +452,14 @@ class MediaListGroupSort {
             return nil
         }
         
-        return sectionIndexTitles(grouping: grouping,sorting: sorting)?.map({ (string:String) -> String in
-            if let string = groupNames?[grouping]?[string] {
-                return string
-            } else {
-                return "ERROR"
-            }
+        return sectionIndexTitles(grouping: grouping,sorting: sorting)?.compactMap({ (string:String) -> String? in
+            return groupNames?[grouping]?[string]
+            
+//            if let string = groupNames?[grouping]?[string] {
+//                return string
+//            } else {
+//                return "ERROR"
+//            }
         })
     }
     

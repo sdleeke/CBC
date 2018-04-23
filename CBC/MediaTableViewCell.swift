@@ -98,7 +98,7 @@ class MediaTableViewCell: UITableViewCell
             
             if let searchText = searchText, let range = formattedDate.lowercased().range(of: searchText.lowercased()) {
                 before = String(formattedDate[..<range.lowerBound])
-                string = formattedDate.substring(with: range)
+                string = String(formattedDate[range]) // .substring(with: 
                 after = String(formattedDate[range.upperBound...])
                 
                 if let before = before {
