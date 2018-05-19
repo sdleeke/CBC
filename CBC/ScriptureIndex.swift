@@ -141,9 +141,9 @@ class ScriptureIndex
     func build()
     {
         guard !completed else {
-            globals.queue.async(execute: { () -> Void in
+            globals.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-            })
+            }
             return
         }
         
@@ -155,9 +155,9 @@ class ScriptureIndex
             self?.creating = true
             
             if let list = self?.mediaListGroupSort?.list {
-                globals.queue.async(execute: { () -> Void in
+                globals.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
-                })
+                }
                 
                 for mediaItem in list {
                     if globals.isRefreshing || globals.isLoading {
@@ -266,9 +266,9 @@ class ScriptureIndex
                 }
             }
             
-            globals.queue.async(execute: { () -> Void in
+            globals.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-            })
+            }
         }
     }
 }

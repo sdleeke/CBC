@@ -863,9 +863,9 @@ class PopoverPickerViewController : UIViewController
                 spinner.startAnimating()
             }
 
-            globals.queue.async(execute: { () -> Void in
+            globals.queue.async {
                 NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
-            })
+            }
         }
         
         if let string = string, let index = strings?.index(of:string) {

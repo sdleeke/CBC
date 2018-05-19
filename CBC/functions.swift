@@ -778,7 +778,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 if stringBefore == "" {
                     if  let characterBefore:Character = newString.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -791,7 +791,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 } else {
                     if  let characterBefore:Character = stringBefore.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -804,8 +804,8 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 }
                 
                 if let characterAfter:Character = stringAfter.first {
-                    if let unicodeScalar = UnicodeScalar(String(characterAfter)),
-                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
+//                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     } else {
 //                            if characterAfter == "." {
@@ -834,8 +834,8 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     }
                 }
                 if let characterBefore:Character = stringBefore.last {
-                    if let unicodeScalar = UnicodeScalar(String(characterBefore)),
-                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+//                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     }
                 }
@@ -2491,18 +2491,19 @@ func tokensFromString(_ string:String?) -> [String]?
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+            if !CharacterSet.letters.contains(unicodeScalar) {
+//            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                 //                print(token)
                 processToken()
             } else {
-                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
-                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
+//                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
+//                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
                         //                        print(token)
                         token.append(char)
                         //                        print(token)
-                    }
-                }
+//                    }
+//                }
             }
         }
         
@@ -2807,7 +2808,8 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         let char = str[index]
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+            if !CharacterSet.letters.contains(unicodeScalar) {
+//            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                print(token)
                 processToken()
                 
@@ -2868,19 +2870,20 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
 //                    token = Constants.EMPTY_STRING
 //                }
             } else {
-                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
-                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
-                        // DO NOT WANT LEADING CHARS IN SET
-//                        print(token)
-                        
-//                        if token == Constants.EMPTY_STRING {
-//                            startIndex = index
-//                        }
-                        
-                        token.append(char)
-//                        print(token)
-                    }
-                }
+                token.append(char)
+//                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
+//                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
+//                        // DO NOT WANT LEADING CHARS IN SET
+////                        print(token)
+//
+////                        if token == Constants.EMPTY_STRING {
+////                            startIndex = index
+////                        }
+//
+//                        token.append(char)
+////                        print(token)
+//                    }
+//                }
             }
         }
 
@@ -4243,6 +4246,8 @@ func stripHTML(_ string:String?) -> String?
         return nil
     }
     
+//    return insertHead(string.html2String,fontSize: Constants.FONT_SIZE)
+    
     guard var bodyString = stripLinks(stripHead(string)) else {
         return nil
     }
@@ -4417,7 +4422,8 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
 
 //        print(bodyString)
-    
+
+//    return bodyString // why in the world were we putting the head back in?  So it works w/ WebViewController
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 

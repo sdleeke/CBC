@@ -28,6 +28,8 @@ class HTML {
     var string:String?
     {
         didSet {
+            // Why are we doing this?
+            
             string = string?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
             string = string?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
             
@@ -54,7 +56,7 @@ class HTML {
 
                     if let isEmpty = string?.isEmpty, !isEmpty {
                         do {
-                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).write(toFile: url.path, atomically: false, encoding: String.Encoding.utf8);
+                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
                         } catch let error as NSError {
                             print("failed to write htmlString to cache directory: \(error.localizedDescription)")
                         }
@@ -75,7 +77,7 @@ class HTML {
 //                operationQueue.waitUntilAllOperationsAreFinished()
 
                 operationQueue.addOperation { [weak self] in
-                    self?.text = stripHTML(self?.string)
+                    self?.text = stripHTML(self?.string) // This leaves an HTML frame around the text!
                     Thread.onMainThread {
                         self?.webViewController?.activityButtonIndicator?.stopAnimating()
                     }
@@ -960,7 +962,7 @@ class WebViewController: UIViewController
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -973,7 +975,7 @@ class WebViewController: UIViewController
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -986,8 +988,8 @@ class WebViewController: UIViewController
                     }
                     
                     if let characterAfter:Character = stringAfter.first {
-                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
-                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
+//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         } else {
 //                            if characterAfter == "." {
@@ -1016,8 +1018,8 @@ class WebViewController: UIViewController
                         }
                     }
                     if let characterBefore:Character = stringBefore.last {
-                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
-                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         }
                     }

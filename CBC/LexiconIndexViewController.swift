@@ -498,20 +498,40 @@ class LexiconIndexViewController : UIViewController
 //        if let isToolbarHidden = navigationController?.isToolbarHidden, !isToolbarHidden {
 //            toolbarHeight = navigationController?.toolbar.bounds.height ?? 0
 //        }
+
+//        var toolbarHeight:CGFloat = 0.0
+//        if let height = navigationController?.toolbar.frame.height, navigationController?.isToolbarHidden == false {
+//            toolbarHeight = height
+//        }
+
+//        var navbarHeight:CGFloat = 0.0
+//        if let height = navigationController?.navigationBar.frame.height {
+//            navbarHeight = height
+//        }
         
-        let space = view.bounds.height - locateView.bounds.height // - toolbarHeight - navBarHeight - container.frame.origin.y
+        //  + locateView.bounds.height - container.frame.origin.y - navbarHeight
+        
+//        let space = view.bounds.height -  - toolbarHeight // - navigationController!.navigationBar.frame.height - 28.5 // Height of direction label space. // -  // - toolbarHeight - navBarHeight - container.frame.origin.y
         
         let newConstraintConstant = tableViewHeightConstraint.constant + change
         
-        if (newConstraintConstant >= 0) && (newConstraintConstant <= space) {
+        let tableViewSpace = view.bounds.height - locateView.frame.height
+        if (newConstraintConstant >= 0) && (newConstraintConstant <= tableViewSpace) {
             tableViewHeightConstraint.constant = newConstraintConstant
         } else {
             if newConstraintConstant < 0 { tableViewHeightConstraint.constant = 0 }
-            if newConstraintConstant > space { tableViewHeightConstraint.constant = space }
+            if newConstraintConstant > (view.bounds.height - locateView.frame.height) { tableViewHeightConstraint.constant = tableViewSpace }
         }
         
-        ptvcHeightConstraint.constant = max(space - tableViewHeightConstraint.constant,250)
+        let ptvcSpace = view.bounds.height - locateView.frame.height - container.frame.origin.y + (view.window == nil ? navigationController!.navigationBar.frame.height : 0) // The last term seems like a hack.
+        ptvcHeightConstraint.constant = max(ptvcSpace - tableViewHeightConstraint.constant,250)
         
+//        print("view.bounds: \(view.bounds)")
+//        print("tableViewSpace: \(tableViewSpace)")
+//        print("tableViewHeightConstraint.constant: \(tableViewHeightConstraint.constant)")
+//        print("ptvcSpace: \(ptvcSpace)")
+//        print("ptvcHeightConstraint.constant: \(ptvcHeightConstraint.constant)")
+
         updateLocateButton()
         updateToolbar()
 
@@ -523,9 +543,9 @@ class LexiconIndexViewController : UIViewController
     {
         tableViewHeightConstraint.constant = view.bounds.height / 2
         setTableViewHeightConstraint(change: 0)
-        
-        view.setNeedsLayout()
-        view.layoutSubviews()
+//
+//        view.setNeedsLayout()
+//        view.layoutSubviews()
     }
     
     func zeroConstraint()
@@ -720,7 +740,6 @@ class LexiconIndexViewController : UIViewController
         guard let searchText = searchText else {
             results = nil
             Thread.onMainThread {
-                self.updateActionMenu()
                 self.tableView.reloadData()
                 self.updateUI()
             }
@@ -974,11 +993,11 @@ class LexiconIndexViewController : UIViewController
             return
         }
 
-        globals.queue.async(execute: { () -> Void in
+        globals.queue.async {
             NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
-        })
+        }
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -986,8 +1005,6 @@ class LexiconIndexViewController : UIViewController
         super.viewWillAppear(animated)
 
         selectedWord.text = searchText
-
-        updateLocateButton()
 
         addNotifications()
         
@@ -997,9 +1014,8 @@ class LexiconIndexViewController : UIViewController
             let total = lexicon?.eligible?.count {
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
-        
+
         updateSearchResults()
-        updateUI()
 
         lexicon?.build()
     }
@@ -1026,6 +1042,11 @@ class LexiconIndexViewController : UIViewController
         }
 
         ptvc.selectString(searchText,scroll: true,select: true)
+
+        // also updates UI and brings up the toolbar if needed for the index.
+        // THIS WILL NOT HAPPEN in viewWillAppear() - I have no idea why.
+        // Seems like when view.window == nil
+        updateSearchResults()
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1335,32 +1356,25 @@ class LexiconIndexViewController : UIViewController
     
     @objc func updated()
     {
-        update()
-    }
+        // Need to block while waiting for the tableView to be hidden.
+        Thread.onMainThreadSync {
+            self.ptvc.tableView.isHidden = true
+        }
         
-    func update()
-    {
         self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
 
         self.ptvc.updateSearchResults()
         
         Thread.onMainThread {
             self.ptvc.tableView.reloadData()
-            
-            self.updateTitle()
-            
-            self.updateLocateButton()
-            
-            self.updateSearchResults()
+            self.ptvc.tableView.isHidden = false
+
+            self.updateSearchResults() // Why again?
         }
     }
     
     @objc func completed()
     {
-        updateTitle()
-        
-        updateLocateButton()
-        
         updateSearchResults()
         
         Thread.onMainThread {
@@ -1478,12 +1492,12 @@ class LexiconIndexViewController : UIViewController
     func updateToolbar()
     {
         guard tableView.numberOfSections > 1  else {
-            navigationController?.setToolbarHidden(true, animated: true)
+            self.navigationController?.setToolbarHidden(true, animated: true)
             return
         }
         
-        guard tableViewHeightConstraint.constant >= 146  else {
-            navigationController?.setToolbarHidden(true, animated: true)
+        guard tableViewHeightConstraint.constant >= tableView.rowHeight else { // 146 tableView.rectForHeader(inSection:0).height
+            self.navigationController?.setToolbarHidden(true, animated: true)
             return
         }
         
@@ -1492,7 +1506,7 @@ class LexiconIndexViewController : UIViewController
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)
 
-        navigationController?.setToolbarHidden(false, animated: true)
+        self.navigationController?.setToolbarHidden(false, animated: true)
     }
     
     func updateUI()
@@ -1511,13 +1525,15 @@ class LexiconIndexViewController : UIViewController
         
 //        logo.isHidden = searchText != nil
 
-        setTableViewHeightConstraint(change:0)
+//        setTableViewHeightConstraint(change:0)
 
         updateActionMenu()
         
         isHiddenUI(false)
         
         updateDirectionLabel()
+        
+        updateTitle()
         
         updateText()
         

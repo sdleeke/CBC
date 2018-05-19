@@ -137,7 +137,6 @@ enum MediaType {
     static let SLIDES   = "SLIDES"
     static let NOTES    = "NOTES"
     static let OUTLINE  = "OUTLINE"
-    
     static let NONE     = "NONE"
 }
 
@@ -513,12 +512,16 @@ enum Constants {
     
     static let SINGLE_SPACE = " "
     static let UNBREAKABLE_SPACE = "\u{00A0}"
+    
+    static let ELIPSIS = "\u{2026}"
+    static let LINE_SEPARATOR = "\u{2028}"
+    static let EM_DASH = "\u{2014}"
+    static let BULLET = "\u{2022}"
 
     static let SINGLE_QUOTE = "'"
     static let DOUBLE_QUOTE = "\""
     
     static let DASH = "-"
-    static let EM_DASH = "\u{2014}"
     
     static let LEFT_SINGLE_QUOTE = "\u{2018}"
     static let RIGHT_SINGLE_QUOTE = "\u{2019}"
@@ -713,7 +716,7 @@ enum Constants {
     enum Strings {
         static let NumberChars = "$0123456789"
         
-        static let TokenDelimiters = "\r\n$\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + NumberChars // + "'"
+        static let TokenDelimiters = "\r\n$\" :+-!;,.{}()?^#%/<>[]" + Constants.LINE_SEPARATOR + Constants.ELIPSIS + Constants.BULLET + Constants.EM_DASH + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + NumberChars // + "'"
 
 //        static let PossessiveTokenDelimiters = NonPossessiveTokenDelimiters.replacingOccurrences(of: Constants.QUOTES, with: Constants.DOUBLE_QUOTES).replacingOccurrences(of: "'", with: "")
         

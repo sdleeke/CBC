@@ -9,6 +9,7 @@
 import Foundation
 import MediaPlayer
 import AVKit
+import CoreData
 
 struct Alert {
     let category : String?
@@ -22,6 +23,23 @@ var globals:Globals!
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    var persistentContainer: NSPersistentContainer!
+    
+    func saveContext()
+    {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                let nserror = error as NSError
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            }
+        }
+    }
+
     var queue = DispatchQueue(label: "CBC")
     
     var allowMGTs = true
@@ -625,7 +643,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         display.section.counts = nil
     }
     
-    func setupDisplay(_ active:MediaListGroupSort?)
+    func setupDisplay(_ active:MediaListGroupSort? = nil)
     {
 //        print("setupDisplay")
 
@@ -777,7 +795,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    func addToHistory(_ mediaItem:MediaItem?)
+    func addToHistory(_ mediaItem:MediaItem? = nil)
     {
         guard let mediaItem = mediaItem else {
             print("mediaItem NIL!")

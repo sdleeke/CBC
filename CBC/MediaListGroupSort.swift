@@ -18,7 +18,8 @@ typealias MediaGroupNames = [String:[String:String]]
 
 typealias Words = [String:[MediaItem:Int]]
 
-class MediaListGroupSort {
+class MediaListGroupSort
+{
     @objc func freeMemory()
     {
         lexicon = Lexicon(self) // Side effects?

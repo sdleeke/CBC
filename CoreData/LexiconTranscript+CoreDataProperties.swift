@@ -10,22 +10,21 @@
 import Foundation
 import CoreData
 
-
-extension LexiconTranscript {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<LexiconTranscript> {
+extension LexiconTranscript
+{
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<LexiconTranscript>
+    {
         return NSFetchRequest<LexiconTranscript>(entityName: "LexiconTranscript")
     }
 
     @NSManaged public var id: String?
     @NSManaged public var category: String?
     @NSManaged public var lexiconEntries: NSSet?
-
 }
 
 // MARK: Generated accessors for lexiconEntries
-extension LexiconTranscript {
-
+extension LexiconTranscript
+{
     @objc(addLexiconEntriesObject:)
     @NSManaged public func addToLexiconEntries(_ value: LexiconEntry)
 
@@ -37,5 +36,4 @@ extension LexiconTranscript {
 
     @objc(removeLexiconEntries:)
     @NSManaged public func removeFromLexiconEntries(_ values: NSSet)
-
 }

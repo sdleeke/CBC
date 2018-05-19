@@ -1965,8 +1965,8 @@ extension PopoverTableViewController : UITableViewDataSource
                     }
                     
                     if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
-                        if  let before = UnicodeScalar(String(characterBefore)), CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before),
-                            let after = UnicodeScalar(String(characterAfter)), CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
+                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before), // CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before),
+                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) { // CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
                             break
                         }
                     }

@@ -114,7 +114,26 @@ class Lexicon : NSObject {
             
         }
         didSet {
-            if let keys = self.words?.keys.sorted() {
+            if let keys = words?.keys.sorted(), let values = words?.values {
+                print("Unique words: \(keys.count)")
+//                print("Dicts: \(values.count)")
+
+                var mediaItems = 0
+                var minMediaItems:Int?
+                var maxMediaItems:Int?
+                
+                for value in values {
+                    mediaItems += value.keys.count
+                    
+                    minMediaItems = min(minMediaItems ?? value.keys.count,value.keys.count)
+                    maxMediaItems = max(maxMediaItems ?? value.keys.count,value.keys.count)
+                }
+                print("(Media item, frequency) pairs: \(mediaItems)")
+
+                print("Average number of media items per unique word: \(Double(mediaItems) / Double(keys.count))")
+                print("Minimum number of media items for a unique word: \(minMediaItems ?? 0)")
+                print("Maximum number of media items for a unique word: \(maxMediaItems ?? 0)")
+
                 var strings = [String]()
                 
                 for word in keys {
@@ -125,9 +144,9 @@ class Lexicon : NSObject {
                 
                 section.strings = strings
                 
-                globals.queue.async(execute: { () -> Void in
+                globals.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-                })
+                }
             }
         }
     }
@@ -204,20 +223,24 @@ class Lexicon : NSObject {
                 
                 var date = Date()
                 
-                globals.queue.async(execute: { () -> Void in
+                globals.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
-                })
+                }
                 
                 repeat {
                     if let mediaItem = list.first {
                         mediaItem.loadNotesTokens()
                         
+                        list.removeFirst()
+                        
+//                        if let index = list.index(of: mediaItem) {
+//                            list.remove(at: index)
+//                        } else {
+//                            print("ERROR")
+//                        }
+                        
                         if let notesTokens = mediaItem.notesTokens {
-                            if let index = list.index(of: mediaItem) {
-                                list.remove(at: index)
-                            } else {
-                                print("ERROR")
-                            }
+                            print("notesTokens to add: \(notesTokens.count)")
                             
                             for token in notesTokens {
                                 if dict[token.key] == nil {
@@ -263,9 +286,9 @@ class Lexicon : NSObject {
                 }
                 
                 //        print(dict)
-                globals.queue.async(execute: { () -> Void in
+                globals.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
-                })
+                }
             }
         } else {
             print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")

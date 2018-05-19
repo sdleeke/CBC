@@ -31,7 +31,7 @@ extension UISegmentedControl
 
 extension UIButton
 {
-    func setTitle(_ string:String?)
+    func setTitle(_ string:String? = nil)
     {
         setTitle(string, for: UIControlState.normal)
         setTitle(string, for: UIControlState.disabled)
@@ -46,9 +46,20 @@ extension Thread
         if Thread.isMainThread {
             block?()
         } else {
-            DispatchQueue.main.async(execute: { () -> Void in
+            DispatchQueue.main.async {
                 block?()
-            })
+            }
+        }
+    }
+
+    static func onMainThreadSync(block:(()->(Void))?)
+    {
+        if Thread.isMainThread {
+            block?()
+        } else {
+            DispatchQueue.main.sync {
+                block?()
+            }
         }
     }
 }

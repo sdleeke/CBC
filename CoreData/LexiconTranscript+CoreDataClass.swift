@@ -11,6 +11,7 @@ import Foundation
 import CoreData
 
 @objc(LexiconTranscript)
-public class LexiconTranscript: NSManagedObject {
+public class LexiconTranscript: NSManagedObject
+{
 
 }

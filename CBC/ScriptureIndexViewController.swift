@@ -1019,11 +1019,11 @@ class ScriptureIndexViewController : UIViewController
     
     func addNotifications()
     {
-        globals.queue.async(execute: { () -> Void in
+        globals.queue.async {
             NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
-        })
+        }
     }
     
     override func viewWillAppear(_ animated: Bool)

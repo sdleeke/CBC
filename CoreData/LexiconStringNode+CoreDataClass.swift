@@ -11,6 +11,7 @@ import Foundation
 import CoreData
 
 @objc(LexiconStringNode)
-public class LexiconStringNode: NSManagedObject {
+public class LexiconStringNode: NSManagedObject
+{
 
 }

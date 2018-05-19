@@ -2116,7 +2116,7 @@ class MediaItem : NSObject
                     if stringBefore == "" {
                         if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -2129,7 +2129,7 @@ class MediaItem : NSObject
                     } else {
                         if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -2143,7 +2143,7 @@ class MediaItem : NSObject
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         } else {
                             //                            if characterAfter == "." {
@@ -2172,8 +2172,8 @@ class MediaItem : NSObject
                         }
                     }
                     if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)),
-                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                             skip = true
                         }
                     }
@@ -2319,7 +2319,7 @@ class MediaItem : NSObject
     var notesHTML:String? {
         get {
             //            print(dict?[Field.notes])
-            return dict?[Field.notes_HTML]
+            return dict?[Field.notes_HTML] //?.replacingOccurrences(of: "<br />", with: "<br/>")
         }
         set {
             dict?[Field.notes_HTML] = newValue
@@ -3732,7 +3732,13 @@ class MediaItem : NSObject
 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
                     htmlString = self.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
-                } else {
+                } else
+                
+                if let mediaTableViewController = viewController as? MediaTableViewController, globals.search.active {
+                    htmlString = self.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
+                } else
+                
+                {
                     htmlString = self.fullNotesHTML
                 }
                 

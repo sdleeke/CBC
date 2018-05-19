@@ -11,6 +11,7 @@ import Foundation
 import CoreData
 
 @objc(LexiconWord)
-public class LexiconWord: NSManagedObject {
+public class LexiconWord: NSManagedObject
+{
 
 }
