@@ -2597,7 +2597,7 @@ class MediaTableViewController : UIViewController // MediaController
 //                    li = true
 //                }
 
-                if (globals.media.active?.lexicon?.eligible != nil) {
+                if globals.media.active?.lexicon?.eligible != nil, globals.reachability.isReachable {
                     showMenu.append(Constants.Strings.Lexicon_Index)
 //                } else {
 //                    if li {
@@ -3480,8 +3480,6 @@ class MediaTableViewController : UIViewController // MediaController
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath
 //        tableView?.estimatedRowHeight = tableView?.rowHeight
 //        tableView?.rowHeight = UITableViewAutomaticDimension
-        
-        navigationController?.isToolbarHidden = false
     }
     
     func actionMenu() -> [String]?
@@ -3757,15 +3755,17 @@ class MediaTableViewController : UIViewController // MediaController
                         break
                     } else {
                         if searchHit {
-                            if searchMediaItems == nil {
-                                searchMediaItems = [mediaItem]
-                            } else {
-                                searchMediaItems?.append(mediaItem)
-                            }
-                            
-                            if let count = searchMediaItems?.count, ((count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-                                self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                                self?.updateDisplay(searchText:searchText)
+                            autoreleasepool {
+                                if searchMediaItems == nil {
+                                    searchMediaItems = [mediaItem]
+                                } else {
+                                    searchMediaItems?.append(mediaItem)
+                                }
+                                
+                                if let count = searchMediaItems?.count, ((count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
+                                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
+                                    self?.updateDisplay(searchText:searchText)
+                                }
                             }
                         }
                     }
@@ -3784,7 +3784,11 @@ class MediaTableViewController : UIViewController // MediaController
                         
                         self?.setupListActivityIndicator()
 
-                        let searchHit = mediaItem.searchFullNotesHTML(searchText)
+                        var searchHit = false
+                        
+                        autoreleasepool {
+                            searchHit = mediaItem.searchFullNotesHTML(searchText)
+                        }
 
                         abort = abort || shouldAbort() || !globals.search.transcripts
                         
@@ -3793,16 +3797,18 @@ class MediaTableViewController : UIViewController // MediaController
                             break
                         } else {
                             if searchHit {
-                                if searchMediaItems == nil {
-                                    searchMediaItems = [mediaItem]
-                                } else
-                                
-                                if let contains = searchMediaItems?.contains(mediaItem), !contains {
-                                    searchMediaItems?.append(mediaItem)
+                                autoreleasepool {
+                                    if searchMediaItems == nil {
+                                        searchMediaItems = [mediaItem]
+                                    } else
+                                        
+                                        if let contains = searchMediaItems?.contains(mediaItem), !contains {
+                                            searchMediaItems?.append(mediaItem)
+                                    }
+                                    
+                                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
+                                    self?.updateDisplay(searchText:searchText)
                                 }
-                                
-                                self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                                self?.updateDisplay(searchText:searchText)
                             }
                         }
                     }
@@ -4126,6 +4132,8 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
+        navigationController?.isToolbarHidden = false
+
         setupCategoryButton()
         
         setupTag()
@@ -4142,7 +4150,6 @@ class MediaTableViewController : UIViewController // MediaController
     {
         super.viewDidAppear(animated)
 
-        navigationController?.isToolbarHidden = false
     }
     
     override func viewWillDisappear(_ animated: Bool)

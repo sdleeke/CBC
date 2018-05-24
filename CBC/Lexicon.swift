@@ -109,53 +109,21 @@ class Lexicon : NSObject {
         }
     }
     
-    var words:Words? {
-        willSet {
-            
-        }
-        didSet {
-            if let keys = words?.keys.sorted(), let values = words?.values {
-                print("Unique words: \(keys.count)")
-//                print("Dicts: \(values.count)")
-
-                var mediaItems = 0
-                var minMediaItems:Int?
-                var maxMediaItems:Int?
-                
-                for value in values {
-                    mediaItems += value.keys.count
-                    
-                    minMediaItems = min(minMediaItems ?? value.keys.count,value.keys.count)
-                    maxMediaItems = max(maxMediaItems ?? value.keys.count,value.keys.count)
-                }
-                print("(Media item, frequency) pairs: \(mediaItems)")
-
-                print("Average number of media items per unique word: \(Double(mediaItems) / Double(keys.count))")
-                print("Minimum number of media items for a unique word: \(minMediaItems ?? 0)")
-                print("Maximum number of media items for a unique word: \(maxMediaItems ?? 0)")
-
-                var strings = [String]()
-                
-                for word in keys {
-                    if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
-                        strings.append("\(word) (\(occurrences) in \(count))")
-                    }
-                }
-                
-                section.strings = strings
-                
-                globals.queue.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-                }
-            }
-        }
-    }
+    var words:Words?
+//    {
+//        willSet {
+//
+//        }
+//        didSet {
+//
+//        }
+//    }
     
     var creating = false
     var pauseUpdates = false
     var completed = false
     
-    var section = Section(stringsAction: nil)
+//    var section = Section(stringsAction: nil)
     
     var entries:[MediaItem]? {
         get {
@@ -205,93 +173,181 @@ class Lexicon : NSObject {
         return words?[word]?.values.reduce(0, +)
     }
     
+    var strings : [String]?
+    {
+        get {
+            return words?.keys.sorted()
+//            .map({ (word) -> String in
+//                return "\(word) (\(occurrences(word)!) in \(documents(word)!))"
+//            })
+//            
+//            if let keys = words?.keys.sorted() { // , let values = words?.values
+//                var strings = [String]()
+//                
+//                for word in keys {
+//                    if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
+//                        strings.append("\(word) (\(occurrences) in \(count))")
+//                    }
+//                }
+//                
+//                return strings
+//            }
+//
+//            return nil
+        }
+    }
+
+    func update()
+    {
+        if let keys = words?.keys.sorted(), let values = words?.values {
+            print("Unique words: \(keys.count)")
+            //                print("Dicts: \(values.count)")
+            
+            var mediaItems = 0
+            var minMediaItems:Int?
+            var maxMediaItems:Int?
+            
+            for value in values {
+                mediaItems += value.keys.count
+                
+                minMediaItems = min(minMediaItems ?? value.keys.count,value.keys.count)
+                maxMediaItems = max(maxMediaItems ?? value.keys.count,value.keys.count)
+            }
+            print("(Media item, frequency) pairs: \(mediaItems)")
+            
+            print("Average number of media items per unique word: \(Double(mediaItems) / Double(keys.count))")
+            print("Minimum number of media items for a unique word: \(minMediaItems ?? 0)")
+            print("Maximum number of media items for a unique word: \(maxMediaItems ?? 0)")
+            
+//            var strings = [String]()
+//
+//            for word in keys {
+//                if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
+//                    strings.append("\(word) (\(occurrences) in \(count))")
+//                }
+//            }
+//
+//            section.strings = strings
+            
+            globals.queue.async {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+            }
+        }
+    }
+
     func build()
     {
+        guard !completed else {
+            return
+        }
+        
         guard !creating else {
             return
         }
         
-        guard (words == nil) else {
+        guard words?.isEmpty != false else {
             return
         }
         
-        if var list = eligible {
-            creating = true
+        creating = true
+        
+        DispatchQueue.global(qos: .background).async { [weak self] in
+//            let queue = DispatchQueue(label: "LEXICON", qos: .background, attributes: [], autoreleaseFrequency: .workItem, target: nil)
             
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                var dict = Words()
-                
-                var date = Date()
-                
-                globals.queue.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
+            var firstUpdate = true
+            
+            guard var list = self?.eligible else {
+                print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")
+                return
+            }
+            
+            self?.words = Words()
+            
+            var date = Date()
+            
+            globals.queue.async {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
+            }
+            
+            repeat {
+                guard let mediaItem = list.first else { // removeFirst() - One chance to load tokens per media item
+                    break
                 }
                 
-                repeat {
-                    if let mediaItem = list.first {
-                        mediaItem.loadNotesTokens()
-                        
-                        list.removeFirst()
-                        
-//                        if let index = list.index(of: mediaItem) {
-//                            list.remove(at: index)
-//                        } else {
-//                            print("ERROR")
-//                        }
-                        
-                        if let notesTokens = mediaItem.notesTokens {
-                            print("notesTokens to add: \(notesTokens.count)")
-                            
-                            for token in notesTokens {
-                                if dict[token.key] == nil {
-                                    dict[token.key] = [mediaItem:token.value]
-                                } else {
-                                    dict[token.key]?[mediaItem] = token.value
-                                }
-                                
-                                if globals.isRefreshing || globals.isLoading {
-                                    break
-                                }
-                            }
+                let purge = false // mediaItem.notesTokens == nil
+                
+//                queue.sync {
+                // Made an ORDER OF MAGNITUDE difference in memory usage!
+                autoreleasepool {
+                    mediaItem.loadNotesTokens()
+                }
+//                }
+                
+                if let notesTokens = mediaItem.notesTokens {
+                    // Try indefinitely to load all media items
+                    list.removeFirst()
+//                    if let index = list.index(of: mediaItem) {
+//                        list.remove(at: index)
+//                    } else {
+//                        print("ERROR")
+//                    }
+                    
+                    if purge {
+                        mediaItem.notesTokens = nil // Save memory - load on demand.
+                    }
+                    
+                    print("notesTokens to add: \(notesTokens.count)")
+                    
+                    for token in notesTokens {
+                        if self?.words?[token.key] == nil {
+                            self?.words?[token.key] = [mediaItem:token.value]
                         } else {
-                            print("NO NOTES TOKENS!")
+                            self?.words?[token.key]?[mediaItem] = token.value
                         }
                         
                         if globals.isRefreshing || globals.isLoading {
                             break
                         }
+                    }
+                } else {
+                    print("NO NOTES TOKENS!")
+                }
+
+                if globals.isRefreshing || globals.isLoading {
+                    break
+                }
+                
+//                if let pauseUpdates = self.pauseUpdates, !pauseUpdates {
+                    if firstUpdate || (date.timeIntervalSinceNow <= -10) { // 2.5
+                        //                                print(date)
                         
-                        if let pauseUpdates = self?.pauseUpdates, !pauseUpdates {
-                            if date.timeIntervalSinceNow <= -2.5 {
-                                //                                print(date)
-                                
-                                self?.words = dict.count > 0 ? dict : nil
-                                
-                                date = Date()
-                            }
-                        }
+//                                self?.words = dict.count > 0 ? dict : nil
+                        self?.update()
+                        
+                        date = Date()
+
+                        firstUpdate = false
                     }
-                    
-                    if globals.isRefreshing || globals.isLoading {
-                        break
-                    }
-                } while list.count > 0
+//                }
                 
-                self?.words = dict.count > 0 ? dict : nil
-                
-                self?.creating = false
-                
-                if !globals.isRefreshing && !globals.isLoading {
-                    self?.completed = true
+                if globals.isRefreshing || globals.isLoading {
+                    break
                 }
-                
-                //        print(dict)
-                globals.queue.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
-                }
+            } while list.count > 0
+
+//                self?.words = dict.count > 0 ? dict : nil
+            self?.update()
+            
+            self?.creating = false
+            
+            if !globals.isRefreshing && !globals.isLoading {
+                self?.completed = true
             }
-        } else {
-            print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")
+            
+            //        print(dict)
+            globals.queue.async {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
+            }
         }
     }
     

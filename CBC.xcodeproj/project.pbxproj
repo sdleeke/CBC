@@ -31,6 +31,18 @@
 		17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17579DDF1B84706500F1424F /* PopoverTableViewController.swift */; };
 		175DF54A203B2EB10087CF0B /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF549203B2EB10087CF0B /* Document.swift */; };
 		175DF54C203B2ED80087CF0B /* ControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF54B203B2ED80087CF0B /* ControlView.swift */; };
+		175E88CE20B32A26000425EB /* LexiconTranscript+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E88CA20B32A26000425EB /* LexiconTranscript+CoreDataProperties.swift */; };
+		175E88CF20B32A26000425EB /* LexiconStringNode+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E88CB20B32A26000425EB /* LexiconStringNode+CoreDataProperties.swift */; };
+		175E88D020B32A26000425EB /* LexiconWord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E88CC20B32A26000425EB /* LexiconWord+CoreDataProperties.swift */; };
+		175E88D120B32A26000425EB /* LexiconEntry+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E88CD20B32A26000425EB /* LexiconEntry+CoreDataProperties.swift */; };
+		175E891620B3360A000425EB /* CoreDataMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E890E20B3360A000425EB /* CoreDataMedia+CoreDataClass.swift */; };
+		175E891720B3360A000425EB /* CoreDataMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E890F20B3360A000425EB /* CoreDataMedia+CoreDataProperties.swift */; };
+		175E891820B3360A000425EB /* MediaValue+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891020B3360A000425EB /* MediaValue+CoreDataClass.swift */; };
+		175E891920B3360A000425EB /* MediaValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891120B3360A000425EB /* MediaValue+CoreDataProperties.swift */; };
+		175E891A20B3360A000425EB /* MediaTranscript+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891220B3360A000425EB /* MediaTranscript+CoreDataClass.swift */; };
+		175E891B20B3360A000425EB /* MediaTranscript+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891320B3360A000425EB /* MediaTranscript+CoreDataProperties.swift */; };
+		175E891C20B3360A000425EB /* MediaProperty+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891420B3360A000425EB /* MediaProperty+CoreDataClass.swift */; };
+		175E891D20B3360A000425EB /* MediaProperty+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E891520B3360A000425EB /* MediaProperty+CoreDataProperties.swift */; };
 		175EDA261BAC80F600942E6D /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175EDA251BAC80F600942E6D /* Reachability.swift */; };
 		17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */; };
 		17763BE31BEA329400BB5556 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE21BEA329400BB5556 /* Constants.swift */; };
@@ -54,13 +66,9 @@
 		17DFD9511F029A7C000AC63D /* VoiceBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DFD9501F029A7C000AC63D /* VoiceBase.swift */; };
 		17E677832003E087003D022B /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 17E677812003E087003D022B /* Model.xcdatamodeld */; };
 		17E677BD2003E690003D022B /* LexiconStringNode+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677B52003E690003D022B /* LexiconStringNode+CoreDataClass.swift */; };
-		17E677BE2003E690003D022B /* LexiconStringNode+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677B62003E690003D022B /* LexiconStringNode+CoreDataProperties.swift */; };
 		17E677BF2003E690003D022B /* LexiconTranscript+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677B72003E690003D022B /* LexiconTranscript+CoreDataClass.swift */; };
-		17E677C02003E690003D022B /* LexiconTranscript+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677B82003E690003D022B /* LexiconTranscript+CoreDataProperties.swift */; };
 		17E677C12003E690003D022B /* LexiconEntry+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677B92003E690003D022B /* LexiconEntry+CoreDataClass.swift */; };
-		17E677C22003E690003D022B /* LexiconEntry+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677BA2003E690003D022B /* LexiconEntry+CoreDataProperties.swift */; };
 		17E677C32003E690003D022B /* LexiconWord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677BB2003E690003D022B /* LexiconWord+CoreDataClass.swift */; };
-		17E677C42003E690003D022B /* LexiconWord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E677BC2003E690003D022B /* LexiconWord+CoreDataProperties.swift */; };
 		17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* functions.swift */; };
 		17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */; };
 		17F549251DBADA26008B5051 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17F549241DBADA26008B5051 /* AVKit.framework */; };
@@ -122,6 +130,18 @@
 		17579DDF1B84706500F1424F /* PopoverTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverTableViewController.swift; sourceTree = "<group>"; };
 		175DF549203B2EB10087CF0B /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		175DF54B203B2ED80087CF0B /* ControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlView.swift; sourceTree = "<group>"; };
+		175E88CA20B32A26000425EB /* LexiconTranscript+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconTranscript+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E88CB20B32A26000425EB /* LexiconStringNode+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconStringNode+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E88CC20B32A26000425EB /* LexiconWord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconWord+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E88CD20B32A26000425EB /* LexiconEntry+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconEntry+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E890E20B3360A000425EB /* CoreDataMedia+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataMedia+CoreDataClass.swift"; sourceTree = "<group>"; };
+		175E890F20B3360A000425EB /* CoreDataMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataMedia+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E891020B3360A000425EB /* MediaValue+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaValue+CoreDataClass.swift"; sourceTree = "<group>"; };
+		175E891120B3360A000425EB /* MediaValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaValue+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E891220B3360A000425EB /* MediaTranscript+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaTranscript+CoreDataClass.swift"; sourceTree = "<group>"; };
+		175E891320B3360A000425EB /* MediaTranscript+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaTranscript+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		175E891420B3360A000425EB /* MediaProperty+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaProperty+CoreDataClass.swift"; sourceTree = "<group>"; };
+		175E891520B3360A000425EB /* MediaProperty+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MediaProperty+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		175EDA251BAC80F600942E6D /* Reachability.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LexiconIndexViewController.swift; sourceTree = "<group>"; };
 		17763BE21BEA329400BB5556 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -148,13 +168,9 @@
 		17DFD9501F029A7C000AC63D /* VoiceBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VoiceBase.swift; sourceTree = "<group>"; };
 		17E677822003E087003D022B /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		17E677B52003E690003D022B /* LexiconStringNode+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconStringNode+CoreDataClass.swift"; sourceTree = "<group>"; };
-		17E677B62003E690003D022B /* LexiconStringNode+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconStringNode+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		17E677B72003E690003D022B /* LexiconTranscript+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconTranscript+CoreDataClass.swift"; sourceTree = "<group>"; };
-		17E677B82003E690003D022B /* LexiconTranscript+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconTranscript+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		17E677B92003E690003D022B /* LexiconEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
-		17E677BA2003E690003D022B /* LexiconEntry+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconEntry+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		17E677BB2003E690003D022B /* LexiconWord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconWord+CoreDataClass.swift"; sourceTree = "<group>"; };
-		17E677BC2003E690003D022B /* LexiconWord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LexiconWord+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		17E75EC91B835FC600AE8ED5 /* functions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = functions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		17F549241DBADA26008B5051 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		17F8EAB31DFE221A00FA2A99 /* PopoverTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverTableViewCell.swift; sourceTree = "<group>"; };
@@ -318,14 +334,22 @@
 		17E677C52003E6F2003D022B /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
-				17E677B52003E690003D022B /* LexiconStringNode+CoreDataClass.swift */,
-				17E677B62003E690003D022B /* LexiconStringNode+CoreDataProperties.swift */,
+				175E890E20B3360A000425EB /* CoreDataMedia+CoreDataClass.swift */,
+				175E890F20B3360A000425EB /* CoreDataMedia+CoreDataProperties.swift */,
+				175E891020B3360A000425EB /* MediaValue+CoreDataClass.swift */,
+				175E891120B3360A000425EB /* MediaValue+CoreDataProperties.swift */,
+				175E891220B3360A000425EB /* MediaTranscript+CoreDataClass.swift */,
+				175E891320B3360A000425EB /* MediaTranscript+CoreDataProperties.swift */,
+				175E891420B3360A000425EB /* MediaProperty+CoreDataClass.swift */,
+				175E891520B3360A000425EB /* MediaProperty+CoreDataProperties.swift */,
 				17E677B72003E690003D022B /* LexiconTranscript+CoreDataClass.swift */,
-				17E677B82003E690003D022B /* LexiconTranscript+CoreDataProperties.swift */,
-				17E677B92003E690003D022B /* LexiconEntry+CoreDataClass.swift */,
-				17E677BA2003E690003D022B /* LexiconEntry+CoreDataProperties.swift */,
+				175E88CA20B32A26000425EB /* LexiconTranscript+CoreDataProperties.swift */,
+				17E677B52003E690003D022B /* LexiconStringNode+CoreDataClass.swift */,
+				175E88CB20B32A26000425EB /* LexiconStringNode+CoreDataProperties.swift */,
 				17E677BB2003E690003D022B /* LexiconWord+CoreDataClass.swift */,
-				17E677BC2003E690003D022B /* LexiconWord+CoreDataProperties.swift */,
+				175E88CC20B32A26000425EB /* LexiconWord+CoreDataProperties.swift */,
+				17E677B92003E690003D022B /* LexiconEntry+CoreDataClass.swift */,
+				175E88CD20B32A26000425EB /* LexiconEntry+CoreDataProperties.swift */,
 				17E677812003E087003D022B /* Model.xcdatamodeld */,
 			);
 			path = CoreData;
@@ -493,7 +517,7 @@
 				179495601FDC2E87001BB4D8 /* QuadTree.swift in Sources */,
 				17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */,
 				17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */,
-				17E677C42003E690003D022B /* LexiconWord+CoreDataProperties.swift in Sources */,
+				175E891620B3360A000425EB /* CoreDataMedia+CoreDataClass.swift in Sources */,
 				179495641FDC4845001BB4D8 /* CloudWord.swift in Sources */,
 				177A74B91EF5770B00D36BE2 /* BooksChaptersVerses.swift in Sources */,
 				17763BE31BEA329400BB5556 /* Constants.swift in Sources */,
@@ -501,21 +525,27 @@
 				17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */,
 				179495661FDC48C2001BB4D8 /* CloudViewController.swift in Sources */,
 				17E677BD2003E690003D022B /* LexiconStringNode+CoreDataClass.swift in Sources */,
-				17E677BE2003E690003D022B /* LexiconStringNode+CoreDataProperties.swift in Sources */,
 				17E677832003E087003D022B /* Model.xcdatamodeld in Sources */,
 				17E677BF2003E690003D022B /* LexiconTranscript+CoreDataClass.swift in Sources */,
+				175E88D120B32A26000425EB /* LexiconEntry+CoreDataProperties.swift in Sources */,
 				174A14A51E020A0500736CEC /* CachedString.swift in Sources */,
 				175DF54C203B2ED80087CF0B /* ControlView.swift in Sources */,
+				175E891A20B3360A000425EB /* MediaTranscript+CoreDataClass.swift in Sources */,
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,
 				1742C6891F1127F00096B150 /* TextViewController.swift in Sources */,
+				175E891C20B3360A000425EB /* MediaProperty+CoreDataClass.swift in Sources */,
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
 				174A14AB1E02A6F100736CEC /* Download.swift in Sources */,
+				175E891D20B3360A000425EB /* MediaProperty+CoreDataProperties.swift in Sources */,
 				17E677C32003E690003D022B /* LexiconWord+CoreDataClass.swift in Sources */,
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
+				175E891820B3360A000425EB /* MediaValue+CoreDataClass.swift in Sources */,
+				175E88CF20B32A26000425EB /* LexiconStringNode+CoreDataProperties.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
+				175E891720B3360A000425EB /* CoreDataMedia+CoreDataProperties.swift in Sources */,
 				17FF98832030DA07002AD442 /* extensions.swift in Sources */,
-				17E677C22003E690003D022B /* LexiconEntry+CoreDataProperties.swift in Sources */,
 				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
+				175E88CE20B32A26000425EB /* LexiconTranscript+CoreDataProperties.swift in Sources */,
 				172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */,
 				17FF98872030DA5A002AD442 /* SelectedMediaItem.swift in Sources */,
 				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
@@ -523,12 +553,13 @@
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
 				17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */,
 				17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */,
+				175E891B20B3360A000425EB /* MediaTranscript+CoreDataProperties.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
 				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
-				17E677C02003E690003D022B /* LexiconTranscript+CoreDataProperties.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
+				175E891920B3360A000425EB /* MediaValue+CoreDataProperties.swift in Sources */,
 				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
 				17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */,
 				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
@@ -542,6 +573,7 @@
 				177A74B31EF576A500D36BE2 /* StringNode.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
 				17FF98852030DA3E002AD442 /* Search.swift in Sources */,
+				175E88D020B32A26000425EB /* LexiconWord+CoreDataProperties.swift in Sources */,
 				17E677C12003E690003D022B /* LexiconEntry+CoreDataClass.swift in Sources */,
 				17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */,
 				175DF54A203B2EB10087CF0B /* Document.swift in Sources */,

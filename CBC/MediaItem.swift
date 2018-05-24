@@ -985,9 +985,17 @@ class MediaItem : NSObject
     func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
+            let purge = false // notesHTML == nil
+            
             loadNotesHTML()
             
-            return SearchHit(self,searchText).transcriptHTML
+            let searchHit = SearchHit(self,searchText).transcriptHTML
+            
+            if purge {
+                notesHTML = nil
+            }
+            
+            return searchHit
         } else {
             return false
         }
@@ -1357,19 +1365,12 @@ class MediaItem : NSObject
             return
         }
         
-        guard (dict?[Field.notes_HTML] == nil) else {
+        guard (notesHTML == nil) else {
             return
         }
         
         if let mediaItemDict = self.singleJSONFromURL()?[0] {
-            if var notesHTML = mediaItemDict[Field.notes_HTML] {
-                notesHTML = notesHTML.replacingOccurrences(of: "&rsquo;", with: "'")
-                notesHTML = notesHTML.replacingOccurrences(of: "&rdquo;", with: "\"")
-                notesHTML = notesHTML.replacingOccurrences(of: "&lsquo;", with: "'")
-                notesHTML = notesHTML.replacingOccurrences(of: "&ldquo;", with: "\"")
-                
-                dict?[Field.notes_HTML] = notesHTML
-            }
+            self.notesHTML = mediaItemDict[Field.notes_HTML] //?.replacingOccurrences(of: "&rsquo;", with: "'").replacingOccurrences(of: "&rdquo;", with: "\"").replacingOccurrences(of: "&lsquo;", with: "'").replacingOccurrences(of: "&ldquo;", with: "\"")
         } else {
             print("loadSingle failure")
         }
@@ -1385,9 +1386,15 @@ class MediaItem : NSObject
             return
         }
         
+        let purge = false // notesHTML == nil
+        
         loadNotesHTML()
 
-        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML)) // notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML)) // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+        
+        if purge {
+            notesHTML = nil // Save memory - load on demand.
+        }
     }
     
     // VERY Computationally Expensive
@@ -2316,10 +2323,11 @@ class MediaItem : NSObject
         }
     }
     
-    var notesHTML:String? {
+    var notesHTML:String?
+    {
         get {
             //            print(dict?[Field.notes])
-            return dict?[Field.notes_HTML] //?.replacingOccurrences(of: "<br />", with: "<br/>")
+            return dict?[Field.notes_HTML]?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
         }
         set {
             dict?[Field.notes_HTML] = newValue
@@ -2327,7 +2335,8 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var slides:String? {
+    var slides:String?
+    {
         get {
             if (dict?[Field.slides] == nil) && hasSlides, let year = year, let id = id {
                 dict?[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.slides + Constants.FILENAME_EXTENSION.PDF
@@ -2338,7 +2347,8 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var outline:String? {
+    var outline:String?
+    {
         get {
             if (dict?[Field.outline] == nil), hasSlides, let year = year, let id = id {
                 dict?[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.outline + Constants.FILENAME_EXTENSION.PDF
@@ -2350,13 +2360,15 @@ class MediaItem : NSObject
     
     // A=Audio, V=Video, O=Outline, S=Slides, T=Transcript, H=HTML Transcript
 
-    var files:String? {
+    var files:String?
+    {
         get {
             return dict?[Field.files]
         }
     }
     
-    var hasAudio:Bool {
+    var hasAudio:Bool
+    {
         get {
             if let contains = files?.contains("A") {
                 return contains
@@ -2366,7 +2378,8 @@ class MediaItem : NSObject
         }
     }
     
-    var hasVideo:Bool {
+    var hasVideo:Bool
+    {
         get {
             if let contains = files?.contains("V") {
                 return contains
@@ -2376,7 +2389,8 @@ class MediaItem : NSObject
         }
     }
     
-    var hasSlides:Bool {
+    var hasSlides:Bool
+    {
         get {
             if let contains = files?.contains("S") {
                 return contains
@@ -2386,7 +2400,8 @@ class MediaItem : NSObject
         }
     }
     
-    var hasNotes:Bool {
+    var hasNotes:Bool
+    {
         get {
             if let contains = files?.contains("T") {
                 return contains
@@ -2396,7 +2411,8 @@ class MediaItem : NSObject
         }
     }
     
-    var hasNotesHTML:Bool {
+    var hasNotesHTML:Bool
+    {
         get {
 //            print(files)
             
@@ -2408,7 +2424,8 @@ class MediaItem : NSObject
         }
     }
     
-    var hasOutline:Bool {
+    var hasOutline:Bool
+    {
         get {
             if let contains = files?.contains("O") {
                 return contains
@@ -2418,7 +2435,8 @@ class MediaItem : NSObject
         }
     }
     
-    var audioURL:URL? {
+    var audioURL:URL?
+    {
         get {
             if let audio = audio {
                 return URL(string: audio)
@@ -2428,7 +2446,8 @@ class MediaItem : NSObject
         }
     }
     
-    var videoURL:URL? {
+    var videoURL:URL?
+    {
         get {
             if let video = video {
                 return URL(string: video)
@@ -2438,7 +2457,8 @@ class MediaItem : NSObject
         }
     }
     
-    var notesURL:URL? {
+    var notesURL:URL?
+    {
         get {
             if let notes = notes {
                 return URL(string: notes)
@@ -2448,7 +2468,8 @@ class MediaItem : NSObject
         }
     }
     
-    var slidesURL:URL? {
+    var slidesURL:URL?
+    {
         get {
             if let slides = slides {
                 return URL(string: slides)
@@ -2458,7 +2479,8 @@ class MediaItem : NSObject
         }
     }
     
-    var outlineURL:URL? {
+    var outlineURL:URL?
+    {
         get {
             if let outline = outline {
                 return URL(string: outline)
@@ -2468,7 +2490,8 @@ class MediaItem : NSObject
         }
     }
     
-    var audioFileSystemURL:URL? {
+    var audioFileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.MP3)
@@ -2478,7 +2501,8 @@ class MediaItem : NSObject
         }
     }
     
-    var mp4FileSystemURL:URL? {
+    var mp4FileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.MP4)
@@ -2488,7 +2512,8 @@ class MediaItem : NSObject
         }
     }
     
-    var m3u8FileSystemURL:URL? {
+    var m3u8FileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.M3U8)
@@ -2498,13 +2523,15 @@ class MediaItem : NSObject
         }
     }
     
-    var videoFileSystemURL:URL? {
+    var videoFileSystemURL:URL?
+    {
         get {
             return m3u8FileSystemURL
         }
     }
     
-    var slidesFileSystemURL:URL? {
+    var slidesFileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + "." + Field.slides + Constants.FILENAME_EXTENSION.PDF)
@@ -2514,7 +2541,8 @@ class MediaItem : NSObject
         }
     }
     
-    var notesFileSystemURL:URL? {
+    var notesFileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + "." + Field.notes + Constants.FILENAME_EXTENSION.PDF)
@@ -2524,7 +2552,8 @@ class MediaItem : NSObject
         }
     }
     
-    var outlineFileSystemURL:URL? {
+    var outlineFileSystemURL:URL?
+    {
         get {
             if let id = id {
                 return cachesURL()?.appendingPathComponent(id + "." + Field.outline + Constants.FILENAME_EXTENSION.PDF)
@@ -3726,41 +3755,65 @@ class MediaItem : NSObject
         transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
-            
-            if self.notesHTML != nil {
-                var htmlString:String?
 
+            process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+                self?.loadNotesHTML()
+
+                var htmlString:String?
+                
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = self.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
+                    htmlString = self?.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
                 } else
-                
-                if let mediaTableViewController = viewController as? MediaTableViewController, globals.search.active {
-                    htmlString = self.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
-                } else
-                
-                {
-                    htmlString = self.fullNotesHTML
-                }
-                
-                popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
-            } else {
-                guard globals.reachability.isReachable else {
-                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
-                    return
-                }
-                
-                process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
-                    self?.loadNotesHTML()
                     
-                    return self?.fullNotesHTML
-                }, completion: { [weak self] (data:Any?) in
-                    if let htmlString = data as? String {
-                        popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
-                    } else {
-                        globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
-                    }
-                })
-            }
+                if let _ = viewController as? MediaTableViewController, globals.search.active {
+                    htmlString = self?.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
+                } else {
+                    htmlString = self?.fullNotesHTML
+                }
+                
+                return htmlString
+            }, completion: { [weak self] (data:Any?) in
+                if let htmlString = data as? String {
+                    popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                } else {
+                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+                }
+            })
+
+//            if self.notesHTML != nil {
+//                var htmlString:String?
+//
+//                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
+//                    htmlString = self.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
+//                } else
+//
+//                if let mediaTableViewController = viewController as? MediaTableViewController, globals.search.active {
+//                    htmlString = self.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
+//                } else
+//
+//                {
+//                    htmlString = self.fullNotesHTML
+//                }
+//
+//                popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+//            } else {
+//                guard globals.reachability.isReachable else {
+//                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                    return
+//                }
+//
+//                process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+//                    self?.loadNotesHTML()
+//
+//                    return self?.fullNotesHTML
+//                }, completion: { [weak self] (data:Any?) in
+//                    if let htmlString = data as? String {
+//                        popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+//                    } else {
+//                        globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                    }
+//                })
+//            }
         }
         
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {

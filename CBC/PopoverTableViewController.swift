@@ -262,6 +262,8 @@ extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
 
 struct Sort
 {
+    var sorting = false
+    
     var function : ((String?,[String]?)->[String]?)?
     
     var method : String? = Constants.Sort.Alphabetical
@@ -697,7 +699,7 @@ class PopoverTableViewController : UIViewController
     lazy var filteredSection:Section! = {
         let section = Section(stringsAction: { (strings:[String]?) in
             Thread.onMainThread {
-                self.segmentedControl?.isEnabled = strings != nil
+                self.segmentedControl?.isEnabled = (strings != nil) && !self.sort.sorting
             }
         })
         return section
@@ -705,7 +707,7 @@ class PopoverTableViewController : UIViewController
     lazy var unfilteredSection:Section! = {
         let section = Section(stringsAction: { (strings:[String]?) in
             Thread.onMainThread {
-                self.segmentedControl?.isEnabled = strings != nil
+                self.segmentedControl?.isEnabled = (strings != nil) && !self.sort.sorting
             }
         })
         return section
@@ -1163,7 +1165,7 @@ class PopoverTableViewController : UIViewController
             if let range = string.range(of: " (") {
                 return selectedText.uppercased() == String(string[..<range.lowerBound]).uppercased()
             } else {
-                return false
+                return selectedText.uppercased() == string.uppercased()
             }
         }) {
             if let method = sort.method {

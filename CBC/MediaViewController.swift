@@ -1316,6 +1316,29 @@ class MediaViewController: UIViewController // MediaController
         observedItem = player?.currentItem
     }
     
+//    func addToolbarObserver()
+//    {
+//        navigationController?.addObserver(self,
+//                                          forKeyPath: #keyPath(UINavigationController.isToolbarHidden),
+//                                          options: [.old, .new],
+//                                          context: nil)
+//
+//        toolbarObserver = true
+//    }
+    
+//    var toolbarObserver = false
+    
+//    func removeToolbarObserver()
+//    {
+//        guard toolbarObserver else {
+//            return
+//        }
+//
+//        navigationController?.removeObserver(self, forKeyPath: #keyPath(UINavigationController.isToolbarHidden))
+//
+//        toolbarObserver = false
+//    }
+    
     func playerURL(url: URL?)
     {
         guard let url = url else {
@@ -1329,7 +1352,8 @@ class MediaViewController: UIViewController // MediaController
         addPlayerObserver()
     }
     
-    var selectedMediaItem:MediaItem? {
+    var selectedMediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -1644,9 +1668,16 @@ class MediaViewController: UIViewController // MediaController
     override func observeValue(forKeyPath keyPath: String?,
                                of object: Any?,
                                change: [NSKeyValueChangeKey : Any]?,
-                               context: UnsafeMutableRawPointer?) {
+                               context: UnsafeMutableRawPointer?)
+    {
         // Only handle observations for the playerItemContext
 
+//        if keyPath == #keyPath(UINavigationController.isToolbarHidden) {
+//            if self.view.window != nil {
+//                print("TOOLBAR CHANGED")
+//            }
+//        }
+        
         if keyPath == #keyPath(AVPlayerItem.status) {
             guard (context == &PlayerContext) else {
                 super.observeValue(forKeyPath: keyPath,
@@ -2951,7 +2982,6 @@ class MediaViewController: UIViewController // MediaController
         // Do any additional setup after loading the view.
         super.viewDidLoad()
 
-        navigationController?.isToolbarHidden = true
     }
 
     fileprivate func setupDefaultDocuments()
@@ -4349,10 +4379,12 @@ class MediaViewController: UIViewController // MediaController
     {
         super.viewWillAppear(animated)
 
-        orientation = UIDevice.current.orientation
+//        addToolbarObserver()
         
         navigationController?.isToolbarHidden = true
-
+        
+        orientation = UIDevice.current.orientation
+        
         addNotifications()
 
         if let mediaItem = globals.mediaPlayer.mediaItem, mediaItem == selectedMediaItem, globals.mediaPlayer.isPaused, mediaItem.hasCurrentTime, let currentTime = mediaItem.currentTime {
@@ -4552,6 +4584,8 @@ class MediaViewController: UIViewController // MediaController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+        
+//        removeToolbarObserver()
         
         if selectedMediaItem == globals.mediaPlayer.mediaItem {
             globals.mediaPlayer.view?.removeFromSuperview()

@@ -294,15 +294,23 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingLexicon:
-            if let range = string.range(of: " (") {
-                searchText = String(string[..<range.lowerBound]).uppercased()
-                
-                Thread.onMainThread {
-                    self.tableView.setEditing(false, animated: true)
-                }
-                
-                updateSearchResults()
+            var text = string
+            
+            if let range = text.range(of: " (") {
+                text = String(string[..<range.lowerBound])
             }
+
+            searchText = text.uppercased()
+            
+            Thread.onMainThread {
+                self.tableView.setEditing(false, animated: true)
+            }
+            
+            if tableViewHeightConstraint.constant == view.bounds.height {
+                tableViewHeightConstraint.constant = view.bounds.height - tableView.rowHeight
+            }
+
+            updateSearchResults()
             break
             
         case .selectingAction:
@@ -489,6 +497,10 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
+        if searchText == nil {
+            tableViewHeightConstraint.constant = view.bounds.height
+        }
+        
 //        guard let navBarHeight = navigationController?.navigationBar.bounds.height else {
 //            return
 //        }
@@ -512,19 +524,31 @@ class LexiconIndexViewController : UIViewController
         //  + locateView.bounds.height - container.frame.origin.y - navbarHeight
         
 //        let space = view.bounds.height -  - toolbarHeight // - navigationController!.navigationBar.frame.height - 28.5 // Height of direction label space. // -  // - toolbarHeight - navBarHeight - container.frame.origin.y
+
+        updateToolbar()
+
+        let newConstraintConstant = tableViewHeightConstraint.constant - change
         
-        let newConstraintConstant = tableViewHeightConstraint.constant + change
+        let minimum = searchText != nil ? locateView.frame.height : 0
         
-        let tableViewSpace = view.bounds.height - locateView.frame.height
-        if (newConstraintConstant >= 0) && (newConstraintConstant <= tableViewSpace) {
+        let tableViewSpace = view.bounds.height //- minimum
+        
+        if (newConstraintConstant >= minimum) && (newConstraintConstant <= tableViewSpace) {
             tableViewHeightConstraint.constant = newConstraintConstant
         } else {
-            if newConstraintConstant < 0 { tableViewHeightConstraint.constant = 0 }
-            if newConstraintConstant > (view.bounds.height - locateView.frame.height) { tableViewHeightConstraint.constant = tableViewSpace }
+            if newConstraintConstant < minimum { tableViewHeightConstraint.constant = minimum }
+            if newConstraintConstant > tableViewSpace { tableViewHeightConstraint.constant = tableViewSpace }
         }
         
-        let ptvcSpace = view.bounds.height - locateView.frame.height - container.frame.origin.y + (view.window == nil ? navigationController!.navigationBar.frame.height : 0) // The last term seems like a hack.
-        ptvcHeightConstraint.constant = max(ptvcSpace - tableViewHeightConstraint.constant,250)
+        let ptvcSpace = view.bounds.height - container.frame.origin.y
+        
+        var maxHeight:CGFloat = 250
+        
+        if searchText == nil {
+            maxHeight = ptvcSpace // - locateView.frame.height
+        }
+        
+        ptvcHeightConstraint.constant = max(ptvcSpace - ((view.bounds.height - tableViewHeightConstraint.constant) + minimum),maxHeight)
         
 //        print("view.bounds: \(view.bounds)")
 //        print("tableViewSpace: \(tableViewSpace)")
@@ -658,8 +682,7 @@ class LexiconIndexViewController : UIViewController
             ptvc.selectedText = searchText
             
             Thread.onMainThread {
-                self.selectedWord.text = self.searchText
-
+                self.updateSelectedWord()
                 self.updateLocateButton()
             }
             
@@ -795,50 +818,55 @@ class LexiconIndexViewController : UIViewController
                     ptvc.segments = true
                     
                     ptvc.sort.function = { (method:String?,strings:[String]?) -> [String]? in
-                            guard let strings = strings else {
-                                return nil
-                            }
-                            
-                            guard let method = method else {
-                                return nil
-                            }
-                            
-                            switch method {
-                            case Constants.Sort.Alphabetical:
-                                return strings.sorted()
-                                
-                            case Constants.Sort.Frequency:
-                                return strings.sorted(by: { (first:String, second:String) -> Bool in
-                                    if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-                                        let left = String(first[rangeFirst.upperBound...])
-                                        let right = String(second[rangeSecond.upperBound...])
-                                        
-                                        let first = String(first[..<rangeFirst.lowerBound])
-                                        let second = String(second[..<rangeSecond.lowerBound])
-                                        
-                                        if let rangeLeft = left.range(of: " "), let rangeRight = right.range(of: " ") {
-                                            let left = String(left[..<rangeLeft.lowerBound])
-                                            let right = String(right[..<rangeRight.lowerBound])
-                                            
-                                            if let left = Int(left), let right = Int(right) {
-                                                if left == right {
-                                                    return first < second
-                                                } else {
-                                                    return left > right
-                                                }
-                                            }
-                                        }
-                                        
-                                        return false
-                                    } else {
-                                        return false
-                                    }
-                                })
-                                
-                            default:
-                                return nil
-                            }
+                        guard let strings = strings else {
+                            return nil
                         }
+                        
+                        guard let method = method else {
+                            return nil
+                        }
+                            
+                        var sortedStrings:[String]? = nil
+                        
+                        switch method {
+                        case Constants.Sort.Alphabetical:
+                            sortedStrings = strings.sorted()
+                            
+                        case Constants.Sort.Frequency:
+                            sortedStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
+                                return self.lexicon?.occurrences(first) > self.lexicon?.occurrences(second)
+//                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
+//                                    let left = String(first[rangeFirst.upperBound...])
+//                                    let right = String(second[rangeSecond.upperBound...])
+//
+//                                    let first = String(first[..<rangeFirst.lowerBound])
+//                                    let second = String(second[..<rangeSecond.lowerBound])
+//
+//                                    if let rangeLeft = left.range(of: " "), let rangeRight = right.range(of: " ") {
+//                                        let left = String(left[..<rangeLeft.lowerBound])
+//                                        let right = String(right[..<rangeRight.lowerBound])
+//
+//                                        if let left = Int(left), let right = Int(right) {
+//                                            if left == right {
+//                                                return first < second
+//                                            } else {
+//                                                return left > right
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    return false
+//                                } else {
+//                                    return false
+//                                }
+                            })
+                            
+                        default:
+                            break
+                        }
+                    
+                        return sortedStrings
+                    }
                         
                     ptvc.sort.method = Constants.Sort.Alphabetical
                     
@@ -852,6 +880,8 @@ class LexiconIndexViewController : UIViewController
                         self.updateLocateButton()
                         
                         DispatchQueue.global(qos: .background).async { [weak self] in
+                            self?.ptvc.sort.sorting = true
+                            
                             let strings = self?.ptvc.sort.function?(Constants.Sort.Alphabetical,self?.ptvc.section.strings)
 
                             Thread.onMainThread {
@@ -870,6 +900,8 @@ class LexiconIndexViewController : UIViewController
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
+                                
+                                self?.ptvc.sort.sorting = false
                             }
                         }
                     }))
@@ -882,6 +914,8 @@ class LexiconIndexViewController : UIViewController
                         self.updateLocateButton()
                         
                         DispatchQueue.global(qos: .background).async { [weak self] in
+                            self?.ptvc.sort.sorting = true
+                            
                             let strings = self?.ptvc.sort.function?(Constants.Sort.Frequency,self?.ptvc.section.strings)
                             
                             Thread.onMainThread {
@@ -900,6 +934,8 @@ class LexiconIndexViewController : UIViewController
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
                                 self?.updateLocateButton()
+                                
+                                self?.ptvc.sort.sorting = false
                             }
                         }
                     }))
@@ -914,7 +950,11 @@ class LexiconIndexViewController : UIViewController
 
                     ptvc.section.showIndex = true
                     
-                    ptvc.section.strings = self.mediaListGroupSort?.lexicon?.section.strings
+                    // Need to use this now that lexicon.strings is a computed variable and for large lexicons it can take a while.
+                    ptvc.stringsFunction = {
+                        return self.mediaListGroupSort?.lexicon?.strings
+                    }
+//                    ptvc.section.strings = self.mediaListGroupSort?.lexicon?.strings // .section
                 }
                 break
                 
@@ -956,23 +996,49 @@ class LexiconIndexViewController : UIViewController
 //        
 //        return show
 //    }
-    
+
+    func updateSelectedWord()
+    {
+        guard let searchText = self.searchText else {
+            Thread.onMainThread {
+                self.locateView.isHidden = true
+                self.selectedWord.text = Constants.EMPTY_STRING
+            }
+            return
+        }
+        
+        guard let occurrences = lexicon?.occurrences(searchText) else {
+            return
+        }
+        
+        guard let documents = lexicon?.documents(searchText) else {
+            return
+        }
+        
+        Thread.onMainThread {
+            self.locateView.isHidden = false
+            self.selectedWord.text = "\(searchText) (\(occurrences) in \(documents))" // searchText
+        }
+    }
+
     func updateLocateButton()
     {
         // Not necessarily called on the main thread.
         
         if (self.searchText != nil) {
             Thread.onMainThread {
+                self.locateView.isHidden = false
                 self.locateButton.isHidden = false
                 
                 if !self.ptvc.tableView.isHidden {
-                    self.locateButton.isEnabled = true
+                    self.locateButton.isEnabled = !self.ptvc.sort.sorting
                 } else {
                     self.locateButton.isEnabled = false
                 }
             }
         } else {
             Thread.onMainThread {
+                self.locateView.isHidden = true
                 self.locateButton.isHidden = true
                 self.locateButton.isEnabled = false
             }
@@ -980,7 +1046,7 @@ class LexiconIndexViewController : UIViewController
         
         Thread.onMainThread {
             if self.tableViewHeightConstraint.isActive {
-                if self.tableViewHeightConstraint.constant > (self.view.bounds.height - self.locateView.bounds.height - 250) {
+                if self.tableViewHeightConstraint.constant < 250 {
                     self.locateButton.isEnabled = false
                 }
             }
@@ -1004,8 +1070,10 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        selectedWord.text = searchText
-
+//        if searchText == nil {
+//            tableViewHeightConstraint.constant = view.bounds.height //+ (view.window == nil ? navigationController!.navigationBar.frame.height : 0) // The last term seems like a hack.
+//        }
+        
         addNotifications()
         
         navigationItem.hidesBackButton = false
@@ -1356,12 +1424,21 @@ class LexiconIndexViewController : UIViewController
     
     @objc func updated()
     {
+        guard !self.ptvc.sort.sorting else {
+            return
+        }
+        
         // Need to block while waiting for the tableView to be hidden.
         Thread.onMainThreadSync {
+            self.locateButton.isEnabled = false
+            self.ptvc.segmentedControl.isEnabled = false
             self.ptvc.tableView.isHidden = true
         }
         
-        self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
+        self.ptvc.sort.sorting = self.ptvc.sort.function != nil
+
+        // self.lexicon?.section.strings
+        self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.strings)
 
         self.ptvc.updateSearchResults()
         
@@ -1369,21 +1446,22 @@ class LexiconIndexViewController : UIViewController
             self.ptvc.tableView.reloadData()
             self.ptvc.tableView.isHidden = false
 
-            self.updateSearchResults() // Why again?
+            self.updateSearchResults()
+            
+            self.locateButton.isEnabled = true
+            
+            self.ptvc.segmentedControl.isEnabled = true
+            
+            self.ptvc.sort.sorting = false
         }
     }
     
     @objc func completed()
     {
-        updateSearchResults()
+        updated()
         
         Thread.onMainThread {
             self.ptvc.activityIndicator.stopAnimating()
-
-            self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
-            self.ptvc.updateSearchResults()
-            
-            self.ptvc.tableView.reloadData()
         }
     }
     
@@ -1430,8 +1508,6 @@ class LexiconIndexViewController : UIViewController
         super.viewDidLoad()
         
         navigationController?.toolbar.isTranslucent = false
-        
-        selectedWord.text = Constants.EMPTY_STRING
         
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
@@ -1491,22 +1567,28 @@ class LexiconIndexViewController : UIViewController
     
     func updateToolbar()
     {
+//        guard self.view.window != nil else {
+//            print("TRYING TO CHANGE TOOLBAR")
+//            return
+//        }
+//
+//        print("CHANGING TOOLBAR")
+//
         guard tableView.numberOfSections > 1  else {
-            self.navigationController?.setToolbarHidden(true, animated: true)
+            self.navigationController?.isToolbarHidden = true //, animated: true)
             return
         }
-        
-        guard tableViewHeightConstraint.constant >= tableView.rowHeight else { // 146 tableView.rectForHeader(inSection:0).height
-            self.navigationController?.setToolbarHidden(true, animated: true)
-            return
-        }
-        
+
         let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)
 
-        self.navigationController?.setToolbarHidden(false, animated: true)
+        let height = view.bounds.height + (!navigationController!.isToolbarHidden ? navigationController!.toolbar.frame.height : 0)
+        
+        if navigationController?.visibleViewController == self {
+            self.navigationController?.isToolbarHidden = (height - tableViewHeightConstraint.constant) < tableView.rowHeight
+        }
     }
     
     func updateUI()
@@ -1519,9 +1601,6 @@ class LexiconIndexViewController : UIViewController
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
-        
-        spinner.isHidden = true
-        spinner.stopAnimating()
         
 //        logo.isHidden = searchText != nil
 
@@ -1539,9 +1618,14 @@ class LexiconIndexViewController : UIViewController
         
         updateToolbar()
 
+        updateSelectedWord()
+        
         updateLocateButton()
 
         setTableViewHeightConstraint(change:0)
+        
+        spinner.isHidden = true
+        spinner.stopAnimating()
     }
     
     override func didReceiveMemoryWarning()

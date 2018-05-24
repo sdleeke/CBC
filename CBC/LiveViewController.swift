@@ -113,7 +113,7 @@ class LiveViewController: UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-        
+
         addNotifications()
         
         logo.isHidden = true

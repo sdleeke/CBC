@@ -19,7 +19,7 @@ extension Data {
             // options: [:],
             // DocumentAttributeKey.documentType
             // DocumentAttributeKey.characterEncoding
-            return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue], documentAttributes: nil)
+            return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
         } catch {
             print("error:", error)
             return  nil
@@ -32,7 +32,7 @@ extension Data {
 
 extension String {
     var html2AttributedString: NSAttributedString? {
-        return Data(utf8).html2AttributedString
+        return self.data(using: String.Encoding.utf16)?.html2AttributedString
     }
     var html2String: String? {
         return html2AttributedString?.string
@@ -2798,6 +2798,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             } else {
                 tokens[token.uppercased()] = 1
             }
+            
             token = Constants.EMPTY_STRING
         }
     }
@@ -4042,7 +4043,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
         }
         
         popover.html.fontSize = 12
-        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+        popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
         
         popover.search = true
         popover.mediaItem = mediaItem
