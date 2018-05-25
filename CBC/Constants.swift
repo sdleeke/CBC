@@ -307,6 +307,8 @@ enum Constants {
         static let REACHABLE                = "REACHABLE"
         static let NOT_REACHABLE            = "NOT REACHABLE"
         
+        static let SORTING_CHANGED          = "SORTING CHANGED"
+        
         static let DONE_SEEKING             = "DONE SEEKING"
         
 //        static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"

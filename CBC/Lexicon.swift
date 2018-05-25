@@ -176,6 +176,7 @@ class Lexicon : NSObject {
     var strings : [String]?
     {
         get {
+            // What happens if build() inserts a new key while this is happening?
             return words?.keys.sorted()
 //            .map({ (word) -> String in
 //                return "\(word) (\(occurrences(word)!) in \(documents(word)!))"
@@ -274,7 +275,7 @@ class Lexicon : NSObject {
                     break
                 }
                 
-                let purge = false // mediaItem.notesTokens == nil
+                let purge = globals.purge && (mediaItem.notesTokens == nil)
                 
 //                queue.sync {
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
@@ -318,6 +319,11 @@ class Lexicon : NSObject {
                 }
                 
 //                if let pauseUpdates = self.pauseUpdates, !pauseUpdates {
+                // What if the update takes longer than 10 seconds? => Need to queue updates.
+                // Now that updates are queued on the LIVC, we don't need this
+                // but it still seems like a good idea to avoid a flurry of updates
+                // even as the lexicon is continuing to change, which means if the LIVC queue
+                // has a backlog the pending updates will all be the same, which is waste of update time.
                     if firstUpdate || (date.timeIntervalSinceNow <= -10) { // 2.5
                         //                                print(date)
                         

@@ -785,7 +785,7 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    var ptvc:PopoverTableViewController!
+    @objc var ptvc:PopoverTableViewController!
     
 //    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
 //    {
@@ -833,8 +833,14 @@ class LexiconIndexViewController : UIViewController
                             sortedStrings = strings.sorted()
                             
                         case Constants.Sort.Frequency:
+                            var occurrences = [String:Int]()
+                            
+                            strings.forEach({ (string:String) in
+                                occurrences[string] = self.lexicon?.occurrences(string)
+                            })
+                            
                             sortedStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
-                                return self.lexicon?.occurrences(first) > self.lexicon?.occurrences(second)
+                                return occurrences[first] > occurrences[second]
 //                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
 //                                    let left = String(first[rangeFirst.upperBound...])
 //                                    let right = String(second[rangeSecond.upperBound...])
@@ -899,9 +905,9 @@ class LexiconIndexViewController : UIViewController
                                 }
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
-                                self?.updateLocateButton()
-                                
                                 self?.ptvc.sort.sorting = false
+
+                                self?.updateLocateButton()
                             }
                         }
                     }))
@@ -933,9 +939,9 @@ class LexiconIndexViewController : UIViewController
                                 }
                                 
                                 self?.ptvc.segmentedControl.isEnabled = true
-                                self?.updateLocateButton()
-                                
                                 self?.ptvc.sort.sorting = false
+
+                                self?.updateLocateButton()
                             }
                         }
                     }))
@@ -1021,6 +1027,8 @@ class LexiconIndexViewController : UIViewController
         }
     }
 
+    var sortingObserver = false
+    
     func updateLocateButton()
     {
         // Not necessarily called on the main thread.
@@ -1031,6 +1039,8 @@ class LexiconIndexViewController : UIViewController
                 self.locateButton.isHidden = false
                 
                 if !self.ptvc.tableView.isHidden {
+                    // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
+                    // See notification SORTING_CHANGED
                     self.locateButton.isEnabled = !self.ptvc.sort.sorting
                 } else {
                     self.locateButton.isEnabled = false
@@ -1053,6 +1063,11 @@ class LexiconIndexViewController : UIViewController
         }
     }
 
+    @objc func sortingChanged()
+    {
+        updateLocateButton()
+    }
+    
     func addNotifications()
     {
         guard lexicon != nil else {
@@ -1063,6 +1078,8 @@ class LexiconIndexViewController : UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
+
+            NotificationCenter.default.addObserver(self, selector: #selector(self.sortingChanged), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
         }
     }
     
@@ -1422,46 +1439,64 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "LEXICON UPDATE")
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
     @objc func updated()
     {
         guard !self.ptvc.sort.sorting else {
             return
         }
         
-        // Need to block while waiting for the tableView to be hidden.
-        Thread.onMainThreadSync {
-            self.locateButton.isEnabled = false
-            self.ptvc.segmentedControl.isEnabled = false
-            self.ptvc.tableView.isHidden = true
-        }
-        
-        self.ptvc.sort.sorting = self.ptvc.sort.function != nil
-
-        // self.lexicon?.section.strings
-        self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.strings)
-
-        self.ptvc.updateSearchResults()
-        
-        Thread.onMainThread {
-            self.ptvc.tableView.reloadData()
-            self.ptvc.tableView.isHidden = false
-
-            self.updateSearchResults()
+        operationQueue.addOperation {
+            // Need to block while waiting for the tableView to be hidden.
+            Thread.onMainThreadSync {
+                self.ptvc.segmentedControl.isEnabled = false
+                self.ptvc.tableView.isHidden = true
+            }
             
-            self.locateButton.isEnabled = true
+            self.ptvc.sort.sorting = self.ptvc.sort.function != nil
             
-            self.ptvc.segmentedControl.isEnabled = true
+            // self.lexicon?.section.strings
+            self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.strings)
             
-            self.ptvc.sort.sorting = false
+            self.ptvc.updateSearchResults()
+            
+            Thread.onMainThread {
+                self.ptvc.tableView.reloadData()
+                self.ptvc.tableView.isHidden = false
+                
+                self.updateSearchResults()
+                
+                self.ptvc.segmentedControl.isEnabled = true
+
+                self.ptvc.sort.sorting = false
+            }
+            
+            if self.operationQueue.operationCount > 1 {
+                Thread.sleep(forTimeInterval: 5)
+            }
         }
     }
     
     @objc func completed()
     {
+        if self.operationQueue.operationCount > 0 {
+            operationQueue.cancelAllOperations()
+            operationQueue.waitUntilAllOperationsAreFinished()
+        }
+        
         updated()
         
-        Thread.onMainThread {
-            self.ptvc.activityIndicator.stopAnimating()
+        operationQueue.addOperation {
+            Thread.onMainThread {
+                self.ptvc.activityIndicator.stopAnimating()
+            }
         }
     }
     
@@ -1994,11 +2029,26 @@ extension LexiconIndexViewController : UITableViewDataSource
                 print("No mediaItem for cell!")
             }
         }
-        
-        if let searchText = searchText, let mediaItem = cell.mediaItem, let count = mediaItem.notesTokens?[searchText] {
-            cell.countLabel.text = count.description
-        } else {
-            cell.countLabel.text = nil
+
+        cell.countLabel.text = nil
+
+        if let searchText = searchText, let mediaItem = cell.mediaItem {
+            if mediaItem.notesTokens == nil {
+                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+                    mediaItem.loadNotesTokens()
+                    if cell.mediaItem == mediaItem {
+                        if let count = mediaItem.notesTokens?[searchText] {
+                            Thread.onMainThread {
+                                cell.countLabel.text = count.description
+                            }
+                        }
+                    }
+                }
+            } else {
+                if let count = mediaItem.notesTokens?[searchText] {
+                    cell.countLabel.text = count.description
+                }
+            }
         }
         
         return cell
@@ -2053,17 +2103,17 @@ extension LexiconIndexViewController : UITableViewDataSource
             
             view?.addSubview(label)
             
-            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-            label.superview?.addConstraint(left)
+//            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+//            label.superview?.addConstraint(left)
+//            
+//            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
+//            label.superview?.addConstraint(right)
+//            
+//            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//            label.superview?.addConstraint(centerY)
             
-            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
-            label.superview?.addConstraint(right)
-            
-            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-            label.superview?.addConstraint(centerY)
-            
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
             view?.label = label
         }

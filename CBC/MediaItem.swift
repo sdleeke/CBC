@@ -985,7 +985,7 @@ class MediaItem : NSObject
     func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
-            let purge = false // notesHTML == nil
+            let purge = globals.purge && (notesHTML == nil)
             
             loadNotesHTML()
             
@@ -1369,11 +1369,19 @@ class MediaItem : NSObject
             return
         }
         
+        guard !loadingNotesHTML else {
+            return
+        }
+        
+        loadingNotesHTML = true
+        
         if let mediaItemDict = self.singleJSONFromURL()?[0] {
             self.notesHTML = mediaItemDict[Field.notes_HTML] //?.replacingOccurrences(of: "&rsquo;", with: "'").replacingOccurrences(of: "&rdquo;", with: "\"").replacingOccurrences(of: "&lsquo;", with: "'").replacingOccurrences(of: "&ldquo;", with: "\"")
         } else {
             print("loadSingle failure")
         }
+
+        loadingNotesHTML = false
     }
     
     func loadNotesTokens()
@@ -1386,7 +1394,7 @@ class MediaItem : NSObject
             return
         }
         
-        let purge = false // notesHTML == nil
+        let purge = globals.purge && (notesHTML == nil)
         
         loadNotesHTML()
 
@@ -2322,6 +2330,8 @@ class MediaItem : NSObject
             return insertHead("<!DOCTYPE html><html><body>" + headerHTML + notesHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
         }
     }
+    
+    var loadingNotesHTML = false
     
     var notesHTML:String?
     {

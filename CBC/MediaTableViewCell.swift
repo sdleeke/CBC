@@ -446,8 +446,29 @@ class MediaTableViewCell: UITableViewCell
         }
         
         if mediaItem.hasNotes {
-            if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem.searchHit(searchText).transcriptHTML {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+            if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) {
+                if mediaItem.notesHTML == nil, !mediaItem.loadingNotesHTML {
+                    DispatchQueue.global(qos: .userInteractive).async {
+                        guard !mediaItem.loadingNotesHTML else {
+                            return
+                        }
+                        
+                        mediaItem.loadNotesHTML()
+                        
+                        if self.mediaItem == mediaItem {
+                            Thread.onMainThread {
+                                self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+                            }
+                        }
+                    }
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+                } else {
+                    if mediaItem.searchHit(searchText).transcriptHTML {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+                    } else {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+                    }
+                }
             } else {
                 //                    print(searchText!)
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))

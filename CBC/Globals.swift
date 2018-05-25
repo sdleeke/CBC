@@ -23,6 +23,8 @@ var globals:Globals!
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    var purge = false
+    
     var persistentContainer: NSPersistentContainer!
     
     func saveContext()
