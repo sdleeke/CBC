@@ -3737,7 +3737,7 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
-    pic.showsPageRange = true
+//    pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
 
     if let html = html {

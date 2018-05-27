@@ -142,9 +142,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 if let words = self?.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
                     return lhs < rhs
                 }) {
-                    let roots = Array(Set(words.map({ (word:String) -> String in
-                        return String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
-                    }))).sorted()
+                    var roots = [String:Int]()
+                    
+                    var keys : [String] {
+                        get {
+                            return roots.keys.sorted()
+                        }
+                    }
+                    
+                    words.forEach({ (word:String) in
+                        let key = String(word[..<String.Index(encodedOffset: 1)])
+                        if let count = roots[key] {
+                            roots[key] = count + 1
+                        } else {
+                            roots[key] = 1
+                        }
+                    })
+                    
+//                    let roots = Array(Set(words.map({ (word:String) -> String in
+//                        return String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
+//                    }))).sorted()
 
                     bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
                     
@@ -152,7 +169,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     
                     indexHTML = indexHTML + "<tr>"
                     
-                    for root in roots {
+                    for root in roots.keys.sorted() {
                         indexHTML = indexHTML + "<td>" + "<a id=\"index\(root)\" name=\"index\(root)\" href=#\(root)>" + root + "</a>" + "</td>"
                     }
                     
@@ -166,19 +183,20 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     
                     wordsHTML = wordsHTML + "<tr><td></td></tr>"
                     
-                    wordsHTML = wordsHTML + "<tr><td>" + roots[0] + "</td></tr>"
-
                     var section = 0
                     
+                    wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+
                     for word in words {
                         let first = String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
 
-                        if first != roots[section] {
+                        if first != keys[section] {
                             // New Section
                             section += 1
                             wordsHTML = wordsHTML + "<tr><td></td></tr>"
                             
-                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(roots[section])\" name=\"\(roots[section])\" href=#index\(roots[section])>" + roots[section] + "</a>" + "</td></tr>"
+                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+
                         }
                         
                         wordsHTML = wordsHTML + "<tr><td>" + word + "</td></tr>"
@@ -488,6 +506,7 @@ class LexiconIndexViewController : UIViewController
             self.setTableViewHeightConstraint(change:0)
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             self.setTableViewHeightConstraint(change:0)
+            self.updateLocateButton()
         }
     }
     
@@ -1038,12 +1057,26 @@ class LexiconIndexViewController : UIViewController
                 self.locateView.isHidden = false
                 self.locateButton.isHidden = false
                 
-                if !self.ptvc.tableView.isHidden {
-                    // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
-                    // See notification SORTING_CHANGED
-                    self.locateButton.isEnabled = !self.ptvc.sort.sorting
+                if self.tableViewHeightConstraint.isActive {
+                    if self.tableViewHeightConstraint.constant < 250 {
+                        self.locateButton.isEnabled = false
+                    } else {
+                        if !self.ptvc.tableView.isHidden {
+                            // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
+                            // See notification SORTING_CHANGED
+                            self.locateButton.isEnabled = !self.ptvc.sort.sorting
+                        } else {
+                            self.locateButton.isEnabled = false
+                        }
+                    }
                 } else {
-                    self.locateButton.isEnabled = false
+                    if !self.ptvc.tableView.isHidden {
+                        // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
+                        // See notification SORTING_CHANGED
+                        self.locateButton.isEnabled = !self.ptvc.sort.sorting
+                    } else {
+                        self.locateButton.isEnabled = false
+                    }
                 }
             }
         } else {
@@ -1051,14 +1084,6 @@ class LexiconIndexViewController : UIViewController
                 self.locateView.isHidden = true
                 self.locateButton.isHidden = true
                 self.locateButton.isEnabled = false
-            }
-        }
-        
-        Thread.onMainThread {
-            if self.tableViewHeightConstraint.isActive {
-                if self.tableViewHeightConstraint.constant < 250 {
-                    self.locateButton.isEnabled = false
-                }
             }
         }
     }
@@ -2030,27 +2055,6 @@ extension LexiconIndexViewController : UITableViewDataSource
             }
         }
 
-        cell.countLabel.text = nil
-
-        if let searchText = searchText, let mediaItem = cell.mediaItem {
-            if mediaItem.notesTokens == nil {
-                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-                    mediaItem.loadNotesTokens()
-                    if cell.mediaItem == mediaItem {
-                        if let count = mediaItem.notesTokens?[searchText] {
-                            Thread.onMainThread {
-                                cell.countLabel.text = count.description
-                            }
-                        }
-                    }
-                }
-            } else {
-                if let count = mediaItem.notesTokens?[searchText] {
-                    cell.countLabel.text = count.description
-                }
-            }
-        }
-        
         return cell
     }
     

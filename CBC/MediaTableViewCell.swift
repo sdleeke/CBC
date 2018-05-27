@@ -460,6 +460,17 @@ class MediaTableViewCell: UITableViewCell
                                 self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
                             }
                         }
+                        
+                        if (self.vc as? LexiconIndexViewController) != nil, let searchText = self.searchText {
+                            mediaItem.loadNotesTokens()
+                            if let count = mediaItem.notesTokens?[searchText] {
+                                Thread.onMainThread {
+                                    if self.mediaItem == mediaItem {
+                                        self.countLabel.text = count.description
+                                    }
+                                }
+                            }
+                        }
                     }
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
                 } else {
@@ -472,6 +483,27 @@ class MediaTableViewCell: UITableViewCell
             } else {
                 //                    print(searchText!)
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+            }
+            
+            if (vc as? LexiconIndexViewController) != nil, let searchText = searchText {
+                countLabel.text = nil
+
+                if mediaItem.notesTokens == nil {
+                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+                        mediaItem.loadNotesTokens()
+                        if let count = mediaItem.notesTokens?[searchText] {
+                            Thread.onMainThread {
+                                if self.mediaItem == mediaItem {
+                                    self.countLabel.text = count.description
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if let count = mediaItem.notesTokens?[searchText] {
+                        countLabel.text = count.description
+                    }
+                }
             }
         }
         

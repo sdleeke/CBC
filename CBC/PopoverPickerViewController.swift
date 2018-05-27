@@ -294,9 +294,17 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     bodyHTML = bodyHTML + "<html><body>"
                     
-                    bodyHTML = bodyHTML + "<center>"
+//                    bodyHTML = bodyHTML + "<center>"
                     
                     if let roots = self?.stringTree?.root?.stringNodes {
+                        var total = 0
+                        for root in roots {
+                            if let count = root.htmlWords(nil)?.count {
+                                total += count
+                            }
+                        }
+                        bodyHTML = bodyHTML + "<p>Index to \(total) Words</p>"
+
                         bodyHTML = bodyHTML + "<table><tr>"
                         
                         for root in roots {
@@ -324,7 +332,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                         bodyHTML = bodyHTML + "</table>"
                     }
                     
-                    bodyHTML = bodyHTML + "</center>"
+//                    bodyHTML = bodyHTML + "</center>"
                     
                     bodyHTML = bodyHTML + "</body></html>"
                     
@@ -889,7 +897,7 @@ class PopoverPickerViewController : UIViewController
             }
         }
 
-        preferredContentSize = CGSize(width: 300, height: 300)
+        setPreferredContentSize() // = CGSize(width: 300, height: 300)
     }
     
     override func viewDidAppear(_ animated: Bool)

@@ -1384,6 +1384,8 @@ class MediaItem : NSObject
         loadingNotesHTML = false
     }
     
+    var loadingNotesTokens = false
+    
     func loadNotesTokens()
     {
         guard hasNotesHTML else {
@@ -1394,11 +1396,19 @@ class MediaItem : NSObject
             return
         }
         
+        guard !loadingNotesTokens else {
+            return
+        }
+        
         let purge = globals.purge && (notesHTML == nil)
         
         loadNotesHTML()
 
+        loadingNotesTokens = true
+        
         notesTokens = tokensAndCountsFromString(stripHTML(notesHTML)) // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+        
+        loadingNotesTokens = false
         
         if purge {
             notesHTML = nil // Save memory - load on demand.

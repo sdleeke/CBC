@@ -270,7 +270,14 @@ class Sort
     weak var ptvc : PopoverTableViewController!
     
     var sorting = false
-    
+    {
+        didSet {
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
+            }
+        }
+    }
+
     var function : ((String?,[String]?)->[String]?)?
     
     var method : String? = Constants.Sort.Alphabetical
@@ -281,9 +288,6 @@ class Sort
         didSet {
             if method != oldValue {
 //                print(method)
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
-                }
             }
         }
     }
