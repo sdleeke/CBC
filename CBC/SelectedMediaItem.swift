@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 class SelectedMediaItem {
     weak var globals:Globals!
     
