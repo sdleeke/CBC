@@ -92,6 +92,7 @@ class Section
         return index
     }
     
+    // Make thread safe?
     var stringIndex:[String:[String]]?
     {
         didSet {
@@ -126,6 +127,7 @@ class Section
         }
     }
     
+    // Make thread safe?
     var strings:[String]? {
         willSet {
             
@@ -161,7 +163,11 @@ class Section
             }
         }
     }
+
+    // Make thread safe?
     var indexHeaders:[String]?
+
+    // Make thread safe?
     var indexStrings:[String]?
     {
         didSet {
@@ -289,6 +295,8 @@ class Section
             }
         }
     }
+
+    // Make thread safe?
     var headerStrings:[String]?
 //    {
 //        didSet {
@@ -296,6 +304,7 @@ class Section
 //        }
 //    }
     
+    // Make thread safe?
     var headers:[String]?
     {
         get {
@@ -316,6 +325,7 @@ class Section
         }
     }
     
+    // Make thread safe?
     var counts:[Int]?
     var indexes:[Int]?
 }

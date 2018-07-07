@@ -72,6 +72,7 @@ class MediaRepository {
         }
     }
     
+    // Make thread safe?
     var index:[String:MediaItem]?
     var classes:[String]?
     var events:[String]?

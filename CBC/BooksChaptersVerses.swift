@@ -8,7 +8,9 @@
 
 import Foundation
 
-class BooksChaptersVerses : Swift.Comparable {
+class BooksChaptersVerses : Swift.Comparable
+{
+    // Make thread safe?
     var data:[String:[Int:[Int]]]?
     
     func bookChaptersVerses(book:String?) -> BooksChaptersVerses?

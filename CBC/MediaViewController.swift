@@ -844,6 +844,10 @@ extension MediaViewController : WKNavigationDelegate
             return
         }
         
+        guard selectedMediaItem.id != nil else {
+            return
+        }
+        
         guard let documents = documents[selectedMediaItem.id] else {
             return
         }
@@ -879,6 +883,10 @@ extension MediaViewController : WKNavigationDelegate
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError: Error)
     {
         guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard selectedMediaItem.id != nil else {
             return
         }
         
@@ -926,6 +934,10 @@ extension MediaViewController : WKNavigationDelegate
         print("didFailProvisionalNavigation")
         
         guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard selectedMediaItem.id != nil else {
             return
         }
         
@@ -1096,6 +1108,7 @@ class MediaViewController: UIViewController // MediaController
 
 //    var showScripture = false
     
+    // Make thread safe?
     var documents = [String:[String:Document]]()
     
     var document:Document? {
@@ -1147,7 +1160,7 @@ class MediaViewController: UIViewController // MediaController
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
             }
             
-            if let selectedMediaItem = selectedMediaItem {
+            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (documents[selectedMediaItem.id] == nil) {
                     documents[selectedMediaItem.id] = [String:Document]()
                 }
@@ -1259,7 +1272,7 @@ class MediaViewController: UIViewController // MediaController
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
             }
             
-            if let selectedMediaItem = selectedMediaItem {
+            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (documents[selectedMediaItem.id] == nil) {
                     documents[selectedMediaItem.id] = [String:Document]()
                 }
@@ -1371,7 +1384,7 @@ class MediaViewController: UIViewController // MediaController
             notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
             slidesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
 
-            if let selectedMediaItem = selectedMediaItem {
+            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
                     removePlayerObserver()
                     
@@ -2093,6 +2106,10 @@ class MediaViewController: UIViewController // MediaController
         }
         
         guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard selectedMediaItem.id != nil else {
             return
         }
         
@@ -3258,7 +3275,7 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func hideOtherDocuments()
     {
-        if let selectedMediaItem = selectedMediaItem {
+        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
             if let documents = documents[selectedMediaItem.id]?.values {
                 for document in documents {
                     if !document.showing(selectedMediaItem) {
@@ -3271,7 +3288,7 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func hideAllDocuments()
     {
-        if let selectedMediaItem = selectedMediaItem {
+        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
             if let documents = documents[selectedMediaItem.id]?.values {
                 for document in documents {
                     document.wkWebView?.isHidden = true
@@ -3287,7 +3304,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             verticalSplit.isHidden = true
             
             hideAllDocuments()
@@ -3750,7 +3767,7 @@ class MediaViewController: UIViewController // MediaController
     
     func setupWKContentOffsets()
     {
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             return
         }
         
@@ -4532,7 +4549,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             return
         }
         
@@ -4566,7 +4583,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             return
         }
         
@@ -5581,7 +5598,7 @@ extension MediaViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        if let selectedMediaItem = selectedMediaItem, let documents = documents[selectedMediaItem.id]?.values {
+        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil, let documents = documents[selectedMediaItem.id]?.values {
             for document in documents {
                 if document.showing(selectedMediaItem), document.loaded, let wkWebView = document.wkWebView, wkWebView.scrollView.isDecelerating {
                     captureContentOffset(document)

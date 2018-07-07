@@ -24,8 +24,10 @@ class ScriptureIndex
         
     }
     
+    // Make thread safe?
     var sectionsIndex = [String:[String:[MediaItem]]]()
     
+    // Make thread safe?
     var sections:[String:[MediaItem]]?
     {
         get {
@@ -87,6 +89,8 @@ class ScriptureIndex
     
     var sorted = [String:Bool]()
     
+    // Make thread safe?
+
     //Test
     var byTestament = [String:[MediaItem]]()
     

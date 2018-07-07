@@ -19,6 +19,7 @@ class StreamEntry
         self.dict = dict
     }
     
+    // Make thread safe?
     var dict : [String:Any]?
     
     var id : Int?

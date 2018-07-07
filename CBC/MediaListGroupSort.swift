@@ -11,13 +11,83 @@ import UIKit
 import AVKit
 
 //Group//String//Sort
-typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
+//typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
+
+class MediaGroupSort {
+    var storage : [String:[String:[String:[MediaItem]]]]?
+
+    // Make it threadsafe
+    let queue = DispatchQueue(label: "MediaGroupSort")
+    
+    subscript(key:String) -> [String:[String:[MediaItem]]]? {
+        get {
+            return queue.sync {
+                return storage?[key]
+            }
+        }
+        set {
+            queue.sync {
+                if storage == nil {
+                    storage = [String:[String:[String:[MediaItem]]]]()
+                }
+                storage?[key] = newValue
+            }
+        }
+    }
+}
 
 //Group//String//Name
-typealias MediaGroupNames = [String:[String:String]]
+//typealias MediaGroupNames = [String:[String:String]]
 
-typealias Words = [String:[MediaItem:Int]]
+class MediaGroupNames {
+    var storage : [String:[String:String]]?
+    
+    // Make it threadsafe
+    let queue = DispatchQueue(label: "MediaGroupNames")
+    
+    subscript(key:String) -> [String:String]? {
+        get {
+            return queue.sync {
+                return storage?[key]
+            }
+        }
+        set {
+            queue.sync {
+                if storage == nil {
+                    storage = [String:[String:String]]()
+                }
+                storage?[key] = newValue
+            }
+        }
+    }
+}
 
+//typealias Words = [String:[MediaItem:Int]]
+
+class Words {
+    var storage : [String:[MediaItem:Int]]?
+    
+    // Make it threadsafe
+    let queue = DispatchQueue(label: "Words")
+    
+    subscript(key:String) -> [MediaItem:Int]? {
+        get {
+            return queue.sync {
+                return storage?[key]
+            }
+        }
+        set {
+            queue.sync {
+                if storage == nil {
+                    storage = [String:[MediaItem:Int]]()
+                }
+                storage?[key] = newValue
+            }
+        }
+    }
+}
+
+// This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
     @objc func freeMemory()
@@ -85,6 +155,8 @@ class MediaListGroupSort
             }
         }
     }
+
+    // Make thread safe?
     var index:[String:MediaItem]? //MediaItems indexed by ID.
     var classes:[String]?
     var events:[String]?
@@ -96,6 +168,7 @@ class MediaListGroupSort
         return Lexicon(self) // lexicon
     }()
     
+    // Make thread safe?
     var searches:[String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     lazy var scriptureIndex:ScriptureIndex? = {
@@ -118,12 +191,15 @@ class MediaListGroupSort
         }
     }
     
+    // Make thread safe?
     var tagMediaItems:[String:[MediaItem]]?//sortTag:MediaItem
     {
         didSet {
             
         }
     }
+
+    // Make thread safe?
     var tagNames:[String:String]?//sortTag:tag
     {
         didSet {
@@ -131,6 +207,7 @@ class MediaListGroupSort
         }
     }
     
+    // Make thread safe?
     var proposedTags:[String]? {
         get {
             var possibleTags = [String:Int]()
@@ -179,6 +256,7 @@ class MediaListGroupSort
         }
     }
     
+    // Make thread safe?
     var mediaItemTags:[String]? {
         get {
             return tagMediaItems?.keys.sorted(by: { $0 < $1 }).map({ (string:String) -> String in
@@ -191,6 +269,7 @@ class MediaListGroupSort
         }
     }
     
+    // Make thread safe?
     var mediaItems:[MediaItem]? {
         get {
             return mediaItems(grouping: globals.grouping,sorting: globals.sorting)

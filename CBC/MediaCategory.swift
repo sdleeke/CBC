@@ -9,6 +9,7 @@
 import Foundation
 
 class MediaCategory {
+    // Make thread safe?
     var dicts:[String:String]?
     
     var filename:String? {
@@ -31,6 +32,7 @@ class MediaCategory {
         }
     }
     
+    // Make thread safe?
     var names:[String]? {
         get {
             guard let dicts = dicts else {
@@ -76,7 +78,72 @@ class MediaCategory {
         }
     }
     
+    // Make thread safe?
     var settings:[String:[String:String]]?
+    
+    class Settings {
+        var storage : [String:[String:String]]?
+        
+        init(storage:[String:[String:String]]?)
+        {
+            self.storage = storage
+        }
+        
+        // Make it threadsafe
+        let queue = DispatchQueue(label: "Settings")
+        
+        subscript(key:String?) -> [String:String]? {
+            get {
+                return queue.sync {
+                    guard let key = key else {
+                        return nil
+                    }
+                    
+                    return storage?[key]
+                }
+            }
+            set {
+                queue.sync {
+                    guard let key = key else {
+                        return
+                    }
+                    
+                    if storage == nil, newValue != nil {
+                        storage = [String:[String:String]]()
+                    }
+
+                    storage?[key] = newValue
+                }
+            }
+        }
+
+        var allowSave = true
+        
+        func saveBackground()
+        {
+            guard allowSave else {
+                return
+            }
+            
+            print("saveSettingsBackground")
+            
+            DispatchQueue.global(qos: .background).async { // [weak self] in
+                self.save()
+            }
+        }
+        
+        func save()
+        {
+            guard allowSave else {
+                return
+            }
+            
+            print("saveSettings")
+            let defaults = UserDefaults.standard
+            defaults.set(storage, forKey: Constants.SETTINGS.CATEGORY)
+            defaults.synchronize()
+        }
+    }
     
     var allowSaveSettings = true
     
@@ -104,7 +171,7 @@ class MediaCategory {
         defaults.set(settings, forKey: Constants.SETTINGS.CATEGORY)
         defaults.synchronize()
     }
-    
+
     subscript(key:String) -> String? {
         get {
             if let selected = selected {

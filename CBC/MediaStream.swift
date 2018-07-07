@@ -10,8 +10,10 @@ import Foundation
 
 class MediaStream
 {
+    // Make thread safe?
     var streamEntries:[[String:Any]]?
     
+    // Make thread safe?
     var streamStrings:[String]?
     {
         get {
@@ -28,6 +30,7 @@ class MediaStream
         }
     }
     
+    // Make thread safe?
     var streamStringIndex:[String:[String]]?
     {
         get {
@@ -68,6 +71,7 @@ class MediaStream
         }
     }
     
+    // Make thread safe?
     var streamEntryIndex:[String:[[String:Any]]]?
     {
         get {
@@ -108,6 +112,7 @@ class MediaStream
         }
     }
     
+    // Make thread safe?
     var streamSorted:[[String:Any]]?
     {
         get {
@@ -117,6 +122,7 @@ class MediaStream
         }
     }
     
+    // Make thread safe?
     var streamCategories:[String:[[String:Any]]]?
     {
         get {
@@ -138,6 +144,8 @@ class MediaStream
             }
         }
     }
+    
+    // Make thread safe?
     // Year // Month // Day // Event
     var streamSchedule:[String:[String:[String:[[String:Any]]]]]?
     {

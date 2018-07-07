@@ -54,6 +54,8 @@ struct XML {
     var chapter:String?
     var verse:String?
 
+    // Make thread safe?
+
               //Book //Chap  //Verse //Text
     var text:[String:[String:[String:String]]]?
     
@@ -61,6 +63,7 @@ struct XML {
 }
 
 class Dict : NSObject {
+    // Make thread safe?
     var data = [String:Any]()
     
     subscript(key:String) -> Any? {

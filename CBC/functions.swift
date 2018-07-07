@@ -12,6 +12,50 @@ import AVKit
 import MessageUI
 import UserNotifications
 
+extension String {
+    var lemmas : [(String,String,NSRange)]?
+    {
+        get {
+            return lemmasInString(string: self)
+        }
+    }
+
+    var nameTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return nameTypesInString(string: self)
+        }
+    }
+    
+    var lexicalTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return lexicalTypesInString(string: self)
+        }
+    }
+    
+    var tokenTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return tokenTypesInString(string: self)
+        }
+    }
+    
+    var nameAndLexicalTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return nameTypesAndLexicalTypesInString(string: self)
+        }
+    }
+    
+    var tokensAndCounts : [String:Int]?
+    {
+        get {
+            return tokensAndCountsFromString(self) // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
+        }
+    }
+}
+
 extension Data {
     var html2AttributedString: NSAttributedString? {
         do {
@@ -556,7 +600,7 @@ func jsonFromURL(url:String) -> Any?
         
         do {
             let json = try JSONSerialization.jsonObject(with: data, options: [])
-            
+//            print(json)
             return json
         } catch let error as NSError {
             NSLog(error.localizedDescription)
@@ -596,39 +640,74 @@ func jsonFromFileSystem(filename:String?) -> Any?
     }
 }
 
+var operationQueue:OperationQueue! = {
+    let operationQueue = OperationQueue()
+    operationQueue.underlyingQueue = DispatchQueue(label: "JSON")
+    operationQueue.qualityOfService = .background
+    operationQueue.maxConcurrentOperationCount = 1
+    return operationQueue
+}()
+
 func jsonFromURL(url:String,filename:String) -> Any?
 {
     guard globals.reachability.isReachable, let url = URL(string: url) else {
         return jsonFromFileSystem(filename: filename)
     }
-    
-    do {
-        let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
-        print("able to read json from the URL.")
-        
-        do {
-            let json = try JSONSerialization.jsonObject(with: data, options: [])
-            
+
+    if let json = jsonFromFileSystem(filename: filename) {
+        operationQueue.cancelAllOperations()
+        operationQueue.waitUntilAllOperationsAreFinished()
+
+        operationQueue.addOperation {
             do {
-                if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+                print("able to read json from the URL.")
+                
+                do {
+                    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
+                        try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                    }
+                    
+                    print("able to write json to the file system")
+                } catch let error as NSError {
+                    print("unable to write json to the file system.")
+                    NSLog(error.localizedDescription)
                 }
-                
-                print("able to write json to the file system")
-            } catch let error as NSError {
-                print("unable to write json to the file system.")
-                
+            } catch let error {
                 NSLog(error.localizedDescription)
             }
+        }
+
+        return json
+    } else {
+        do {
+            let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+            print("able to read json from the URL.")
             
-            return json
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                
+                do {
+                    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
+                        try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                    }
+                    
+                    print("able to write json to the file system")
+                } catch let error as NSError {
+                    print("unable to write json to the file system.")
+                    
+                    NSLog(error.localizedDescription)
+                }
+                //            print(json)
+                return json
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
+                return jsonFromFileSystem(filename: filename)
+            }
         } catch let error as NSError {
             NSLog(error.localizedDescription)
             return jsonFromFileSystem(filename: filename)
         }
-    } catch let error as NSError {
-        NSLog(error.localizedDescription)
-        return jsonFromFileSystem(filename: filename)
     }
 }
 
@@ -823,13 +902,13 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     // What happens with other types of apostrophes?
                     if stringAfter.endIndex >= "'s".endIndex {
                         if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                            skip = true
+                            skip = false
                         }
                         if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                            skip = true
+                            skip = false
                         }
                         if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                            skip = true
+                            skip = false
                         }
                     }
                 }
@@ -2487,11 +2566,42 @@ func tokensFromString(_ string:String?) -> [String]?
         }
     }
     
-    for char in str {
+    for index in str.indices {
         //        print(char)
         
+        let char = str[index]
+        
+        let remainder = String(str[index...])
+        
+        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
+//        print(suffix)
+        
+        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
+//        print(next)
+        
+        var skip = false
+        
+        // What happens with other types of apostrophes?
+        if suffix.lowercased() == "'s" {
+            skip = true
+        }
+        
+        if suffix.lowercased() == "'t" {
+            skip = true
+        }
+        
+        if suffix.lowercased() == "'d" {
+            skip = true
+        }
+        
+        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
+            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
+        }
+        
+//        print(skip)
+        
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if !CharacterSet.letters.contains(unicodeScalar) {
+            if !CharacterSet.letters.contains(unicodeScalar), !skip {
 //            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
                 //                print(token)
                 processToken()
@@ -2523,13 +2633,13 @@ func tokensFromString(_ string:String?) -> [String]?
     return tokenArray.count > 0 ? tokenArray : nil
 }
 
-func lemmasFromString(string:String?) -> [(String,String)]?
+func lemmasInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
     }
     
-    var tokens = [(String,String)]()
+    var tokens = [(String,String,NSRange)]()
     
     let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
     let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
@@ -2553,22 +2663,24 @@ func lemmasFromString(string:String?) -> [(String,String)]?
     
     var index = 0
     for tag in tags {
-        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
-        tokens.append((token,tag))
-        //        print("\(token): \(tag)") // \n\(sentence)\n
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range)
+            tokens.append((token,tag,range))
+            //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
         index += 1
     }
     
     return tokens.count > 0 ? tokens : nil
 }
 
-func namesFromString(string:String?) -> [(String,String)]?
+func nameTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
     }
     
-    var tokens = [(String,String)]()
+    var tokens = [(String,String,NSRange)]()
     
     let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
     let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
@@ -2592,22 +2704,24 @@ func namesFromString(string:String?) -> [(String,String)]?
     
     var index = 0
     for tag in tags {
-        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
-        tokens.append((token,tag))
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range)
+            tokens.append((token,tag,range))
         //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
         index += 1
     }
     
     return tokens.count > 0 ? tokens : nil
 }
 
-func partsOfSpeechFromString(string:String?) -> [(String,String)]?
+func lexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
     }
     
-    var tokens = [(String,String)]()
+    var tokens = [(String,String,NSRange)]()
     
     let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
     let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
@@ -2631,22 +2745,24 @@ func partsOfSpeechFromString(string:String?) -> [(String,String)]?
     
     var index = 0
     for tag in tags {
-        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
-        tokens.append((token,tag))
-        //        print("\(token): \(tag)") // \n\(sentence)\n
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range)
+            tokens.append((token,tag,range))
+            //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
         index += 1
     }
     
     return tokens.count > 0 ? tokens : nil
 }
 
-func tokensFromString(string:String?) -> [(String,String)]?
+func tokenTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
     }
     
-    var tokens = [(String,String)]()
+    var tokens = [(String,String,NSRange)]()
     
     let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
     let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
@@ -2670,22 +2786,24 @@ func tokensFromString(string:String?) -> [(String,String)]?
     
     var index = 0
     for tag in tags {
-        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
-        tokens.append((token,tag))
-        //        print("\(token): \(tag)") // \n\(sentence)\n
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range)
+            tokens.append((token,tag,range))
+            //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
         index += 1
     }
     
     return tokens.count > 0 ? tokens : nil
 }
 
-func tagsFromString(string:String?) -> [(String,String)]?
+func nameTypesAndLexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
     }
     
-    var tokens = [(String,String)]()
+    var tokens = [(String,String,NSRange)]()
     
     let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
     let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
@@ -2709,9 +2827,63 @@ func tagsFromString(string:String?) -> [(String,String)]?
     
     var index = 0
     for tag in tags {
-        let token = (string as NSString).substring(with: ranges![index] as! NSRange)
-        tokens.append((token,tag))
-        //        print("\(token): \(tag)") // \n\(sentence)\n
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range)
+            tokens.append((token,tag,range))
+            //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
+        index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+func tokensAndCountsInString(_ string:String?) -> [String:Int]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    var tokens = [String:Int]()
+    
+    let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+    let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther] //, .joinNames
+    
+    let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+    tagger.string = string
+    
+    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
+    
+    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
+    //        let token = (string as NSString).substring(with: tokenRange)
+    //        print(tag,token)
+    //        tokens.append(token)
+    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
+    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+    //    }
+    
+    var ranges : NSArray?
+    
+    let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.tokenType.rawValue, options: options, tokenRanges: &ranges)
+    
+    var index = 0
+    for tag in tags {
+        if let range = ranges?[index] as? NSRange {
+            let token = (string as NSString).substring(with: range).uppercased()
+            
+            if CharacterSet.letters.intersection(CharacterSet(charactersIn: token)) == CharacterSet(charactersIn: token) {
+                if let count = tokens[token] {
+                    tokens[token] = count + 1
+                } else {
+                    tokens[token] = 1
+                }
+            }
+            
+//            if tag == "Word", Int(token) == nil {
+//            }
+            
+            //        print("\(token): \(tag)") // \n\(sentence)\n
+        }
         index += 1
     }
     
@@ -2807,9 +2979,38 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         //        print(char)
         
         let char = str[index]
+
+        let remainder = String(str[index...])
+        
+        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
+//        print(suffix)
+        
+        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
+//        print(next)
+
+        var skip = false
+        
+        // What happens with other types of apostrophes?
+        if suffix.lowercased() == "'s" {
+            skip = true
+        }
+        
+        if suffix.lowercased() == "'t" {
+            skip = true
+        }
+        
+        if suffix.lowercased() == "'d" {
+            skip = true
+        }
+        
+        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
+            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
+        }
+        
+//        print(skip)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
-            if !CharacterSet.letters.contains(unicodeScalar) {
+            if !CharacterSet.letters.contains(unicodeScalar), !skip {
 //            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
 //                print(token)
                 processToken()

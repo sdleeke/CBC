@@ -46,11 +46,15 @@ class CloudLayoutOperation : Operation
             for cloudWord in cloudWords {
                 if let word = cloudWord["word"] as? String, let count = cloudWord["count"] as? Int {
                     words.append(CloudWord(word: word, wordCount: count))
+                } else {
+                    
                 }
             }
         }
 
-        self.cloudWords = words.count > 0 ? words : nil
+        self.cloudWords = words.count > 0 ? words.sorted(by: { (first, second) -> Bool in
+            return first.wordCount > second.wordCount
+        }) : nil
 
         self.cloudTitle = title
         
@@ -150,9 +154,9 @@ class CloudLayoutOperation : Operation
         let ratioCap:CGFloat = 20.0 // parameter to vary
         
         let maxMinRatio:CGFloat = CGFloat(min((CGFloat(maxWordCount) / CGFloat(minWordCount)), ratioCap))
-        if maxMinRatio == ratioCap {
-            print(CGFloat(maxWordCount) / CGFloat(minWordCount))
-        }
+//        if maxMinRatio == ratioCap {
+//            print(CGFloat(maxWordCount) / CGFloat(minWordCount))
+//        }
         
         // Start with these values, which will be decreased as needed that all the words may fit the container
         
@@ -285,7 +289,7 @@ class CloudLayoutOperation : Operation
     func reorderWordsByDescendingWordArea()
     {
         // Words that only fit one way go to the top of the list.
-        cloudWords = cloudWords?.sorted(by: { (first:CloudWord, second:CloudWord) -> Bool in
+        cloudWords?.sort(by: { (first:CloudWord, second:CloudWord) -> Bool in
             //            print(first.wordText!,first.onlyFitsOneWay(containerSize:self.containerSize),second.wordText!,second.onlyFitsOneWay(containerSize:self.containerSize))
             switch (first.onlyFitsOneWay(containerSize:self.containerSize), second.onlyFitsOneWay(containerSize:self.containerSize)) {
             case (false, true):
@@ -416,7 +420,7 @@ class CloudLayoutOperation : Operation
                     return
                 }
                 
-                print(cloudWords.count,index,cloudWord.wordText ?? "nil",cloudWord.wordCount)
+//                print(cloudWords.count,index,cloudWord.wordText ?? "nil",cloudWord.wordCount)
                 
                 index += 1
                 
@@ -573,6 +577,10 @@ class CloudLayoutOperation : Operation
     
     func hasPlacedWord(word:CloudWord,wordRect:CGRect) -> Bool
     {
+        guard !isCancelled else {
+            return false
+        }
+        
         if let intersects = boundingRects?.hasGlyphThatIntersectsWithWordRect(wordRect:wordRect), intersects {
             // Word intersects with another word
             return false
@@ -580,10 +588,10 @@ class CloudLayoutOperation : Operation
         
         // Word doesn't intersect any (glyphs of) previously placed words.  Place it
         
-        Thread.onMainThread {
-            if let wordText = word.wordText {
-                self.delegate?.insertWord(word: wordText, pointSize:word.pointSize, color:word.wordColor, center:word.boundsCenter, isVertical:word.isWordOrientationVertical)
-            }
+        if let wordText = word.wordText {
+            self.delegate?.insertWord(word: wordText, pointSize:word.pointSize, color:word.wordColor, center:word.boundsCenter, isVertical:word.isWordOrientationVertical)
+        } else {
+            
         }
 
         addGlyphBoundingRectToQuadTreeForWord(word:word)

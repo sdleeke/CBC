@@ -84,13 +84,13 @@ extension TextViewController: UISearchBarDelegate
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = true
+                                skip = false
                             }
                         }
                     }

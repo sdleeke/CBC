@@ -139,9 +139,9 @@ extension CloudViewController : PopoverTableViewControllerDelegate
         for cloudWord in cloudWords {
             if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
                 if let selected = self.cloudWords?[index]["selected"] as? Bool, selected {
-                    self.cloudWords?[index]["selected"] =  nil
+                    self.cloudWords?[index]["selected"] = false
                 } else {
-                    self.cloudWords?[index]["selected"] =  true
+                    self.cloudWords?[index]["selected"] = true
                 }
                 break
             }
@@ -177,41 +177,45 @@ extension CloudViewController : CloudLayoutOperationDelegate
             return
         }
 
-        let wordLabel = UILabel(frame: CGRect.zero)
-        
-        wordLabel.text = word
-        wordLabel.textAlignment = .center
-        wordLabel.font = cloudFont?.withSize(pointSize)
-        
-        wordLabel.sizeToFit()
-        
-        wordLabel.textColor = color
-        
-        // Round up size to even multiples to "align" frame without ofsetting center
-        var wordLabelRect = wordLabel.frame
-        wordLabelRect.size.width = CGFloat(Int((wordLabelRect.width + 3) / 2) * 2)
-        wordLabelRect.size.height = CGFloat(Int((wordLabelRect.height + 3) / 2) * 2)
-        wordLabel.frame = wordLabelRect;
-        
-        wordLabel.center = center;
-        
-        if (isVertical)
-        {
-            wordLabel.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / 2))
+        labelQueue.addOperation {
+            Thread.onMainThread {
+                let wordLabel = UILabel(frame: CGRect.zero)
+                
+                wordLabel.text = word
+                wordLabel.textAlignment = .center
+                wordLabel.font = self.cloudFont?.withSize(pointSize)
+                
+                wordLabel.sizeToFit()
+                
+                wordLabel.textColor = color
+                
+                // Round up size to even multiples to "align" frame without ofsetting center
+                var wordLabelRect = wordLabel.frame
+                wordLabelRect.size.width = CGFloat(Int((wordLabelRect.width + 3) / 2) * 2)
+                wordLabelRect.size.height = CGFloat(Int((wordLabelRect.height + 3) / 2) * 2)
+                wordLabel.frame = wordLabelRect;
+                
+                wordLabel.center = center;
+                
+                if (isVertical)
+                {
+                    wordLabel.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / 2))
+                }
+                
+                //#ifdef DEBUG
+                //    wordLabel.layer.borderColor = [UIColor redColor].CGColor;
+                //    wordLabel.layer.borderWidth = 1;
+                //#endif
+                
+                //        if wordLabels == nil {
+                //            wordLabels = [String:UILabel]()
+                //        }
+                //
+                //        wordLabels?[word] = wordLabel
+                
+                self.cloudView.addSubview(wordLabel)
+            }
         }
-        
-        //#ifdef DEBUG
-        //    wordLabel.layer.borderColor = [UIColor redColor].CGColor;
-        //    wordLabel.layer.borderWidth = 1;
-        //#endif
-        
-        if wordLabels == nil {
-            wordLabels = [String:UILabel]()
-        }
-
-        wordLabels?[word] = wordLabel
-        
-        cloudView.addSubview(wordLabel)
     }
     
     func insertBoundingRect(boundingRect:CGRect)
@@ -234,7 +238,8 @@ class CloudViewController: UIViewController
     
     var ptvc:PopoverTableViewController!
     
-    var wordLabels : [String:UILabel]?
+    // Make thread safe?
+//    var wordLabels : [String:UILabel]?
     
 //    var cloudLayoutOperationQueue : OperationQueue?
     lazy var operationQueue:OperationQueue! = {
@@ -244,7 +249,15 @@ class CloudViewController: UIViewController
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
-
+    
+    lazy var labelQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "LABELS")
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
     @IBOutlet weak var selectAllButton: UIButton!
     @IBAction func selectAllAction(_ sender: UIButton)
     {
@@ -313,7 +326,7 @@ class CloudViewController: UIViewController
 //        ptvc.tableView.isHidden = true
         
         for index in 0..<cloudWords.count {
-            cloudWords[index]["selected"] = nil
+            cloudWords[index]["selected"] = false
         }
         
         self.cloudWords = cloudWords
@@ -368,8 +381,11 @@ class CloudViewController: UIViewController
     var cloudTitle : String?
     var cloudColors : [UIColor]? = CloudColors.GreenBlue
     var cloudFont : UIFont?
-    var cloudWords : [[String:Any]]?
     
+    // Make thread safe?
+    var cloudWords : [[String:Any]]?
+    var cloudWordsFunction:(()->[[String:Any]]?)?
+
     var mediaItem : MediaItem?
     
     override func viewDidLoad()
@@ -403,6 +419,7 @@ class CloudViewController: UIViewController
                 if let label = view as? UILabel {
                     if label.frame.contains(location) {
                         print(label.text)
+                        // Dismiss WordCloud and select that word in the document?
                         break
                     }
                 }
@@ -478,10 +495,27 @@ class CloudViewController: UIViewController
 //        ptvc?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
-        
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
-        
         navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
+
+        if cloudWordsFunction != nil {
+            process(viewController: self, work: { [weak self] () -> (Any?) in
+                self?.cloudWords = self?.cloudWordsFunction?()
+
+                self?.ptvc.section.strings = self?.cloudWords?.map({ (dict:[String:Any]) -> String in
+                    let word = dict["word"] as? String ?? "ERROR"
+                    let count = dict["count"] as? Int ?? -1
+                    return "\(word) (\(count))"
+                })
+
+                self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+
+                return nil
+            }, completion: { [weak self] (data:Any?) in
+                self?.cancelAndRelayoutCloudWords()
+                self?.ptvc.tableView.reloadData()
+            })
+        }
     }
 
     override func viewDidAppear(_ animated: Bool)
@@ -564,32 +598,31 @@ class CloudViewController: UIViewController
         operationQueue?.cancelAllOperations()
         operationQueue?.waitUntilAllOperationsAreFinished()
         
+        labelQueue?.cancelAllOperations()
+        labelQueue?.waitUntilAllOperationsAreFinished()
+        
         relayoutCloudWords()
     }
     
     func relayoutCloudWords()
     {
-        Thread.onMainThread{
+        Thread.onMainThread {
             self.removeCloudWords()
         }
-        
-        layoutCloudWords()
+
+        self.layoutCloudWords()
     }
     
     func layoutCloudWords()
     {
-        wordLabels = nil
+//        wordLabels = nil
         
         cloudColors = CloudColors.GreenBlue
         
         cloudView.backgroundColor = UIColor.white
         
         if let cloudWords = cloudWords?.filter({ (dict:[String:Any]) -> Bool in
-            if let selected = dict["selected"] as? Bool, selected {
-                return true
-            } else {
-                return false
-            }
+            return (dict["selected"] as? Bool) ?? false
         }), cloudWords.count > 0 {
             let newCloudLayoutOperation = CloudLayoutOperation(cloudWords:cloudWords,
                                                                title:cloudTitle,
@@ -652,9 +685,37 @@ class CloudViewController: UIViewController
                     ptvc.allowsMultipleSelection = true
                     ptvc.selection = { (index:Int) -> Bool in
 //                        print(index,self.cloudWords?[index]["word"])
-                        if let selection = self.cloudWords?[index]["selected"] as? Bool {
-                            return selection
+                        guard let cloudWords = self.cloudWords else {
+                            return false
                         }
+                        
+                        guard let string = self.ptvc.section.strings?[index] else {
+                            return false
+                        }
+                        
+                        guard let startRange = string.range(of: " (") else {
+                            return false
+                        }
+
+                        let word = String(string[..<startRange.lowerBound])
+                        let remainder = String(string[startRange.upperBound...])
+                        
+                        guard let endRange = remainder.range(of: ")") else {
+                            return false
+                        }
+                        
+                        let count = String(remainder[..<endRange.lowerBound])
+                        
+                        var index = 0
+                        
+                        for cloudWord in cloudWords {
+                            if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
+                                return (cloudWords[index]["selected"] as? Bool) ?? false
+                            }
+                            
+                            index += 1
+                        }
+                        
                         return false
                     }
                     ptvc.segments = true

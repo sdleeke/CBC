@@ -382,6 +382,7 @@ class PopoverPickerViewController : UIViewController
 //        }
 //    }
     
+    var stringsFunction:(()->[String]?)?
     var strings:[String]?
     var string:String?
     
@@ -880,17 +881,30 @@ class PopoverPickerViewController : UIViewController
             picker.selectRow(index, inComponent: 0, animated: false)
         } else
 
-        if (stringTree != nil) && (strings != nil) {
-            if stringTree?.incremental == true {
-                self.stringTree?.build(strings: self.strings)
-            } else {
+        if (stringTree != nil) {
+            if (strings != nil) {
                 process(viewController: self, work: { [weak self] () -> (Any?) in
                     self?.stringTree?.build(strings: self?.strings)
                     
                     return nil
                 }, completion: { [weak self] (data:Any?) in
                     self?.updateActionButton()
+                    self?.updatePickerSelections()
+                    self?.updatePicker()
+                })
+            } else
+            
+            if stringsFunction != nil {
+                var strings : [String]?
+                
+                process(viewController: self, work: { [weak self] () -> (Any?) in
+                    strings = self?.stringsFunction?()
                     
+                    self?.stringTree?.build(strings: strings)
+
+                    return nil
+                }, completion: { [weak self] (data:Any?) in
+                    self?.updateActionButton()
                     self?.updatePickerSelections()
                     self?.updatePicker()
                 })

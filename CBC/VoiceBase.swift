@@ -815,6 +815,11 @@ class VoiceBase {
     var uploadJSON:[String:Any]?
     
     var resultsTimer:Timer?
+    {
+        didSet {
+            
+        }
+    }
     
     var url:String? {
         get {
@@ -854,7 +859,7 @@ class VoiceBase {
         }
     }
     
-    func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+    func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,lemmas:Bool,index:Bool) -> String?
     {
         guard (stripHead(fullHTML) != nil) else {
             return nil
@@ -871,6 +876,18 @@ class VoiceBase {
 //        guard let headerHTML = mediaItem?.headerHTML else {
 //            return html
 //        }
+        
+        var searchTexts = Set<String>()
+        
+        if lemmas {
+            if let lemmas = html.html2String?.lemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
+                }
+            }
+        }
         
         var markCounter = 0
         
@@ -942,13 +959,13 @@ class VoiceBase {
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = true
+                                skip = false
                             }
                         }
                     }
@@ -984,28 +1001,35 @@ class VoiceBase {
             return newString == Constants.EMPTY_STRING ? string : newString
         }
 
+        searchTexts.insert(searchText.lowercased())
+
         var newString:String = Constants.EMPTY_STRING
         var string:String = html
-        
-        while let searchRange = string.range(of: "<") {
-            let searchString = String(string[..<searchRange.lowerBound])
-            //            print(searchString)
-            
-            // mark search string
-            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
-            
-            let remainder = String(string[searchRange.lowerBound...])
-            
-            if let htmlRange = remainder.range(of: ">") {
-                let html = String(remainder[..<htmlRange.upperBound])
-                //                print(html)
+
+        for searchText in Array(searchTexts).sorted() {
+            while let searchRange = string.range(of: "<") {
+                let searchString = String(string[..<searchRange.lowerBound])
+                //            print(searchString)
                 
-                newString = newString + html
+                // mark search string
+                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
                 
-                string = String(remainder[htmlRange.upperBound...])
+                let remainder = String(string[searchRange.lowerBound...])
+                
+                if let htmlRange = remainder.range(of: ">") {
+                    let html = String(remainder[..<htmlRange.upperBound])
+                    //                print(html)
+                    
+                    newString = newString + html
+                    
+                    string = String(remainder[htmlRange.upperBound...])
+                }
             }
+            
+            string = newString
+            newString = Constants.EMPTY_STRING
         }
-        
+            
         var indexString:String!
         
         if markCounter > 0 {
@@ -1036,7 +1060,7 @@ class VoiceBase {
             htmlString = htmlString + indexString
         }
         
-        htmlString = htmlString + headerHTML + newString + "</body></html>"
+        htmlString = htmlString + headerHTML + string + "</body></html>"
 
         return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
     }
@@ -1510,6 +1534,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var transcriptsJSON : [String:Any]?
     {
         get {
@@ -1517,6 +1542,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var transcriptLatest : [String:Any]?
     {
         get {
@@ -1524,6 +1550,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var tokens : [String:Int]?
     {
         get {
@@ -1547,6 +1574,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var words : [[String:Any]]?
     {
         get {
@@ -1589,6 +1617,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var topicsJSON : [String:Any]?
     {
         get {
@@ -1596,6 +1625,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var topicsDictionaries : [String:[String:Any]]?
     {
         get {
@@ -1619,6 +1649,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var topics : [String]?
     {
         get {
@@ -2284,6 +2315,7 @@ class VoiceBase {
         return nil
     }
     
+    // Make thread safe?
     var allTopicKeywords : [String]?
     {
         guard let topics = topics else {
@@ -2301,6 +2333,7 @@ class VoiceBase {
         return keywords.count > 0 ? Array(keywords) : nil
     }
     
+    // Make thread safe?
     var allTopicKeywordDictionaries : [String:[String:Any]]?
     {
         guard let topics = topics else {
@@ -3097,6 +3130,7 @@ class VoiceBase {
         })
     }
     
+    // Make thread safe?
     var transcriptSegmentArrays:[[String]]?
     {
         get {
@@ -3113,6 +3147,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var _transcriptSegmentArrays:[[String]]?
     {
         didSet {
@@ -3145,6 +3180,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var transcriptSegmentTokens : [String]?
     {
         return transcriptSegmentTokensTimes?.keys.sorted()
@@ -3155,6 +3191,7 @@ class VoiceBase {
         return transcriptSegmentTokensTimes?[token]
     }
     
+    // Make thread safe?
     var transcriptSegmentTokensTimes : [String:[String]]?
     {
         get {
@@ -3171,6 +3208,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var _transcriptSegmentTokensTimes : [String:[String]]?
     {
         didSet {
@@ -3276,6 +3314,7 @@ class VoiceBase {
         return results.count > 0 ? results : nil
     }
     
+    // Make thread safe?
     var transcriptSegmentComponents:[String]?
     {
         get {
@@ -3292,6 +3331,7 @@ class VoiceBase {
         }
     }
     
+    // Make thread safe?
     var _transcriptSegmentComponents:[String]?
     {
         didSet {
@@ -3930,11 +3970,72 @@ class VoiceBase {
         }
         
         var action : AlertAction!
-        
+
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
+                guard globals.isVoiceBaseAvailable else {
+                    if globals.voiceBaseAPIKey == nil {
+                        let alert = UIAlertController(  title: "Please add an API Key to use VoiceBase",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+                            textField.text = globals.voiceBaseAPIKey
+                        })
+                        
+                        let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction) -> Void in
+                            globals.voiceBaseAPIKey = alert.textFields?[0].text
+                            
+                            // If this is a valid API key then should pass a completion block to start the transcript!
+                            if globals.voiceBaseAPIKey != nil {
+                                globals.checkVoiceBaseAvailability {
+                                    if !self.transcribing {
+                                        if globals.reachability.isReachable {
+                                            var alertActions = [AlertAction]()
+                                            
+                                            alertActions.append(AlertAction(title: "Yes", style: .default, handler: {
+                                                self.getTranscript(alert: true) {}
+                                                //                            tableView.setEditing(false, animated: true)
+                                                mgtUpdate()
+                                            }))
+                                            
+                                            alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                                            
+                                            if let text = self.mediaItem?.text {
+                                                alertActionsCancel( viewController: viewController,
+                                                                    title: "Begin Creating\nMachine Generated Transcript?",
+                                                                    message: "\(text) (\(self.transcriptPurpose))",
+                                                    alertActions: alertActions,
+                                                    cancelAction: nil)
+                                            }
+                                        } else {
+                                            networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
+                                        }
+                                    } else {
+                                        mgtUpdate()
+                                    }
+                                }
+                            }
+                        })
+                        alert.addAction(okayAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                            (action : UIAlertAction) -> Void in
+                        })
+                        alert.addAction(cancel)
+                        
+                        viewController.present(alert, animated: true, completion: nil)
+                    } else {
+                        networkUnavailable(viewController,"VoiceBase unavailable.")
+                    }
+                    return
+                }
+                
                 guard globals.reachability.isReachable else {
-                    networkUnavailable(viewController,"Machine generated transcript unavailable.")
+                    networkUnavailable(viewController,"VoiceBase unavailable.")
+//                    networkUnavailable(viewController,"Machine generated transcript unavailable.")
                     return
                 }
                 

@@ -16,6 +16,7 @@ class CachedString {
     
     var index:(()->String?)?
     
+    // Make thread safe?
     var cache = [String:String]()
     
     // if index DOES NOT produce the full key

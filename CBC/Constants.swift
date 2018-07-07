@@ -120,6 +120,8 @@ enum Field {
     static let tags = "series"
     static let book = "book"
     static let year = "year"
+
+    static let image = "series_image"
 }
 
 //enum MediaType : String {

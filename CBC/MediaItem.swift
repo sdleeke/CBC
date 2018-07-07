@@ -617,10 +617,32 @@ class MediaItem : NSObject
         return lhs.id == rhs.id
     }
     
-    var dict:[String:String]?
+    // Make thread safe?
+    var storage:[String:String]?
+    
+    subscript(key:String?) -> String? {
+        get {
+            guard let key = key else {
+                return nil
+            }
+            return storage?[key]
+        }
+        set {
+            guard let key = key else {
+                return
+            }
+            
+            if storage == nil, newValue != nil {
+                storage = [String:String]()
+            }
+            
+            storage?[key] = newValue
+        }
+    }
     
     var booksChaptersVerses:BooksChaptersVerses?
     
+    // Make thread safe?
     var notesTokens:[String:Int]? //[(String,Int)]?
     
     var singleLoaded = false
@@ -635,13 +657,13 @@ class MediaItem : NSObject
         booksChaptersVerses = nil
     }
     
-    init(dict:[String:String]?)
+    init(storage:[String:String]?)
     {
         super.init()
         
 //        print("\(dict)")
 
-        self.dict = dict
+        self.storage = storage
         
 //        self.searchHit = SearchHit(mediaItem: self)
         
@@ -654,6 +676,7 @@ class MediaItem : NSObject
         
     }
     
+    // Make thread safe?
     var downloads = [String:Download]()
     
     //    lazy var downloads:[String:Download]? = {
@@ -748,7 +771,7 @@ class MediaItem : NSObject
     var id:String! {
         get {
             // Potential crash if nil
-            return dict?[Field.id]
+            return self[Field.id]
         }
     }
     
@@ -1066,13 +1089,13 @@ class MediaItem : NSObject
     // this supports settings values that are saved in defaults between sessions
     var playing:String? {
         get {
-            if (dict?[Field.playing] == nil) {
+            if (self[Field.playing] == nil) {
                 if let playing = mediaItemSettings?[Field.playing] {
-                    dict?[Field.playing] = playing
+                    self[Field.playing] = playing
                 } else {
                     // Avoid simultaneous read and write in dict.
                     let playing = hasAudio ? Playing.audio : (hasVideo ? Playing.video : nil)
-                    dict?[Field.playing] = playing
+                    self[Field.playing] = playing
 
                     // this saves calculated values in defaults between sessions
                     mediaItemSettings?[Field.playing] = playing
@@ -1080,38 +1103,38 @@ class MediaItem : NSObject
             }
 
             // ERROR CHECKING
-            if !hasAudio && (dict?[Field.playing] == Playing.audio) {
+            if !hasAudio && (self[Field.playing] == Playing.audio) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasVideo ? Playing.video : nil
-                dict?[Field.playing] = playing
+                self[Field.playing] = playing
 
                 // this saves calculated values in defaults between sessions
                 mediaItemSettings?[Field.playing] = playing
             }
 
             // ERROR CHECKING
-            if !hasVideo && (dict?[Field.playing] == Playing.video) {
+            if !hasVideo && (self[Field.playing] == Playing.video) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasAudio ? Playing.audio : nil
-                dict?[Field.playing] = playing
+                self[Field.playing] = playing
 
                 // this saves calculated values in defaults between sessions
                 mediaItemSettings?[Field.playing] = playing
             }
             
             // Is this ever nil?  Unless it doesn't have audio AND it doesn't have video it is ALWAYS one or the other.
-            return dict?[Field.playing]
+            return self[Field.playing]
         }
         
         set {
-            if newValue != dict?[Field.playing] {
+            if newValue != self[Field.playing] {
                 //Changing audio to video or vice versa clears the mediaItem in the player, which is what stop does vs. pause
                 //(which also resets the state and time).
                 if globals.mediaPlayer.mediaItem == self {
                     globals.mediaPlayer.stop()
                 }
                 
-                dict?[Field.playing] = newValue
+                self[Field.playing] = newValue
                 mediaItemSettings?[Field.playing] = newValue
             }
         }
@@ -1127,39 +1150,39 @@ class MediaItem : NSObject
     // this supports settings values that are saved in defaults between sessions
     var showing:String? {
         get {
-            if (dict?[Field.showing] == nil) {
+            if (self[Field.showing] == nil) {
                 if let showing = mediaItemSettings?[Field.showing] {
-                    dict?[Field.showing] = showing
+                    self[Field.showing] = showing
                 } else {
                     if (hasSlides && hasNotes) {
-                        dict?[Field.showing] = Showing.slides
+                        self[Field.showing] = Showing.slides
                     }
                     if (!hasSlides && hasNotes) {
-                        dict?[Field.showing] = Showing.notes
+                        self[Field.showing] = Showing.notes
                     }
                     if (hasSlides && !hasNotes) {
-                        dict?[Field.showing] = Showing.slides
+                        self[Field.showing] = Showing.slides
                     }
                     if (!hasSlides && !hasNotes) {
-                        dict?[Field.showing] = Showing.none
+                        self[Field.showing] = Showing.none
                     }
 
                     // this saves calculated values in defaults between sessions
-                    mediaItemSettings?[Field.showing] = dict?[Field.showing]
+                    mediaItemSettings?[Field.showing] = self[Field.showing]
                 }
             }
             
             // Backwards compatible fix
-            if dict?[Field.showing] == "none" {
-                dict?[Field.showing] = "NONE"
+            if self[Field.showing] == "none" {
+                self[Field.showing] = "NONE"
             }
             
-            return dict?[Field.showing]
+            return self[Field.showing]
         }
         
         set {
             guard newValue != nil else {
-                dict?[Field.showing] = Showing.none
+                self[Field.showing] = Showing.none
                 mediaItemSettings?[Field.showing] = Showing.none
                 return
             }
@@ -1179,7 +1202,7 @@ class MediaItem : NSObject
                 }
             }
             
-            dict?[Field.showing] = newValue
+            self[Field.showing] = newValue
             mediaItemSettings?[Field.showing] = newValue
         }
     }
@@ -1201,11 +1224,11 @@ class MediaItem : NSObject
             }
             
             if let atEnd = mediaItemSettings?[Constants.SETTINGS.AT_END+playing] {
-                dict?[Constants.SETTINGS.AT_END+playing] = atEnd
+                self[Constants.SETTINGS.AT_END+playing] = atEnd
             } else {
-                dict?[Constants.SETTINGS.AT_END+playing] = "NO"
+                self[Constants.SETTINGS.AT_END+playing] = "NO"
             }
-            return dict?[Constants.SETTINGS.AT_END+playing] == "YES"
+            return self[Constants.SETTINGS.AT_END+playing] == "YES"
         }
         
         set {
@@ -1213,7 +1236,7 @@ class MediaItem : NSObject
                 return
             }
             
-            dict?[Constants.SETTINGS.AT_END+playing] = newValue ? "YES" : "NO"
+            self[Constants.SETTINGS.AT_END+playing] = newValue ? "YES" : "NO"
             mediaItemSettings?[Constants.SETTINGS.AT_END+playing] = newValue ? "YES" : "NO"
         }
     }
@@ -1264,12 +1287,12 @@ class MediaItem : NSObject
             }
             
             if let current_time = mediaItemSettings?[Constants.SETTINGS.CURRENT_TIME+playing] {
-                dict?[Constants.SETTINGS.CURRENT_TIME+playing] = current_time
+                self[Constants.SETTINGS.CURRENT_TIME+playing] = current_time
             } else {
-                dict?[Constants.SETTINGS.CURRENT_TIME+playing] = "\(0)"
+                self[Constants.SETTINGS.CURRENT_TIME+playing] = "\(0)"
             }
 
-            return dict?[Constants.SETTINGS.CURRENT_TIME+playing]
+            return self[Constants.SETTINGS.CURRENT_TIME+playing]
         }
         
         set {
@@ -1277,7 +1300,7 @@ class MediaItem : NSObject
                 return
             }
             
-            dict?[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
+            self[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
             
             mediaItemSettings?[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
         }
@@ -1406,7 +1429,7 @@ class MediaItem : NSObject
 
         loadingNotesTokens = true
         
-        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML)) // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+        notesTokens = notesHTML?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         
         loadingNotesTokens = false
         
@@ -1454,14 +1477,14 @@ class MediaItem : NSObject
     
     var dateService:String? {
         get {
-            return dict?[Field.date]
+            return self[Field.date]
         }
     }
     
     var date:String? {
         get {
-            if let date = dict?[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
-                return String(date[..<range.lowerBound]) // last two characters // dict?[Field.title]
+            if let date = self[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
+                return String(date[..<range.lowerBound]) // last two characters // self[Field.title]
             } else {
                 return nil
             }
@@ -1470,8 +1493,8 @@ class MediaItem : NSObject
     
     var service:String? {
         get {
-            if let date = dict?[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
-                return String(date[range.upperBound...]) // last two characters // dict?[Field.title]
+            if let date = self[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
+                return String(date[range.upperBound...]) // last two characters // self[Field.title]
             } else {
                 return nil
             }
@@ -1480,7 +1503,7 @@ class MediaItem : NSObject
     
     var title:String? {
         get {
-            guard let title = dict?[Field.title], !title.isEmpty else {
+            guard let title = self[Field.title], !title.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1490,13 +1513,13 @@ class MediaItem : NSObject
     
     var category:String? {
         get {
-            return dict?[Field.category]
+            return self[Field.category]
         }
     }
     
     var scriptureReference:String? {
         get {
-            guard let scriptureReference = dict?[Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms "), !scriptureReference.isEmpty else {
+            guard let scriptureReference = self[Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms "), !scriptureReference.isEmpty else {
                 return Constants.Strings.Selected_Scriptures
             }
             
@@ -1528,7 +1551,7 @@ class MediaItem : NSObject
     
     var className:String? {
         get {
-            guard let className = dict?[Field.className], !className.isEmpty else {
+            guard let className = self[Field.className], !className.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1554,7 +1577,7 @@ class MediaItem : NSObject
     
     var eventName:String? {
         get {
-            guard let eventName = dict?[Field.eventName], !eventName.isEmpty else {
+            guard let eventName = self[Field.eventName], !eventName.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1584,7 +1607,7 @@ class MediaItem : NSObject
     
     var speaker:String? {
         get {
-            guard let speaker = dict?[Field.speaker], !speaker.isEmpty else {
+            guard let speaker = self[Field.speaker], !speaker.isEmpty else {
                 return Constants.Strings.None
             }
 
@@ -1594,9 +1617,9 @@ class MediaItem : NSObject
     
     var speakerSort:String? {
         get {
-            if dict?[Field.speaker_sort] == nil {
+            if self[Field.speaker_sort] == nil {
                 if let speakerSort = mediaItemSettings?[Field.speaker_sort] {
-                    dict?[Field.speaker_sort] = speakerSort
+                    self[Field.speaker_sort] = speakerSort
                 } else {
                     //Sort on last names.  This assumes the speaker names are all fo the form "... <last name>" with one or more spaces before the last name and no spaces IN the last name, e.g. "Van Kirk"
 
@@ -1618,14 +1641,14 @@ class MediaItem : NSObject
 //                    print(speaker)
 //                    print(speakerSort)
                     
-                    dict?[Field.speaker_sort] = speakerSort ?? Constants.Strings.None
+                    self[Field.speaker_sort] = speakerSort ?? Constants.Strings.None
 
                     // this saves calculated values in defaults between sessions - but seems like this might be a source for error if things change in the JSON downloaded.
-//                    mediaItemSettings?[Field.speaker_sort] = dict?[Field.speaker_sort]
+//                    mediaItemSettings?[Field.speaker_sort] = self[Field.speaker_sort]
                 }
             }
 
-            return dict?[Field.speaker_sort]
+            return self[Field.speaker_sort]
         }
     }
     
@@ -1655,35 +1678,35 @@ class MediaItem : NSObject
     
     var multiPartSort:String? {
         get {
-            if dict?[Field.multi_part_name_sort] == nil {
+            if self[Field.multi_part_name_sort] == nil {
                 if let multiPartSort = mediaItemSettings?[Field.multi_part_name_sort] {
-                    dict?[Field.multi_part_name_sort] = multiPartSort
+                    self[Field.multi_part_name_sort] = multiPartSort
                 } else {
                     if let multiPartSort = stringWithoutPrefixes(multiPartName) {
-                        dict?[Field.multi_part_name_sort] = multiPartSort
+                        self[Field.multi_part_name_sort] = multiPartSort
                     } else {
 //                        print("multiPartSort is nil")
                     }
 
                     // this saves calculated values in defaults between sessions - but seems like this might be a source for error if things change in the JSON downloaded.
-//                    mediaItemSettings?[Field.multi_part_name_sort] = dict?[Field.multi_part_name_sort]
+//                    mediaItemSettings?[Field.multi_part_name_sort] = self[Field.multi_part_name_sort]
                 }
             }
-            return dict?[Field.multi_part_name_sort]
+            return self[Field.multi_part_name_sort]
         }
     }
     
     var multiPartName:String? {
         get {
-            if (dict?[Field.multi_part_name] == nil) {
+            if (self[Field.multi_part_name] == nil) {
                 if let title = title, let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
                     let seriesString = String(title[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                     
-                    dict?[Field.multi_part_name] = seriesString
+                    self[Field.multi_part_name] = seriesString
                 }
             }
             
-            return dict?[Field.multi_part_name]
+            return self[Field.multi_part_name]
         }
     }
     
@@ -1693,18 +1716,18 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if hasMultipleParts, dict?[Field.part] == nil {
+            if hasMultipleParts, self[Field.part] == nil {
                 if let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
                     let partString = String(title[range.upperBound...])
                     //                    print(partString)
                     if let range = partString.range(of: ")") {
-                        dict?[Field.part] = String(partString[..<range.lowerBound])
+                        self[Field.part] = String(partString[..<range.lowerBound])
                     }
                 }
             }
             
-//            print(dict?[Field.part])
-            return dict?[Field.part]
+//            print(self[Field.part])
+            return self[Field.part]
         }
     }
     
@@ -1814,7 +1837,7 @@ class MediaItem : NSObject
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
-            let jsonTags = dict?[Field.tags]
+            let jsonTags = self[Field.tags]
             
             let savedTags = mediaItemSettings?[Field.tags]
             
@@ -2034,25 +2057,25 @@ class MediaItem : NSObject
     var audio:String? {
         
         get {
-            if (dict?[Field.audio] == nil) && hasAudio, let year = year, let id = id {
-                dict?[Field.audio] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.MP3
+            if (self[Field.audio] == nil) && hasAudio, let year = year, let id = id {
+                self[Field.audio] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.MP3
             }
             
-//            print(dict?[Field.audio])
+//            print(self[Field.audio])
             
-            return dict?[Field.audio]
+            return self[Field.audio]
         }
     }
     
     var mp4:String? {
         get {
-            return dict?[Field.mp4]
+            return self[Field.mp4]
         }
     }
     
     var m3u8:String? {
         get {
-            return dict?[Field.m3u8]
+            return self[Field.m3u8]
         }
     }
     
@@ -2093,12 +2116,12 @@ class MediaItem : NSObject
     
     var notes:String? {
         get {
-            if (dict?[Field.notes] == nil), hasNotes, let year = year, let id = id {
-                dict?[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.notes + Constants.FILENAME_EXTENSION.PDF
+            if (self[Field.notes] == nil), hasNotes, let year = year, let id = id {
+                self[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.notes + Constants.FILENAME_EXTENSION.PDF
             }
 
-            //            print(dict?[Field.notes])
-            return dict?[Field.notes]
+            //            print(self[Field.notes])
+            return self[Field.notes]
         }
     }
     
@@ -2106,7 +2129,7 @@ class MediaItem : NSObject
         return CachedString(index: nil)
     }()
     
-    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,lemmas:Bool,index:Bool) -> String?
     {
         guard (stripHead(fullNotesHTML) != nil) else {
             return nil
@@ -2115,11 +2138,27 @@ class MediaItem : NSObject
         guard let searchText = searchText, !searchText.isEmpty else {
             return fullNotesHTML
         }
+        
+        var searchTexts = Set<String>()
+
+        if lemmas {
+            if let lemmas = notesHTML?.html2String?.lemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
+                }
+            }
+        }
 
         var markCounter = 0
 
-        func mark(_ input:String) -> String
+        func mark(_ input:String,searchText:String?) -> String
         {
+            guard let searchText = searchText, !searchText.isEmpty else {
+                return input
+            }
+
             var string = input
             
             var stringBefore:String = Constants.EMPTY_STRING
@@ -2186,13 +2225,13 @@ class MediaItem : NSObject
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = true
+                                skip = false
                             }
                         }
                     }
@@ -2228,26 +2267,33 @@ class MediaItem : NSObject
             return newString == Constants.EMPTY_STRING ? string : newString
         }
 
+        searchTexts.insert(searchText.lowercased())
+
         var newString:String = Constants.EMPTY_STRING
         var string:String = notesHTML ?? Constants.EMPTY_STRING
         
-        while let searchRange = string.range(of: "<") {
-            let searchString = String(string[..<searchRange.lowerBound])
-//            print(searchString)
-            
-            // mark search string
-            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
-            
-            let remainder = String(string[searchRange.lowerBound...])
-
-            if let htmlRange = remainder.range(of: ">") {
-                let html = String(remainder[..<htmlRange.upperBound])
-//                print(html)
+        for searchText in Array(searchTexts).sorted() {
+            while let searchRange = string.range(of: "<") {
+                let searchString = String(string[..<searchRange.lowerBound])
+                //            print(searchString)
                 
-                newString = newString + html
+                // mark search string
+                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
                 
-                string = String(remainder[htmlRange.upperBound...])
+                let remainder = String(string[searchRange.lowerBound...])
+                
+                if let htmlRange = remainder.range(of: ">") {
+                    let html = String(remainder[..<htmlRange.upperBound])
+                    //                print(html)
+                    
+                    newString = newString + html
+                    
+                    string = String(remainder[htmlRange.upperBound...])
+                }
             }
+            
+            string = newString
+            newString = Constants.EMPTY_STRING
         }
         
         var indexString:String!
@@ -2280,7 +2326,7 @@ class MediaItem : NSObject
             htmlString = htmlString + indexString
         }
 
-        htmlString = htmlString + headerHTML + newString + "</body></html>"
+        htmlString = htmlString + headerHTML + string + "</body></html>"
 
         searchMarkedFullNotesHTML?[searchText] = insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
         
@@ -2346,11 +2392,11 @@ class MediaItem : NSObject
     var notesHTML:String?
     {
         get {
-            //            print(dict?[Field.notes])
-            return dict?[Field.notes_HTML]?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
+            //            print(self[Field.notes])
+            return self[Field.notes_HTML]?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
         }
         set {
-            dict?[Field.notes_HTML] = newValue
+            self[Field.notes_HTML] = newValue
         }
     }
     
@@ -2358,11 +2404,11 @@ class MediaItem : NSObject
     var slides:String?
     {
         get {
-            if (dict?[Field.slides] == nil) && hasSlides, let year = year, let id = id {
-                dict?[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.slides + Constants.FILENAME_EXTENSION.PDF
+            if (self[Field.slides] == nil) && hasSlides, let year = year, let id = id {
+                self[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.slides + Constants.FILENAME_EXTENSION.PDF
             }
 
-            return dict?[Field.slides]
+            return self[Field.slides]
         }
     }
     
@@ -2370,11 +2416,11 @@ class MediaItem : NSObject
     var outline:String?
     {
         get {
-            if (dict?[Field.outline] == nil), hasSlides, let year = year, let id = id {
-                dict?[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.outline + Constants.FILENAME_EXTENSION.PDF
+            if (self[Field.outline] == nil), hasSlides, let year = year, let id = id {
+                self[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.outline + Constants.FILENAME_EXTENSION.PDF
             }
             
-            return dict?[Field.outline]
+            return self[Field.outline]
         }
     }
     
@@ -2383,7 +2429,7 @@ class MediaItem : NSObject
     var files:String?
     {
         get {
-            return dict?[Field.files]
+            return self[Field.files]
         }
     }
     
@@ -2832,6 +2878,7 @@ class MediaItem : NSObject
         }
     }
 
+    // Make thread safe?
     var transcripts = [String:VoiceBase]()
     
     lazy var audioTranscript:VoiceBase? = {
@@ -3124,6 +3171,10 @@ class MediaItem : NSObject
                     return nil
                 }
                 
+                guard mediaItem.id != nil else {
+                    return nil
+                }
+                
                 return globals.mediaItemSettings?[mediaItem.id]?[key]
             }
             set {
@@ -3132,6 +3183,11 @@ class MediaItem : NSObject
                     return
                 }
                 
+                guard mediaItem.id != nil else {
+                    print("mediaItem.id == nil in Settings!")
+                    return
+                }
+
                 if globals.mediaItemSettings == nil {
                     globals.mediaItemSettings = [String:[String:String]]()
                 }
@@ -3782,11 +3838,11 @@ class MediaItem : NSObject
                 var htmlString:String?
                 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = self?.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
+                    htmlString = self?.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
                 } else
                     
                 if let _ = viewController as? MediaTableViewController, globals.search.active {
-                    htmlString = self?.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
+                    htmlString = self?.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, lemmas: false, index: true)
                 } else {
                     htmlString = self?.fullNotesHTML
                 }

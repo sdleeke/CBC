@@ -264,11 +264,11 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.startAnimating()
         
         if let mediaItem = mediaItem {
-            html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
         }
 
         if let transcript = transcript {
-            html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
         }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
@@ -403,10 +403,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.startAnimating()
                 
                 if self.mediaItem != nil {
-                    self.html.string = insertHead(stripHead(self.mediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                    self.html.string = insertHead(stripHead(self.mediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
                 } else
                 if self.transcript != nil {
-                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
                 } else {
                     self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 }
@@ -434,16 +434,25 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.stringTree = StringTree()
                 
-                mediaItem?.loadNotesTokens()
-                
                 if let mediaItem = mediaItem {
                     popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
                     
-                    if let keys = mediaItem.notesTokens?.keys {
-                        let strings = [String](keys).sorted()
-                        popover.strings = strings
+//                    mediaItem.loadNotesTokens()
+//                    if let keys = mediaItem.notesTokens?.keys {
+//                        let strings = [String](keys).sorted()
+//                        popover.strings = strings
+//                    }
+
+                    popover.stringsFunction = {
+                        mediaItem.loadNotesTokens()
+                        if let keys = mediaItem.notesTokens?.keys {
+                            let strings = [String](keys).sorted()
+                            return strings
+                        }
+                        
+                        return nil
                     }
-                    
+
 //                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
 //                        return string
 //                    }).sorted()
@@ -452,9 +461,16 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let transcript = transcript {
                     popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
                     
-                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-                        return word
-                    }).sorted()
+//                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+//                        return word
+//                    }).sorted()
+                    
+                    popover.stringsFunction = {
+                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
+                            return word
+                        }).sorted()
+                    }
                 }
 
                 present(navigationController, animated: true, completion: nil)
@@ -474,11 +490,16 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     popover.cloudTitle = mediaItem.title
                     popover.mediaItem = mediaItem
                     
-                    mediaItem.loadNotesTokens()
+                    popover.cloudWordsFunction = {
+                        mediaItem.loadNotesTokens()
+                        
+                        let words:[[String:Any]]? = mediaItem.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
+                            return ["word":key,"count":value,"selected":true]
+                        })
+                        
+                        return words
+                    }
                     
-                    let words:[[String:Any]]? = mediaItem.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
-                        return ["word":key,"count":value,"selected":true]
-                    })
                     //                .filter({ (dict:[String:Any]) -> Bool in
                     //                    guard let word = dict["word"] as? String else {
                     //                        return false
@@ -491,18 +512,22 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
                     //                })
                     
-                    popover.cloudWords = words
+//                    popover.cloudWords = words
                 }
                 
                 if let transcript = transcript {
                     popover.cloudTitle = transcript.mediaItem?.title
                     popover.mediaItem = transcript.mediaItem
 
-                    let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
-                        return ["word":word,"count":count,"selected":true]
-                    })
+                    popover.cloudWordsFunction = {
+                        let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
+                            return ["word":word,"count":count,"selected":true]
+                        })
+                        
+                        return words
+                    }
                     
-                    popover.cloudWords = words
+//                    popover.cloudWords = words
                 }
                 
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
@@ -599,9 +624,16 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                        return "\(word) (\(count))"
 //                    }).sorted()
 
-                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
-                        return "\(word) (\(count))"
-                    }).sorted()
+                    popover.stringsFunction = {
+                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
+                            return "\(word) (\(count))"
+                        }).sorted()
+                    }
+
+//                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
+//                        return "\(word) (\(count))"
+//                    }).sorted()
                 }
                 
                 popover.vc = self
@@ -661,7 +693,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
 
         dismiss(animated: true, completion: nil)
-
+        
         let string = strings[index]
         
         switch purpose {
@@ -681,11 +713,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 if let mediaItem = mediaItem {
-                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false, lemmas: false, index: true)
                 }
                 
                 if let transcript = self?.transcript {
-                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: false, lemmas: false, index: true)
                 }
                 
                 if let fontSize = self?.html.fontSize {
@@ -1007,13 +1039,13 @@ class WebViewController: UIViewController
                         // What happens with other types of apostrophes?
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = true
+                                skip = false
                             }
                             if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = true
+                                skip = false
                             }
                         }
                     }

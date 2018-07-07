@@ -330,6 +330,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
 
 class StringIndex : NSObject
 {
+    // Make thread safe?
     var dict : [String:[[String:Any]]]?
     
     subscript(key:String) -> [[String:Any]]? {
@@ -345,6 +346,7 @@ class StringIndex : NSObject
         }
     }
     
+    // Make thread safe?
     var keys : [String]?
     {
         guard let dict = dict else {
@@ -741,7 +743,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     self.popover?.activityIndicator.startAnimating()
                     
                     VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
-                        print(json as Any)
+//                        print(json as Any)
                         if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                             popover.search = true
@@ -983,7 +985,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         actions.append(AlertAction(title: "Details", style: .default, handler: {
                             VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
-                                print(json as Any)
+//                                print(json as Any)
                                 if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? WebViewController {
                                     
@@ -1049,7 +1051,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self.popover?.activityIndicator.startAnimating()
                             
                             VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
-                                print(json as Any)
+//                                print(json as Any)
                                 if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                                     popover.search = true
@@ -2968,7 +2970,7 @@ class MediaTableViewController : UIViewController // MediaController
     func mediaItemsFromMediaItemDicts(_ mediaItemDicts:[[String:String]]?) -> [MediaItem]?
     {
         return mediaItemDicts?.map({ (mediaItemDict:[String : String]) -> MediaItem in
-            return MediaItem(dict: mediaItemDict)
+            return MediaItem(storage: mediaItemDict)
         })
     }
     

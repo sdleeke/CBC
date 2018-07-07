@@ -62,7 +62,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return false
             }
             
-            return _isVoiceBaseAvailable ?? true
+            return _isVoiceBaseAvailable ?? checkingAvailability
         }
         set {
             _isVoiceBaseAvailable = newValue
@@ -82,7 +82,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
 
+    var checkingAvailability = false
+    
     func checkVoiceBaseAvailability()
+    {
+        checkVoiceBaseAvailability(completion:nil)
+    }
+    
+    func checkVoiceBaseAvailability(completion:(()->(Void))?)
     {
         _isVoiceBaseAvailable = nil
 
@@ -91,11 +98,17 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
+        checkingAvailability = true
+        
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
             self.isVoiceBaseAvailable = true
+            completion?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             self.isVoiceBaseAvailable = false
+            completion?()
         })
+        
+        checkingAvailability = false
     }
     
     var voiceBaseAPIKey : String?
@@ -568,11 +581,86 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
-    var multiPartSettings:[String:[String:String]]?
-    var mediaItemSettings:[String:[String:String]]?
+    var multiPartSettings:[String:[String:String]]? // = MultiPartSettings()
     
+    class MultiPartSettings {
+        var storage : [String:[String:String]]?
+        
+        init(storage:[String:[String:String]]?)
+        {
+            self.storage = storage
+        }
+        
+        // Make it threadsafe
+        let queue = DispatchQueue(label: "MultiPartSettings")
+        
+        subscript(key:String?) -> [String:String]? {
+            get {
+                return queue.sync {
+                    guard let key = key else {
+                        return nil
+                    }
+                    
+                    return storage?[key]
+                }
+            }
+            set {
+                queue.sync {
+                    guard let key = key else {
+                        return
+                    }
+                    
+                    if storage == nil {
+                        storage = [String:[String:String]]()
+                    }
+                    storage?[key] = newValue
+                }
+            }
+        }
+    }
+
+    var mediaItemSettings:[String:[String:String]]? // = MediaItemSettings()
+    
+    class MediaItemSettings {
+        var storage : [String:[String:String]]?
+        
+        init(storage:[String:[String:String]]?)
+        {
+            self.storage = storage
+        }
+        
+        // Make it threadsafe
+        let queue = DispatchQueue(label: "MediaItemSettings")
+        
+        subscript(key:String?) -> [String:String]? {
+            get {
+                return queue.sync {
+                    guard let key = key else {
+                        return nil
+                    }
+                    
+                    return storage?[key]
+                }
+            }
+            set {
+                queue.sync {
+                    guard let key = key else {
+                        return
+                    }
+                    
+                    if storage == nil {
+                        storage = [String:[String:String]]()
+                    }
+                    storage?[key] = newValue
+                }
+            }
+        }
+    }
+
+    // Make thread safe?
     var history:[String]?
     
+    // Make thread safe?
     var relevantHistory:[String]? {
         get {
             guard let index = mediaRepository.index else {
@@ -590,6 +678,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
+    // Make thread safe?
     var relevantHistoryList:[String]? {
         get {
             return relevantHistory?.map({ (string:String) -> String in

@@ -22,6 +22,7 @@ class StringNode {
     
     var wordEnding = false
     
+    // Make thread safe?
     var stringNodes:[StringNode]?
     
     var isLeaf:Bool {

@@ -1896,13 +1896,13 @@ extension LexiconIndexViewController : UITableViewDelegate
 //            if mediaItem.notesHTML != nil {
 //                var htmlString:String?
 //
-//                htmlString = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true,index: true)
+//                htmlString = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false,index: true)
 //
 //                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
 //            } else {
 //                process(viewController: self, work: { () -> (Any?) in
 //                    mediaItem.loadNotesHTML()
-//                    return mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true,index: true)
+//                    return mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false,index: true)
 //                }, completion: { (data:Any?) in
 //                    if let htmlString = data as? String {
 //                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)

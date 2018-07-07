@@ -42,8 +42,14 @@ class CloudWord : NSObject
     }
     
     var wordOrientationVertical = false
+    {
+        didSet {
+            
+        }
+    }
     
-    var isWordOrientationVertical : Bool {
+    var isWordOrientationVertical : Bool
+    {
         get {
             return wordOrientationVertical
         }
@@ -62,9 +68,9 @@ class CloudWord : NSObject
     }
     
     override var description : String
-        {
+    {
         get {
-            return "\(wordText) \(wordCount) \(pointSize) \(boundsCenter) \(isWordOrientationVertical) \(boundsSize) \(boundsArea)"
+            return "\(wordText ?? "") \(wordCount) \(pointSize) \(boundsCenter) \(isWordOrientationVertical) \(boundsSize) \(boundsArea)"
         }
     }
     

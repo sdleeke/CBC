@@ -690,6 +690,7 @@ class PopoverTableViewController : UIViewController
     
     var stringsFunction:(()->[String]?)?
     
+    // Make thread safe?
     var stringsAny : [String:Any]?
     var stringsArray : [String]?
     var stringsAnyArray : [[String:Any]]?
@@ -712,18 +713,22 @@ class PopoverTableViewController : UIViewController
     
     var stringSelected : String?
     
-    lazy var filteredSection:Section! = {
+    lazy var filteredSection:Section! = { [weak self] in
         let section = Section(stringsAction: { (strings:[String]?) in
             Thread.onMainThread {
-                self.segmentedControl?.isEnabled = (strings != nil) && !self.sort.sorting
+                if let sorting = self?.sort.sorting {
+                    self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
+                }
             }
         })
         return section
     }()
-    lazy var unfilteredSection:Section! = {
+    lazy var unfilteredSection:Section! = { [weak self] in
         let section = Section(stringsAction: { (strings:[String]?) in
             Thread.onMainThread {
-                self.segmentedControl?.isEnabled = (strings != nil) && !self.sort.sorting
+                if let sorting = self?.sort.sorting {
+                    self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
+                }
             }
         })
         return section
@@ -1909,9 +1914,14 @@ extension PopoverTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath)
     {
+        guard let cell = cell as? PopoverTableViewCell else {
+            return
+        }
+        
         let index = section.index(indexPath)
         
         if let selected = selection?(index) {
+//            print(cell.title.text ?? "",selected)
             cell.setSelected(selected, animated: false)
             if selected {
                 tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
@@ -1928,6 +1938,9 @@ extension PopoverTableViewController : UITableViewDataSource
         cell.title.text = nil
         cell.title.attributedText = nil
         
+        cell.isSelected = false
+        cell.isHighlighted = false
+
         var index = -1
         
         index = section.index(indexPath)

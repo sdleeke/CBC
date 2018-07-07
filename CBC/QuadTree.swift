@@ -23,6 +23,7 @@ class QuadTree {
     
     var boundingRects : [CGRect]?
     
+    // Make thread safe?
     var quadTrees : [String:QuadTree]?
     
     var topRight : QuadTree?
