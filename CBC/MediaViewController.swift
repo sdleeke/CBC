@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import PDFKit
 import AVFoundation
 import AVKit
 import MessageUI
@@ -48,16 +49,69 @@ extension MediaViewController : UIActivityItemSource
 //            // Fallback on earlier versions
 //        }
 
-        let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
+        DispatchQueue.global(qos: .userInteractive).async {
+        
+        var activityViewController : UIActivityViewController!
+
+        if self.document != nil {
+//            var data:Data?
+//
+//            if document?.download?.isDownloaded == true {
+//                if let url = document?.download?.fileSystemURL {
+//                    data = try? Data(contentsOf: url)
+//                }
+//            } else {
+//                if let url = document?.download?.downloadURL {
+//                    data = try? Data(contentsOf: url)
+//                }
+//            }
+//
+//            if #available(iOS 11.0, *) {
+//                if let pageImage = selectedMediaItem?.posterImage {
+//                    if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+//                        doc.insert(page, at: 0)
+//
+//                        if let docData = doc.dataRepresentation() {
+//                            data = docData
+//                        }
+//                    }
+//                }
+//
+//                if let pageImage = selectedMediaItem?.seriesImage {
+//                    if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+//                        doc.insert(page, at: 0)
+//
+//                        if let docData = doc.dataRepresentation() {
+//                            data = docData
+//                        }
+//                    }
+//                }
+//            } else {
+//                // Fallback on earlier versions
+//            }
+            
+//            activityViewController = UIActivityViewController(activityItems: [self.document?.data], applicationActivities: nil)
+        } else {
+//            activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,self], applicationActivities: nil)
+        }
+
+            activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
+
+//        activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
+        
+//        let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
         
         // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
         activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
         
-        let popoverPresentationController = activityViewController.popoverPresentationController
-        
-        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-        present(activityViewController, animated: true, completion: nil)
+        Thread.onMainThread {
+            let popoverPresentationController = activityViewController.popoverPresentationController
+            
+            popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+            
+            self.present(activityViewController, animated: true, completion: nil)
+        }
+    }
 
 //        if FileManager.default.fileExists(atPath: fileSystemURL.path), let data = try? Data(contentsOf: fileSystemURL) {
 //            let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
@@ -112,39 +166,77 @@ extension MediaViewController : UIActivityItemSource
 //            // Fallback on earlier versions
 //        }
         
-        guard let downloadURL = selectedMediaItem?.downloadURL else {
-            return nil
-        }
+//        guard let downloadURL = selectedMediaItem?.downloadURL else {
+//            return nil
+//        }
         
 //        UIPasteboard.general.url = downloadURL
         
-        guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
-            return nil
-        }
+//        guard let fileSystemURL = selectedMediaItem?.fileSystemURL else {
+//            return nil
+//        }
         
-        var data : Any?
-        
-        if FileManager.default.fileExists(atPath: fileSystemURL.path) {
-            data = try? Data(contentsOf: fileSystemURL)
-        } else {
-            data = try? Data(contentsOf: downloadURL)
-        }
-        
+//        var data : Data?
+//        
+//        if FileManager.default.fileExists(atPath: fileSystemURL.path) {
+//            data = try? Data(contentsOf: fileSystemURL)
+//        } else {
+//            data = try? Data(contentsOf: downloadURL)
+//        }
+
+//        var data:Data?
+//
+//        if document?.download?.isDownloaded == true {
+//            if let url = document?.download?.fileSystemURL {
+//                data = try? Data(contentsOf: url)
+//            }
+//        } else {
+//            if let url = document?.download?.downloadURL {
+//                data = try? Data(contentsOf: url)
+//            }
+//        }
+//
+//        if #available(iOS 11.0, *) {
+//            if let pageImage = selectedMediaItem?.posterImage {
+//                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+//                    doc.insert(page, at: 0)
+//
+//                    if let docData = doc.dataRepresentation() {
+//                        data = docData
+//                    }
+//                }
+//            }
+//
+//            if let pageImage = selectedMediaItem?.seriesImage {
+//                if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+//                    doc.insert(page, at: 0)
+//
+//                    if let docData = doc.dataRepresentation() {
+//                        data = docData
+//                    }
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
+
 //        if #available(iOS 10.0, *) {
 //            UIPasteboard.general.addItems([[kUTTypePDF as String: data]])
 //        } else {
 //            // Fallback on earlier versions
 //        }
 
-        if MediaViewController.cases.contains(activityType) {
-            switch activityType {
-            
-            default:
-                return data
-            }
-        } else {
-            return selectedMediaItem?.text
-        }
+//        if MediaViewController.cases.contains(activityType) {
+//            switch activityType {
+//            
+//            default:
+//                return document?.data
+//            }
+//        } else {
+//            return selectedMediaItem?.text
+//        }
+
+        return selectedMediaItem?.text
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
@@ -158,11 +250,13 @@ extension MediaViewController : UIActivityItemSource
             return "public.plain-text"
         }
         
-        if MediaViewController.cases.contains(activityType) {
-            return "com.adobe.pdf" // public.composite-content and public.content didn't work
-        } else {
-            return "public.plain-text"
-        }
+//        if MediaViewController.cases.contains(activityType) {
+//            return "com.adobe.pdf" // public.composite-content and public.content didn't work
+//        } else {
+//            return "public.plain-text"
+//        }
+
+        return "public.plain-text"
     }
 }
 
@@ -196,7 +290,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Share_Transcript:
             share()
             break
-            
+
 //        case Constants.Strings.Add_to_Favorites:
 //            globals.queue.sync(execute: { () -> Void in
 //                self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
@@ -1429,6 +1523,7 @@ class MediaViewController: UIViewController // MediaController
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
                 mediaItems = nil
+                
                 for key in documents.keys {
                     if let documents = documents[key]?.values {
                         for document in documents {
@@ -1437,6 +1532,14 @@ class MediaViewController: UIViewController // MediaController
                         }
                     }
                     documents[key] = nil
+                }
+                
+                if let logo = UIImage(named:"CBC_logo") {
+                    // Need to adjust aspect ratio contraint
+                    let ratio = logo.size.width / logo.size.height
+                    
+                    self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                    self.logo.image = logo
                 }
             }
         }
@@ -2985,7 +3088,7 @@ class MediaViewController: UIViewController // MediaController
             self.dismiss(animated: true, completion: nil) // In case a dialog is visible.
             
             self.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
-            
+
             self.selectedMediaItem = nil
             
             self.tableView.reloadData()
@@ -3000,7 +3103,9 @@ class MediaViewController: UIViewController // MediaController
         super.viewDidLoad()
 
     }
-
+    
+    @IBOutlet weak var layoutAspectRatio: NSLayoutConstraint!
+    
     fileprivate func setupDefaultDocuments()
     {
         guard let selectedMediaItem = selectedMediaItem else {
@@ -3014,16 +3119,38 @@ class MediaViewController: UIViewController // MediaController
         
         globals.mediaPlayer.view?.isHidden = true
         
-        if (!hasSlides && !hasNotes) || !globals.reachability.isReachable {
+        if (!hasSlides && !hasNotes) { // This is too imprecise:  || !globals.reachability.isReachable
             hideAllDocuments()
             
+            mediaItemNotesAndSlides.bringSubview(toFront: logo)
             logo.isHidden = false
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                Thread.onMainThread {
+                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+                    self.activityIndicator.isHidden = false
+                    self.activityIndicator.startAnimating()
+                }
+                
+                if let posterImage = selectedMediaItem.posterImage {
+                    Thread.onMainThread {
+                        // Need to adjust aspect ratio contraint
+                        let ratio = posterImage.size.width / posterImage.size.height
+                        
+                        self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                        self.logo.image = posterImage
+                    }
+                }
+
+                Thread.onMainThread {
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                }
+            }
             
             if globals.reachability.isReachable {
                 selectedMediaItem.showing = Showing.none
             }
-            
-            mediaItemNotesAndSlides.bringSubview(toFront: logo)
         } else
         if (hasSlides && !hasNotes) {
             selectedMediaItem.showing = Showing.slides
@@ -3216,7 +3343,49 @@ class MediaViewController: UIViewController // MediaController
                             }
                         }
                         
-                        _ = document.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+//                        if var data = try? Data(contentsOf: fileSystemURL) {
+//                            if document.purpose == Purpose.slides, #available(iOS 11.0, *) {
+//                                DispatchQueue.global(qos: .userInteractive).async {  [weak self] in
+//                                    if let pageImage = self?.selectedMediaItem?.posterImage {
+//                                        if let doc = PDFDocument(data: data), let page = PDFPage(image: pageImage) {
+//                                            doc.insert(page, at: 0)
+//
+//                                            if let docData = doc.dataRepresentation() {
+//                                                data = docData
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    if let pageImage = self?.selectedMediaItem?.seriesImage {
+//                                        if let doc = PDFDocument(data: data), let page = PDFPage(image: pageImage) {
+//                                            doc.insert(page, at: 0)
+//
+//                                            if let docData = doc.dataRepresentation() {
+//                                                data = docData
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    Thread.onMainThread {
+//                                        document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: fileSystemURL)
+//                                    }
+//                                }
+//                            } else {
+//                                Thread.onMainThread {
+//                                    document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: fileSystemURL)
+//                                }
+//                            }
+//                        }
+
+                        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                            if let data = document.data {
+                                Thread.onMainThread {
+                                    document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: fileSystemURL)
+                                }
+                            }
+                        }
+                        
+//                        _ = document.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
                     }
                 }
             } else {
@@ -3231,18 +3400,58 @@ class MediaViewController: UIViewController // MediaController
                     document.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
                 }
 
-                if let url = document.download?.downloadURL {
-                    DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-                        if let data = try? Data(contentsOf: url) {
-                            Thread.onMainThread {
-                                document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-                            }
+                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                    if let data = document.data, let url = document.download?.downloadURL  {
+                        Thread.onMainThread {
+                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
                         }
                     }
-                    
+                }
+                
+//                if let url = document.download?.downloadURL {
+//                    DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+//                        if var data = try? Data(contentsOf: url) {
+//                            if document.purpose == Purpose.slides, #available(iOS 11.0, *) {
+//                                DispatchQueue.global(qos: .userInteractive).async {
+//                                    if let pageImage = self?.selectedMediaItem?.posterImage {
+//                                        if let doc = PDFDocument(data: data), let page = PDFPage(image: pageImage) {
+//                                            doc.insert(page, at: 0)
+//
+//                                            if let docData = doc.dataRepresentation() {
+//                                                data = docData
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    if let pageImage = self?.selectedMediaItem?.seriesImage {
+//                                        if let doc = PDFDocument(data: data), let page = PDFPage(image: pageImage) {
+//                                            doc.insert(page, at: 0)
+//
+//                                            if let docData = doc.dataRepresentation() {
+//                                                data = docData
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    Thread.onMainThread {
+//                                        document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+//                                    }
+//                                }
+//                            } else {
+//                                Thread.onMainThread {
+//                                    document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+//                                }
+//                            }
+//
+////                            Thread.onMainThread {
+////                                document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+////                            }
+//                        }
+//                    }
+                
 //                    let request = URLRequest(url: url)
 //                    _ = document.wkWebView?.load(request)
-                }
+//                }
             }
         } else {
             if document.showing(self.selectedMediaItem) {
@@ -3257,19 +3466,27 @@ class MediaViewController: UIViewController // MediaController
             }
 
             ///////
-            
-            if let url = document.download?.downloadURL {
-                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-                    if let data = try? Data(contentsOf: url) {
-                        Thread.onMainThread {
-                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-                        }
+
+            DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                if let data = document.data, let url = document.download?.downloadURL {
+                    Thread.onMainThread {
+                        document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
                     }
                 }
-                
-                //                    let request = URLRequest(url: url)
-                //                    _ = document.wkWebView?.load(request)
             }
+
+//            if let url = document.download?.downloadURL {
+//                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+//                    if let data = try? Data(contentsOf: url) {
+//                        Thread.onMainThread {
+//                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+//                        }
+//                    }
+//                }
+//
+//                //                    let request = URLRequest(url: url)
+//                //                    _ = document.wkWebView?.load(request)
+//            }
         }
     }
     
@@ -3417,7 +3634,9 @@ class MediaViewController: UIViewController // MediaController
         
         if var showing = selectedMediaItem.showing {            
             if !globals.reachability.isReachable, let loaded = document?.loaded, !loaded {
-                if !globals.cacheDownloads || !(wkWebView?.url == download?.fileSystemURL) || (download?.isDownloaded == false) {
+                
+                // || !(wkWebView?.url == download?.fileSystemURL) <- wkWebView?.url is nil until loaded.
+                if !globals.cacheDownloads || (download?.isDownloaded == false) {
                     switch showing {
                     case Showing.slides:
                         alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)

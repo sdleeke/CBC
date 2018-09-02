@@ -93,6 +93,9 @@ enum Field {
     
     static let m3u8     = "m3u8"
     static let mp4      = "mp4"
+    static let mp3      = "mp3"
+
+    static let poster   = "poster"
     
     static let notes        = "transcript"
     static let notes_HTML   = "transcript_HTML"
@@ -121,7 +124,7 @@ enum Field {
     static let book = "book"
     static let year = "year"
 
-    static let image = "series_image"
+    static let seriesImage = "series_image"
 }
 
 //enum MediaType : String {
@@ -760,7 +763,9 @@ enum Constants {
 
         static let Sermon = "Sermon"
         static let Sermons = "Sermons"
-        
+
+        static let HTML = "HTML"
+
         static let Slides = "Slides"
         static let Transcript = "Transcript"
         static let Scripture = "Scripture"

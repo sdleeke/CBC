@@ -8,6 +8,7 @@
 
 import Foundation
 import WebKit
+import PDFKit
 
 class Document : NSObject {
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
@@ -23,6 +24,51 @@ class Document : NSObject {
     //            }
     //        }
     //    }
+    
+    var data : Data?
+    {
+        get {
+            var data : Data?
+            
+            if download?.isDownloaded == true {
+                if let url = download?.fileSystemURL {
+                    data = try? Data(contentsOf: url)
+                }
+            } else {
+                if let url = download?.downloadURL {
+                    data = try? Data(contentsOf: url)
+                }
+            }
+            
+            if #available(iOS 11.0, *) {
+                if purpose == Purpose.slides {
+                    if let pageImage = mediaItem?.posterImage {
+                        if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                            doc.insert(page, at: 0)
+                            
+                            if let docData = doc.dataRepresentation() {
+                                data = docData
+                            }
+                        }
+                    }
+                    
+                    if let pageImage = mediaItem?.seriesImage {
+                        if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                            doc.insert(page, at: 0)
+                            
+                            if let docData = doc.dataRepresentation() {
+                                data = docData
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Fallback on earlier versions
+            }
+            
+            return data
+        }
+    }
     
     var mediaItem:MediaItem?
     

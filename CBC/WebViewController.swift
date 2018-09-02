@@ -14,7 +14,15 @@ import MobileCoreServices
 class HTML {
     weak var webViewController: WebViewController?
     
-    var operationQueue : OperationQueue!
+//    var operationQueue : OperationQueue!
+
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "LEXICON UPDATE")
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
 
     var text : String?
     {
@@ -713,11 +721,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 if let mediaItem = mediaItem {
-                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false, lemmas: false, index: true)
+                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
                 }
                 
                 if let transcript = self?.transcript {
-                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: false, lemmas: false, index: true)
+                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
                 }
                 
                 if let fontSize = self?.html.fontSize {

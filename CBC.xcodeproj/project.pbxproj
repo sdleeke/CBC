@@ -101,6 +101,19 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		17D21A4A2134914600CA5F57 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		17074CB01E25A92B00332F0A /* Scripture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scripture.swift; sourceTree = "<group>"; };
 		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
@@ -163,6 +176,13 @@
 		1798C7571CA93CC700CED4A5 /* CBCUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCUITests.swift; sourceTree = "<group>"; };
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
+		17D21A2D2134914600CA5F57 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		17D21A2F2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		17D21A352134914600CA5F57 /* IntentsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IntentsUI.framework; path = System/Library/Frameworks/IntentsUI.framework; sourceTree = SDKROOT; };
+		17D21A382134914600CA5F57 /* IntentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentViewController.swift; sourceTree = "<group>"; };
+		17D21A3B2134914600CA5F57 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		17D21A3D2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		17D21A4B2134917900CA5F57 /* CBC.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CBC.entitlements; sourceTree = "<group>"; };
 		17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureIndexViewController.swift; sourceTree = "<group>"; };
 		17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "fontawesome-webfont.ttf"; sourceTree = "<group>"; };
 		17DFD9501F029A7C000AC63D /* VoiceBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VoiceBase.swift; sourceTree = "<group>"; };
@@ -219,6 +239,8 @@
 				174EEE621B74C0DD004F6942 /* CBC */,
 				174EEE781B74C0DE004F6942 /* CBCTests */,
 				1798C7561CA93CC700CED4A5 /* CBCUITests */,
+				17D21A2C2134914600CA5F57 /* CBC Media */,
+				17D21A372134914600CA5F57 /* CBC MediaUI */,
 				174EEE611B74C0DD004F6942 /* Products */,
 				1780A7B71B7759FC0003FD39 /* MapKit.framework */,
 				17F549231DBADA25008B5051 /* Frameworks */,
@@ -238,6 +260,7 @@
 		174EEE621B74C0DD004F6942 /* CBC */ = {
 			isa = PBXGroup;
 			children = (
+				17D21A4B2134917900CA5F57 /* CBC.entitlements */,
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
 				17FF988E2030DBC9002AD442 /* Media.swift */,
@@ -248,6 +271,7 @@
 				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
 				17FF98842030DA3E002AD442 /* Search.swift */,
 				17FF98822030DA07002AD442 /* extensions.swift */,
+				17E75EC91B835FC600AE8ED5 /* functions.swift */,
 				17FF98802030D9DB002AD442 /* StreamEntry.swift */,
 				172B7FCC1F41FBD200C714C0 /* Section.swift */,
 				174A14A61E02122100736CEC /* MediaPlayer.swift */,
@@ -265,7 +289,6 @@
 				175DF54B203B2ED80087CF0B /* ControlView.swift */,
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
-				17E75EC91B835FC600AE8ED5 /* functions.swift */,
 				17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */,
 				174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */,
 				174EEE861B74C11E004F6942 /* MediaTableViewController.swift */,
@@ -331,6 +354,25 @@
 			path = CBCUITests;
 			sourceTree = "<group>";
 		};
+		17D21A2C2134914600CA5F57 /* CBC Media */ = {
+			isa = PBXGroup;
+			children = (
+				17D21A2D2134914600CA5F57 /* IntentHandler.swift */,
+				17D21A2F2134914600CA5F57 /* Info.plist */,
+			);
+			path = "CBC Media";
+			sourceTree = "<group>";
+		};
+		17D21A372134914600CA5F57 /* CBC MediaUI */ = {
+			isa = PBXGroup;
+			children = (
+				17D21A382134914600CA5F57 /* IntentViewController.swift */,
+				17D21A3A2134914600CA5F57 /* MainInterface.storyboard */,
+				17D21A3D2134914600CA5F57 /* Info.plist */,
+			);
+			path = "CBC MediaUI";
+			sourceTree = "<group>";
+		};
 		17E677C52003E6F2003D022B /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
@@ -359,6 +401,7 @@
 			isa = PBXGroup;
 			children = (
 				17F549241DBADA26008B5051 /* AVKit.framework */,
+				17D21A352134914600CA5F57 /* IntentsUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -373,6 +416,7 @@
 				174EEE5C1B74C0DD004F6942 /* Sources */,
 				174EEE5D1B74C0DD004F6942 /* Frameworks */,
 				174EEE5E1B74C0DD004F6942 /* Resources */,
+				17D21A4A2134914600CA5F57 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
@@ -426,7 +470,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftMigration = 0700;
-				LastSwiftUpdateCheck = 0730;
+				LastSwiftUpdateCheck = 0940;
 				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "Steve Leeke";
 				TargetAttributes = {
@@ -440,6 +484,9 @@
 							};
 							com.apple.Maps.iOS = {
 								enabled = 1;
+							};
+							com.apple.Siri = {
+								enabled = 0;
 							};
 						};
 					};
@@ -611,6 +658,17 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		17D21A3A2134914600CA5F57 /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				17D21A3B2134914600CA5F57 /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		174EEE7D1B74C0DE004F6942 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -720,6 +778,7 @@
 		174EEE801B74C0DE004F6942 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 35U7HMB59T;
@@ -737,6 +796,7 @@
 		174EEE811B74C0DE004F6942 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 35U7HMB59T;

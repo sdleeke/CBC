@@ -30,107 +30,6 @@ extension TextViewController: UISearchBarDelegate
 {
     //MARK: SearchBarDelegate
     
-    func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wholeWordsOnly:Bool) -> NSAttributedString?
-    {
-        guard var workingString = string, !workingString.isEmpty else {
-            return nil
-        }
-        
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
-        }
-        
-        guard wholeWordsOnly else {
-            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
-            
-            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
-            
-            while let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-                
-                let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
-                
-                attributedText.addAttribute(NSAttributedStringKey.backgroundColor, value: UIColor.yellow, range: nsRange)
-                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
-            }
-            
-            return attributedText
-        }
-        
-        var stringBefore    = String()
-        var stringAfter     = String()
-        
-        var foundString     = String()
-        
-        let newAttrString       = NSMutableAttributedString()
-        var foundAttrString     = NSAttributedString()
-        
-        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
-            //                print(string)
-            
-            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
-                stringBefore = String(workingString[..<range.lowerBound])
-                stringAfter = String(workingString[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if let characterAfter:Character = stringAfter.first {
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-                            skip = true
-                        }
-                        
-                        //                            print(characterAfter)
-                        
-                        // What happens with other types of apostrophes?
-                        if stringAfter.endIndex >= "'s".endIndex {
-                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = false
-                            }
-                        }
-                    }
-                    if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(workingString[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                }
-                
-                if !skip {
-                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
-                }
-                
-                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
-                
-                newAttrString.append(foundAttrString)
-                
-                //                stringBefore = stringBefore + foundString
-                
-                workingString = stringAfter
-            } else {
-                break
-            }
-        }
-        
-        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
-        
-        if newAttrString.string.isEmpty, let string = string {
-            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
-        }
-        
-        return newAttrString
-    }
-
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
@@ -153,8 +52,22 @@ extension TextViewController: UISearchBarDelegate
 //        let currentRange = textView.selectedRange
 //        let currentRect = textView.bounds.offsetBy(dx: textView.contentOffset.x, dy: textView.contentOffset.x)
         
-        textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
-
+        
+        operationQueue.cancelAllOperations()
+//        operationQueue.waitUntilAllOperationsAreFinished()
+        
+        let attributedText = self.textView.attributedText
+        
+        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
+            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+            
+            Thread.onMainThread {
+                self.textView.attributedText = text
+            }
+        }
+        
+        operationQueue.addOperation(searchOp)
+        
 //        DispatchQueue.global(qos: .background).async { // [weak self] in
 //            Thread.sleep(forTimeInterval: 0.1)
 //            Thread.onMainThread {
@@ -214,16 +127,55 @@ extension TextViewController: UISearchBarDelegate
         
         self.searchText = searchText
 
-        textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
+        operationQueue.cancelAllOperations()
+//        operationQueue.waitUntilAllOperationsAreFinished()
+
+        let attributedText = self.textView.attributedText
         
-        if !searchText.isEmpty {
-            if let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                textView.scrollRangeToVisible(range)
-                lastRange = range
-            } else {
-                globals.alert(title: "Not Found", message: "")
+        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
+            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
+
+            Thread.onMainThread {
+                self.textView.attributedText = text
+
+                if !searchText.isEmpty {
+                    if let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+                        self.textView.scrollRangeToVisible(range)
+                        self.lastRange = range
+                    } else {
+                        globals.alert(title: "Not Found", message: "")
+                    }
+                }
             }
+
+            // Process spawns another thread and that becomes uncontrollable!
+//            process(viewController: globals.splitViewController, work: {
+//                return stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
+//                }, completion: { (data:Any?) in
+//                    guard let test = test?(), !test else {
+//                        return
+//                    }
+//
+//                    guard let text = data as? NSAttributedString else {
+//                        return
+//                    }
+//
+//                    Thread.onMainThread {
+//                        self.textView.attributedText = text
+//
+//                        if !searchText.isEmpty {
+//                            if let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+//                                self.textView.scrollRangeToVisible(range)
+//                                self.lastRange = range
+//                            } else {
+//                                globals.alert(title: "Not Found", message: "")
+//                            }
+//                        }
+//                    }
+//            })
         }
+        
+        operationQueue.addOperation(searchOp)
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
@@ -235,27 +187,40 @@ extension TextViewController: UISearchBarDelegate
         
         searchText = searchBar.text
         
-        textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
-        
-        if let lastRange = lastRange {
-            let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: textView.attributedText.string.endIndex))
+        operationQueue.cancelAllOperations()
+//        operationQueue.waitUntilAllOperationsAreFinished()
 
-            if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-                textView.scrollRangeToVisible(range)
-                self.lastRange = range
-            } else {
-                self.lastRange = nil
+        let attributedText = self.textView.attributedText
+        
+        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
+            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+            
+            Thread.onMainThread {
+                self.textView.attributedText = text
+                
+                if let lastRange = self.lastRange {
+                    let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: self.textView.attributedText.string.endIndex))
+                    
+                    if let searchText = self.self.searchText,let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+                        self.textView.scrollRangeToVisible(range)
+                        self.lastRange = range
+                    } else {
+                        self.lastRange = nil
+                    }
+                }
+                
+                if self.lastRange == nil {
+                    if let searchText = self.searchText,let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+                        self.textView.scrollRangeToVisible(range)
+                        self.lastRange = range
+                    } else {
+                        globals.alert(title: "Not Found", message: "")
+                    }
+                }
             }
         }
         
-        if lastRange == nil {
-            if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                textView.scrollRangeToVisible(range)
-                lastRange = range
-            } else {
-                globals.alert(title: "Not Found", message: "")
-            }
-        }
+        operationQueue.addOperation(searchOp)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
@@ -269,7 +234,16 @@ extension TextViewController: UISearchBarDelegate
         searchActive = false
         
         if let changedText = changedText {
-            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+            operationQueue.cancelAllOperations()
+//            operationQueue.waitUntilAllOperationsAreFinished()
+            
+            let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+            
+            operationQueue.addOperation {
+                Thread.onMainThread {
+                    self.textView.attributedText = text
+                }
+            }
         }
         
         searchBar.showsCancelButton = false
@@ -372,6 +346,142 @@ extension TextViewController : UITextViewDelegate
     {
         // Tells the delegate that the text selection changed in the specified text view.
         
+    }
+}
+
+func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!,string:String?,searchText:String?,wholeWordsOnly:Bool,test : (()->(Bool))?) -> NSAttributedString?
+{
+    guard var workingString = string, !workingString.isEmpty else {
+        return nil
+    }
+    
+    guard let searchText = searchText, !searchText.isEmpty else {
+        return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+    }
+    
+    guard wholeWordsOnly else {
+        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+        
+        var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
+        
+        while let range = attributedString.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+            if let test = test, test() {
+                break
+            }
+            
+            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+            
+            attributedText.addAttribute(NSAttributedStringKey.backgroundColor, value: UIColor.yellow, range: nsRange)
+            startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+        }
+        
+        return attributedText
+    }
+    
+    var stringBefore    = String()
+    var stringAfter     = String()
+    
+    var foundString     = String()
+    
+    let newAttrString       = NSMutableAttributedString()
+    var foundAttrString     = NSAttributedString()
+    
+    while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
+        if let test = test, test() {
+            break
+        }
+        
+        //                print(string)
+        
+        if let range = workingString.lowercased().range(of: searchText.lowercased()) {
+            stringBefore = String(workingString[..<range.lowerBound])
+            stringAfter = String(workingString[range.upperBound...])
+            
+            var skip = false
+            
+            if wholeWordsOnly {
+                if let characterAfter:Character = stringAfter.first {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+                        skip = true
+                    }
+                    
+                    //                            print(characterAfter)
+                    
+                    // What happens with other types of apostrophes?
+                    if stringAfter.endIndex >= "'s".endIndex {
+                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+                            skip = false
+                        }
+                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+                            skip = false
+                        }
+                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+                            skip = false
+                        }
+                    }
+                }
+                if let characterBefore:Character = stringBefore.last {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+                        skip = true
+                    }
+                }
+            }
+            
+            foundString = String(workingString[range.lowerBound...])
+            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                foundString = String(foundString[..<newRange.upperBound])
+            }
+            
+            if !skip {
+                foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+            }
+            
+            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+            
+            newAttrString.append(foundAttrString)
+            
+            //                stringBefore = stringBefore + foundString
+            
+            workingString = stringAfter
+        } else {
+            break
+        }
+    }
+    
+    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+    
+    if newAttrString.string.isEmpty, let string = string {
+        newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
+    }
+    
+    return newAttrString
+}
+
+class CancellableOperation : Operation
+{
+    var block : (((()->(Bool))?)->())?
+
+    override var description: String
+        {
+        get {
+            return ""
+        }
+    }
+    
+    init(block:(((()->(Bool))?)->())?)
+    {
+        super.init()
+        
+        self.block = block
+    }
+    
+    deinit {
+        
+    }
+    
+    override func main()
+    {
+        block?({return self.isCancelled})
     }
 }
 
@@ -914,8 +1024,16 @@ class TextViewController : UIViewController
         onCancel?()
     }
     
-    var operationQueue : OperationQueue!
+//    var operationQueue : OperationQueue!
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "TEXT EDIT")
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
     @objc func autoEdit()
     {
         guard !searchActive else {
@@ -1139,7 +1257,7 @@ class TextViewController : UIViewController
     {
         super.viewDidLoad()
         
-        operationQueue = OperationQueue()
+//        operationQueue = OperationQueue()
         
         playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
 

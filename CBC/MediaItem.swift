@@ -2067,7 +2067,76 @@ class MediaItem : NSObject
         }
     }
     
-    var mp4:String? {
+    var poster:String?
+    {
+        get {
+            guard hasVideo else {
+                return nil
+            }
+            
+            guard let year = year, let id = id else {
+                return nil
+            }
+            
+            if (self[Field.poster] == nil) {
+                self[Field.poster] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + "poster.jpg"
+            }
+            
+            return self[Field.poster]
+        }
+    }
+    
+//    var posterURL:URL? {
+//        get {
+//            return poster?.url
+//
+////            guard let poster = poster else {
+////                return nil
+////            }
+////
+////            return URL(string: poster)
+//        }
+//    }
+    
+    var posterImage:UIImage?
+    {
+        get {
+            return poster?.url?.image
+            
+//            guard let posterURL = posterURL else {
+//                return nil
+//            }
+//
+//            guard let data = try? Data(contentsOf: posterURL) else {
+//                return nil
+//            }
+//
+//            return UIImage(data: data)
+        }
+    }
+    
+    var seriesImage:UIImage?
+    {
+        get {
+            guard let imageName = self[Field.seriesImage] else {
+                return nil
+            }
+            
+            let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
+            
+            return urlString.url?.image
+        }
+    }
+    
+    var mp3:String?
+    {
+        get {
+            return self[Field.mp3]
+        }
+    }
+    
+    var mp4:String?
+    {
         get {
             return self[Field.mp4]
         }
@@ -3110,39 +3179,39 @@ class MediaItem : NSObject
     var json : String {
         var mediaItemString = "{"
 
-            mediaItemString = "\(mediaItemString)\"metadata\":{"
+            mediaItemString += "\"metadata\":{"
 
                 if let category = category {
-                    mediaItemString = "\(mediaItemString)\"category\":\"\(category)\","
+                    mediaItemString += "\"category\":\"\(category)\","
                 }
                 
                 if let id = id {
-                    mediaItemString = "\(mediaItemString)\"id\":\"\(id)\","
+                    mediaItemString += "\"id\":\"\(id)\","
                 }
                 
                 if let date = date {
-                    mediaItemString = "\(mediaItemString)\"date\":\"\(date)\","
+                    mediaItemString += "\"date\":\"\(date)\","
                 }
                 
                 if let service = service {
-                    mediaItemString = "\(mediaItemString)\"service\":\"\(service)\","
+                    mediaItemString += "\"service\":\"\(service)\","
                 }
                 
                 if let title = title {
-                    mediaItemString = "\(mediaItemString)\"title\":\"\(title)\","
+                    mediaItemString += "\"title\":\"\(title)\","
                 }
                 
                 if let scripture = scripture {
-                    mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture.description)\","
+                    mediaItemString += "\"scripture\":\"\(scripture.description)\","
                 }
                 
                 if let speaker = speaker {
-                    mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker)\""
+                    mediaItemString += "\"speaker\":\"\(speaker)\""
                 }
             
-            mediaItemString = "\(mediaItemString)}"
+            mediaItemString += "}"
         
-        mediaItemString = "\(mediaItemString)}"
+        mediaItemString += "}"
         
         return mediaItemString
     }
@@ -3828,7 +3897,7 @@ class MediaItem : NSObject
             }
         }
         
-        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
+        transcript = AlertAction(title: Constants.Strings.HTML + " " + Constants.Strings.Transcript, style: .default) {
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
 
