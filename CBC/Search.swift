@@ -9,7 +9,7 @@
 import Foundation
 
 class Search {
-    weak var globals:Globals!
+//    weak var globals:Globals!
     
     var complete:Bool = true
     
@@ -52,7 +52,7 @@ class Search {
                 return
             }
             
-            guard !globals.isLoading else {
+            guard !Globals.shared.isLoading else {
                 return
             }
             
@@ -72,7 +72,7 @@ class Search {
         }
         set {
             // Setting to nil can cause a crash.
-            globals.media.toSearch?.searches = [String:MediaListGroupSort]()
+            Globals.shared.media.toSearch?.searches = [String:MediaListGroupSort]()
             
             UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
             UserDefaults.standard.synchronize()

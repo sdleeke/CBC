@@ -94,7 +94,7 @@ extension MediaTableViewController : UIScrollViewDelegate
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {
         if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
-            if !globals.isRefreshing {
+            if !Globals.shared.isRefreshing {
                 refreshControl?.beginRefreshing()
                 if let refreshControl = refreshControl {
                     handleRefresh(refreshControl)
@@ -133,12 +133,12 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         let searchText = searchText.uppercased()
         
-        globals.search.text = searchText
+        Globals.shared.search.text = searchText
         
         if (searchText != Constants.EMPTY_STRING) { //
             updateSearchResults(searchText,completion: nil)
         } else {
-            globals.clearDisplay()
+            Globals.shared.clearDisplay()
             
             tableView?.reloadData()
             
@@ -157,12 +157,12 @@ extension MediaTableViewController : UISearchBarDelegate
 
         let searchText = searchBar.text?.uppercased()
         
-        globals.search.text = searchText
+        Globals.shared.search.text = searchText
         
-        if globals.search.valid {
+        if Globals.shared.search.valid {
             updateSearchResults(searchBar.text,completion: nil)
         } else {
-            globals.clearDisplay()
+            Globals.shared.clearDisplay()
             
             tableView?.reloadData()
             
@@ -177,12 +177,12 @@ extension MediaTableViewController : UISearchBarDelegate
             return false
         }
         
-        return !globals.isLoading && !globals.isRefreshing && (globals.media.all != nil)
+        return !Globals.shared.isLoading && !Globals.shared.isRefreshing && (Globals.shared.media.all != nil)
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
-        globals.search.active = true
+        Globals.shared.search.active = true
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
@@ -193,12 +193,12 @@ extension MediaTableViewController : UISearchBarDelegate
         
         let searchText = searchBar.text?.uppercased()
         
-        globals.search.text = searchText
+        Globals.shared.search.text = searchText
         
-        if globals.search.valid { //
+        if Globals.shared.search.valid { //
             updateSearchResults(searchText,completion: nil)
         } else {
-            globals.clearDisplay()
+            Globals.shared.clearDisplay()
             
             tableView?.reloadData()
             
@@ -217,7 +217,7 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
-        globals.search.active = false
+        Globals.shared.search.active = false
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
@@ -234,7 +234,7 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
         
-        globals.search.text = nil
+        Globals.shared.search.text = nil
         
         searchBar.showsCancelButton = false
         searchBar.resignFirstResponder()
@@ -242,13 +242,13 @@ extension MediaTableViewController : UISearchBarDelegate
         
         disableBarButtons()
         
-        globals.clearDisplay()
+        Globals.shared.clearDisplay()
         
         tableView?.reloadData()
         
         startAnimating()
         
-        globals.setupDisplay(globals.media.active)
+        Globals.shared.setupDisplay(Globals.shared.media.active)
         
         tableView?.reloadData()
         
@@ -287,20 +287,20 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         
         //        print(string)
         
-        guard (globals.mediaCategory.selected != string) || (globals.mediaRepository.list == nil) else {
+        guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
             return
         }
         
-        globals.mediaCategory.selected = string
+        Globals.shared.mediaCategory.selected = string
         
-        globals.mediaPlayer.unobserve()
+        Globals.shared.mediaPlayer.unobserve()
         
-        if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-            globals.mediaPlayer.pause() // IfPlaying
+        if Globals.shared.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
+            Globals.shared.mediaPlayer.pause() // IfPlaying
         }
         
-        globals.cancelAllDownloads()
-        globals.clearDisplay()
+        Globals.shared.cancelAllDownloads()
+        Globals.shared.clearDisplay()
         
         Thread.onMainThread {
             self.tableView?.reloadData()
@@ -318,8 +318,8 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         tagLabel.text = nil
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Media()
-        globals.media.globals = globals
+        Globals.shared.media = Media()
+//        Globals.shared.media.globals = globals
         
         loadMediaItems()
         {
@@ -458,7 +458,7 @@ class StringIndex : NSObject
                         title += "\nStatus: \(status)"
                     }
                     
-                    if let mediaList = globals.media.all?.list {
+                    if let mediaList = Globals.shared.media.all?.list {
                         if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
                             return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                                 return transcript.mediaID == mediaID
@@ -667,7 +667,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.popover?.activityIndicator.stopAnimating()
                         self?.popover?.activityIndicator.isHidden = true
                         
-                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
 
 //                    process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -679,7 +679,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                            data = json
 //                        }, onError: { (json:[String : Any]?) -> (Void) in
 //                            data = "VoiceBase Media Item\nNot Found"
-//                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                            Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                        })
 //
 //                        while data == nil {
@@ -701,13 +701,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 ////                                    if let mediaItem = metadata["mediaItem"] as? [String:Any] {
 ////                                        if let id = mediaItem["id"] as? String {
 ////                                            if let purpose = (mediaItem["purpose"] as? String)?.uppercased() {
-////                                                if let mediaList = globals.media.all?.list {
+////                                                if let mediaList = Globals.shared.media.all?.list {
 ////                                                    if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
 ////                                                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
 ////                                                            return transcript.mediaID == mediaID
 ////                                                        }).count == 1
 ////                                                    }).count == 0 {
-////                                                        if  let mediaItem = globals.mediaRepository.index?[id],
+////                                                        if  let mediaItem = Globals.shared.mediaRepository.index?[id],
 ////                                                            mediaItem.transcripts[purpose]?.mediaID == nil {
 ////                                                            self.actionButton = UIBarButtonItem(title: Constants.FA.PLUS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseLoad))
 ////
@@ -761,7 +761,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.popover?.activityIndicator.stopAnimating()
                         self?.popover?.activityIndicator.isHidden = true
                         
-                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
                     
 //                    process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -774,7 +774,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //
 //                        }, onError: { (json:[String : Any]?) -> (Void) in
 //                            data = "VoiceBase Media Item\nNot Found"
-//                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                            Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                        })
 //
 //                        while data == nil {
@@ -802,7 +802,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
 
         if let mediaID = value["mediaId"] as? String {
-            if let mediaList = globals.media.all?.list {
+            if let mediaList = Globals.shared.media.all?.list {
                 let mediaItems = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
                     return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                         return transcript.mediaID == mediaID
@@ -859,7 +859,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         return false
                     }
                     
-                    if globals.media.all?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                    if Globals.shared.media.all?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                         return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                             return transcript.mediaID == mediaID
                         }).count > 0
@@ -1007,7 +1007,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 self?.popover?.activityIndicator.stopAnimating()
                                 self?.popover?.activityIndicator.isHidden = true
                                 
-                                globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                                Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
                             
 //                            process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -1019,7 +1019,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                                    data = json
 //                                }, onError: { (json:[String : Any]?) -> (Void) in
 //                                    data = "VoiceBase Media Item\nNot Found"
-//                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                    Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                                })
 //
 //                                while data == nil {
@@ -1070,7 +1070,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 self?.popover?.activityIndicator.stopAnimating()
                                 self?.popover?.activityIndicator.isHidden = true
 
-                                globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                                Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
 
 //                            process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -1083,7 +1083,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //
 //                                }, onError: { (json:[String : Any]?) -> (Void) in
 //                                    data = "VoiceBase Media Item\nNot Found"
-//                                    globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                    Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                                })
 //
 //                                while data == nil {
@@ -1111,7 +1111,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
 
-                    globals.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions) // "While created on this device:\n\n\(title)\n\nno longer appears to be in use."
+                    Globals.shared.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions) // "While created on this device:\n\n\(title)\n\nno longer appears to be in use."
                 }
             }
         }
@@ -1125,7 +1125,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         alert.makeOpaque()
         
         let yesAction = UIAlertAction(title: "Yes", style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
-            globals.history = nil
+            Globals.shared.history = nil
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
@@ -1166,7 +1166,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Current_Selection:
             if let mediaItem = selectedMediaItem {
-                if let contains = globals.media.active?.mediaItems?.contains(mediaItem), contains {
+                if let contains = Globals.shared.media.active?.mediaItems?.contains(mediaItem), contains {
                     if tableView.isEditing {
                         tableView.setEditing(false, animated: true)
                         DispatchQueue.global(qos: .background).async { [weak self] in
@@ -1177,7 +1177,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
                     }
                 } else {
-                    if let text = mediaItem.text, let contextTitle = globals.contextTitle {
+                    if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
                         alert(viewController:self,title: "Not in List",message: "\"\(text)\"\nis not in the list \"\(contextTitle).\"  Show \"All\" and try again.",completion:nil)
                     }
                 }
@@ -1190,20 +1190,20 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             fallthrough
             
         case Constants.Strings.Media_Paused:
-            globals.mediaPlayer.killPIP = true
+            Globals.shared.mediaPlayer.killPIP = true
 
-            performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: globals.mediaPlayer.mediaItem)
+            performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.mediaPlayer.mediaItem)
             break
             
         case Constants.Strings.Scripture_Index:
-            if (globals.media.active?.scriptureIndex?.eligible == nil) {
+            if (Globals.shared.media.active?.scriptureIndex?.eligible == nil) {
                 alert(viewController:self,title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
             } else {
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
                 
 //                if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
 //                    
-//                    viewController.mediaListGroupSort = globals.media.active
+//                    viewController.mediaListGroupSort = Globals.shared.media.active
 //
 //                    navigationController?.pushViewController(viewController, animated: true)
 //                }
@@ -1211,7 +1211,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX_NAV) as? UINavigationController,
 //                    let scriptureIndexViewController = navigationController.viewControllers[0] as? ScriptureIndexViewController {
 //                    navigationController.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.done)), animated: true)
-//                    scriptureIndexViewController.mediaListGroupSort = globals.media.active
+//                    scriptureIndexViewController.mediaListGroupSort = Globals.shared.media.active
 //                    navigationController.modalPresentationStyle = .overCurrentContext
 //                    present(navigationController, animated: true)
 //                }
@@ -1219,7 +1219,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Lexicon_Index:
-//            guard globals.media.active?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//            guard Globals.shared.media.active?.list?.filter({ (mediaItem:MediaItem) -> Bool in
 //                return mediaItem.hasNotesHTML
 //            }).count > 0 else {
 //                alert(viewController:self,title:"No Lexicon Index Available",
@@ -1228,7 +1228,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                break
 //            }
 
-            guard (globals.media.active?.lexicon?.eligible != nil) else {
+            guard (Globals.shared.media.active?.lexicon?.eligible != nil) else {
                 alert(viewController:self,title:"No Lexicon Index Available",
                       message: "These media items do not have HTML transcripts.",
                       completion:nil)
@@ -1244,7 +1244,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                popover.navigationItem.title = "Lexicon Index"
 //
 //                popover.purpose = .selectingLexicon
-//                popover.section.strings = globals.media.active?.lexicon?.section.strings
+//                popover.section.strings = Globals.shared.media.active?.lexicon?.section.strings
 //
 //                self.navigationController?.pushViewController(popover, animated: true)
 //            }
@@ -1252,7 +1252,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX_NAV) as? UINavigationController,
 //                let lexiconIndexViewController = navigationController.viewControllers[0] as? LexiconIndexViewController {
 //                navigationController.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.done)), animated: true)
-//                lexiconIndexViewController.mediaListGroupSort = globals.media.active
+//                lexiconIndexViewController.mediaListGroupSort = Globals.shared.media.active
 //                navigationController.modalPresentationStyle = .overCurrentContext
 //                present(navigationController, animated: true)
 //            }
@@ -1271,7 +1271,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.purpose = .selectingHistory
                 
                 popover.stringsFunction = { ()->[String]? in
-                    let strings = globals.relevantHistoryList
+                    let strings = Globals.shared.relevantHistoryList
                     
 //                    if strings == nil {
 //                        Thread.onMainThread(block: { () -> (Void) in
@@ -1304,7 +1304,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Live:
-            guard   globals.mediaStream.streamEntries?.count > 0, globals.reachability.isReachable,
+            guard   Globals.shared.mediaStream.streamEntries?.count > 0, Globals.shared.reachability.isReachable,
                     let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
                 break
@@ -1348,7 +1348,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     if key == Constants.Strings.Playing {
                         self.dismiss(animated: true, completion: nil)
                         
-                        if let streamEntry = StreamEntry(globals.mediaStream.streamEntryIndex?[key]?[indexPath.row]) {
+                        if let streamEntry = StreamEntry(Globals.shared.mediaStream.streamEntryIndex?[key]?[indexPath.row]) {
                             self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
                         }
                     }
@@ -1364,7 +1364,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                    if key == Constants.Strings.Playing {
 //                        self.dismiss(animated: true, completion: nil)
 //
-//                        if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
+//                        if let streamEntry = StreamEntry(Globals.shared.streamEntryIndex?[key]?[indexPath.row]) {
 //                            self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
 //                        }
 //                    }
@@ -1394,8 +1394,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    //                                popover.section.strings = globals.streamStrings
-                    popover.section.stringIndex = globals.mediaStream.streamStringIndex
+                    //                                popover.section.strings = Globals.shared.streamStrings
+                    popover.section.stringIndex = Globals.shared.mediaStream.streamStringIndex
                     
                     popover.tableView.reloadData()
                 }
@@ -1410,7 +1410,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.activityIndicator.startAnimating()
                 
                 self.loadLive() {
-                    popover.section.stringIndex = globals.mediaStream.streamStringIndex
+                    popover.section.stringIndex = Globals.shared.mediaStream.streamStringIndex
                     popover.tableView.reloadData()
                     
                     popover.activityIndicator.stopAnimating()
@@ -1444,12 +1444,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             alert.makeOpaque()
             
             alert.addTextField(configurationHandler: { (textField:UITextField) in
-                textField.text = globals.voiceBaseAPIKey
+                textField.text = Globals.shared.voiceBaseAPIKey
             })
             
             let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
                 (action : UIAlertAction) -> Void in
-                globals.voiceBaseAPIKey = alert.textFields?[0].text
+                Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
             })
             alert.addAction(okayAction)
 
@@ -1462,8 +1462,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.VoiceBase_Media:
-            guard globals.reachability.isReachable else {
-                globals.alert(title:"Network Error",message:"VoiceBase media not available.")
+            guard Globals.shared.reachability.isReachable else {
+                Globals.shared.alert(title:"Network Error",message:"VoiceBase media not available.")
                 return
             }
             
@@ -1518,7 +1518,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         self.popover?.section.stringIndex = self.stringIndex?.stringIndex(key: "title", sort: nil)
 
-                        Thread.onMainThread(block: {
+                        Thread.onMainThread {
                             self.popover?.updateSearchResults()
                             
                             self.popover?.tableView?.reloadData()
@@ -1534,7 +1534,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     self.popover?.isRefreshing = false
                                 }
                             }
-                        })
+                        }
                     },onError: nil)
                 }
                 
@@ -1627,18 +1627,18 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            guard (globals.mediaCategory.selected != string) || (globals.mediaRepository.list == nil) else {
+            guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
                 return
             }
             
-            globals.mediaCategory.selected = string
+            Globals.shared.mediaCategory.selected = string
             
-            globals.mediaPlayer.unobserve()
+            Globals.shared.mediaPlayer.unobserve()
             
-            globals.mediaPlayer.pause()
+            Globals.shared.mediaPlayer.pause()
 
-            globals.cancelAllDownloads()
-            globals.clearDisplay()
+            Globals.shared.cancelAllDownloads()
+            Globals.shared.clearDisplay()
             
             Thread.onMainThread {
                 self.tableView?.reloadData()
@@ -1656,8 +1656,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             tagLabel.text = nil
             
             // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-            globals.media = Media()
-            globals.media.globals = globals
+            Globals.shared.media = Media()
+//            Globals.shared.media.globals = globals
 
             loadMediaItems()
             {
@@ -1676,8 +1676,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 searchText = String(searchText[..<range.lowerBound])
             }
             
-            globals.search.active = true
-            globals.search.text = searchText
+            Globals.shared.search.active = true
+            Globals.shared.search.text = searchText
             
             tableView?.setEditing(false, animated: true)
             searchBar.text = searchText
@@ -1722,8 +1722,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if let range = string.range(of: " (") {
                 let searchText = String(string[..<range.lowerBound]).uppercased()
                 
-                globals.search.active = true
-                globals.search.text = searchText
+                Globals.shared.search.active = true
+                Globals.shared.search.text = searchText
                 
                 Thread.onMainThread {
                     self.searchBar.text = searchText
@@ -1731,7 +1731,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 }
                 
                 // Show the results directly rather than by executing a search
-                if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (mediaItemFrequency:(key: MediaItem,value: Int)) -> MediaItem in
+                if let list:[MediaItem]? = Globals.shared.media.toSearch?.lexicon?.words?[searchText]?.map({ (mediaItemFrequency:(key: MediaItem,value: Int)) -> MediaItem in
                     return mediaItemFrequency.key
                 }) {
                     updateSearches(searchText:searchText,mediaItems: list)
@@ -1745,7 +1745,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            if let history = globals.relevantHistory {
+            if let history = Globals.shared.relevantHistory {
                 var mediaItemID:String
                 
                 if let range = history[index].range(of: Constants.TAGS_SEPARATOR) {
@@ -1754,19 +1754,19 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     mediaItemID = history[index]
                 }
                 
-                if let mediaItem = globals.mediaRepository.index?[mediaItemID] {
+                if let mediaItem = Globals.shared.mediaRepository.index?[mediaItemID] {
                     if mediaItem.text != strings[index] {
                         if let text = mediaItem.text {
                             print(text,strings[index])
                         }
                     }
                     
-                    if let contains = globals.media.active?.mediaItems?.contains(mediaItem), contains {
+                    if let contains = Globals.shared.media.active?.mediaItems?.contains(mediaItem), contains {
                         selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
                     } else {
                         //                        dismiss(animated: true, completion: nil)
                         
-                        if let text = mediaItem.text, let contextTitle = globals.contextTitle {
+                        if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
                             alert(  viewController:self,
                                     title:"Not in List",
                                     message: "\"\(text)\"\nis not in the list \"\(contextTitle).\"  Show \"All\" and try again.",
@@ -1786,16 +1786,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            // Should we be showing globals.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
+            // Should we be showing Globals.shared.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 if (index < strings.count) {
                     var new:Bool = false
                     
                     switch string {
                     case Constants.Strings.All:
-                        if (globals.media.tags.showing != Constants.ALL) {
+                        if (Globals.shared.media.tags.showing != Constants.ALL) {
                             new = true
-                            globals.media.tags.selected = nil
+                            Globals.shared.media.tags.selected = nil
                         }
                         break
                         
@@ -1804,17 +1804,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         let tagSelected = strings[index]
                         
-                        new = (globals.media.tags.showing != Constants.TAGGED) || (globals.media.tags.selected != tagSelected)
+                        new = (Globals.shared.media.tags.showing != Constants.TAGGED) || (Globals.shared.media.tags.selected != tagSelected)
                         
                         if (new) {
-                            globals.media.tags.selected = tagSelected
+                            Globals.shared.media.tags.selected = tagSelected
                         }
                         break
                     }
                     
                     if (new) {
                         Thread.onMainThread {
-                            globals.clearDisplay()
+                            Globals.shared.clearDisplay()
                             
                             self?.tableView?.reloadData()
                             
@@ -1823,12 +1823,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self?.disableBarButtons()
                         }
                         
-                        if (globals.search.active) {
-                            self?.updateSearchResults(globals.search.text,completion: nil)
+                        if (Globals.shared.search.active) {
+                            self?.updateSearchResults(Globals.shared.search.text,completion: nil)
                         }
                         
                         Thread.onMainThread {
-                            globals.setupDisplay(globals.media.active)
+                            Globals.shared.setupDisplay(Globals.shared.media.active)
                             
                             self?.tableView?.reloadData()
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -1851,7 +1851,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            if let section = globals.media.active?.section?.headerStrings?.index(of: strings[index]) {
+            if let section = Globals.shared.media.active?.section?.headerStrings?.index(of: strings[index]) {
                 let indexPath = IndexPath(row: 0, section: section)
                 
                 if !(indexPath.section < tableView?.numberOfSections) {
@@ -1881,10 +1881,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             
             //            dismiss(animated: true, completion: nil)
-            globals.grouping = globals.groupings[index]
+            Globals.shared.grouping = Globals.shared.groupings[index]
             
-            if globals.media.need.grouping {
-                globals.clearDisplay()
+            if Globals.shared.media.need.grouping {
+                Globals.shared.clearDisplay()
                 
                 tableView?.reloadData()
                 
@@ -1893,7 +1893,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 disableBarButtons()
                 
                 DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    globals.setupDisplay(globals.media.active)
+                    Globals.shared.setupDisplay(Globals.shared.media.active)
                     
                     Thread.onMainThread {
                         self?.tableView?.reloadData()
@@ -1913,10 +1913,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            globals.sorting = Constants.sortings[index]
+            Globals.shared.sorting = Constants.sortings[index]
             
-            if (globals.media.need.sorting) {
-                globals.clearDisplay()
+            if (Globals.shared.media.need.sorting) {
+                Globals.shared.clearDisplay()
                 
                 Thread.onMainThread {
                     self.tableView?.reloadData()
@@ -1926,7 +1926,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        globals.setupDisplay(globals.media.active)
+                        Globals.shared.setupDisplay(Globals.shared.media.active)
                         
                         Thread.onMainThread {
                             self?.tableView?.reloadData()
@@ -1957,17 +1957,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             switch string {
             case Constants.Strings.View_List:
-                if let string = globals.media.active?.html?.string {
-                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: string)
+                if let string = Globals.shared.media.active?.html?.string {
+                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: string)
                 } else {
                     process(viewController: self, work: { [weak self] () -> (Any?) in
-                        if globals.media.active?.html?.string == nil {
-                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
+                        if Globals.shared.media.active?.html?.string == nil {
+                            Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
                         }
-                        return globals.media.active?.html?.string
+                        return Globals.shared.media.active?.html?.string
                     }, completion: { [weak self] (data:Any?) in
                         if let vc = self {
-                            presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                            presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                         }
                     })
                 }
@@ -2072,13 +2072,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTime:
-            guard globals.mediaPlayer.currentTime != nil else {
+            guard Globals.shared.mediaPlayer.currentTime != nil else {
                 break
             }
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
                 print(time,seconds)
-                globals.mediaPlayer.seek(to: seconds)
+                Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
             
@@ -2156,7 +2156,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
         // that are needed!  We need to find a way to delete only the temp file created by this download task.
         //        removeTempFiles()
         
-        if let mediaCategoryFilename = globals.mediaCategory.filename, let filename = task.taskDescription {
+        if let mediaCategoryFilename = Globals.shared.mediaCategory.filename, let filename = task.taskDescription {
             print("filename: \(filename)")
             
             if let error = error {
@@ -2165,7 +2165,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 switch filename {
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Couldn't get categories from network, try to get media, use last downloaded
-                    if let mediaFileName = globals.mediaCategory.filename, let selectedID = globals.mediaCategory.selectedID {
+                    if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
                         downloadJSON(url:Constants.JSON.URL.CATEGORY + selectedID,filename:mediaFileName)
                     }
                     break
@@ -2187,7 +2187,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 switch filename {
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Load media
-                    if let mediaFileName = globals.mediaCategory.filename, let selectedID = globals.mediaCategory.selectedID {
+                    if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
                         downloadJSON(url:Constants.JSON.URL.CATEGORY + selectedID,filename:mediaFileName)
                     }
                     break
@@ -2260,7 +2260,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             if self.stringIndex?.dict == nil {
                 self.dismiss(animated: true, completion: nil)
-                globals.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
+                Globals.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
             } else {
                 self.actionsButton?.isEnabled = true
             }
@@ -2280,7 +2280,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
     {
-        globals.motionEnded(motion,event: event)
+        Globals.shared.motionEnded(motion,event: event)
     }
 
     func deleteAllMedia()
@@ -2324,7 +2324,7 @@ class MediaTableViewController : UIViewController // MediaController
 //        guard   let voiceBasePurpose = voiceBasePurpose,
 //                let voiceBaseMediaID = voiceBaseMediaID,
 //                let voiceBaseMediaItemID = voiceBaseMediaItemID,
-//                let mediaItem = globals.mediaRepository.index?[voiceBaseMediaItemID] else {
+//                let mediaItem = Globals.shared.mediaRepository.index?[voiceBaseMediaItemID] else {
 //            return
 //        }
 //
@@ -2355,7 +2355,7 @@ class MediaTableViewController : UIViewController // MediaController
 //            }
 //
 //            if let text = mediaItem.text {
-//                globals.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
+//                Globals.shared.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
 //            }
 //
 //            actionButton?.isEnabled = false
@@ -2446,9 +2446,9 @@ class MediaTableViewController : UIViewController // MediaController
             popover.delegate = self
             popover.purpose = .selectingCategory
             
-            popover.stringSelected = globals.mediaCategory.selected
+            popover.stringSelected = Globals.shared.mediaCategory.selected
             
-            popover.section.strings = globals.mediaCategory.names
+            popover.section.strings = Globals.shared.mediaCategory.names
             
             popover.vc = self.splitViewController
             
@@ -2531,14 +2531,14 @@ class MediaTableViewController : UIViewController // MediaController
             }
             
             //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
-            if (globals.display.mediaItems != nil) && (selectedMediaItem != nil) {
+            if (Globals.shared.display.mediaItems != nil) && (selectedMediaItem != nil) {
                 showMenu.append(Constants.Strings.Current_Selection)
             }
             
-            if (globals.mediaPlayer.mediaItem != nil) {
+            if (Globals.shared.mediaPlayer.mediaItem != nil) {
                 var show:String = Constants.EMPTY_STRING
                 
-                if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM), let state = globals.mediaPlayer.state {
+                if Globals.shared.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM), let state = Globals.shared.mediaPlayer.state {
                     switch state {
                     case .paused:
                         show = Constants.Strings.Media_Paused
@@ -2560,7 +2560,7 @@ class MediaTableViewController : UIViewController // MediaController
                     if let nvc = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
                         if let myvc = nvc.topViewController as? MediaViewController {
                             if (myvc.selectedMediaItem != nil) {
-                                if (myvc.selectedMediaItem?.title != globals.mediaPlayer.mediaItem?.title) || (myvc.selectedMediaItem?.date != globals.mediaPlayer.mediaItem?.date) {
+                                if (myvc.selectedMediaItem?.title != Globals.shared.mediaPlayer.mediaItem?.title) || (myvc.selectedMediaItem?.date != Globals.shared.mediaPlayer.mediaItem?.date) {
                                     // The mediaItemPlaying is not the one showing
                                     showMenu.append(show)
                                 } else {
@@ -2587,19 +2587,19 @@ class MediaTableViewController : UIViewController // MediaController
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
-                if (globals.media.active?.scriptureIndex?.eligible != nil) {
+                if (Globals.shared.media.active?.scriptureIndex?.eligible != nil) {
                     showMenu.append(Constants.Strings.Scripture_Index)
                 }
                 
 //                var li = false
 //
-//                if let list = globals.media.active?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                if let list = Globals.shared.media.active?.list?.filter({ (mediaItem:MediaItem) -> Bool in
 //                    return mediaItem.hasNotesHTML
 //                }), list.count > 0 {
 //                    li = true
 //                }
 
-                if globals.media.active?.lexicon?.eligible != nil, globals.reachability.isReachable {
+                if Globals.shared.media.active?.lexicon?.eligible != nil, Globals.shared.reachability.isReachable {
                     showMenu.append(Constants.Strings.Lexicon_Index)
 //                } else {
 //                    if li {
@@ -2616,7 +2616,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.Strings.History)
 
-            if globals.mediaStream.streamEntries != nil, globals.reachability.isReachable {
+            if Globals.shared.mediaStream.streamEntries != nil, Globals.shared.reachability.isReachable {
                 showMenu.append(Constants.Strings.Live)
             }
             
@@ -2624,7 +2624,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
-            if globals.isVoiceBaseAvailable {
+            if Globals.shared.isVoiceBaseAvailable {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
             }
             
@@ -2643,8 +2643,8 @@ class MediaTableViewController : UIViewController // MediaController
             
         }
         didSet {
-            if selectedMediaItem != globals.selectedMediaItem.master {
-                globals.selectedMediaItem.master = selectedMediaItem
+            if selectedMediaItem != Globals.shared.selectedMediaItem.master {
+                Globals.shared.selectedMediaItem.master = selectedMediaItem
             }
         }
     }
@@ -2716,7 +2716,7 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
 
-        guard let grouping = globals.grouping else {
+        guard let grouping = Globals.shared.grouping else {
             return
         }
         
@@ -2725,7 +2725,7 @@ class MediaTableViewController : UIViewController // MediaController
             self.presentingVC = nil
         })
 
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -2747,12 +2747,12 @@ class MediaTableViewController : UIViewController // MediaController
 
             switch grouping {
             case GROUPING.BOOK:
-                if let books = globals.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
+                if let books = Globals.shared.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
                     return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                 }) {
                     popover.section.strings = books
 
-                    if let other = globals.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
+                    if let other = Globals.shared.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
                         return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                     }) {
                         popover.section.strings?.append(contentsOf: other)
@@ -2763,26 +2763,26 @@ class MediaTableViewController : UIViewController // MediaController
             case GROUPING.TITLE:
                 popover.section.showIndex = true
                 popover.indexStringsTransform = stringWithoutPrefixes
-                popover.section.strings = globals.media.active?.section?.headerStrings
+                popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
                 popover.indexStringsTransform = stringWithoutPrefixes
-                popover.section.strings = globals.media.active?.section?.headerStrings
+                popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.SPEAKER:
                 popover.section.showIndex = true
                 popover.indexStringsTransform = lastNameFromName
-                popover.section.strings = globals.media.active?.section?.headerStrings
+                popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             default:
-                popover.section.strings = globals.media.active?.section?.headerStrings
+                popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 break
             }
             
@@ -2806,7 +2806,7 @@ class MediaTableViewController : UIViewController // MediaController
             self.presentingVC = nil
         })
         
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -2825,8 +2825,8 @@ class MediaTableViewController : UIViewController // MediaController
             popover.delegate = self
             
             popover.purpose = .selectingGrouping
-            popover.section.strings = globals.groupingTitles
-            popover.stringSelected = translate(globals.grouping)
+            popover.section.strings = Globals.shared.groupingTitles
+            popover.stringSelected = translate(Globals.shared.grouping)
 
             popover.vc = self.splitViewController
             
@@ -2848,7 +2848,7 @@ class MediaTableViewController : UIViewController // MediaController
             self.presentingVC = nil
         })
         
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -2868,7 +2868,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
-            popover.stringSelected = translate(globals.sorting)
+            popover.stringSelected = translate(Globals.shared.sorting)
             
             popover.vc = self.splitViewController
             
@@ -2885,7 +2885,7 @@ class MediaTableViewController : UIViewController // MediaController
         showButton?.title = Constants.FA.REORDER
         showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        showButton?.isEnabled = (globals.media.all != nil)
+        showButton?.isEnabled = (Globals.shared.media.all != nil)
     }
     
     fileprivate func setupSortingAndGroupingOptions()
@@ -2908,7 +2908,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         navigationController?.toolbar.isTranslucent = false
         
-        if (globals.mediaRepository.list == nil) {
+        if (Globals.shared.mediaRepository.list == nil) {
             disableBarButtons()
         }
         
@@ -2985,11 +2985,11 @@ class MediaTableViewController : UIViewController // MediaController
 //            Thread.sleep(forTimeInterval: 0.25)
         
             if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {
-                globals.mediaStream.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
+                Globals.shared.mediaStream.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
                 
-                Thread.onMainThread(block: {
+                Thread.onMainThread {
                     completion?()
-                })
+                }
             }
         }
     }
@@ -3005,13 +3005,13 @@ class MediaTableViewController : UIViewController // MediaController
                 }
             }
             
-            globals.mediaCategory.dicts = mediaCategoryDicts
+            Globals.shared.mediaCategory.dicts = mediaCategoryDicts
         }
     }
     
     func loadMediaItems(completion: (() -> Void)?)
     {
-        globals.isLoading = true
+        Globals.shared.isLoading = true
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.setupSearchBar()
@@ -3039,15 +3039,15 @@ class MediaTableViewController : UIViewController // MediaController
                             }
                         }
                         
-                        globals.mediaCategory.dicts = mediaCategoryDicts
+                        Globals.shared.mediaCategory.dicts = mediaCategoryDicts
                     }
                     
-                    print(globals.mediaCategory.filename as Any)
+                    print(Globals.shared.mediaCategory.filename as Any)
                     
-                    if  let mediaItemDicts = self?.loadJSONDictsFromFileSystem(filename:globals.mediaCategory.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
-                        globals.mediaRepository.list = self?.mediaItemsFromMediaItemDicts(mediaItemDicts)
+                    if  let mediaItemDicts = self?.loadJSONDictsFromFileSystem(filename:Globals.shared.mediaCategory.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
+                        Globals.shared.mediaRepository.list = self?.mediaItemsFromMediaItemDicts(mediaItemDicts)
                     } else {
-                        globals.mediaRepository.list = nil
+                        Globals.shared.mediaRepository.list = nil
                         print("FAILED TO LOAD")
                     }
                     break
@@ -3055,12 +3055,12 @@ class MediaTableViewController : UIViewController // MediaController
                 case .direct:
                     self?.loadCategories()
                     
-                    if  let url = globals.mediaCategory.url,
-                        let filename = globals.mediaCategory.filename,
+                    if  let url = Globals.shared.mediaCategory.url,
+                        let filename = Globals.shared.mediaCategory.filename,
                         let mediaItemDicts = self?.loadJSONDictsFromURL(url: url,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
-                        globals.mediaRepository.list = self?.mediaItemsFromMediaItemDicts(mediaItemDicts)
+                        Globals.shared.mediaRepository.list = self?.mediaItemsFromMediaItemDicts(mediaItemDicts)
                     } else {
-                        globals.mediaRepository.list = nil
+                        Globals.shared.mediaRepository.list = nil
                         print("FAILED TO LOAD")
                     }
                     break
@@ -3070,31 +3070,31 @@ class MediaTableViewController : UIViewController // MediaController
             Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Loading_Settings
             }
-            globals.loadSettings()
+            Globals.shared.loadSettings()
             
             Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
             }
             
-            globals.media.all = MediaListGroupSort(mediaItems: globals.mediaRepository.list)
+            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
             
-            if globals.search.valid {
+            if Globals.shared.search.valid {
                 Thread.onMainThread {
-                    self?.searchBar.text = globals.search.text
+                    self?.searchBar.text = Globals.shared.search.text
                     self?.searchBar.showsCancelButton = true
                 }
 
-                globals.search.complete = false
+                Globals.shared.search.complete = false
             }
 
-            globals.setupDisplay(globals.media.active)
+            Globals.shared.setupDisplay(Globals.shared.media.active)
             
             Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Setting_up_Player
                 
-                if (globals.mediaPlayer.mediaItem != nil) {
+                if (Globals.shared.mediaPlayer.mediaItem != nil) {
                     // This MUST be called on the main loop.
-                    globals.mediaPlayer.setup(globals.mediaPlayer.mediaItem,playOnLoad:false)
+                    Globals.shared.mediaPlayer.setup(Globals.shared.mediaPlayer.mediaItem,playOnLoad:false)
                 }
 
                 self?.navigationItem.title = Constants.CBC.TITLE.SHORT
@@ -3104,7 +3104,7 @@ class MediaTableViewController : UIViewController // MediaController
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
                 }
                 
-                globals.isLoading = false
+                Globals.shared.isLoading = false
                 
                 completion?()
 
@@ -3116,12 +3116,12 @@ class MediaTableViewController : UIViewController // MediaController
     func setupCategoryButton()
     {
         Thread.onMainThread {
-            self.mediaCategoryButton.setTitle(globals.mediaCategory.selected)
+            self.mediaCategoryButton.setTitle(Globals.shared.mediaCategory.selected)
 
-            if globals.isLoading || globals.isRefreshing || !globals.search.complete {
+            if Globals.shared.isLoading || Globals.shared.isRefreshing || !Globals.shared.search.complete {
                 self.mediaCategoryButton.isEnabled = false
             } else {
-                if globals.search.complete {
+                if Globals.shared.search.complete {
                     self.mediaCategoryButton.isEnabled = true
                 }
             }
@@ -3130,10 +3130,10 @@ class MediaTableViewController : UIViewController // MediaController
     
     func setupBarButtons()
     {
-        if globals.isLoading || globals.isRefreshing {
+        if Globals.shared.isLoading || Globals.shared.isRefreshing {
             disableBarButtons()
         } else {
-            if (globals.mediaRepository.list != nil) {
+            if (Globals.shared.mediaRepository.list != nil) {
                 enableBarButtons()
             }
         }
@@ -3141,8 +3141,8 @@ class MediaTableViewController : UIViewController // MediaController
     
     func setupListActivityIndicator()
     {
-        if globals.isLoading || (globals.search.active && !globals.search.complete) {
-            if !globals.isRefreshing {
+        if Globals.shared.isLoading || (Globals.shared.search.active && !Globals.shared.search.complete) {
+            if !Globals.shared.isRefreshing {
                 Thread.onMainThread {
                     self.startAnimating()
                 }
@@ -3208,20 +3208,20 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        globals.isRefreshing = true
+        Globals.shared.isRefreshing = true
         
         setupListActivityIndicator()
         refreshControl.beginRefreshing()
         
-        globals.mediaPlayer.unobserve()
+        Globals.shared.mediaPlayer.unobserve()
         
-        globals.mediaPlayer.pause() // IfPlaying
+        Globals.shared.mediaPlayer.pause() // IfPlaying
 
-        globals.cancelAllDownloads()
+        Globals.shared.cancelAllDownloads()
 
-        globals.clearDisplay()
+        Globals.shared.clearDisplay()
         
-        globals.search.active = false
+        Globals.shared.search.active = false
 
         setupSearchBar()
         
@@ -3240,8 +3240,8 @@ class MediaTableViewController : UIViewController // MediaController
         setupBarButtons()
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Media()
-        globals.media.globals = globals
+        Globals.shared.media = Media()
+//        Globals.shared.media.globals = globals
 
         switch jsonSource {
         case .download:
@@ -3263,7 +3263,7 @@ class MediaTableViewController : UIViewController // MediaController
     {
         updateSearch()
         
-        globals.setupDisplay(globals.media.active)
+        Globals.shared.setupDisplay(Globals.shared.media.active)
 
         updateUI()
         
@@ -3356,28 +3356,28 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        if globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
+        if Globals.shared.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         }
         
-        if globals.mediaRepository.list == nil {
-            if globals.isRefreshing {
+        if Globals.shared.mediaRepository.list == nil {
+            if Globals.shared.isRefreshing {
                 self.refreshControl?.endRefreshing()
-                globals.isRefreshing = false
+                Globals.shared.isRefreshing = false
             }
 
             alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
         } else {
-            if globals.isRefreshing {
+            if Globals.shared.isRefreshing {
                 self.refreshControl?.endRefreshing()
                 self.tableView?.setContentOffset(CGPoint(x:self.tableView.frame.origin.x, y:self.tableView.frame.origin.y - 44), animated: false)
-                globals.isRefreshing = false
+                Globals.shared.isRefreshing = false
             }
             
-            self.selectedMediaItem = globals.selectedMediaItem.master
+            self.selectedMediaItem = Globals.shared.selectedMediaItem.master
             
-            if globals.search.active && !globals.search.complete {
-                self.updateSearchResults(globals.search.text,completion: {
+            if Globals.shared.search.active && !Globals.shared.search.complete {
+                self.updateSearchResults(Globals.shared.search.text,completion: {
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         Thread.onMainThread {
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -3408,11 +3408,11 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        guard !globals.isLoading else {
+        guard !Globals.shared.isLoading else {
             return
         }
         
-        guard globals.mediaRepository.list == nil else {
+        guard Globals.shared.mediaRepository.list == nil else {
             return
         }
         
@@ -3425,7 +3425,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         switch jsonSource {
         case .download:
-            globals.isLoading = true
+            Globals.shared.isLoading = true
             
             setupSearchBar()
             setupCategoryButton()
@@ -3488,7 +3488,7 @@ class MediaTableViewController : UIViewController // MediaController
     {
         var actionMenu = [String]()
         
-        if globals.media.active?.list?.count > 0 {
+        if Globals.shared.media.active?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
         }
         
@@ -3541,7 +3541,7 @@ class MediaTableViewController : UIViewController // MediaController
     {
         var strings = [Constants.Strings.All]
         
-        if let mediaItemTags = globals.media.all?.mediaItemTags {
+        if let mediaItemTags = Globals.shared.media.all?.mediaItemTags {
             strings.append(contentsOf: mediaItemTags)
         }
         
@@ -3556,10 +3556,10 @@ class MediaTableViewController : UIViewController // MediaController
     
     func setupActionAndTagsButton()
     {
-        guard !globals.isLoading && !globals.isRefreshing else {
-            Thread.onMainThread(block: {
+        guard !Globals.shared.isLoading && !Globals.shared.isRefreshing else {
+            Thread.onMainThread {
                 self.navigationItem.rightBarButtonItems = nil
-            })
+            }
             return
         }
         
@@ -3572,7 +3572,7 @@ class MediaTableViewController : UIViewController // MediaController
             barButtons.append(actionButton)
         }
         
-        if (globals.media.all?.mediaItemTags?.count > 1) {
+        if (Globals.shared.media.all?.mediaItemTags?.count > 1) {
             tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
         } else {
             tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
@@ -3583,13 +3583,13 @@ class MediaTableViewController : UIViewController // MediaController
             barButtons.append(tagsButton)
         }
         
-        Thread.onMainThread(block: {
+        Thread.onMainThread {
             if barButtons.count > 0 {
                 self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
             } else {
                 self.navigationItem.rightBarButtonItems = nil
             }
-        })
+        }
     }
     
     func setModalStyle(_ navigationController:UINavigationController)
@@ -3615,15 +3615,15 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
 
-        guard !globals.isLoading else {
+        guard !Globals.shared.isLoading else {
             return
         }
         
-        guard !globals.isRefreshing else {
+        guard !Globals.shared.isRefreshing else {
             return
         }
         
-        guard (globals.media.all?.mediaItemTags != nil) else {
+        guard (Globals.shared.media.all?.mediaItemTags != nil) else {
             return
         }
         
@@ -3652,7 +3652,7 @@ class MediaTableViewController : UIViewController // MediaController
             popover.delegate = self
             popover.purpose = .selectingTags
             
-            popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+            popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
             
             popover.section.showIndex = true
             popover.indexStringsTransform = stringWithoutPrefixes
@@ -3675,8 +3675,8 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        if !globals.search.active || (globals.search.text?.uppercased() == searchText) {
-            globals.setupDisplay(globals.media.active)
+        if !Globals.shared.search.active || (Globals.shared.search.text?.uppercased() == searchText) {
+            Globals.shared.setupDisplay(Globals.shared.media.active)
         }
         
         Thread.onMainThread {
@@ -3694,11 +3694,11 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        if globals.media.toSearch?.searches == nil {
-            globals.media.toSearch?.searches = [String:MediaListGroupSort]()
+        if Globals.shared.media.toSearch?.searches == nil {
+            Globals.shared.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
-        globals.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
+        Globals.shared.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
     }
     
     func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
@@ -3711,7 +3711,7 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        guard (globals.media.toSearch?.searches?[searchText] == nil) else {
+        guard (Globals.shared.media.toSearch?.searches?[searchText] == nil) else {
             updateDisplay(searchText:searchText)
             setupListActivityIndicator()
             setupBarButtons()
@@ -3724,12 +3724,12 @@ class MediaTableViewController : UIViewController // MediaController
         
         func shouldAbort() -> Bool
         {
-            return !globals.search.valid || (globals.search.text != searchText)
+            return !Globals.shared.search.valid || (Globals.shared.search.text != searchText)
         }
         
-        globals.search.complete = false
+        Globals.shared.search.complete = false
 
-        globals.clearDisplay()
+        Globals.shared.clearDisplay()
 
         Thread.onMainThread {
             self.tableView?.reloadData()
@@ -3742,9 +3742,9 @@ class MediaTableViewController : UIViewController // MediaController
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var searchMediaItems:[MediaItem]?
             
-            if let mediaItems = globals.media.toSearch?.list {
+            if let mediaItems = Globals.shared.media.toSearch?.list {
                 for mediaItem in mediaItems {
-                    globals.search.complete = false
+                    Globals.shared.search.complete = false
                     
                     self?.setupListActivityIndicator()
                     
@@ -3753,7 +3753,7 @@ class MediaTableViewController : UIViewController // MediaController
                     abort = abort || shouldAbort()
                     
                     if abort {
-                        globals.media.toSearch?.searches?[searchText] = nil
+                        Globals.shared.media.toSearch?.searches?[searchText] = nil
                         break
                     } else {
                         if searchHit {
@@ -3777,12 +3777,12 @@ class MediaTableViewController : UIViewController // MediaController
                     self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                     self?.updateDisplay(searchText:searchText)
                 } else {
-                    globals.media.toSearch?.searches?[searchText] = nil
+                    Globals.shared.media.toSearch?.searches?[searchText] = nil
                 }
                 
-                if !abort && globals.search.transcripts, let mediaItems = globals.media.toSearch?.list {
+                if !abort && Globals.shared.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.list {
                     for mediaItem in mediaItems {
-                        globals.search.complete = false
+                        Globals.shared.search.complete = false
                         
                         self?.setupListActivityIndicator()
 
@@ -3792,10 +3792,10 @@ class MediaTableViewController : UIViewController // MediaController
                             searchHit = mediaItem.searchFullNotesHTML(searchText)
                         }
 
-                        abort = abort || shouldAbort() || !globals.search.transcripts
+                        abort = abort || shouldAbort() || !Globals.shared.search.transcripts
                         
                         if abort {
-                            globals.media.toSearch?.searches?[searchText] = nil
+                            Globals.shared.media.toSearch?.searches?[searchText] = nil
                             break
                         } else {
                             if searchHit {
@@ -3822,7 +3822,7 @@ class MediaTableViewController : UIViewController // MediaController
             abort = abort || shouldAbort()
             
             if abort {
-                globals.media.toSearch?.searches?[searchText] = nil
+                Globals.shared.media.toSearch?.searches?[searchText] = nil
             } else {
                 self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                 self?.updateDisplay(searchText:searchText)
@@ -3831,7 +3831,7 @@ class MediaTableViewController : UIViewController // MediaController
             Thread.onMainThread {
                 completion?()
                 
-                globals.search.complete = true
+                Globals.shared.search.complete = true
                 
                 self?.setupListActivityIndicator()
                 self?.setupBarButtons()
@@ -3851,15 +3851,15 @@ class MediaTableViewController : UIViewController // MediaController
             return
         }
         
-        guard let grouping = globals.grouping else {
+        guard let grouping = Globals.shared.grouping else {
             return
         }
         
-        guard let indexStrings = globals.media.active?.section?.indexStrings else {
+        guard let indexStrings = Globals.shared.media.active?.section?.indexStrings else {
             return
         }
         
-        guard let mediaItems = globals.media.active?.mediaItems else {
+        guard let mediaItems = Globals.shared.media.active?.mediaItems else {
             return
         }
         
@@ -3911,7 +3911,7 @@ class MediaTableViewController : UIViewController // MediaController
             section = stringIndex
         }
         
-        if let sectionIndexes = globals.media.active?.sectionIndexes {
+        if let sectionIndexes = Globals.shared.media.active?.sectionIndexes {
             row = index - sectionIndexes[section]
         }
         
@@ -3954,7 +3954,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     fileprivate func setupTag()
     {
-        guard let showing = globals.media.tags.showing else {
+        guard let showing = Globals.shared.media.tags.showing else {
             return
         }
         
@@ -3965,7 +3965,7 @@ class MediaTableViewController : UIViewController // MediaController
                 break
                 
             case Constants.TAGGED:
-                self.tagLabel.text = globals.media.tags.selected // searchBar.placeholder
+                self.tagLabel.text = Globals.shared.media.tags.selected // searchBar.placeholder
                 break
                 
             default:
@@ -3977,7 +3977,7 @@ class MediaTableViewController : UIViewController // MediaController
 
     func setupTitle()
     {
-        if (!globals.isLoading && !globals.isRefreshing) {
+        if (!Globals.shared.isLoading && !Globals.shared.isRefreshing) {
             switch UIDevice.current.userInterfaceIdiom {
             case .pad:
                 switch traitCollection.horizontalSizeClass {
@@ -4021,7 +4021,7 @@ class MediaTableViewController : UIViewController // MediaController
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
-            if (globals.media.all == nil) {
+            if (Globals.shared.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
                 if let count = splitViewController?.viewControllers.count, count > 1 {
@@ -4049,11 +4049,11 @@ class MediaTableViewController : UIViewController // MediaController
     
     @objc func updateSearch()
     {
-        guard globals.search.valid else {
+        guard Globals.shared.search.valid else {
             return
         }
         
-        updateSearchResults(globals.search.text,completion: nil)
+        updateSearchResults(Globals.shared.search.text,completion: nil)
     }
     
     @objc func liveView()
@@ -4064,12 +4064,12 @@ class MediaTableViewController : UIViewController // MediaController
     
     @objc func playingPaused()
     {
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: globals.mediaPlayer.mediaItem ?? globals.selectedMediaItem.detail)
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.mediaPlayer.mediaItem ?? Globals.shared.selectedMediaItem.detail)
     }
     
     @objc func lastSegue()
     {
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: globals.selectedMediaItem.detail)
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.selectedMediaItem.detail)
     }
     
     @objc func deviceOrientationDidChange()
@@ -4094,7 +4094,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     @objc func didBecomeActive()
     {
-        guard !globals.isLoading, globals.mediaRepository.list == nil else {
+        guard !Globals.shared.isLoading, Globals.shared.mediaRepository.list == nil else {
             return
         }
         
@@ -4175,7 +4175,7 @@ class MediaTableViewController : UIViewController // MediaController
     {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 
     /*
@@ -4224,7 +4224,7 @@ class MediaTableViewController : UIViewController // MediaController
                 break
                 
             case Constants.SEGUE.SHOW_LIVE:
-                globals.mediaPlayer.killPIP = true
+                Globals.shared.mediaPlayer.killPIP = true
                 
                 if sender != nil {
                     (dvc as? LiveViewController)?.streamEntry = sender as? StreamEntry
@@ -4236,25 +4236,25 @@ class MediaTableViewController : UIViewController // MediaController
                 break
                 
             case Constants.SEGUE.SHOW_SCRIPTURE_INDEX:
-                (dvc as? ScriptureIndexViewController)?.mediaListGroupSort = globals.media.active
+                (dvc as? ScriptureIndexViewController)?.mediaListGroupSort = Globals.shared.media.active
                 break
                 
             case Constants.SEGUE.SHOW_LEXICON_INDEX:
-                (dvc as? LexiconIndexViewController)?.mediaListGroupSort = globals.media.active
+                (dvc as? LexiconIndexViewController)?.mediaListGroupSort = Globals.shared.media.active
                 break
                 
             case Constants.SEGUE.SHOW_ABOUT2:
                 break
                 
             case Constants.SEGUE.SHOW_MEDIAITEM:
-                if globals.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) && (globals.mediaPlayer.pip == .stopped) {
-                    globals.mediaPlayer.pause() // DO NOT USE STOP HERE AS STOP SETS globals.mediaPlayer.mediaItem (used below) to nil
-                    globals.mediaPlayer.playOnLoad = false
+                if Globals.shared.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) && (Globals.shared.mediaPlayer.pip == .stopped) {
+                    Globals.shared.mediaPlayer.pause() // DO NOT USE STOP HERE AS STOP SETS Globals.shared.mediaPlayer.mediaItem (used below) to nil
+                    Globals.shared.mediaPlayer.playOnLoad = false
                 }
                 
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
-                        globals.addToHistory(myCell.mediaItem)
+                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
+                        Globals.shared.addToHistory(myCell.mediaItem)
                     }
                     selectedMediaItem = myCell.mediaItem
                     
@@ -4374,7 +4374,7 @@ extension MediaTableViewController : UITableViewDataSource
 
     func numberOfSections(in tableView: UITableView) -> Int
     {
-        guard let headers = globals.display.section.headers else {
+        guard let headers = Globals.shared.display.section.headers else {
             return 0
         }
         
@@ -4393,7 +4393,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        guard let headers = globals.display.section.headers else {
+        guard let headers = Globals.shared.display.section.headers else {
             return nil
         }
         
@@ -4406,7 +4406,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        guard let counts = globals.display.section.counts else {
+        guard let counts = Globals.shared.display.section.counts else {
             return 0
         }
         
@@ -4425,13 +4425,13 @@ extension MediaTableViewController : UITableViewDataSource
         
         cell.vc = self
         
-        cell.searchText = globals.search.active ? globals.search.text : nil
+        cell.searchText = Globals.shared.search.active ? Globals.shared.search.text : nil
         
         // Configure the cell
-        if indexPath.section >= 0, indexPath.section < globals.display.section.indexes?.count {
-            if let section = globals.display.section.indexes?[indexPath.section], let count = globals.display.mediaItems?.count {
+        if indexPath.section >= 0, indexPath.section < Globals.shared.display.section.indexes?.count {
+            if let section = Globals.shared.display.section.indexes?[indexPath.section], let count = Globals.shared.display.mediaItems?.count {
                 if (section + indexPath.row) >= 0,(section + indexPath.row) < count {
-                    cell.mediaItem = globals.display.mediaItems?[section + indexPath.row]
+                    cell.mediaItem = Globals.shared.display.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")
@@ -4443,7 +4443,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section >= 0, section < globals.display.section.headers?.count, let title = globals.display.section.headers?[section] else {
+        guard section >= 0, section < Globals.shared.display.section.headers?.count, let title = Globals.shared.display.section.headers?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -4510,7 +4510,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         view?.alpha = 0.85
         
-        if section >= 0, section < globals.display.section.headers?.count, let title = globals.display.section.headers?[section] {
+        if section >= 0, section < Globals.shared.display.section.headers?.count, let title = Globals.shared.display.section.headers?[section] {
             view?.label?.attributedText = NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.bold)
         } else {
             view?.label?.attributedText = NSAttributedString(string: "ERROR", attributes: Constants.Fonts.Attributes.bold)
@@ -4526,8 +4526,8 @@ extension MediaTableViewController : UITableViewDelegate
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        if globals.mediaPlayer.fullScreen {
-            globals.mediaPlayer.fullScreen = false
+        if Globals.shared.mediaPlayer.fullScreen {
+            Globals.shared.mediaPlayer.fullScreen = false
         }
 
         if let cell: MediaTableViewCell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
@@ -4566,10 +4566,10 @@ extension MediaTableViewController : UITableViewDelegate
     {
         var mediaItem : MediaItem?
         
-        if indexPath.section >= 0, indexPath.section < globals.display.section.indexes?.count {
-            if let section = globals.display.section.indexes?[indexPath.section], let count = globals.display.mediaItems?.count {
+        if indexPath.section >= 0, indexPath.section < Globals.shared.display.section.indexes?.count {
+            if let section = Globals.shared.display.section.indexes?[indexPath.section], let count = Globals.shared.display.mediaItems?.count {
                 if (section + indexPath.row) >= 0,(section + indexPath.row) < count {
-                    mediaItem = globals.display.mediaItems?[section + indexPath.row]
+                    mediaItem = Globals.shared.display.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")
@@ -4621,7 +4621,7 @@ extension MediaTableViewController : UITableViewDelegate
 //                popover.delegate = self
 //                popover.purpose = .selectingTags
 //                
-//                popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+//                popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
 //
 //                popover.section.strings = mediaItem.tagsArray
 //                popover.section.strings?.insert(Constants.Strings.All,at: 0)
@@ -4850,7 +4850,7 @@ extension MediaTableViewController : UITableViewDelegate
 //        words = AlertAction(title: Constants.Strings.Words, style: .default) {
 //            if mediaItem.hasNotesHTML {
 //                if mediaItem.notesTokens == nil {
-//                    guard globals.reachability.isReachable else {
+//                    guard Globals.shared.reachability.isReachable else {
 //                        networkUnavailable(self,"HTML transcript words unavailable.")
 //                        return
 //                    }
@@ -4873,23 +4873,23 @@ extension MediaTableViewController : UITableViewDelegate
 //            if mediaItem.notesHTML != nil {
 //                var htmlString:String?
 //                
-//                if globals.search.valid && globals.search.transcripts {
-//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
+//                if Globals.shared.search.valid && Globals.shared.search.transcripts {
+//                    htmlString = mediaItem.markedFullNotesHTML(searchText:Globals.shared.search.text, wholeWordsOnly: false, index: true)
 //                } else {
 //                    htmlString = mediaItem.fullNotesHTML
 //                }
 //                
 //                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
 //            } else {
-//                guard globals.reachability.isReachable else {
+//                guard Globals.shared.reachability.isReachable else {
 //                    networkUnavailable(self,"HTML transcript unavailable.")
 //                    return
 //                }
 //                
 //                process(viewController: self, work: { () -> (Any?) in
 //                    mediaItem.loadNotesHTML()
-//                    if globals.search.valid && globals.search.transcripts {
-//                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
+//                    if Globals.shared.search.valid && Globals.shared.search.transcripts {
+//                        return mediaItem.markedFullNotesHTML(searchText:Globals.shared.search.text, wholeWordsOnly: false,index: true)
 //                    } else {
 //                        return mediaItem.fullNotesHTML
 //                    }
@@ -4938,7 +4938,7 @@ extension MediaTableViewController : UITableViewDelegate
 //                if mediaItem.scripture?.html?[reference] != nil {
 //                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
 //                } else {
-//                    guard globals.reachability.isReachable else {
+//                    guard Globals.shared.reachability.isReachable else {
 //                        networkUnavailable(self,"Scripture text unavailable.")
 //                        return
 //                    }
@@ -4977,7 +4977,7 @@ extension MediaTableViewController : UITableViewDelegate
 //            actions.append(download)
 //        }
 //        
-//        if globals.allowMGTs {
+//        if Globals.shared.allowMGTs {
 //            actions.append(voiceBase)
 //        }
 //    

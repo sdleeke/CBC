@@ -9,7 +9,7 @@
 import Foundation
 
 class MediaRepository {
-    weak var globals:Globals!
+//    weak var globals:Globals!
     
     var list:[MediaItem]? { //Not in any specific order
         willSet {
@@ -53,21 +53,21 @@ class MediaRepository {
                 }
             }
             
-            globals.groupings = Constants.groupings
-            globals.groupingTitles = Constants.GroupingTitles
+            Globals.shared.groupings = Constants.groupings
+            Globals.shared.groupingTitles = Constants.GroupingTitles
             
             if classes?.count > 0 {
-                globals.groupings.append(GROUPING.CLASS)
-                globals.groupingTitles.append(Grouping.Class)
+                Globals.shared.groupings.append(GROUPING.CLASS)
+                Globals.shared.groupingTitles.append(Grouping.Class)
             }
             
             if events?.count > 0 {
-                globals.groupings.append(GROUPING.EVENT)
-                globals.groupingTitles.append(Grouping.Event)
+                Globals.shared.groupings.append(GROUPING.EVENT)
+                Globals.shared.groupingTitles.append(Grouping.Event)
             }
             
-            if let grouping = globals.grouping, !globals.groupings.contains(grouping) {
-                globals.grouping = GROUPING.YEAR
+            if let grouping = Globals.shared.grouping, !Globals.shared.groupings.contains(grouping) {
+                Globals.shared.grouping = GROUPING.YEAR
             }
         }
     }

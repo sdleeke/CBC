@@ -125,7 +125,7 @@ class SearchHit {
                 return false
             }
             
-//            guard globals.search.transcripts else {
+//            guard Globals.shared.search.transcripts else {
 //                return false
 //            }
             
@@ -167,11 +167,11 @@ extension MediaItem : URLSessionDownloadDelegate
                 
                 if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
                     let id = String(taskDescription[..<index.lowerBound])
-                    if let mediaItem = globals.mediaRepository.index?[id] {
-                        globals.alert(title: title, message: mediaItem.title)
+                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+                        Globals.shared.alert(title: title, message: mediaItem.title)
                     }
                 } else {
-                    globals.alert(title: title, message: nil)
+                    Globals.shared.alert(title: title, message: nil)
                 }
             } else {
                 print("previously dealt with")
@@ -198,7 +198,7 @@ extension MediaItem : URLSessionDownloadDelegate
             case Purpose.audio:
                 if progress > current {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    //                    globals.queue.async(execute: { () -> Void in
+                    //                    Globals.shared.queue.async(execute: { () -> Void in
                     Thread.onMainThread {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download.mediaItem)
                     }
@@ -279,11 +279,11 @@ extension MediaItem : URLSessionDownloadDelegate
                 if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
                     let id = String(taskDescription[..<index.lowerBound])
                 
-                    if let mediaItem = globals.mediaRepository.index?[id] {
-                        globals.alert(title: title, message: mediaItem.title)
+                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+                        Globals.shared.alert(title: title, message: mediaItem.title)
                     }
                 } else {
-                    globals.alert(title: title, message: nil)
+                    Globals.shared.alert(title: title, message: nil)
                 }
             } else {
                 print("previously dealth with")
@@ -391,18 +391,18 @@ extension MediaItem : URLSessionDownloadDelegate
                 if let taskDescription = task.taskDescription, let index = taskDescription.range(of: ".") {
                     let id = String(taskDescription[..<index.lowerBound])
                     
-                    if let message = globals.mediaRepository.index?[id]?.title {
+                    if let message = Globals.shared.mediaRepository.index?[id]?.title {
                         if let error = error {
-                            globals.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+                            Globals.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
                         } else {
-                            globals.alert(title: title, message: message)
+                            Globals.shared.alert(title: title, message: message)
                         }
                     }
                 } else {
                     if let error = error {
-                        globals.alert(title: title, message: "Error: \(error.localizedDescription)")
+                        Globals.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
                     } else {
-                        globals.alert(title: title, message: nil)
+                        Globals.shared.alert(title: title, message: nil)
                     }
                 }
             } else {
@@ -856,8 +856,8 @@ class MediaItem : NSObject
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
 //                print(multiPartSort)
-                if let multiPartSort = multiPartSort, (globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-                    mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+                    mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                         if testMediaItem.hasMultipleParts {
                             return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
                         } else {
@@ -866,7 +866,7 @@ class MediaItem : NSObject
                     })
                 } else {
                     if let multiPartSort = multiPartSort {
-                        mediaItemParts = globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                        mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
                             return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
                         })
                     }
@@ -1008,7 +1008,7 @@ class MediaItem : NSObject
     func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
-            let purge = globals.purge && (notesHTML == nil)
+            let purge = Globals.shared.purge && (notesHTML == nil)
             
             loadNotesHTML()
             
@@ -1034,7 +1034,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        return globals.media.all?.tagMediaItems?[tag]
+        return Globals.shared.media.all?.tagMediaItems?[tag]
     }
 
     var playingURL:URL? {
@@ -1070,19 +1070,19 @@ class MediaItem : NSObject
     
     var isInMediaPlayer:Bool {
         get {
-            return (self == globals.mediaPlayer.mediaItem)
+            return (self == Globals.shared.mediaPlayer.mediaItem)
         }
     }
     
     var isLoaded:Bool {
         get {
-            return isInMediaPlayer && globals.mediaPlayer.loaded
+            return isInMediaPlayer && Globals.shared.mediaPlayer.loaded
         }
     }
     
     var isPlaying:Bool {
         get {
-            return globals.mediaPlayer.url == playingURL
+            return Globals.shared.mediaPlayer.url == playingURL
         }
     }
     
@@ -1130,8 +1130,8 @@ class MediaItem : NSObject
             if newValue != self[Field.playing] {
                 //Changing audio to video or vice versa clears the mediaItem in the player, which is what stop does vs. pause
                 //(which also resets the state and time).
-                if globals.mediaPlayer.mediaItem == self {
-                    globals.mediaPlayer.stop()
+                if Globals.shared.mediaPlayer.mediaItem == self {
+                    Globals.shared.mediaPlayer.stop()
                 }
                 
                 self[Field.playing] = newValue
@@ -1350,7 +1350,7 @@ class MediaItem : NSObject
 
     func singleJSONFromURL() -> [[String:String]]?
     {
-        guard globals.reachability.isReachable else {
+        guard Globals.shared.reachability.isReachable else {
             return nil
         }
         
@@ -1380,7 +1380,7 @@ class MediaItem : NSObject
     
     func loadNotesHTML()
     {
-        guard !globals.isRefreshing else {
+        guard !Globals.shared.isRefreshing else {
             return
         }
 
@@ -1423,7 +1423,7 @@ class MediaItem : NSObject
             return
         }
         
-        let purge = globals.purge && (notesHTML == nil)
+        let purge = Globals.shared.purge && (notesHTML == nil)
         
         loadNotesHTML()
 
@@ -1889,7 +1889,7 @@ class MediaItem : NSObject
             return
         }
         
-        guard globals.media.all != nil else {
+        guard Globals.shared.media.all != nil else {
             return
         }
         
@@ -1910,22 +1910,22 @@ class MediaItem : NSObject
         }
         
         if let sortTag = stringWithoutPrefixes(tag) {
-            if globals.media.all?.tagMediaItems?[sortTag] != nil {
-                if globals.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
-                    globals.media.all?.tagMediaItems?[sortTag]?.append(self)
-                    globals.media.all?.tagNames?[sortTag] = tag
+            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
+                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
+                    Globals.shared.media.all?.tagNames?[sortTag] = tag
                 }
             } else {
-                globals.media.all?.tagMediaItems?[sortTag] = [self]
-                globals.media.all?.tagNames?[sortTag] = tag
+                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+                Globals.shared.media.all?.tagNames?[sortTag] = tag
             }
             
-            globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag])
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         }
 
-        if (globals.media.tags.selected == tag) {
+        if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // Globals.shared.media.tagged
             }
         }
         
@@ -1940,7 +1940,7 @@ class MediaItem : NSObject
             return
         }
         
-        guard globals.media.all != nil else {
+        guard Globals.shared.media.all != nil else {
             return
         }
         
@@ -1959,20 +1959,20 @@ class MediaItem : NSObject
         mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
         
         if let sortTag = stringWithoutPrefixes(tag) {
-            if let index = globals.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
-                globals.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
+            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
+                Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
             }
             
-            if globals.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-                _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+                _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
             }
             
-            globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag])
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         }
         
-        if (globals.media.tags.selected == tag) {
+        if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // Globals.shared.media.tagged
             }
         }
         
@@ -3244,7 +3244,7 @@ class MediaItem : NSObject
                     return nil
                 }
                 
-                return globals.mediaItemSettings?[mediaItem.id]?[key]
+                return Globals.shared.mediaItemSettings?[mediaItem.id]?[key]
             }
             set {
                 guard let mediaItem = mediaItem else {
@@ -3257,22 +3257,22 @@ class MediaItem : NSObject
                     return
                 }
 
-                if globals.mediaItemSettings == nil {
-                    globals.mediaItemSettings = [String:[String:String]]()
+                if Globals.shared.mediaItemSettings == nil {
+                    Globals.shared.mediaItemSettings = [String:[String:String]]()
                 }
-                if (globals.mediaItemSettings != nil) {
-                    if (globals.mediaItemSettings?[mediaItem.id] == nil) {
-                        globals.mediaItemSettings?[mediaItem.id] = [String:String]()
+                if (Globals.shared.mediaItemSettings != nil) {
+                    if (Globals.shared.mediaItemSettings?[mediaItem.id] == nil) {
+                        Globals.shared.mediaItemSettings?[mediaItem.id] = [String:String]()
                     }
-                    if (globals.mediaItemSettings?[mediaItem.id]?[key] != newValue) {
+                    if (Globals.shared.mediaItemSettings?[mediaItem.id]?[key] != newValue) {
                         //                        print("\(mediaItem)")
-                        globals.mediaItemSettings?[mediaItem.id]?[key] = newValue
+                        Globals.shared.mediaItemSettings?[mediaItem.id]?[key] = newValue
                         
                         // For a high volume of activity this can be very expensive.
-                        globals.saveSettingsBackground()
+                        Globals.shared.saveSettingsBackground()
                     }
                 } else {
-                    print("globals.settings == nil in Settings!")
+                    print("Globals.shared.settings == nil in Settings!")
                 }
             }
         }
@@ -3305,7 +3305,7 @@ class MediaItem : NSObject
                     return nil
                 }
                 
-                return globals.multiPartSettings?[mediaItem.seriesID]?[key]
+                return Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key]
             }
             set {
                 guard let mediaItem = mediaItem else {
@@ -3313,24 +3313,24 @@ class MediaItem : NSObject
                     return
                 }
                 
-                if globals.multiPartSettings == nil {
-                    globals.multiPartSettings = [String:[String:String]]()
+                if Globals.shared.multiPartSettings == nil {
+                    Globals.shared.multiPartSettings = [String:[String:String]]()
                 }
                 
-                guard (globals.multiPartSettings != nil) else {
-                    print("globals.viewSplits == nil in SeriesSettings!")
+                guard (Globals.shared.multiPartSettings != nil) else {
+                    print("Globals.shared.viewSplits == nil in SeriesSettings!")
                     return
                 }
                 
-                if (globals.multiPartSettings?[mediaItem.seriesID] == nil) {
-                    globals.multiPartSettings?[mediaItem.seriesID] = [String:String]()
+                if (Globals.shared.multiPartSettings?[mediaItem.seriesID] == nil) {
+                    Globals.shared.multiPartSettings?[mediaItem.seriesID] = [String:String]()
                 }
-                if (globals.multiPartSettings?[mediaItem.seriesID]?[key] != newValue) {
+                if (Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key] != newValue) {
                     //                        print("\(mediaItem)")
-                    globals.multiPartSettings?[mediaItem.seriesID]?[key] = newValue
+                    Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key] = newValue
                     
                     // For a high volume of activity this can be very expensive.
-                    globals.saveSettingsBackground()
+                    Globals.shared.saveSettingsBackground()
                 }
             }
         }
@@ -3504,7 +3504,7 @@ class MediaItem : NSObject
             return false
         }
         
-        guard globals.reachability.isReachable else {
+        guard Globals.shared.reachability.isReachable else {
             return false
         }
         
@@ -3526,7 +3526,7 @@ class MediaItem : NSObject
             return false
         }
         
-        guard globals.reachability.isReachable else {
+        guard Globals.shared.reachability.isReachable else {
             return false
         }
 
@@ -3630,7 +3630,7 @@ class MediaItem : NSObject
                     
 //                    present(alert, animated: true, completion: nil)
                     
-                    globals.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                    Globals.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
                     break
                     
                 case Constants.Strings.Cancel_Audio_Download:
@@ -3667,7 +3667,7 @@ class MediaItem : NSObject
                         
 //                            self.present(alert, animated: true, completion: nil)
                         
-                        globals.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                        Globals.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
                         break
                         
                     default:
@@ -3692,14 +3692,14 @@ class MediaItem : NSObject
             switch title {
             case Constants.Strings.Add_to_Favorites:
                 // This blocks this thread until it finishes.
-                globals.queue.sync {
+                Globals.shared.queue.sync {
                     self.addTag(Constants.Strings.Favorites)
                 }
                 break
                 
             case Constants.Strings.Remove_From_Favorites:
                 // This blocks this thread until it finishes.
-                globals.queue.sync {
+                Globals.shared.queue.sync {
                     self.removeTag(Constants.Strings.Favorites)
                 }
                 break
@@ -3712,7 +3712,7 @@ class MediaItem : NSObject
         openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
             if let url = self.websiteURL {
                 open(scheme: url.absoluteString) {
-                    globals.alert(title: "Network Error",message: "Unable to open: \(url)")
+                    Globals.shared.alert(title: "Network Error",message: "Unable to open: \(url)")
 //                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
@@ -3742,7 +3742,7 @@ class MediaItem : NSObject
                 popover.delegate = mtvc
                 popover.purpose = .selectingTags
                 
-                popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+                popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
                 
                 popover.section.strings = self.tagsArray
                 popover.section.strings?.insert(Constants.Strings.All,at: 0)
@@ -3882,7 +3882,7 @@ class MediaItem : NSObject
             }
             
             if self.notesTokens == nil {
-                guard globals.reachability.isReachable else {
+                guard Globals.shared.reachability.isReachable else {
                     networkUnavailable(viewController,"HTML transcript words unavailable.")
                     return
                 }
@@ -3901,7 +3901,7 @@ class MediaItem : NSObject
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
 
-            process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+            process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
                 self?.loadNotesHTML()
 
                 var htmlString:String?
@@ -3910,8 +3910,8 @@ class MediaItem : NSObject
                     htmlString = self?.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
                 } else
                     
-                if let _ = viewController as? MediaTableViewController, globals.search.active {
-                    htmlString = self?.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, lemmas: false, index: true)
+                if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
+                    htmlString = self?.markedFullNotesHTML(searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
                 } else {
                     htmlString = self?.fullNotesHTML
                 }
@@ -3921,7 +3921,7 @@ class MediaItem : NSObject
                 if let htmlString = data as? String {
                     popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
                 } else {
-                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
                 }
             })
 
@@ -3932,8 +3932,8 @@ class MediaItem : NSObject
 //                    htmlString = self.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true,index: true)
 //                } else
 //
-//                if let mediaTableViewController = viewController as? MediaTableViewController, globals.search.active {
-//                    htmlString = self.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: true,index: true)
+//                if let mediaTableViewController = viewController as? MediaTableViewController, Globals.shared.search.active {
+//                    htmlString = self.markedFullNotesHTML(searchText:Globals.shared.search.text, wholeWordsOnly: true,index: true)
 //                } else
 //
 //                {
@@ -3942,12 +3942,12 @@ class MediaItem : NSObject
 //
 //                popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
 //            } else {
-//                guard globals.reachability.isReachable else {
-//                    globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                guard Globals.shared.reachability.isReachable else {
+//                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
 //                    return
 //                }
 //
-//                process(viewController: globals.splitViewController, work: { [weak self] () -> (Any?) in
+//                process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
 //                    self?.loadNotesHTML()
 //
 //                    return self?.fullNotesHTML
@@ -3955,7 +3955,7 @@ class MediaItem : NSObject
 //                    if let htmlString = data as? String {
 //                        popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
 //                    } else {
-//                        globals.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                        Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
 //                    }
 //                })
 //            }
@@ -3969,9 +3969,9 @@ class MediaItem : NSObject
                 if self.scripture?.html?[reference] != nil {
                     popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:self.scripture?.html?[reference])
                 } else {
-                    guard globals.reachability.isReachable else {
+                    guard Globals.shared.reachability.isReachable else {
                         networkUnavailable(viewController,"Scripture text unavailable.")
-//                        globals.alert(title: "Network Error",message: "Scripture text unavailable.")
+//                        Globals.shared.alert(title: "Network Error",message: "Scripture text unavailable.")
                         return
                     }
                     
@@ -4006,7 +4006,7 @@ class MediaItem : NSObject
             }) {
 //                let mvc = viewController as? MediaViewController // self == mvc?.selectedMediaItem,
                 
-                if self == globals.mediaPlayer.mediaItem, self.playing == Playing.audio, self.audioTranscript?.keywords != nil {
+                if self == Globals.shared.mediaPlayer.mediaItem, self.playing == Playing.audio, self.audioTranscript?.keywords != nil {
                     alertActions.append(actions)
                 }
             }
@@ -4016,7 +4016,7 @@ class MediaItem : NSObject
             }) {
 //                let mvc = viewController as? MediaViewController // self == mvc?.selectedMediaItem, 
                 
-                if self == globals.mediaPlayer.mediaItem, self.playing == Playing.video, self.videoTranscript?.keywords != nil {
+                if self == Globals.shared.mediaPlayer.mediaItem, self.playing == Playing.video, self.videoTranscript?.keywords != nil {
                     alertActions.append(actions)
                 }
             }
@@ -4090,7 +4090,7 @@ class MediaItem : NSObject
             actions.append(download)
         }
         
-        if globals.allowMGTs {
+        if Globals.shared.allowMGTs {
             actions.append(voiceBase)
         }
         

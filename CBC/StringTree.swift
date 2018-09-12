@@ -56,7 +56,7 @@ class StringTree
                     if (date == nil) || (date?.timeIntervalSinceNow <= -1) { // Any more frequent and the UI becomes unresponsive.
 //                        print(date)
                         
-                        globals.queue.async {
+                        Globals.shared.queue.async {
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                         }
                         
@@ -67,7 +67,7 @@ class StringTree
                 self?.building = false
                 self?.completed = true
                 
-                globals.queue.async {
+                Globals.shared.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                 }
             }

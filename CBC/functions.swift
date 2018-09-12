@@ -162,7 +162,7 @@ func jsonToFileSystemDirectory(key:String)
     
     let fileManager = FileManager.default
     
-    if let filename = globals.mediaCategory.filename, let jsonFileURL = cachesURL()?.appendingPathComponent(filename) {
+    if let filename = Globals.shared.mediaCategory.filename, let jsonFileURL = cachesURL()?.appendingPathComponent(filename) {
         // Check if file exist
         if (!fileManager.fileExists(atPath: jsonFileURL.path)){
             do {
@@ -221,7 +221,7 @@ func jsonToFileSystemDirectory(key:String)
 
 func jsonFromURL(url:String) -> Any?
 {
-    guard globals.reachability.isReachable, let url = URL(string: url) else {
+    guard Globals.shared.reachability.isReachable, let url = URL(string: url) else {
         return nil
     }
     
@@ -281,7 +281,7 @@ var operationQueue:OperationQueue! = {
 
 func jsonFromURL(url:String,filename:String) -> Any?
 {
-    guard globals.reachability.isReachable, let url = URL(string: url) else {
+    guard Globals.shared.reachability.isReachable, let url = URL(string: url) else {
         return jsonFromFileSystem(filename: filename)
     }
 
@@ -1913,13 +1913,13 @@ func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
     var multiPartMediaItems:[MediaItem]?
     
     if mediaItem.hasMultipleParts {
-        if (globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-            let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+        if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+            let seriesMediaItems = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                 return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
             })
             multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
         } else {
-            multiPartMediaItems = globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]
+            multiPartMediaItems = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]
         }
     } else {
         multiPartMediaItems = [mediaItem]
@@ -2112,7 +2112,7 @@ func bookNumberInBible(_ book:String?) -> Int?
 
 func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
 {
-    guard !globals.isRefreshing else {
+    guard !Globals.shared.isRefreshing else {
         return nil
     }
     
@@ -2134,7 +2134,7 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
             
             tokenCounts.append((token,count))
             
-            if globals.isRefreshing {
+            if Globals.shared.isRefreshing {
                 break
             }
         }
@@ -2145,7 +2145,7 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
 
 func tokensFromString(_ string:String?) -> [String]?
 {
-    guard !globals.isRefreshing else {
+    guard !Globals.shared.isRefreshing else {
         return nil
     }
     
@@ -2255,7 +2255,7 @@ func tokensFromString(_ string:String?) -> [String]?
             }
         }
         
-        if globals.isRefreshing {
+        if Globals.shared.isRefreshing {
             break
         }
     }
@@ -2530,7 +2530,7 @@ func tokensAndCountsInString(_ string:String?) -> [String:Int]?
 
 func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
 {
-    guard !globals.isRefreshing else {
+    guard !Globals.shared.isRefreshing else {
         return nil
     }
     
@@ -2727,7 +2727,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             }
         }
 
-        if globals.isRefreshing {
+        if Globals.shared.isRefreshing {
             break
         }
     }
@@ -3041,7 +3041,7 @@ func sortMediaItemsBySpeaker(_ mediaItems:[MediaItem]?,sorting: String?) -> [Med
 
 func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
-    guard let mediaItems = globals.mediaRepository.list else {
+    guard let mediaItems = Globals.shared.mediaRepository.list else {
         print("Testing the availability of mediaItem PDF's - no list")
         return
     }
@@ -3125,7 +3125,7 @@ func testMediaItemsTagsAndSeries()
         print("Testing for mediaItem series and tags the same - end")
     }
 
-    if let mediaItems = globals.mediaRepository.list {
+    if let mediaItems = Globals.shared.mediaRepository.list {
         for mediaItem in mediaItems {
             if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
                 if (mediaItem.multiPartName == mediaItem.tags) {
@@ -3143,7 +3143,7 @@ func testMediaItemsForAudio()
         print("Testing for audio - end")
     }
     
-    guard let list = globals.mediaRepository.list else {
+    guard let list = Globals.shared.mediaRepository.list else {
         print("Testing for audio - list empty")
         return
     }
@@ -3165,7 +3165,7 @@ func testMediaItemsForSpeaker()
         print("Testing for speaker - end")
     }
 
-    guard let list = globals.mediaRepository.list else {
+    guard let list = Globals.shared.mediaRepository.list else {
         print("Testing for speaker - no list")
         return
     }
@@ -3184,7 +3184,7 @@ func testMediaItemsForSeries()
         print("Testing for mediaItems with \"(Part \" in the title but no series - end")
     }
 
-    guard let list = globals.mediaRepository.list else {
+    guard let list = Globals.shared.mediaRepository.list else {
         print("Testing for speaker - no list")
         return
     }
@@ -3894,7 +3894,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
         
         Thread.onMainThread {
             viewController.present(navigationController, animated: true, completion: {
-                globals.topViewController = navigationController
+                Globals.shared.topViewController = navigationController
             })
         }
     }
@@ -4269,15 +4269,15 @@ func stripHTML(_ string:String?) -> String?
 
 func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 {
-    guard (globals.media.active?.list != nil) else {
+    guard (Globals.shared.media.active?.list != nil) else {
         return nil
     }
     
-    guard let grouping = globals.grouping else {
+    guard let grouping = Globals.shared.grouping else {
         return nil
     }
     
-    guard let sorting = globals.sorting else {
+    guard let sorting = Globals.shared.sorting else {
         return nil
     }
     
@@ -4285,7 +4285,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     
     bodyString = bodyString + "The following media "
     
-    if globals.media.active?.list?.count > 1 {
+    if Globals.shared.media.active?.list?.count > 1 {
         bodyString = bodyString + "are"
     } else {
         bodyString = bodyString + "is"
@@ -4297,15 +4297,15 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
 
-    if let category = globals.mediaCategory.selected {
+    if let category = Globals.shared.mediaCategory.selected {
         bodyString = bodyString + "Category: \(category)<br/>"
     }
 
-    if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
+    if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
         bodyString = bodyString + "Collection: \(tag)<br/>"
     }
     
-    if globals.search.valid, let searchText = globals.search.text {
+    if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
         bodyString = bodyString + "Search: \(searchText)<br/>"
     }
     
@@ -4317,10 +4317,10 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString + "Sorted: \(sorting)<br/>"
     }
     
-    if let keys = globals.media.active?.section?.indexStrings {
+    if let keys = Globals.shared.media.active?.section?.indexStrings {
         var count = 0
         for key in keys {
-            if let mediaItems = globals.media.active?.groupSort?[grouping]?[key]?[sorting] {
+            if let mediaItems = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting] {
                 count += mediaItems.count
             }
         }
@@ -4337,8 +4337,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         }
         
         for key in keys {
-            if  let name = globals.media.active?.groupNames?[grouping]?[key],
-                let mediaItems = globals.media.active?.groupSort?[grouping]?[key]?[sorting] {
+            if  let name = Globals.shared.media.active?.groupNames?[grouping]?[key],
+                let mediaItems = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting] {
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
@@ -4400,13 +4400,13 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         order.append("speaker")
                     }
                     
-                    if globals.grouping != GROUPING.CLASS {
+                    if Globals.shared.grouping != GROUPING.CLASS {
                         if mediaItem.hasClassName {
                             order.append("class")
                         }
                     }
                     
-                    if globals.grouping != GROUPING.EVENT {
+                    if Globals.shared.grouping != GROUPING.EVENT {
                         if mediaItem.hasEventName {
                             order.append("event")
                         }
@@ -4440,7 +4440,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             case GROUPING.TITLE:
                 let a = "A"
                 
-                if let indexTitles = globals.media.active?.section?.indexStrings {
+                if let indexTitles = Globals.shared.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
                             if let string = stringWithoutPrefixes(string) {
@@ -4455,7 +4455,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     var stringIndex = [String:[String]]()
                     
-                    if let indexStrings = globals.media.active?.section?.indexStrings {
+                    if let indexStrings = Globals.shared.media.active?.section?.indexStrings {
                         for indexString in indexStrings {
                             let key = String(indexString[..<a.endIndex]).uppercased()
                             
@@ -4486,8 +4486,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
-                                if let title = globals.media.active?.groupNames?[grouping]?[key],
-                                    let count = globals.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
+                                if let title = Globals.shared.media.active?.groupNames?[grouping]?[key],
+                                    let count = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
                                     let tag = key.replacingOccurrences(of: " ", with: "")
                                     bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                 }
@@ -4503,8 +4503,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
             default:
                 for key in keys {
-                    if let title = globals.media.active?.groupNames?[grouping]?[key],
-                        let count = globals.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
+                    if let title = Globals.shared.media.active?.groupNames?[grouping]?[key],
+                        let count = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
                         let tag = key.replacingOccurrences(of: " ", with: "")
                         bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                     }
@@ -4621,15 +4621,15 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
     
-    if let category = globals.mediaCategory.selected {
+    if let category = Globals.shared.mediaCategory.selected {
         bodyString = bodyString + "Category: \(category)<br/><br/>"
     }
     
-    if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
+    if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
         bodyString = bodyString + "Collection: \(tag)<br/><br/>"
     }
     
-    if globals.search.valid, let searchText = globals.search.text {
+    if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
         bodyString = bodyString + "Search: \(searchText)<br/><br/>"
     }
     

@@ -456,12 +456,12 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTime:
-            guard globals.mediaPlayer.currentTime != nil else {
+            guard Globals.shared.mediaPlayer.currentTime != nil else {
                 break
             }
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
-                globals.mediaPlayer.seek(to: seconds)
+                Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
             
@@ -985,8 +985,8 @@ class LexiconIndexViewController : UIViewController
                 
             case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
-                        globals.addToHistory(myCell.mediaItem)
+                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
+                        Globals.shared.addToHistory(myCell.mediaItem)
                     }
                     selectedMediaItem = myCell.mediaItem
                     
@@ -1099,7 +1099,7 @@ class LexiconIndexViewController : UIViewController
             return
         }
 
-        globals.queue.async {
+        Globals.shared.queue.async {
             NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
@@ -1165,7 +1165,7 @@ class LexiconIndexViewController : UIViewController
             return nil
         }
         
-        guard let grouping = globals.grouping, let sorting = globals.sorting else {
+        guard let grouping = Globals.shared.grouping, let sorting = Globals.shared.sorting else {
             return nil
         }
         
@@ -1199,23 +1199,23 @@ class LexiconIndexViewController : UIViewController
             bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = globals.mediaCategory.selected {
+        if let category = Globals.shared.mediaCategory.selected {
             bodyString = bodyString + "Category: \(category)<br/>"
         }
         
-        if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
+        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
             bodyString = bodyString + "Collection: \(tag)<br/>"
         }
         
-        if globals.search.valid, let searchText = globals.search.text {
+        if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
             bodyString = bodyString + "Search: \(searchText)<br/>"
         }
         
-        if let grouping = translate(globals.grouping) {
+        if let grouping = translate(Globals.shared.grouping) {
             bodyString = bodyString + "Grouped: By \(grouping)<br/>"
         }
         
-        if let sorting = translate(globals.sorting) {
+        if let sorting = translate(Globals.shared.sorting) {
             bodyString = bodyString + "Sorted: \(sorting)<br/>"
         }
         
@@ -1280,13 +1280,13 @@ class LexiconIndexViewController : UIViewController
                             order.append("speaker")
                         }
                         
-                        if globals.grouping != GROUPING.CLASS {
+                        if Globals.shared.grouping != GROUPING.CLASS {
                             if mediaItem.hasClassName, let className = mediaItem.className {
                                 order.append("class")
                             }
                         }
                         
-                        if globals.grouping != GROUPING.EVENT {
+                        if Globals.shared.grouping != GROUPING.EVENT {
                             if mediaItem.hasEventName, let eventName = mediaItem.eventName {
                                 order.append("event")
                             }
@@ -1312,7 +1312,7 @@ class LexiconIndexViewController : UIViewController
             if includeURLs, keys.count > 1 {
                 bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
                 
-                if let grouping = globals.grouping {
+                if let grouping = Globals.shared.grouping {
                     switch grouping {
                     case GROUPING.CLASS:
                         fallthrough
@@ -1535,7 +1535,7 @@ class LexiconIndexViewController : UIViewController
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -1698,7 +1698,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 }
 
@@ -1716,7 +1716,7 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         mediaItem = cell.mediaItem
         
-        globals.addToHistory(mediaItem)
+        Globals.shared.addToHistory(mediaItem)
         
 //        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
         
@@ -1926,7 +1926,7 @@ extension LexiconIndexViewController : UITableViewDelegate
 //                if mediaItem.scripture?.html?[reference] != nil {
 //                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
 //                } else {
-//                    guard globals.reachability.isReachable else {
+//                    guard Globals.shared.reachability.isReachable else {
 //                        networkUnavailable(self,"Scripture text unavailable.")
 //                        return
 //                    }

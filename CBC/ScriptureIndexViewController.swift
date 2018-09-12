@@ -88,7 +88,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     return self?.scriptureIndex?.html?.string
                 }, completion: { [weak self] (data:Any?) in
                     if let vc = self {
-                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                     }
                 })
                 break
@@ -237,12 +237,12 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTime:
-            guard globals.mediaPlayer.currentTime != nil else {
+            guard Globals.shared.mediaPlayer.currentTime != nil else {
                 break
             }
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
-                globals.mediaPlayer.seek(to: seconds)
+                Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
             
@@ -978,8 +978,8 @@ class ScriptureIndexViewController : UIViewController
             switch identifier {
             case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
-                        globals.addToHistory(myCell.mediaItem)
+                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
+                        Globals.shared.addToHistory(myCell.mediaItem)
                     }
                     selectedMediaItem = myCell.mediaItem
                     
@@ -1019,7 +1019,7 @@ class ScriptureIndexViewController : UIViewController
     
     func addNotifications()
     {
-        globals.queue.async {
+        Globals.shared.queue.async {
             NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
@@ -1032,15 +1032,15 @@ class ScriptureIndexViewController : UIViewController
         
         addNotifications()
         
-//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?
 //            
-//            if presentingViewController == globals.splitViewController.viewControllers[0] {
-//                vc = globals.splitViewController.viewControllers[1]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
+//                vc = Globals.shared.splitViewController.viewControllers[1]
 //            }
 //            
-//            if presentingViewController == globals.splitViewController.viewControllers[1] {
-//                vc = globals.splitViewController.viewControllers[0]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
+//                vc = Globals.shared.splitViewController.viewControllers[0]
 //            }
 //            
 //            mask = true
@@ -1136,15 +1136,15 @@ class ScriptureIndexViewController : UIViewController
             bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = globals.mediaCategory.selected {
+        if let category = Globals.shared.mediaCategory.selected {
             bodyString = bodyString + "Category: \(category)<br/><br/>"
         }
         
-        if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
+        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
             bodyString = bodyString + "Collection: \(tag)<br/><br/>"
         }
         
-        if globals.search.valid, let text = globals.search.text {
+        if Globals.shared.search.valid, let text = Globals.shared.search.text {
             bodyString = bodyString + "Search: \(text)<br/><br/>"
         }
         
@@ -1324,7 +1324,7 @@ class ScriptureIndexViewController : UIViewController
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -1684,7 +1684,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 }
 
@@ -1944,7 +1944,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
 //                if mediaItem.scripture?.html?[reference] != nil {
 //                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
 //                } else {
-//                    guard globals.reachability.isReachable else {
+//                    guard Globals.shared.reachability.isReachable else {
 //                        networkUnavailable(self,"Scripture text unavailable.")
 //                        return
 //                    }
@@ -2033,7 +2033,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
             }
         }
         
-        globals.addToHistory(selectedMediaItem)
+        Globals.shared.addToHistory(selectedMediaItem)
         
         print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
         

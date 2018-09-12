@@ -230,7 +230,7 @@ class Lexicon : NSObject {
 //
 //            section.strings = strings
             
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
             }
         }
@@ -266,7 +266,7 @@ class Lexicon : NSObject {
             
             var date = Date()
             
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
             }
             
@@ -275,7 +275,7 @@ class Lexicon : NSObject {
                     break
                 }
                 
-                let purge = globals.purge && (mediaItem.notesTokens == nil)
+                let purge = Globals.shared.purge && (mediaItem.notesTokens == nil)
                 
 //                queue.sync {
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
@@ -306,7 +306,7 @@ class Lexicon : NSObject {
                             self?.words?[token.key]?[mediaItem] = token.value
                         }
                         
-                        if globals.isRefreshing || globals.isLoading {
+                        if Globals.shared.isRefreshing || Globals.shared.isLoading {
                             break
                         }
                     }
@@ -314,7 +314,7 @@ class Lexicon : NSObject {
                     print("NO NOTES TOKENS!")
                 }
 
-                if globals.isRefreshing || globals.isLoading {
+                if Globals.shared.isRefreshing || Globals.shared.isLoading {
                     break
                 }
                 
@@ -336,7 +336,7 @@ class Lexicon : NSObject {
                     }
 //                }
                 
-                if globals.isRefreshing || globals.isLoading {
+                if Globals.shared.isRefreshing || Globals.shared.isLoading {
                     break
                 }
             } while list.count > 0
@@ -346,12 +346,12 @@ class Lexicon : NSObject {
             
             self?.creating = false
             
-            if !globals.isRefreshing && !globals.isLoading {
+            if !Globals.shared.isRefreshing && !Globals.shared.isLoading {
                 self?.completed = true
             }
             
             //        print(dict)
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
             }
         }

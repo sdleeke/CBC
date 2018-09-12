@@ -16,7 +16,7 @@ class Document : NSObject {
     var loaded : Bool = false
     //    {
     //        get {
-    //            if globals.cacheDownloads {
+    //            if Globals.shared.cacheDownloads {
     //                // This assumes it will load.
     //                return (wkWebView?.url == download?.fileSystemURL) && (download?.isDownloaded == true) // (wkWebView?.isLoading == false) &&
     //            } else {

@@ -333,7 +333,7 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-//        globals.mediaPlayer.pause()
+//        Globals.shared.mediaPlayer.pause()
         
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -347,29 +347,29 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-//        if let state = globals.mediaPlayer.state {
+//        if let state = Globals.shared.mediaPlayer.state {
 //            switch state {
 //            case .none:
-//                globals.mediaPlayer.play()
+//                Globals.shared.mediaPlayer.play()
 //                break
 //
 //            case .paused:
-//                globals.mediaPlayer.play()
+//                Globals.shared.mediaPlayer.play()
 //                break
 //
 //            case .playing:
 //                break
 //
 //            case .seekingForward:
-//                globals.mediaPlayer.play()
+//                Globals.shared.mediaPlayer.play()
 //                break
 //
 //            case .seekingBackward:
-//                globals.mediaPlayer.play()
+//                Globals.shared.mediaPlayer.play()
 //                break
 //
 //            case .stopped:
-////                globals.mediaPlayer.play()
+////                Globals.shared.mediaPlayer.play()
 //                break
 //            }
 //        }
@@ -407,7 +407,7 @@ class PopoverTableViewController : UIViewController
     
     @objc func follow()
     {
-        guard globals.mediaPlayer.currentTime != nil else {
+        guard Globals.shared.mediaPlayer.currentTime != nil else {
             stopped()
             return
         }
@@ -423,9 +423,9 @@ class PopoverTableViewController : UIViewController
         var time:Double?
         
         if isTracking {
-            time = globals.mediaPlayer.currentTime?.seconds
+            time = Globals.shared.mediaPlayer.currentTime?.seconds
         } else {
-            time = globals.mediaPlayer.lastSeek
+            time = Globals.shared.mediaPlayer.lastSeek
         }
         
         guard let seconds = time else {
@@ -962,7 +962,7 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-                    globals.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
             
@@ -980,7 +980,7 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-                    globals.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
             
@@ -1035,11 +1035,11 @@ class PopoverTableViewController : UIViewController
         
         switch title {
         case "Play":
-            globals.mediaPlayer.play()
+            Globals.shared.mediaPlayer.play()
             playPauseButton.title = "Pause"
 
         case "Pause":
-            globals.mediaPlayer.pause()
+            Globals.shared.mediaPlayer.pause()
             playPauseButton.title = "Play"
             
         default:
@@ -1077,7 +1077,7 @@ class PopoverTableViewController : UIViewController
         
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
-        syncButton.isEnabled = globals.mediaPlayer.mediaItem != nil
+        syncButton.isEnabled = Globals.shared.mediaPlayer.mediaItem != nil
 
         if track {
 //            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
@@ -1518,7 +1518,7 @@ class PopoverTableViewController : UIViewController
 
         self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
 
-        if let state = globals.mediaPlayer.state {
+        if let state = Globals.shared.mediaPlayer.state {
             switch state {
             case .playing:
                 playPauseButton.title = "Pause"
@@ -1562,15 +1562,15 @@ class PopoverTableViewController : UIViewController
             self.view.setNeedsLayout()
         }
         
-//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?
 //
-//            if presentingViewController == globals.splitViewController.viewControllers[0] {
-//                vc = globals.splitViewController.viewControllers[1]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
+//                vc = Globals.shared.splitViewController.viewControllers[1]
 //            }
 //
-//            if presentingViewController == globals.splitViewController.viewControllers[1] {
-//                vc = globals.splitViewController.viewControllers[0]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
+//                vc = Globals.shared.splitViewController.viewControllers[0]
 //            }
 //
 //            mask = true
@@ -1619,10 +1619,10 @@ class PopoverTableViewController : UIViewController
             }
             
             // Then we need to know if we're still seeking or not and if we are we need to push the same action to be done after seeking completes.
-            if !globals.mediaPlayer.isSeeking {
+            if !Globals.shared.mediaPlayer.isSeeking {
                 block()
             } else {
-                globals.mediaPlayer.seekingCompletion = {
+                Globals.shared.mediaPlayer.seekingCompletion = {
                     block()
                 }
             }
@@ -1638,8 +1638,8 @@ class PopoverTableViewController : UIViewController
             
             // WHAT does the following do?  It catches the case where the mediaPlayer is seeking when stringsFunction is called below.
 //            if purpose == .selectingTime {
-//                if globals.mediaPlayer.isSeeking {
-//                    globals.mediaPlayer.seekingCompletion = {
+//                if Globals.shared.mediaPlayer.isSeeking {
+//                    Globals.shared.mediaPlayer.seekingCompletion = {
 //                        //                        Thread.sleep(forTimeInterval: 0.4)
 //                        if self.section.strings != nil {
 //                            Thread.onMainThread {
@@ -1700,10 +1700,10 @@ class PopoverTableViewController : UIViewController
                             }
 
                             // Then we need to know if we're still seeking or not and if we are we need to push the same action to be done after seeking completes.
-                            if !globals.mediaPlayer.isSeeking {
+                            if !Globals.shared.mediaPlayer.isSeeking {
                                 block()
                             } else {
-                                globals.mediaPlayer.seekingCompletion = {
+                                Globals.shared.mediaPlayer.seekingCompletion = {
                                     block()
                                 }
                             }
@@ -1843,7 +1843,7 @@ class PopoverTableViewController : UIViewController
     {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 }
 
@@ -2264,7 +2264,7 @@ extension PopoverTableViewController : UITableViewDelegate
             return
         }
         
-        if purpose == .selectingTime, globals.mediaPlayer.currentTime != nil {
+        if purpose == .selectingTime, Globals.shared.mediaPlayer.currentTime != nil {
             activityIndicator.startAnimating()
 
             if trackingTimer != nil {
@@ -2273,7 +2273,7 @@ extension PopoverTableViewController : UITableViewDelegate
             }
             
             // This is a hack because it is being done because we know the delegate call makes a seek.
-            globals.mediaPlayer.seekingCompletion = {
+            Globals.shared.mediaPlayer.seekingCompletion = {
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
                     if self.isTracking {
@@ -2287,7 +2287,7 @@ extension PopoverTableViewController : UITableViewDelegate
 //                trackingTimer = nil
 //
 //                activityIndicator.startAnimating()
-//                globals.mediaPlayer.seekingCompletion = {
+//                Globals.shared.mediaPlayer.seekingCompletion = {
 //                    // This stops jumping to the prior row
 //                    Thread.onMainThread {
 //                        self.activityIndicator.stopAnimating()
@@ -2296,7 +2296,7 @@ extension PopoverTableViewController : UITableViewDelegate
 //                }
 //            } else {
 //                activityIndicator.startAnimating()
-//                globals.mediaPlayer.seekingCompletion = {
+//                Globals.shared.mediaPlayer.seekingCompletion = {
 //                    // This stops jumping to the prior row
 //                    Thread.onMainThread {
 //                        self.activityIndicator.stopAnimating()

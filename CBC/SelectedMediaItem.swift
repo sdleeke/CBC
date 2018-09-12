@@ -10,21 +10,21 @@ import Foundation
 
 
 class SelectedMediaItem {
-    weak var globals:Globals!
+//    weak var globals:Globals!
     
     var master:MediaItem? {
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = globals.mediaCategory.selectedInMaster {
-                selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
+            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInMaster {
+                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
             }
             
             return selectedMediaItem
         }
         
         set {
-            globals.mediaCategory.selectedInMaster = newValue?.id
+            Globals.shared.mediaCategory.selectedInMaster = newValue?.id
         }
     }
     
@@ -32,15 +32,15 @@ class SelectedMediaItem {
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = globals.mediaCategory.selectedInDetail {
-                selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
+            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInDetail {
+                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
             }
             
             return selectedMediaItem
         }
         
         set {
-            globals.mediaCategory.selectedInDetail = newValue?.id
+            Globals.shared.mediaCategory.selectedInDetail = newValue?.id
         }
     }
 }

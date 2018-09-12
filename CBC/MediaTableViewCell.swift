@@ -43,7 +43,7 @@ class MediaTableViewCell: UITableViewCell
     func clear()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
             return
         }
         
@@ -54,7 +54,7 @@ class MediaTableViewCell: UITableViewCell
     func hideUI()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
             return
         }
         
@@ -66,7 +66,7 @@ class MediaTableViewCell: UITableViewCell
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
             return
         }
         
@@ -79,7 +79,7 @@ class MediaTableViewCell: UITableViewCell
     func setupText()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupText")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupText")
             return
         }
         
@@ -315,7 +315,7 @@ class MediaTableViewCell: UITableViewCell
     @objc func stopEditing()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
             return
         }
         
@@ -329,7 +329,7 @@ class MediaTableViewCell: UITableViewCell
     @objc func updateUI()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
             return
         }
         
@@ -392,7 +392,7 @@ class MediaTableViewCell: UITableViewCell
     func setupIcons()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
             return
         }
         
@@ -402,15 +402,15 @@ class MediaTableViewCell: UITableViewCell
         
         let attrString = NSMutableAttributedString()
         
-        if (globals.mediaPlayer.mediaItem == mediaItem) {
-            if let state = globals.mediaPlayer.state {
+        if (Globals.shared.mediaPlayer.mediaItem == mediaItem) {
+            if let state = Globals.shared.mediaPlayer.state {
                 switch state {
                 case .paused:
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
                     break
                     
                 case .playing:
-                    if globals.mediaPlayer.url == globals.mediaPlayer.mediaItem?.playingURL {
+                    if Globals.shared.mediaPlayer.url == Globals.shared.mediaPlayer.mediaItem?.playingURL {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
@@ -446,7 +446,7 @@ class MediaTableViewCell: UITableViewCell
         }
         
         if mediaItem.hasNotes {
-            if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) {
+            if (Globals.shared.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) {
                 if mediaItem.notesHTML == nil, !mediaItem.loadingNotesHTML {
                     DispatchQueue.global(qos: .userInteractive).async {
                         guard !mediaItem.loadingNotesHTML else {
@@ -546,8 +546,8 @@ class MediaTableViewCell: UITableViewCell
 //
 //            var string = String()
 //            
-//            if (globals.mediaPlayer.mediaItem == mediaItem) {
-//                if let state = globals.mediaPlayer.state {
+//            if (Globals.shared.mediaPlayer.mediaItem == mediaItem) {
+//                if let state = Globals.shared.mediaPlayer.state {
 //                    switch state {
 //                    case .paused:
 //                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAY
@@ -615,7 +615,7 @@ class MediaTableViewCell: UITableViewCell
     func setupProgressBarForAudio()
     {
         guard Thread.isMainThread else {
-            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
+            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
             return
         }
         

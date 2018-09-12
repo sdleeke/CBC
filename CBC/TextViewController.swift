@@ -143,13 +143,13 @@ extension TextViewController: UISearchBarDelegate
                         self.textView.scrollRangeToVisible(range)
                         self.lastRange = range
                     } else {
-                        globals.alert(title: "Not Found", message: "")
+                        Globals.shared.alert(title: "Not Found", message: "")
                     }
                 }
             }
 
             // Process spawns another thread and that becomes uncontrollable!
-//            process(viewController: globals.splitViewController, work: {
+//            process(viewController: Globals.shared.splitViewController, work: {
 //                return stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
 //                }, completion: { (data:Any?) in
 //                    guard let test = test?(), !test else {
@@ -168,7 +168,7 @@ extension TextViewController: UISearchBarDelegate
 //                                self.textView.scrollRangeToVisible(range)
 //                                self.lastRange = range
 //                            } else {
-//                                globals.alert(title: "Not Found", message: "")
+//                                Globals.shared.alert(title: "Not Found", message: "")
 //                            }
 //                        }
 //                    }
@@ -214,7 +214,7 @@ extension TextViewController: UISearchBarDelegate
                         self.textView.scrollRangeToVisible(range)
                         self.lastRange = range
                     } else {
-                        globals.alert(title: "Not Found", message: "")
+                        Globals.shared.alert(title: "Not Found", message: "")
                     }
                 }
             }
@@ -508,7 +508,7 @@ class TextViewController : UIViewController
     func updateBarButtons()
     {
         Thread.onMainThread {
-            if let state = globals.mediaPlayer.state {
+            if let state = Globals.shared.mediaPlayer.state {
                 switch state {
                 case .playing:
                     self.playPauseButton?.title = "Pause"
@@ -771,7 +771,7 @@ class TextViewController : UIViewController
         
         wasTracking = isTracking
         
-        wasPlaying = globals.mediaPlayer.isPlaying
+        wasPlaying = Globals.shared.mediaPlayer.isPlaying
         
         isTracking = false
         stopTracking()
@@ -820,7 +820,7 @@ class TextViewController : UIViewController
             return
         }
         
-//        globals.mediaPlayer.pause()
+//        Globals.shared.mediaPlayer.pause()
         
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -836,7 +836,7 @@ class TextViewController : UIViewController
             return
         }
         
-//        globals.mediaPlayer.play()
+//        Globals.shared.mediaPlayer.play()
         
         if trackingTimer == nil {
             trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(follow), userInfo: nil, repeats: true)
@@ -871,7 +871,7 @@ class TextViewController : UIViewController
                             let lowerBound = segment["lowerBound"] as? Int,
                             let upperBound = segment["upperBound"] as? Int {
                             let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
-                            globals.mediaPlayer.seek(to: start + (ratio * (end - start)))
+                            Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
                         }
                     }
                 }
@@ -884,7 +884,7 @@ class TextViewController : UIViewController
             return
         }
         
-        if let seconds = globals.mediaPlayer.currentTime?.seconds {
+        if let seconds = Globals.shared.mediaPlayer.currentTime?.seconds {
             var index = 0
             
             for element in following {
@@ -1019,7 +1019,7 @@ class TextViewController : UIViewController
             stopTracking()
         }
         dismiss(animated: true, completion: {
-            globals.topViewController = nil
+            Globals.shared.topViewController = nil
         })
         onCancel?()
     }
@@ -1113,7 +1113,7 @@ class TextViewController : UIViewController
     {
         if let keyboardRect = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
-            let txtRect = textView.convert(textView.bounds, to: globals.splitViewController.view)
+            let txtRect = textView.convert(textView.bounds, to: Globals.shared.splitViewController.view)
             let intersectRect = txtRect.intersection(kbdRect)
             
             if !keyboardShowing {
@@ -1222,8 +1222,8 @@ class TextViewController : UIViewController
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            globals.splitViewController.present(navigationController, animated: true, completion: {
-                globals.topViewController = navigationController
+            Globals.shared.splitViewController.present(navigationController, animated: true, completion: {
+                Globals.shared.topViewController = navigationController
             })
         }
     }
@@ -1236,11 +1236,11 @@ class TextViewController : UIViewController
         
         switch title {
         case "Play":
-            globals.mediaPlayer.play()
+            Globals.shared.mediaPlayer.play()
             playPauseButton.title = "Pause"
             
         case "Pause":
-            globals.mediaPlayer.pause()
+            Globals.shared.mediaPlayer.pause()
             playPauseButton.title = "Play"
             
         default:
@@ -1268,7 +1268,7 @@ class TextViewController : UIViewController
         
         cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(cancel))
         
-        if (globals.mediaPlayer.mediaItem != transcript?.mediaItem) || (transcript?.mediaItem?.playing != transcript?.purpose) {
+        if (Globals.shared.mediaPlayer.mediaItem != transcript?.mediaItem) || (transcript?.mediaItem?.playing != transcript?.purpose) {
             track = false
         }
         
@@ -1399,13 +1399,13 @@ class TextViewController : UIViewController
                 print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
             }
             
-            if  (globals.mediaPlayer.mediaItem == transcript.mediaItem),
+            if  (Globals.shared.mediaPlayer.mediaItem == transcript.mediaItem),
                 (transcript.mediaItem?.playing == transcript.purpose) { // , (transcriptString.lowercased() != transcriptFromWordsString.lowercased())
                 if following.filter({ (dict:[String:Any]) -> Bool in
                     return dict["range"] == nil
                 }).count > 0 {
                     if let text = transcript.mediaItem?.text {
-                        globals.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
+                        Globals.shared.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
                     }
                 }
             }
@@ -1444,15 +1444,15 @@ class TextViewController : UIViewController
 
         addNotifications()
 
-//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?
 //            
-//            if presentingViewController == globals.splitViewController.viewControllers[0] {
-//                vc = globals.splitViewController.viewControllers[1]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
+//                vc = Globals.shared.splitViewController.viewControllers[1]
 //            }
 //            
-//            if presentingViewController == globals.splitViewController.viewControllers[1] {
-//                vc = globals.splitViewController.viewControllers[0]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
+//                vc = Globals.shared.splitViewController.viewControllers[0]
 //            }
 //            
 //            mask = true
@@ -1788,7 +1788,7 @@ class TextViewController : UIViewController
                     self.updateBarButtons()
                 }))
                 
-                globals.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                Globals.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
             } else {
                 Thread.onMainThread {
                     self.dismiss(animated: true, completion: nil)
@@ -1942,7 +1942,7 @@ class TextViewController : UIViewController
                         
                     }))
                     
-                    globals.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
+                    Globals.shared.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
                 } else {
                     text.replaceSubrange(range, with: value)
                     

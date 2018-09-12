@@ -145,7 +145,7 @@ class ScriptureIndex
     func build()
     {
         guard !completed else {
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             }
             return
@@ -159,19 +159,19 @@ class ScriptureIndex
             self?.creating = true
             
             if let list = self?.mediaListGroupSort?.list {
-                globals.queue.async {
+                Globals.shared.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
                 }
                 
                 for mediaItem in list {
-                    if globals.isRefreshing || globals.isLoading {
+                    if Globals.shared.isRefreshing || Globals.shared.isLoading {
                         break
                     }
                     
                     let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
                     if let books = booksChaptersVerses?.data?.keys {
                         for book in books {
-                            if globals.isRefreshing || globals.isLoading {
+                            if Globals.shared.isRefreshing || Globals.shared.isLoading {
                                 break
                             }
                             
@@ -197,7 +197,7 @@ class ScriptureIndex
                             
                             if let chapters = booksChaptersVerses?[book]?.keys {
                                 for chapter in chapters {
-                                    if globals.isRefreshing || globals.isLoading {
+                                    if Globals.shared.isRefreshing || Globals.shared.isLoading {
                                         break
                                     }
                                     
@@ -217,7 +217,7 @@ class ScriptureIndex
                                     
                                     if let verses = booksChaptersVerses?[book]?[chapter] {
                                         for verse in verses {
-                                            if globals.isRefreshing || globals.isLoading {
+                                            if Globals.shared.isRefreshing || Globals.shared.isLoading {
                                                 break
                                             }
                                             
@@ -270,7 +270,7 @@ class ScriptureIndex
                 }
             }
             
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             }
         }

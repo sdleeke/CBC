@@ -168,56 +168,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
     {
-        if stringTree != nil {
-            var stringNode = stringTree?.root
-            
-            switch component {
-            case 0:
-                break
-                
-            default:
-                for i in 0..<component {
-                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                        pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
-                        
-                        if let selection = pickerSelections[i] {
-                            if selection < stringNodes.count {
-                                stringNode = stringNodes[selection]
-                            }
-                        }
-                    }
-                }
-                break
-            }
-            
-            var width:CGFloat = 0.0
-            
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
-            
-            if let stringNodes = stringNode?.stringNodes {
-                switch stringNodes.count {
-                    
-                default:
-                    for stringNode in stringNodes {
-                        if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width {
-                            if stringWidth > width {
-                                width = stringWidth
-                            }
-                        }
-                    }
-                    break
-                }
-            } else {
-                return 0
-            }
-            
-            if  component < pickerSelections.count, let index = pickerSelections[component], index < stringNode?.stringNodes?.count,
-                let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
-                return width + 20
-            } else {
-                return width + 10
-            }
-        } else {
+        guard stringTree != nil else {
             var width:CGFloat = 0.0
             
             let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
@@ -236,6 +187,55 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             
             return width + 16
         }
+        
+        var stringNode = stringTree?.root
+        
+        switch component {
+        case 0:
+            break
+            
+        default:
+            for i in 0..<component {
+                if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
+                    pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
+                    
+                    if let selection = pickerSelections[i] {
+                        if selection < stringNodes.count {
+                            stringNode = stringNodes[selection]
+                        }
+                    }
+                }
+            }
+            break
+        }
+        
+        var width:CGFloat = 0.0
+        
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
+        
+        if let stringNodes = stringNode?.stringNodes {
+            switch stringNodes.count {
+                
+            default:
+                for stringNode in stringNodes {
+                    if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width {
+                        if stringWidth > width {
+                            width = stringWidth
+                        }
+                    }
+                }
+                break
+            }
+        } else {
+            return 0
+        }
+        
+        if  component < pickerSelections.count, let index = pickerSelections[component], index < stringNode?.stringNodes?.count,
+            let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
+            return width + 20
+        } else {
+            return width + 10
+        }
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
@@ -245,21 +245,31 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             return
         }
         
-        if stringTree != nil {
-            pickerSelections[component] = row
-            spinner.startAnimating()
-            
-            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                self?.updatePickerSelections()
-                self?.updatePicker()
-            }
-        } else {
+        guard stringTree != nil else {
             guard component == 0 else {
                 return
             }
             
             string = strings?[row]
             print(row, string as Any)
+            
+            return
+        }
+        
+        pickerSelections[component] = row
+        
+        var wheel = component+1
+        
+        while wheel < pickerSelections.count {
+            pickerSelections[wheel] = 0
+            wheel += 1
+        }
+
+        spinner.startAnimating()
+        
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            self?.updatePickerSelections()
+            self?.updatePicker()
         }
     }
 }
@@ -872,7 +882,7 @@ class PopoverPickerViewController : UIViewController
                 spinner.startAnimating()
             }
 
-            globals.queue.async {
+            Globals.shared.queue.async {
                 NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
             }
         }

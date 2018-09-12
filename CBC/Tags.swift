@@ -13,7 +13,7 @@ import Foundation
 
 class Tags
 {
-    weak var globals:Globals!
+//    weak var globals:Globals!
     
     var showing:String? {
         get {
@@ -23,17 +23,17 @@ class Tags
     
     var selected:String? {
         get {
-            return globals.mediaCategory.tag
+            return Globals.shared.mediaCategory.tag
         }
         set {
             if let newValue = newValue {
-                if (globals.media.tagged[newValue] == nil) {
-                    if globals.media.all == nil {
+                if (Globals.shared.media.tagged[newValue] == nil) {
+                    if Globals.shared.media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
-                        globals.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: newValue))
+                        Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItemsWithTag(Globals.shared.mediaRepository.list, tag: newValue))
                     } else {
-                        if let key = stringWithoutPrefixes(newValue), let mediaItems = globals.media.all?.tagMediaItems?[key] {
-                            globals.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItems)
+                        if let key = stringWithoutPrefixes(newValue), let mediaItems = Globals.shared.media.all?.tagMediaItems?[key] {
+                            Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItems)
                         }
                     }
                 }
@@ -41,7 +41,7 @@ class Tags
                 
             }
             
-            globals.mediaCategory.tag = newValue
+            Globals.shared.mediaCategory.tag = newValue
         }
     }
 }

@@ -103,7 +103,7 @@ class Download : NSObject
 
     @objc func downloadFailed()
     {
-        globals.alert(title: "Network Error",message: "Download failed.")
+        Globals.shared.alert(title: "Network Error",message: "Download failed.")
     }
 
     var state:State = .none {
@@ -156,14 +156,14 @@ class Download : NSObject
                     
                 case .downloaded:
                     // This blocks this thread until it finishes.
-                    globals.queue.sync {
+                    Globals.shared.queue.sync {
                         self.mediaItem?.addTag(Constants.Strings.Downloaded)
                     }
                     break
                     
                 case .none:
                     // This blocks this thread until it finishes.
-                    globals.queue.sync {
+                    Globals.shared.queue.sync {
                         self.mediaItem?.removeTag(Constants.Strings.Downloaded)
                     }
                     break

@@ -321,7 +321,7 @@ class Scripture : NSObject
 
     func loadJSONVerseFromURL() -> [String:Any]?
     {
-        guard globals.reachability.isReachable else {
+        guard Globals.shared.reachability.isReachable else {
             return nil
         }
         

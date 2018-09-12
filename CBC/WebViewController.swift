@@ -347,8 +347,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            globals.splitViewController.present(navigationController, animated: true, completion: {
-                globals.topViewController = navigationController
+            Globals.shared.splitViewController.present(navigationController, animated: true, completion: {
+                Globals.shared.topViewController = navigationController
             })
         }
     }
@@ -541,7 +541,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                 
                 present(navigationController, animated: true, completion:  {
-                    globals.topViewController = navigationController
+                    Globals.shared.topViewController = navigationController
                 })
             }
             break
@@ -1230,7 +1230,7 @@ class WebViewController: UIViewController
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
     {
-        globals.motionEnded(motion,event: event)
+        Globals.shared.motionEnded(motion,event: event)
     }
     
     fileprivate func setupWKWebView()
@@ -1279,7 +1279,7 @@ class WebViewController: UIViewController
 
         //In case we have one already showing
         dismiss(animated: true, completion: {
-            globals.topViewController = nil
+            Globals.shared.topViewController = nil
         })
     }
     
@@ -1318,7 +1318,7 @@ class WebViewController: UIViewController
                     actionMenu.append(Constants.Strings.Words)
                     actionMenu.append(Constants.Strings.Word_Picker)
                     
-                    if !globals.splitViewController.isCollapsed {
+                    if !Globals.shared.splitViewController.isCollapsed {
                         actionMenu.append(Constants.Strings.Word_Cloud)
                     }
                 }
@@ -1657,7 +1657,7 @@ class WebViewController: UIViewController
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
-            if (globals.media.all == nil) {
+            if (Globals.shared.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay //iPad only
             } else {
                 if let count = splitViewController?.viewControllers.count, let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
@@ -1746,7 +1746,7 @@ class WebViewController: UIViewController
     func loadDocument()
     {
         if #available(iOS 9.0, *) {
-            if globals.cacheDownloads {
+            if Globals.shared.cacheDownloads {
                 if let destinationURL = mediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
                     DispatchQueue.global(qos: .background).async { [weak self] in
                         _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
@@ -2086,15 +2086,15 @@ class WebViewController: UIViewController
             activityButtonIndicator.startAnimating()
         }
         
-//        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?
 //
-//            if presentingViewController == globals.splitViewController.viewControllers[0] {
-//                vc = globals.splitViewController.viewControllers[1]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
+//                vc = Globals.shared.splitViewController.viewControllers[1]
 //            }
 //
-//            if presentingViewController == globals.splitViewController.viewControllers[1] {
-//                vc = globals.splitViewController.viewControllers[0]
+//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
+//                vc = Globals.shared.splitViewController.viewControllers[0]
 //            }
 //
 //            mask = true
@@ -2203,7 +2203,7 @@ class WebViewController: UIViewController
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)

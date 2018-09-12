@@ -185,7 +185,7 @@ class AboutViewController: UIViewController
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
     {
-        globals.motionEnded(motion,event: event)
+        Globals.shared.motionEnded(motion,event: event)
     }
     
     @IBOutlet weak var liveStreamButton: UIButton!
@@ -301,14 +301,14 @@ class AboutViewController: UIViewController
     
     @objc func reachableTransition()
     {
-        if mapView.isHidden, globals.reachability.isReachable {
+        if mapView.isHidden, Globals.shared.reachability.isReachable {
             addMap()
         }
     }
     
     func addMap()
     {
-        guard globals.reachability.isReachable else {
+        guard Globals.shared.reachability.isReachable else {
             return
         }
         
@@ -390,7 +390,7 @@ class AboutViewController: UIViewController
     {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)

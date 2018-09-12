@@ -124,7 +124,7 @@ extension URL {
             return
         }
         
-        if globals.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
+        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
             //                    print("Image \(imageName) in file system")
             block(image)
         } else {
@@ -137,7 +137,7 @@ extension URL {
                 return
             }
             
-            if globals.cacheDownloads {
+            if Globals.shared.cacheDownloads {
                 DispatchQueue.global(qos: .background).async {
                     do {
                         try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
@@ -160,7 +160,7 @@ extension URL {
                 return nil
             }
             
-            if globals.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
+            if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
                 //                    print("Image \(imageName) in file system")
                 return image
             } else {
@@ -173,7 +173,7 @@ extension URL {
                     return nil
                 }
                 
-                if globals.cacheDownloads {
+                if Globals.shared.cacheDownloads {
                     DispatchQueue.global(qos: .background).async {
                         do {
                             try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])

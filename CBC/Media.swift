@@ -19,7 +19,7 @@ struct MediaNeed
 
 class Media
 {
-    weak var globals:Globals!
+//    weak var globals:Globals!
     
     var need = MediaNeed()
     
@@ -30,13 +30,15 @@ class Media
     // Make thread safe?
     var tagged = [String:MediaListGroupSort]()
     
-    lazy var tags:Tags! = {
-        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
-        //            [unowned self] in
-        var tags = Tags()
-        tags.globals = self.globals
-        return tags
-    }()
+    var tags = Tags()
+    
+//    lazy var tags:Tags! = {
+//        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
+//        //            [unowned self] in
+//        var tags = Tags()
+////        tags.globals = self.globals
+//        return tags
+//    }()
     
     var toSearch:MediaListGroupSort?
     {
@@ -86,8 +88,8 @@ class Media
                 }
             }
             
-            if globals.search.active {
-                if let searchText = globals.search.text?.uppercased() {
+            if Globals.shared.search.active {
+                if let searchText = Globals.shared.search.text?.uppercased() {
                     mediaItems = mediaItems?.searches?[searchText]
                 }
             }

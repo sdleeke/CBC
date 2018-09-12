@@ -260,7 +260,7 @@ extension AppDelegate : UISplitViewControllerDelegate
         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
             let mvc = navigationController.viewControllers[0] as? MediaViewController {
             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
-//            mvc.selectedMediaItem = globals.selectedMediaItem.detail
+//            mvc.selectedMediaItem = Globals.shared.selectedMediaItem.detail
 //            DispatchQueue.main.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
 //            }
@@ -312,7 +312,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
     
     func downloadFailed()
     {
-        globals.alert(title: "Network Error",message: "Download failed.")
+        Globals.shared.alert(title: "Network Error",message: "Download failed.")
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
@@ -321,30 +321,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
             return false
         }
         
-        globals = Globals()
+//        globals = Globals()
         
-        globals.checkVoiceBaseAvailability()
+        Globals.shared.checkVoiceBaseAvailability()
 
-        globals.splitViewController = svc
+        Globals.shared.splitViewController = svc
         
-        globals.splitViewController.delegate = self
+        Globals.shared.splitViewController.delegate = self
         
-        globals.splitViewController.preferredDisplayMode = .allVisible
+        Globals.shared.splitViewController.preferredDisplayMode = .allVisible
         
-        let hClass = globals.splitViewController.traitCollection.horizontalSizeClass
-        let vClass = globals.splitViewController.traitCollection.verticalSizeClass
+        let hClass = Globals.shared.splitViewController.traitCollection.horizontalSizeClass
+        let vClass = Globals.shared.splitViewController.traitCollection.verticalSizeClass
         
         if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-            if let navigationController = globals.splitViewController.viewControllers[globals.splitViewController.viewControllers.count-1] as? UINavigationController {
-                navigationController.topViewController?.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
+            if let navigationController = Globals.shared.splitViewController.viewControllers[Globals.shared.splitViewController.viewControllers.count-1] as? UINavigationController {
+                navigationController.topViewController?.navigationItem.leftBarButtonItem = Globals.shared.splitViewController.displayModeButtonItem
             }
         }
 
-        globals.addAccessoryEvents()
+        Globals.shared.addAccessoryEvents()
         
         startAudio()
         
-        globals.persistentContainer = persistentContainer
+        Globals.shared.persistentContainer = persistentContainer
         
         return true
     }
@@ -355,8 +355,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         print("applicationDidEnterBackground")
         
-        if globals.mediaPlayer.isPlaying && (globals.mediaPlayer.mediaItem?.playing == Playing.video) && (globals.mediaPlayer.pip != .started) {
-            globals.mediaPlayer.pause()
+        if Globals.shared.mediaPlayer.isPlaying && (Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video) && (Globals.shared.mediaPlayer.pip != .started) {
+            Globals.shared.mediaPlayer.pause()
         }
         
 //        Thread.onMainThread {
@@ -369,14 +369,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
         print("applicationWillEnterForeground")
 
-        if (globals.mediaPlayer.rate == 0) && globals.mediaPlayer.isPaused && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+        if (Globals.shared.mediaPlayer.rate == 0) && Globals.shared.mediaPlayer.isPaused && (Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
             // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
             
             // Do we need to do this for audio?
             
-            if (globals.mediaPlayer.mediaItem != nil) { // && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video)
-                globals.mediaPlayer.playOnLoad = false
-                globals.mediaPlayer.reload()
+            if (Globals.shared.mediaPlayer.mediaItem != nil) { // && Globals.shared.mediaPlayer.mediaItem!.hasVideo && (Globals.shared.mediaPlayer.mediaItem!.playing == Playing.video)
+                Globals.shared.mediaPlayer.playOnLoad = false
+                Globals.shared.mediaPlayer.reload()
             }
         }
         
@@ -401,7 +401,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         print("applicationDidBecomeActive")
         
-        globals.mediaPlayer.setupPlayingInfoCenter()
+        Globals.shared.mediaPlayer.setupPlayingInfoCenter()
 //        
 //        Thread.onMainThread {
 //            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
@@ -433,7 +433,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
         
         filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
         
-        if let mediaItems = globals.mediaRepository.list {
+        if let mediaItems = Globals.shared.mediaRepository.list {
             for mediaItem in mediaItems {
                 if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
                     //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")

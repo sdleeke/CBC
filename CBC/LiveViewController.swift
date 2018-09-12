@@ -37,7 +37,7 @@ class LiveViewController: UIViewController
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
     {
-        globals.motionEnded(motion,event: event)
+        Globals.shared.motionEnded(motion,event: event)
     }
     
     override func viewDidLoad()
@@ -61,7 +61,7 @@ class LiveViewController: UIViewController
     @objc func clearView()
     {
         Thread.onMainThread {
-            globals.mediaPlayer.view?.isHidden = true
+            Globals.shared.mediaPlayer.view?.isHidden = true
 //            self.textView.isHidden = true
             self.logo.isHidden = false
         }
@@ -72,7 +72,7 @@ class LiveViewController: UIViewController
         Thread.onMainThread {
             self.setupLivePlayerView()
             
-            globals.mediaPlayer.view?.isHidden = false
+            Globals.shared.mediaPlayer.view?.isHidden = false
 //            self.textView.isHidden = false
             self.logo.isHidden = true
         }
@@ -134,7 +134,7 @@ class LiveViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
-        globals.mediaPlayer.stop()
+        Globals.shared.mediaPlayer.stop()
         
         NotificationCenter.default.removeObserver(self)
     }
@@ -149,7 +149,7 @@ class LiveViewController: UIViewController
     {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 
     @IBOutlet weak var logo: UIImageView!
@@ -200,18 +200,18 @@ class LiveViewController: UIViewController
     
     fileprivate func setupLivePlayerView()
     {
-        if (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-            globals.mediaPlayer.pause() // IfPlaying
+        if (Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+            Globals.shared.mediaPlayer.pause() // IfPlaying
 
-            globals.mediaPlayer.setup(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
-            globals.mediaPlayer.setupPlayingInfoCenter()
+            Globals.shared.mediaPlayer.setup(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
+            Globals.shared.mediaPlayer.setupPlayingInfoCenter()
         }
         
-        guard let view = globals.mediaPlayer.view else {
+        guard let view = Globals.shared.mediaPlayer.view else {
             return
         }
         
-        globals.mediaPlayer.showsPlaybackControls = true
+        Globals.shared.mediaPlayer.showsPlaybackControls = true
         
 //        textView.sizeToFit()
         
@@ -244,7 +244,7 @@ class LiveViewController: UIViewController
 
         DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.sleep(forTimeInterval: 0.1) // apparently a delay is needed to get it to play correctly?
-            globals.mediaPlayer.play()
+            Globals.shared.mediaPlayer.play()
         }
     }
 }

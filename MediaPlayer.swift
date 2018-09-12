@@ -405,7 +405,7 @@ class MediaPlayer : NSObject {
 
         controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
 
-        controller?.delegate = globals
+        controller?.delegate = Globals.shared
         
         controller?.showsPlaybackControls = fullScreen
         
@@ -625,7 +625,7 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         }
         
-        globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
+        Globals.shared.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
 
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
@@ -640,7 +640,7 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
         }
         
-        globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
+        Globals.shared.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
         
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
@@ -725,7 +725,7 @@ class MediaPlayer : NSObject {
         
         mediaItem?.atEnd = true
         
-        if globals.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
+        if Globals.shared.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
             let mediaItems = mediaItem.multiPartMediaItems,
             let index = mediaItems.index(of: mediaItem), index < (mediaItems.count - 1) {
             let nextMediaItem = mediaItems[index + 1]
@@ -1228,7 +1228,7 @@ class MediaPlayer : NSObject {
             
         }
         didSet {
-            globals.mediaCategory.playing = mediaItem?.id
+            Globals.shared.mediaCategory.playing = mediaItem?.id
 
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.

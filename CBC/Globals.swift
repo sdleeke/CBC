@@ -1,5 +1,5 @@
 //
-//  Globals.swift
+//  Globals.shared.swift
 //  CBC
 //
 //  Created by Steve Leeke on 11/4/15.
@@ -19,10 +19,12 @@ struct Alert {
     let actions : [AlertAction]?
 }
 
-var globals:Globals!
+//var globals:Globals!
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    static var shared = Globals()
+    
     var purge = false
     
     var persistentContainer: NSPersistentContainer!
@@ -58,7 +60,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return false
             }
             
-            guard globals.reachability.isReachable else {
+            guard Globals.shared.reachability.isReachable else {
                 return false
             }
             
@@ -479,12 +481,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
     
-    lazy var search:Search! = {
-//        [weak self] in
-        var search = Search()
-        search.globals = self
-        return search
-    }()
+    var search = Search()
+    
+//    lazy var search:Search! = {
+////        [weak self] in
+//        var search = Search()
+////        search.globals = self
+//        return search
+//    }()
     
     var contextTitle:String? {
         get {
@@ -568,12 +572,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var mediaPlayer = MediaPlayer()
 
-    lazy var selectedMediaItem:SelectedMediaItem! = {
-//        [weak self] in
-        let selectedMediaItem = SelectedMediaItem()
-        selectedMediaItem.globals = self
-        return selectedMediaItem
-    }()
+    var selectedMediaItem = SelectedMediaItem()
+    
+//    lazy var selectedMediaItem:SelectedMediaItem! = {
+////        [weak self] in
+//        let selectedMediaItem = SelectedMediaItem()
+////        selectedMediaItem.globals = self
+//        return selectedMediaItem
+//    }()
 
     var mediaCategory = MediaCategory()
     
@@ -693,19 +699,23 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
 
-    lazy var mediaRepository:MediaRepository! = {
-//        [weak self] in
-        let mediaRepository = MediaRepository()
-        mediaRepository.globals = self
-        return mediaRepository
-    }()
+    var mediaRepository = MediaRepository()
+    
+//    lazy var mediaRepository:MediaRepository! = {
+////        [weak self] in
+//        let mediaRepository = MediaRepository()
+////        mediaRepository.globals = self
+//        return mediaRepository
+//    }()
 
-    lazy var media:Media! = {
-//        [weak self] in
-        var media = Media()
-        media.globals = self
-        return media
-    }()
+    var media = Media()
+    
+//    lazy var media:Media! = {
+////        [weak self] in
+//        var media = Media()
+////        media.globals = self
+//        return media
+//    }()
     
     class Display {
         var mediaItems:[MediaItem]?

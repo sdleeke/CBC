@@ -14,7 +14,7 @@ class SettingsViewController: UIViewController
     
     @IBAction func searchTranscriptsAction(_ sender: UISwitch)
     {
-        globals.search.transcripts = sender.isOn
+        Globals.shared.search.transcripts = sender.isOn
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
@@ -25,7 +25,7 @@ class SettingsViewController: UIViewController
     
     @IBAction func autoAdvanceAction(_ sender: UISwitch)
     {
-        globals.autoAdvance = sender.isOn
+        Globals.shared.autoAdvance = sender.isOn
     }
     
     @IBOutlet weak var audioSizeLabel: UILabel!
@@ -34,21 +34,21 @@ class SettingsViewController: UIViewController
     
     @IBAction func cacheAction(_ sender: UISwitch)
     {
-        globals.cacheDownloads = sender.isOn
+        Globals.shared.cacheDownloads = sender.isOn
         
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//                globals.loadSingles = false
+//                Globals.shared.loadSingles = false
     
-                if let mediaItems = globals.mediaRepository.list {
+                if let mediaItems = Globals.shared.mediaRepository.list {
                     for mediaItem in mediaItems {
                         mediaItem.notesDownload?.delete()
                         mediaItem.slidesDownload?.delete()
                     }
                 }
                 
-//                globals.loadSingles = true
+//                Globals.shared.loadSingles = true
 
                 Thread.onMainThread {
                     self?.updateCacheSize()
@@ -61,19 +61,19 @@ class SettingsViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
-        searchTranscriptsSwitch.isOn = globals.search.transcripts
-        autoAdvanceSwitch.isOn = globals.autoAdvance
-        cacheSwitch.isOn = globals.cacheDownloads
+        searchTranscriptsSwitch.isOn = Globals.shared.search.transcripts
+        autoAdvanceSwitch.isOn = Globals.shared.autoAdvance
+        cacheSwitch.isOn = Globals.shared.cacheDownloads
     }
     
     func updateCacheSize()
     {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//            globals.loadSingles = false
+//            Globals.shared.loadSingles = false
             
-            let sizeOfCache = globals.cacheSize(Purpose.slides) + globals.cacheSize(Purpose.notes)
+            let sizeOfCache = Globals.shared.cacheSize(Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
             
-//            globals.loadSingles = true
+//            Globals.shared.loadSingles = true
 
             var size:Float = Float(sizeOfCache)
             
@@ -117,7 +117,7 @@ class SettingsViewController: UIViewController
     func updateAudioSize()
     {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let sizeOfAudio = globals.cacheSize(Purpose.audio)
+            let sizeOfAudio = Globals.shared.cacheSize(Purpose.audio)
             
             var size:Float = Float(sizeOfAudio)
             
@@ -199,6 +199,6 @@ class SettingsViewController: UIViewController
     {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+        Globals.shared.freeMemory()
     }
 }
