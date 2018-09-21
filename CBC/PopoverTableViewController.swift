@@ -48,6 +48,35 @@ extension PopoverTableViewController: UISearchBarDelegate
         return search
     }
     
+    @objc func barButtonAction(_ sender:UIBarButtonItem)
+    {
+        //        // Reset the toolbar buttons in case a section is gone.
+        //        if let keys = self.popover?.section.stringIndex?.keys.sorted(), keys.count > 1 {
+        //            var barButtonItems = [UIBarButtonItem]()
+        //
+        //            let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        //
+        //            for key in keys {
+        //                if barButtonItems.count > 0 {
+        //                    barButtonItems.append(spaceButton)
+        //                }
+        //                barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(self.barButtonAction(_:))))
+        //            }
+        //
+        //            Thread.onMainThread {
+        //                self.popover?.toolbarItems = barButtonItems
+        //            }
+        //        }
+        
+        let toolBarItems = toolbarItems?.filter({ (barButton) -> Bool in
+            return barButton.title != nil
+        })
+        
+        if let section = toolBarItems?.index(of: sender) {
+            tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: UITableViewScrollPosition.top, animated: true)
+        }
+    }
+    
     func updateSearchResults()
     {
         guard searchActive else {
@@ -83,6 +112,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         }) {
             filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
         }
+
+        updateToolbar()
         
         Thread.onMainThread {
             self.tableView.reloadData()
@@ -184,6 +215,8 @@ extension PopoverTableViewController: UISearchBarDelegate
        
         searchBar.resignFirstResponder()
         searchBar.text = nil
+        
+        updateToolbar()
         
         tableView.reloadData()
         
@@ -397,10 +430,10 @@ class PopoverTableViewController : UIViewController
         syncButton.title = "Sync"
         syncButton.isEnabled = false
         
-        playPauseButton.title = "Play"
-        playPauseButton.isEnabled = false
+        playPauseButton?.title = "Play"
+        playPauseButton?.isEnabled = false
         
-        assistButton.isEnabled = true
+        assistButton?.isEnabled = true
     }
     
     var lastFollow : IndexPath?
@@ -565,7 +598,7 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        assistButton.isEnabled = false
+        assistButton?.isEnabled = false
     }
     
     func restoreAssist()
@@ -578,7 +611,7 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        assistButton.isEnabled = true
+        assistButton?.isEnabled = true
     }
     
     var isTracking = false
@@ -750,6 +783,8 @@ class PopoverTableViewController : UIViewController
             }
         }
     }
+    
+    var sectionBarButtons = false
     
     var parser:((String)->([String]))?
     
@@ -1069,76 +1104,6 @@ class PopoverTableViewController : UIViewController
             default:
                 break
             }
-        }
-
-        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
-        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
-        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
-        
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-
-        syncButton.isEnabled = Globals.shared.mediaPlayer.mediaItem != nil
-
-        if track {
-//            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
-//
-//            if navigationItem.rightBarButtonItems != nil {
-//                navigationItem.rightBarButtonItems?.append(actionsButton)
-//            } else {
-//                navigationItem.rightBarButtonItem = actionsButton
-//            }
-            
-            if assist && (transcript != nil) && (purpose == .selectingTime) {
-                if toolbarItems != nil {
-                    toolbarItems?.append(spaceButton)
-                    toolbarItems?.append(assistButton)
-                } else {
-                    toolbarItems = [spaceButton,assistButton]
-                }
-            }
-            if toolbarItems != nil {
-                toolbarItems?.append(spaceButton)
-                toolbarItems?.append(syncButton)
-            } else {
-                toolbarItems = [spaceButton,syncButton]
-            }
-            if toolbarItems != nil {
-                toolbarItems?.append(spaceButton)
-                toolbarItems?.append(playPauseButton)
-            } else {
-                toolbarItems = [spaceButton,playPauseButton]
-            }
-
-//            if assist && (transcript != nil) && (purpose == .selectingTime) {
-//                if navigationItem.rightBarButtonItems != nil {
-//                    navigationItem.rightBarButtonItems?.append(assistButton)
-//                } else {
-//                    navigationItem.rightBarButtonItem = assistButton
-//                }
-//            }
-//            if navigationItem.rightBarButtonItems != nil {
-//                navigationItem.rightBarButtonItems?.append(syncButton)
-//            } else {
-//                navigationItem.rightBarButtonItem = syncButton
-//            }
-//            if navigationItem.rightBarButtonItems != nil {
-//                navigationItem.rightBarButtonItems?.append(playPauseButton)
-//            } else {
-//                navigationItem.rightBarButtonItem = playPauseButton
-//            }
-        } else {
-            if assist && (transcript != nil) && (purpose == .selectingTime) {
-                if toolbarItems != nil {
-                    toolbarItems?.append(spaceButton)
-                    toolbarItems?.append(assistButton)
-                } else {
-                    toolbarItems = [spaceButton,assistButton]
-                }
-            }
-        }
-
-        if toolbarItems?.count > 0 {
-            toolbarItems?.append(spaceButton)
         }
 
         searchBar.autocapitalizationType = .none
@@ -1512,19 +1477,113 @@ class PopoverTableViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
     }
     
+    func updateToolbar()
+    {
+        if track || assist {
+            assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
+            syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
+            playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
+            
+            let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+            
+            syncButton.isEnabled = Globals.shared.mediaPlayer.mediaItem != nil
+            
+            if track {
+                //            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+                //
+                //            if navigationItem.rightBarButtonItems != nil {
+                //                navigationItem.rightBarButtonItems?.append(actionsButton)
+                //            } else {
+                //                navigationItem.rightBarButtonItem = actionsButton
+                //            }
+                
+                if assist && (transcript != nil) && (purpose == .selectingTime) {
+                    if toolbarItems != nil {
+                        toolbarItems?.append(spaceButton)
+                        toolbarItems?.append(assistButton)
+                    } else {
+                        toolbarItems = [spaceButton,assistButton]
+                    }
+                }
+                if toolbarItems != nil {
+                    toolbarItems?.append(spaceButton)
+                    toolbarItems?.append(syncButton)
+                } else {
+                    toolbarItems = [spaceButton,syncButton]
+                }
+                if toolbarItems != nil {
+                    toolbarItems?.append(spaceButton)
+                    toolbarItems?.append(playPauseButton)
+                } else {
+                    toolbarItems = [spaceButton,playPauseButton]
+                }
+                
+                //            if assist && (transcript != nil) && (purpose == .selectingTime) {
+                //                if navigationItem.rightBarButtonItems != nil {
+                //                    navigationItem.rightBarButtonItems?.append(assistButton)
+                //                } else {
+                //                    navigationItem.rightBarButtonItem = assistButton
+                //                }
+                //            }
+                //            if navigationItem.rightBarButtonItems != nil {
+                //                navigationItem.rightBarButtonItems?.append(syncButton)
+                //            } else {
+                //                navigationItem.rightBarButtonItem = syncButton
+                //            }
+                //            if navigationItem.rightBarButtonItems != nil {
+                //                navigationItem.rightBarButtonItems?.append(playPauseButton)
+                //            } else {
+                //                navigationItem.rightBarButtonItem = playPauseButton
+                //            }
+            } else {
+                if assist && (transcript != nil) && (purpose == .selectingTime) {
+                    if toolbarItems != nil {
+                        toolbarItems?.append(spaceButton)
+                        toolbarItems?.append(assistButton)
+                    } else {
+                        toolbarItems = [spaceButton,assistButton]
+                    }
+                }
+            }
+            
+            if toolbarItems?.count > 0 {
+                toolbarItems?.append(spaceButton)
+            }
+        }
+
+        if sectionBarButtons {
+            // Set the toobar buttons for section access
+            var barButtonItems = [UIBarButtonItem]()
+            
+            if let keys = section.stringIndex?.keys.sorted(), keys.count > 1 {
+                let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+                
+                for key in keys {
+                    if barButtonItems.count > 0 {
+                        barButtonItems.append(spaceButton)
+                    }
+                    barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(self.barButtonAction(_:))))
+                }
+            }
+            
+            Thread.onMainThread {
+                self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+            }
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
 
-        self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
-
         if let state = Globals.shared.mediaPlayer.state {
             switch state {
             case .playing:
-                playPauseButton.title = "Pause"
+                playPauseButton?.title = "Pause"
                 
             default:
-                playPauseButton.title = "Play"
+                playPauseButton?.title = "Play"
                 break
             }
         }
@@ -1627,7 +1686,8 @@ class PopoverTableViewController : UIViewController
                 }
             }
             
-            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+            updateToolbar()
+//            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
             
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
@@ -1709,8 +1769,9 @@ class PopoverTableViewController : UIViewController
                             }
                         }
                     }
-                    
-                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
+
+                    self?.updateToolbar()
+//                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
                     
                     self?.activityIndicator.stopAnimating()
                     self?.activityIndicator.isHidden = true
@@ -1826,6 +1887,8 @@ class PopoverTableViewController : UIViewController
         }
         
         searchBar.isUserInteractionEnabled = searchInteractive
+        
+        updateToolbar()
         
 //        if purpose == .selectingTime, search {
 //            follow()
@@ -1960,7 +2023,7 @@ extension PopoverTableViewController : UITableViewDataSource
             return cell
         }
         
-        if search, searchActive, let searchText = searchText?.lowercased(), string.lowercased().contains(searchText) {
+        if search, searchActive, let searchText = searchText?.lowercased() { // string.lowercased().contains(searchText)
             var titleString = NSMutableAttributedString()
             
             var before:String?
@@ -1968,6 +2031,78 @@ extension PopoverTableViewController : UITableViewDataSource
             var after:String?
             
             var range = string.lowercased().range(of: searchText.lowercased())
+            
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if range == nil {
+                // This is a special case to catch when the search text is a phrase, all the results are set from
+                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
+                //
+                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
+                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
+                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
+                // of the words, should appear.
+                //
+                
+                let words = searchText.split(separator: " ").map { (substring) -> String in
+                    String(substring)
+                }
+                
+                if words.count > 1 {
+                    var strings = [String]()
+                    var phrase : String?
+                    
+                    // Assemble the list of "less than the full phrase" phrases to look for.
+                    for i in 0..<words.count {
+                        if i == (words.count - 1) {
+                            break
+                        }
+
+                        if phrase == nil {
+                            phrase = words[i]
+                        } else {
+                            phrase = (phrase ?? "") + " " + words[i]
+                        }
+                        
+                        if let phrase = phrase {
+                            strings.append(phrase)
+                        }
+                    }
+
+                    // reverse them since we want to look for the longest first.
+                    strings.reverse()
+                    
+                    // Now look for them.
+                    for subString in strings {
+                        var searchRange = Range(uncheckedBounds: (lower: string.startIndex, upper: string.endIndex))
+
+                        var rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+                        
+                        // But even if there is a match we have to find the LAST match
+                        if rng != nil {
+                            var lastRange : Range<String.Index>?
+                            
+                            repeat {
+                                lastRange = rng
+                                searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: string.endIndex))
+                                rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+                            } while rng != nil
+                            
+                            // And it only counts if the match is at the end of the string
+                            if lastRange?.upperBound == string.endIndex {
+                                range = lastRange
+                                break
+                            }
+                        }
+                    }
+                    
+                    if range == nil {
+                        // THIS SHOULD NEVER HAPPEN
+                    }
+                } else {
+                    // THIS SHOULD NEVER HAPPEN
+                }
+            }
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
             repeat {
                 if let range = range {
@@ -2407,6 +2542,7 @@ extension PopoverTableViewController : UITableViewDelegate
         var stringsAnyArray : [[String : Any]]?
 
         if self.stringsAny != nil {
+//            print(self.stringsAny)
             stringsAny = self.stringsAny?[string] as? [String : Any]
             stringsArray = self.stringsAny?[string] as? [String]
             stringsAnyArray = self.stringsAny?[string] as? [[String : Any]]
@@ -2444,7 +2580,6 @@ extension PopoverTableViewController : UITableViewDelegate
                 popover.stringsAnyArray = stringsAnyArray
                 
                 popover.purpose = .showingVoiceBaseMediaItem
-                
                 self.navigationController?.pushViewController(popover, animated: true)
             }
         }

@@ -650,7 +650,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             actionMenu(action:string,mediaItem:mediaItem)
             break
             
-        case .selectingKeyword:
+        case .selectingTimingIndexWord:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -743,7 +743,152 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case .selectingTopic:
+        case .selectingTimingIndexPhrase:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?.selectedMediaItem
+                popover.transcript = self.popover?.transcript
+                
+                //                popover.detail = true
+                //                popover.detailAction = transcriptSegmentAction
+                
+                popover.vc = self.popover
+                
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+                
+                popover.search = true
+                popover.searchInteractive = false
+                popover.searchActive = true
+                popover.searchText = string
+                popover.wholeWordsOnly = true
+                
+                popover.section.showIndex = true
+                popover.section.indexStringsTransform = century
+                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                    return string
+                }
+                
+                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+                popover.stringsFunction = {
+                    guard let times = popover.transcript?.keywordTimes?[string], let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else { // (token: string)
+                        return nil
+                    }
+                    
+                    var strings = [String]()
+                    
+                    for time in times {
+                        var found = false
+                        var gap : Double?
+                        var closest : String?
+                        
+                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            if transcriptSegmentComponent.lowercased().contains(string) {
+//                                print(transcriptSegmentComponent)
+//                            }
+                            
+                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                            
+                            if transcriptSegmentArray.count > 2  {
+                                let count = transcriptSegmentArray.removeFirst()
+                                let timeWindow = transcriptSegmentArray.removeFirst()
+                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+                                
+                                if  let start = times.first,
+                                    let end = times.last,
+                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+                                    let string = "\(count)\n\(start) to \(end)\n" + text
+                                    
+                                    //                                    for string in transcriptSegmentArray {
+                                    //                                        text = text + string + (transcriptSegmentArray.index(of: string) == (transcriptSegmentArray.count - 1) ? "" : " ")
+                                    //                                    }
+
+                                    if (hmsToSeconds(string: start) <= hmsToSeconds(string: time)) && (hmsToSeconds(string: time) <= hmsToSeconds(string: end)) { //
+                                        strings.append(string)
+                                        found = true
+                                        gap = nil
+                                        break
+                                    } else {
+                                        guard let time = hmsToSeconds(string: time) else {
+                                            continue
+                                        }
+                                        
+                                        guard let start = hmsToSeconds(string: start) else {
+                                            continue
+                                        }
+
+                                        guard let end = hmsToSeconds(string: end) else { //
+                                            continue
+                                        }
+
+                                        var currentGap = 0.0
+                                        
+                                        if time < start {
+                                            currentGap = start - time
+                                        }
+                                        if time > end {
+                                            currentGap = time - end
+                                        }
+
+                                        if gap != nil {
+                                            if currentGap < gap {
+                                                gap = currentGap
+                                                closest = string
+                                            }
+                                        } else {
+                                            gap = currentGap
+                                            closest = string
+                                        }
+
+//                                        print(start,time,end)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // We have to deal w/ the case where the keyword time isn't found in a segment which is probably due to a rounding error in the milliseconds, e.g. 1.
+                        if !found {
+                            if let closest = closest {
+                                strings.append(closest)
+                            } else {
+                                // ??
+                            }
+                        }
+                    }
+                    
+                    return strings
+                }
+                
+                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+                
+                //                    popover.section.strings = strings // popover.transcript?.transcriptSegmentTokenTimes(token: string)
+                //                    ?.map({ (string:String) -> String in
+                //                    return secondsToHMS(seconds: string) ?? "ERROR"
+                //                })
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTimingIndexTopic:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -758,7 +903,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.transcript = self.popover?.transcript
 
                 popover.delegate = self
-                popover.purpose = .selectingTopicKeyword
+                popover.purpose = .selectingTimingIndexTopicKeyword
                 
                 popover.section.strings = popover.transcript?.topicKeywords(topic: string)
                 
@@ -766,7 +911,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case .selectingTopicKeyword:
+        case .selectingTimingIndexTopicKeyword:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -4912,6 +5057,14 @@ class MediaViewController: UIViewController // MediaController
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
+            return
+        }
+        
+        guard !timeNow.isNaN else {
+            return
+        }
+        
+        guard !length.isNaN else {
             return
         }
         

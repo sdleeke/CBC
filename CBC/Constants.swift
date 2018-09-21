@@ -301,7 +301,7 @@ enum Constants {
     enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
-        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" //3
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" //3 
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
@@ -771,7 +771,9 @@ enum Constants {
         static let Scripture = "Scripture"
         
         static let Actions = "Actions"
-        
+
+        static let Transcribing = "Transcribing"
+
         static let Download = "Download"
         static let Downloaded = Download + "ed"
         static let Downloads = Download + "s"
@@ -814,6 +816,8 @@ enum Constants {
         static let Add_All_to_Favorites = Add_All_to + SINGLE_SPACE + Favorites
         static let Remove_All_From_Favorites = Remove_All_From + SINGLE_SPACE + Favorites
 
+        static let Machine_Generated = "Machine Generated"
+        
         static let New = "New"
         static let All = "All"
         static let None = "None"

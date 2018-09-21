@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import PDFKit
 
 extension UIBarButtonItem
 {
@@ -117,7 +118,27 @@ extension String {
     }
 }
 
-extension URL {
+extension URL
+{
+    var data : Data?
+    {
+        get {
+            return try? Data(contentsOf: self)
+        }
+    }
+    
+    @available(iOS 11.0, *)
+    var pdf : PDFDocument?
+    {
+        get {
+            guard let data = data else {
+                return nil
+            }
+            
+            return PDFDocument(data: data)
+        }
+    }
+    
     func image(block:((UIImage)->()))
     {
         guard let imageURL = cachesURL()?.appendingPathComponent(self.lastPathComponent) else {
@@ -129,7 +150,7 @@ extension URL {
             block(image)
         } else {
             //                    print("Image \(imageName) not in file system")
-            guard let data = try? Data(contentsOf: self) else {
+            guard let data = data else {
                 return
             }
             
@@ -165,7 +186,7 @@ extension URL {
                 return image
             } else {
                 //                    print("Image \(imageName) not in file system")
-                guard let data = try? Data(contentsOf: self) else {
+                guard let data = data else {
                     return nil
                 }
                 
@@ -285,14 +306,29 @@ extension Date
     init?(string:String)
     {
         let dateStringFormatter = DateFormatter()
-        
+
         dateStringFormatter.dateFormat = "MMM dd, yyyy"
-        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        var text = string
         
-        guard let d = dateStringFormatter.date(from: string) else {
-            return nil
+        if let range = string.range(of: " AM"), string.endIndex == range.upperBound {
+            text = String(string[..<range.lowerBound])
         }
         
+        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
+            text = String(string[..<range.lowerBound])
+        }
+
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        guard var d = dateStringFormatter.date(from: text) else {
+            return nil
+        }
+
+        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
+            d += 12*60*60
+        }
+
         self = Date(timeInterval:0, since:d)
     }
     

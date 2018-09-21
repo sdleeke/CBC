@@ -143,7 +143,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case .selectingKeyword:
+        case .selectingTimingIndexWord:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext

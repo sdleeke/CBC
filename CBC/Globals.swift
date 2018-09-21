@@ -230,7 +230,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func alert(category:String?,title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
     {
-        alerts.append(Alert(category:category,title: title, message: nil, attributedText: attributedText, actions: actions))
+        alerts.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
     }
     
     func alert(title:String,message:String?,actions:[AlertAction]?)

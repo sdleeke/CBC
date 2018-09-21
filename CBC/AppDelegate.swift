@@ -306,7 +306,7 @@ extension AppDelegate : UISplitViewControllerDelegate
 }
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate
+class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
 {
     var window: UIWindow?
     

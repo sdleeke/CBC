@@ -374,6 +374,8 @@ class PopoverPickerViewController : UIViewController
     var stringTree : StringTree?
     var incremental = false
     
+    var action : ((String?)->())?
+    
 //    var mediaListGroupSort:MediaListGroupSort?
     
     var pickerSelections = [Int:Int]()
@@ -1005,6 +1007,8 @@ class PopoverPickerViewController : UIViewController
             }
             
             self.picker.setNeedsLayout()
+            
+            self.action?(self.wordFromPicker())
         }
     }
     

@@ -10,6 +10,24 @@ import Foundation
 import WebKit
 import PDFKit
 
+extension UIImage
+{
+    func resize(scale:CGFloat) -> UIImage?
+    {
+        let toScaleSize = CGSize(width: scale * self.size.width, height: scale * self.size.height)
+
+        UIGraphicsBeginImageContextWithOptions(toScaleSize, true, self.scale)
+
+        self.draw(in: CGRect(x: 0, y: 0, width: scale * self.size.width, height: scale * self.size.height))
+
+        let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
+
+        UIGraphicsEndImageContext()
+        
+        return scaledImage
+    }
+}
+
 class Document : NSObject {
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
@@ -41,23 +59,35 @@ class Document : NSObject {
             }
             
             if #available(iOS 11.0, *) {
-                if purpose == Purpose.slides {
-                    if let pageImage = mediaItem?.posterImage {
-                        if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                            doc.insert(page, at: 0)
+                if purpose == Purpose.slides, let docData = data {
+                    if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
+                        let rect = page.bounds(for: .cropBox)
+
+                        if let pageImage = mediaItem?.posterImage {
+                            let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.height)
                             
-                            if let docData = doc.dataRepresentation() {
-                                data = docData
+                            if let pageImage = pageImage.resize(scale:posterImageFactor) {
+                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                                    doc.insert(page, at: 0)
+                                    
+                                    if let docData = doc.dataRepresentation() {
+                                        data = docData
+                                    }
+                                }
                             }
                         }
-                    }
-                    
-                    if let pageImage = mediaItem?.seriesImage {
-                        if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                            doc.insert(page, at: 0)
+                        
+                        if let pageImage = mediaItem?.seriesImage {
+                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.height)
                             
-                            if let docData = doc.dataRepresentation() {
-                                data = docData
+                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
+                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                                    doc.insert(page, at: 0)
+                                    
+                                    if let docData = doc.dataRepresentation() {
+                                        data = docData
+                                    }
+                                }
                             }
                         }
                     }

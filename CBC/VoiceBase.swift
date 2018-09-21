@@ -382,8 +382,10 @@ extension VoiceBase // Class Methods
     
     static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard Globals.shared.isVoiceBaseAvailable else {
-            return
+        if !Globals.shared.checkingAvailability {
+            if !Globals.shared.isVoiceBaseAvailable {
+                return
+            }
         }
         
 //        guard Globals.shared.isVoiceBaseAvailable == nil || Globals.shared.isVoiceBaseAvailable! else {
@@ -622,6 +624,8 @@ class VoiceBase {
     
     static let separator = "------------"
     
+    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\"}}"
+    
     var purpose:String?
     
     var transcriptPurpose:String
@@ -638,21 +642,22 @@ class VoiceBase {
                 case Purpose.video:
                     transcriptPurpose = Constants.Strings.Video
                     break
-                    
-                case Purpose.slides:
-                    transcriptPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    transcriptPurpose = Constants.Strings.Transcript
-                    break
+
+                    // WHY???
+//                case Purpose.slides:
+//                    transcriptPurpose = Constants.Strings.Slides
+//                    break
+//
+//                case Purpose.notes:
+//                    transcriptPurpose = Constants.Strings.Transcript
+//                    break
                     
                 default:
                     break
                 }
             }
             
-            return transcriptPurpose.lowercased()
+            return transcriptPurpose // .lowercased() NO
         }
     }
 
@@ -668,71 +673,71 @@ class VoiceBase {
 
         var mediaItemString = "{"
         
-            mediaItemString = "\(mediaItemString)\"metadata\":{"
+            mediaItemString += "\"metadata\":{"
         
                 if let text = mediaItem.text {
                     if let mediaID = mediaID {
-                        mediaItemString = "\(mediaItemString)\"title\":\"\(text) (\(transcriptPurpose))\n\(mediaID)\","
+                        mediaItemString += "\"title\":\"\(text) (\(transcriptPurpose))\n\(mediaID)\","
                     } else {
-                        mediaItemString = "\(mediaItemString)\"title\":\"\(text) (\(transcriptPurpose))\","
+                        mediaItemString += "\"title\":\"\(text) (\(transcriptPurpose))\","
                     }
                 }
         
-                mediaItemString = "\(mediaItemString)\"mediaItem\":{"
+                mediaItemString += "\"mediaItem\":{"
                 
                     if let category = mediaItem.category {
-                        mediaItemString = "\(mediaItemString)\"category\":\"\(category)\","
+                        mediaItemString += "\"category\":\"\(category)\","
                     }
                     
                     if let id = mediaItem.id {
-                        mediaItemString = "\(mediaItemString)\"id\":\"\(id)\","
+                        mediaItemString += "\"id\":\"\(id)\","
                     }
                     
                     if let date = mediaItem.date {
-                        mediaItemString = "\(mediaItemString)\"date\":\"\(date)\","
+                        mediaItemString += "\"date\":\"\(date)\","
                     }
                     
                     if let service = mediaItem.service {
-                        mediaItemString = "\(mediaItemString)\"service\":\"\(service)\","
+                        mediaItemString += "\"service\":\"\(service)\","
                     }
                     
                     if let title = mediaItem.title {
-                        mediaItemString = "\(mediaItemString)\"title\":\"\(title)\"," // .replacingOccurrences(of: "\n", with: " ")
+                        mediaItemString += "\"title\":\"\(title)\"," // .replacingOccurrences(of: "\n", with: " ")
                     }
             
                     if let text = mediaItem.text {
-                        mediaItemString = "\(mediaItemString)\"text\":\"\(text) (\(transcriptPurpose))\"," // .replacingOccurrences(of: "\n", with: " ")
+                        mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\"," // .replacingOccurrences(of: "\n", with: " ")
                     }
                     
                     if let scripture = mediaItem.scripture {
-                        mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture.description)\","
+                        mediaItemString += "\"scripture\":\"\(scripture.description)\","
                     }
                     
                     if let speaker = mediaItem.speaker {
-                        mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker)\","
+                        mediaItemString += "\"speaker\":\"\(speaker)\","
                     }
                     
-                    mediaItemString = "\(mediaItemString)\"purpose\":\"\(transcriptPurpose)\""
+                    mediaItemString += "\"purpose\":\"\(transcriptPurpose)\""
             
-                mediaItemString = "\(mediaItemString)},"
+                mediaItemString += "},"
             
-                mediaItemString = "\(mediaItemString)\"device\":{"
+                mediaItemString += "\"device\":{"
                 
-                    mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.deviceName)\","
+                    mediaItemString += "\"name\":\"\(UIDevice.current.deviceName)\","
                     
-                    mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\","
+                    mediaItemString += "\"model\":\"\(UIDevice.current.localizedModel)\","
                     
-                    mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\","
+                    mediaItemString += "\"modelName\":\"\(UIDevice.current.modelName)\","
         
                     if let uuid = UIDevice.current.identifierForVendor?.description {
-                        mediaItemString = "\(mediaItemString)\"UUID\":\"\(uuid)\""
+                        mediaItemString += "\"UUID\":\"\(uuid)\""
                     }
         
-                mediaItemString = "\(mediaItemString)}"
+                mediaItemString += "}"
         
-            mediaItemString = "\(mediaItemString)}"
+            mediaItemString += "}"
         
-        mediaItemString = "\(mediaItemString)}"
+        mediaItemString += "}"
         
         return mediaItemString
     }
@@ -787,6 +792,12 @@ class VoiceBase {
             }
             
             mediaItem?.mediaItemSettings?["transcribing."+purpose] = transcribing ? "YES" : "NO"
+            
+            if transcribing {
+                mediaItem?.addTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
+            } else {
+                mediaItem?.removeTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
+            }
         }
     }
     
@@ -829,12 +840,12 @@ class VoiceBase {
             
             switch purpose {
             case Purpose.video:
-                let mp4 = mediaItem?.mp4
+                var mp4 = mediaItem?.mp4
                 
-                if let range = mediaItem?.mp4?.range(of: "&profile_id="), let root = mp4?[..<range.lowerBound] {
-                    return root + "&quality=360p"
+                if let range = mp4?.range(of: "&profile_id="), let root = mp4?[..<range.upperBound] {
+                    mp4 = root.description + "174" // + "&quality=360p"
                 }
-
+                
                 return mp4
                 
             case Purpose.audio:
@@ -1260,23 +1271,23 @@ class VoiceBase {
             }).count == 0 {
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
-                    mediaItem.removeTag("Machine Generated Transcript")
+                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
                 }
             } else {
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
-                    mediaItem.addTag("Machine Generated Transcript")
+                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
                 }
             }
         }
     }
     
-    var following : [[String:Any]]?
+    var wordRangeTiming : [[String:Any]]?
     {
         get {
-            guard Globals.shared.mediaPlayer.mediaItem == mediaItem else {
-                return nil
-            }
+//            guard Globals.shared.mediaPlayer.mediaItem == mediaItem else {
+//                return nil
+//            }
             
 //            let transcript = transcriptFromWords
             guard let transcript = transcript?.lowercased() else {
@@ -1289,14 +1300,16 @@ class VoiceBase {
             
 //            var segment : String?
             
-            var following = [[String:Any]]()
+            var wordRangeTiming = [[String:Any]]()
             
 //            var start : Int?
 //            var end : Int?
             
 //            if var words = words, words.count > 0 {
                 var offset : String.Index?
-                
+            
+                var lastEnd : Int?
+            
                 while words.count > 0 {
                     let word = words.removeFirst()
                     
@@ -1343,6 +1356,13 @@ class VoiceBase {
 
 //                    if let segment = segment { // let start = start, let end = end,
                         var dict:[String:Any] = ["start":Double(start) / 1000.0,"end":Double(end) / 1000.0,"text":text]
+                    
+                        if let lastEnd = lastEnd {
+                            dict["gap"] = (Double(start) - Double(lastEnd)) / 1000.0
+                        }
+                    
+                        lastEnd = end
+                    
 //                        if let range = transcript?.range(of: segment) {
 //                            dict["range"] = range
 //                            dict["lowerBound"] = range.lowerBound.encodedOffset
@@ -1368,7 +1388,7 @@ class VoiceBase {
                     if let metadata = word["m"] as? String { // , metadata == "punc"
                         print(word["w"],metadata)
                     } else {
-                        following.append(dict)
+                        wordRangeTiming.append(dict)
                     }
 
 //                    }
@@ -1376,8 +1396,8 @@ class VoiceBase {
 //                    segment = nil
                 }
 //            }
-            
-            return following.count > 0 ? following : nil
+//            print(wordRangeTiming)
+            return wordRangeTiming.count > 0 ? wordRangeTiming : nil
         }
     }
     
@@ -1496,6 +1516,50 @@ class VoiceBase {
     {
         get {
             return mediaJSON?["keywords"] as? [String:Any]
+        }
+    }
+    
+    var keywordTimes : [String:[String]]?
+    {
+        get {
+            guard let keywordDictionaries = keywordDictionaries else {
+                return nil
+            }
+            
+            var keywordTimes = [String:[String]]()
+            
+            for name in keywordDictionaries.keys {
+                if let dict = keywordDictionaries[name] as? [String:Any], let speakers = dict["t"] as? [String:Any], let times = speakers["unknown"] as? [String] {
+                    keywordTimes[name] = times.map({ (time) -> String in
+                        return secondsToHMS(seconds: time)!
+                    })
+                }
+            }
+            
+//            for keywordDictionary in keywordDictionaries {
+//                if let name = keywordDictionary["name"] {
+//                    if let times = keywordDictionary
+//                    keywordTimes[name] =
+//                }
+//            }
+            
+            return keywordTimes.count > 0 ? keywordTimes : nil
+            
+//            if let latest = keywordsJSON?["latest"] as? [String:Any] {
+//                if let wordDictionaries = latest["words"] as? [[String:Any]] {
+//                    var kwdd = [String:[String:Any]]()
+//
+//                    for dict in wordDictionaries {
+//                        if let name = dict["name"] as? String {
+//                            kwdd[name.lowercased()] = dict
+//                        }
+//                    }
+//
+//                    return kwdd.count > 0 ? kwdd : nil
+//                }
+//            }
+//
+//            return nil
         }
     }
     
@@ -1688,6 +1752,18 @@ class VoiceBase {
             
             if let aligning = mediaItem.mediaItemSettings?["aligning."+purpose] {
                 self.aligning = (aligning == "YES") // && (mediaID != nil)
+            }
+            
+            if !completed {
+                if transcribing || aligning {
+                    // We need to check and see if it is really on VB and if not, clean things up.
+                    
+                }
+            } else {
+                if transcribing || aligning {
+                    // This seems wrong.
+                    
+                }
             }
         }
     }
@@ -1912,8 +1988,6 @@ class VoiceBase {
                 if alert, let errorTitle = errorTitle {
                     Globals.shared.alert(title: errorTitle,message: (errorMessage ?? "") + "\n\nError: \(error)")
                 }
-                
-                onError?()
             } else {
                 if let text = self.mediaItem?.text {
                     print("An unknown error occured while monitoring the transcription of \n\n\(text).")
@@ -1921,6 +1995,8 @@ class VoiceBase {
                     print("An unknown error occured while monitoring a transcription.")
                 }
             }
+            
+            onError?()
         }
         
         return userInfo.count > 0 ? userInfo : nil
@@ -2083,7 +2159,11 @@ class VoiceBase {
         
         transcribing = true
 
-        let parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+        var parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata] //
+        
+        if let configuration = VoiceBase.configuration {
+            parameters["configuration"] = configuration
+        }
         
         post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             self.uploadJSON = json
@@ -2194,7 +2274,9 @@ class VoiceBase {
                     
                     if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
                         // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
-                        self.mediaID = nil
+
+                        // WE DO NOT HAVE TO SET THIS TO NIL.
+                        // self.mediaID = nil
                     }
                 }
             } else {
@@ -2438,8 +2520,12 @@ class VoiceBase {
     
     func addMetaData()
     {
-        let parameters:[String:String] = ["metadata":metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+        var parameters:[String:String] = ["metadata":metadata]
         
+        if let configuration = VoiceBase.configuration {
+            parameters["configuration"] = configuration
+        }
+
         post(path: "metadata", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             
         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -2646,7 +2732,11 @@ class VoiceBase {
 
         // WHY are we calling progress?  To see if the media is on VB.
         progress(completion: { (json:[String : Any]?) -> (Void) in
-            let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            var parameters:[String:String] = ["transcript":transcript]
+            
+            if let configuration = VoiceBase.configuration {
+                parameters["configuration"] = configuration
+            }
             
             self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -2718,8 +2808,12 @@ class VoiceBase {
             // Upload then align
             self.mediaID = nil
             
-            let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            var parameters:[String:String] = ["media":url,"metadata":self.metadata]
             
+            if let configuration = VoiceBase.configuration {
+                parameters["configuration"] = configuration
+            }
+
             self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
                 
@@ -2853,7 +2947,11 @@ class VoiceBase {
                             let newUserInfo = self.userInfo(alert: false, detailedAlerts: false,
                                                     finishedTitle: nil, finishedMessage: nil, onFinished: {
                                                         // Now do the relignment
-                                                        let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                                        var parameters:[String:String] = ["transcript":transcript]
+                                                        
+                                                        if let configuration = VoiceBase.configuration {
+                                                            parameters["configuration"] = configuration
+                                                        }
                                                         
                                                         self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                                                             self.uploadJSON = json
@@ -3546,11 +3644,11 @@ class VoiceBase {
         get {
             var str : String?
             
-            if let following = following {
+            if let wordRangeTiming = wordRangeTiming {
                 var count = 1
                 var transcriptSegmentComponents = [String]()
                 
-                for element in following {
+                for element in wordRangeTiming {
                     if  let start = element["start"] as? Double,
                         let startSeconds = secondsToHMS(seconds: "\(start)"),
                         let end = element["end"] as? Double,
@@ -4220,7 +4318,7 @@ class VoiceBase {
 
                         textPopover.navigationController?.isNavigationBarHidden = false
                         
-                        textPopover.navigationItem.title = self.mediaItem?.title // "Edit Text"
+                        textPopover.navigationItem.title = (self.mediaItem?.title ?? "") + " (\(self.transcriptPurpose))" // "Edit Text"
                         
                         let text = self.transcript
                         
@@ -4287,7 +4385,7 @@ class VoiceBase {
                                     
                                     actions.append(AlertAction(title: "No", style: .default, handler:nil))
                                     
-                                    Globals.shared.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
+                                    Globals.shared.alert(title:"Confirm Removal From VoiceBase", message:text + "\nMedia ID: " + mediaID, actions:actions)
                                 }))
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
@@ -4366,7 +4464,7 @@ class VoiceBase {
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
                                                 title: "Confirm Realignment of Machine Generated Transcript",
-                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))",
+                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
                                 alertActions: alertActions,
                                 cancelAction: nil)
                         }
@@ -4491,7 +4589,7 @@ class VoiceBase {
                 }))
                 
                 alertActionsCancel(  viewController: viewController,
-                                     title: "Machine Generated Transcript",
+                                     title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
                     message: text + " (\(self.transcriptPurpose))",
                     alertActions: alertActions,
                     cancelAction: nil)
@@ -4632,8 +4730,8 @@ class VoiceBase {
         
         action = AlertAction(title: "Timing Index", style: .default) {
             var alertActions = [AlertAction]()
-            
-            alertActions.append(AlertAction(title: "By Keyword", style: .default, handler: {
+
+            alertActions.append(AlertAction(title: "By Word", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //                    navigationController.modalPresentationStyle = .overCurrentContext
@@ -4704,7 +4802,7 @@ class VoiceBase {
                     popover.search = true
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
-                    popover.purpose = .selectingKeyword
+                    popover.purpose = .selectingTimingIndexWord
                     
                     popover.section.showIndex = true
 
@@ -4723,6 +4821,44 @@ class VoiceBase {
 //                    popover.section.strings = self.transcriptSegmentTokens?.map({ (string:String) -> String in
 //                        return string.lowercased()
 //                    }).sorted()
+                    
+                    viewController.present(navigationController, animated: true, completion:  {
+                        completion?(popover)
+                    })
+                }
+            }))
+            
+            alertActions.append(AlertAction(title: "By Phrase", style: .default, handler: {
+                if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    //                    navigationController.modalPresentationStyle = .overCurrentContext
+                    
+                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
+                    
+                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
+                    
+                    popover.selectedMediaItem = self.mediaItem
+                    popover.transcript = self
+                    
+                    popover.vc = viewController
+                    popover.search = true
+                    
+                    popover.delegate = viewController as? PopoverTableViewControllerDelegate
+                    popover.purpose = .selectingTimingIndexPhrase
+                    
+                    popover.section.showIndex = true
+                    
+                    popover.stringsFunction = { () -> [String]? in
+                        guard let keywordDictionaries = self.keywordDictionaries?.keys else {
+                            return nil
+                        }
+                        
+                        return Array(keywordDictionaries).sorted()
+                    }
                     
                     viewController.present(navigationController, animated: true, completion:  {
                         completion?(popover)
@@ -4951,22 +5087,51 @@ class VoiceBase {
                     
                     // Must use stringsFunction with .selectingTime.
                     popover.stringsFunction = { () -> [String]? in
-                        return self.words?.filter({ (dict:[String:Any]) -> Bool in
+                        var strings = [String]()
+                        
+                        if let words = self.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
-                        }).map({ (dict:[String:Any]) -> String in
-//                            print("transcriptSegmentComponent: ",dict)
+                        }) {
+                            var lastEnd : Int?
                             
-                            if  let position = dict["p"] as? Int,
-                                let start = dict["s"] as? Int,
-                                let end = dict["e"] as? Int,
-                                let word = dict["w"] as? String,
-                                let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
-                                let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
-                                return "\(position+1)\n\(startHMS) to \(endHMS)\n\(word)"
+                            for i in 0..<words.count {
+                                if  let position = words[i]["p"] as? Int,
+                                    let start = words[i]["s"] as? Int,
+                                    let end = words[i]["e"] as? Int,
+                                    let word = words[i]["w"] as? String,
+                                    let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
+                                    let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
+                                    strings.append("\(position+1)\n")
+                                    
+                                    if let lastEnd = lastEnd {
+                                        strings[i] += String(format:"%.3f ",Double(start - lastEnd)/1000.0)
+                                    }
+
+                                    strings[i] += "\(startHMS) to \(endHMS)\n\(word)"
+
+                                    lastEnd = end
+                                }
                             }
-                            
-                            return "ERROR"
-                        })
+                        }
+                    
+                        return strings.count > 0 ? strings : nil
+                    
+//                        return self.words?.filter({ (dict:[String:Any]) -> Bool in
+//                            return dict["w"] != nil
+//                        }).map({ (dict:[String:Any]) -> String in
+////                            print("transcriptSegmentComponent: ",dict)
+//
+//                            if  let position = dict["p"] as? Int,
+//                                let start = dict["s"] as? Int,
+//                                let end = dict["e"] as? Int,
+//                                let word = dict["w"] as? String,
+//                                let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
+//                                let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
+//                                return "\(position+1)\n\(startHMS) to \(endHMS)\n\(word)"
+//                            }
+//
+//                            return "ERROR"
+//                        })
                     }
                     
                     viewController.present(navigationController, animated: true, completion: {

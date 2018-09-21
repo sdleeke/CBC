@@ -1814,7 +1814,7 @@ class MediaItem : NSObject
             
             if hasNotesHTML {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Lexicon
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + "HTML Transcript"
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.HTML
             }
 
             if hasVideo {
@@ -1823,11 +1823,11 @@ class MediaItem : NSObject
             
             // Invoke separately so both lazy variables are instantiated.
             if audioTranscript?.transcript != nil {
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + "Machine Generated Transcript"
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + Constants.Strings.Audio
             }
             
             if videoTranscript?.transcript != nil {
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + "Machine Generated Transcript"
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + Constants.Strings.Video
             }
             
             return constantTags
@@ -1857,25 +1857,31 @@ class MediaItem : NSObject
             
             // What does proposedTags() do?
             // It looks for tags with hyphens - why?
-            if let proposedTags = proposedTags(jsonTags) {
-                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
-            }
-            
-            if let proposedTags = proposedTags(savedTags) {
-                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
-            }
-            
-            if let proposedTags = proposedTags(dynamicTags) {
-                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
-            }
-            
-            if let proposedTags = proposedTags(constantTags) {
-                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
-            }
+//            if let proposedTags = proposedTags(jsonTags) {
+//                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+//            }
+//            
+//            if let proposedTags = proposedTags(savedTags) {
+//                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+//            }
+//            
+//            if let proposedTags = proposedTags(dynamicTags) {
+//                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+//            }
+//            
+//            if let proposedTags = proposedTags(constantTags) {
+//                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+//            }
             
             // This coalesces the tags so there are no duplicates
-            if let tagsArray = tagsArrayFromTagsString(tags), let tagsString = tagsSetToString(Set(tagsArray)) {
+            if let tagsArray = tagsArrayFromTagsString(tags) {
+                let tagsString = tagsSetToString(Set(tagsArray.filter({ (string:String) -> Bool in
+                    return  !string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) &&
+                            !string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript)
+                })))
+
 //                print(tagsString)
+
                 return tagsString // tags
             } else {
                 return nil
@@ -4021,7 +4027,7 @@ class MediaItem : NSObject
                 }
             }
             
-            var message = "Machine Generated Transcript"
+            var message = Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript
             
             if let text = self.text {
                 message += "\n\n\(text)"
@@ -4050,7 +4056,7 @@ class MediaItem : NSObject
                 popover.search = true
                 
                 popover.delegate = viewController as? PopoverTableViewControllerDelegate
-                popover.purpose = .selectingTopic
+                popover.purpose = .selectingTimingIndexTopic
                 popover.section.strings = self.audioTranscript?.topics?.sorted()
                 
                 viewController.present(navigationController, animated: true, completion: {
