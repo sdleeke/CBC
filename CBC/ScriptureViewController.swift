@@ -858,6 +858,10 @@ class ScriptureViewController : UIViewController
     {
         super.viewWillAppear(animated)
         
+        if let navigationController = navigationController, modalPresentationStyle != .popover {
+            Globals.shared.topViewController.append(navigationController)
+        }
+        
         orientation = UIDevice.current.orientation
         
         addNotifications()
@@ -901,6 +905,10 @@ class ScriptureViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+
+        if Globals.shared.topViewController.last == navigationController {
+            Globals.shared.topViewController.removeLast()
+        }
 
         NotificationCenter.default.removeObserver(self)
     }

@@ -26,7 +26,7 @@ class Lexicon : NSObject {
     
     var tokens:[String]? {
         get {
-            return words?.storage?.keys.sorted()
+            return words?.keys.sorted()
         }
     }
     
@@ -132,7 +132,7 @@ class Lexicon : NSObject {
             }
             
             return Array(Set(
-                words.storage?.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
+                words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
                     return Array(mediaItemFrequency.value.keys)
                     
 //                    return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
@@ -177,7 +177,7 @@ class Lexicon : NSObject {
     {
         get {
             // What happens if build() inserts a new key while this is happening?
-            return words?.storage?.keys.sorted()
+            return words?.keys.sorted()
 //            .map({ (word) -> String in
 //                return "\(word) (\(occurrences(word)!) in \(documents(word)!))"
 //            })
@@ -200,7 +200,7 @@ class Lexicon : NSObject {
 
     func update()
     {
-        if let keys = words?.storage?.keys.sorted(), let values = words?.storage?.values {
+        if let keys = words?.keys.sorted(), let values = words?.values {
             print("Unique words: \(keys.count)")
             //                print("Dicts: \(values.count)")
             
@@ -246,7 +246,7 @@ class Lexicon : NSObject {
             return
         }
         
-        guard words?.storage?.isEmpty != false else {
+        guard words?.isEmpty != false else {
             return
         }
         
@@ -262,7 +262,7 @@ class Lexicon : NSObject {
                 return
             }
             
-            self?.words = Words()
+            self?.words = Words(name: UUID().uuidString + "Words")
             
             var date = Date()
             
@@ -363,7 +363,7 @@ class Lexicon : NSObject {
             return
         }
         
-        var dict = Words()
+        let dict = Words(name: UUID().uuidString + "Words")
         
         if let list = eligible {
             for mediaItem in list {
@@ -383,7 +383,7 @@ class Lexicon : NSObject {
         
         //        print(dict)
         
-        words = dict.storage?.count > 0 ? dict : nil
+        words = dict.count > 0 ? dict : nil
     }
     
     override var description:String {
@@ -392,7 +392,7 @@ class Lexicon : NSObject {
             
             var string = String()
             
-            if let keys = words?.storage?.keys.sorted() {
+            if let keys = words?.keys.sorted() {
                 for key in keys {
                     string = string + key + "\n"
                     if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in

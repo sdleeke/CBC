@@ -884,6 +884,12 @@ class LexiconIndexViewController : UIViewController
 //                                } else {
 //                                    return false
 //                                }
+                            }).map({ (string:String) -> String in
+                                if let count = occurrences[string] {
+                                    return string + " (\(count))"
+                                } else {
+                                    return string
+                                }
                             })
                             
                         default:
@@ -1466,7 +1472,7 @@ class LexiconIndexViewController : UIViewController
     
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "LEXICON UPDATE")
+        operationQueue.name = "LEXICON UPDATE"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue

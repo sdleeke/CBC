@@ -439,7 +439,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                     //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                     return value.task?.taskDescription == filename
                 }).first?.value {
-                    download.session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
+                    download.session = URLSession(configuration: configuration, delegate: download, delegateQueue: nil)
                     download.completionHandler = completionHandler
                     break
                 }

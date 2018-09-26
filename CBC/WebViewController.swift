@@ -18,7 +18,7 @@ class HTML {
 
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "LEXICON UPDATE")
+        operationQueue.name = "LEXICON UPDATE"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -77,7 +77,7 @@ class HTML {
                 
                 // Get a new queue - does this ever happen more than once?  Yes, when font size is changed or searching occurs.
                 operationQueue = OperationQueue()
-                operationQueue.underlyingQueue = DispatchQueue(label: "HTML")
+                operationQueue.name = "HTML"
                 operationQueue.qualityOfService = .userInteractive
                 operationQueue.maxConcurrentOperationCount = 1
 
@@ -347,9 +347,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            Globals.shared.splitViewController.present(navigationController, animated: true, completion: {
-                Globals.shared.topViewController = navigationController
-            })
+            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -540,9 +538,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                 
-                present(navigationController, animated: true, completion:  {
-                    Globals.shared.topViewController = navigationController
-                })
+                present(navigationController, animated: true, completion:  nil)
             }
             break
             
@@ -677,7 +673,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             setupWKWebView()
             
-            loadDocument()
+//            loadDocument()
+            
+            loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             break
             
         default:
@@ -871,6 +869,8 @@ extension WebViewController: UIScrollViewDelegate
             case .document:
                 captureContentOffsetAndZoomScale()
                 break
+            case .pdf:
+                break
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
                 break
@@ -880,7 +880,7 @@ extension WebViewController: UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {
-
+        
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView)
@@ -889,6 +889,8 @@ extension WebViewController: UIScrollViewDelegate
             switch content {
             case .document:
                 captureContentOffsetAndZoomScale()
+                break
+            case .pdf:
                 break
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
@@ -903,6 +905,8 @@ extension WebViewController: UIScrollViewDelegate
             switch content {
             case .document:
                 captureContentOffsetAndZoomScale()
+                break
+            case .pdf:
                 break
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
@@ -934,8 +938,11 @@ class WebViewController: UIViewController
     var search = false
     var searchText:String?
     
+    var pdfURLString : String?
+
     enum Content {
         case document
+        case pdf
         case html
     }
     
@@ -1277,10 +1284,7 @@ class WebViewController: UIViewController
             return
         }
 
-        //In case we have one already showing
-        dismiss(animated: true, completion: {
-            Globals.shared.topViewController = nil
-        })
+        dismiss(animated: true, completion: nil)
     }
     
     var ptvc:PopoverTableViewController?
@@ -1289,9 +1293,6 @@ class WebViewController: UIViewController
     
     @objc func actionMenu()
     {
-        //In case we have one already showing
-//        dismiss(animated: true, completion: nil)
-        
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             popover.navigationItem.title = "Select"
@@ -1511,8 +1512,11 @@ class WebViewController: UIViewController
         var contentOffsetXRatioStr:String?
         var contentOffsetYRatioStr:String?
         
-        contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-        contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+//        contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+//        contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+        
+        contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X]
+        contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y]
         zoomScaleStr = mediaItem?.mediaItemSettings?[showing + Constants.ZOOM_SCALE]
         
         var zoomScale:CGFloat = 1.0
@@ -1554,25 +1558,45 @@ class WebViewController: UIViewController
             return
         }
         
-        var contentOffsetXRatioStr:String?
-        var contentOffsetYRatioStr:String?
+//        var contentOffsetXRatioStr:String?
+//        var contentOffsetYRatioStr:String?
+//
+//        contentOffsetXRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+//        contentOffsetYRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
         
-        contentOffsetXRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-        contentOffsetYRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+        var contentOffsetXStr:String?
+        var contentOffsetYStr:String?
         
-        var contentOffsetXRatio:CGFloat = 0.0
-        var contentOffsetYRatio:CGFloat = 0.0
+        contentOffsetXStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X]
+        contentOffsetYStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y]
         
-        if let ratio = contentOffsetXRatioStr, let num = Float(ratio) {
-            contentOffsetXRatio = CGFloat(num)
+//        var contentOffsetXRatio:CGFloat = 0.0
+//        var contentOffsetYRatio:CGFloat = 0.0
+        
+        var contentOffsetX:CGFloat = 0.0
+        var contentOffsetY:CGFloat = 0.0
+        
+//        if let ratio = contentOffsetXRatioStr, let num = Float(ratio) {
+//            contentOffsetXRatio = CGFloat(num)
+//        }
+//
+//        if let ratio = contentOffsetYRatioStr, let num = Float(ratio) {
+//            contentOffsetYRatio = CGFloat(num)
+//        }
+        
+        if let x = contentOffsetXStr, let num = Float(x) {
+            contentOffsetX = CGFloat(num)
         }
         
-        if let ratio = contentOffsetYRatioStr, let num = Float(ratio) {
-            contentOffsetYRatio = CGFloat(num)
+        if let y = contentOffsetYStr, let num = Float(y) {
+            contentOffsetY = CGFloat(num)
         }
         
-        let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width), //
-            y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height)) //
+//        let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width), //
+//            y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height)) //
+        
+        let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+                                    y: CGFloat(contentOffsetY)) //
         
         Thread.onMainThread {
             wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
@@ -1594,9 +1618,13 @@ class WebViewController: UIViewController
         }
         
         if !wkWebView.isLoading, wkWebView.url != nil {
-            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
+//            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
+//
+//            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
             
-            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
+            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X] = "\(wkWebView.scrollView.contentOffset.x)"
+            
+            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y] = "\(wkWebView.scrollView.contentOffset.y)"
             
             mediaItem.mediaItemSettings?[showing + Constants.ZOOM_SCALE] = "\(wkWebView.scrollView.zoomScale)"
         }
@@ -1691,6 +1719,9 @@ class WebViewController: UIViewController
         case .document:
             captureContentOffsetAndZoomScale()
             break
+
+        case .pdf:
+            break
             
         case .html:
             captureHTMLContentOffsetAndZoomScale()
@@ -1703,6 +1734,9 @@ class WebViewController: UIViewController
             switch self.content {
             case .document:
                 self.setupWKContentOffset(self.wkWebView)
+                break
+                
+            case .pdf:
                 break
                 
             case .html:
@@ -1743,33 +1777,62 @@ class WebViewController: UIViewController
         progressIndicator.isHidden = content == .html
     }
     
-    func loadDocument()
+    var download : Download?
+    
+    @objc func downloaded()
     {
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+
+        switch content {
+        case .document:
+            loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
+            break
+            
+        case .pdf:
+            loadPDF(urlString: pdfURLString)
+            break
+            
+        default:
+            break
+        }
+    }
+    
+    func loadPDF(urlString:String?)
+    {
+        guard let urlString = urlString else {
+            return
+        }
+        
         if #available(iOS 9.0, *) {
             if Globals.shared.cacheDownloads {
-                if let destinationURL = mediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
-                    DispatchQueue.global(qos: .background).async { [weak self] in
-                        _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
-                        
-                        Thread.onMainThread {
-                            self?.activityIndicator.stopAnimating()
-                            self?.activityIndicator.isHidden = true
-                            
-                            self?.progressIndicator.progress = 0.0
-                            self?.progressIndicator.isHidden = true
-                            
-                            self?.loadTimer?.invalidate()
-                            self?.loadTimer = nil
-                        }
-                    }
-                } else {
-                    activityIndicator.isHidden = false
-                    activityIndicator.startAnimating()
+                if let destinationURL = urlString.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
+                    _ = wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                     
-                    if let download = mediaItem?.download {
+                    activityIndicator.stopAnimating()
+                    activityIndicator.isHidden = true
+                    
+                    progressIndicator.progress = 0.0
+                    progressIndicator.isHidden = true
+                    
+                    loadTimer?.invalidate()
+                    loadTimer = nil
+                    
+//                    DispatchQueue.global(qos: .background).async { [weak self] in
+//                        Thread.onMainThread {
+//                        }
+//                    }
+                } else {
+                    download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url, fileSystemURL: urlString.fileSystemURL)
+                    
+                    if let download = download {
+                        activityIndicator.isHidden = false
+                        activityIndicator.startAnimating()
+                        
                         progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
                         progressIndicator.isHidden = false
-                        
+
+                        NotificationCenter.default.addObserver(self, selector: #selector(downloaded), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+
                         download.download()
                     }
                 }
@@ -1779,19 +1842,19 @@ class WebViewController: UIViewController
                         if let activityIndicator = self?.activityIndicator {
                             self?.webView.bringSubview(toFront: activityIndicator)
                         }
-                        
+
                         self?.activityIndicator.isHidden = false
                         self?.activityIndicator.startAnimating()
-                        
+
                         self?.progressIndicator.progress = 0.0
                         self?.progressIndicator.isHidden = false
-                        
+
                         if self?.loadTimer == nil, let target = self {
                             self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
                         }
                     }
-                    
-                    if let url = self?.mediaItem?.downloadURL {
+
+                    if let url = urlString.url {
                         let request = URLRequest(url: url)
                         _ = self?.wkWebView?.load(request)
                     }
@@ -1803,25 +1866,105 @@ class WebViewController: UIViewController
                     if let activityIndicator = self?.activityIndicator {
                         self?.webView.bringSubview(toFront: activityIndicator)
                     }
-                    
+
                     self?.activityIndicator.isHidden = false
                     self?.activityIndicator.startAnimating()
-                    
+
                     self?.progressIndicator.progress = 0.0
                     self?.progressIndicator.isHidden = false
-                    
+
                     if self?.loadTimer == nil {
                         self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
                     }
                 }
-                
-                if let url = self?.mediaItem?.downloadURL {
+
+                if let url = urlString.url {
                     let request = URLRequest(url: url)
                     _ = self?.wkWebView?.load(request)
                 }
             }
         }
     }
+    
+//    func loadDocument()
+//    {
+//        if #available(iOS 9.0, *) {
+//            if Globals.shared.cacheDownloads {
+//                if let destinationURL = mediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
+//                    DispatchQueue.global(qos: .background).async { [weak self] in
+//                        _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
+//
+//                        Thread.onMainThread {
+//                            self?.activityIndicator.stopAnimating()
+//                            self?.activityIndicator.isHidden = true
+//
+//                            self?.progressIndicator.progress = 0.0
+//                            self?.progressIndicator.isHidden = true
+//
+//                            self?.loadTimer?.invalidate()
+//                            self?.loadTimer = nil
+//                        }
+//                    }
+//                } else {
+//                    activityIndicator.isHidden = false
+//                    activityIndicator.startAnimating()
+//
+//                    if let download = mediaItem?.download {
+//                        progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+//                        progressIndicator.isHidden = false
+//
+//                        download.download()
+//                    }
+//                }
+//            } else {
+//                DispatchQueue.global(qos: .background).async { [weak self] in
+//                    Thread.onMainThread {
+//                        if let activityIndicator = self?.activityIndicator {
+//                            self?.webView.bringSubview(toFront: activityIndicator)
+//                        }
+//
+//                        self?.activityIndicator.isHidden = false
+//                        self?.activityIndicator.startAnimating()
+//
+//                        self?.progressIndicator.progress = 0.0
+//                        self?.progressIndicator.isHidden = false
+//
+//                        if self?.loadTimer == nil, let target = self {
+//                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
+//                        }
+//                    }
+//
+//                    if let url = self?.mediaItem?.downloadURL {
+//                        let request = URLRequest(url: url)
+//                        _ = self?.wkWebView?.load(request)
+//                    }
+//                }
+//            }
+//        } else {
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+//                Thread.onMainThread {
+//                    if let activityIndicator = self?.activityIndicator {
+//                        self?.webView.bringSubview(toFront: activityIndicator)
+//                    }
+//
+//                    self?.activityIndicator.isHidden = false
+//                    self?.activityIndicator.startAnimating()
+//
+//                    self?.progressIndicator.progress = 0.0
+//                    self?.progressIndicator.isHidden = false
+//
+//                    if self?.loadTimer == nil {
+//                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
+//                    }
+//                }
+//
+//                if let url = self?.mediaItem?.downloadURL {
+//                    let request = URLRequest(url: url)
+//                    _ = self?.wkWebView?.load(request)
+//                }
+//            }
+//        }
+//    }
     
     @objc func setPreferredContentSize()
     {
@@ -2080,6 +2223,10 @@ class WebViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
+        if let navigationController = navigationController, modalPresentationStyle != .popover {
+            Globals.shared.topViewController.append(navigationController)
+        }
+        
         addNotifications()
         
         if html.operationQueue.operationCount > 0 {
@@ -2124,7 +2271,16 @@ class WebViewController: UIViewController
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
                 
-                loadDocument()
+//                loadDocument()
+                
+                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
+                break
+                
+            case .pdf:
+                activityIndicator.isHidden = false
+                activityIndicator.startAnimating()
+
+                loadPDF(urlString: pdfURLString)
                 break
                 
             case .html:
@@ -2191,6 +2347,10 @@ class WebViewController: UIViewController
         
         loadTimer?.invalidate()
         
+        if Globals.shared.topViewController.last == navigationController {
+            Globals.shared.topViewController.removeLast()
+        }
+
         NotificationCenter.default.removeObserver(self)
     }
     

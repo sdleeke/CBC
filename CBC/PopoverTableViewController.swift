@@ -340,6 +340,11 @@ class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
 class PopoverTableViewController : UIViewController
 {
     var popover : PopoverTableViewController?
+    {
+        didSet {
+
+        }
+    }
     
     var alertController : UIAlertController?
     
@@ -992,11 +997,12 @@ class PopoverTableViewController : UIViewController
                 if var transcriptSegmentComponents = transcriptSegmentComponents, transcriptSegmentComponents.count > 0 {
                     let transcriptSegmentComponent = transcriptSegmentComponents.removeFirst()
                     if let indexPath = self.section.indexPath(from: transcriptSegmentComponent) {
-                        self.transcript?.editTranscriptSegment(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:true,automaticCompletion:{
+                        self.transcript?.editTranscriptSegment(popover:self, tableView:self.tableView, indexPath:indexPath, automatic:true, automaticInteractive:true, automaticCompletion:{
                             auto(transcriptSegmentComponents)
                         })
                     }
                 } else {
+//                    Globals.shared.topViewController = self
                     Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
@@ -1010,11 +1016,12 @@ class PopoverTableViewController : UIViewController
                 if var transcriptSegmentComponents = transcriptSegmentComponents, transcriptSegmentComponents.count > 0 {
                     let transcriptSegmentComponent = transcriptSegmentComponents.removeFirst()
                     if let indexPath = self.section.indexPath(from: transcriptSegmentComponent) {
-                        self.transcript?.editTranscriptSegment(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:false,automaticCompletion:{
+                        self.transcript?.editTranscriptSegment(popover:self, tableView:self.tableView, indexPath:indexPath, automatic:true, automaticInteractive:false, automaticCompletion:{
                             auto(transcriptSegmentComponents)
                         })
                     }
                 } else {
+//                    Globals.shared.topViewController = self
                     Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
@@ -1024,6 +1031,7 @@ class PopoverTableViewController : UIViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
+//        Globals.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
@@ -1224,6 +1232,10 @@ class PopoverTableViewController : UIViewController
 //        mask = false
         
         NotificationCenter.default.removeObserver(self)
+        
+        if Globals.shared.topViewController.last == navigationController {
+            Globals.shared.topViewController.removeLast()
+        }
         
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -1479,6 +1491,8 @@ class PopoverTableViewController : UIViewController
     
     func updateToolbar()
     {
+        var barButtonItems = [UIBarButtonItem]()
+        
         if track || assist {
             assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
             syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
@@ -1486,7 +1500,9 @@ class PopoverTableViewController : UIViewController
             
             let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
             
-            syncButton.isEnabled = Globals.shared.mediaPlayer.mediaItem != nil
+            syncButton.isEnabled = (Globals.shared.mediaPlayer.mediaItem != nil) && !searchActive && (section.strings?.count > 0)
+            playPauseButton.isEnabled = syncButton.isEnabled
+            assistButton.isEnabled = section.strings?.count > 0
             
             if track {
                 //            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
@@ -1498,26 +1514,16 @@ class PopoverTableViewController : UIViewController
                 //            }
                 
                 if assist && (transcript != nil) && (purpose == .selectingTime) {
-                    if toolbarItems != nil {
-                        toolbarItems?.append(spaceButton)
-                        toolbarItems?.append(assistButton)
-                    } else {
-                        toolbarItems = [spaceButton,assistButton]
-                    }
+                    barButtonItems.append(spaceButton)
+                    barButtonItems.append(assistButton)
                 }
-                if toolbarItems != nil {
-                    toolbarItems?.append(spaceButton)
-                    toolbarItems?.append(syncButton)
-                } else {
-                    toolbarItems = [spaceButton,syncButton]
-                }
-                if toolbarItems != nil {
-                    toolbarItems?.append(spaceButton)
-                    toolbarItems?.append(playPauseButton)
-                } else {
-                    toolbarItems = [spaceButton,playPauseButton]
-                }
-                
+
+                barButtonItems.append(spaceButton)
+                barButtonItems.append(syncButton)
+
+                barButtonItems.append(spaceButton)
+                barButtonItems.append(playPauseButton)
+
                 //            if assist && (transcript != nil) && (purpose == .selectingTime) {
                 //                if navigationItem.rightBarButtonItems != nil {
                 //                    navigationItem.rightBarButtonItems?.append(assistButton)
@@ -1537,24 +1543,18 @@ class PopoverTableViewController : UIViewController
                 //            }
             } else {
                 if assist && (transcript != nil) && (purpose == .selectingTime) {
-                    if toolbarItems != nil {
-                        toolbarItems?.append(spaceButton)
-                        toolbarItems?.append(assistButton)
-                    } else {
-                        toolbarItems = [spaceButton,assistButton]
-                    }
+                    barButtonItems.append(spaceButton)
+                    barButtonItems.append(assistButton)
                 }
             }
             
-            if toolbarItems?.count > 0 {
-                toolbarItems?.append(spaceButton)
+            if barButtonItems.count > 0 {
+                barButtonItems.append(spaceButton)
             }
         }
 
         if sectionBarButtons {
             // Set the toobar buttons for section access
-            var barButtonItems = [UIBarButtonItem]()
-            
             if let keys = section.stringIndex?.keys.sorted(), keys.count > 1 {
                 let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
                 
@@ -1565,11 +1565,11 @@ class PopoverTableViewController : UIViewController
                     barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(self.barButtonAction(_:))))
                 }
             }
-            
-            Thread.onMainThread {
-                self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
-                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
-            }
+        }
+        
+        Thread.onMainThread {
+            self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
         }
     }
     
@@ -1577,6 +1577,10 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
+        if let navigationController = navigationController, modalPresentationStyle != .popover {
+            Globals.shared.topViewController.append(navigationController)
+        }
+        
         if let state = Globals.shared.mediaPlayer.state {
             switch state {
             case .playing:
@@ -1589,23 +1593,23 @@ class PopoverTableViewController : UIViewController
         }
         
         if tableViewTopConstraint.isActive {
-            var searchBarHeight:CGFloat = 0.0
-
-            // iOS 11 changed the height of search bars by 12 points!
-            if #available(iOS 11.0, *) {
-                searchBarHeight = 56.0
-            } else {
-                // Fallback on earlier versions
-                searchBarHeight = 44.0
-            }
+//            var searchBarHeight:CGFloat = 0.0
+//
+//            // iOS 11 changed the height of search bars by 12 points!
+//            if #available(iOS 11.0, *) {
+//                searchBarHeight = searchBar.frame.height
+//            } else {
+//                // Fallback on earlier versions
+//                searchBarHeight = 44.0
+//            }
             
             switch (search,segments) {
             case (true,true):
-                tableViewTopConstraint.constant = searchBarHeight + segmentedControl.frame.height + 16
+                tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
                 break
             case (true,false):
                 segmentedControl.removeFromSuperview()
-                tableViewTopConstraint.constant = searchBarHeight
+                tableViewTopConstraint.constant = searchBar.frame.height
                 break
             case (false,true):
                 searchBar.removeFromSuperview()
@@ -1620,7 +1624,7 @@ class PopoverTableViewController : UIViewController
             
             self.view.setNeedsLayout()
         }
-        
+    
 //        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?
 //
@@ -2281,7 +2285,7 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        if  (transcript !=  nil) && (purpose == .selectingTime) && (!track || searchActive) {
+        if transcript !=  nil, purpose == .selectingTime, !track { // (!track || searchActive)
             // .selectingTime using Timed Words
             return false
         }

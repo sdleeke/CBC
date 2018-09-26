@@ -157,7 +157,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var topViewController:UIViewController?
+    var topViewController = [UIViewController]()
     
     var splitViewController:UISplitViewController!
 
@@ -201,7 +201,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
             
             Thread.onMainThread {
-                let viewController = self.topViewController ?? self.splitViewController
+                let viewController = self.topViewController.last ?? self.splitViewController
                 
                 viewController?.present(alertVC, animated: true, completion: {
                     if self.alerts.count > 0 {
@@ -587,81 +587,81 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
-    var multiPartSettings:[String:[String:String]]? // = MultiPartSettings()
+    var multiPartSettings:[String:[String:String]]? // = MultiPartSettings() // ThreadSafeDictionary<[String:String]>?
     
-    class MultiPartSettings {
-        var storage : [String:[String:String]]?
-        
-        init(storage:[String:[String:String]]?)
-        {
-            self.storage = storage
-        }
-        
-        // Make it threadsafe
-        let queue = DispatchQueue(label: "MultiPartSettings")
-        
-        subscript(key:String?) -> [String:String]? {
-            get {
-                return queue.sync {
-                    guard let key = key else {
-                        return nil
-                    }
-                    
-                    return storage?[key]
-                }
-            }
-            set {
-                queue.sync {
-                    guard let key = key else {
-                        return
-                    }
-                    
-                    if storage == nil {
-                        storage = [String:[String:String]]()
-                    }
-                    storage?[key] = newValue
-                }
-            }
-        }
-    }
+//    class MultiPartSettings {
+//        var storage : [String:[String:String]]?
+//
+//        init(storage:[String:[String:String]]?)
+//        {
+//            self.storage = storage
+//        }
+//
+//        // Make it threadsafe
+//        let queue = DispatchQueue(label: "MultiPartSettings")
+//
+//        subscript(key:String?) -> [String:String]? {
+//            get {
+//                return queue.sync {
+//                    guard let key = key else {
+//                        return nil
+//                    }
+//
+//                    return storage?[key]
+//                }
+//            }
+//            set {
+//                queue.sync {
+//                    guard let key = key else {
+//                        return
+//                    }
+//
+//                    if storage == nil {
+//                        storage = [String:[String:String]]()
+//                    }
+//                    storage?[key] = newValue
+//                }
+//            }
+//        }
+//    }
 
-    var mediaItemSettings:[String:[String:String]]? // = MediaItemSettings()
+    var mediaItemSettings:[String:[String:String]]? // = MediaItemSettings() // ThreadSafeDictionary<[String:String]>?
     
-    class MediaItemSettings {
-        var storage : [String:[String:String]]?
-        
-        init(storage:[String:[String:String]]?)
-        {
-            self.storage = storage
-        }
-        
-        // Make it threadsafe
-        let queue = DispatchQueue(label: "MediaItemSettings")
-        
-        subscript(key:String?) -> [String:String]? {
-            get {
-                return queue.sync {
-                    guard let key = key else {
-                        return nil
-                    }
-                    
-                    return storage?[key]
-                }
-            }
-            set {
-                queue.sync {
-                    guard let key = key else {
-                        return
-                    }
-                    
-                    if storage == nil {
-                        storage = [String:[String:String]]()
-                    }
-                    storage?[key] = newValue
-                }
-            }
-        }
-    }
+//    class MediaItemSettings {
+//        var storage : [String:[String:String]]?
+//
+//        init(storage:[String:[String:String]]?)
+//        {
+//            self.storage = storage
+//        }
+//
+//        // Make it threadsafe
+//        let queue = DispatchQueue(label: "MediaItemSettings")
+//
+//        subscript(key:String?) -> [String:String]? {
+//            get {
+//                return queue.sync {
+//                    guard let key = key else {
+//                        return nil
+//                    }
+//
+//                    return storage?[key]
+//                }
+//            }
+//            set {
+//                queue.sync {
+//                    guard let key = key else {
+//                        return
+//                    }
+//
+//                    if storage == nil {
+//                        storage = [String:[String:String]]()
+//                    }
+//                    storage?[key] = newValue
+//                }
+//            }
+//        }
+//    }
 
     // Make thread safe?
     var history:[String]?

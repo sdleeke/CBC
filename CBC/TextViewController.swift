@@ -292,12 +292,15 @@ extension TextViewController : UITextViewDelegate
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool
     {
         // Asks the delegate if editing should begin in the specified text view.
-
+        guard !isTracking else {
+            return false
+        }
+        
         if searchActive {
             searchActive = false
         }
         
-        if let changedText = changedText {
+        if let changedText = changedText, self.textView.attributedText != NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal) {
             self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
         }
         
@@ -553,6 +556,110 @@ extension TextViewController : PopoverPickerControllerDelegate
     }
 }
 
+extension TextViewController : UIActivityItemSource
+{
+    @objc func share()
+    {
+        guard let text = textView.text else {
+            return
+        }
+        
+        //        if #available(iOS 10.0, *) {
+        //            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
+        //        } else {
+        //            // Fallback on earlier versions
+        //        }
+        
+        let print = UIMarkupTextPrintFormatter(markupText: text)
+        let margin:CGFloat = 0.5 * 72
+        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        
+        let activityViewController = UIActivityViewController(activityItems:[print,text,self] , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+        
+        //        if let cell = cell {
+        //            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
+        //            activityViewController.popoverPresentationController?.sourceView = cell
+        //        } else {
+        //            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+        //        }
+        
+        // present the view controller
+        Thread.onMainThread {
+            self.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    {
+        guard let activityType = activityType else {
+            return nil
+        }
+        
+        guard let text = textView.text else {
+            return nil
+        }
+        
+        if #available(iOS 11.0, *) {
+            WebViewController.cases.append(.markupAsPDF)
+        }
+        
+        //        if #available(iOS 10.0, *) {
+        //            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
+        //        } else {
+        //            // Fallback on earlier versions
+        //        }
+        
+        if WebViewController.cases.contains(activityType) {
+            return text
+        } else {
+            //            html.operationQueue.waitUntilAllOperationsAreFinished()
+            return text
+
+//            if let text = self.html.text {
+//                //                if #available(iOS 10.0, *) {
+//                //                    UIPasteboard.general.addItems([[kUTTypeText as String: text]])
+//                //                } else {
+//                //                    // Fallback on earlier versions
+//                //                }
+//                return text
+//            } else {
+//                return "HTML to text conversion still in process.  Please try again later."
+//            }
+        }
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return self.navigationItem.title ?? ""
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        guard let activityType = activityType else {
+            return "public.plain-text"
+        }
+        
+        if WebViewController.cases.contains(activityType) {
+            return "public.text"
+        } else {
+            return "public.plain-text"
+        }
+    }
+}
+
 class TextViewController : UIViewController
 {
     @IBOutlet weak var bottomLayoutConstraint: NSLayoutConstraint!
@@ -589,11 +696,16 @@ class TextViewController : UIViewController
                 }
             }
             
-            if self.changedText != nil, self.changedText != self.text {
-                print(prettyFirstDifferenceBetweenStrings(self.changedText! as NSString, self.text! as NSString))
+            if let changedText = self.changedText, let text = self.text, changedText != text {
+                print(prettyFirstDifferenceBetweenStrings(changedText as NSString, text as NSString))
 
-                self.saveButton?.isEnabled = true
-                self.cancelButton?.title = "Cancel"
+                if !self.readOnly {
+                    self.saveButton?.isEnabled = true
+                    self.cancelButton?.title = "Cancel"
+                } else {
+                    self.saveButton?.isEnabled = false
+                    self.cancelButton?.title = "Done"
+                }
             } else {
                 self.saveButton?.isEnabled = false
                 self.cancelButton?.title = "Done"
@@ -606,6 +718,8 @@ class TextViewController : UIViewController
             }
         }
     }
+    
+    var readOnly = false
     
     var searchText : String?
 
@@ -734,12 +848,12 @@ class TextViewController : UIViewController
             if editingActive {
                 oldRange = nil
                 
-                navigationItem.rightBarButtonItem = dismissButton
+                navigationItem.rightBarButtonItems?.append(dismissButton)
                 
 //                removeTracking()
 //                removeAssist()
             } else {
-                navigationItem.rightBarButtonItem = nil
+                navigationItem.rightBarButtonItems?.removeLast()
             }
 //
 //            if !searchActive && !editingActive {
@@ -763,10 +877,82 @@ class TextViewController : UIViewController
 
     var onCancel : (()->(Void))?
     
+    @objc func singleTapAction(_ tap:UITapGestureRecognizer)
+    {
+        guard isTracking else {
+            return
+        }
+        
+        let pos = tap.location(in: textView)
+//        pos.y += textView.contentOffset.y
+        
+        let tapPos = textView.closestPosition(to: pos)
+        
+        if isTracking, let wordRangeTiming = wordRangeTiming, let tapPos = tapPos {
+            let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: tapPos), upper: textView.offset(from: textView.beginningOfDocument, to: tapPos)))
+            
+            var closest : [String:Any]?
+            var minDistance : Int?
+            
+            //                    let nsRange = NSRange(location: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.start), length: 0)
+            //                    let textRange = Range(nsRange, in: textView.text)
+            
+            //                    print(textView.text?[textRange!.lowerBound...])
+            
+            for wordRangeTime in wordRangeTiming {
+                if  let lowerBound = wordRangeTime["lowerBound"] as? Int,
+                    let upperBound = wordRangeTime["upperBound"] as? Int {
+                    if (range.lowerBound >= lowerBound) && (range.upperBound <= upperBound) {
+                        closest = wordRangeTime
+                        break
+                    }
+                    
+                    var distance = 0
+                    
+                    if range.lowerBound < lowerBound {
+                        distance = lowerBound - range.lowerBound
+                    }
+                    
+                    if range.upperBound > upperBound {
+                        distance = range.upperBound - upperBound
+                    }
+                    
+                    if (minDistance == nil) || (distance < minDistance) {
+                        minDistance = distance
+                        closest = wordRangeTime
+                    }
+                }
+            }
+            
+            if let segment = closest {
+                if (oldTextRange == nil) || (oldTextRange != range) {
+                    if  let start = segment["start"] as? Double,
+                        let end = segment["end"] as? Double,
+                        let lowerBound = segment["lowerBound"] as? Int,
+                        let upperBound = segment["upperBound"] as? Int {
+                        let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
+                        Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
+                    }
+                }
+                
+                if oldTextRange != range {
+                    oldTextRange = range
+                }
+            }
+        }
+    }
+    
+    var singleTap : UITapGestureRecognizer!
+    
     @IBOutlet weak var textView: UITextView!
     {
         didSet {
             textView.autocorrectionType = .no
+            
+            singleTap = UITapGestureRecognizer(target: self, action: #selector(singleTapAction(_:)))
+            singleTap.numberOfTapsRequired = 1
+            textView.addGestureRecognizer(singleTap)
+            singleTap.isEnabled = false
         }
     }
     
@@ -915,7 +1101,7 @@ class TextViewController : UIViewController
         }
     }
     
-    var oldTextRange : UITextRange?
+    var oldTextRange : Range<Int>? // UITextRange?
     
     @objc func follow()
     {
@@ -924,29 +1110,32 @@ class TextViewController : UIViewController
         }
         
         guard !editingActive else {
-            if let selectedTextRange = textView.selectedTextRange {
-                let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.start), upper: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.end)))
-                
-                if let segment = wordRangeTiming?.filter({ (dict:[String:Any]) -> Bool in
-                    if  let lowerBound = dict["lowerBound"] as? Int,
-                        let upperBound = dict["upperBound"] as? Int {
-                        return (range.lowerBound >= lowerBound) && (range.upperBound <= upperBound)
-                    } else {
-                        return false
-                    }
-                }).first {
-                    if (oldTextRange == nil) || (oldTextRange != selectedTextRange) {
-                        if  let start = segment["start"] as? Double,
-                            let end = segment["end"] as? Double,
-                            let lowerBound = segment["lowerBound"] as? Int,
-                            let upperBound = segment["upperBound"] as? Int {
-                            let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
-                            Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
-                        }
-                    }
-                }
-                oldTextRange = selectedTextRange
-            }
+//            if let selectedTextRange = textView.selectedTextRange {
+//                let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.start), upper: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.end)))
+//
+//                if let segment = wordRangeTiming?.filter({ (dict:[String:Any]) -> Bool in
+//                    if  let lowerBound = dict["lowerBound"] as? Int,
+//                        let upperBound = dict["upperBound"] as? Int {
+//                        return (range.lowerBound >= lowerBound) && (range.upperBound <= upperBound)
+//                    } else {
+//                        return false
+//                    }
+//                }).first {
+//                    if (oldTextRange == nil) || (oldTextRange != selectedTextRange) {
+//                        if  let start = segment["start"] as? Double,
+//                            let end = segment["end"] as? Double,
+//                            let lowerBound = segment["lowerBound"] as? Int,
+//                            let upperBound = segment["upperBound"] as? Int {
+//                            let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
+//                            Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
+//                        }
+//                    }
+//                }
+//
+//                if oldTextRange != selectedTextRange {
+//                    oldTextRange = selectedTextRange
+//                }
+//            }
             return
         }
         
@@ -1037,6 +1226,8 @@ class TextViewController : UIViewController
     var isTracking = false
     {
         didSet {
+            singleTap?.isEnabled = isTracking
+            
             if isTracking != oldValue {
                 if !isTracking {
                     oldRange = nil
@@ -1089,16 +1280,15 @@ class TextViewController : UIViewController
             stopTracking()
         }
         dismiss(animated: true, completion: {
-            Globals.shared.topViewController = nil
+            self.onCancel?()
         })
-        onCancel?()
     }
     
 //    var operationQueue : OperationQueue!
     
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "TEXT EDIT")
+        operationQueue.name = "TEXT EDIT"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -1555,9 +1745,7 @@ class TextViewController : UIViewController
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            Globals.shared.splitViewController.present(navigationController, animated: true, completion: {
-                Globals.shared.topViewController = navigationController
-            })
+            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -1621,15 +1809,20 @@ class TextViewController : UIViewController
         
         navigationItem.leftBarButtonItem = cancelButton
 
+        var barButtonItems = [UIBarButtonItem]()
+        
         if track {
-            if toolbarItems != nil { // navigationItem.leftBarButtonItems
-                toolbarItems?.append(spaceButton)
-                toolbarItems?.append(syncButton)
-//                navigationItem.leftBarButtonItems?.append(syncButton)
-            } else {
-                toolbarItems = [spaceButton,syncButton] //
-//                navigationItem.leftBarButtonItem = syncButton
-            }
+//            if toolbarItems != nil { // navigationItem.leftBarButtonItems
+//                toolbarItems?.append(spaceButton)
+//                toolbarItems?.append(syncButton)
+////                navigationItem.leftBarButtonItems?.append(syncButton)
+//            } else {
+//                toolbarItems = [spaceButton,syncButton] //
+////                navigationItem.leftBarButtonItem = syncButton
+//            }
+
+            barButtonItems.append(spaceButton)
+            barButtonItems.append(syncButton)
 
             activityIndicator = UIActivityIndicatorView()
             activityIndicator.activityIndicatorViewStyle = .gray
@@ -1638,19 +1831,22 @@ class TextViewController : UIViewController
             activityBarButton = UIBarButtonItem(customView: activityIndicator)
             activityBarButton.isEnabled = true
             
-            toolbarItems?.append(activityBarButton)
+            barButtonItems.append(activityBarButton)
+//            toolbarItems?.append(activityBarButton)
             //            navigationItem.leftBarButtonItems?.append(activityBarButton)
             
             if wordRangeTiming == nil {
                 activityIndicator.startAnimating()
             }
 
-            if toolbarItems != nil {
-                toolbarItems?.append(spaceButton)
-                toolbarItems?.append(playPauseButton)
-            } else {
-                toolbarItems = [spaceButton,playPauseButton]
-            }
+//            if toolbarItems != nil {
+//                toolbarItems?.append(spaceButton)
+//                toolbarItems?.append(playPauseButton)
+//            } else {
+//                toolbarItems = [spaceButton,playPauseButton]
+//            }
+            barButtonItems.append(spaceButton)
+            barButtonItems.append(playPauseButton)
         }
 
         if let presentationStyle = navigationController?.modalPresentationStyle {
@@ -1682,12 +1878,14 @@ class TextViewController : UIViewController
         dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItemStyle.plain, target: self, action: #selector(dismissKeyboard))
 
         if assist {
-            if toolbarItems != nil {
-                toolbarItems?.append(spaceButton)
-                toolbarItems?.append(assistButton)
-            } else {
-                toolbarItems = [spaceButton,assistButton]
-            }
+//            if toolbarItems != nil {
+//                toolbarItems?.append(spaceButton)
+//                toolbarItems?.append(assistButton)
+//            } else {
+//                toolbarItems = [spaceButton,assistButton]
+//            }
+            barButtonItems.append(spaceButton)
+            barButtonItems.append(assistButton)
 
 //            if navigationItem.rightBarButtonItems != nil {
 //                navigationItem.rightBarButtonItems?.append(assistButton)
@@ -1696,19 +1894,34 @@ class TextViewController : UIViewController
 //            }
         }
         
-        if toolbarItems != nil {
-            toolbarItems?.append(spaceButton)
-            toolbarItems?.append(saveButton)
+        if !readOnly {
+//            if toolbarItems != nil {
+//                toolbarItems?.append(spaceButton)
+//                toolbarItems?.append(saveButton)
+//            } else {
+//                toolbarItems = [spaceButton,saveButton]
+//            }
+//
+//            toolbarItems?.append(spaceButton)
+
+            barButtonItems.append(spaceButton)
+            barButtonItems.append(saveButton)
+            barButtonItems.append(spaceButton)
         } else {
-            toolbarItems = [spaceButton,saveButton]
+            
         }
+
+        toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+        
+        if navigationItem.rightBarButtonItem == nil, navigationItem.rightBarButtonItems == nil {
+            self.navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
+        }
+        
         //        if navigationItem.rightBarButtonItems != nil {
         //            navigationItem.rightBarButtonItems?.append(saveButton)
         //        } else {
         //            navigationItem.rightBarButtonItem = saveButton
         //        }
-
-        toolbarItems?.append(spaceButton)
     }
     
 //    var mask = false
@@ -1751,14 +1964,27 @@ class TextViewController : UIViewController
         trackingTimer = nil
         
         isTracking = false
+
+        updateBarButtons()
+//        syncButton.title = "Sync"
+//        syncButton.isEnabled = false
+//
+//        playPauseButton.title = "Play"
+//        playPauseButton.isEnabled = false
+//
+//        assistButton.isEnabled = true
+    }
+    
+    @objc func playing()
+    {
+
+        updateBarButtons()
+    }
+    
+    @objc func paused()
+    {
         
-        syncButton.title = "Sync"
-        syncButton.isEnabled = false
-        
-        playPauseButton.title = "Play"
-        playPauseButton.isEnabled = false
-        
-        assistButton.isEnabled = true
+        updateBarButtons()
     }
     
     func addNotifications()
@@ -1766,6 +1992,9 @@ class TextViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(playing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
     }
     
@@ -1773,8 +2002,12 @@ class TextViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        navigationController?.isToolbarHidden = false
+        navigationController?.isToolbarHidden = toolbarItems == nil
 
+        if let navigationController = navigationController, modalPresentationStyle != .popover {
+            Globals.shared.topViewController.append(navigationController)
+        }
+        
         addNotifications()
 
 //        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
@@ -1914,9 +2147,32 @@ class TextViewController : UIViewController
            "ninety"     :"90"
         ]
         
+        // If we make the translation table too big searching for replacements can take a long time,
+        // possibly too long for the user.
+        
         let centuries = [
-           "one hundred"     :"100"
+            "one hundred"     :"100"//,
+//            "two hundred"     :"200",
+//            "three hundred"   :"300",
+//            "four hundred"    :"400",
+//            "five hundred"    :"500",
+//            "six hundred"     :"600",
+//            "seven hundred"   :"700",
+//            "eight hundred"   :"800",
+//            "nine hundred"    :"900",
         ]
+        
+//        let millenia = [
+//            "one thousand"     :"1000",
+//            "two thousand"     :"2000",
+//            "three thousand"   :"3000",
+//            "four thousand"    :"4000",
+//            "five thousand"    :"5000",
+//            "six thousand"     :"6000",
+//            "seven thousand"   :"7000",
+//            "eight thousand"   :"8000",
+//            "nine thousand"    :"9000",
+//        ]
         
         for key in singleNumbers.keys {
             textToNumbers[key] = singleNumbers[key]
@@ -1933,6 +2189,10 @@ class TextViewController : UIViewController
         for key in centuries.keys {
             textToNumbers[key] = centuries[key]
         }
+        
+//        for key in millenia.keys {
+//            textToNumbers[key] = millenia[key]
+//        }
         
         for hundred in ["one"] {
             for teenNumbersKey in teenNumbers.keys {
@@ -1986,6 +2246,7 @@ class TextViewController : UIViewController
                     textToNumbers[key] = value
                 }
             }
+            
             for teenNumber in teenNumbers.keys {
                 let key = (century + " " + teenNumber)
                 if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
@@ -1994,9 +2255,7 @@ class TextViewController : UIViewController
                     textToNumbers[key] = value
                 }
             }
-        }
-        
-        for century in centuries.keys {
+            
             for decade in decades.keys {
                 let key = (century + " " + decade)
                 if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
@@ -2005,9 +2264,7 @@ class TextViewController : UIViewController
                     textToNumbers[key] = value
                 }
             }
-        }
-        
-        for century in centuries.keys {
+            
             for decade in decades.keys {
                 for singleNumber in singleNumbers.keys {
                     let key = (century + " " + decade + " " + singleNumber)
@@ -2021,6 +2278,54 @@ class TextViewController : UIViewController
                 }
             }
         }
+
+//        for millenium in millenia.keys {
+//            for century in centuries.keys {
+//                for singleNumber in singleNumbers.keys {
+//                    let key = (millenium + " " + century + " " + singleNumber)
+//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+//                        let singleNumber = singleNumbers[singleNumber] {
+//                        let value = millenium + century + singleNumber
+//                        textToNumbers[key] = value
+//                    }
+//                }
+//
+//                for teenNumber in teenNumbers.keys {
+//                    let key = (millenium + " " + century + " " + teenNumber)
+//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                        let teenNumber = teenNumbers[teenNumber] {
+//                        let value = millenium + century + teenNumber
+//                        textToNumbers[key] = value
+//                    }
+//                }
+//
+//                for decade in decades.keys {
+//                    let key = (millenium + " " + century + " " + decade)
+//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                        let decade = decades[decade] {
+//                        let value = millenium + century + decade
+//                        textToNumbers[key] = value
+//                    }
+//                }
+//
+//                for decade in decades.keys {
+//                    for singleNumber in singleNumbers.keys {
+//                        let key = (millenium + " " + century + " " + decade + " " + singleNumber)
+//                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                            let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+//                            let singleNumber = singleNumbers[singleNumber]
+//                        {
+//                            let value = (millenium + century + decade + singleNumber)
+//                            textToNumbers[key] = value
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         return textToNumbers.count > 0 ? textToNumbers : nil
     }
@@ -2165,13 +2470,53 @@ class TextViewController : UIViewController
             let stringAttr = NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.highlighted)
             let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
             
-            var snippet = NSMutableAttributedString()
+            let snippet = NSMutableAttributedString()
             
             snippet.append(beforeAttr)
             snippet.append(stringAttr)
             snippet.append(afterAttr)
             
             var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: "Show", style: .default, handler: {
+//                var newText = String(text[..<range.lowerBound]) + "<mark>" + String(text[range]) + "</mark>" + String(text[range.upperBound...])
+
+                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
+                    let textView = navigationController.viewControllers[0] as? TextViewController {
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                    
+                    //                                            webView.html.fontSize = 12
+                    
+//                    webView.search = false
+//                    webView.content = .html
+//
+//                    newText = "<html><body>" + newText + "</body></html>"
+//
+//                    webView.html.string = insertHead(newText,fontSize: 24)
+
+                    textView.readOnly = true
+                    textView.text = fullAttributedString.string
+
+                    textView.onCancel = {
+//                        Globals.shared.topViewController = self
+                        words.insert(first, at:0)
+                        self.addParagraphBreaks(interactive:interactive, showGaps:showGaps, words:words, text:text, completion:completion)
+                    }
+                    
+                    Thread.onMainThread {
+                        //                                            popover.activityIndicator.stopAnimating()
+                        //                                            popover.activityIndicator.isHidden = true
+                        
+                        textView.navigationItem.title = self.navigationItem.title
+                        
+                        self.present(navigationController, animated: true, completion: {
+                            textView.textView.attributedText = fullAttributedString
+                            textView.textView.scrollRangeToVisible(range)
+                        })
+//                        self.present(navigationController, animated: true)
+                    }
+                }
+            }))
             
             actions.append(AlertAction(title: "Yes", style: .destructive, handler: {
                 var newText = text
@@ -2289,9 +2634,8 @@ class TextViewController : UIViewController
                     Thread.onMainThread {
                         self.dismiss(animated: true, completion: nil)
                         self.completion?(self.textView.attributedText.string)
+                        self.automaticCompletion?()
                     }
-                    
-                    self.automaticCompletion?()
                 }
             }
             return
@@ -2613,6 +2957,10 @@ class TextViewController : UIViewController
         
         NotificationCenter.default.removeObserver(self)
 
+        if Globals.shared.topViewController.last == navigationController {
+            Globals.shared.topViewController.removeLast()
+        }
+        
         trackingTimer?.invalidate()
         trackingTimer = nil
     }

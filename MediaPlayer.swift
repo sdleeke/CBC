@@ -993,7 +993,7 @@ class MediaPlayer : NSObject {
     
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.underlyingQueue = DispatchQueue(label: "SEEK")
+        operationQueue.name = "SEEK"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue

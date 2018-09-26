@@ -13,79 +13,85 @@ import AVKit
 //Group//String//Sort
 //typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 
-class MediaGroupSort {
-    var storage : [String:[String:[String:[MediaItem]]]]?
+typealias MediaGroupSort = ThreadSafeDictionary<[String:[String:[MediaItem]]]>
 
-    // Make it threadsafe
-    let queue = DispatchQueue(label: "MediaGroupSort")
-    
-    subscript(key:String) -> [String:[String:[MediaItem]]]? {
-        get {
-            return queue.sync {
-                return storage?[key]
-            }
-        }
-        set {
-            queue.sync {
-                if storage == nil {
-                    storage = [String:[String:[String:[MediaItem]]]]()
-                }
-                storage?[key] = newValue
-            }
-        }
-    }
-}
+//class MediaGroupSort {
+//    var storage : [String:[String:[String:[MediaItem]]]]?
+//
+//    // Make it threadsafe
+//    let queue = DispatchQueue(label: "MediaGroupSort")
+//
+//    subscript(key:String) -> [String:[String:[MediaItem]]]? {
+//        get {
+//            return queue.sync {
+//                return storage?[key]
+//            }
+//        }
+//        set {
+//            queue.sync {
+//                if storage == nil {
+//                    storage = [String:[String:[String:[MediaItem]]]]()
+//                }
+//                storage?[key] = newValue
+//            }
+//        }
+//    }
+//}
 
 //Group//String//Name
 //typealias MediaGroupNames = [String:[String:String]]
 
-class MediaGroupNames {
-    var storage : [String:[String:String]]?
-    
-    // Make it threadsafe
-    let queue = DispatchQueue(label: "MediaGroupNames")
-    
-    subscript(key:String) -> [String:String]? {
-        get {
-            return queue.sync {
-                return storage?[key]
-            }
-        }
-        set {
-            queue.sync {
-                if storage == nil {
-                    storage = [String:[String:String]]()
-                }
-                storage?[key] = newValue
-            }
-        }
-    }
-}
+typealias MediaGroupNames = ThreadSafeDictionary<[String:String]>
+
+//class MediaGroupNames {
+//    var storage : [String:[String:String]]?
+//
+//    // Make it threadsafe
+//    let queue = DispatchQueue(label: "MediaGroupNames")
+//
+//    subscript(key:String) -> [String:String]? {
+//        get {
+//            return queue.sync {
+//                return storage?[key]
+//            }
+//        }
+//        set {
+//            queue.sync {
+//                if storage == nil {
+//                    storage = [String:[String:String]]()
+//                }
+//                storage?[key] = newValue
+//            }
+//        }
+//    }
+//}
 
 //typealias Words = [String:[MediaItem:Int]]
 
-class Words {
-    var storage : [String:[MediaItem:Int]]?
-    
-    // Make it threadsafe
-    let queue = DispatchQueue(label: "Words")
-    
-    subscript(key:String) -> [MediaItem:Int]? {
-        get {
-            return queue.sync {
-                return storage?[key]
-            }
-        }
-        set {
-            queue.sync {
-                if storage == nil {
-                    storage = [String:[MediaItem:Int]]()
-                }
-                storage?[key] = newValue
-            }
-        }
-    }
-}
+typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
+
+//class Words {
+//    var storage : [String:[MediaItem:Int]]?
+//    
+//    // Make it threadsafe
+//    let queue = DispatchQueue(label: "Words")
+//    
+//    subscript(key:String) -> [MediaItem:Int]? {
+//        get {
+//            return queue.sync {
+//                return storage?[key]
+//            }
+//        }
+//        set {
+//            queue.sync {
+//                if storage == nil {
+//                    storage = [String:[MediaItem:Int]]()
+//                }
+//                storage?[key] = newValue
+//            }
+//        }
+//    }
+//}
 
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
@@ -680,8 +686,8 @@ class MediaListGroupSort
             }
         }
 
-        groupNames = MediaGroupNames()
-        groupSort = MediaGroupSort()
+        groupNames = MediaGroupNames(name: "MediaGroupNames")
+        groupSort = MediaGroupSort(name: "MediaGroupSort")
         
         sortGroup(Globals.shared.grouping)
 

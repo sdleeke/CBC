@@ -1529,7 +1529,7 @@ class VoiceBase {
             var keywordTimes = [String:[String]]()
             
             for name in keywordDictionaries.keys {
-                if let dict = keywordDictionaries[name] as? [String:Any], let speakers = dict["t"] as? [String:Any], let times = speakers["unknown"] as? [String] {
+                if let dict = keywordDictionaries[name], let speakers = dict["t"] as? [String:Any], let times = speakers["unknown"] as? [String] {
                     keywordTimes[name] = times.map({ (time) -> String in
                         return secondsToHMS(seconds: time)!
                     })
@@ -4344,9 +4344,7 @@ class VoiceBase {
                             self.transcript = text
                         }
                         
-                        viewController.present(navigationController, animated: true, completion: {
-                            Globals.shared.topViewController = navigationController
-                        })
+                        viewController.present(navigationController, animated: true, completion: nil)
                     } else {
                         print("ERROR")
                     }

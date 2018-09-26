@@ -134,406 +134,406 @@ class SearchHit {
     }
 }
 
-extension MediaItem : URLSessionDownloadDelegate
-{
-    // MARK: URLSessionDownloadDelegate
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-    {
-        var downloadFound:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                downloadFound = downloads[key]
-                break
-            }
-        }
-        
-        guard let download = downloadFound else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
-                
-            let title = "Download Failed (\(download.downloadPurpose))"
-                
-            if download.state != .none {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                }
-                
-                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
-                    let id = String(taskDescription[..<index.lowerBound])
-                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Globals.shared.alert(title: title, message: mediaItem.title)
-                    }
-                } else {
-                    Globals.shared.alert(title: title, message: nil)
-                }
-            } else {
-                print("previously dealt with")
-            }
-            
-            download.cancel()
-            return
-        }
-        
-        if let purpose = download.purpose {
-            Thread.onMainThread {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            }
-
-            //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
-            
-            let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
-            
-            let current = download.totalBytesExpectedToWrite > 0 ? Int((Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)) * 100) % 100 : 0
-            
-            //            print(progress,current)
-            
-            switch purpose {
-            case Purpose.audio:
-                if progress > current {
-                    //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    //                    Globals.shared.queue.async(execute: { () -> Void in
-                    Thread.onMainThread {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download.mediaItem)
-                    }
-                }
-                break
-                
-            case Purpose.notes:
-                fallthrough
-            case Purpose.slides:
-                if progress > current {
-                    Thread.onMainThread {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
-                    }
-                }
-                break
-                
-            default:
-                break
-            }
-            
-            debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
-            
-            debug("session: \(String(describing: session.sessionDescription))")
-            debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
-            
-            if let fileSystemURL = download.fileSystemURL {
-                debug("path: \(fileSystemURL.path)")
-                debug("filename: \(fileSystemURL.lastPathComponent)")
-                
-                if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
-                    debug("downloadTask.taskDescription != download.fileSystemURL.lastPathComponent")
-                }
-            } else {
-                debug("No fileSystemURL")
-            }
-            
-            debug("bytes written: \(totalBytesWritten)")
-            debug("bytes expected to write: \(totalBytesExpectedToWrite)")
-            
-            if (download.state == .downloading) {
-                download.totalBytesWritten = totalBytesWritten
-                download.totalBytesExpectedToWrite = totalBytesExpectedToWrite
-            } else {
-                print("ERROR NOT DOWNLOADING")
-            }
-        } else {
-            print("ERROR NO DOWNLOAD")
-        }
-    }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
-    {
-        var downloadFound:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                downloadFound = downloads[key]
-                break
-            }
-        }
-        
-        guard let download = downloadFound else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,download.totalBytesExpectedToWrite as Any)
-            
-            let title = "Download Failed (\(download.downloadPurpose))"
-
-            if download.state != .none {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                }
-                
-                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
-                    let id = String(taskDescription[..<index.lowerBound])
-                
-                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Globals.shared.alert(title: title, message: mediaItem.title)
-                    }
-                } else {
-                    Globals.shared.alert(title: title, message: nil)
-                }
-            } else {
-                print("previously dealth with")
-            }
-            
-            download.cancel()
-            return
-        }
-        
-        guard let fileSystemURL = download.fileSystemURL else {
-            print("NO FILE SYSTEM URL!")
-            return
-        }
-        
-        debug("URLSession:downloadTask:didFinishDownloadingToURL:")
-        
-        debug("session: \(String(describing: session.sessionDescription))")
-        debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
-        
-        if let purpose = download.purpose {
-            debug("purpose: \(purpose)")
-        }
-        
-        debug("path: \(fileSystemURL.path)")
-        debug("filename: \(fileSystemURL.lastPathComponent)")
-        
-        if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
-            debug("downloadTask.taskDescription != download.fileSystemURL.lastPathComponent")
-        }
-        
-        debug("bytes written: \(download.totalBytesWritten)")
-        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
-        
-        let fileManager = FileManager.default
-        
-        // Check if file exists
-        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
-        
-        do {
-            if (download.state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
-                if (fileManager.fileExists(atPath: fileSystemURL.path)){
-                    do {
-                        try fileManager.removeItem(at: fileSystemURL)
-                    } catch let error as NSError {
-                        print("failed to remove duplicate download: \(error.localizedDescription)")
-                    }
-                }
-                
-                debug("\(location)")
-                
-                try fileManager.copyItem(at: location, to: fileSystemURL)
-                try fileManager.removeItem(at: location)
-                
-                download.state = .downloaded
-            } else {
-                // Nothing was downloaded
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                }
-                
-                download.state = .none
-            }
-        } catch let error as NSError {
-            print("failed to copy temp download file: \(error.localizedDescription)")
-            download.state = .none
-        }
-        
-        Thread.onMainThread {
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        }
-    }
-    
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
-    {
-        var downloadFound:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                downloadFound = downloads[key]
-                break
-            }
-        }
-
-        guard let download = downloadFound else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
-            error == nil else {
-            print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,download.totalBytesExpectedToWrite as Any)
-            
-            if let error = error {
-                print("with error: \(error.localizedDescription)")
-            }
-                
-            let title = "Download Failed (\(download.downloadPurpose))"
-
-            if download.state != .none {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                }
-                
-                if let taskDescription = task.taskDescription, let index = taskDescription.range(of: ".") {
-                    let id = String(taskDescription[..<index.lowerBound])
-                    
-                    if let message = Globals.shared.mediaRepository.index?[id]?.title {
-                        if let error = error {
-                            Globals.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
-                        } else {
-                            Globals.shared.alert(title: title, message: message)
-                        }
-                    }
-                } else {
-                    if let error = error {
-                        Globals.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
-                    } else {
-                        Globals.shared.alert(title: title, message: nil)
-                    }
-                }
-            } else {
-                print("previously dealt with")
-            }
-            
-            download.cancel()
-                
-            return
-        }
-        
-        debug("URLSession:task:didCompleteWithError:")
-        
-        debug("session: \(String(describing: session.sessionDescription))")
-        debug("task: \(String(describing: task.taskDescription))")
-        
-        if let purpose = download.purpose {
-            debug("purpose: \(purpose)")
-        }
-        
-        if let fileSystemURL = download.fileSystemURL {
-            debug("path: \(fileSystemURL.path)")
-            debug("filename: \(fileSystemURL.lastPathComponent)")
-            
-            if (task.taskDescription != fileSystemURL.lastPathComponent) {
-                debug("task.taskDescription != download!.fileSystemURL.lastPathComponent")
-            }
-        } else {
-            debug("No fileSystemURL")
-        }
-        
-        debug("bytes written: \(download.totalBytesWritten)")
-        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
-        
-        if let error = error, let purpose = download.purpose {
-            print("with error: \(error.localizedDescription)")
-            //            download?.state = .none
-            
-            switch purpose {
-            case Purpose.slides:
-                fallthrough
-            case Purpose.notes:
-                Thread.onMainThread {
-                    //                    print(download?.mediaItem)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
-                }
-                break
-                
-            default:
-                break
-            }
-        }
-        
-        //        print("Download error: \(error)")
-        //
-        //        if (download?.totalBytesExpectedToWrite == 0) {
-        //            download?.state = .none
-        //        } else {
-        //            print("Download succeeded for: \(session.description)")
-        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
-        //        }
-        
-        // This may delete temp files other than the one we just downloaded, so don't do it.
-        //        removeTempFiles()
-        
-        session.invalidateAndCancel()
-        
-        Thread.onMainThread {
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        }
-    }
-    
-    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
-    {
-        var downloadFound:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                downloadFound = downloads[key]
-                break
-            }
-        }
-        
-        guard let download = downloadFound else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        debug("URLSession:didBecomeInvalidWithError:")
-        
-        debug("session: \(String(describing: session.sessionDescription))")
-        
-        if let purpose = download.purpose {
-            debug("purpose: \(purpose)")
-        }
-        
-        if let fileSystemURL = download.fileSystemURL {
-            debug("path: \(fileSystemURL.path)")
-            debug("filename: \(fileSystemURL.lastPathComponent)")
-        } else {
-            debug("No fileSystemURL")
-        }
-        
-        debug("bytes written: \(download.totalBytesWritten)")
-        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
-        
-        if let error = error {
-            print("with error: \(error.localizedDescription)")
-        }
-        
-        download.session = nil
-    }
-    
-    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession)
-    {
-        print("URLSessionDidFinishEventsForBackgroundURLSession")
-        
-        guard let identifier = session.configuration.identifier else {
-            return
-        }
-        
-        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
-        
-        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
-            //                print("\(filename) \(key)")
-            return value.task?.taskDescription == filename
-        }).first?.1 {
-            download.completionHandler?()
-        }
-    }
-}
+//extension MediaItem : URLSessionDownloadDelegate
+//{
+//    // MARK: URLSessionDownloadDelegate
+//    
+//    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+//    {
+//        var downloadFound:Download?
+//        
+//        for key in downloads.keys {
+//            if (downloads[key]?.task == downloadTask) {
+//                downloadFound = downloads[key]
+//                break
+//            }
+//        }
+//        
+//        guard let download = downloadFound else {
+//            print("NO DOWNLOAD FOUND!")
+//            return
+//        }
+//        
+//        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+//            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
+//                
+//            let title = "Download Failed (\(download.downloadPurpose))"
+//                
+//            if download.state != .none {
+//                Thread.onMainThread {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+//                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                }
+//                
+//                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
+//                    let id = String(taskDescription[..<index.lowerBound])
+//                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+//                        Globals.shared.alert(title: title, message: mediaItem.title)
+//                    }
+//                } else {
+//                    Globals.shared.alert(title: title, message: nil)
+//                }
+//            } else {
+//                print("previously dealt with")
+//            }
+//            
+//            download.cancel()
+//            return
+//        }
+//        
+//        if let purpose = download.purpose {
+//            Thread.onMainThread {
+//                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+//            }
+//
+//            //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
+//            
+//            let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
+//            
+//            let current = download.totalBytesExpectedToWrite > 0 ? Int((Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)) * 100) % 100 : 0
+//            
+//            //            print(progress,current)
+//            
+//            switch purpose {
+//            case Purpose.audio:
+//                if progress > current {
+//                    //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
+//                    //                    Globals.shared.queue.async(execute: { () -> Void in
+//                    Thread.onMainThread {
+//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download.mediaItem)
+//                    }
+//                }
+//                break
+//                
+//            case Purpose.notes:
+//                fallthrough
+//            case Purpose.slides:
+//                if progress > current {
+//                    Thread.onMainThread {
+//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
+//                    }
+//                }
+//                break
+//                
+//            default:
+//                break
+//            }
+//            
+//            debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
+//            
+//            debug("session: \(String(describing: session.sessionDescription))")
+//            debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
+//            
+//            if let fileSystemURL = download.fileSystemURL {
+//                debug("path: \(fileSystemURL.path)")
+//                debug("filename: \(fileSystemURL.lastPathComponent)")
+//                
+//                if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
+//                    debug("downloadTask.taskDescription != download.fileSystemURL.lastPathComponent")
+//                }
+//            } else {
+//                debug("No fileSystemURL")
+//            }
+//            
+//            debug("bytes written: \(totalBytesWritten)")
+//            debug("bytes expected to write: \(totalBytesExpectedToWrite)")
+//            
+//            if (download.state == .downloading) {
+//                download.totalBytesWritten = totalBytesWritten
+//                download.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+//            } else {
+//                print("ERROR NOT DOWNLOADING")
+//            }
+//        } else {
+//            print("ERROR NO DOWNLOAD")
+//        }
+//    }
+//    
+//    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
+//    {
+//        var downloadFound:Download?
+//        
+//        for key in downloads.keys {
+//            if (downloads[key]?.task == downloadTask) {
+//                downloadFound = downloads[key]
+//                break
+//            }
+//        }
+//        
+//        guard let download = downloadFound else {
+//            print("NO DOWNLOAD FOUND!")
+//            return
+//        }
+//        
+//        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+//            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,download.totalBytesExpectedToWrite as Any)
+//            
+//            let title = "Download Failed (\(download.downloadPurpose))"
+//
+//            if download.state != .none {
+//                Thread.onMainThread {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+//                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                }
+//                
+//                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
+//                    let id = String(taskDescription[..<index.lowerBound])
+//                
+//                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+//                        Globals.shared.alert(title: title, message: mediaItem.title)
+//                    }
+//                } else {
+//                    Globals.shared.alert(title: title, message: nil)
+//                }
+//            } else {
+//                print("previously dealth with")
+//            }
+//            
+//            download.cancel()
+//            return
+//        }
+//        
+//        guard let fileSystemURL = download.fileSystemURL else {
+//            print("NO FILE SYSTEM URL!")
+//            return
+//        }
+//        
+//        debug("URLSession:downloadTask:didFinishDownloadingToURL:")
+//        
+//        debug("session: \(String(describing: session.sessionDescription))")
+//        debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
+//        
+//        if let purpose = download.purpose {
+//            debug("purpose: \(purpose)")
+//        }
+//        
+//        debug("path: \(fileSystemURL.path)")
+//        debug("filename: \(fileSystemURL.lastPathComponent)")
+//        
+//        if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
+//            debug("downloadTask.taskDescription != download.fileSystemURL.lastPathComponent")
+//        }
+//        
+//        debug("bytes written: \(download.totalBytesWritten)")
+//        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
+//        
+//        let fileManager = FileManager.default
+//        
+//        // Check if file exists
+//        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+//        
+//        do {
+//            if (download.state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
+//                if (fileManager.fileExists(atPath: fileSystemURL.path)){
+//                    do {
+//                        try fileManager.removeItem(at: fileSystemURL)
+//                    } catch let error as NSError {
+//                        print("failed to remove duplicate download: \(error.localizedDescription)")
+//                    }
+//                }
+//                
+//                debug("\(location)")
+//                
+//                try fileManager.copyItem(at: location, to: fileSystemURL)
+//                try fileManager.removeItem(at: location)
+//                
+//                download.state = .downloaded
+//            } else {
+//                // Nothing was downloaded
+//                Thread.onMainThread {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+//                }
+//                
+//                download.state = .none
+//            }
+//        } catch let error as NSError {
+//            print("failed to copy temp download file: \(error.localizedDescription)")
+//            download.state = .none
+//        }
+//        
+//        Thread.onMainThread {
+//            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//        }
+//    }
+//    
+//    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+//    {
+//        var downloadFound:Download?
+//        
+//        for key in downloads.keys {
+//            if (downloads[key]?.session == session) {
+//                downloadFound = downloads[key]
+//                break
+//            }
+//        }
+//
+//        guard let download = downloadFound else {
+//            print("NO DOWNLOAD FOUND!")
+//            return
+//        }
+//        
+//        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+//            error == nil else {
+//            print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,download.totalBytesExpectedToWrite as Any)
+//            
+//            if let error = error {
+//                print("with error: \(error.localizedDescription)")
+//            }
+//                
+//            let title = "Download Failed (\(download.downloadPurpose))"
+//
+//            if download.state != .none {
+//                Thread.onMainThread {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+//                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                }
+//                
+//                if let taskDescription = task.taskDescription, let index = taskDescription.range(of: ".") {
+//                    let id = String(taskDescription[..<index.lowerBound])
+//                    
+//                    if let message = Globals.shared.mediaRepository.index?[id]?.title {
+//                        if let error = error {
+//                            Globals.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+//                        } else {
+//                            Globals.shared.alert(title: title, message: message)
+//                        }
+//                    }
+//                } else {
+//                    if let error = error {
+//                        Globals.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
+//                    } else {
+//                        Globals.shared.alert(title: title, message: nil)
+//                    }
+//                }
+//            } else {
+//                print("previously dealt with")
+//            }
+//            
+//            download.cancel()
+//                
+//            return
+//        }
+//        
+//        debug("URLSession:task:didCompleteWithError:")
+//        
+//        debug("session: \(String(describing: session.sessionDescription))")
+//        debug("task: \(String(describing: task.taskDescription))")
+//        
+//        if let purpose = download.purpose {
+//            debug("purpose: \(purpose)")
+//        }
+//        
+//        if let fileSystemURL = download.fileSystemURL {
+//            debug("path: \(fileSystemURL.path)")
+//            debug("filename: \(fileSystemURL.lastPathComponent)")
+//            
+//            if (task.taskDescription != fileSystemURL.lastPathComponent) {
+//                debug("task.taskDescription != download!.fileSystemURL.lastPathComponent")
+//            }
+//        } else {
+//            debug("No fileSystemURL")
+//        }
+//        
+//        debug("bytes written: \(download.totalBytesWritten)")
+//        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
+//        
+//        if let error = error, let purpose = download.purpose {
+//            print("with error: \(error.localizedDescription)")
+//            //            download?.state = .none
+//            
+//            switch purpose {
+//            case Purpose.slides:
+//                fallthrough
+//            case Purpose.notes:
+//                Thread.onMainThread {
+//                    //                    print(download?.mediaItem)
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
+//                }
+//                break
+//                
+//            default:
+//                break
+//            }
+//        }
+//        
+//        //        print("Download error: \(error)")
+//        //
+//        //        if (download?.totalBytesExpectedToWrite == 0) {
+//        //            download?.state = .none
+//        //        } else {
+//        //            print("Download succeeded for: \(session.description)")
+//        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
+//        //        }
+//        
+//        // This may delete temp files other than the one we just downloaded, so don't do it.
+//        //        removeTempFiles()
+//        
+//        session.invalidateAndCancel()
+//        
+//        Thread.onMainThread {
+//            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//        }
+//    }
+//    
+//    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
+//    {
+//        var downloadFound:Download?
+//        
+//        for key in downloads.keys {
+//            if (downloads[key]?.session == session) {
+//                downloadFound = downloads[key]
+//                break
+//            }
+//        }
+//        
+//        guard let download = downloadFound else {
+//            print("NO DOWNLOAD FOUND!")
+//            return
+//        }
+//        
+//        debug("URLSession:didBecomeInvalidWithError:")
+//        
+//        debug("session: \(String(describing: session.sessionDescription))")
+//        
+//        if let purpose = download.purpose {
+//            debug("purpose: \(purpose)")
+//        }
+//        
+//        if let fileSystemURL = download.fileSystemURL {
+//            debug("path: \(fileSystemURL.path)")
+//            debug("filename: \(fileSystemURL.lastPathComponent)")
+//        } else {
+//            debug("No fileSystemURL")
+//        }
+//        
+//        debug("bytes written: \(download.totalBytesWritten)")
+//        debug("bytes expected to write: \(download.totalBytesExpectedToWrite)")
+//        
+//        if let error = error {
+//            print("with error: \(error.localizedDescription)")
+//        }
+//        
+//        download.session = nil
+//    }
+//    
+//    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession)
+//    {
+//        print("URLSessionDidFinishEventsForBackgroundURLSession")
+//        
+//        guard let identifier = session.configuration.identifier else {
+//            return
+//        }
+//        
+//        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
+//        
+//        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
+//            //                print("\(filename) \(key)")
+//            return value.task?.taskDescription == filename
+//        }).first?.1 {
+//            download.completionHandler?()
+//        }
+//    }
+//}
 
 extension MediaItem : UIActivityItemSource
 {
@@ -2200,6 +2200,61 @@ class MediaItem : NSObject
         }
     }
     
+    @available(iOS 11.0, *)
+    var pdfText:String?
+    {
+        get {
+            guard hasNotes else {
+                return nil
+            }
+            
+            var documentText = String()
+            
+            if let pdf = notes?.url?.pdf {
+                let pageCount = pdf.pageCount
+                for i in 0 ..< pageCount {
+                    var pageText = String()
+                    
+                    guard let page = pdf.page(at: i) else { continue }
+                    guard let pageContent = page.attributedString else { continue }
+                    //                            print(pageContent.string)
+                    
+                    if let topRange = pageContent.string.range(of: "Countryside Bible Church") {
+                        if let bottomRange = pageContent.string.range(of: "Available online") {
+                            pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
+                        } else {
+                            pageText = String(pageContent.string[topRange.upperBound...])
+                        }
+                    } else {
+                        pageText = pageContent.string
+                    }
+                    
+                    //                            print(pageText)
+                    
+                    var components = pageText.components(separatedBy: "\n").filter({ (string) -> Bool in
+                        return !string.isEmpty
+                    })
+                    //                            print(components)
+                    
+                    components.removeLast()
+                    
+                    var string = String()
+                    
+                    for component in components {
+                        string += !string.isEmpty ? "\n\n" + component : component
+                    }
+                    
+                    //                            print(string)
+                    documentText += !documentText.isEmpty ? " " + string : string
+                    
+                    //                            print(documentText)
+                }
+            }
+            
+            return documentText
+        }
+    }
+    
     lazy var searchMarkedFullNotesHTML:CachedString? = {
         return CachedString(index: nil)
     }()
@@ -3579,7 +3634,10 @@ class MediaItem : NSObject
         var openOnCBC:AlertAction!
         var favorites:AlertAction!
         var download:AlertAction!
-        var transcript:AlertAction!
+        
+        var htmlTranscript:AlertAction!
+        var pdfTranscript:AlertAction!
+        
         var words:AlertAction!
         var search:AlertAction!
         var tags:AlertAction!
@@ -3903,7 +3961,132 @@ class MediaItem : NSObject
             }
         }
         
-        transcript = AlertAction(title: Constants.Strings.HTML + " " + Constants.Strings.Transcript, style: .default) {
+        pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
+            if #available(iOS 11.0, *) {
+                process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
+                    return self?.pdfText
+                }, completion: { [weak self] (data:Any?) in
+                    if  let documentContent = data as? String {
+                        let alert = UIAlertController(  title: "Edit or View?",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        let editAction = UIAlertAction(title: "Edit", style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
+                                let textPopover = navigationController.viewControllers[0] as? TextViewController {
+                                //                        navigationController.modalPresentationStyle = .overCurrentContext
+                                
+                                //                        self.setModalStyle(viewController:viewController,navigationController:navigationController)
+                                
+                                //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                                
+                                textPopover.navigationController?.isNavigationBarHidden = false
+                                
+                                textPopover.navigationItem.title = self?.title ?? ""
+                                
+                                textPopover.text = documentContent
+                                textPopover.readOnly = true
+                                
+                                viewController.present(navigationController, animated: true, completion: nil)
+                            } else {
+                                print("ERROR")
+                            }
+                        })
+                        alert.addAction(editAction)
+                        
+                        let viewAction = UIAlertAction(title: "View", style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                                let textPopover = navigationController.viewControllers[0] as? WebViewController {
+                                //                        navigationController.modalPresentationStyle = .overCurrentContext
+                                
+                                //                        self.setModalStyle(viewController:viewController,navigationController:navigationController)
+                                
+                                //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                                
+                                textPopover.navigationController?.isNavigationBarHidden = false
+                                
+                                textPopover.navigationItem.title = self?.title ?? ""
+                                
+                                textPopover.content = .html
+                                textPopover.html.string = insertHead("<html><body>" + documentContent.replacingOccurrences(of: "\n\n", with: "<br/><br/>") + "</body></html>",fontSize:24)
+                                
+                                viewController.present(navigationController, animated: true, completion: nil)
+                            } else {
+                                print("ERROR")
+                            }
+                        })
+                        alert.addAction(viewAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            
+                        })
+                        alert.addAction(cancel)
+                        
+                        viewController.present(alert, animated: true, completion: nil)
+                    }
+                })
+
+//                if let pdf = self.notes?.url?.pdf {
+//                    let pageCount = pdf.pageCount
+//                    let documentContent = NSMutableAttributedString()
+//
+//                    for i in 1 ..< pageCount {
+//                        guard let page = pdf.page(at: i) else { continue }
+//                        guard let pageContent = page.attributedString else { continue }
+//                        documentContent.append(pageContent)
+//                    }
+//
+//                    print(documentContent)
+//
+////                    if let navigationController = Globals.shared.splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+////                        let popover = navigationController.viewControllers[0] as? WebViewController {
+////                        navigationController.modalPresentationStyle = .overCurrentContext
+////
+////                        popover.navigationItem.title = self.title
+////
+////                        popover.content = .pdf
+////                        popover.pdfURLString = self.notes
+////
+////
+////                        Thread.onMainThread {
+////                            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
+////                        }
+////                    }
+//                }
+            } else {
+                // Fallback on earlier versions
+            }
+//            process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
+//                return self?.notes?.url?.data
+//            }, completion: { [weak self] (data:Any?) in
+//                if let data = data {
+//                    if let navigationController = Globals.shared.splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                        let popover = navigationController.viewControllers[0] as? WebViewController {
+//                        navigationController.modalPresentationStyle = .overCurrentContext
+//
+//                        popover.navigationItem.title = title
+//
+//                        popover.content = .pdf
+//                        popover.pdfURLString = self?.notes
+//
+//                        Thread.onMainThread {
+//                            popover.activityIndicator.stopAnimating()
+//                            popover.activityIndicator.isHidden = true
+//
+//                            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
+//                        }
+//                    }
+//                } else {
+//                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                }
+//            })
+        }
+        
+        htmlTranscript = AlertAction(title: Constants.Strings.HTML + " " + Constants.Strings.Transcript, style: .default) {
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
 
@@ -3925,7 +4108,7 @@ class MediaItem : NSObject
                 return htmlString
             }, completion: { [weak self] (data:Any?) in
                 if let htmlString = data as? String {
-                    popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                    popoverHTML(viewController, mediaItem:self, title:nil, barButtonItem:nil, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
                 } else {
                     Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
                 }
@@ -4082,8 +4265,14 @@ class MediaItem : NSObject
             }
         }
         
+        if hasNotes {
+            if #available(iOS 11.0, *) {
+                actions.append(pdfTranscript)
+            }
+        }
+        
         if hasNotesHTML {
-            actions.append(transcript)
+            actions.append(htmlTranscript)
         }
         
         actions.append(favorites)

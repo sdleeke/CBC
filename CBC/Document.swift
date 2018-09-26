@@ -28,7 +28,22 @@ extension UIImage
     }
 }
 
-class Document : NSObject {
+class Document : NSObject
+{
+    var setZoom = false
+//    {
+//        didSet {
+//            print("setZoom: \(setZoom)")
+//        }
+//    }
+    
+    var setOffset = false
+//    {
+//        didSet {
+//            print("setOffset: \(setOffset)")
+//        }
+//    }
+    
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
     var loaded : Bool = false
@@ -64,7 +79,7 @@ class Document : NSObject {
                         let rect = page.bounds(for: .cropBox)
 
                         if let pageImage = mediaItem?.posterImage {
-                            let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.height)
+                            let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {
                                 if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
@@ -78,7 +93,7 @@ class Document : NSObject {
                         }
                         
                         if let pageImage = mediaItem?.seriesImage {
-                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.height)
+                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:seriesImageFactor) {
                                 if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {

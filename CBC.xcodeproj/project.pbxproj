@@ -61,6 +61,7 @@
 		1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74D1CA93BC900CED4A5 /* Globals.swift */; };
 		1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */; };
 		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
+		17A952682158FE830033903C /* generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A952672158FE830033903C /* generics.swift */; };
 		17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
 		17DFD9511F029A7C000AC63D /* VoiceBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DFD9501F029A7C000AC63D /* VoiceBase.swift */; };
@@ -175,6 +176,7 @@
 		1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBCUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1798C7571CA93CC700CED4A5 /* CBCUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCUITests.swift; sourceTree = "<group>"; };
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		17A952672158FE830033903C /* generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generics.swift; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
 		17D21A2D2134914600CA5F57 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		17D21A2F2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 				17FF98882030DA75002AD442 /* MediaCategory.swift */,
 				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
 				17FF98842030DA3E002AD442 /* Search.swift */,
+				17A952672158FE830033903C /* generics.swift */,
 				17FF98822030DA07002AD442 /* extensions.swift */,
 				17E75EC91B835FC600AE8ED5 /* functions.swift */,
 				17FF98802030D9DB002AD442 /* StreamEntry.swift */,
@@ -608,6 +611,7 @@
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				175E891920B3360A000425EB /* MediaValue+CoreDataProperties.swift in Sources */,
 				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
+				17A952682158FE830033903C /* generics.swift in Sources */,
 				17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */,
 				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
 				17FF98912030DC84002AD442 /* Tags.swift in Sources */,

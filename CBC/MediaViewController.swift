@@ -1068,7 +1068,7 @@ extension MediaViewController : WKNavigationDelegate
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
     {
-        print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
+//        print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
@@ -1093,6 +1093,8 @@ extension MediaViewController : WKNavigationDelegate
         
         for document in documents.values {
             if (webView == document.wkWebView) {
+//                print(document.purpose ?? "")
+                
                 if document.showing(selectedMediaItem) {
                     self.progressIndicator.isHidden = true
                     
@@ -1100,23 +1102,43 @@ extension MediaViewController : WKNavigationDelegate
                     self.setupSTVControl()
                     self.setSegmentWidths()
                     
-                    webView.isHidden = false
+//                    webView.isHidden = false
 
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                 } else {
-                    webView.isHidden = true
+//                    webView.isHidden = true
                 }
                 
                 document.loadTimer?.invalidate()
                 document.loadTimer = nil
 
-                setDocumentContentOffsetAndZoomScale(document)
+//                self.setDocumentContentOffsetAndZoomScale(document)
+
+                // This dispatch and delay is essential to getting the scroll view to accept the offset and zoom.
+//                if !webView.isHidden {
+//                    webView.isHidden = true
+//                }
+                DispatchQueue.global(qos: .userInteractive).async {
+                    // This relatively long delay is needed at startup.
+                    // 0.1 less, or 0.2, would be enough in normal use.
+                    Thread.sleep(forTimeInterval: 0.3)
+//                    print("setDocumentContentOffsetAndZoomScale")
+                    self.setDocumentContentOffsetAndZoomScale(document)
+                    Thread.onMainThread {
+                        webView.isHidden = !document.showing(selectedMediaItem)
+                    }
+                }
 
                 document.loaded = true
                 break
             }
         }
+    }
+    
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!)
+    {
+        
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError: Error)
@@ -1164,13 +1186,13 @@ extension MediaViewController : WKNavigationDelegate
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!)
     {
-        print("wkDidStartProvisionalNavigation")
+//        print("wkDidStartProvisionalNavigation")
         
     }
     
     func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error)
     {
-        print("didFailProvisionalNavigation")
+//        print("didFailProvisionalNavigation")
         
         guard let selectedMediaItem = selectedMediaItem else {
             return
@@ -1244,45 +1266,144 @@ extension MediaViewController : WKNavigationDelegate
 
 extension MediaViewController: UIScrollViewDelegate
 {
+    func document(_ scrollView:UIScrollView) -> Document?
+    {
+        guard let selectedMediaItem = selectedMediaItem else {
+            return nil
+        }
+        
+        if let documents = documents[selectedMediaItem.id]?.values {
+            for document in documents {
+                if (scrollView.superview as? WKWebView) == document.wkWebView {
+                    return document
+                }
+            }
+        }
+        
+        return nil
+    }
+    
 //    func viewForZooming(in scrollView: UIScrollView) -> UIView?
 //    {
 //        return
 //    }
     
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView)
+    {
+//        print("scrollViewDidScrollToTop")
+        
+//        print(document(scrollView)?.purpose)
+    }
+    
     func scrollViewDidZoom(_ scrollView: UIScrollView)
     {
+//        print("scrollViewDidZoom")
 
+        guard let document = document(scrollView) else {
+            return
+        }
+        
+//        print(document.purpose)
+
+        if document.setZoom {
+            document.setZoom = false
+        }
+    }
+    
+    func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?)
+    {
+//        print("scrollViewWillBeginZooming")
+
+//        print(document(scrollView)?.purpose)
     }
     
     func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat)
     {
-        if let view = scrollView.superview as? WKWebView {
+//        print("scrollViewDidEndZooming")
+
+        guard let document = document(scrollView) else {
+            return
+        }
+
+//        print(document.purpose!)
+        
+        if let view = scrollView.superview as? WKWebView, !document.setZoom {
+//            print("captureContentOffset")
             captureContentOffset(view)
+//            print("captureZoomScale")
             captureZoomScale(view)
+        } else {
+            document.setZoom = false
         }
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {
+//        print("scrollViewDidScroll")
+
+        guard let document = document(scrollView) else {
+            return
+        }
         
+//        print(document.purpose)
+        
+        if document.setOffset {
+            document.setOffset = false
+        }
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView)
     {
-        if let view = scrollView.superview as? WKWebView {
-            captureContentOffset(view)
+//        print("scrollViewDidEndScrollingAnimation")
+
+        guard let document = document(scrollView) else {
+            return
         }
+        
+//        print(document.purpose!)
+        
+        if let view = scrollView.superview as? WKWebView, !document.setOffset {
+//            print("captureContentOffset")
+            captureContentOffset(view)
+        } else {
+            document.setOffset = false
+        }
+    }
+    
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView)
+    {
+//        print("scrollViewWillBeginDecelerating")
+
+//        print(document(scrollView)?.purpose)
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
     {
+//        print("scrollViewDidEndDecelerating")
+
+//        print(document(scrollView)?.purpose)
+
         if let view = scrollView.superview as? WKWebView {
+//            print("captureContentOffset")
             captureContentOffset(view)
+        } else {
+            
         }
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView)
+    {
+//        print("scrollViewWillBeginDragging")
+
+//        print(document(scrollView)?.purpose)
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
     {
+//        print("scrollViewDidEndDragging")
+
+//        print(document(scrollView)?.purpose)
+
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }
@@ -3438,6 +3559,8 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func loadDocument(_ document:Document?)
     {
+//        print("loadDocument")
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
             return
@@ -3446,7 +3569,9 @@ class MediaViewController: UIViewController // MediaController
         guard let document = document else {
             return
         }
-        
+
+//        print(document.purpose!)
+
         guard let loading = document.wkWebView?.isLoading, !loading else {
             return
         }
@@ -3554,6 +3679,11 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
 //                if let url = document.download?.downloadURL {
+//                    let request = URLRequest(url: url)
+//                    _ = document.wkWebView?.load(request)
+//                }
+
+//                if let url = document.download?.downloadURL {
 //                    DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
 //                        if var data = try? Data(contentsOf: url) {
 //                            if document.purpose == Purpose.slides, #available(iOS 11.0, *) {
@@ -3593,10 +3723,6 @@ class MediaViewController: UIViewController // MediaController
 ////                            }
 //                        }
 //                    }
-                
-//                    let request = URLRequest(url: url)
-//                    _ = document.wkWebView?.load(request)
-//                }
             }
         } else {
             if document.showing(self.selectedMediaItem) {
@@ -3612,26 +3738,26 @@ class MediaViewController: UIViewController // MediaController
 
             ///////
 
-            DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-                if let data = document.data, let url = document.download?.downloadURL {
-                    Thread.onMainThread {
-                        document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-                    }
-                }
-            }
-
-//            if let url = document.download?.downloadURL {
-//                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-//                    if let data = try? Data(contentsOf: url) {
-//                        Thread.onMainThread {
-//                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-//                        }
+//            DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+//                if let data = document.data, let url = document.download?.downloadURL {
+//                    Thread.onMainThread {
+//                        document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
 //                    }
 //                }
-//
-//                //                    let request = URLRequest(url: url)
-//                //                    _ = document.wkWebView?.load(request)
 //            }
+
+            if let url = document.download?.downloadURL {
+                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+                    if let data = try? Data(contentsOf: url) {
+                        Thread.onMainThread {
+                            document.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
+                        }
+                    }
+                }
+
+//                let request = URLRequest(url: url)
+//                _ = document.wkWebView?.load(request)
+            }
         }
     }
     
@@ -3843,10 +3969,14 @@ class MediaViewController: UIViewController // MediaController
                 if let wkWebView = wkWebView {
                     if Globals.shared.cacheDownloads {
                         if let state = document?.download?.state {
-                            wkWebView.isHidden = (state != .downloaded)
+                            // Don't want to show it just because it is already downloaded!
+                            // The scale and offset have not yet been set!
+//                            wkWebView.isHidden = (state != .downloaded)
                         }
                     } else {
-                        wkWebView.isHidden = wkWebView.isLoading
+                        // Don't want to show it just because it is already loaded!
+                        // The scale and offset have not yet been set!
+//                        wkWebView.isHidden = wkWebView.isLoading
                     }
                     
                     mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
@@ -4142,24 +4272,43 @@ class MediaViewController: UIViewController // MediaController
         
         for document in documents {
             if let wkWebView = document.wkWebView {
-                var contentOffsetXRatio:Float = 0.0
-                var contentOffsetYRatio:Float = 0.0
+//                var contentOffsetXRatio:Float = 0.0
+//                var contentOffsetYRatio:Float = 0.0
                 
-                if let purpose = document.purpose, let ratio = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] {
-                    if let num = Float(ratio) {
-                        contentOffsetXRatio = num
+                var contentOffsetX:Float = 0.0
+                var contentOffsetY:Float = 0.0
+                
+//                if let purpose = document.purpose, let ratio = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] {
+//                    if let num = Float(ratio) {
+//                        contentOffsetXRatio = num
+//                    }
+//                }
+                
+                if let purpose = document.purpose, let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
+                    if let num = Float(x) {
+                        contentOffsetX = num
                     }
                 }
                 
-                if let purpose = document.purpose, let ratio = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] {
-                    if let num = Float(ratio) {
-                        contentOffsetYRatio = num
+//                if let purpose = document.purpose, let ratio = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] {
+//                    if let num = Float(ratio) {
+//                        contentOffsetYRatio = num
+//                    }
+//                }
+                
+                if let purpose = document.purpose, let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
+                    if let num = Float(y) {
+                        contentOffsetY = num
                     }
                 }
+                
+//                let contentOffset = CGPoint(
+//                    x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width,
+//                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height)
                 
                 let contentOffset = CGPoint(
-                    x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width,
-                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height)
+                    x: CGFloat(contentOffsetX),
+                    y: CGFloat(contentOffsetY))
                 
                 Thread.onMainThread {
                     wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
@@ -4903,8 +5052,11 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
-        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
+        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] = "\(wkWebView.scrollView.contentOffset.x)"
+        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] = "\(wkWebView.scrollView.contentOffset.y)"
+        
+//        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
+//        selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
     }
     
     fileprivate func captureContentOffset(_ webView:WKWebView?)
@@ -4938,6 +5090,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
+//        print(wkWebView.scrollView.zoomScale)
         selectedMediaItem?.mediaItemSettings?[purpose + Constants.ZOOM_SCALE] = "\(wkWebView.scrollView.zoomScale)"
     }
     
@@ -5516,14 +5669,27 @@ class MediaViewController: UIViewController // MediaController
 
     func wkSetZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint)
     {
+        guard let document = document(wkWebView.scrollView) else {
+            return
+        }
+        
         Thread.onMainThread {
             // The effects of the next two calls are strongly order dependent.
             if !scale.isNaN {
+                document.setZoom = true
+//                print(wkWebView.scrollView.minimumZoomScale,scale,wkWebView.scrollView.maximumZoomScale)
                 wkWebView.scrollView.setZoomScale(scale, animated: false)
             }
             if (!offset.x.isNaN && !offset.y.isNaN) {
+                document.setOffset = true
                 wkWebView.scrollView.setContentOffset(offset,animated: false)
             }
+
+//            DispatchQueue.global(qos: .userInteractive).async {
+//                Thread.sleep(forTimeInterval: 0.2)
+//                Thread.onMainThread {
+//                }
+//            }
         }
     }
     
@@ -5535,23 +5701,42 @@ class MediaViewController: UIViewController // MediaController
         
         var zoomScale:CGFloat = 1.0
         
-        var contentOffsetXRatio:Float = 0.0
-        var contentOffsetYRatio:Float = 0.0
+//        var contentOffsetXRatio:Float = 0.0
+//        var contentOffsetYRatio:Float = 0.0
+//
+//        if let ratioStr = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] {
+//            if let num = Float(ratioStr) {
+//                contentOffsetXRatio = num
+//            }
+//        } else {
+//
+//        }
+//
+//        if let ratioStr = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] {
+//            if let num = Float(ratioStr) {
+//                contentOffsetYRatio = num
+//            }
+//        } else {
+//
+//        }
         
-        if let ratioStr = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X_RATIO] {
-            if let num = Float(ratioStr) {
-                contentOffsetXRatio = num
+        var contentOffsetX:Float = 0.0
+        var contentOffsetY:Float = 0.0
+        
+        if let str = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
+            if let num = Float(str) {
+                contentOffsetX = num
             }
         } else {
-
+            
         }
         
-        if let ratioStr = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y_RATIO] {
-            if let num = Float(ratioStr) {
-                contentOffsetYRatio = num
+        if let str = selectedMediaItem?.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
+            if let num = Float(str) {
+                contentOffsetY = num
             }
         } else {
-
+            
         }
         
         if  let zoomScaleStr = selectedMediaItem?.mediaItemSettings?[purpose + Constants.ZOOM_SCALE] {
@@ -5563,10 +5748,20 @@ class MediaViewController: UIViewController // MediaController
         }
         
         if let wkWebView = document?.wkWebView {
-            let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale,
-                                        y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale)
-            
-            wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale, offset: contentOffset)
+            Thread.onMainThread {
+                guard wkWebView.scrollView.contentSize != CGSize.zero else {
+                    return
+                }
+                
+//                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
+//                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
+                
+                let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+                                            y: CGFloat(contentOffsetY)) //
+                
+//                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
+                self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale, offset: contentOffset)
+            }
         }
     }
 }

@@ -75,46 +75,6 @@ func open(scheme: String?,cannotOpen:(()->(Void))?)
     }
 }
 
-func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-    switch (lhs, rhs) {
-    case let (l?, r?):
-        return l < r
-    case (nil, _?):
-        return true
-    default:
-        return false
-    }
-}
-
-func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-    switch (lhs, rhs) {
-    case let (l?, r?):
-        return l <= r
-    case (nil, _?):
-        return true
-    default:
-        return false
-    }
-}
-
-func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l >= r
-  default:
-    return !(lhs < rhs)
-  }
-}
-
-func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
 func documentsURL() -> URL?
 {
     let fileManager = FileManager.default
@@ -273,7 +233,7 @@ func jsonFromFileSystem(filename:String?) -> Any?
 
 var operationQueue:OperationQueue! = {
     let operationQueue = OperationQueue()
-    operationQueue.underlyingQueue = DispatchQueue(label: "JSON")
+    operationQueue.name = "JSON"
     operationQueue.qualityOfService = .background
     operationQueue.maxConcurrentOperationCount = 1
     return operationQueue
@@ -3809,7 +3769,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
     popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
 }
 
-func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcript:VoiceBase?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
+func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem?, transcript:VoiceBase?, title:String?, barButtonItem:UIBarButtonItem?, sourceView:UIView?, sourceRectView:UIView?, htmlString:String?)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
@@ -3893,9 +3853,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcri
         popover.navigationController?.isNavigationBarHidden = false
         
         Thread.onMainThread {
-            viewController.present(navigationController, animated: true, completion: {
-                Globals.shared.topViewController = navigationController
-            })
+            viewController.present(navigationController, animated: true, completion: nil)
         }
     }
 }

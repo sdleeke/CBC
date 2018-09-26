@@ -116,6 +116,33 @@ extension String {
             return URL(string: self)
         }
     }
+    
+    var fileSystemURL : URL?
+    {
+        get {
+            if let lastPathComponent = self.url?.lastPathComponent {
+                return cachesURL()?.appendingPathComponent(lastPathComponent)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var downloaded : Bool
+    {
+        get {
+            if let fileSystemURL = fileSystemURL {
+                return FileManager.default.fileExists(atPath: fileSystemURL.path)
+            } else {
+                return false
+            }
+        }
+    }
+    
+    func download()
+    {
+        
+    }
 }
 
 extension URL
