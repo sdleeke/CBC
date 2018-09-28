@@ -425,22 +425,6 @@ class PopoverTableViewController : UIViewController
         syncButton.title = "Stop Sync"
     }
     
-    @objc func stopped()
-    {
-        trackingTimer?.invalidate()
-        trackingTimer = nil
-        
-        isTracking = false
-        
-        syncButton.title = "Sync"
-        syncButton.isEnabled = false
-        
-        playPauseButton?.title = "Play"
-        playPauseButton?.isEnabled = false
-        
-        assistButton?.isEnabled = true
-    }
-    
     var lastFollow : IndexPath?
     
     @objc func follow()
@@ -450,9 +434,9 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-//        guard !searchActive else {
-//            return
-//        }
+        guard !searchActive else {
+            return
+        }
         
         guard let transcriptSegmentComponents = section.strings else {
             return
@@ -1096,6 +1080,10 @@ class PopoverTableViewController : UIViewController
     
         navigationController?.toolbar.isTranslucent = false
 
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
+        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
+        
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
@@ -1478,31 +1466,77 @@ class PopoverTableViewController : UIViewController
     
 //    var mask = false
 
+//    @objc func stopped()
+//    {
+//        trackingTimer?.invalidate()
+//        trackingTimer = nil
+//
+//        isTracking = false
+//
+//        syncButton.title = "Sync"
+//        syncButton.isEnabled = false
+//
+//        playPauseButton?.title = "Play"
+//        playPauseButton?.isEnabled = false
+//
+//        assistButton?.isEnabled = true
+//    }
+    
+    @objc func stopped()
+    {
+        trackingTimer?.invalidate()
+        trackingTimer = nil
+        
+        isTracking = false
+        
+        updateToolbar()
+    }
+    
+    @objc func playing()
+    {
+        updateToolbar()
+    }
+    
+    @objc func paused()
+    {
+        updateToolbar()
+    }
+    
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
-        
 //        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(playing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(stopped), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STOPPED), object: nil)
     }
     
     func updateToolbar()
     {
         var barButtonItems = [UIBarButtonItem]()
         
+        if let state = Globals.shared.mediaPlayer.state {
+            switch state {
+            case .playing:
+                self.playPauseButton?.title = "Pause"
+                
+            default:
+                self.playPauseButton?.title = "Play"
+                break
+            }
+        }
+        
         if track || assist {
-            assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
-            syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
-            playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
-            
             let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
             
             syncButton.isEnabled = (Globals.shared.mediaPlayer.mediaItem != nil) && !searchActive && (section.strings?.count > 0)
             playPauseButton.isEnabled = syncButton.isEnabled
-            assistButton.isEnabled = section.strings?.count > 0
+            assistButton.isEnabled = (section.strings?.count > 0) && !isTracking
             
             if track {
                 //            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))

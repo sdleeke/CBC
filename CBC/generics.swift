@@ -287,10 +287,15 @@ class ThreadSafeDictionary<T>
     
     var name : String
     
-    init(name:String)
+    init(name:String) // ,valueInit:(()->(T))? = nil
     {
         self.name = name
+        
+//        self.valueInit = valueInit
     }
+    
+    // DOES NOT WORK
+//    var valueInit : (()->(T))?
     
     subscript(key:String?) -> T? {
         get {
@@ -307,8 +312,15 @@ class ThreadSafeDictionary<T>
                 guard let key = key else {
                     return
                 }
-                
-                storage[key] = newValue
+    
+//                if storage[key] == nil {
+//                    storage[key] = valueInit?()
+//                    if newValue != nil {
+//                        storage[key] = newValue
+//                    }
+//                } else {
+                    storage[key] = newValue
+//                }
             }
         }
     }

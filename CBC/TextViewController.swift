@@ -1977,13 +1977,11 @@ class TextViewController : UIViewController
     
     @objc func playing()
     {
-
         updateBarButtons()
     }
     
     @objc func paused()
     {
-        
         updateBarButtons()
     }
     

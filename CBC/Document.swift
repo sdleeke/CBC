@@ -30,6 +30,10 @@ extension UIImage
 
 class Document : NSObject
 {
+    weak var mediaItem:MediaItem?
+    
+    var purpose:String?
+    
     var setZoom = false
 //    {
 //        didSet {
@@ -44,9 +48,9 @@ class Document : NSObject
 //        }
 //    }
     
-    var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
-    
-    var loaded : Bool = false
+//    var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
+//    
+//    var loaded : Bool = false
     //    {
     //        get {
     //            if Globals.shared.cacheDownloads {
@@ -58,9 +62,20 @@ class Document : NSObject
     //        }
     //    }
     
+    var _data : Data?
+    {
+        didSet {
+            
+        }
+    }
+    
     var data : Data?
     {
         get {
+            guard _data == nil else {
+                return _data
+            }
+            
             var data : Data?
             
             if download?.isDownloaded == true {
@@ -110,14 +125,10 @@ class Document : NSObject
             } else {
                 // Fallback on earlier versions
             }
-            
+            _data = data
             return data
         }
     }
-    
-    var mediaItem:MediaItem?
-    
-    var purpose:String?
     
     var download:Download? {
         get {
@@ -149,24 +160,30 @@ class Document : NSObject
         }
     }
     
-    var wkWebView:WKWebView?
-    {
-        willSet {
-            
-        }
-        didSet {
-            loaded = false
-
-            if (wkWebView == nil) {
-                oldValue?.scrollView.delegate = nil
-            }
-        }
-    }
+//    var wkWebView:WKWebView?
+//    {
+//        willSet {
+//            
+//        }
+//        didSet {
+//            loaded = false
+//
+//            if (wkWebView == nil) {
+//                oldValue?.scrollView.delegate = nil
+//            }
+//        }
+//    }
     
     init(purpose:String,mediaItem:MediaItem?)
     {
+        super.init()
+        
         self.purpose = purpose
         self.mediaItem = mediaItem
+//
+//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//            _ = self?.data
+//        }
     }
     
     deinit {

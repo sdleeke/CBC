@@ -612,6 +612,10 @@ extension MediaItem : UIActivityItemSource
 
 class MediaItem : NSObject
 {
+    lazy var documents : ThreadSafeDictionary<[String:Document]>! = {
+        return ThreadSafeDictionary<[String:Document]>(name:id+"Documents")
+    }()
+
     static func ==(lhs: MediaItem, rhs: MediaItem) -> Bool
     {
         return lhs.id == rhs.id
@@ -650,7 +654,11 @@ class MediaItem : NSObject
     @objc func freeMemory()
     {
         // What are the side effects of this?
+
+        imageCache = ThreadSafeDictionary<UIImage>(name: id+"ImageCache")
         
+        documents = ThreadSafeDictionary<[String:Document]>(name:id+"Documents")
+
         notesHTML = nil
         notesTokens = nil
         
@@ -2104,10 +2112,20 @@ class MediaItem : NSObject
 //        }
 //    }
     
+    lazy var imageCache : ThreadSafeDictionary<UIImage>! = {
+        return ThreadSafeDictionary<UIImage>(name:id+"ImageCache")
+    }()
+
     var posterImage:UIImage?
     {
         get {
-            return poster?.url?.image
+            guard imageCache["POSTER"] == nil else {
+                return imageCache["POSTER"]
+            }
+            
+            imageCache["POSTER"] = poster?.url?.image
+            
+            return imageCache["POSTER"]
             
 //            guard let posterURL = posterURL else {
 //                return nil
@@ -2124,13 +2142,19 @@ class MediaItem : NSObject
     var seriesImage:UIImage?
     {
         get {
+            guard imageCache["SERIES"] == nil else {
+                return imageCache["SERIES"]
+            }
+
             guard let imageName = self[Field.seriesImage] else {
                 return nil
             }
             
             let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
             
-            return urlString.url?.image
+            imageCache["SERIES"] = urlString.url?.image
+            
+            return imageCache["SERIES"]
         }
     }
     
