@@ -139,7 +139,7 @@ extension MediaTableViewController : UISearchBarDelegate
         if (searchText != Constants.EMPTY_STRING) { //
             updateSearchResults(searchText,completion: nil)
         } else {
-            Globals.shared.clearDisplay()
+            display.clear()
             
             tableView?.reloadData()
             
@@ -163,7 +163,7 @@ extension MediaTableViewController : UISearchBarDelegate
         if Globals.shared.search.valid {
             updateSearchResults(searchBar.text,completion: nil)
         } else {
-            Globals.shared.clearDisplay()
+            display.clear()
             
             tableView?.reloadData()
             
@@ -199,7 +199,7 @@ extension MediaTableViewController : UISearchBarDelegate
         if Globals.shared.search.valid { //
             updateSearchResults(searchText,completion: nil)
         } else {
-            Globals.shared.clearDisplay()
+            display.clear()
             
             tableView?.reloadData()
             
@@ -243,13 +243,13 @@ extension MediaTableViewController : UISearchBarDelegate
         
         disableBarButtons()
         
-        Globals.shared.clearDisplay()
+        display.clear()
         
         tableView?.reloadData()
         
         startAnimating()
         
-        Globals.shared.setupDisplay(Globals.shared.media.active)
+        display.setup(Globals.shared.media.active)
         
         tableView?.reloadData()
         
@@ -301,7 +301,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         }
         
         Globals.shared.cancelAllDownloads()
-        Globals.shared.clearDisplay()
+        display.clear()
         
         Thread.onMainThread {
             self.tableView?.reloadData()
@@ -1699,7 +1699,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             Globals.shared.mediaPlayer.pause()
 
             Globals.shared.cancelAllDownloads()
-            Globals.shared.clearDisplay()
+            display.clear()
             
             Thread.onMainThread {
                 self.tableView?.reloadData()
@@ -1875,7 +1875,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     if (new) {
                         Thread.onMainThread {
-                            Globals.shared.clearDisplay()
+                            self?.display.clear()
                             
                             self?.tableView?.reloadData()
                             
@@ -1889,7 +1889,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         Thread.onMainThread {
-                            Globals.shared.setupDisplay(Globals.shared.media.active)
+                            self?.display.setup(Globals.shared.media.active)
                             
                             self?.tableView?.reloadData()
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -1945,7 +1945,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             Globals.shared.grouping = Globals.shared.groupings[index]
             
             if Globals.shared.media.need.grouping {
-                Globals.shared.clearDisplay()
+                display.clear()
                 
                 tableView?.reloadData()
                 
@@ -1954,7 +1954,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 disableBarButtons()
                 
                 DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    Globals.shared.setupDisplay(Globals.shared.media.active)
+                    self?.display.setup(Globals.shared.media.active)
                     
                     Thread.onMainThread {
                         self?.tableView?.reloadData()
@@ -1977,7 +1977,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             Globals.shared.sorting = Constants.sortings[index]
             
             if (Globals.shared.media.need.sorting) {
-                Globals.shared.clearDisplay()
+                display.clear()
                 
                 Thread.onMainThread {
                     self.tableView?.reloadData()
@@ -1987,7 +1987,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        Globals.shared.setupDisplay(Globals.shared.media.active)
+                        self?.display.setup(Globals.shared.media.active)
                         
                         Thread.onMainThread {
                             self?.tableView?.reloadData()
@@ -2308,6 +2308,37 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class MediaTableViewController : UIViewController // MediaController
 {
+    class Display
+    {
+        var mediaItems:[MediaItem]?
+        var section = Section(stringsAction: nil)
+        
+        func setup(_ active:MediaListGroupSort? = nil)
+        {
+            mediaItems = active?.mediaItems
+            
+            section.showHeaders = true
+            
+            section.headerStrings = active?.section?.headerStrings
+            section.indexStrings = active?.section?.indexStrings
+            section.indexes = active?.section?.indexes
+            section.counts = active?.section?.counts
+        }
+        
+        func clear()
+        {
+            mediaItems = nil
+            
+            section.clear()
+            //        display.section.headerStrings = nil
+            //        display.section.indexStrings = nil
+            //        display.section.indexes = nil
+            //        display.section.counts = nil
+        }
+    }
+    
+    var display = Display()
+
     var popover : PopoverTableViewController?
 
     var actionsButton : UIBarButtonItem?
@@ -2592,7 +2623,7 @@ class MediaTableViewController : UIViewController // MediaController
             }
             
             //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
-            if (Globals.shared.display.mediaItems != nil) && (selectedMediaItem != nil) {
+            if (display.mediaItems != nil) && (selectedMediaItem != nil) {
                 showMenu.append(Constants.Strings.Current_Selection)
             }
             
@@ -3148,7 +3179,7 @@ class MediaTableViewController : UIViewController // MediaController
                 Globals.shared.search.complete = false
             }
 
-            Globals.shared.setupDisplay(Globals.shared.media.active)
+            self?.display.setup(Globals.shared.media.active)
             
             Thread.onMainThread {
                 self?.navigationItem.title = Constants.Title.Setting_up_Player
@@ -3280,7 +3311,7 @@ class MediaTableViewController : UIViewController // MediaController
 
         Globals.shared.cancelAllDownloads()
 
-        Globals.shared.clearDisplay()
+        display.clear()
         
         Globals.shared.search.active = false
 
@@ -3324,7 +3355,7 @@ class MediaTableViewController : UIViewController // MediaController
     {
         updateSearch()
         
-        Globals.shared.setupDisplay(Globals.shared.media.active)
+        display.setup(Globals.shared.media.active)
 
         updateUI()
         
@@ -3737,7 +3768,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
         
         if !Globals.shared.search.active || (Globals.shared.search.text?.uppercased() == searchText) {
-            Globals.shared.setupDisplay(Globals.shared.media.active)
+            display.setup(Globals.shared.media.active)
         }
         
         Thread.onMainThread {
@@ -3790,7 +3821,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         Globals.shared.search.complete = false
 
-        Globals.shared.clearDisplay()
+        display.clear()
 
         Thread.onMainThread {
             self.tableView?.reloadData()
@@ -4435,7 +4466,7 @@ extension MediaTableViewController : UITableViewDataSource
 
     func numberOfSections(in tableView: UITableView) -> Int
     {
-        guard let headers = Globals.shared.display.section.headers else {
+        guard let headers = display.section.headers else {
             return 0
         }
         
@@ -4454,7 +4485,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        guard let headers = Globals.shared.display.section.headers else {
+        guard let headers = display.section.headers else {
             return nil
         }
         
@@ -4467,7 +4498,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        guard let counts = Globals.shared.display.section.counts else {
+        guard let counts = display.section.counts else {
             return 0
         }
         
@@ -4489,10 +4520,10 @@ extension MediaTableViewController : UITableViewDataSource
         cell.searchText = Globals.shared.search.active ? Globals.shared.search.text : nil
         
         // Configure the cell
-        if indexPath.section >= 0, indexPath.section < Globals.shared.display.section.indexes?.count {
-            if let section = Globals.shared.display.section.indexes?[indexPath.section], let count = Globals.shared.display.mediaItems?.count {
+        if indexPath.section >= 0, indexPath.section < display.section.indexes?.count {
+            if let section = display.section.indexes?[indexPath.section], let count = display.mediaItems?.count {
                 if (section + indexPath.row) >= 0,(section + indexPath.row) < count {
-                    cell.mediaItem = Globals.shared.display.mediaItems?[section + indexPath.row]
+                    cell.mediaItem = display.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")
@@ -4504,7 +4535,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section >= 0, section < Globals.shared.display.section.headers?.count, let title = Globals.shared.display.section.headers?[section] else {
+        guard section >= 0, section < display.section.headers?.count, let title = display.section.headers?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -4571,7 +4602,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         view?.alpha = 0.85
         
-        if section >= 0, section < Globals.shared.display.section.headers?.count, let title = Globals.shared.display.section.headers?[section] {
+        if section >= 0, section < display.section.headers?.count, let title = display.section.headers?[section] {
             view?.label?.attributedText = NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.bold)
         } else {
             view?.label?.attributedText = NSAttributedString(string: "ERROR", attributes: Constants.Fonts.Attributes.bold)
@@ -4627,10 +4658,10 @@ extension MediaTableViewController : UITableViewDelegate
     {
         var mediaItem : MediaItem?
         
-        if indexPath.section >= 0, indexPath.section < Globals.shared.display.section.indexes?.count {
-            if let section = Globals.shared.display.section.indexes?[indexPath.section], let count = Globals.shared.display.mediaItems?.count {
+        if indexPath.section >= 0, indexPath.section < display.section.indexes?.count {
+            if let section = display.section.indexes?[indexPath.section], let count = display.mediaItems?.count {
                 if (section + indexPath.row) >= 0,(section + indexPath.row) < count {
-                    mediaItem = Globals.shared.display.mediaItems?[section + indexPath.row]
+                    mediaItem = display.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")

@@ -17,6 +17,14 @@ class Section
         self.stringsAction = stringsAction
     }
     
+    func clear()
+    {
+        headerStrings = nil
+        indexStrings = nil
+        indexes = nil
+        counts = nil
+    }
+    
     deinit {
         
     }

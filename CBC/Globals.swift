@@ -717,13 +717,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //        return media
 //    }()
     
-    class Display {
-        var mediaItems:[MediaItem]?
-        var section = Section(stringsAction: nil)
-    }
-    
-    var display = Display()
-    
     func freeMemory()
     {
         // Free memory in classes
@@ -734,29 +727,17 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         URLCache.shared.removeAllCachedResponses()
     }
     
-    func clearDisplay()
-    {
-        display.mediaItems = nil
-
-        display.section.headerStrings = nil
-        display.section.indexStrings = nil
-        display.section.indexes = nil
-        display.section.counts = nil
-    }
-    
-    func setupDisplay(_ active:MediaListGroupSort? = nil)
-    {
-//        print("setupDisplay")
-
-        display.mediaItems = active?.mediaItems
-        
-        display.section.showHeaders = true
-        
-        display.section.headerStrings = active?.section?.headerStrings
-        display.section.indexStrings = active?.section?.indexStrings
-        display.section.indexes = active?.section?.indexes
-        display.section.counts = active?.section?.counts
-    }
+//    func clearDisplay()
+//    {
+//        display.clear()
+//    }
+//    
+//    func setupDisplay(_ active:MediaListGroupSort? = nil)
+//    {
+////        print("setupDisplay")
+//
+//        display.setup(active)
+//    }
     
     func saveSettingsBackground()
     {
