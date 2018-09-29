@@ -1470,7 +1470,7 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    lazy var operationQueue:OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "LEXICON UPDATE"
         operationQueue.qualityOfService = .userInteractive

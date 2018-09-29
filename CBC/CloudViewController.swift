@@ -241,8 +241,7 @@ class CloudViewController: UIViewController
     // Make thread safe?
 //    var wordLabels : [String:UILabel]?
     
-//    var cloudLayoutOperationQueue : OperationQueue?
-    lazy var operationQueue:OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "CLOUD"
         operationQueue.qualityOfService = .userInteractive
@@ -250,7 +249,7 @@ class CloudViewController: UIViewController
         return operationQueue
     }()
     
-    lazy var labelQueue:OperationQueue! = {
+    lazy var labelQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "LABELS"
         operationQueue.qualityOfService = .userInteractive

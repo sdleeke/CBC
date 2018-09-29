@@ -612,10 +612,32 @@ extension MediaItem : UIActivityItemSource
 
 class MediaItem : NSObject
 {
-    lazy var documents : ThreadSafeDictionary<[String:Document]>! = {
-        return ThreadSafeDictionary<[String:Document]>(name:id+"Documents")
+    lazy var documents : ThreadSafeDictionaryOfDictionaries<Document>! = {
+        return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
+    
+    func loadDocument(purpose:String)
+    {
+        if documents?[id,purpose] == nil {
+            documents?[id,purpose] = Document(purpose: purpose, mediaItem: self)
+            
+            DispatchQueue.global(qos: .userInitiated).async {
+                _ = self.documents?[self.id,purpose]?.data
+            }
+        }
+    }
 
+    func loadDocuments()
+    {
+        if hasNotes {
+            loadDocument(purpose: Purpose.notes)
+        }
+        
+        if hasSlides {
+            loadDocument(purpose: Purpose.slides)
+        }
+    }
+    
     static func ==(lhs: MediaItem, rhs: MediaItem) -> Bool
     {
         return lhs.id == rhs.id
@@ -657,7 +679,7 @@ class MediaItem : NSObject
 
         imageCache = ThreadSafeDictionary<UIImage>(name: id+"ImageCache")
         
-        documents = ThreadSafeDictionary<[String:Document]>(name:id+"Documents")
+        documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
         notesHTML = nil
         notesTokens = nil

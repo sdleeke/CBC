@@ -991,7 +991,7 @@ class MediaPlayer : NSObject {
 //        })
 //    }
     
-    lazy var operationQueue:OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "SEEK"
         operationQueue.qualityOfService = .userInteractive

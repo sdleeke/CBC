@@ -1284,9 +1284,7 @@ class TextViewController : UIViewController
         })
     }
     
-//    var operationQueue : OperationQueue!
-    
-    lazy var operationQueue:OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "TEXT EDIT"
         operationQueue.qualityOfService = .userInteractive

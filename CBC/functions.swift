@@ -231,7 +231,7 @@ func jsonFromFileSystem(filename:String?) -> Any?
     }
 }
 
-var operationQueue:OperationQueue! = {
+var operationQueue : OperationQueue! = {
     let operationQueue = OperationQueue()
     operationQueue.name = "JSON"
     operationQueue.qualityOfService = .background

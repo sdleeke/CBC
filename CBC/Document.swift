@@ -69,64 +69,80 @@ class Document : NSObject
         }
     }
     
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = mediaItem?.id ?? "" + "DOCUMENT"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
     var data : Data?
     {
         get {
+            operationQueue.waitUntilAllOperationsAreFinished()
+            
             guard _data == nil else {
                 return _data
             }
             
-            var data : Data?
-            
-            if download?.isDownloaded == true {
-                if let url = download?.fileSystemURL {
-                    data = try? Data(contentsOf: url)
+            operationQueue.addOperation {
+                var data : Data?
+                
+                if self.download?.isDownloaded == true {
+                    if let url = self.download?.fileSystemURL {
+                        data = try? Data(contentsOf: url)
+                    }
+                } else {
+                    if let url = self.download?.downloadURL {
+                        data = try? Data(contentsOf: url)
+                    }
                 }
-            } else {
-                if let url = download?.downloadURL {
-                    data = try? Data(contentsOf: url)
-                }
-            }
-            
-            if #available(iOS 11.0, *) {
-                if purpose == Purpose.slides, let docData = data {
-                    if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
-                        let rect = page.bounds(for: .cropBox)
-
-                        if let pageImage = mediaItem?.posterImage {
-                            let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+                
+                if #available(iOS 11.0, *) {
+                    if self.purpose == Purpose.slides, let docData = data {
+                        if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
+                            let rect = page.bounds(for: .cropBox)
                             
-                            if let pageImage = pageImage.resize(scale:posterImageFactor) {
-                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                                    doc.insert(page, at: 0)
-                                    
-                                    if let docData = doc.dataRepresentation() {
-                                        data = docData
+                            if let pageImage = self.mediaItem?.posterImage {
+                                let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+                                
+                                if let pageImage = pageImage.resize(scale:posterImageFactor) {
+                                    if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                                        doc.insert(page, at: 0)
+                                        
+                                        if let docData = doc.dataRepresentation() {
+                                            data = docData
+                                        }
                                     }
                                 }
                             }
-                        }
-                        
-                        if let pageImage = mediaItem?.seriesImage {
-                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
-                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
-                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                                    doc.insert(page, at: 0)
-                                    
-                                    if let docData = doc.dataRepresentation() {
-                                        data = docData
+                            if let pageImage = self.mediaItem?.seriesImage {
+                                let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+                                
+                                if let pageImage = pageImage.resize(scale:seriesImageFactor) {
+                                    if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+                                        doc.insert(page, at: 0)
+                                        
+                                        if let docData = doc.dataRepresentation() {
+                                            data = docData
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                } else {
+                    // Fallback on earlier versions
                 }
-            } else {
-                // Fallback on earlier versions
+                
+                self._data = data
             }
-            _data = data
-            return data
+            
+            operationQueue.waitUntilAllOperationsAreFinished()
+            
+            return _data
         }
     }
     

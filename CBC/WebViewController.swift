@@ -14,9 +14,7 @@ import MobileCoreServices
 class HTML {
     weak var webViewController: WebViewController?
     
-//    var operationQueue : OperationQueue!
-
-    lazy var operationQueue:OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "LEXICON UPDATE"
         operationQueue.qualityOfService = .userInteractive

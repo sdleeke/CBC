@@ -1510,7 +1510,7 @@ class MediaViewController: UIViewController // MediaController
 ////        }
 //    }()
 
-    var documents : ThreadSafeDictionary<[String:Document]>!
+    var documents : ThreadSafeDictionaryOfDictionaries<Document>!
     {
         get {
             return selectedMediaItem?.documents
@@ -1543,10 +1543,10 @@ class MediaViewController: UIViewController // MediaController
             }
             
             if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing {
-                if documents[selectedMediaItem.id] == nil {
-                    documents[selectedMediaItem.id] = [String:Document]()
-                }
-                documents[selectedMediaItem.id]?[showing] = newValue
+//                if documents[selectedMediaItem.id] == nil {
+//                    documents[selectedMediaItem.id] = [String:Document]()
+//                }
+                documents[selectedMediaItem.id,showing] = newValue
             }
             
             //            document?.download?.purpose = stvControl.selectedSegmentIndex.description
@@ -1873,7 +1873,7 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
-    var operationQueue:OperationQueue! = {
+    var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "WKWEBVIEW"
         operationQueue.qualityOfService = .userInteractive
@@ -1891,13 +1891,13 @@ class MediaViewController: UIViewController // MediaController
                 return
             }
             
-            if oldValue != nil {
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: oldValue?.download)
+//            if oldValue != nil {
+////                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: oldValue?.download)
+//
+////                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
+//            }
 
-//                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
-            }
-
-            setupTitle()
+//            setupTitle()
             
             if isViewLoaded {
                 wkWebView?.isHidden = true
@@ -1905,12 +1905,16 @@ class MediaViewController: UIViewController // MediaController
             }
             
             operationQueue.cancelAllOperations()
+
+            selectedMediaItem?.loadDocuments()
             
 //            wkWebView?.removeFromSuperview()// isHidden = true
             
 //            notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
 //            slidesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
 
+            mediaItems = selectedMediaItem?.multiPartMediaItems
+            
             if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
                     removePlayerObserver()
@@ -1947,13 +1951,13 @@ class MediaViewController: UIViewController // MediaController
 ////                    }
 //                }
 
-                mediaItems = selectedMediaItem.multiPartMediaItems // mediaItemsInMediaItemSeries(selectedMediaItem)
+//                mediaItems = selectedMediaItem.multiPartMediaItems // mediaItemsInMediaItemSeries(selectedMediaItem)
                 
                 Globals.shared.selectedMediaItem.detail = selectedMediaItem
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
-                mediaItems = nil
+//                mediaItems = nil
                 
 //                for key in documents.keys {
 //                    if let documents = documents[key]?.values {
@@ -1965,13 +1969,13 @@ class MediaViewController: UIViewController // MediaController
 //                    documents[key] = nil
 //                }
                 
-                if let logo = UIImage(named:"CBC_logo") {
-                    // Need to adjust aspect ratio contraint
-                    let ratio = logo.size.width / logo.size.height
-                    
-                    self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                    self.logo.image = logo
-                }
+//                if let logo = UIImage(named:"CBC_logo") {
+//                    // Need to adjust aspect ratio contraint
+//                    let ratio = logo.size.width / logo.size.height
+//
+//                    self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
+//                    self.logo.image = logo
+//                }
             }
         }
     }
@@ -1980,6 +1984,9 @@ class MediaViewController: UIViewController // MediaController
     {
         didSet {
             if mediaItems != oldValue {
+                mediaItems?.forEach({ (mediaItem:MediaItem) in
+                    mediaItem.loadDocuments()
+                })
                 tableView?.reloadData()
             }
         }
@@ -3609,8 +3616,9 @@ class MediaViewController: UIViewController // MediaController
         Globals.shared.mediaPlayer.view?.isHidden = true
         
         if (!hasSlides && !hasNotes) { // This is too imprecise:  || !Globals.shared.reachability.isReachable
-            hideAllDocuments()
-            
+//            hideAllDocuments()
+            wkWebView?.isHidden = true
+
             mediaItemNotesAndSlides.bringSubview(toFront: logo)
             logo.isHidden = false
 
@@ -4050,19 +4058,19 @@ class MediaViewController: UIViewController // MediaController
 //        }
 //    }
     
-    fileprivate func hideAllDocuments()
-    {
-        wkWebView?.isHidden = true
-        
-//        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
-//            if let documents = documents[selectedMediaItem.id]?.values {
-//                for document in documents {
-//                    document.wkWebView?.isHidden = true
-////                    document.wkWebView?.isUserInteractionEnabled = !(document.wkWebView?.isHidden ?? true)
-//                }
-//            }
-//        }
-    }
+//    fileprivate func hideAllDocuments()
+//    {
+//        wkWebView?.isHidden = true
+//
+////        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
+////            if let documents = documents[selectedMediaItem.id]?.values {
+////                for document in documents {
+////                    document.wkWebView?.isHidden = true
+//////                    document.wkWebView?.isUserInteractionEnabled = !(document.wkWebView?.isHidden ?? true)
+////                }
+////            }
+////        }
+//    }
     
     fileprivate func setupDocumentsAndVideo()
     {
@@ -4074,8 +4082,9 @@ class MediaViewController: UIViewController // MediaController
         guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             verticalSplit.isHidden = true
             
-            hideAllDocuments()
-            
+//            hideAllDocuments()
+            wkWebView?.isHidden = true
+
             Globals.shared.mediaPlayer.view?.isHidden = true
             
             logo.isHidden = !shouldShowLogo() // && roomForLogo()
@@ -4294,8 +4303,9 @@ class MediaViewController: UIViewController // MediaController
                         
                     case Playing.video:
                         if (Globals.shared.mediaPlayer.mediaItem != nil) && (Globals.shared.mediaPlayer.mediaItem == selectedMediaItem) {
-                            hideAllDocuments()
-                            
+//                            hideAllDocuments()
+                            wkWebView?.isHidden = true
+
                             logo.isHidden = Globals.shared.mediaPlayer.loaded
                             Globals.shared.mediaPlayer.view?.isHidden = !Globals.shared.mediaPlayer.loaded
                             
@@ -4323,8 +4333,9 @@ class MediaViewController: UIViewController // MediaController
                 activityIndicator.stopAnimating()
                 activityIndicator.isHidden = true
                 
-                hideAllDocuments()
-                
+//                hideAllDocuments()
+                wkWebView?.isHidden = true
+
                 if let playing = selectedMediaItem.playing {
                     switch playing {
                     case Playing.audio:
@@ -6533,14 +6544,15 @@ extension MediaViewController : UITableViewDelegate
         }
         selectedMediaItem = mediaItems?[indexPath.row]
         
-        setupSpinner()
-        setupPlayPauseButton()
-        setupSliderAndTimes()
-        setupDocumentsAndVideo()
-        setupActionAndTagsButtons()
-        setupAudioOrVideo()
-        setupSTVControl()
-        setSegmentWidths()
+        updateUI()
+//        setupSpinner()
+//        setupPlayPauseButton()
+//        setupSliderAndTimes()
+//        setupDocumentsAndVideo()
+//        setupActionAndTagsButtons()
+//        setupAudioOrVideo()
+//        setupSTVControl()
+//        setSegmentWidths()
     }
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath)
