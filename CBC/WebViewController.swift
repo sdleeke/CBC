@@ -1215,14 +1215,16 @@ class WebViewController: UIViewController
         }
         didSet {
             if oldValue != nil {
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: oldValue?.download)
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
+                Thread.onMainThread {
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: oldValue?.download)
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: oldValue?.download)
+                }
             }
 
             if mediaItem != nil {
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.mediaItem?.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.mediaItem?.download)
                 }
             }
         }
@@ -1777,10 +1779,10 @@ class WebViewController: UIViewController
     
     var download : Download?
     
-    @objc func downloaded()
+    @objc func downloaded(_ notification : NSNotification)
     {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
-
+        
         switch content {
         case .document:
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
@@ -1788,6 +1790,22 @@ class WebViewController: UIViewController
             
         case .pdf:
             loadPDF(urlString: pdfURLString)
+            break
+            
+        default:
+            break
+        }
+    }
+    
+    @objc func downloadFailed(_ notification : NSNotification)
+    {
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
+        
+        switch content {
+        case .document:
+            break
+            
+        case .pdf:
             break
             
         default:
@@ -1829,7 +1847,8 @@ class WebViewController: UIViewController
                         progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
                         progressIndicator.isHidden = false
 
-                        NotificationCenter.default.addObserver(self, selector: #selector(downloaded), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
 
                         download.download()
                     }

@@ -62,36 +62,53 @@ class Document : NSObject
     //        }
     //    }
     
-    var _data : Data?
-    {
-        didSet {
-            
-        }
-    }
+//    var _data : Data?
+//    {
+//        didSet {
+//
+//        }
+//    }
     
-    lazy var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = mediaItem?.id ?? "" + "DOCUMENT"
-        operationQueue.qualityOfService = .userInteractive
-        operationQueue.maxConcurrentOperationCount = 1
-        return operationQueue
+    lazy var fetchData : Fetch<Data>! = {
+        return Fetch<Data>(name:mediaItem?.id ?? "" + "DOCUMENT" + (purpose ?? ""))
     }()
+
+//    lazy var operationQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = mediaItem?.id ?? "" + "DOCUMENT"
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
     
     var data : Data?
     {
         get {
-            operationQueue.waitUntilAllOperationsAreFinished()
+//            operationQueue.waitUntilAllOperationsAreFinished()
+//
+//            guard _data == nil else {
+//                return _data
+//            }
             
-            guard _data == nil else {
-                return _data
-            }
+//            operationQueue.addOperation {
             
-            operationQueue.addOperation {
+            fetchData.fetch = {
                 var data : Data?
                 
-                if self.download?.isDownloaded == true {
+                if Globals.shared.cacheDownloads {
                     if let url = self.download?.fileSystemURL {
                         data = try? Data(contentsOf: url)
+                    } else {
+                        if let url = self.download?.downloadURL {
+                            data = try? Data(contentsOf: url)
+                            do {
+                                if let fileSystemURL = self.download?.fileSystemURL {
+                                    try data?.write(to: fileSystemURL, options: [.atomic])
+                                }
+                            } catch let error as NSError {
+                                NSLog(error.localizedDescription)
+                            }
+                        }
                     }
                 } else {
                     if let url = self.download?.downloadURL {
@@ -137,12 +154,15 @@ class Document : NSObject
                     // Fallback on earlier versions
                 }
                 
-                self._data = data
+                return data
+//                self._data = data
             }
             
-            operationQueue.waitUntilAllOperationsAreFinished()
+            return fetchData.result
+
+//            operationQueue.waitUntilAllOperationsAreFinished()
             
-            return _data
+//            return _data
         }
     }
     

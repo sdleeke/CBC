@@ -616,25 +616,70 @@ class MediaItem : NSObject
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
     
-    func loadDocument(purpose:String)
+    @objc func downloaded(_ notification : NSNotification)
+    {
+//        DispatchQueue.global(qos: .userInitiated).async {
+//            _ = self.documents?[self.id,purpose]?.data
+//        }
+
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+        }
+    }
+    
+    @objc func downloadFailed(_ notification : NSNotification)
+    {
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+        }
+    }
+    
+    func loadDocument(purpose:String) // , downloadCompletion:((Document)->())? = nil
     {
         if documents?[id,purpose] == nil {
-            documents?[id,purpose] = Document(purpose: purpose, mediaItem: self)
-            
-            DispatchQueue.global(qos: .userInitiated).async {
-                _ = self.documents?[self.id,purpose]?.data
+            let document = Document(purpose: purpose, mediaItem: self)
+            documents?[id,purpose] = document
+        }
+        
+        guard let document = documents?[id,purpose] else {
+            return
+        }
+        
+        if Globals.shared.cacheDownloads {
+            guard let isDownloaded = document.download?.isDownloaded else {
+                return
             }
+            
+            guard isDownloaded else {
+                if document.download?.state != .downloading {
+                    document.download?.download()
+                }
+                
+                Thread.onMainThread {
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
+                }
+                
+//                downloadCompletion?(document)
+                return
+            }
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = self.documents?[self.id,purpose]?.data
         }
     }
 
-    func loadDocuments()
+    func loadDocuments() // downloadCompletion:((Document)->())? = nil
     {
         if hasNotes {
-            loadDocument(purpose: Purpose.notes)
+            loadDocument(purpose: Purpose.notes) // , downloadCompletion:downloadCompletion
         }
         
         if hasSlides {
-            loadDocument(purpose: Purpose.slides)
+            loadDocument(purpose: Purpose.slides) // , downloadCompletion:downloadCompletion
         }
     }
     
@@ -677,7 +722,7 @@ class MediaItem : NSObject
     {
         // What are the side effects of this?
 
-        imageCache = ThreadSafeDictionary<UIImage>(name: id+"ImageCache")
+//        imageCache = ThreadSafeDictionary<UIImage>(name: id+"ImageCache")
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
@@ -2103,6 +2148,11 @@ class MediaItem : NSObject
         }
     }
     
+    var hasPoster : Bool
+    {
+        return poster != nil
+    }
+    
     var poster:String?
     {
         get {
@@ -2134,20 +2184,46 @@ class MediaItem : NSObject
 //        }
 //    }
     
-    lazy var imageCache : ThreadSafeDictionary<UIImage>! = {
-        return ThreadSafeDictionary<UIImage>(name:id+"ImageCache")
-    }()
+//    lazy var imageCache : ThreadSafeDictionary<UIImage>! = {
+//        return ThreadSafeDictionary<UIImage>(name:id+"ImageCache")
+//    }()
 
+    lazy var fetchPosterImage : Fetch<UIImage>! = {
+        return Fetch<UIImage>(name:id+"POSTER")
+    }()
+    
+//    lazy var posterQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = id+"POSTER"
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
+    
     var posterImage:UIImage?
     {
         get {
-            guard imageCache["POSTER"] == nil else {
-                return imageCache["POSTER"]
+            fetchPosterImage.fetch = {
+//                self.imageCache["POSTER"] = self.poster?.url?.image
+//                return self.imageCache["POSTER"]
+                return self.poster?.url?.image
             }
             
-            imageCache["POSTER"] = poster?.url?.image
+            return fetchPosterImage.result
             
-            return imageCache["POSTER"]
+//            posterQueue.waitUntilAllOperationsAreFinished()
+//
+//            guard imageCache["POSTER"] == nil else {
+//                return imageCache["POSTER"]
+//            }
+//
+//            posterQueue.addOperation {
+//                self.imageCache["POSTER"] = self.poster?.url?.image
+//            }
+//
+//            posterQueue.waitUntilAllOperationsAreFinished()
+//
+//            return imageCache["POSTER"]
             
 //            guard let posterURL = posterURL else {
 //                return nil
@@ -2161,22 +2237,58 @@ class MediaItem : NSObject
         }
     }
     
+    var hasSeriesImage : Bool
+    {
+        return self[Field.seriesImage] != nil
+    }
+    
+    lazy var fetchSeriesImage : Fetch<UIImage>! = {
+        return Fetch<UIImage>(name:id+"SERIES")
+    }()
+    
+//    lazy var seriesQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = id+"SERIES"
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
+    
     var seriesImage:UIImage?
     {
         get {
-            guard imageCache["SERIES"] == nil else {
-                return imageCache["SERIES"]
-            }
-
             guard let imageName = self[Field.seriesImage] else {
                 return nil
             }
             
-            let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
-            
-            imageCache["SERIES"] = urlString.url?.image
-            
-            return imageCache["SERIES"]
+            fetchSeriesImage.fetch =  {
+                let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
+//                self.imageCache["SERIES"] = urlString.url?.image
+//                return self.imageCache["SERIES"]
+                return urlString.url?.image
+            }
+
+            return fetchSeriesImage.result
+
+//            seriesQueue.waitUntilAllOperationsAreFinished()
+//
+//            guard imageCache["SERIES"] == nil else {
+//                return imageCache["SERIES"]
+//            }
+//
+//            guard let imageName = self[Field.seriesImage] else {
+//                return nil
+//            }
+//
+//            let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
+//
+//            seriesQueue.addOperation {
+//                self.imageCache["SERIES"] = urlString.url?.image
+//            }
+//
+//            seriesQueue.waitUntilAllOperationsAreFinished()
+//
+//            return imageCache["SERIES"]
         }
     }
     

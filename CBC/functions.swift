@@ -231,7 +231,7 @@ func jsonFromFileSystem(filename:String?) -> Any?
     }
 }
 
-var operationQueue : OperationQueue! = {
+var jsonQueue : OperationQueue! = {
     let operationQueue = OperationQueue()
     operationQueue.name = "JSON"
     operationQueue.qualityOfService = .background
@@ -250,7 +250,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
 //        operationQueue.cancelAllOperations()
 //        operationQueue.waitUntilAllOperationsAreFinished()
 
-        operationQueue.addOperation {
+        jsonQueue.addOperation {
             do {
                 let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
                 print("able to read json from the URL.")

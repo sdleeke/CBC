@@ -1756,7 +1756,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
                 }
                 break
                 

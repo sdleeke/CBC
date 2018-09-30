@@ -147,6 +147,11 @@ extension String {
 
 extension URL
 {
+    var fileSystemURL : URL?
+    {
+        return cachesURL()?.appendingPathComponent(self.lastPathComponent)
+    }
+
     var data : Data?
     {
         get {
@@ -166,13 +171,29 @@ extension URL
         }
     }
     
-    func image(block:((UIImage)->()))
+    func delete()
     {
-        guard let imageURL = cachesURL()?.appendingPathComponent(self.lastPathComponent) else {
+        guard let fileSystemURL = fileSystemURL else {
             return
         }
         
-        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
+        // Check if file exists and if so, delete it.
+        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
+            do {
+                try FileManager.default.removeItem(at: fileSystemURL)
+            } catch let error as NSError {
+                print("failed to delete download: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func image(block:((UIImage)->()))
+    {
+        guard let fileSystemURL = fileSystemURL else {
+            return
+        }
+        
+        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
             //                    print("Image \(imageName) in file system")
             block(image)
         } else {
@@ -184,31 +205,33 @@ extension URL
             guard let image = UIImage(data: data) else {
                 return
             }
-            
-            if Globals.shared.cacheDownloads {
-                DispatchQueue.global(qos: .background).async {
-                    do {
-                        try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
-                        print("Image \(self.lastPathComponent) saved to file system")
-                    } catch let error as NSError {
-                        NSLog(error.localizedDescription)
-                        print("Image \(self.lastPathComponent) not saved to file system")
-                    }
+
+            block(image)
+
+            DispatchQueue.global(qos: .background).async {
+                guard Globals.shared.cacheDownloads else {
+                    return
+                }
+                
+                do {
+                    try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
+                    print("Image \(self.lastPathComponent) saved to file system")
+                } catch let error as NSError {
+                    NSLog(error.localizedDescription)
+                    print("Image \(self.lastPathComponent) not saved to file system")
                 }
             }
-            
-            block(image)
         }
     }
     
     var image : UIImage?
     {
         get {
-            guard let imageURL = cachesURL()?.appendingPathComponent(self.lastPathComponent) else {
+            guard let fileSystemURL = fileSystemURL else {
                 return nil
             }
             
-            if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: imageURL.path) {
+            if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
                 //                    print("Image \(imageName) in file system")
                 return image
             } else {
@@ -224,7 +247,7 @@ extension URL
                 if Globals.shared.cacheDownloads {
                     DispatchQueue.global(qos: .background).async {
                         do {
-                            try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
+                            try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
                             print("Image \(self.lastPathComponent) saved to file system")
                         } catch let error as NSError {
                             NSLog(error.localizedDescription)

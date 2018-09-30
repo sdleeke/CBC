@@ -441,3 +441,55 @@ class ThreadSafeDictionaryOfDictionaries<T>
         }
     }
 }
+
+class Fetch<T>
+{
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = name
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
+    init(name:String, fetch:(()->(T?))? = nil)
+    {
+        self.name = name
+        self.fetch = fetch
+    }
+    
+    var fetch : (()->(T?))?
+    
+    var name : String
+    
+    var cache : T?
+    
+    var result:T?
+    {
+        get {
+            operationQueue.waitUntilAllOperationsAreFinished()
+            
+            guard cache == nil else {
+                return cache
+            }
+            
+            operationQueue.addOperation {
+                self.cache = self.fetch?()
+            }
+            
+            operationQueue.waitUntilAllOperationsAreFinished()
+            
+            return cache
+            
+            //            guard let posterURL = posterURL else {
+            //                return nil
+            //            }
+            //
+            //            guard let data = try? Data(contentsOf: posterURL) else {
+            //                return nil
+            //            }
+            //
+            //            return UIImage(data: data)
+        }
+    }
+}

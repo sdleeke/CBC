@@ -328,11 +328,12 @@ enum Constants {
         
         static let DOWNLOADED               = "DOWNLOADED"
         static let DOWNLOADING              = "DOWNLOADING"
+        static let DOWNLOAD_FAILED          = "DOWNLOAD FAILED"
 
         static let UPDATE_SEARCH            = "UPDATE SEARCH"
         
-        static let UPDATE_DOCUMENT          = "UPDATE DOCUMENT"
-        static let CANCEL_DOCUMENT          = "CANCEL DOCUMENT"
+        static let UPDATE_DOWNLOAD          = "UPDATE DOWNLOAD"
+        static let CANCEL_DOWNLOAD          = "CANCEL DOWNLOAD"
         
         static let LEXICON_STARTED          = "LEXICON STARTED"
         static let LEXICON_UPDATED          = "LEXICON UPDATED"
@@ -380,7 +381,6 @@ enum Constants {
         static let TRANSCRIPT_COMPLETED     = "TRANSCRIPT COMPLETED"
         
         static let MEDIA_UPDATE_UI          = "MEDIA UPDATE UI"
-        static let MEDIA_DOWNLOAD_FAILED    = "MEDIA DOWNLOAD FAILED"
         
         static let UPDATE_MEDIA_LIST        = "UPDATE MEDIA LIST"
     }

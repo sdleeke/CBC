@@ -628,7 +628,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
                 }
                 break
                 
@@ -1523,14 +1523,21 @@ class MediaViewController: UIViewController // MediaController
     var document : Document?
     {
         get {
-            if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing, let document = documents[selectedMediaItem.id]?[showing] {
+            if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing, let document = documents[selectedMediaItem.id,showing] {
                 return document
             }
 
             return nil
         }
         set {
-            guard newValue != nil else {
+            if document != nil {
+                Thread.onMainThread {
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.document?.download)
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.document?.download)
+                }
+            }
+
+            guard let newValue = newValue else {
 //                if isViewLoaded {
 //                    Thread.onMainThread {
 //                        self.wkWebView?.isHidden = true
@@ -1542,12 +1549,31 @@ class MediaViewController: UIViewController // MediaController
                 return
             }
             
-            if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing {
+            guard let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing else {
+                return
+            }
+            
 //                if documents[selectedMediaItem.id] == nil {
 //                    documents[selectedMediaItem.id] = [String:Document]()
 //                }
-                documents[selectedMediaItem.id,showing] = newValue
-            }
+
+            documents[selectedMediaItem.id,showing] = newValue
+
+//            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
+//                if (documents[selectedMediaItem.id] == nil) {
+//                    documents[selectedMediaItem.id] = [String:Document]()
+//                }
+                
+//                Thread.onMainThread {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: newValue.download)
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: newValue.download)
+//                }
+                
+//                if let purpose = notesDocument.purpose {
+//                    documents[selectedMediaItem.id]?[purpose] = notesDocument
+//                }
+//            }
+
             
             //            document?.download?.purpose = stvControl.selectedSegmentIndex.description
         }
@@ -1562,7 +1588,21 @@ class MediaViewController: UIViewController // MediaController
 //        }
 //    }
     
+//    @objc func updateNotesDocument()
+//    {
+//        updateDocument(document: notesDocument)
+//    }
+//
+//    @objc func cancelNotesDocument()
+//    {
+//        cancelDocument(document: notesDocument,message: "Transcript not available.")
+//    }
+
     lazy var wkWebView:WKWebView? = {
+        guard isViewLoaded else {
+            return nil
+        }
+        
         let wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
         setupWKWebView(wkWebView)
         return wkWebView
@@ -1630,13 +1670,13 @@ class MediaViewController: UIViewController // MediaController
 //        }
 //    }
     
-    func updateDocument(document:Document?)
+    @objc func updateDocument(_ notification:NSNotification)
     {
-        guard let document = document else {
+        guard let download = notification.object as? Download else {
             return
         }
         
-        guard let download = document.download else {
+        guard document?.download == download else {
             return
         }
         
@@ -1645,23 +1685,32 @@ class MediaViewController: UIViewController // MediaController
             break
             
         case .downloading:
-            if document.showing(selectedMediaItem) {
+            if document?.showing(selectedMediaItem) == true {
                 progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
             }
             break
             
         case .downloaded:
+            Thread.onMainThread {
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+            }
             break
         }
     }
     
-    func cancelDocument(document:Document?,message:String)
+    @objc func cancelDocument(_ notification:NSNotification)
     {
-        guard let document = document else {
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+        }
+        
+        guard let download = notification.object as? Download else {
             return
         }
         
-        guard let download = document.download else {
+        guard document?.download == download else {
             return
         }
         
@@ -1671,7 +1720,7 @@ class MediaViewController: UIViewController // MediaController
             
         case .downloading:
             download.state = .none
-            if document.showing(selectedMediaItem) {
+            if document?.showing(selectedMediaItem) == true {
                 Thread.onMainThread {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
@@ -1687,7 +1736,20 @@ class MediaViewController: UIViewController // MediaController
                     self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
                     
                     // Can't prevent this from getting called twice in succession.
-                    networkUnavailable(self,message)
+                    if let purpose = self.document?.purpose {
+                        switch purpose {
+                        case Purpose.slides:
+                            networkUnavailable(self,"Slides unavailable.")
+                            break
+                            
+                        case Purpose.notes:
+                            networkUnavailable(self,"Transcript unavailable.")
+                            break
+                            
+                        default:
+                            break
+                        }
+                    }
                 }
             }
             break
@@ -1900,13 +1962,28 @@ class MediaViewController: UIViewController // MediaController
 //            setupTitle()
             
             if isViewLoaded {
-                wkWebView?.isHidden = true
-                wkWebView?.stopLoading()
+                Thread.onMainThread {
+                    self.wkWebView?.isHidden = true
+                    self.wkWebView?.stopLoading()
+                    
+                    if let logo = UIImage(named:"CBC_logo") {
+                        // Need to adjust aspect ratio contraint
+                        let ratio = logo.size.width / logo.size.height
+                        
+                        self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                        self.logo.image = logo
+                    }
+                }
             }
             
             operationQueue.cancelAllOperations()
 
-            selectedMediaItem?.loadDocuments()
+//            selectedMediaItem?.loadDocuments() { (document:Document) in
+//                Thread.onMainThread {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: document.download)
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: document.download)
+//                }
+//            }
             
 //            wkWebView?.removeFromSuperview()// isHidden = true
             
@@ -1983,10 +2060,19 @@ class MediaViewController: UIViewController // MediaController
     var mediaItems:[MediaItem]?
     {
         didSet {
+            mediaItems?.forEach({ (mediaItem:MediaItem) in
+                mediaItem.loadDocuments()
+//                { (document:Document) in
+//                    Thread.onMainThread {
+////                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+////                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+//
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: document.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: document.download)
+//                    }
+//                }
+            })
             if mediaItems != oldValue {
-                mediaItems?.forEach({ (mediaItem:MediaItem) in
-                    mediaItem.loadDocuments()
-                })
                 tableView?.reloadData()
             }
         }
@@ -3622,26 +3708,44 @@ class MediaViewController: UIViewController // MediaController
             mediaItemNotesAndSlides.bringSubview(toFront: logo)
             logo.isHidden = false
 
-            DispatchQueue.global(qos: .userInitiated).async {
-                Thread.onMainThread {
-                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
-                    self.activityIndicator.isHidden = false
-                    self.activityIndicator.startAnimating()
-                }
-                
-                if let posterImage = selectedMediaItem.posterImage {
+            if selectedMediaItem.hasPoster {
+                DispatchQueue.global(qos: .userInitiated).async {
                     Thread.onMainThread {
-                        // Need to adjust aspect ratio contraint
-                        let ratio = posterImage.size.width / posterImage.size.height
+                        guard self.selectedMediaItem == selectedMediaItem else {
+                            return
+                        }
                         
-                        self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                        self.logo.image = posterImage
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+                        self.activityIndicator.isHidden = false
+                        self.activityIndicator.startAnimating()
                     }
-                }
+                
+                    if let posterImage = selectedMediaItem.posterImage {
+                        guard self.selectedMediaItem == selectedMediaItem else {
+                            return
+                        }
+                        
+                        Thread.onMainThread {
+                            guard self.selectedMediaItem == selectedMediaItem else {
+                                return
+                            }
+                            
+                            // Need to adjust aspect ratio contraint
+                            let ratio = posterImage.size.width / posterImage.size.height
+                            
+                            self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                            self.logo.image = posterImage
+                        }
+                    }
 
-                Thread.onMainThread {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
+                    Thread.onMainThread {
+                        guard self.selectedMediaItem == selectedMediaItem else {
+                            return
+                        }
+                        
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator.isHidden = true
+                    }
                 }
             }
             
@@ -3700,44 +3804,39 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-//        guard let isLoading = document.wkWebView?.isLoading else {
-//            return
-//        }
+        guard let isLoading = wkWebView?.isLoading else {
+            return
+        }
         
-//        if !isLoading {
-//            document.loadTimer?.invalidate()
-//            document.loadTimer = nil
-//        }
+        if !isLoading {
+            loadTimer?.invalidate()
+            loadTimer = nil
+        }
         
         if document.showing(selectedMediaItem) {
-//            if isLoading {
-//                if let wkWebView = document.wkWebView {
-//                    progressIndicator.isHidden = !wkWebView.isHidden
-//                    activityIndicator.isHidden = !wkWebView.isHidden
-//                }
-            
-                    mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-//                    mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
+            if isLoading {
+                progressIndicator.isHidden = !wkWebView!.isHidden
+                activityIndicator.isHidden = !wkWebView!.isHidden
 
-//                if !progressIndicator.isHidden {
-//                    if let estimatedProgress = document.wkWebView?.estimatedProgress {
-//                        print(estimatedProgress)
-//                        progressIndicator.progress = Float(estimatedProgress)
-//                    }
-//                }
+                mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+                mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
 
-//                if !activityIndicator.isHidden {
+                if !progressIndicator.isHidden {
+                    if let estimatedProgress = wkWebView?.estimatedProgress {
+                        print(estimatedProgress)
+                        progressIndicator.progress = Float(estimatedProgress)
+                    }
+                }
+
+                if !activityIndicator.isHidden {
                     activityIndicator.startAnimating()
-//                }
-//            } else {
-//                activityIndicator.stopAnimating()
-//                activityIndicator.isHidden = true
-//
-//                progressIndicator.isHidden = true
-//            }
-            
-//            if document.showing(selectedMediaItem) {
-//            }
+                }
+            } else {
+                activityIndicator.stopAnimating()
+                activityIndicator.isHidden = true
+
+                progressIndicator.isHidden = true
+            }
         }
     }
     
@@ -3845,11 +3944,16 @@ class MediaViewController: UIViewController // MediaController
                         self.progressIndicator.isHidden = false
 
                         Thread.onMainThread {
+                            NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+                            NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+                            
                             NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self.download)
+                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
                         }
                         
-                        download.download()
+                        if download.state != .downloading {
+                            download.download()
+                        }
                     }
                 } else {
                     if let fileSystemURL = download.fileSystemURL {
@@ -3934,7 +4038,7 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
                 if loadTimer == nil {
-                    loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
+//                    loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(loading(_:)), userInfo: document, repeats: true)
                 }
 
 //                DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
@@ -4008,7 +4112,7 @@ class MediaViewController: UIViewController // MediaController
             }
             
             if loadTimer == nil {
-                loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(loading(_:)), userInfo: document, repeats: true)
+//                loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(loading(_:)), userInfo: document, repeats: true)
             }
 
             ///////
@@ -6041,7 +6145,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        var zoomScale:CGFloat = 1.0
+        var zoomScale:CGFloat? // = 1.0
         
 //        var contentOffsetXRatio:Float = 0.0
 //        var contentOffsetYRatio:Float = 0.0
@@ -6086,25 +6190,49 @@ class MediaViewController: UIViewController // MediaController
                 zoomScale = CGFloat(num)
             }
         } else {
-
+        
         }
         
         if let wkWebView = wkWebView {
-            Thread.onMainThread {
-                guard wkWebView.scrollView.contentSize != CGSize.zero else {
-                    return
+            if zoomScale == nil, #available(iOS 11.0, *), let data = document?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                Thread.onMainThread {
+                    guard wkWebView.scrollView.contentSize != CGSize.zero else {
+                        return
+                    }
+                    
+                    //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
+                    //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
+                    
+                    let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+                        y: CGFloat(contentOffsetY)) //
+                    
+                    if zoomScale == nil {
+                        zoomScale = self.mediaItemNotesAndSlides.frame.width / (page.bounds(for: .bleedBox).width * 1.05)
+                    }
+                    
+                    //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
+                    self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
+                    
+                    wkWebView.isHidden = false
                 }
-                
-//                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
-//                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
-                
-                let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
-                                            y: CGFloat(contentOffsetY)) //
-                
-//                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
-                self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale, offset: contentOffset)
-                
-                wkWebView.isHidden = false
+            } else {
+                // Fallback on earlier versions
+                Thread.onMainThread {
+                    guard wkWebView.scrollView.contentSize != CGSize.zero else {
+                        return
+                    }
+                    
+                    //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
+                    //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
+                    
+                    let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+                        y: CGFloat(contentOffsetY)) //
+                    
+                    //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
+                    self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
+                    
+                    wkWebView.isHidden = false
+                }
             }
         }
     }

@@ -42,7 +42,7 @@ extension Download : URLSessionDownloadDelegate
             
             if state != .none {
                 Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
                 
@@ -68,16 +68,16 @@ extension Download : URLSessionDownloadDelegate
         
         //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
         
-        let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
-        
-        let current = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
+//        let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
+//
+//        let current = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
         
         //            print(progress,current)
             
         if let purpose = purpose {
             switch purpose {
             case Purpose.audio:
-                if progress > current {
+                if bytesWritten > 0 {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
                     //                    Globals.shared.queue.async(execute: { () -> Void in
                     Thread.onMainThread {
@@ -89,9 +89,9 @@ extension Download : URLSessionDownloadDelegate
             case Purpose.notes:
                 fallthrough
             case Purpose.slides:
-                if progress > current {
+                if bytesWritten > 0 {
                     Thread.onMainThread {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self)
                     }
                 }
                 break
@@ -153,7 +153,7 @@ extension Download : URLSessionDownloadDelegate
             
             if state != .none {
                 Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
                     UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
                 
@@ -222,7 +222,7 @@ extension Download : URLSessionDownloadDelegate
             } else {
                 // Nothing was downloaded
                 Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
                 }
                 
                 state = .none
@@ -265,7 +265,7 @@ extension Download : URLSessionDownloadDelegate
                 
                 if state != .none {
                     Thread.onMainThread {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
                         UIApplication.shared.isNetworkActivityIndicatorVisible = false
                     }
                     
@@ -328,7 +328,7 @@ extension Download : URLSessionDownloadDelegate
             case Purpose.notes:
                 Thread.onMainThread {
                     //                    print(download?.mediaItem)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.download)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
                 }
                 break
                 
@@ -650,6 +650,10 @@ class Download : NSObject
     
     func download()
     {
+        guard state != .downloading else {
+            return
+        }
+        
         guard let downloadURL = downloadURL else {
             print(mediaItem?.title as Any)
             print(purpose as Any)
