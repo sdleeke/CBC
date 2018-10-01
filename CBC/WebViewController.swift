@@ -1781,7 +1781,10 @@ class WebViewController: UIViewController
     
     @objc func downloaded(_ notification : NSNotification)
     {
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+        }
         
         switch content {
         case .document:
@@ -1799,7 +1802,10 @@ class WebViewController: UIViewController
     
     @objc func downloadFailed(_ notification : NSNotification)
     {
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+        }
         
         switch content {
         case .document:
@@ -2368,7 +2374,9 @@ class WebViewController: UIViewController
             Globals.shared.topViewController.removeLast()
         }
 
-        NotificationCenter.default.removeObserver(self)
+        Thread.onMainThread {
+            NotificationCenter.default.removeObserver(self)
+        }
     }
     
     override func viewDidDisappear(_ animated: Bool)

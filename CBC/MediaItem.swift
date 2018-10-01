@@ -618,21 +618,41 @@ class MediaItem : NSObject
     
     @objc func downloaded(_ notification : NSNotification)
     {
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            _ = self.documents?[self.id,purpose]?.data
-//        }
+        guard let download = notification.object as? Download else {
+            return
+        }
+        
+        guard let purpose = download.purpose else {
+            return
+        }
+        
+        guard let mediaItem = download.mediaItem else {
+            return
+        }
+        
+        guard let document = mediaItem.documents[mediaItem.id,purpose] else {
+            return
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = document.data
+        }
 
         Thread.onMainThread {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
     }
     
     @objc func downloadFailed(_ notification : NSNotification)
     {
+        guard let download = notification.object as? Download else {
+            return
+        }
+        
         Thread.onMainThread {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
     }
     
@@ -668,7 +688,7 @@ class MediaItem : NSObject
         }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            _ = self.documents?[self.id,purpose]?.data
+            _ = document.data
         }
     }
 
@@ -722,7 +742,7 @@ class MediaItem : NSObject
     {
         // What are the side effects of this?
 
-//        imageCache = ThreadSafeDictionary<UIImage>(name: id+"ImageCache")
+        MediaItem.seriesImageCache = ThreadSafeDictionary<UIImage>(name: "SeriesImageCache")
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
@@ -2184,12 +2204,8 @@ class MediaItem : NSObject
 //        }
 //    }
     
-//    lazy var imageCache : ThreadSafeDictionary<UIImage>! = {
-//        return ThreadSafeDictionary<UIImage>(name:id+"ImageCache")
-//    }()
-
     lazy var fetchPosterImage : Fetch<UIImage>! = {
-        return Fetch<UIImage>(name:id+"POSTER")
+        return Fetch<UIImage>() // name:id+"POSTER"
     }()
     
 //    lazy var posterQueue : OperationQueue! = {
@@ -2243,7 +2259,7 @@ class MediaItem : NSObject
     }
     
     lazy var fetchSeriesImage : Fetch<UIImage>! = {
-        return Fetch<UIImage>(name:id+"SERIES")
+        return Fetch<UIImage>() // name:id+"SERIES"
     }()
     
 //    lazy var seriesQueue : OperationQueue! = {
@@ -2253,6 +2269,10 @@ class MediaItem : NSObject
 //        operationQueue.maxConcurrentOperationCount = 1
 //        return operationQueue
 //    }()
+
+    static var seriesImageCache : ThreadSafeDictionary<UIImage>! = {
+        return ThreadSafeDictionary<UIImage>(name:"SeriesImageCache")
+    }()
     
     var seriesImage:UIImage?
     {
@@ -2262,10 +2282,14 @@ class MediaItem : NSObject
             }
             
             fetchSeriesImage.fetch =  {
-                let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
-//                self.imageCache["SERIES"] = urlString.url?.image
-//                return self.imageCache["SERIES"]
-                return urlString.url?.image
+                if let image = MediaItem.seriesImageCache[imageName] {
+                    return image
+                } else {
+                    let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
+                    MediaItem.seriesImageCache[imageName] = urlString.url?.image
+                    return MediaItem.seriesImageCache[imageName]
+                }
+//                return urlString.url?.image
             }
 
             return fetchSeriesImage.result

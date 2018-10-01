@@ -70,7 +70,7 @@ class Document : NSObject
 //    }
     
     lazy var fetchData : Fetch<Data>! = {
-        return Fetch<Data>(name:mediaItem?.id ?? "" + "DOCUMENT" + (purpose ?? ""))
+        return Fetch<Data>() // name:mediaItem?.id ?? "" + "DOCUMENT" + (purpose ?? "")
     }()
 
 //    lazy var operationQueue : OperationQueue! = {
