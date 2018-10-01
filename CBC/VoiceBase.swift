@@ -4218,7 +4218,7 @@ class VoiceBase {
 //                            // Fallback on earlier versions
 //                        }
 
-                        popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.fullHTML)
+                        popoverHTML(viewController,transcript:self,title:self.mediaItem?.title,htmlString:self.fullHTML)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
@@ -4284,7 +4284,7 @@ class VoiceBase {
                             return htmlString as Any
                         }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
-                                popoverHTML(viewController,mediaItem:nil,title:self?.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                                popoverHTML(viewController,title:self?.mediaItem?.title,htmlString:htmlString)
                             }
                         })
                     }))

@@ -4290,7 +4290,7 @@ class MediaItem : NSObject
                 return htmlString
             }, completion: { [weak self] (data:Any?) in
                 if let htmlString = data as? String {
-                    popoverHTML(viewController, mediaItem:self, title:nil, barButtonItem:nil, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
+                    popoverHTML(viewController, mediaItem:self, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
                 } else {
                     Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
                 }
@@ -4338,7 +4338,7 @@ class MediaItem : NSObject
             
             if let reference = self.scriptureReference {
                 if self.scripture?.html?[reference] != nil {
-                    popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:self.scripture?.html?[reference])
+                    popoverHTML(viewController,title:reference,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:self.scripture?.html?[reference])
                 } else {
                     guard Globals.shared.reachability.isReachable else {
                         networkUnavailable(viewController,"Scripture text unavailable.")
@@ -4351,7 +4351,7 @@ class MediaItem : NSObject
                         return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
-                            popoverHTML(viewController,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                            popoverHTML(viewController,title:reference,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
                         } else {
                             networkUnavailable(viewController,"Scripture text unavailable.")
                         }

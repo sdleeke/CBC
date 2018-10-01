@@ -3769,7 +3769,7 @@ func secondsToHMS(seconds:String?) -> String?
 //    popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
 //}
 
-func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem?, transcript:VoiceBase? = nil, title:String?, barButtonItem:UIBarButtonItem?, sourceView:UIView?, sourceRectView:UIView?, htmlString:String?)
+func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem? = nil, transcript:VoiceBase? = nil, title:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String?)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
