@@ -987,7 +987,7 @@ class PopoverTableViewController : UIViewController
                     }
                 } else {
 //                    Globals.shared.topViewController = self
-                    Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
             
@@ -1006,7 +1006,7 @@ class PopoverTableViewController : UIViewController
                     }
                 } else {
 //                    Globals.shared.topViewController = self
-                    Globals.shared.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
             
@@ -1015,7 +1015,7 @@ class PopoverTableViewController : UIViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-//        Globals.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
+//        Alerts.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
@@ -1221,8 +1221,8 @@ class PopoverTableViewController : UIViewController
         
         NotificationCenter.default.removeObserver(self)
         
-        if Globals.shared.topViewController.last == navigationController {
-            Globals.shared.topViewController.removeLast()
+        if Alerts.shared.topViewController.last == navigationController {
+            Alerts.shared.topViewController.removeLast()
         }
         
         trackingTimer?.invalidate()
@@ -1612,7 +1612,7 @@ class PopoverTableViewController : UIViewController
         super.viewWillAppear(animated)
 
         if let navigationController = navigationController, modalPresentationStyle != .popover {
-            Globals.shared.topViewController.append(navigationController)
+            Alerts.shared.topViewController.append(navigationController)
         }
         
         if let state = Globals.shared.mediaPlayer.state {

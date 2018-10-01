@@ -11,14 +11,6 @@ import MediaPlayer
 import AVKit
 import CoreData
 
-struct Alert {
-    let category : String?
-    let title : String
-    let message : String?
-    let attributedText : NSAttributedString?
-    let actions : [AlertAction]?
-}
-
 //var globals:Globals!
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
@@ -157,86 +149,84 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var topViewController = [UIViewController]()
-    
     var splitViewController:UISplitViewController!
 
-    @objc func alertViewer()
-    {
-        for alert in alerts {
-            print(alert)
-        }
-
-        guard UIApplication.shared.applicationState == UIApplicationState.active else {
-            return
-        }
-        
-        if let alert = alerts.first {
-            let alertVC = UIAlertController(title:alert.title,
-                                          message:alert.message,
-                                          preferredStyle: .alert)
-            alertVC.makeOpaque()
-            
-            if let attributedText = alert.attributedText {
-                alertVC.addTextField(configurationHandler: { (textField:UITextField) in
-                    textField.isUserInteractionEnabled = false
-                    textField.textAlignment = .center
-                    textField.attributedText = attributedText
-                    textField.adjustsFontSizeToFitWidth = true
-                })
-            }
-            
-            if let alertActions = alert.actions {
-                for alertAction in alertActions {
-                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.handler?()
-                    })
-                    alertVC.addAction(action)
-                }
-            } else {
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alertVC.addAction(action)
-            }
-            
-            Thread.onMainThread {
-                let viewController = self.topViewController.last ?? self.splitViewController
-                
-                viewController?.present(alertVC, animated: true, completion: {
-                    if self.alerts.count > 0 {
-                        self.alerts.remove(at: 0)
-                    }
-                })
-            }
-        }
-    }
-
-    var alerts = [Alert]()
-    
-    var alertTimer : Timer?
-    
-    func alert(title:String,message:String?)
-    {
-        if !alerts.contains(where: { (alert:Alert) -> Bool in
-            return (alert.title == title) && (alert.message == message)
-        }) {
-            alerts.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
-        } else {
-            // This is happening - how?
-            print("DUPLICATE ALERT")
-        }
-    }
-    
-    func alert(category:String?,title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
-    {
-        alerts.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
-    }
-    
-    func alert(title:String,message:String?,actions:[AlertAction]?)
-    {
-        alerts.append(Alert(category:nil,title: title, message: message, attributedText: nil, actions: actions))
-    }
+//    @objc func alertViewer()
+//    {
+//        for alert in alerts {
+//            print(alert)
+//        }
+//
+//        guard UIApplication.shared.applicationState == UIApplicationState.active else {
+//            return
+//        }
+//
+//        if let alert = alerts.first {
+//            let alertVC = UIAlertController(title:alert.title,
+//                                          message:alert.message,
+//                                          preferredStyle: .alert)
+//            alertVC.makeOpaque()
+//
+//            if let attributedText = alert.attributedText {
+//                alertVC.addTextField(configurationHandler: { (textField:UITextField) in
+//                    textField.isUserInteractionEnabled = false
+//                    textField.textAlignment = .center
+//                    textField.attributedText = attributedText
+//                    textField.adjustsFontSizeToFitWidth = true
+//                })
+//            }
+//
+//            if let alertActions = alert.actions {
+//                for alertAction in alertActions {
+//                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                        alertAction.handler?()
+//                    })
+//                    alertVC.addAction(action)
+//                }
+//            } else {
+//                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//
+//                })
+//                alertVC.addAction(action)
+//            }
+//
+//            Thread.onMainThread {
+//                let viewController = self.topViewController.last ?? self.splitViewController
+//
+//                viewController?.present(alertVC, animated: true, completion: {
+//                    if self.alerts.count > 0 {
+//                        self.alerts.remove(at: 0)
+//                    }
+//                })
+//            }
+//        }
+//    }
+//
+//    var alerts = [Alert]()
+//
+//    var alertTimer : Timer?
+//
+//    func alert(title:String,message:String?)
+//    {
+//        if !alerts.contains(where: { (alert:Alert) -> Bool in
+//            return (alert.title == title) && (alert.message == message)
+//        }) {
+//            alerts.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
+//        } else {
+//            // This is happening - how?
+//            print("DUPLICATE ALERT")
+//        }
+//    }
+//
+//    func alert(category:String?,title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
+//    {
+//        alerts.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
+//    }
+//
+//    func alert(title:String,message:String?,actions:[AlertAction]?)
+//    {
+//        alerts.append(Alert(category:nil,title: title, message: message, attributedText: nil, actions: actions))
+//    }
     
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
     {
@@ -353,13 +343,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
         
         if priorReachabilityStatus == .notReachable, reachability.isReachable, mediaRepository.list != nil {
-            alert(title: "Network Connection Restored",message: "")
+            Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
             checkVoiceBaseAvailability()
         }
         
         if priorReachabilityStatus != .notReachable, !reachability.isReachable, mediaRepository.list != nil {
-            alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
+            Alerts.shared.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
             
             isVoiceBaseAvailable = false
         }
@@ -375,9 +365,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         super.init()
         
-        Thread.onMainThread {
-            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.alertViewer), userInfo: nil, repeats: true)
-        }
+//        Thread.onMainThread {
+//            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.alertViewer), userInfo: nil, repeats: true)
+//        }
 
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must

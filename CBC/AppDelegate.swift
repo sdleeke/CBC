@@ -312,7 +312,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
     
     func downloadFailed()
     {
-        Globals.shared.alert(title: "Network Error",message: "Download failed.")
+        Alerts.shared.alert(title: "Network Error",message: "Download failed.")
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool

@@ -144,7 +144,7 @@ extension TextViewController: UISearchBarDelegate
                         self.textView.scrollRangeToVisible(range)
                         self.lastRange = range
                     } else {
-                        Globals.shared.alert(title: "Not Found", message: "")
+                        Alerts.shared.alert(title: "Not Found", message: "")
                     }
                 }
             }
@@ -169,7 +169,7 @@ extension TextViewController: UISearchBarDelegate
 //                                self.textView.scrollRangeToVisible(range)
 //                                self.lastRange = range
 //                            } else {
-//                                Globals.shared.alert(title: "Not Found", message: "")
+//                                Alerts.shared.alert(title: "Not Found", message: "")
 //                            }
 //                        }
 //                    }
@@ -215,7 +215,7 @@ extension TextViewController: UISearchBarDelegate
                         self.textView.scrollRangeToVisible(range)
                         self.lastRange = range
                     } else {
-                        Globals.shared.alert(title: "Not Found", message: "")
+                        Alerts.shared.alert(title: "Not Found", message: "")
                     }
                 }
             }
@@ -551,7 +551,7 @@ extension TextViewController : PopoverPickerControllerDelegate
             
             actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
             
-            Globals.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
+            Alerts.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
         }
     }
 }
@@ -1374,7 +1374,7 @@ class TextViewController : UIViewController
                             
                             actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
 
-                            Globals.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
+                            Alerts.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
                         }
                     }
                     
@@ -1597,7 +1597,7 @@ class TextViewController : UIViewController
                 
                 actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
                 
-                Globals.shared.alert(title:"Perform",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
+                Alerts.shared.alert(title:"Perform",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
             } else {
                 let text = self?.textView.attributedText.string
                 
@@ -1949,7 +1949,7 @@ class TextViewController : UIViewController
                     return dict["range"] == nil
                 }).count > 0 {
                     if let text = transcript.mediaItem?.text {
-                        Globals.shared.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
+                        Alerts.shared.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
                     }
                 }
             }
@@ -2001,7 +2001,7 @@ class TextViewController : UIViewController
         navigationController?.isToolbarHidden = toolbarItems == nil
 
         if let navigationController = navigationController, modalPresentationStyle != .popover {
-            Globals.shared.topViewController.append(navigationController)
+            Alerts.shared.topViewController.append(navigationController)
         }
         
         addNotifications()
@@ -2558,7 +2558,7 @@ class TextViewController : UIViewController
             
             let distance = text.distance(from: text.startIndex, to: text.endIndex)
             
-            Globals.shared.alert(category:nil,title:"Insert paragraph break before the highlighted text?",message:"Gap: \(gap) seconds\nat position \(position) of \(distance).",attributedText:snippet,actions:actions)
+            Alerts.shared.alert(category:nil,title:"Insert paragraph break before the highlighted text?",message:"Gap: \(gap) seconds\nat position \(position) of \(distance).",attributedText:snippet,actions:actions)
         } else {
             guard let gapThreshold = gapThreshold else {
                 return
@@ -2572,7 +2572,7 @@ class TextViewController : UIViewController
                         self.updateBarButtons()
                     }))
                     
-                    Globals.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                    Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
                 }
                 return
             }
@@ -2624,7 +2624,7 @@ class TextViewController : UIViewController
                     self.updateBarButtons()
                 }))
                 
-                Globals.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
             } else {
                 operationQueue.addOperation {
                     Thread.onMainThread {
@@ -2797,7 +2797,7 @@ class TextViewController : UIViewController
                         self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
                     }))
                     
-                    Globals.shared.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
+                    Alerts.shared.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
                 } else {
                     operationQueue.addOperation { [weak self] in
                         text.replaceSubrange(range, with: value)
@@ -2953,8 +2953,8 @@ class TextViewController : UIViewController
         
         NotificationCenter.default.removeObserver(self)
 
-        if Globals.shared.topViewController.last == navigationController {
-            Globals.shared.topViewController.removeLast()
+        if Alerts.shared.topViewController.last == navigationController {
+            Alerts.shared.topViewController.removeLast()
         }
         
         trackingTimer?.invalidate()

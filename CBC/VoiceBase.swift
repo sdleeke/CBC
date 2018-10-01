@@ -595,23 +595,23 @@ extension VoiceBase // Class Methods
             if let mediaItems = json?["media"] as? [[String:Any]] {
                 if mediaItems.count > 0 {
                     if mediaItems.count > 1 {
-                        Globals.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
+                        Alerts.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
                     } else {
-                        Globals.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                        Alerts.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
                     }
                     
                     for mediaItem in mediaItems {
                         delete(mediaID:mediaItem["mediaId"] as? String)
                     }
                 } else {
-                    Globals.shared.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
+                    Alerts.shared.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
                 }
             } else {
                 // No mediaItems
-                Globals.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
             }
         }, onError:  { (json:[String : Any]?) -> (Void) in
-            Globals.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+            Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
         })
     }
 }
@@ -1940,7 +1940,7 @@ class VoiceBase {
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
                 if alert, let finishedTitle = finishedTitle {
-                    Globals.shared.alert(title: finishedTitle,message: finishedMessage)
+                    Alerts.shared.alert(title: finishedTitle,message: finishedMessage)
                 }
                 
                 self.resultsTimer?.invalidate()
@@ -1986,7 +1986,7 @@ class VoiceBase {
             
             if let error = error {
                 if alert, let errorTitle = errorTitle {
-                    Globals.shared.alert(title: errorTitle,message: (errorMessage ?? "") + "\n\nError: \(error)")
+                    Alerts.shared.alert(title: errorTitle,message: (errorMessage ?? "") + "\n\nError: \(error)")
                 }
             } else {
                 if let text = self.mediaItem?.text {
@@ -2036,7 +2036,7 @@ class VoiceBase {
 //        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
 //            if let status = json?["status"] as? String, status == "finished" {
 //                if alert, let text = self.mediaItem?.text {
-//                    Globals.shared.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
+//                    Alerts.shared.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
 //                }
 //
 //                self.resultsTimer?.invalidate()
@@ -2099,7 +2099,7 @@ class VoiceBase {
 //                }
 //
 //                if let message = message {
-//                    Globals.shared.alert(title: "Transcript Failed",message: message)
+//                    Alerts.shared.alert(title: "Transcript Failed",message: message)
 //                }
 //
 //                Thread.onMainThread {
@@ -2147,7 +2147,7 @@ class VoiceBase {
         }
         
         if let message = message {
-            Globals.shared.alert(title: "Transcription Failed",message: message)
+            Alerts.shared.alert(title: "Transcription Failed",message: message)
         }
     }
     
@@ -2173,7 +2173,7 @@ class VoiceBase {
                     self.mediaID = mediaID
                     
                     if let text = self.mediaItem?.text {
-                        Globals.shared.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been started.  You will be notified when it is complete.")
+                        Alerts.shared.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been started.  You will be notified when it is complete.")
                     }
                     
                     if self.resultsTimer == nil {
@@ -2493,20 +2493,20 @@ class VoiceBase {
             if let json = json?["media"] as? [String:Any] {
                 self.mediaJSON = json
                 if alert, let text = self.mediaItem?.text {
-                    Globals.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
+                    Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
                 }
             } else {
                 if alert, let text = self.mediaItem?.text {
-                    Globals.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+                    Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
                 }
             }
 
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
-                Globals.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+                Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
             } else {
-                Globals.shared.alert(title: "Keywords Not Available",message: "The keywords are not available.")
+                Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords are not available.")
             }
 
             atEnd?()
@@ -2559,7 +2559,7 @@ class VoiceBase {
 //        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
 //            if let status = json?["status"] as? String, status == "finished" {
 //                if alert, let text = self.mediaItem?.text {
-//                    Globals.shared.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
+//                    Alerts.shared.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
 //                }
 //
 //                self.percentComplete = nil
@@ -2633,7 +2633,7 @@ class VoiceBase {
 //                }
 //
 //                if let message = message {
-//                    Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+//                    Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
 //                }
 //            } else {
 //                if let text = self.mediaItem?.text {
@@ -2676,7 +2676,7 @@ class VoiceBase {
         }
         
 //        if let message = message {
-//            Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+//            Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
 //        }
 //
 //        var error : String?
@@ -2706,7 +2706,7 @@ class VoiceBase {
 //        }
 
         if let message = message {
-            Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+            Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
         }
     }
     
@@ -2723,7 +2723,7 @@ class VoiceBase {
         
         guard !aligning else {
             if let text = self.mediaItem?.text {
-                Globals.shared.alert(title:"Transcript Alignment in Progress", message:"The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis already being aligned.  You will be notified when it is completed.")
+                Alerts.shared.alert(title:"Transcript Alignment in Progress", message:"The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis already being aligned.  You will be notified when it is completed.")
             }
             return
         }
@@ -2760,7 +2760,7 @@ class VoiceBase {
 //                        self.completed = false
                         
                         if let text = self.mediaItem?.text {
-                            Globals.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                            Alerts.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                         }
                         
                         if self.resultsTimer == nil {
@@ -2800,9 +2800,9 @@ class VoiceBase {
 //                guard mediaIDs?.count > 0 else {
             
             if let text = self.mediaItem?.text {
-                Globals.shared.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+                Alerts.shared.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
             } else {
-                Globals.shared.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+                Alerts.shared.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
             }
             
             // Upload then align
@@ -2823,7 +2823,7 @@ class VoiceBase {
                         self.mediaID = mediaID
                         
                         if let text = self.mediaItem?.text {
-                            Globals.shared.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
+                            Alerts.shared.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
                         }
                         
 //                        var userInfo = [String:Any]()
@@ -2882,7 +2882,7 @@ class VoiceBase {
 //                                            self.aligning = true
 //
 //                                            if let text = self.mediaItem?.text {
-//                                                Globals.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+//                                                Alerts.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
 //                                            }
 //
 //                                            if self.resultsTimer == nil {
@@ -2977,7 +2977,7 @@ class VoiceBase {
                                                                     self.aligning = true
                                                                     
                                                                     if let text = self.mediaItem?.text {
-                                                                        Globals.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                                                                        Alerts.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                                                                     }
                                                                     
                                                                     if self.resultsTimer == nil {
@@ -3091,7 +3091,7 @@ class VoiceBase {
 //                                }
 //
 //                                if let message = message {
-//                                    Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+//                                    Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
 //                                }
 //
 //                                return
@@ -3102,7 +3102,7 @@ class VoiceBase {
 //                            //                        self.completed = false
 //
 //                            if let text = self.mediaItem?.text {
-//                                Globals.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+//                                Alerts.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
 //                            }
 //
 //                            if self.resultsTimer == nil {
@@ -3149,7 +3149,7 @@ class VoiceBase {
 //                    }
 //
 //                    if let message = message {
-//                        Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+//                        Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
 //                    }
 //                })
 //            })
@@ -3183,7 +3183,7 @@ class VoiceBase {
                 self.transcript = text
 
                 if alert, let text = self.mediaItem?.text {
-                    Globals.shared.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
+                    Alerts.shared.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
                 
                 Thread.onMainThread {
@@ -3192,11 +3192,11 @@ class VoiceBase {
             } else {
                 if let error = error {
                     if alert, let text = self.mediaItem?.text {
-                        Globals.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.\n\nError: \(error)")
+                        Alerts.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.\n\nError: \(error)")
                     }
                 } else {
                     if alert, let text = self.mediaItem?.text {
-                        Globals.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                        Alerts.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                     }
                 }
             }
@@ -3230,7 +3230,7 @@ class VoiceBase {
             }
             
             if let message = message {
-                Globals.shared.alert(title: "Transcription Failed",message: message)
+                Alerts.shared.alert(title: "Transcription Failed",message: message)
             }
             
             atEnd?()
@@ -3717,20 +3717,20 @@ class VoiceBase {
                 self.transcriptSegments = transcriptSegments
 
                 if alert, let text = self.mediaItem?.text {
-                    Globals.shared.alert(title: "Transcript Segments Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
+                    Alerts.shared.alert(title: "Transcript Segments Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
             } else {
                 if alert, let text = self.mediaItem?.text {
-                    Globals.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                    Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
             
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
-                Globals.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+                Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             } else {
-                Globals.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments is not available.")
+                Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments is not available.")
             }
             
             atEnd?()
@@ -3871,7 +3871,7 @@ class VoiceBase {
 //                    self.getTranscriptSegments(alert: detailedAlerts) {
 //                        self.details(alert: detailedAlerts) {
 //                            if let text = self.mediaItem?.text {
-//                                Globals.shared.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+//                                Alerts.shared.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
 //                            }
 //                        }
 //                    }
@@ -3930,7 +3930,7 @@ class VoiceBase {
 //            }
 //
 //            if let message = message {
-//                Globals.shared.alert(title: "Transcript Alignment Failed",message: message)
+//                Alerts.shared.alert(title: "Transcript Alignment Failed",message: message)
 //            }
 //        }
 //
@@ -4053,12 +4053,12 @@ class VoiceBase {
                 
                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                 
-                Globals.shared.alert(title:title, message:message, actions:actions)
+                Alerts.shared.alert(title:title, message:message, actions:actions)
             } else {
                 title = title + "Requested"
                 message = message + "\n\nhas started."
                 
-                Globals.shared.alert(title:title, message:message)
+                Alerts.shared.alert(title:title, message:message)
             }
         }
         
@@ -4208,10 +4208,10 @@ class VoiceBase {
 //                                    break
 //
 //                                case .denied:
-//                                    Globals.shared.alert(title: "Speech Recognition Not Allowed", message: nil)
+//                                    Alerts.shared.alert(title: "Speech Recognition Not Allowed", message: nil)
 //
 //                                case .restricted, .notDetermined:
-//                                    Globals.shared.alert(title: "Could not start the speech recognizer", message: "Check your internect connection and try again")
+//                                    Alerts.shared.alert(title: "Could not start the speech recognizer", message: "Check your internect connection and try again")
 //                                }
 //                            }
 //                        } else {
@@ -4383,12 +4383,12 @@ class VoiceBase {
                                     
                                     actions.append(AlertAction(title: "No", style: .default, handler:nil))
                                     
-                                    Globals.shared.alert(title:"Confirm Removal From VoiceBase", message:text + "\nMedia ID: " + mediaID, actions:actions)
+                                    Alerts.shared.alert(title:"Confirm Removal From VoiceBase", message:text + "\nMedia ID: " + mediaID, actions:actions)
                                 }))
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                 
-                                Globals.shared.alert(title:"On VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis on VoiceBase.", actions:actions)
+                                Alerts.shared.alert(title:"On VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis on VoiceBase.", actions:actions)
                             }
                         }, onError:  { (dict:[String:Any]?)->(Void) in
                             if let mediaID = self.mediaID {
@@ -4396,7 +4396,7 @@ class VoiceBase {
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                 
-                                Globals.shared.alert(title:"Not on VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis not on VoiceBase.", actions:actions)
+                                Alerts.shared.alert(title:"Not on VoiceBase", message:"A transcript for\n\n" + text + " (\(self.transcriptPurpose))\n\nwith mediaID\n\n\(mediaID)\n\nis not on VoiceBase.", actions:actions)
                             }
                         })
                     }))
@@ -4508,7 +4508,7 @@ class VoiceBase {
                                     var alertActions = [AlertAction]()
                                     
                                     alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
-                                        Globals.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
+                                        Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
                                         
                                         if self.resultsTimer != nil {
                                             print("TIMER NOT NIL!")
@@ -4517,7 +4517,7 @@ class VoiceBase {
                                             
                                             actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                             
-                                            Globals.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
+                                            Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                         } else {
                                             Thread.onMainThread {
                                                 self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
@@ -4541,7 +4541,7 @@ class VoiceBase {
                                     
                                     actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
                                     
-                                    Globals.shared.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+                                    Alerts.shared.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
                                 }
                             })
                         }))

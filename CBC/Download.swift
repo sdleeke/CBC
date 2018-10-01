@@ -49,10 +49,10 @@ extension Download : URLSessionDownloadDelegate
                 if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
                     let id = String(taskDescription[..<index.lowerBound])
                     if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Globals.shared.alert(title: title, message: mediaItem.title)
+                        Alerts.shared.alert(title: title, message: mediaItem.title)
                     }
                 } else {
-                    Globals.shared.alert(title: title, message: nil)
+                    Alerts.shared.alert(title: title, message: nil)
                 }
             } else {
                 print("previously dealt with")
@@ -161,10 +161,10 @@ extension Download : URLSessionDownloadDelegate
                     let id = String(taskDescription[..<index.lowerBound])
                     
                     if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Globals.shared.alert(title: title, message: mediaItem.title)
+                        Alerts.shared.alert(title: title, message: mediaItem.title)
                     }
                 } else {
-                    Globals.shared.alert(title: title, message: nil)
+                    Alerts.shared.alert(title: title, message: nil)
                 }
             } else {
                 print("previously dealth with")
@@ -274,16 +274,16 @@ extension Download : URLSessionDownloadDelegate
                         
                         if let message = Globals.shared.mediaRepository.index?[id]?.title {
                             if let error = error {
-                                Globals.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+                                Alerts.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
                             } else {
-                                Globals.shared.alert(title: title, message: message)
+                                Alerts.shared.alert(title: title, message: message)
                             }
                         }
                     } else {
                         if let error = error {
-                            Globals.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
+                            Alerts.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
                         } else {
-                            Globals.shared.alert(title: title, message: nil)
+                            Alerts.shared.alert(title: title, message: nil)
                         }
                     }
                 } else {
@@ -507,7 +507,7 @@ class Download : NSObject
 
     @objc func downloadFailed()
     {
-        Globals.shared.alert(title: "Network Error",message: "Download failed.")
+        Alerts.shared.alert(title: "Network Error",message: "Download failed.")
     }
 
     var state:State = .none {

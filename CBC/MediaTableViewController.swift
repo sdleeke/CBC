@@ -697,7 +697,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.popover?.activityIndicator.stopAnimating()
                         self?.popover?.activityIndicator.isHidden = true
                         
-                        Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
 
 //                    process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -709,7 +709,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                            data = json
 //                        }, onError: { (json:[String : Any]?) -> (Void) in
 //                            data = "VoiceBase Media Item\nNot Found"
-//                            Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                        })
 //
 //                        while data == nil {
@@ -800,7 +800,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.popover?.activityIndicator.stopAnimating()
                         self?.popover?.activityIndicator.isHidden = true
                         
-                        Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                     })
                     
 //                    process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -813,7 +813,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //
 //                        }, onError: { (json:[String : Any]?) -> (Void) in
 //                            data = "VoiceBase Media Item\nNot Found"
-//                            Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                        })
 //
 //                        while data == nil {
@@ -1049,7 +1049,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 self?.popover?.activityIndicator.stopAnimating()
                                 self?.popover?.activityIndicator.isHidden = true
                                 
-                                Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                                Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
                             
 //                            process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -1061,7 +1061,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                                    data = json
 //                                }, onError: { (json:[String : Any]?) -> (Void) in
 //                                    data = "VoiceBase Media Item\nNot Found"
-//                                    Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                                })
 //
 //                                while data == nil {
@@ -1112,7 +1112,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 self?.popover?.activityIndicator.stopAnimating()
                                 self?.popover?.activityIndicator.isHidden = true
 
-                                Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                                Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                             })
 
 //                            process(viewController: popover, work: { [weak self] () -> (Any?) in
@@ -1125,7 +1125,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //
 //                                }, onError: { (json:[String : Any]?) -> (Void) in
 //                                    data = "VoiceBase Media Item\nNot Found"
-//                                    Globals.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
 //                                })
 //
 //                                while data == nil {
@@ -1153,7 +1153,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
 
-                    Globals.shared.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions) // "While created on this device:\n\n\(title)\n\nno longer appears to be in use."
+                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions) // "While created on this device:\n\n\(title)\n\nno longer appears to be in use."
                 }
             }
         }
@@ -1506,7 +1506,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.VoiceBase_Media:
             guard Globals.shared.reachability.isReachable else {
-                Globals.shared.alert(title:"Network Error",message:"VoiceBase media not available.")
+                Alerts.shared.alert(title:"Network Error",message:"VoiceBase media not available.")
                 return
             }
             
@@ -2352,7 +2352,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             if self.stringIndex?.dict == nil {
                 self.dismiss(animated: true, completion: nil)
-                Globals.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
+                Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
             } else {
                 self.actionsButton?.isEnabled = true
             }
@@ -2447,7 +2447,7 @@ class MediaTableViewController : UIViewController // MediaController
 //            }
 //
 //            if let text = mediaItem.text {
-//                Globals.shared.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
+//                Alerts.shared.alert(title:"VoiceBase Media", message:"The transcript for\n\n" + text + "\n\nwill be loaded.", actions:nil)
 //            }
 //
 //            actionButton?.isEnabled = false

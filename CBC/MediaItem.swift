@@ -168,10 +168,10 @@ class SearchHit {
 //                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
 //                    let id = String(taskDescription[..<index.lowerBound])
 //                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-//                        Globals.shared.alert(title: title, message: mediaItem.title)
+//                        Alerts.shared.alert(title: title, message: mediaItem.title)
 //                    }
 //                } else {
-//                    Globals.shared.alert(title: title, message: nil)
+//                    Alerts.shared.alert(title: title, message: nil)
 //                }
 //            } else {
 //                print("previously dealt with")
@@ -280,10 +280,10 @@ class SearchHit {
 //                    let id = String(taskDescription[..<index.lowerBound])
 //                
 //                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-//                        Globals.shared.alert(title: title, message: mediaItem.title)
+//                        Alerts.shared.alert(title: title, message: mediaItem.title)
 //                    }
 //                } else {
-//                    Globals.shared.alert(title: title, message: nil)
+//                    Alerts.shared.alert(title: title, message: nil)
 //                }
 //            } else {
 //                print("previously dealth with")
@@ -393,16 +393,16 @@ class SearchHit {
 //                    
 //                    if let message = Globals.shared.mediaRepository.index?[id]?.title {
 //                        if let error = error {
-//                            Globals.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+//                            Alerts.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
 //                        } else {
-//                            Globals.shared.alert(title: title, message: message)
+//                            Alerts.shared.alert(title: title, message: message)
 //                        }
 //                    }
 //                } else {
 //                    if let error = error {
-//                        Globals.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
+//                        Alerts.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
 //                    } else {
-//                        Globals.shared.alert(title: title, message: nil)
+//                        Alerts.shared.alert(title: title, message: nil)
 //                    }
 //                }
 //            } else {
@@ -3876,7 +3876,7 @@ class MediaItem : NSObject
                     
 //                    present(alert, animated: true, completion: nil)
                     
-                    Globals.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                    Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
                     break
                     
                 case Constants.Strings.Cancel_Audio_Download:
@@ -3913,7 +3913,7 @@ class MediaItem : NSObject
                         
 //                            self.present(alert, animated: true, completion: nil)
                         
-                        Globals.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                        Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
                         break
                         
                     default:
@@ -3958,7 +3958,7 @@ class MediaItem : NSObject
         openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
             if let url = self.websiteURL {
                 open(scheme: url.absoluteString) {
-                    Globals.shared.alert(title: "Network Error",message: "Unable to open: \(url)")
+                    Alerts.shared.alert(title: "Network Error",message: "Unable to open: \(url)")
 //                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
@@ -4263,7 +4263,7 @@ class MediaItem : NSObject
 //                        }
 //                    }
 //                } else {
-//                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                    Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
 //                }
 //            })
         }
@@ -4292,7 +4292,7 @@ class MediaItem : NSObject
                 if let htmlString = data as? String {
                     popoverHTML(viewController, mediaItem:self, title:nil, barButtonItem:nil, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
                 } else {
-                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
+                    Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
                 }
             })
 
@@ -4314,7 +4314,7 @@ class MediaItem : NSObject
 //                popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
 //            } else {
 //                guard Globals.shared.reachability.isReachable else {
-//                    Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                    Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
 //                    return
 //                }
 //
@@ -4326,7 +4326,7 @@ class MediaItem : NSObject
 //                    if let htmlString = data as? String {
 //                        popoverHTML(viewController,mediaItem:self,title:nil,barButtonItem:nil,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
 //                    } else {
-//                        Globals.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
+//                        Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
 //                    }
 //                })
 //            }
@@ -4342,7 +4342,7 @@ class MediaItem : NSObject
                 } else {
                     guard Globals.shared.reachability.isReachable else {
                         networkUnavailable(viewController,"Scripture text unavailable.")
-//                        Globals.shared.alert(title: "Network Error",message: "Scripture text unavailable.")
+//                        Alerts.shared.alert(title: "Network Error",message: "Scripture text unavailable.")
                         return
                     }
                     

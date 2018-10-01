@@ -10,6 +10,24 @@ import Foundation
 import UIKit
 import PDFKit
 
+extension UIImage
+{
+    func resize(scale:CGFloat) -> UIImage?
+    {
+        let toScaleSize = CGSize(width: scale * self.size.width, height: scale * self.size.height)
+        
+        UIGraphicsBeginImageContextWithOptions(toScaleSize, true, self.scale)
+        
+        self.draw(in: CGRect(x: 0, y: 0, width: scale * self.size.width, height: scale * self.size.height))
+        
+        let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
+        
+        UIGraphicsEndImageContext()
+        
+        return scaledImage
+    }
+}
+
 extension UIBarButtonItem
 {
     func setTitleTextAttributes(_ attributes:[NSAttributedStringKey:UIFont])

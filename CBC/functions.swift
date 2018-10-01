@@ -3285,12 +3285,12 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
-{
-    presentHTMLModal(viewController:viewController, dismiss:true, mediaItem:mediaItem, style:style, title:title, htmlString:htmlString)
-}
+//func presentHTMLModal(viewController:UIViewController, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
+//{
+//    presentHTMLModal(viewController:viewController, dismiss:true, mediaItem:mediaItem, style:style, title:title, htmlString:htmlString)
+//}
 
-func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, dismiss:Bool = true, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
     guard let htmlString = htmlString else {
         return
@@ -3411,12 +3411,12 @@ func sort(method:String?,strings:[String]?) -> [String]?
     }
 }
 
-func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
-{
-    process(viewController:viewController,disableEnable:true,hideSubviews:false,work:work,completion:completion)
-}
+//func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
+//{
+//    process(viewController:viewController,disableEnable:true,hideSubviews:false,work:work,completion:completion)
+//}
 
-func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Bool,work:(()->(Any?))?,completion:((Any?)->())?)
+func process(viewController:UIViewController,disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
 {
     guard (work != nil) && (completion != nil) else {
         return
@@ -3764,12 +3764,12 @@ func secondsToHMS(seconds:String?) -> String?
     return hms
 }
 
-func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
-{
-    popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-}
+//func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
+//{
+//    popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//}
 
-func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem?, transcript:VoiceBase?, title:String?, barButtonItem:UIBarButtonItem?, sourceView:UIView?, sourceRectView:UIView?, htmlString:String?)
+func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem?, transcript:VoiceBase? = nil, title:String?, barButtonItem:UIBarButtonItem?, sourceView:UIView?, sourceRectView:UIView?, htmlString:String?)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
@@ -3900,10 +3900,10 @@ func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem?, transc
 //    })
 //}
 
-func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
-{
-    return setupMediaItemsHTML(mediaItems,includeURLs:true,includeColumns:true)
-}
+//func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
+//{
+//    return setupMediaItemsHTML(mediaItems,includeURLs:true,includeColumns:true)
+//}
 
 func stripHead(_ string:String?) -> String?
 {
@@ -4537,7 +4537,7 @@ func translate(_ string:String?) -> String?
     }
 }
 
-func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,includeColumns:Bool = true) -> String?
 {
     guard let mediaItems = mediaItems else {
         return nil

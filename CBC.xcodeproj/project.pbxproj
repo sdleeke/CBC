@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		17074CB11E25A92B00332F0A /* Scripture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17074CB01E25A92B00332F0A /* Scripture.swift */; };
 		1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */; };
+		17174D02216268AD00D9DE5B /* Alerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17174D01216268AC00D9DE5B /* Alerts.swift */; };
 		17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172B7FCC1F41FBD200C714C0 /* Section.swift */; };
@@ -118,6 +119,7 @@
 /* Begin PBXFileReference section */
 		17074CB01E25A92B00332F0A /* Scripture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scripture.swift; sourceTree = "<group>"; };
 		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		17174D01216268AC00D9DE5B /* Alerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alerts.swift; sourceTree = "<group>"; };
 		17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		172B7FCC1F41FBD200C714C0 /* Section.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Section.swift; sourceTree = "<group>"; };
@@ -265,6 +267,7 @@
 				17D21A4B2134917900CA5F57 /* CBC.entitlements */,
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				17174D01216268AC00D9DE5B /* Alerts.swift */,
 				17FF988E2030DBC9002AD442 /* Media.swift */,
 				17FF98902030DC84002AD442 /* Tags.swift */,
 				17FF988C2030DB8C002AD442 /* MediaRepository.swift */,
@@ -571,6 +574,7 @@
 				179495641FDC4845001BB4D8 /* CloudWord.swift in Sources */,
 				177A74B91EF5770B00D36BE2 /* BooksChaptersVerses.swift in Sources */,
 				17763BE31BEA329400BB5556 /* Constants.swift in Sources */,
+				17174D02216268AD00D9DE5B /* Alerts.swift in Sources */,
 				17F8EAB41DFE221A00FA2A99 /* PopoverTableViewCell.swift in Sources */,
 				17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */,
 				179495661FDC48C2001BB4D8 /* CloudViewController.swift in Sources */,

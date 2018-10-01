@@ -43,7 +43,7 @@ class MediaTableViewCell: UITableViewCell
     func clear()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
             return
         }
         
@@ -54,7 +54,7 @@ class MediaTableViewCell: UITableViewCell
     func hideUI()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
             return
         }
         
@@ -66,7 +66,7 @@ class MediaTableViewCell: UITableViewCell
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
             return
         }
         
@@ -79,7 +79,7 @@ class MediaTableViewCell: UITableViewCell
     func setupText()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupText")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupText")
             return
         }
         
@@ -315,7 +315,7 @@ class MediaTableViewCell: UITableViewCell
     @objc func stopEditing()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
             return
         }
         
@@ -329,7 +329,7 @@ class MediaTableViewCell: UITableViewCell
     @objc func updateUI()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
             return
         }
         
@@ -392,7 +392,7 @@ class MediaTableViewCell: UITableViewCell
     func setupIcons()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
             return
         }
         
@@ -615,7 +615,7 @@ class MediaTableViewCell: UITableViewCell
     func setupProgressBarForAudio()
     {
         guard Thread.isMainThread else {
-            Globals.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
             return
         }
         

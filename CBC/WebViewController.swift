@@ -2247,7 +2247,7 @@ class WebViewController: UIViewController
         super.viewWillAppear(animated)
         
         if let navigationController = navigationController, modalPresentationStyle != .popover {
-            Globals.shared.topViewController.append(navigationController)
+            Alerts.shared.topViewController.append(navigationController)
         }
         
         addNotifications()
@@ -2370,8 +2370,8 @@ class WebViewController: UIViewController
         
         loadTimer?.invalidate()
         
-        if Globals.shared.topViewController.last == navigationController {
-            Globals.shared.topViewController.removeLast()
+        if Alerts.shared.topViewController.last == navigationController {
+            Alerts.shared.topViewController.removeLast()
         }
 
         Thread.onMainThread {
