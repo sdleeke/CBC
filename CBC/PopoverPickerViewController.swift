@@ -267,6 +267,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
 
         spinner.startAnimating()
         
+        // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
             self?.updatePickerSelections()
             self?.updatePicker()

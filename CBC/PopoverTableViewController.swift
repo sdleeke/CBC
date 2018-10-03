@@ -1782,6 +1782,7 @@ class PopoverTableViewController : UIViewController
                     
                     if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
                         // If we can find the string, select it!
+                        // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                             Thread.onMainThread {
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)

@@ -38,6 +38,8 @@ class SettingsViewController: UIViewController
         
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
+            
+            // Does this REALLY need to be .user* ?
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
 //                Globals.shared.loadSingles = false
     
@@ -69,6 +71,7 @@ class SettingsViewController: UIViewController
     
     func updateCacheSize()
     {
+        // Does this REALLY need to be .user* ?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
 //            Globals.shared.loadSingles = false
             
@@ -117,6 +120,7 @@ class SettingsViewController: UIViewController
     
     func updateAudioSize()
     {
+        // Does this REALLY need to be .user* ?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let sizeOfAudio = Globals.shared.cacheSize(Purpose.audio)
             

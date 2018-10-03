@@ -50,68 +50,67 @@ extension MediaViewController : UIActivityItemSource
 //        }
 
         DispatchQueue.global(qos: .userInteractive).async {
-        
-        var activityViewController : UIActivityViewController!
+            var activityViewController : UIActivityViewController!
 
-        if self.document != nil {
-//            var data:Data?
-//
-//            if document?.download?.isDownloaded == true {
-//                if let url = document?.download?.fileSystemURL {
-//                    data = try? Data(contentsOf: url)
-//                }
-//            } else {
-//                if let url = document?.download?.downloadURL {
-//                    data = try? Data(contentsOf: url)
-//                }
-//            }
-//
-//            if #available(iOS 11.0, *) {
-//                if let pageImage = selectedMediaItem?.posterImage {
-//                    if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-//                        doc.insert(page, at: 0)
-//
-//                        if let docData = doc.dataRepresentation() {
-//                            data = docData
-//                        }
-//                    }
-//                }
-//
-//                if let pageImage = selectedMediaItem?.seriesImage {
-//                    if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-//                        doc.insert(page, at: 0)
-//
-//                        if let docData = doc.dataRepresentation() {
-//                            data = docData
-//                        }
-//                    }
-//                }
-//            } else {
-//                // Fallback on earlier versions
-//            }
+            if self.document != nil {
+    //            var data:Data?
+    //
+    //            if document?.download?.isDownloaded == true {
+    //                if let url = document?.download?.fileSystemURL {
+    //                    data = try? Data(contentsOf: url)
+    //                }
+    //            } else {
+    //                if let url = document?.download?.downloadURL {
+    //                    data = try? Data(contentsOf: url)
+    //                }
+    //            }
+    //
+    //            if #available(iOS 11.0, *) {
+    //                if let pageImage = selectedMediaItem?.posterImage {
+    //                    if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+    //                        doc.insert(page, at: 0)
+    //
+    //                        if let docData = doc.dataRepresentation() {
+    //                            data = docData
+    //                        }
+    //                    }
+    //                }
+    //
+    //                if let pageImage = selectedMediaItem?.seriesImage {
+    //                    if  let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
+    //                        doc.insert(page, at: 0)
+    //
+    //                        if let docData = doc.dataRepresentation() {
+    //                            data = docData
+    //                        }
+    //                    }
+    //                }
+    //            } else {
+    //                // Fallback on earlier versions
+    //            }
+                
+    //            activityViewController = UIActivityViewController(activityItems: [self.document?.data], applicationActivities: nil)
+            } else {
+    //            activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,self], applicationActivities: nil)
+            }
+
+                activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
+
+    //        activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
             
-//            activityViewController = UIActivityViewController(activityItems: [self.document?.data], applicationActivities: nil)
-        } else {
-//            activityViewController = UIActivityViewController(activityItems: [self.selectedMediaItem?.text,self], applicationActivities: nil)
+    //        let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
+            
+            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+            activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+            
+            Thread.onMainThread {
+                let popoverPresentationController = activityViewController.popoverPresentationController
+                
+                popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+                
+                self.present(activityViewController, animated: true, completion: nil)
+            }
         }
-
-            activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
-
-//        activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
-        
-//        let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
-        
-        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-        activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-        
-        Thread.onMainThread {
-            let popoverPresentationController = activityViewController.popoverPresentationController
-            
-            popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-            
-            self.present(activityViewController, animated: true, completion: nil)
-        }
-    }
 
 //        if FileManager.default.fileExists(atPath: fileSystemURL.path), let data = try? Data(contentsOf: fileSystemURL) {
 //            let activityViewController = UIActivityViewController(activityItems: [selectedMediaItem?.text,self], applicationActivities: nil)
@@ -1124,10 +1123,10 @@ extension MediaViewController : WKNavigationDelegate
 //                if !webView.isHidden {
 //                    webView.isHidden = true
 //                }
-                DispatchQueue.global(qos: .userInteractive).async {
-                    // This relatively long delay is needed at startup.
-                    // 0.1 less, or 0.2, would be enough in normal use.
-                    Thread.sleep(forTimeInterval: 0.3)
+                DispatchQueue.global(qos: .background).async {
+                    // If this is .userInteractive then a relatively long delay is needed at startup to give the PDF time to scroll and zoom.
+                    // >= 0.4 rather than >=0.2 with .background
+                    Thread.sleep(forTimeInterval: 0.2)
 //                    print("setDocumentContentOffsetAndZoomScale")
 
                     self.setDocumentContentOffsetAndZoomScale(self.document)

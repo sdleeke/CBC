@@ -452,11 +452,13 @@ class Fetch<T>
 //        return operationQueue
 //    }()
 
-    init(_ fetch:(()->(T?))? = nil) // name:String,
+    init(fetch:(()->(T?))? = nil) // name:String,
     {
 //        self.name = name
         self.fetch = fetch
     }
+    
+    var queue = DispatchQueue.global(qos: .userInteractive)
     
     var fetch : (()->(T?))?
     
@@ -473,7 +475,7 @@ class Fetch<T>
                 return cache
             }
             
-            DispatchQueue.global(qos: .userInitiated).sync {
+            queue.sync {
                 self.cache = self.fetch?()
             }
 //            operationQueue.addOperation {
