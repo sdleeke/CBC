@@ -28,7 +28,7 @@ class Media
     
     //The mediaItems with the selected tags, although now we only support one tag being selected
     // Make thread safe?
-    var tagged = [String:MediaListGroupSort]()
+    var tagged = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]()
     
     var tags = Tags()
     

@@ -368,8 +368,12 @@ class ThreadSafeDictionaryOfDictionaries<T>
         }
     }
     
-    func update(storage:[String:[String:T]])
+    func update(storage:Any?)
     {
+        guard let storage = storage as? [String:[String:T]] else {
+            return
+        }
+        
         queue.sync {
             self.storage = storage
         }

@@ -709,7 +709,9 @@ class MediaItem : NSObject
     }
     
     // Make thread safe?
-    var storage:[String:String]?
+    var storage : ThreadSafeDictionary<String>? = { // [String:String]?
+        return ThreadSafeDictionary<String>(name: UUID().uuidString) // Can't be id because that becomes recursive.
+    }()
     
     subscript(key:String?) -> String? {
         get {
@@ -722,11 +724,11 @@ class MediaItem : NSObject
             guard let key = key else {
                 return
             }
-            
-            if storage == nil, newValue != nil {
-                storage = [String:String]()
-            }
-            
+
+//            if storage == nil, newValue != nil {
+//                storage = [String:String]()
+//            }
+
             storage?[key] = newValue
         }
     }
@@ -754,11 +756,14 @@ class MediaItem : NSObject
     
     init(storage:[String:String]?)
     {
+        
         super.init()
         
 //        print("\(dict)")
 
-        self.storage = storage
+        if let storage = storage {
+            self.storage?.update(storage:storage)
+        }
         
 //        self.searchHit = SearchHit(mediaItem: self)
         
@@ -1312,6 +1317,7 @@ class MediaItem : NSObject
         }
     }
     
+    // this supports settings values that are saved in defaults between sessions
     var atEnd:Bool {
         get {
             guard let playing = playing else {
@@ -1375,6 +1381,7 @@ class MediaItem : NSObject
         }
     }
     
+    // this supports settings values that are saved in defaults between sessions
     var currentTime:String? {
         get {
             guard let playing = playing else {
@@ -3487,7 +3494,7 @@ class MediaItem : NSObject
                     return nil
                 }
                 
-                return Globals.shared.mediaItemSettings?[mediaItem.id]?[key]
+                return Globals.shared.mediaItemSettings[mediaItem.id,key]
             }
             set {
                 guard let mediaItem = mediaItem else {
@@ -3500,23 +3507,23 @@ class MediaItem : NSObject
                     return
                 }
 
-                if Globals.shared.mediaItemSettings == nil {
-                    Globals.shared.mediaItemSettings = [String:[String:String]]()
-                }
-                if (Globals.shared.mediaItemSettings != nil) {
-                    if (Globals.shared.mediaItemSettings?[mediaItem.id] == nil) {
-                        Globals.shared.mediaItemSettings?[mediaItem.id] = [String:String]()
-                    }
-                    if (Globals.shared.mediaItemSettings?[mediaItem.id]?[key] != newValue) {
+//                if Globals.shared.mediaItemSettings == nil {
+//                    Globals.shared.mediaItemSettings = [String:[String:String]]()
+//                }
+//                if (Globals.shared.mediaItemSettings != nil) {
+//                    if (Globals.shared.mediaItemSettings?[mediaItem.id] == nil) {
+//                        Globals.shared.mediaItemSettings?[mediaItem.id] = [String:String]()
+//                    }
+                    if (Globals.shared.mediaItemSettings[mediaItem.id,key] != newValue) {
                         //                        print("\(mediaItem)")
-                        Globals.shared.mediaItemSettings?[mediaItem.id]?[key] = newValue
+                        Globals.shared.mediaItemSettings[mediaItem.id,key] = newValue
                         
                         // For a high volume of activity this can be very expensive.
                         Globals.shared.saveSettingsBackground()
                     }
-                } else {
-                    print("Globals.shared.settings == nil in Settings!")
-                }
+//                } else {
+//                    print("Globals.shared.settings == nil in Settings!")
+//                }
             }
         }
     }
@@ -3548,7 +3555,7 @@ class MediaItem : NSObject
                     return nil
                 }
                 
-                return Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key]
+                return Globals.shared.multiPartSettings[mediaItem.seriesID,key]
             }
             set {
                 guard let mediaItem = mediaItem else {
@@ -3556,21 +3563,21 @@ class MediaItem : NSObject
                     return
                 }
                 
-                if Globals.shared.multiPartSettings == nil {
-                    Globals.shared.multiPartSettings = [String:[String:String]]()
-                }
+//                if Globals.shared.multiPartSettings == nil {
+//                    Globals.shared.multiPartSettings = [String:[String:String]]()
+//                }
                 
-                guard (Globals.shared.multiPartSettings != nil) else {
-                    print("Globals.shared.viewSplits == nil in SeriesSettings!")
-                    return
-                }
+//                guard (Globals.shared.multiPartSettings != nil) else {
+//                    print("Globals.shared.viewSplits == nil in SeriesSettings!")
+//                    return
+//                }
                 
-                if (Globals.shared.multiPartSettings?[mediaItem.seriesID] == nil) {
-                    Globals.shared.multiPartSettings?[mediaItem.seriesID] = [String:String]()
-                }
-                if (Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key] != newValue) {
+//                if (Globals.shared.multiPartSettings[mediaItem.seriesID] == nil) {
+//                    Globals.shared.multiPartSettings[mediaItem.seriesID] = [String:String]()
+//                }
+                if (Globals.shared.multiPartSettings[mediaItem.seriesID,key] != newValue) {
                     //                        print("\(mediaItem)")
-                    Globals.shared.multiPartSettings?[mediaItem.seriesID]?[key] = newValue
+                    Globals.shared.multiPartSettings[mediaItem.seriesID,key] = newValue
                     
                     // For a high volume of activity this can be very expensive.
                     Globals.shared.saveSettingsBackground()

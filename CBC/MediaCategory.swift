@@ -79,7 +79,7 @@ class MediaCategory {
     }
     
     // Make thread safe?
-    var settings:[String:[String:String]]? // = Settings() // ThreadSafeDictionary<[String:String]>
+    var settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // = Settings() // ThreadSafeDictionary<[String:String]>
     
     // Using a generic does not include the methods for save and saveBackground.
     // Those would have to be part of the initialization configuration
@@ -171,14 +171,14 @@ class MediaCategory {
         
         print("saveSettings")
         let defaults = UserDefaults.standard
-        defaults.set(settings, forKey: Constants.SETTINGS.CATEGORY)
+        defaults.set(settings.copy, forKey: Constants.SETTINGS.CATEGORY)
         defaults.synchronize()
     }
 
     subscript(key:String) -> String? {
         get {
             if let selected = selected {
-                return settings?[selected]?[key]
+                return settings[selected]?[key]
             } else {
                 return nil
             }
@@ -189,20 +189,20 @@ class MediaCategory {
                 return
             }
             
-            if settings == nil {
-                settings = [String:[String:String]]()
-            }
+//            if settings == nil {
+//                settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]()
+//            }
             
-            guard (settings != nil) else {
-                print("settings == nil!")
-                return
-            }
+//            guard (settings != nil) else {
+//                print("settings == nil!")
+//                return
+//            }
             
-            if (settings?[selected] == nil) {
-                settings?[selected] = [String:String]()
-            }
-            if (settings?[selected]?[key] != newValue) {
-                settings?[selected]?[key] = newValue
+//            if (settings?[selected] == nil) {
+//                settings?[selected] = [String:String]()
+//            }
+            if (settings[selected,key] != newValue) {
+                settings[selected,key] = newValue
                 
                 // For a high volume of activity this can be very expensive.
                 saveSettingsBackground()

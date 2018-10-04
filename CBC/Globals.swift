@@ -577,7 +577,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
-    var multiPartSettings:[String:[String:String]]? // = MultiPartSettings() // ThreadSafeDictionary<[String:String]>?
+    
+    // Make thread safe?
+
+    var multiPartSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // = MultiPartSettings() // ThreadSafeDictionary<[String:String]>?
     
 //    class MultiPartSettings {
 //        var storage : [String:[String:String]]?
@@ -615,7 +618,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //        }
 //    }
 
-    var mediaItemSettings:[String:[String:String]]? // = MediaItemSettings() // ThreadSafeDictionary<[String:String]>?
+    // Make thread safe?
+    var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // = MediaItemSettings() // ThreadSafeDictionary<[String:String]>?
     
 //    class MediaItemSettings {
 //        var storage : [String:[String:String]]?
@@ -751,9 +755,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         print("saveSettings")
         let defaults = UserDefaults.standard
         //    print("\(settings)")
-        defaults.set(mediaItemSettings,forKey: Constants.SETTINGS.MEDIA)
+        defaults.set(mediaItemSettings.copy,forKey: Constants.SETTINGS.MEDIA)
         //    print("\(seriesViewSplits)")
-        defaults.set(multiPartSettings, forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
+        defaults.set(multiPartSettings.copy, forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
         defaults.synchronize()
     }
     
@@ -782,17 +786,21 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
             if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
                 //        print("\(settingsDictionary)")
-                mediaItemSettings = mediaItemSettingsDictionary as? [String:[String:String]]
+                
+                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
+//                mediaItemSettings = mediaItemSettingsDictionary as? [String:[String:String]]
             }
             
             if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
                 //        print("\(viewSplitsDictionary)")
-                multiPartSettings = seriesSettingsDictionary as? [String:[String:String]]
+                multiPartSettings.update(storage: seriesSettingsDictionary)
+//                multiPartSettings = seriesSettingsDictionary as? [String:[String:String]]
             }
             
             if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
                 //        print("\(viewSplitsDictionary)")
-                mediaCategory.settings = categorySettingsDictionary as? [String:[String:String]]
+                mediaCategory.settings.update(storage: categorySettingsDictionary)
+//                mediaCategory.settings = categorySettingsDictionary as? [String:[String:String]]
             }
             
             if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {

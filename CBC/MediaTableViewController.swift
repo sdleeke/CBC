@@ -3787,7 +3787,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
         
         if Globals.shared.media.toSearch?.searches == nil {
-            Globals.shared.media.toSearch?.searches = [String:MediaListGroupSort]()
+            Globals.shared.media.toSearch?.searches = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]()
         }
         
         Globals.shared.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)

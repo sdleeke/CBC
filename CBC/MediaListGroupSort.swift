@@ -13,7 +13,7 @@ import AVKit
 //Group//String//Sort
 //typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 
-typealias MediaGroupSort = ThreadSafeDictionary<[String:[String:[MediaItem]]]>
+typealias MediaGroupSort = ThreadSafeDictionaryOfDictionaries<[String:[MediaItem]]>
 
 //class MediaGroupSort {
 //    var storage : [String:[String:[String:[MediaItem]]]]?
@@ -41,7 +41,7 @@ typealias MediaGroupSort = ThreadSafeDictionary<[String:[String:[MediaItem]]]>
 //Group//String//Name
 //typealias MediaGroupNames = [String:[String:String]]
 
-typealias MediaGroupNames = ThreadSafeDictionary<[String:String]>
+typealias MediaGroupNames = ThreadSafeDictionaryOfDictionaries<String>
 
 //class MediaGroupNames {
 //    var storage : [String:[String:String]]?
@@ -175,7 +175,7 @@ class MediaListGroupSort
     }()
     
     // Make thread safe?
-    var searches:[String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
+    var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     lazy var scriptureIndex:ScriptureIndex? = {
 //        [weak self] in
@@ -292,6 +292,7 @@ class MediaListGroupSort
             return
         }
         
+        // Make thread safe?
         var groupedMediaItems = [String:[String:[MediaItem]]]()
         
         for mediaItem in list {
@@ -345,7 +346,6 @@ class MediaListGroupSort
             if (groupNames?[grouping] == nil) {
                 groupNames?[grouping] = [String:String]()
             }
-            
             if let entries = entries {
                 for entry in entries {
                     groupNames?[grouping]?[entry.string] = entry.name

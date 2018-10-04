@@ -958,6 +958,7 @@ class TextViewController : UIViewController
     
     var transcript:VoiceBase?
     
+    // Make thread safe?
     var wordRangeTiming : [[String:Any]]?
     {
         didSet {
