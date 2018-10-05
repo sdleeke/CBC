@@ -9,13 +9,23 @@
 import Foundation
 import UIKit
 
-class FetchedImage
+class FetchImage
 {
     var url : URL?
     
     init(url:URL?)
     {
         self.url = url
+
+        guard let url = url else {
+            return
+        }
+        
+        fetch = Fetch<UIImage>(name:url.lastPathComponent)
+            
+        fetch?.fetch = {
+            return self.url?.image
+        }
     }
     
     func block(_ block:((UIImage?)->()))
@@ -37,16 +47,47 @@ class FetchedImage
         fetch?.load()
     }
     
-    private lazy var fetch : Fetch<UIImage>? = {
-        if let url = url {
-            let fetch = Fetch<UIImage>(name:url.lastPathComponent) //
-            fetch.fetch = {
-                return self.url?.image
-            }
-            return fetch
-        }
-        
-        return nil
+    var fetch : Fetch<UIImage>?
+}
+
+class FetchCachedImage : FetchImage
+{
+    private static var cache : ThreadSafeDictionary<UIImage>! = {
+        return ThreadSafeDictionary<UIImage>(name:"FetchImageCache")
     }()
+
+    override init(url: URL?)
+    {
+        super.init(url: url)
+            
+        fetch?.fetch = {
+            if let image = self.cachedImage {
+                return image
+            }
+            
+            guard let image = self.url?.image else {
+                return nil
+            }
+            
+            self.cachedImage = image
+            
+            return image
+        }
+    }
+    
+    func clearCache()
+    {
+        FetchCachedImage.cache.clear()
+    }
+    
+    var cachedImage : UIImage?
+    {
+        get {
+            return FetchCachedImage.cache[self.url?.lastPathComponent]
+        }
+        set {
+            FetchCachedImage.cache[self.url?.lastPathComponent] = newValue
+        }
+    }
 }
 

@@ -744,7 +744,7 @@ class MediaItem : NSObject
     {
         // What are the side effects of this?
 
-        MediaItem.seriesImageCache = ThreadSafeDictionary<UIImage>(name: "SeriesImageCache")
+        seriesImage.clearCache() // = ThreadSafeDictionary<UIImage>(name: "FetchImageCache")
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
@@ -2230,7 +2230,7 @@ class MediaItem : NSObject
 //    }()
     
     lazy var poster = {
-        return FetchedImage(url: self.posterURL?.url)
+        return FetchImage(url: self.posterURL?.url)
     }()
     
 //    var posterImage:UIImage?
@@ -2285,25 +2285,25 @@ class MediaItem : NSObject
         return urlString.url
     }
     
-    lazy var fetchSeriesImage : Fetch<UIImage>! = {
-        let fetch = Fetch<UIImage>(name:id+"SERIES") // 
-        
-        fetch.fetch =  {
-            guard let seriesImageName = self.seriesImageName else {
-                return nil
-            }
-            
-            if let seriesImage = MediaItem.seriesImageCache[seriesImageName] {
-                return seriesImage
-            } else {
-                MediaItem.seriesImageCache[seriesImageName] = self.seriesImageURL?.image
-                return MediaItem.seriesImageCache[seriesImageName]
-            }
-//            return seriesImageURL?.image
-        }
-        
-        return fetch
-    }()
+//    lazy var fetchSeriesImage : Fetch<UIImage>! = {
+//        let fetch = Fetch<UIImage>(name:id+"SERIES") //
+//
+//        fetch.fetch =  {
+//            guard let seriesImageName = self.seriesImageName else {
+//                return nil
+//            }
+//
+//            if let seriesImage = MediaItem.seriesImageCache[seriesImageName] {
+//                return seriesImage
+//            } else {
+//                MediaItem.seriesImageCache[seriesImageName] = self.seriesImageURL?.image
+//                return MediaItem.seriesImageCache[seriesImageName]
+//            }
+////            return seriesImageURL?.image
+//        }
+//
+//        return fetch
+//    }()
     
 //    lazy var seriesQueue : OperationQueue! = {
 //        let operationQueue = OperationQueue()
@@ -2313,44 +2313,48 @@ class MediaItem : NSObject
 //        return operationQueue
 //    }()
 
-    static var seriesImageCache : ThreadSafeDictionary<UIImage>! = {
-        return ThreadSafeDictionary<UIImage>(name:"SeriesImageCache")
+//    static var seriesImageCache : ThreadSafeDictionary<UIImage>! = {
+//        return ThreadSafeDictionary<UIImage>(name:"SeriesImageCache")
+//    }()
+
+    lazy var seriesImage = {
+       return FetchCachedImage(url: seriesImageName?.url)
     }()
     
-    var seriesImage:UIImage?
-    {
-        get {
-            guard let seriesImageName = seriesImageName else {
-                return nil
-            }
-            
-            if let image = MediaItem.seriesImageCache[seriesImageName] {
-                return image
-            } else {
-                return fetchSeriesImage.result
-            }
-            
-//            seriesQueue.waitUntilAllOperationsAreFinished()
-//
-//            guard imageCache["SERIES"] == nil else {
-//                return imageCache["SERIES"]
-//            }
-//
-//            guard let imageName = self[Field.seriesImage] else {
+//    var seriesImage:UIImage?
+//    {
+//        get {
+//            guard let seriesImageName = seriesImageName else {
 //                return nil
 //            }
 //
-//            let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
-//
-//            seriesQueue.addOperation {
-//                self.imageCache["SERIES"] = urlString.url?.image
+//            if let image = MediaItem.seriesImageCache[seriesImageName] {
+//                return image
+//            } else {
+//                return fetchSeriesImage.result
 //            }
 //
-//            seriesQueue.waitUntilAllOperationsAreFinished()
-//
-//            return imageCache["SERIES"]
-        }
-    }
+////            seriesQueue.waitUntilAllOperationsAreFinished()
+////
+////            guard imageCache["SERIES"] == nil else {
+////                return imageCache["SERIES"]
+////            }
+////
+////            guard let imageName = self[Field.seriesImage] else {
+////                return nil
+////            }
+////
+////            let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
+////
+////            seriesQueue.addOperation {
+////                self.imageCache["SERIES"] = urlString.url?.image
+////            }
+////
+////            seriesQueue.waitUntilAllOperationsAreFinished()
+////
+////            return imageCache["SERIES"]
+//        }
+//    }
     
     var mp3:String?
     {

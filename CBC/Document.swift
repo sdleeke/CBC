@@ -97,7 +97,7 @@ class Document : NSObject
                             }
                         }
                         
-                        if let pageImage = self.mediaItem?.seriesImage {
+                        if let pageImage = self.mediaItem?.seriesImage.image {
                             let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:seriesImageFactor) {
