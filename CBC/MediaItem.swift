@@ -2177,10 +2177,10 @@ class MediaItem : NSObject
     
     var hasPoster : Bool
     {
-        return poster != nil
+        return posterURL != nil
     }
     
-    var poster:String?
+    var posterURL:String?
     {
         get {
             guard hasVideo else {
@@ -2211,9 +2211,15 @@ class MediaItem : NSObject
 //        }
 //    }
     
-    lazy var fetchPosterImage : Fetch<UIImage>! = {
-        return Fetch<UIImage>() // name:id+"POSTER"
-    }()
+//    lazy var fetchPosterImage : Fetch<UIImage>! = {
+//        let fetch = Fetch<UIImage>() // name:id+"POSTER"
+//        fetch.fetch = {
+////            self.imageCache["POSTER"] = self.poster?.url?.image
+////            return self.imageCache["POSTER"]
+//            return self.poster?.url?.image
+//        }
+//        return fetch
+//    }()
     
 //    lazy var posterQueue : OperationQueue! = {
 //        let operationQueue = OperationQueue()
@@ -2223,50 +2229,80 @@ class MediaItem : NSObject
 //        return operationQueue
 //    }()
     
-    var posterImage:UIImage?
-    {
-        get {
-            fetchPosterImage.fetch = {
-//                self.imageCache["POSTER"] = self.poster?.url?.image
-//                return self.imageCache["POSTER"]
-                return self.poster?.url?.image
-            }
-            
-            return fetchPosterImage.result
-            
-//            posterQueue.waitUntilAllOperationsAreFinished()
+    lazy var poster = {
+        return FetchedImage(url: self.posterURL?.url)
+    }()
+    
+//    var posterImage:UIImage?
+//    {
+//        get {
+//            return fetchPosterImage.result
 //
-//            guard imageCache["POSTER"] == nil else {
-//                return imageCache["POSTER"]
-//            }
+////            posterQueue.waitUntilAllOperationsAreFinished()
+////
+////            guard imageCache["POSTER"] == nil else {
+////                return imageCache["POSTER"]
+////            }
+////
+////            posterQueue.addOperation {
+////                self.imageCache["POSTER"] = self.poster?.url?.image
+////            }
+////
+////            posterQueue.waitUntilAllOperationsAreFinished()
+////
+////            return imageCache["POSTER"]
 //
-//            posterQueue.addOperation {
-//                self.imageCache["POSTER"] = self.poster?.url?.image
-//            }
-//
-//            posterQueue.waitUntilAllOperationsAreFinished()
-//
-//            return imageCache["POSTER"]
-            
-//            guard let posterURL = posterURL else {
-//                return nil
-//            }
-//
-//            guard let data = try? Data(contentsOf: posterURL) else {
-//                return nil
-//            }
-//
-//            return UIImage(data: data)
-        }
-    }
+////            guard let posterURL = posterURL else {
+////                return nil
+////            }
+////
+////            guard let data = try? Data(contentsOf: posterURL) else {
+////                return nil
+////            }
+////
+////            return UIImage(data: data)
+//        }
+//    }
     
     var hasSeriesImage : Bool
     {
-        return self[Field.seriesImage] != nil
+        return seriesImageName != nil
+    }
+    
+    var seriesImageName : String?
+    {
+        return self[Field.seriesImage]
+    }
+    
+    var seriesImageURL : URL?
+    {
+        guard let seriesImageName = seriesImageName else {
+            return nil
+        }
+        
+        let urlString = Constants.BASE_URL.MEDIA + "series/\(seriesImageName)"
+
+        return urlString.url
     }
     
     lazy var fetchSeriesImage : Fetch<UIImage>! = {
-        return Fetch<UIImage>() // name:id+"SERIES"
+        let fetch = Fetch<UIImage>(name:id+"SERIES") // 
+        
+        fetch.fetch =  {
+            guard let seriesImageName = self.seriesImageName else {
+                return nil
+            }
+            
+            if let seriesImage = MediaItem.seriesImageCache[seriesImageName] {
+                return seriesImage
+            } else {
+                MediaItem.seriesImageCache[seriesImageName] = self.seriesImageURL?.image
+                return MediaItem.seriesImageCache[seriesImageName]
+            }
+//            return seriesImageURL?.image
+        }
+        
+        return fetch
     }()
     
 //    lazy var seriesQueue : OperationQueue! = {
@@ -2284,23 +2320,16 @@ class MediaItem : NSObject
     var seriesImage:UIImage?
     {
         get {
-            guard let imageName = self[Field.seriesImage] else {
+            guard let seriesImageName = seriesImageName else {
                 return nil
             }
             
-            fetchSeriesImage.fetch =  {
-                if let image = MediaItem.seriesImageCache[imageName] {
-                    return image
-                } else {
-                    let urlString = Constants.BASE_URL.MEDIA + "series/\(imageName)"
-                    MediaItem.seriesImageCache[imageName] = urlString.url?.image
-                    return MediaItem.seriesImageCache[imageName]
-                }
-//                return urlString.url?.image
+            if let image = MediaItem.seriesImageCache[seriesImageName] {
+                return image
+            } else {
+                return fetchSeriesImage.result
             }
-
-            return fetchSeriesImage.result
-
+            
 //            seriesQueue.waitUntilAllOperationsAreFinished()
 //
 //            guard imageCache["SERIES"] == nil else {

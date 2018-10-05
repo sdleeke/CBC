@@ -3719,7 +3719,7 @@ class MediaViewController: UIViewController // MediaController
                         self.activityIndicator.startAnimating()
                     }
                 
-                    if let posterImage = selectedMediaItem.posterImage {
+                    if let posterImage = selectedMediaItem.poster.image {
                         guard self.selectedMediaItem == selectedMediaItem else {
                             return
                         }
