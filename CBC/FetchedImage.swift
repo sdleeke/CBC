@@ -16,16 +16,11 @@ class FetchImage
     init(url:URL?)
     {
         self.url = url
-
-        guard let url = url else {
-            return
-        }
-        
-        fetch = Fetch<UIImage>(name:url.lastPathComponent)
-            
-        fetch?.fetch = {
-            return self.url?.image
-        }
+    }
+    
+    func fetchIt() -> UIImage?
+    {
+        return self.url?.image
     }
     
     func block(_ block:((UIImage?)->()))
@@ -33,6 +28,11 @@ class FetchImage
         if let image = image {
             block(image)
         }
+    }
+    
+    var imageName : String?
+    {
+        return url?.lastPathComponent
     }
     
     var image : UIImage?
@@ -47,7 +47,19 @@ class FetchImage
         fetch?.load()
     }
     
-    var fetch : Fetch<UIImage>?
+    lazy var fetch:Fetch<UIImage>? = {
+        guard let imageName = imageName else {
+            return nil
+        }
+        
+        let fetch = Fetch<UIImage>(name:imageName)
+        
+        fetch.fetch = {
+            self.fetchIt()
+        }
+        
+        return fetch
+    }()
 }
 
 class FetchCachedImage : FetchImage
@@ -56,25 +68,21 @@ class FetchCachedImage : FetchImage
         return ThreadSafeDictionary<UIImage>(name:"FetchImageCache")
     }()
 
-    override init(url: URL?)
+    override func fetchIt() -> UIImage?
     {
-        super.init(url: url)
-            
-        fetch?.fetch = {
-            if let image = self.cachedImage {
-                return image
-            }
-            
-            guard let image = self.url?.image else {
-                return nil
-            }
-            
-            self.cachedImage = image
-            
+        if let image = self.cachedImage {
             return image
         }
+        
+        guard let image = self.url?.image else {
+            return nil
+        }
+        
+        self.cachedImage = image
+        
+        return image
     }
-    
+
     func clearCache()
     {
         FetchCachedImage.cache.clear()
@@ -83,10 +91,10 @@ class FetchCachedImage : FetchImage
     var cachedImage : UIImage?
     {
         get {
-            return FetchCachedImage.cache[self.url?.lastPathComponent]
+            return FetchCachedImage.cache[self.imageName]
         }
         set {
-            FetchCachedImage.cache[self.url?.lastPathComponent] = newValue
+            FetchCachedImage.cache[self.imageName] = newValue
         }
     }
 }
