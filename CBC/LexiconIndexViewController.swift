@@ -1183,7 +1183,7 @@ class LexiconIndexViewController : UIViewController
             var appearances = 0
 
             for mediaItem in mediaItems {
-                if let count = mediaItem.notesTokens?[searchText] {
+                if let count = mediaItem.notesTokens?.result?[searchText] {
                     appearances += count
                 }
             }

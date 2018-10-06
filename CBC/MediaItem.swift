@@ -129,7 +129,7 @@ class SearchHit {
 //                return false
 //            }
             
-            return mediaItem.notesHTML?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesHTML?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 }
@@ -735,9 +735,6 @@ class MediaItem : NSObject
     
     var booksChaptersVerses:BooksChaptersVerses?
     
-    // Make thread safe?
-    var notesTokens:[String:Int]? //[(String,Int)]?
-    
     var singleLoaded = false
 
     @objc func freeMemory()
@@ -1108,9 +1105,9 @@ class MediaItem : NSObject
     func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
-            let purge = Globals.shared.purge && (notesHTML == nil)
+            let purge = Globals.shared.purge && (notesHTML?.result == nil)
             
-            loadNotesHTML()
+//            notesHTML.load()
             
             let searchHit = SearchHit(self,searchText).transcriptHTML
             
@@ -1480,65 +1477,127 @@ class MediaItem : NSObject
         return nil
     }
     
-    func loadNotesHTML()
-    {
-        guard !Globals.shared.isRefreshing else {
-            return
-        }
+    lazy var notesHTML:Fetch<String>? = {
+        let fetch = Fetch<String>(name: "HTML Transcript")
+        
+        fetch.fetch = {
+            guard !Globals.shared.isRefreshing else {
+                return nil
+            }
+            
+            guard self.hasNotesHTML else {
+                return nil
+            }
 
-        guard hasNotesHTML else {
-            return
+            var notesHTML : String?
+            
+            if let mediaItemDict = self.singleJSONFromURL()?[0] {
+                notesHTML = mediaItemDict[Field.notes_HTML] //?.replacingOccurrences(of: "&rsquo;", with: "'").replacingOccurrences(of: "&rdquo;", with: "\"").replacingOccurrences(of: "&lsquo;", with: "'").replacingOccurrences(of: "&ldquo;", with: "\"")
+            } else {
+                print("loadSingle failure")
+            }
+            
+            return notesHTML?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
         }
         
-        guard (notesHTML == nil) else {
-            return
-        }
-        
-        guard !loadingNotesHTML else {
-            return
-        }
-        
-        loadingNotesHTML = true
-        
-        if let mediaItemDict = self.singleJSONFromURL()?[0] {
-            self.notesHTML = mediaItemDict[Field.notes_HTML] //?.replacingOccurrences(of: "&rsquo;", with: "'").replacingOccurrences(of: "&rdquo;", with: "\"").replacingOccurrences(of: "&lsquo;", with: "'").replacingOccurrences(of: "&ldquo;", with: "\"")
-        } else {
-            print("loadSingle failure")
-        }
-
-        loadingNotesHTML = false
-    }
+        return fetch
+    }()
     
-    var loadingNotesTokens = false
+//    var loadingNotesHTML = false
     
-    func loadNotesTokens()
-    {
-        guard hasNotesHTML else {
-            return
-        }
-        
-        guard (notesTokens == nil) else {
-            return
-        }
-        
-        guard !loadingNotesTokens else {
-            return
-        }
-        
-        let purge = Globals.shared.purge && (notesHTML == nil)
-        
-        loadNotesHTML()
+//    var notesHTML:String?
+//    {
+//        get {
+//            //            print(self[Field.notes])
+//
+//            // self[Field.notes_HTML]
+//            return fetchHTML.result?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
+//        }
+////        set {
+////            self[Field.notes_HTML] = newValue
+////        }
+//    }
+    
+//    func loadNotesHTML()
+//    {
+//        guard !Globals.shared.isRefreshing else {
+//            return
+//        }
+//
+//        guard hasNotesHTML else {
+//            return
+//        }
+//
+//        guard (notesHTML == nil) else {
+//            return
+//        }
+//
+//        guard !loadingNotesHTML else {
+//            return
+//        }
+//
+//        loadingNotesHTML = true
+//
+//        if let mediaItemDict = self.singleJSONFromURL()?[0] {
+//            self.notesHTML = mediaItemDict[Field.notes_HTML] //?.replacingOccurrences(of: "&rsquo;", with: "'").replacingOccurrences(of: "&rdquo;", with: "\"").replacingOccurrences(of: "&lsquo;", with: "'").replacingOccurrences(of: "&ldquo;", with: "\"")
+//        } else {
+//            print("loadSingle failure")
+//        }
+//
+//        loadingNotesHTML = false
+//    }
+    
+    // Make thread safe?
+//    var notesTokens:[String:Int]? //[(String,Int)]?
 
-        loadingNotesTokens = true
+    lazy var notesTokens:Fetch<[String:Int]>? = {
+        let fetch = Fetch<[String:Int]>(name: "Notes Tokens")
         
-        notesTokens = notesHTML?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
-        
-        loadingNotesTokens = false
-        
-        if purge {
-            notesHTML = nil // Save memory - load on demand.
+        fetch.fetch = {
+            guard !Globals.shared.isRefreshing else {
+                return nil
+            }
+            
+            guard self.hasNotesHTML else {
+                return nil
+            }
+            
+            return self.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         }
-    }
+        
+        return fetch
+    }()
+
+//    var loadingNotesTokens = false
+//
+//    func loadNotesTokens()
+//    {
+//        guard hasNotesHTML else {
+//            return
+//        }
+//
+//        guard (notesTokens == nil) else {
+//            return
+//        }
+//
+//        guard !loadingNotesTokens else {
+//            return
+//        }
+//
+//        let purge = Globals.shared.purge && (notesHTML == nil)
+//
+//        loadNotesHTML()
+//
+//        loadingNotesTokens = true
+//
+//        notesTokens = notesHTML?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+//
+//        loadingNotesTokens = false
+//
+//        if purge {
+//            notesHTML = nil // Save memory - load on demand.
+//        }
+//    }
     
     // VERY Computationally Expensive
     func formatDate(_ format:String?) -> String?
@@ -2423,16 +2482,17 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
-    var pdfText:String?
-    {
-        get {
-            guard hasNotes else {
+    lazy var pdfText:Fetch<String> = {
+        let fetch = Fetch<String>(name: "PDF TEXT")
+        
+        fetch.fetch = {
+            guard self.hasNotes else {
                 return nil
             }
             
             var documentText = String()
             
-            if let pdf = notes?.url?.pdf {
+            if let pdf = self.notes?.url?.pdf {
                 let pageCount = pdf.pageCount
                 for i in 0 ..< pageCount {
                     var pageText = String()
@@ -2441,7 +2501,15 @@ class MediaItem : NSObject
                     guard let pageContent = page.attributedString else { continue }
                     //                            print(pageContent.string)
                     
-                    if let topRange = pageContent.string.range(of: "Countryside Bible Church") {
+                    var topRange:Range<String.Index>?
+                        
+                    topRange = pageContent.string.range(of: "Countryside Bible Church, Southlake, Texas")
+
+                    if topRange == nil {
+                        topRange = pageContent.string.range(of: "Countryside Bible Church")
+                    }
+                    
+                    if let topRange = topRange {
                         if let bottomRange = pageContent.string.range(of: "Available online") {
                             pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
                         } else {
@@ -2475,8 +2543,10 @@ class MediaItem : NSObject
             
             return documentText
         }
-    }
-    
+        
+        return fetch
+    }()
+        
     lazy var searchMarkedFullNotesHTML:CachedString? = {
         return CachedString(index: nil)
     }()
@@ -2494,7 +2564,7 @@ class MediaItem : NSObject
         var searchTexts = Set<String>()
 
         if lemmas {
-            if let lemmas = notesHTML?.html2String?.lemmas {
+            if let lemmas = notesHTML?.result?.html2String?.lemmas {
                 for lemma in lemmas {
                     if lemma.1.lowercased() == searchText.lowercased() {
                         searchTexts.insert(lemma.0.lowercased())
@@ -2622,7 +2692,7 @@ class MediaItem : NSObject
         searchTexts.insert(searchText.lowercased())
 
         var newString:String = Constants.EMPTY_STRING
-        var string:String = notesHTML ?? Constants.EMPTY_STRING
+        var string:String = notesHTML?.result ?? Constants.EMPTY_STRING
         
         for searchText in Array(searchTexts).sorted() {
             while let searchRange = string.range(of: "<") {
@@ -2731,24 +2801,11 @@ class MediaItem : NSObject
     
     var fullNotesHTML:String? {
         get {
-            guard let notesHTML = notesHTML else {
+            guard let notesHTML = notesHTML?.result else {
                 return nil
             }
 
             return insertHead("<!DOCTYPE html><html><body>" + headerHTML + notesHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
-        }
-    }
-    
-    var loadingNotesHTML = false
-    
-    var notesHTML:String?
-    {
-        get {
-            //            print(self[Field.notes])
-            return self[Field.notes_HTML]?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
-        }
-        set {
-            self[Field.notes_HTML] = newValue
         }
     }
     
@@ -3344,7 +3401,7 @@ class MediaItem : NSObject
                     
                 case "count":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
-                    if let token = token, let count = self.notesTokens?[token] {
+                    if let token = token, let count = self.notesTokens?.result?[token] {
                         bodyString = bodyString! + "(\(count))"
                     }
                     bodyString = bodyString! + "</td>"
@@ -3404,7 +3461,7 @@ class MediaItem : NSObject
                     break
                     
                 case "count":
-                    if let token = token, let count = self.notesTokens?[token] {
+                    if let token = token, let count = self.notesTokens?.result?[token] {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "(\(count))" // Constants.SINGLE_SPACE +
                     }
                     break
@@ -3980,6 +4037,7 @@ class MediaItem : NSObject
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
                     self.addTag(Constants.Strings.Favorites)
+                    Alerts.shared.alert(title: "Added to Favorites",message: self.title)
                 }
                 break
                 
@@ -3987,6 +4045,7 @@ class MediaItem : NSObject
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
                     self.removeTag(Constants.Strings.Favorites)
+                    Alerts.shared.alert(title: "Removed From Favorites",message: self.title)
                 }
                 break
                 
@@ -4094,7 +4153,7 @@ class MediaItem : NSObject
                     return
                 }
                 
-                guard let tokens = self.notesTokens?.map({ (string:String,count:Int) -> String in
+                guard let tokens = self.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
                 }).sorted() else {
                     networkUnavailable(viewController,"HTML transcript vocabulary unavailable.")
@@ -4167,14 +4226,14 @@ class MediaItem : NSObject
                 }
             }
             
-            if self.notesTokens == nil {
+            if self.notesTokens?.result == nil {
                 guard Globals.shared.reachability.isReachable else {
                     networkUnavailable(viewController,"HTML transcript words unavailable.")
                     return
                 }
                 
                 process(viewController: mtvc, work: { [weak self] () -> (Any?) in
-                    self?.loadNotesTokens()
+                    self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
                 }, completion: { [weak self] (data:Any?) in
                     transcriptTokens()
                 })
@@ -4185,8 +4244,8 @@ class MediaItem : NSObject
         
         pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
             if #available(iOS 11.0, *) {
-                process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
-                    return self?.pdfText
+                process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                    return self?.pdfText.result
                 }, completion: { [weak self] (data:Any?) in
                     if  let documentContent = data as? String {
                         let alert = UIAlertController(  title: "Edit or View?",
@@ -4203,6 +4262,13 @@ class MediaItem : NSObject
                                 //                        self.setModalStyle(viewController:viewController,navigationController:navigationController)
                                 
                                 //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                                
+                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: textPopover)
+                                
+                                if navigationController.modalPresentationStyle == .popover {
+                                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                                }
                                 
                                 textPopover.navigationController?.isNavigationBarHidden = false
                                 
@@ -4228,12 +4294,25 @@ class MediaItem : NSObject
                                 
                                 //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                                 
+                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: textPopover)
+
+                                if navigationController.modalPresentationStyle == .popover {
+                                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                                }
+
                                 textPopover.navigationController?.isNavigationBarHidden = false
                                 
                                 textPopover.navigationItem.title = self?.title ?? ""
                                 
+                                var headerHTML = String()
+                                
+                                if let html = self?.headerHTML {
+                                    headerHTML = html + "<br/>"
+                                }
+                                
                                 textPopover.content = .html
-                                textPopover.html.string = insertHead("<html><body>" + documentContent.replacingOccurrences(of: "\n\n", with: "<br/><br/>") + "</body></html>",fontSize:24)
+                                textPopover.html.string = insertHead("<html><body>" + headerHTML + documentContent.replacingOccurrences(of: "\n\n", with: "<br/><br/>") + "</body></html>",fontSize:24)
                                 
                                 viewController.present(navigationController, animated: true, completion: nil)
                             } else {
@@ -4313,7 +4392,7 @@ class MediaItem : NSObject
 //            let sourceRectView = cell?.subviews[0]
 
             process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
-                self?.loadNotesHTML()
+//                self?.loadNotesHTML()
 
                 var htmlString:String?
                 

@@ -447,13 +447,13 @@ class MediaTableViewCell: UITableViewCell
         
         if mediaItem.hasNotes {
             if (Globals.shared.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) {
-                if mediaItem.notesHTML == nil, !mediaItem.loadingNotesHTML {
+                if mediaItem.notesHTML?.result == nil { // , !mediaItem.loadingNotesHTML
                     DispatchQueue.global(qos: .userInteractive).async {
-                        guard !mediaItem.loadingNotesHTML else {
-                            return
-                        }
+//                        guard !mediaItem.loadingNotesHTML else {
+//                            return
+//                        }
                         
-                        mediaItem.loadNotesHTML()
+//                        mediaItem.loadNotesHTML()
                         
                         if self.mediaItem == mediaItem {
                             Thread.onMainThread {
@@ -462,8 +462,8 @@ class MediaTableViewCell: UITableViewCell
                         }
                         
                         if (self.vc as? LexiconIndexViewController) != nil, let searchText = self.searchText {
-                            mediaItem.loadNotesTokens()
-                            if let count = mediaItem.notesTokens?[searchText] {
+//                            mediaItem.loadNotesTokens()
+                            if let count = mediaItem.notesTokens?.result?[searchText] {
                                 Thread.onMainThread {
                                     if self.mediaItem == mediaItem {
                                         self.countLabel.text = count.description
@@ -488,22 +488,35 @@ class MediaTableViewCell: UITableViewCell
             if (vc as? LexiconIndexViewController) != nil, let searchText = searchText {
                 countLabel.text = nil
 
-                if mediaItem.notesTokens == nil {
-                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-                        mediaItem.loadNotesTokens()
-                        if let count = mediaItem.notesTokens?[searchText] {
-                            Thread.onMainThread {
-                                if self.mediaItem == mediaItem {
-                                    self.countLabel.text = count.description
-                                }
+                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+                    //                        mediaItem.loadNotesTokens()
+                    
+                    if let count = mediaItem.notesTokens?.result?[searchText] {
+                        Thread.onMainThread {
+                            if self.mediaItem == mediaItem {
+                                self.countLabel.text = count.description
                             }
                         }
                     }
-                } else {
-                    if let count = mediaItem.notesTokens?[searchText] {
-                        countLabel.text = count.description
-                    }
                 }
+
+//                if mediaItem.notesTokens == nil {
+//                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+////                        mediaItem.loadNotesTokens()
+//
+//                        if let count = mediaItem.notesTokens?.result?[searchText] {
+//                            Thread.onMainThread {
+//                                if self.mediaItem == mediaItem {
+//                                    self.countLabel.text = count.description
+//                                }
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    if let count = mediaItem.notesTokens?.result?[searchText] {
+//                        countLabel.text = count.description
+//                    }
+//                }
             }
         }
         

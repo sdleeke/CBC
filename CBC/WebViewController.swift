@@ -345,7 +345,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
+            Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -448,8 +448,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    }
 
                     popover.stringsFunction = {
-                        mediaItem.loadNotesTokens()
-                        if let keys = mediaItem.notesTokens?.keys {
+//                        mediaItem.notesTokens?.load()
+                        if let keys = mediaItem.notesTokens?.result?.keys {
                             let strings = [String](keys).sorted()
                             return strings
                         }
@@ -495,9 +495,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     popover.mediaItem = mediaItem
                     
                     popover.cloudWordsFunction = {
-                        mediaItem.loadNotesTokens()
+//                        mediaItem.loadNotesTokens()
                         
-                        let words:[[String:Any]]? = mediaItem.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
+                        let words:[[String:Any]]? = mediaItem.notesTokens?.result?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })
                         
@@ -602,20 +602,28 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
                     
                     popover.selectedMediaItem = mediaItem
-                    
-                    if mediaItem.notesTokens == nil {
-                        popover.stringsFunction = {
-                            mediaItem.loadNotesTokens()
 
-                            return mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
-                                return "\(string) (\(count))"
-                            }).sorted()
-                        }
-                    } else {
-                        popover.section.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
+                    popover.stringsFunction = {
+                        //                            mediaItem.loadNotesTokens()
+                        
+                        return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
                         }).sorted()
                     }
+
+//                    if mediaItem.notesTokens == nil {
+//                        popover.stringsFunction = {
+////                            mediaItem.loadNotesTokens()
+//
+//                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+//                                return "\(string) (\(count))"
+//                            }).sorted()
+//                        }
+//                    } else {
+//                        popover.section.strings = mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+//                            return "\(string) (\(count))"
+//                        }).sorted()
+//                    }
                 }
                 
                 if let transcript = transcript {
@@ -1319,7 +1327,7 @@ class WebViewController: UIViewController
                     actionMenu.append(Constants.Strings.Words)
                     actionMenu.append(Constants.Strings.Word_Picker)
                     
-                    if !Globals.shared.splitViewController.isCollapsed {
+                    if splitViewController?.isCollapsed == false {
                         actionMenu.append(Constants.Strings.Word_Cloud)
                     }
                 }

@@ -22,8 +22,7 @@
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
 		174EEE7C1B74C0DE004F6942 /* CBCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE7B1B74C0DE004F6942 /* CBCTests.swift */; };
 		174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE861B74C11E004F6942 /* MediaTableViewController.swift */; };
-		174EEE8E1B74C11E004F6942 /* iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE871B74C11E004F6942 /* iPad.storyboard */; };
-		174EEE8F1B74C11E004F6942 /* iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE881B74C11E004F6942 /* iPhone.storyboard */; };
+		174EEE8E1B74C11E004F6942 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE871B74C11E004F6942 /* Main.storyboard */; };
 		174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE891B74C11E004F6942 /* MediaViewController.swift */; };
 		174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8A1B74C11E004F6942 /* AboutViewController.swift */; };
 		174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */; };
@@ -119,8 +118,7 @@
 		174EEE7A1B74C0DE004F6942 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		174EEE7B1B74C0DE004F6942 /* CBCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCTests.swift; sourceTree = "<group>"; };
 		174EEE861B74C11E004F6942 /* MediaTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MediaTableViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		174EEE871B74C11E004F6942 /* iPad.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPad.storyboard; sourceTree = "<group>"; };
-		174EEE881B74C11E004F6942 /* iPhone.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPhone.storyboard; sourceTree = "<group>"; };
+		174EEE871B74C11E004F6942 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		174EEE891B74C11E004F6942 /* MediaViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MediaViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		174EEE8A1B74C11E004F6942 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AboutViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaTableViewCell.swift; sourceTree = "<group>"; };
@@ -273,8 +271,6 @@
 				1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */,
 				171A6ED41BF2172100E3323C /* WebViewController.swift */,
 				1742C6881F1127F00096B150 /* TextViewController.swift */,
-				174EEE871B74C11E004F6942 /* iPad.storyboard */,
-				174EEE881B74C11E004F6942 /* iPhone.storyboard */,
 				17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */,
 				17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */,
 				17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */,
@@ -286,6 +282,7 @@
 				1794955F1FDC2E87001BB4D8 /* QuadTree.swift */,
 				179495631FDC4845001BB4D8 /* CloudWord.swift */,
 				179495611FDC4811001BB4D8 /* CloudLayoutOperation.swift */,
+				174EEE871B74C11E004F6942 /* Main.storyboard */,
 				174EEE6C1B74C0DD004F6942 /* Images.xcassets */,
 				174EEE951B74C1B1004F6942 /* LaunchScreen.xib */,
 				17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */,
@@ -481,8 +478,7 @@
 			files = (
 				17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */,
 				174EEE961B74C1B1004F6942 /* LaunchScreen.xib in Resources */,
-				174EEE8E1B74C11E004F6942 /* iPad.storyboard in Resources */,
-				174EEE8F1B74C11E004F6942 /* iPhone.storyboard in Resources */,
+				174EEE8E1B74C11E004F6942 /* Main.storyboard in Resources */,
 				174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

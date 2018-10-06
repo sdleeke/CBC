@@ -28,23 +28,25 @@ class BooksChaptersVerses : Swift.Comparable
         return bcv
     }
     
-    func numberOfVerses() -> Int
+    var numberOfVerses : Int
     {
-        var count = 0
-        
-        if let books = data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
-            for book in books {
-                if let chapters = data?[book]?.keys.sorted() {
-                    for chapter in chapters {
-                        if let verses = data?[book]?[chapter] {
-                            count += verses.count
+        get {
+            var count = 0
+            
+            if let books = data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
+                for book in books {
+                    if let chapters = data?[book]?.keys.sorted() {
+                        for chapter in chapters {
+                            if let verses = data?[book]?[chapter] {
+                                count += verses.count
+                            }
                         }
                     }
                 }
             }
+            
+            return count
         }
-        
-        return count
     }
     
     subscript(key:String) -> [Int:[Int]]? {
@@ -207,8 +209,7 @@ class BooksChaptersVerses : Swift.Comparable
                                                                                 for lhsVerse in lhsVerses {
                                                                                     for rhsVerse in rhsVerses {
                                                                                         if lhsVerse == rhsVerse {
-                                                                                            return lhs.numberOfVerses() < rhs.numberOfVerses()
-                                                                                        } else {
+                                                                                            return lhs.numberOfVerses < rhs.numberOfVerses                                                                                        } else {
                                                                                             return lhsVerse < rhsVerse
                                                                                         }
                                                                                     }

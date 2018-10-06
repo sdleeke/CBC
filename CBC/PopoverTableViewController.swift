@@ -649,7 +649,7 @@ class PopoverTableViewController : UIViewController
     
     var searchInteractive = true
     
-    @IBOutlet weak var tableViewTopConstraint: NSLayoutConstraint!
+//    @IBOutlet weak var tableViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
@@ -1607,6 +1607,8 @@ class PopoverTableViewController : UIViewController
         }
     }
     
+    var topConstraint : NSLayoutConstraint!
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1626,7 +1628,7 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-        if tableViewTopConstraint.isActive {
+//        if tableViewTopConstraint.isActive {
 //            var searchBarHeight:CGFloat = 0.0
 //
 //            // iOS 11 changed the height of search bars by 12 points!
@@ -1636,28 +1638,42 @@ class PopoverTableViewController : UIViewController
 //                // Fallback on earlier versions
 //                searchBarHeight = 44.0
 //            }
-            
+        
+        if topConstraint != nil {
+            view.removeConstraint(topConstraint)
+        }
+        
             switch (search,segments) {
             case (true,true):
-                tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
+                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
+//                tableView?.addConstraint(top)
+
+//                tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
                 break
+                
             case (true,false):
                 segmentedControl.removeFromSuperview()
-                tableViewTopConstraint.constant = searchBar.frame.height
+                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: searchBar, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
+//                tableViewTopConstraint.constant = searchBar.frame.height
                 break
+                
             case (false,true):
                 searchBar.removeFromSuperview()
-                tableViewTopConstraint.constant = segmentedControl.frame.height + 16
+                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
+//                tableViewTopConstraint.constant = segmentedControl.frame.height + 16
                 break
+                
             case (false,false):
                 searchBar.removeFromSuperview()
                 segmentedControl.removeFromSuperview()
-                tableViewTopConstraint.constant = 0
+                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
+//                tableViewTopConstraint.constant = 0
                 break
             }
             
+            view.addConstraint(topConstraint)
             self.view.setNeedsLayout()
-        }
+//        }
     
 //        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
 //            var vc : UIViewController?

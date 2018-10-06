@@ -22,9 +22,7 @@ struct Alert {
 class Alerts
 {
     static var shared = Alerts()
-    
-//    var topViewController:UIViewController?
-    
+        
     var topViewController = [UIViewController]()
     
     init()

@@ -275,43 +275,43 @@ class Lexicon : NSObject {
                     break
                 }
                 
-                let purge = Globals.shared.purge && (mediaItem.notesTokens == nil)
+                let purge = Globals.shared.purge && (mediaItem.notesTokens?.result == nil)
                 
 //                queue.sync {
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
-                    mediaItem.loadNotesTokens()
-                }
+//                    mediaItem.notesTokens?.load()
 //                }
                 
-                if let notesTokens = mediaItem.notesTokens {
-                    // Try indefinitely to load all media items
-                    list.removeFirst()
-//                    if let index = list.index(of: mediaItem) {
-//                        list.remove(at: index)
-//                    } else {
-//                        print("ERROR")
-//                    }
-                    
-                    if purge {
-                        mediaItem.notesTokens = nil // Save memory - load on demand.
-                    }
-                    
-                    print("notesTokens to add: \(notesTokens.count)")
-                    
-                    for token in notesTokens {
-                        if self?.words?[token.key] == nil {
-                            self?.words?[token.key] = [mediaItem:token.value]
-                        } else {
-                            self?.words?[token.key]?[mediaItem] = token.value
+                    if let notesTokens = mediaItem.notesTokens?.result {
+                        // Try indefinitely to load all media items
+                        list.removeFirst()
+    //                    if let index = list.index(of: mediaItem) {
+    //                        list.remove(at: index)
+    //                    } else {
+    //                        print("ERROR")
+    //                    }
+                        
+                        if purge {
+                            mediaItem.notesTokens = nil // Save memory - load on demand.
                         }
                         
-                        if Globals.shared.isRefreshing || Globals.shared.isLoading {
-                            break
+                        print("notesTokens to add: \(notesTokens.count)")
+                        
+                        for token in notesTokens {
+                            if self?.words?[token.key] == nil {
+                                self?.words?[token.key] = [mediaItem:token.value]
+                            } else {
+                                self?.words?[token.key]?[mediaItem] = token.value
+                            }
+                            
+                            if Globals.shared.isRefreshing || Globals.shared.isLoading {
+                                break
+                            }
                         }
+                    } else {
+                        print("NO NOTES TOKENS!")
                     }
-                } else {
-                    print("NO NOTES TOKENS!")
                 }
 
                 if Globals.shared.isRefreshing || Globals.shared.isLoading {
@@ -367,9 +367,9 @@ class Lexicon : NSObject {
         
         if let list = eligible {
             for mediaItem in list {
-                mediaItem.loadNotesTokens()
+//                mediaItem.loadNotesTokens()
                 
-                if let notesTokens = mediaItem.notesTokens {
+                if let notesTokens = mediaItem.notesTokens?.result {
                     for token in notesTokens {
                         if dict[token.key] == nil {
                             dict[token.key] = [mediaItem:token.value]

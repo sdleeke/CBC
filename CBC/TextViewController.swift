@@ -1635,7 +1635,7 @@ class TextViewController : UIViewController
     {
         if let keyboardRect = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
-            let txtRect = textView.convert(textView.bounds, to: Globals.shared.splitViewController.view)
+            let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
             let intersectRect = txtRect.intersection(kbdRect)
             
             if !keyboardShowing {
@@ -1744,7 +1744,7 @@ class TextViewController : UIViewController
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            Globals.shared.splitViewController.present(navigationController, animated: true, completion: nil)
+            Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -1911,6 +1911,8 @@ class TextViewController : UIViewController
         }
 
         toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+        
+        navigationController?.toolbar.isTranslucent = false
         
         if navigationItem.rightBarButtonItem == nil, navigationItem.rightBarButtonItems == nil {
             self.navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)

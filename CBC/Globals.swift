@@ -17,6 +17,24 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     static var shared = Globals()
     
+    var rootViewController : UIViewController! {
+        get {
+            return UIApplication.shared.keyWindow?.rootViewController
+        }
+    }
+    
+    var splitViewController : UISplitViewController! {
+        get {
+            return rootViewController as? UISplitViewController
+        }
+    }
+    
+    var storyboard : UIStoryboard! {
+        get {
+            return rootViewController?.storyboard
+        }
+    }
+    
     var purge = false
     
     var persistentContainer: NSPersistentContainer!
@@ -149,8 +167,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var splitViewController:UISplitViewController!
-
 //    @objc func alertViewer()
 //    {
 //        for alert in alerts {

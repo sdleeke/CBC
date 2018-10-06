@@ -3939,75 +3939,82 @@ class VoiceBase {
     
 //    var recognitionTask : Any?
     
-    func setModalStyle(viewController:UIViewController,navigationController:UINavigationController)
-    {
-        if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
-            let hClass = viewController.traitCollection.horizontalSizeClass
-            
-            if hClass == .compact {
-                navigationController.modalPresentationStyle = .overFullScreen
-            } else {
-                // I don't think this ever happens: collapsed and regular
-                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-            }
-        } else {
-            if viewController.splitViewController?.displayMode == .primaryHidden {
-                if !UIApplication.shared.isRunningInFullScreen() {
-                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-                } else {
-                    let vClass = viewController.traitCollection.verticalSizeClass
-                    
-                    if vClass == .compact {
-                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-                    } else {
-                        navigationController.modalPresentationStyle = .formSheet // Used to be .popover
-                    }
-                }
-            } else {
-                if !UIApplication.shared.isRunningInFullScreen() {
-                    if let _ = viewController as? MediaTableViewController {
-                        navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
-                    } else {
-                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-                    }
-                } else {
-                    if let _ = viewController as? MediaTableViewController {
-                        navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
-                    } else {
-                        let vClass = viewController.traitCollection.verticalSizeClass
-                        
-                        if vClass == .compact {
-                            navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-                        } else {
-                            navigationController.modalPresentationStyle = .formSheet // Used to be .popover
-                        }
-                    }
-                }
-            }
-            
-            //                            let vClass = viewController.traitCollection.verticalSizeClass
-            //
-            //                            if vClass == .compact {
-            //                                navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-            //                            } else {
-            //                                if viewController.splitViewController?.displayMode == .primaryHidden {
-            //                                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-            //                                } else {
-            //                                    if !UIApplication.shared.isRunningInFullScreen() {
-            //                                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-            //                                    } else {
-            //                                        navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
-            //                                    }
-            //                                }
-            //                            }
-            
-            //                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-            //                            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-        }
-    }
+//    func setModalStyle(viewController:UIViewController,navigationController:UINavigationController)
+//    {
+////        if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
+////            let hClass = viewController.traitCollection.horizontalSizeClass
+////
+////            if hClass == .compact {
+////                navigationController.modalPresentationStyle = .overFullScreen
+////            } else {
+////                // I don't think this ever happens: collapsed and regular
+////                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+////
+////                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+////                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+////            }
+////        } else {
+//            navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+//
+//            if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//            }
+//
+////            if viewController.splitViewController?.displayMode == .primaryHidden {
+////                if !UIApplication.shared.isRunningInFullScreen() {
+////                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+////                } else {
+////                    let vClass = viewController.traitCollection.verticalSizeClass
+////
+////                    if vClass == .compact {
+////                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+////                    } else {
+////                        navigationController.modalPresentationStyle = .formSheet // Used to be .popover
+////                    }
+////                }
+////            } else {
+////                if !UIApplication.shared.isRunningInFullScreen() {
+////                    if let _ = viewController as? MediaTableViewController {
+////                        navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+////                    } else {
+////                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+////                    }
+////                } else {
+////                    if let _ = viewController as? MediaTableViewController {
+////                        navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+////                    } else {
+////                        let vClass = viewController.traitCollection.verticalSizeClass
+////
+////                        if vClass == .compact {
+////                            navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+////                        } else {
+////                            navigationController.modalPresentationStyle = .formSheet // Used to be .popover
+////                        }
+////                    }
+////                }
+////            }
+//
+//            //                            let vClass = viewController.traitCollection.verticalSizeClass
+//            //
+//            //                            if vClass == .compact {
+//            //                                navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+//            //                            } else {
+//            //                                if viewController.splitViewController?.displayMode == .primaryHidden {
+//            //                                    navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+//            //                                } else {
+//            //                                    if !UIApplication.shared.isRunningInFullScreen() {
+//            //                                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
+//            //                                    } else {
+//            //                                        navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
+//            //                                    }
+//            //                                }
+//            //                            }
+//
+//            //                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//            //                            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+////        }
+//    }
     
     func recognizeAlertActions(viewController:UIViewController) -> AlertAction? // ,tableView:UITableView
     {
@@ -4312,9 +4319,15 @@ class VoiceBase {
                         let textPopover = navigationController.viewControllers[0] as? TextViewController {
 //                        navigationController.modalPresentationStyle = .overCurrentContext
                         
-                        self.setModalStyle(viewController:viewController,navigationController:navigationController)
+//                        self.setModalStyle(viewController:viewController,navigationController:navigationController)
+                        navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
                         
-                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                        if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                        }
+
+//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
 
                         textPopover.navigationController?.isNavigationBarHidden = false
                         
@@ -4427,9 +4440,9 @@ class VoiceBase {
                             if self.mediaItem?.hasNotesHTML == true {
                                 alertActions.append(AlertAction(title: "HTML Transcript", style: .default, handler: {
                                     process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
-                                        self?.mediaItem?.loadNotesHTML()
+                                        self?.mediaItem?.notesHTML?.load() // Do this in case there is delay.
                                     }, completion: { [weak self] (data:Any?) in
-                                        self?.align(stripHTML(self?.mediaItem?.notesHTML))
+                                        self?.align(stripHTML(self?.mediaItem?.notesHTML?.result))
                                     })
                                     //                                tableView.setEditing(false, animated: true)
                                 }))
@@ -4734,8 +4747,17 @@ class VoiceBase {
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //                    navigationController.modalPresentationStyle = .overCurrentContext
 
-                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
+//                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
                     
+                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+                    
+                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    }
+
+//                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+
 //                    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
 //                        let hClass = viewController.traitCollection.horizontalSizeClass
 //
@@ -4786,8 +4808,6 @@ class VoiceBase {
 ////                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
 ////                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
 //                    }
-
-                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -4830,10 +4850,17 @@ class VoiceBase {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     //                    navigationController.modalPresentationStyle = .overCurrentContext
+
+                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
                     
-                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
-                    
-                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    }
+
+//                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
+//
+//                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -4869,8 +4896,15 @@ class VoiceBase {
                     
 //                    navigationController.modalPresentationStyle = .overCurrentContext
                     
-                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
+//                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
                     
+                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+                    
+                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    }
+
 //                    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
 //                        let hClass = viewController.traitCollection.horizontalSizeClass
 //
@@ -5000,8 +5034,17 @@ class VoiceBase {
                     
 //                    navigationController.modalPresentationStyle = .overCurrentContext
                     
-                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
+//                    self.setModalStyle(viewController:viewController,navigationController:navigationController)
                     
+                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+                    
+                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+                    }
+
+//                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+
 //                    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
 //                        let hClass = viewController.traitCollection.horizontalSizeClass
 //
@@ -5052,8 +5095,6 @@ class VoiceBase {
 //                        //                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
 //                        //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
 //                    }
-                    
-                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
