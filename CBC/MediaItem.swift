@@ -4263,7 +4263,7 @@ class MediaItem : NSObject
                                 
                                 //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                                 
-                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: textPopover)
+                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
                                 
                                 if navigationController.modalPresentationStyle == .popover {
                                     navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -4294,7 +4294,7 @@ class MediaItem : NSObject
                                 
                                 //                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                                 
-                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: textPopover)
+                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
 
                                 if navigationController.modalPresentationStyle == .popover {
                                     navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -4391,7 +4391,7 @@ class MediaItem : NSObject
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
 
-            process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
+            process(viewController: viewController, work: { [weak self] () -> (Any?) in
 //                self?.loadNotesHTML()
 
                 var htmlString:String?

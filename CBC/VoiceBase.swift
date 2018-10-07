@@ -4439,7 +4439,7 @@ class VoiceBase {
                             
                             if self.mediaItem?.hasNotesHTML == true {
                                 alertActions.append(AlertAction(title: "HTML Transcript", style: .default, handler: {
-                                    process(viewController: Globals.shared.splitViewController, work: { [weak self] () -> (Any?) in
+                                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
                                         self?.mediaItem?.notesHTML?.load() // Do this in case there is delay.
                                     }, completion: { [weak self] (data:Any?) in
                                         self?.align(stripHTML(self?.mediaItem?.notesHTML?.result))

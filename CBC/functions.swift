@@ -3771,6 +3771,8 @@ func secondsToHMS(seconds:String?) -> String?
 
 func preferredModalPresentationStyle(viewController:UIViewController) -> UIModalPresentationStyle
 {
+    // Assumes the viewController has a splitViewController.
+    
 //    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
 //        let hClass = viewController.traitCollection.horizontalSizeClass
 //
