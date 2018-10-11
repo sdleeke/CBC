@@ -441,13 +441,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 //                                                    preferredStyle: .alert)
 //                    alert.makeOpaque()
 //
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        self.selectedMediaItem?.audioDownload?.delete()
 //                    })
 //                    alert.addAction(yesAction)
 //
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //
 //                    })
@@ -489,23 +489,23 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
                         
-                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                             (action : UIAlertAction!) -> Void in
                             mediaItem.audioDownload?.delete()
                         })
                         alert.addAction(yesAction)
                         
-                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                             (action : UIAlertAction!) -> Void in
                             
                         })
                         alert.addAction(noAction)
                         
-                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            
-                        })
-                        alert.addAction(cancel)
+//                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                            (action : UIAlertAction!) -> Void in
+//
+//                        })
+//                        alert.addAction(cancel)
                         
                         // For .actionSheet style
                         //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
@@ -526,13 +526,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
-            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                 (action : UIAlertAction!) -> Void in
                 self.selectedMediaItem?.audioDownload?.delete()
             })
             alert.addAction(yesAction)
             
-            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                 (action : UIAlertAction!) -> Void in
                 
             })
@@ -556,7 +556,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
-            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                 (action : UIAlertAction) -> Void in
                 if let mediaItems = self.mediaItems {
                     for mediaItem in mediaItems {
@@ -566,17 +566,17 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(yesAction)
             
-            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                 (action : UIAlertAction) -> Void in
                 
             })
             alert.addAction(noAction)
             
-            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                (action : UIAlertAction!) -> Void in
-                
-            })
-            alert.addAction(cancel)
+//            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                (action : UIAlertAction!) -> Void in
+//                
+//            })
+//            alert.addAction(cancel)
             
             // For .actionSheet style
             //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
@@ -676,7 +676,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 //                popover.detail = true
 //                popover.detailAction = transcriptSegmentAction
                 
-                popover.vc = self.popover
+//                popover.vc = self.popover
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -769,7 +769,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 //                popover.detail = true
                 //                popover.detailAction = transcriptSegmentAction
                 
-                popover.vc = self.popover
+//                popover.vc = self.popover
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -1110,16 +1110,16 @@ extension MediaViewController : WKNavigationDelegate
 //                print(document.purpose ?? "")
                 
 //                if document.showing(selectedMediaItem) {
-                    self.progressIndicator.isHidden = true
-                    
-                    self.setupAudioOrVideo()
-                    self.setupSTVControl()
-                    self.setSegmentWidths()
-                    
-//                    webView.isHidden = false
-
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
+//                    self.progressIndicator.isHidden = true
+//
+//                    self.setupAudioOrVideo()
+//                    self.setupSTVControl()
+//                    self.setSegmentWidths()
+//
+////                    webView.isHidden = false
+//
+//                    self.activityIndicator.stopAnimating()
+//                    self.activityIndicator.isHidden = true
 //                } else {
 ////                    webView.isHidden = true
 //                }
@@ -1129,14 +1129,20 @@ extension MediaViewController : WKNavigationDelegate
 
 //                self.setDocumentContentOffsetAndZoomScale(document)
 
-                // This dispatch and delay is essential to getting the scroll view to accept the offset and zoom.
 //                if !webView.isHidden {
 //                    webView.isHidden = true
 //                }
+        
+//        Thread.onMainThread { () -> (Void) in
+//            self.setupAudioOrVideo()
+//            self.setupSTVControl()
+//            self.setSegmentWidths()
+//        }
+
+        // This dispatch and delay is essential to getting the scroll view to accept the offset and zoom.
                 DispatchQueue.global(qos: .background).async {
-                    // If this is .userInteractive then a relatively long delay is needed at startup to give the PDF time to scroll and zoom.
-                    // >= 0.4 rather than >=0.2 with .background
-                    Thread.sleep(forTimeInterval: 0.3)
+                    // Delay has to be longest to deal with cold start delays
+                    Thread.sleep(forTimeInterval: 0.4)
 //                    print("setDocumentContentOffsetAndZoomScale")
 
                     self.setDocumentContentOffsetAndZoomScale(self.document)
@@ -1152,6 +1158,12 @@ extension MediaViewController : WKNavigationDelegate
 //            }
 //        }
     }
+    
+//    override func viewDidLayoutSubviews()
+//    {
+//        super.viewDidLayoutSubviews()
+//
+//    }
     
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!)
     {
@@ -1462,7 +1474,7 @@ extension MediaViewController: UIPopoverPresentationControllerDelegate
 
 extension MediaViewController : PopoverPickerControllerDelegate
 {
-    func stringPicked(_ string: String?)
+    func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
         dismiss(animated: true, completion: nil)
     
@@ -3239,7 +3251,7 @@ class MediaViewController: UIViewController // MediaController
             
             popover.section.strings = actionMenu()
             
-            popover.vc = self
+//            popover.vc = self
             
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
@@ -4623,7 +4635,7 @@ class MediaViewController: UIViewController // MediaController
             popover.allowsSelection = false
             popover.selectedMediaItem = selectedMediaItem
             
-            popover.vc = self
+//            popover.vc = self
             
             present(navigationController, animated: true, completion: {
                 self.popover = popover
@@ -6203,46 +6215,58 @@ class MediaViewController: UIViewController // MediaController
         }
         
         if let wkWebView = wkWebView {
-            if zoomScale == nil, #available(iOS 11.0, *), let data = document?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
-                Thread.onMainThread {
-                    guard wkWebView.scrollView.contentSize != CGSize.zero else {
-                        return
-                    }
-                    
-                    //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
-                    //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
-                    
-                    let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
-                        y: CGFloat(contentOffsetY)) //
-                    
+            Thread.onMainThread { () -> (Void) in
+                guard wkWebView.scrollView.contentSize != CGSize.zero else {
+                    return
+                }
+                
+                //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
+                //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
+                
+                let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+                    y: CGFloat(contentOffsetY)) //
+                
+                
+                if #available(iOS 11.0, *) {
                     if zoomScale == nil {
-                        zoomScale = self.mediaItemNotesAndSlides.frame.width / (page.bounds(for: .bleedBox).width * 1.05)
+                        if let data = document?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                            zoomScale = self.mediaItemNotesAndSlides.frame.width / (page.bounds(for: .bleedBox).width * 1.05)
+                        }
                     }
-                    
-                    //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
-                    self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
-                    
-                    wkWebView.isHidden = false
                 }
-            } else {
-                // Fallback on earlier versions
-                Thread.onMainThread {
-                    guard wkWebView.scrollView.contentSize != CGSize.zero else {
-                        return
-                    }
-                    
-                    //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
-                    //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
-                    
-                    let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
-                        y: CGFloat(contentOffsetY)) //
-                    
-                    //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
-                    self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
-                    
-                    wkWebView.isHidden = false
-                }
+                
+                //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
+                self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
+                
+                self.progressIndicator.isHidden = true
+                
+                //                    webView.isHidden = false
+                
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.isHidden = true
+                
+                wkWebView.isHidden = false
             }
+            
+//            {
+//                // Fallback on earlier versions
+//                Thread.onMainThread {
+//                    guard wkWebView.scrollView.contentSize != CGSize.zero else {
+//                        return
+//                    }
+//
+//                    //                let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * wkWebView.scrollView.contentSize.width * zoomScale, //
+//                    //                    y: CGFloat(contentOffsetYRatio) * wkWebView.scrollView.contentSize.height * zoomScale) //
+//
+//                    let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
+//                        y: CGFloat(contentOffsetY)) //
+//
+//                    //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
+//                    self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
+//
+//                    wkWebView.isHidden = false
+//                }
+//            }
         }
     }
 }
@@ -6366,13 +6390,13 @@ extension MediaViewController : UITableViewDataSource
 //                                                    preferredStyle: .alert)
 //                    alert.makeOpaque()
 //                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        mediaItem.audioDownload?.delete()
 //                    })
 //                    alert.addAction(yesAction)
 //                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        
 //                    })
@@ -6400,13 +6424,13 @@ extension MediaViewController : UITableViewDataSource
 //                                                            preferredStyle: .alert)
 //                            alert.makeOpaque()
 //                            
-//                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                mediaItem.audioDownload?.delete()
 //                            })
 //                            alert.addAction(yesAction)
 //                            
-//                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                
 //                            })

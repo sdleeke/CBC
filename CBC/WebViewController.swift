@@ -243,7 +243,7 @@ extension WebViewController : PopoverPickerControllerDelegate
 {
     // MARK: PopoverPickerControllerDelegate
     
-    func stringPicked(_ string: String?)
+    func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
         guard let string = string else {
             return
@@ -254,7 +254,7 @@ extension WebViewController : PopoverPickerControllerDelegate
             return
         }
         
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
 
         self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
         
@@ -367,9 +367,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
-                firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
-                                  firstTitle: "Yes",
-                                  firstAction: {
+                yesOrNo(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
+                                  yesAction: {
                                         process(viewController: self, work: { [weak self] () -> (Any?) in
                                             return stripLinks(self?.html.string)
                                         }, completion: { [weak self] (data:Any?) in
@@ -377,13 +376,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                                                 printHTML(viewController: vc, htmlString: data as? String)
                                             }
                                         })
-                                    }, firstStyle: .default,
-                                  secondTitle: "No",
-                                  secondAction: {
+                                    }, yesStyle: .default,
+                                  noAction: {
                                         printHTML(viewController: self, htmlString: self.html.string)
-                                    }, secondStyle: .default,
-                                  cancelAction: nil
-                )
+                                    }, noStyle: .default)
             } else {
                 printHTML(viewController: self, htmlString: self.html.string)
             }
@@ -449,7 +445,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                     popover.stringsFunction = {
 //                        mediaItem.notesTokens?.load()
-                        if let keys = mediaItem.notesTokens?.result?.keys {
+                        if let keys = mediaItem.notesTokens.result?.keys {
                             let strings = [String](keys).sorted()
                             return strings
                         }
@@ -497,7 +493,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     popover.cloudWordsFunction = {
 //                        mediaItem.loadNotesTokens()
                         
-                        let words:[[String:Any]]? = mediaItem.notesTokens?.result?.map({ (key:String, value:Int) -> [String:Any] in
+                        let words:[[String:Any]]? = mediaItem.notesTokens.result?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })
                         
@@ -606,7 +602,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     popover.stringsFunction = {
                         //                            mediaItem.loadNotesTokens()
                         
-                        return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+                        return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
                         }).sorted()
                     }
@@ -615,12 +611,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                        popover.stringsFunction = {
 ////                            mediaItem.loadNotesTokens()
 //
-//                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+//                            return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
 //                                return "\(string) (\(count))"
 //                            }).sorted()
 //                        }
 //                    } else {
-//                        popover.section.strings = mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+//                        popover.section.strings = mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
 //                            return "\(string) (\(count))"
 //                        }).sorted()
 //                    }
@@ -646,8 +642,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    }).sorted()
                 }
                 
-                popover.vc = self
+//                popover.vc = self
 
+                self.popover = popover
+                
                 present(navigationController, animated: true, completion: nil)
             }
             break
@@ -704,7 +702,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             return
         }
 
-        dismiss(animated: true, completion: nil)
+        popover?.dismiss(animated: true, completion: nil)
         
         let string = strings[index]
         
@@ -1020,7 +1018,7 @@ class WebViewController: UIViewController
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -1033,7 +1031,7 @@ class WebViewController: UIViewController
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -1054,22 +1052,35 @@ class WebViewController: UIViewController
 //                                }
 //                            }
                         }
-
+                        
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                                if stringAfter.endIndex > stringAfter.startIndex {
+                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                    
+                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                        skip = CharacterSet.letters.contains(unicodeScalar)
+                                    }
+                                }
+                            }
+                        }
+                        
                         //                            print(characterAfter)
                         
                         // What happens with other types of apostrophes?
-                        if stringAfter.endIndex >= "'s".endIndex {
-                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = false
-                            }
-                        }
+//                        if stringAfter.endIndex >= "'s".endIndex {
+//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+//                                skip = false
+//                            }
+//                        }
                     }
+                    
                     if let characterBefore:Character = stringBefore.last {
                         if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
 //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
@@ -1295,7 +1306,7 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-    var ptvc:PopoverTableViewController?
+//    var ptvc:PopoverTableViewController?
     
     var activityViewController:UIActivityViewController?
     
@@ -1347,9 +1358,9 @@ class WebViewController: UIViewController
             
             popover.section.strings = actionMenu
             
-            popover.vc = self
+//            popover.vc = self
             
-            ptvc = popover
+            self.popover = popover
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -2023,7 +2034,7 @@ class WebViewController: UIViewController
         
         func action()
         {
-            ptvc?.dismiss(animated: false, completion: nil)
+            popover?.dismiss(animated: false, completion: nil)
             activityViewController?.dismiss(animated: false, completion: nil)
         }
         

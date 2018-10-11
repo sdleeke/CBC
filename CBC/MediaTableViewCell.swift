@@ -446,79 +446,159 @@ class MediaTableViewCell: UITableViewCell
         }
         
         if mediaItem.hasNotes {
-            if (Globals.shared.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) {
-                if mediaItem.notesHTML?.result == nil { // , !mediaItem.loadingNotesHTML
-                    DispatchQueue.global(qos: .userInteractive).async {
-//                        guard !mediaItem.loadingNotesHTML else {
-//                            return
-//                        }
-                        
-//                        mediaItem.loadNotesHTML()
-                        
-                        if self.mediaItem == mediaItem {
-                            Thread.onMainThread {
-                                self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+            if (vc as? MediaTableViewController) != nil {
+                if Globals.shared.search.transcripts, Globals.shared.search.active {
+                    if mediaItem.notesHTML.cache == nil {
+                        DispatchQueue.global(qos: .userInteractive).async {
+                            mediaItem.notesHTML.load()
+                            
+                            if self.mediaItem == mediaItem, self.mediaItem?.notesHTML.cache != nil {
+                                Thread.onMainThread {
+                                    self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+                                }
                             }
                         }
-                        
-                        if (self.vc as? LexiconIndexViewController) != nil, let searchText = self.searchText {
-//                            mediaItem.loadNotesTokens()
-                            if let count = mediaItem.notesTokens?.result?[searchText] {
+                    } else {
+                        if mediaItem.searchHit(searchText).transcriptHTML {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+                        } else {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+                        }
+                    }
+                } else {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+                }
+            } else
+            
+            if (vc as? LexiconIndexViewController) != nil {
+                if let searchText = self.searchText {
+                    if mediaItem.notesHTML.cache == nil {
+                        DispatchQueue.global(qos: .userInteractive).async {
+                            mediaItem.notesHTML.load()
+                            
+                            if self.mediaItem == mediaItem, self.mediaItem?.notesHTML.cache != nil {
                                 Thread.onMainThread {
-                                    if self.mediaItem == mediaItem {
-                                        self.countLabel.text = count.description
-                                    }
+                                    self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+                                }
+                            }
+                        }
+                    } else {
+                        if mediaItem.searchHit(searchText).transcriptHTML {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+                        } else {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+                        }
+                    }
+
+                    if mediaItem.notesTokens.cache == nil {
+                        DispatchQueue.global(qos: .userInteractive).async {
+                            mediaItem.notesTokens.load()
+                            
+                            if self.mediaItem == mediaItem, self.mediaItem?.notesTokens.cache != nil {
+                                Thread.onMainThread {
+                                    self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+                                }
+                            }
+                        }
+                    } else {
+                        if let count = mediaItem.notesTokens.result?[searchText] {
+                            Thread.onMainThread {
+                                if self.mediaItem == mediaItem {
+                                    self.countLabel.text = count.description
                                 }
                             }
                         }
                     }
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-                } else {
-                    if mediaItem.searchHit(searchText).transcriptHTML {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-                    } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-                    }
                 }
             } else {
-                //                    print(searchText!)
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
             }
-            
-            if (vc as? LexiconIndexViewController) != nil, let searchText = searchText {
-                countLabel.text = nil
+        }
 
-                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-                    //                        mediaItem.loadNotesTokens()
-                    
-                    if let count = mediaItem.notesTokens?.result?[searchText] {
-                        Thread.onMainThread {
-                            if self.mediaItem == mediaItem {
-                                self.countLabel.text = count.description
-                            }
-                        }
-                    }
-                }
-
-//                if mediaItem.notesTokens == nil {
-//                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-////                        mediaItem.loadNotesTokens()
+//            if ((Globals.shared.search.transcripts && Globals.shared.search.active) || ((vc as? LexiconIndexViewController) != nil)) {
+//                if Globals.shared.search.transcripts, Globals.shared.search.active {
+//                    DispatchQueue.global(qos: .userInteractive).async {
+//                        mediaItem.notesHTML?.load()
+//                    }
 //
-//                        if let count = mediaItem.notesTokens?.result?[searchText] {
+//                    if mediaItem.searchHit(searchText).transcriptHTML {
+//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+//                    } else {
+//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+//                    }
+//                }
+//
+//                if mediaItem.notesHTML?.cache == nil { // , !mediaItem.loadingNotesHTML
+//                    DispatchQueue.global(qos: .userInteractive).async {
+////                        guard !mediaItem.loadingNotesHTML else {
+////                            return
+////                        }
+//
+//                        mediaItem.notesHTML?.load()
+//
+//                        if self.mediaItem == mediaItem, self.mediaItem?.notesHTML?.cache != nil {
 //                            Thread.onMainThread {
-//                                if self.mediaItem == mediaItem {
-//                                    self.countLabel.text = count.description
+//                                self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
+//                            }
+//                        }
+//
+//                        if (self.vc as? LexiconIndexViewController) != nil, let searchText = self.searchText {
+////                            mediaItem.loadNotesTokens()
+//                            if let count = mediaItem.notesTokens?.result?[searchText] {
+//                                Thread.onMainThread {
+//                                    if self.mediaItem == mediaItem {
+//                                        self.countLabel.text = count.description
+//                                    }
 //                                }
 //                            }
 //                        }
 //                    }
+//                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
 //                } else {
-//                    if let count = mediaItem.notesTokens?.result?[searchText] {
-//                        countLabel.text = count.description
+//                    if mediaItem.searchHit(searchText).transcriptHTML {
+//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+//                    } else {
+//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
 //                    }
 //                }
-            }
-        }
+//            } else {
+//                //                    print(searchText!)
+//                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+//            }
+            
+//            if (vc as? LexiconIndexViewController) != nil, let searchText = searchText {
+//                countLabel.text = nil
+//
+//                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+//                    //                        mediaItem.loadNotesTokens()
+//
+//                    if let count = mediaItem.notesTokens?.result?[searchText] {
+//                        Thread.onMainThread {
+//                            if self.mediaItem == mediaItem {
+//                                self.countLabel.text = count.description
+//                            }
+//                        }
+//                    }
+//                }
+//
+////                if mediaItem.notesTokens == nil {
+////                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
+//////                        mediaItem.loadNotesTokens()
+////
+////                        if let count = mediaItem.notesTokens?.result?[searchText] {
+////                            Thread.onMainThread {
+////                                if self.mediaItem == mediaItem {
+////                                    self.countLabel.text = count.description
+////                                }
+////                            }
+////                        }
+////                    }
+////                } else {
+////                    if let count = mediaItem.notesTokens?.result?[searchText] {
+////                        countLabel.text = count.description
+////                    }
+////                }
+//            }
         
         if mediaItem.hasSlides {
             attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))

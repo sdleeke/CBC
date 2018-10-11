@@ -236,7 +236,7 @@ class CloudViewController: UIViewController
 {
     var popover : PopoverTableViewController?
     
-    var ptvc:PopoverTableViewController!
+    var wordsTableViewController:PopoverTableViewController!
     
     // Make thread safe?
 //    var wordLabels : [String:UILabel]?
@@ -264,10 +264,10 @@ class CloudViewController: UIViewController
             return
         }
 
-//        ptvc.activityIndicator.isHidden = false
-//        ptvc.activityIndicator.startAnimating()
+//        wordsTableViewController.activityIndicator.isHidden = false
+//        wordsTableViewController.activityIndicator.startAnimating()
         
-//        ptvc.tableView.isHidden = true
+//        wordsTableViewController.tableView.isHidden = true
 
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = true
@@ -275,39 +275,39 @@ class CloudViewController: UIViewController
         
         self.cloudWords = cloudWords
         
-//        self.ptvc.tableView.isHidden = false
+//        self.wordsTableViewController.tableView.isHidden = false
         
-        self.ptvc.tableView.reloadData()
+        self.wordsTableViewController.tableView.reloadData()
         
-//        self.ptvc.activityIndicator.stopAnimating()
-//        self.ptvc.activityIndicator.isHidden = true
+//        self.wordsTableViewController.activityIndicator.stopAnimating()
+//        self.wordsTableViewController.activityIndicator.isHidden = true
 
         cancelAndRelayoutCloudWords()
         
 //        DispatchQueue.global(qos: .background).async { [weak self] in
 //            Thread.onMainThread {
-////                if let cells = self?.ptvc.tableView.visibleCells {
+////                if let cells = self?.wordsTableViewController.tableView.visibleCells {
 ////                    for cell in cells {
 ////                        if let cell = cell as? PopoverTableViewCell {
-////                            if let word = cell.title.text, let indexPath = self?.ptvc.section.indexPath(from: word) {
-////                                self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+////                            if let word = cell.title.text, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
+////                                self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
 ////                            }
 ////                        }
 ////                    }
 ////                }
 //
 ////                for index in 0..<cloudWords.count {
-////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-////                        self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
+////                        self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
 ////                    }
 ////                }
 //
-//                self?.ptvc.tableView.isHidden = false
+//                self?.wordsTableViewController.tableView.isHidden = false
 //
-//                self?.ptvc.tableView.reloadData()
+//                self?.wordsTableViewController.tableView.reloadData()
 //
-//                self?.ptvc.activityIndicator.stopAnimating()
-//                self?.ptvc.activityIndicator.isHidden = true
+//                self?.wordsTableViewController.activityIndicator.stopAnimating()
+//                self?.wordsTableViewController.activityIndicator.isHidden = true
 //            }
 //        }
     }
@@ -319,10 +319,10 @@ class CloudViewController: UIViewController
             return
         }
 
-//        ptvc.activityIndicator.isHidden = false
-//        ptvc.activityIndicator.startAnimating()
+//        wordsTableViewController.activityIndicator.isHidden = false
+//        wordsTableViewController.activityIndicator.startAnimating()
         
-//        ptvc.tableView.isHidden = true
+//        wordsTableViewController.tableView.isHidden = true
         
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = false
@@ -330,29 +330,29 @@ class CloudViewController: UIViewController
         
         self.cloudWords = cloudWords
 
-//        self.ptvc.tableView.isHidden = false
+//        self.wordsTableViewController.tableView.isHidden = false
         
-        self.ptvc.tableView.reloadData()
+        self.wordsTableViewController.tableView.reloadData()
         
-//        self.ptvc.activityIndicator.stopAnimating()
-//        self.ptvc.activityIndicator.isHidden = true
+//        self.wordsTableViewController.activityIndicator.stopAnimating()
+//        self.wordsTableViewController.activityIndicator.isHidden = true
 
         cancelAndRelayoutCloudWords()
 
 //        DispatchQueue.global(qos: .background).async { [weak self] in
 //            Thread.onMainThread {
 ////                for index in 0..<cloudWords.count {
-////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-////                        self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
+////                        self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
 ////                    }
 ////                }
 //
-//                self?.ptvc.tableView.isHidden = false
+//                self?.wordsTableViewController.tableView.isHidden = false
 //
-//                self?.ptvc.tableView.reloadData()
+//                self?.wordsTableViewController.tableView.reloadData()
 //
-//                self?.ptvc.activityIndicator.stopAnimating()
-//                self?.ptvc.activityIndicator.isHidden = true
+//                self?.wordsTableViewController.activityIndicator.stopAnimating()
+//                self?.wordsTableViewController.activityIndicator.isHidden = true
 //            }
 //        }
     }
@@ -495,7 +495,7 @@ class CloudViewController: UIViewController
         
         addNotifications()
         
-//        ptvc?.tableView?.isHidden = true
+//        wordsTableViewController?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
@@ -505,18 +505,18 @@ class CloudViewController: UIViewController
             process(viewController: self, work: { [weak self] () -> (Any?) in
                 self?.cloudWords = self?.cloudWordsFunction?()
 
-                self?.ptvc.section.strings = self?.cloudWords?.map({ (dict:[String:Any]) -> String in
+                self?.wordsTableViewController.section.strings = self?.cloudWords?.map({ (dict:[String:Any]) -> String in
                     let word = dict["word"] as? String ?? "ERROR"
                     let count = dict["count"] as? Int ?? -1
                     return "\(word) (\(count))"
                 })
 
-                self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+                self?.wordsTableViewController.section.strings = self?.wordsTableViewController.sort.function?(self?.wordsTableViewController.sort.method,self?.wordsTableViewController.section.strings)
 
                 return nil
             }, completion: { [weak self] (data:Any?) in
                 self?.cancelAndRelayoutCloudWords()
-                self?.ptvc.tableView.reloadData()
+                self?.wordsTableViewController.tableView.reloadData()
             })
         }
     }
@@ -529,24 +529,24 @@ class CloudViewController: UIViewController
 //            return
 //        }
         
-//        ptvc?.activityIndicator?.isHidden = false
-//        ptvc?.activityIndicator?.startAnimating()
+//        wordsTableViewController?.activityIndicator?.isHidden = false
+//        wordsTableViewController?.activityIndicator?.startAnimating()
 
 //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
 //            Thread.onMainThread {
 //                for index in 0..<cloudWords.count {
-//                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
 //                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                            self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
 //                        } else {
-//                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                            self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
 //                        }
 //                    }
 //                }
                 
-//                self?.ptvc?.tableView?.isHidden = false
-//                self?.ptvc?.activityIndicator?.stopAnimating()
-//                self?.ptvc?.activityIndicator?.isHidden = true
+//                self?.wordsTableViewController?.tableView?.isHidden = false
+//                self?.wordsTableViewController?.activityIndicator?.stopAnimating()
+//                self?.wordsTableViewController?.activityIndicator?.isHidden = true
                 
                 self.cancelAndRelayoutCloudWords()
 //            }
@@ -687,16 +687,16 @@ class CloudViewController: UIViewController
             switch identifier {
             case Constants.SEGUE.SHOW_WORD_LIST:
                 if let destination = dvc as? PopoverTableViewController {
-                    ptvc = destination
+                    wordsTableViewController = destination
                     
-                    ptvc.allowsMultipleSelection = true
-                    ptvc.selection = { (index:Int) -> Bool in
+                    wordsTableViewController.allowsMultipleSelection = true
+                    wordsTableViewController.selection = { (index:Int) -> Bool in
 //                        print(index,self.cloudWords?[index]["word"])
                         guard let cloudWords = self.cloudWords else {
                             return false
                         }
                         
-                        guard let string = self.ptvc.section.strings?[index] else {
+                        guard let string = self.wordsTableViewController.section.strings?[index] else {
                             return false
                         }
                         
@@ -725,11 +725,11 @@ class CloudViewController: UIViewController
                         
                         return false
                     }
-                    ptvc.segments = true
+                    wordsTableViewController.segments = true
                     
-//                    ptvc.editActionsAtIndexPath = rowActions
+//                    wordsTableViewController.editActionsAtIndexPath = rowActions
                     
-                    ptvc.sort.function = sort
+                    wordsTableViewController.sort.function = sort
 //                    { (method:String?,strings:[String]?) -> [String]? in
 //                        guard let strings = strings else {
 //                            return nil
@@ -779,9 +779,9 @@ class CloudViewController: UIViewController
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        self.ptvc.tableView.isHidden = true
-                        self.ptvc.activityIndicator.startAnimating()
-                        self.ptvc.segmentedControl.isEnabled = false
+                        self.wordsTableViewController.tableView.isHidden = true
+                        self.wordsTableViewController.activityIndicator.startAnimating()
+                        self.wordsTableViewController.segmentedControl.isEnabled = false
 
                         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                             self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
@@ -798,14 +798,14 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            let strings = self?.ptvc.sort.function?(Constants.Sort.Alphabetical,self?.ptvc.section.strings)
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
-                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 0 {
-                                    self?.ptvc.sort.method = Constants.Sort.Alphabetical
-                                    self?.ptvc.section.showIndex = true
-                                    self?.ptvc.section.strings = strings
-                                    self?.ptvc.tableView.reloadData()
+                                if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
+                                    self?.wordsTableViewController.sort.method = Constants.Sort.Alphabetical
+                                    self?.wordsTableViewController.section.showIndex = true
+                                    self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.tableView.reloadData()
                                 }
                                 
 //                                DispatchQueue.global(qos: .background).async {
@@ -815,27 +815,27 @@ class CloudViewController: UIViewController
                                     
 //                                    Thread.onMainThread {
 //                                        for index in 0..<cloudWords.count {
-//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
 //                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                                                    self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                                    self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
 //                                                } else {
-//                                                    self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                                                    self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
 //                                                }
 //                                            }
 //                                        }
                                         
-                                        self?.ptvc.tableView.isHidden = false
-                                        self?.ptvc.activityIndicator.stopAnimating()
-                                        self?.ptvc.segmentedControl.isEnabled = true
+                                        self?.wordsTableViewController.tableView.isHidden = false
+                                        self?.wordsTableViewController.activityIndicator.stopAnimating()
+                                        self?.wordsTableViewController.segmentedControl.isEnabled = true
 //                                    }
 //                                }
                             }
                         }
                     }))
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        self.ptvc.tableView.isHidden = true
-                        self.ptvc.activityIndicator.startAnimating()
-                        self.ptvc.segmentedControl.isEnabled = false
+                        self.wordsTableViewController.tableView.isHidden = true
+                        self.wordsTableViewController.activityIndicator.startAnimating()
+                        self.wordsTableViewController.segmentedControl.isEnabled = false
 
                         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                             self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
@@ -852,14 +852,14 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            let strings = self?.ptvc.sort.function?(Constants.Sort.Frequency,self?.ptvc.section.strings)
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
-                                if self?.ptvc.segmentedControl.selectedSegmentIndex == 1 {
-                                    self?.ptvc.sort.method = Constants.Sort.Frequency
-                                    self?.ptvc.section.showIndex = false
-                                    self?.ptvc.section.strings = strings
-                                    self?.ptvc.tableView.reloadData()
+                                if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
+                                    self?.wordsTableViewController.sort.method = Constants.Sort.Frequency
+                                    self?.wordsTableViewController.section.showIndex = false
+                                    self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.tableView.reloadData()
                                 }
 
 //                                DispatchQueue.global(qos: .background).async {
@@ -869,44 +869,44 @@ class CloudViewController: UIViewController
                                     
 //                                    Thread.onMainThread {
 //                                        for index in 0..<cloudWords.count {
-//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
 //                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                                                    self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                                    self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
 //                                                } else {
-//                                                    self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                                                    self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
 //                                                }
 //                                            }
 //                                        }
                                         
-                                        self?.ptvc.tableView.isHidden = false
-                                        self?.ptvc.activityIndicator.stopAnimating()
-                                        self?.ptvc.segmentedControl.isEnabled = true
+                                        self?.wordsTableViewController.tableView.isHidden = false
+                                        self?.wordsTableViewController.activityIndicator.stopAnimating()
+                                        self?.wordsTableViewController.segmentedControl.isEnabled = true
 //                                    }
 //                                }
                             }
                         }
                     }))
                     
-                    ptvc.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+                    wordsTableViewController.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                     
-                    ptvc.delegate = self
-                    ptvc.purpose = .selectingWordCloud
+                    wordsTableViewController.delegate = self
+                    wordsTableViewController.purpose = .selectingWordCloud
                     
-                    ptvc.search = false
+                    wordsTableViewController.search = false
                     
-                    ptvc.section.showIndex = false
+                    wordsTableViewController.section.showIndex = false
 
-                    ptvc.sort.method = Constants.Sort.Frequency
+                    wordsTableViewController.sort.method = Constants.Sort.Frequency
 
-                    ptvc.section.strings = self.cloudWords?.map({ (dict:[String:Any]) -> String in
+                    wordsTableViewController.section.strings = self.cloudWords?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"
                         let count = dict["count"] as? Int ?? -1
                         return "\(word) (\(count))"
                     })
                     
-                    ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
+                    wordsTableViewController.section.strings = wordsTableViewController.sort.function?(wordsTableViewController.sort.method,wordsTableViewController.section.strings)
                     
-                    switch ptvc.sort.method! {
+                    switch wordsTableViewController.sort.method! {
                     case Constants.Sort.Alphabetical:
                         self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                             let firstWord = first["word"] as? String

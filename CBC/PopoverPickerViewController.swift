@@ -12,7 +12,7 @@ protocol PopoverPickerControllerDelegate
 {
     // MARK: PopoverPickerControllerDelegate Protocol
     
-    func stringPicked(_ string:String?)
+    func stringPicked(_ string:String?, purpose:PopoverPurpose?)
 }
 
 extension PopoverPickerViewController : UIAdaptivePresentationControllerDelegate
@@ -372,6 +372,8 @@ class PopoverPickerViewController : UIViewController
     
     var delegate : PopoverPickerControllerDelegate?
     
+    var purpose : PopoverPurpose?
+    
     var stringTree : StringTree?
     var incremental = false
     
@@ -530,7 +532,7 @@ class PopoverPickerViewController : UIViewController
         string = wordFromPicker()
 
 //        print("\(string)")
-        delegate?.stringPicked(string)
+        delegate?.stringPicked(string,purpose:purpose)
     }
     
     func actionMenu() -> [String]?
@@ -566,9 +568,9 @@ class PopoverPickerViewController : UIViewController
 //            popover.section.showIndex = false
 //            popover.section.showHeaders = false
             
-            popover.vc = self
+//            popover.vc = self
             
-            ptvc = popover
+            self.popover = popover
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -644,7 +646,7 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-    var ptvc:PopoverTableViewController?
+//    var ptvc:PopoverTableViewController?
     
     var orientation : UIDeviceOrientation?
 
@@ -653,7 +655,7 @@ class PopoverPickerViewController : UIViewController
         // Dismiss any popover
         func action()
         {
-            ptvc?.dismiss(animated: false, completion: nil)
+            popover?.dismiss(animated: false, completion: nil)
         }
         
         guard let orientation = orientation else {

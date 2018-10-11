@@ -253,7 +253,7 @@ class AboutViewController: UIViewController
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            popover.vc = self
+//            popover.vc = self
             
             popover.delegate = self
             popover.purpose = .selectingAction

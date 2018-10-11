@@ -129,7 +129,7 @@ class SearchHit {
 //                return false
 //            }
             
-            return mediaItem.notesHTML?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesHTML.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 }
@@ -745,8 +745,8 @@ class MediaItem : NSObject
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
-        notesHTML = nil
-        notesTokens = nil
+        notesHTML.cache = nil
+        notesTokens.cache = nil
         
         booksChaptersVerses = nil
     }
@@ -1105,14 +1105,14 @@ class MediaItem : NSObject
     func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
-            let purge = Globals.shared.purge && (notesHTML?.result == nil)
+            let purge = Globals.shared.purge && (notesHTML.cache == nil)
             
 //            notesHTML.load()
             
             let searchHit = SearchHit(self,searchText).transcriptHTML
             
             if purge {
-                notesHTML = nil
+                notesHTML.cache = nil
             }
             
             return searchHit
@@ -1477,7 +1477,7 @@ class MediaItem : NSObject
         return nil
     }
     
-    lazy var notesHTML:Fetch<String>? = {
+    lazy var notesHTML:Fetch<String> = {
         let fetch = Fetch<String>(name: "HTML Transcript")
         
         fetch.fetch = {
@@ -1489,6 +1489,11 @@ class MediaItem : NSObject
                 return nil
             }
 
+            guard Globals.shared.reachability.isReachable else {
+                Alerts.shared.alert(title:"HTML transcript unavailable.")
+                return nil
+            }
+
             var notesHTML : String?
             
             if let mediaItemDict = self.singleJSONFromURL()?[0] {
@@ -1497,7 +1502,7 @@ class MediaItem : NSObject
                 print("loadSingle failure")
             }
             
-            return notesHTML?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•")
+            return notesHTML?.replacingOccurrences(of: "<pre>", with: "").replacingOccurrences(of: "</pre>", with: "").replacingOccurrences(of: "<code>", with: "").replacingOccurrences(of: "</code>", with: "").replacingOccurrences(of: "\n•", with: "<p/>•") //.replacingOccurrences(of: Constants.SINGLE_QUOTE, with: Constants.RIGHT_SINGLE_QUOTE)
         }
         
         return fetch
@@ -1550,8 +1555,19 @@ class MediaItem : NSObject
     // Make thread safe?
 //    var notesTokens:[String:Int]? //[(String,Int)]?
 
-    lazy var notesTokens:Fetch<[String:Int]>? = {
-        let fetch = Fetch<[String:Int]>(name: "Notes Tokens")
+    var notesTokens:Fetch<[String:Int]>
+    {
+        get {
+            if #available(iOS 11.0, *) {
+                return pdfTextTokens
+            } else {
+                return notesHTMLTokens
+            }
+        }
+    }
+        
+    lazy var notesHTMLTokens:Fetch<[String:Int]> = {
+        let fetch = Fetch<[String:Int]>(name: "Notes HTML Tokens")
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1562,7 +1578,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return self.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+            return self.notesHTML.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         }
         
         return fetch
@@ -2482,6 +2498,25 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
+    lazy var pdfTextTokens:Fetch<[String:Int]> = {
+        let fetch = Fetch<[String:Int]>(name: "PDF Text Tokens")
+        
+        fetch.fetch = {
+            guard !Globals.shared.isRefreshing else {
+                return nil
+            }
+            
+            guard self.hasNotes else {
+                return nil
+            }
+            
+            return self.pdfText.result?.tokensAndCounts
+        }
+        
+        return fetch
+    }()
+
+    @available(iOS 11.0, *)
     lazy var pdfText:Fetch<String> = {
         let fetch = Fetch<String>(name: "PDF TEXT")
         
@@ -2564,7 +2599,7 @@ class MediaItem : NSObject
         var searchTexts = Set<String>()
 
         if lemmas {
-            if let lemmas = notesHTML?.result?.html2String?.lemmas {
+            if let lemmas = notesHTML.result?.html2String?.lemmas {
                 for lemma in lemmas {
                     if lemma.1.lowercased() == searchText.lowercased() {
                         searchTexts.insert(lemma.0.lowercased())
@@ -2607,7 +2642,7 @@ class MediaItem : NSObject
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -2620,7 +2655,7 @@ class MediaItem : NSObject
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -2642,20 +2677,32 @@ class MediaItem : NSObject
                             //                            }
                         }
                         
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                                if stringAfter.endIndex > stringAfter.startIndex {
+                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                    
+                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                        skip = CharacterSet.letters.contains(unicodeScalar)
+                                    }
+                                }
+                            }
+                        }
+                        
                         //                            print(characterAfter)
                         
                         // What happens with other types of apostrophes?
-                        if stringAfter.endIndex >= "'s".endIndex {
-                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = false
-                            }
-                        }
+//                        if stringAfter.endIndex >= "'s".endIndex {
+//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+//                                skip = false
+//                            }
+//                        }
                     }
                     if let characterBefore:Character = stringBefore.last {
                         if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
@@ -2692,7 +2739,7 @@ class MediaItem : NSObject
         searchTexts.insert(searchText.lowercased())
 
         var newString:String = Constants.EMPTY_STRING
-        var string:String = notesHTML?.result ?? Constants.EMPTY_STRING
+        var string:String = notesHTML.result ?? Constants.EMPTY_STRING
         
         for searchText in Array(searchTexts).sorted() {
             while let searchRange = string.range(of: "<") {
@@ -2801,7 +2848,7 @@ class MediaItem : NSObject
     
     var fullNotesHTML:String? {
         get {
-            guard let notesHTML = notesHTML?.result else {
+            guard let notesHTML = notesHTML.result else {
                 return nil
             }
 
@@ -2889,12 +2936,23 @@ class MediaItem : NSObject
     var hasNotesHTML:Bool
     {
         get {
-//            print(files)
+            //            print(files)
             
             if let contains = files?.contains("H") {
                 return contains && hasNotes
             } else {
                 return false
+            }
+        }
+    }
+    
+    var hasNotesTokens:Bool
+    {
+        get {
+            if #available(iOS 11.0, *) {
+                return hasNotes
+            } else {
+                return hasNotesHTML
             }
         }
     }
@@ -3401,7 +3459,7 @@ class MediaItem : NSObject
                     
                 case "count":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
-                    if let token = token, let count = self.notesTokens?.result?[token] {
+                    if let token = token, let count = self.notesTokens.result?[token] {
                         bodyString = bodyString! + "(\(count))"
                     }
                     bodyString = bodyString! + "</td>"
@@ -3461,7 +3519,7 @@ class MediaItem : NSObject
                     break
                     
                 case "count":
-                    if let token = token, let count = self.notesTokens?.result?[token] {
+                    if let token = token, let count = self.notesTokens.result?[token] {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "(\(count))" // Constants.SINGLE_SPACE +
                     }
                     break
@@ -3953,23 +4011,23 @@ class MediaItem : NSObject
                 case Constants.Strings.Delete_Audio_Download:
                     var alertActions = [AlertAction]()
 
-                    let yesAction = AlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                         () -> Void in
                         audioDownload.delete()
                     })
                     alertActions.append(yesAction)
                     
-                    let noAction = AlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                         () -> Void in
                         
                     })
                     alertActions.append(noAction)
                     
-                    let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        () -> Void in
-                        
-                    })
-                    alertActions.append(cancel)
+//                    let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                        () -> Void in
+//
+//                    })
+//                    alertActions.append(cancel)
                     
 //                    present(alert, animated: true, completion: nil)
                     
@@ -3990,23 +4048,23 @@ class MediaItem : NSObject
 //                                                            preferredStyle: .alert)
 //                            alert.makeOpaque()
                         
-                        let yesAction = AlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                             () -> Void in
                             self.audioDownload?.delete()
                         })
                         alertActions.append(yesAction)
                         
-                        let noAction = AlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                             () -> Void in
                             
                         })
                         alertActions.append(noAction)
                         
-                        let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                            () -> Void in
-                            
-                        })
-                        alertActions.append(cancel)
+//                        let cancel = AlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                            () -> Void in
+//                            
+//                        })
+//                        alertActions.append(cancel)
                         
 //                            self.present(alert, animated: true, completion: nil)
                         
@@ -4092,7 +4150,7 @@ class MediaItem : NSObject
                 popover.section.strings = self.tagsArray
                 popover.section.strings?.insert(Constants.Strings.All,at: 0)
                 
-                popover.vc = mtvc
+//                popover.vc = mtvc
                 
                 mtvc.present(navigationController, animated: true, completion: nil)
             }
@@ -4129,7 +4187,7 @@ class MediaItem : NSObject
                 
                 popover.section.strings = searchStrings
                 
-                popover.vc = mtvc.splitViewController
+//                popover.vc = mtvc.splitViewController
                 
                 mtvc.present(navigationController, animated: true, completion:{
                     mtvc.presentingVC = navigationController
@@ -4153,7 +4211,7 @@ class MediaItem : NSObject
                     return
                 }
                 
-                guard let tokens = self.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+                guard let tokens = self.notesTokens.result?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
                 }).sorted() else {
                     networkUnavailable(viewController,"HTML transcript vocabulary unavailable.")
@@ -4187,7 +4245,7 @@ class MediaItem : NSObject
                     
                     popover.section.strings = tokens
                     
-                    popover.vc = viewController.splitViewController
+//                    popover.vc = viewController.splitViewController
                     
                     popover.segments = true
                     
@@ -4225,21 +4283,27 @@ class MediaItem : NSObject
                     })
                 }
             }
-            
-            if self.notesTokens?.result == nil {
-                guard Globals.shared.reachability.isReachable else {
-                    networkUnavailable(viewController,"HTML transcript words unavailable.")
-                    return
-                }
-                
-                process(viewController: mtvc, work: { [weak self] () -> (Any?) in
-                    self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
+
+            process(viewController: mtvc, work: { [weak self] () -> (Any?) in
+                self?.notesTokens.load() // Have to do this because transcriptTokens has UI.
                 }, completion: { [weak self] (data:Any?) in
                     transcriptTokens()
-                })
-            } else {
-                transcriptTokens()
-            }
+            })
+
+//            if self.notesTokens?.cache == nil {
+//                guard Globals.shared.reachability.isReachable else {
+//                    networkUnavailable(viewController,"HTML transcript words unavailable.")
+//                    return
+//                }
+//                
+//                process(viewController: mtvc, work: { [weak self] () -> (Any?) in
+//                    self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
+//                }, completion: { [weak self] (data:Any?) in
+//                    transcriptTokens()
+//                })
+//            } else {
+//                transcriptTokens()
+//            }
         }
         
         pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
@@ -4276,6 +4340,8 @@ class MediaItem : NSObject
                                 
                                 textPopover.text = documentContent
                                 textPopover.readOnly = true
+                                
+                                textPopover.search = true
                                 
                                 viewController.present(navigationController, animated: true, completion: nil)
                             } else {
@@ -4387,7 +4453,7 @@ class MediaItem : NSObject
 //            })
         }
         
-        htmlTranscript = AlertAction(title: Constants.Strings.HTML + " " + Constants.Strings.Transcript, style: .default) {
+        htmlTranscript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) {
 //            let sourceView = cell?.subviews[0]
 //            let sourceRectView = cell?.subviews[0]
 

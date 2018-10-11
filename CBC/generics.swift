@@ -456,7 +456,7 @@ class Fetch<T>
         return operationQueue
     }()
 
-    init(name:String,fetch:(()->(T?))? = nil) //
+    init(name:String?,fetch:(()->(T?))? = nil) //
     {
         self.name = name
         self.fetch = fetch
@@ -466,7 +466,7 @@ class Fetch<T>
     
     var fetch : (()->(T?))?
     
-    var name : String
+    var name : String?
     
     var cache : T?
     
@@ -486,7 +486,9 @@ class Fetch<T>
         operationQueue.addOperation {
             self.cache = self.fetch?()
         }
-        
+                
+        operationQueue.waitUntilAllOperationsAreFinished()
+
 //        return queue.sync {
 //            guard cache == nil else {
 //                return
@@ -520,8 +522,6 @@ class Fetch<T>
 //            }
 
             load()
-
-            operationQueue.waitUntilAllOperationsAreFinished()
 
             return cache
         }

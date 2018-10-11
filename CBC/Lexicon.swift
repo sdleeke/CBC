@@ -8,7 +8,8 @@
 
 import Foundation
 
-class Lexicon : NSObject {
+class Lexicon : NSObject
+{
     weak var mediaListGroupSort:MediaListGroupSort?
     
     var selected:String?
@@ -110,14 +111,14 @@ class Lexicon : NSObject {
     }
     
     var words:Words?
-//    {
-//        willSet {
-//
-//        }
-//        didSet {
-//
-//        }
-//    }
+    {
+        willSet {
+
+        }
+        didSet {
+
+        }
+    }
     
     var creating = false
     var pauseUpdates = false
@@ -146,7 +147,7 @@ class Lexicon : NSObject {
     var eligible:[MediaItem]? {
         get {
             if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.hasNotesHTML
+                return mediaItem.hasNotesTokens
             }), list.count > 0 {
                 return list
             } else {
@@ -235,7 +236,36 @@ class Lexicon : NSObject {
             }
         }
     }
+    
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "LEXICON" + UUID().uuidString
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
 
+//    var cancelAllOperations = false
+    
+    func stop()
+    {
+//        cancelAllOperations = true
+        operationQueue.cancelAllOperations()
+        
+        // This causes the program to hang - no idea why.
+//        operationQueue.waitUntilAllOperationsAreFinished()
+
+        creating = false
+//        cancelAllOperations = false
+    }
+    
+    var halt : Bool
+    {
+        get {
+            return Globals.shared.isRefreshing || Globals.shared.isLoading // || cancelAllOperations
+        }
+    }
+    
     func build()
     {
         guard !completed else {
@@ -245,16 +275,25 @@ class Lexicon : NSObject {
         guard !creating else {
             return
         }
-        
-        guard words?.isEmpty != false else {
-            return
-        }
+//        print(words?.copy)
+//        guard words?.isEmpty != false else {
+//            return
+//        }
         
         creating = true
         
-        DispatchQueue.global(qos: .background).async { [weak self] in
-//            let queue = DispatchQueue(label: "LEXICON", qos: .background, attributes: [], autoreleaseFrequency: .workItem, target: nil)
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            //            let queue = DispatchQueue(label: "LEXICON", qos: .background, attributes: [], autoreleaseFrequency: .workItem, target: nil)
+            if let test = test, test() {
+                return
+            }
             
+            if self?.halt == true {
+                return
+            }
+
             var firstUpdate = true
             
             guard var list = self?.eligible else {
@@ -262,7 +301,9 @@ class Lexicon : NSObject {
                 return
             }
             
-            self?.words = Words(name: UUID().uuidString + "Words")
+            if self?.words == nil {
+                self?.words = Words(name: UUID().uuidString + Constants.Strings.Words)
+            }
             
             var date = Date()
             
@@ -275,25 +316,33 @@ class Lexicon : NSObject {
                     break
                 }
                 
-                let purge = Globals.shared.purge && (mediaItem.notesTokens?.result == nil)
+                if let test = test, test() {
+                    return
+                }
                 
-//                queue.sync {
+                if self?.halt == true {
+                    return
+                }
+
+                let purge = Globals.shared.purge && (mediaItem.notesTokens.cache == nil)
+                
+                //                queue.sync {
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
-//                    mediaItem.notesTokens?.load()
-//                }
-                
-                    if let notesTokens = mediaItem.notesTokens?.result {
+                    //                    mediaItem.notesTokens?.load()
+                    //                }
+                    
+                    if let notesTokens = mediaItem.notesTokens.result {
                         // Try indefinitely to load all media items
                         list.removeFirst()
-    //                    if let index = list.index(of: mediaItem) {
-    //                        list.remove(at: index)
-    //                    } else {
-    //                        print("ERROR")
-    //                    }
+                        //                    if let index = list.index(of: mediaItem) {
+                        //                        list.remove(at: index)
+                        //                    } else {
+                        //                        print("ERROR")
+                        //                    }
                         
                         if purge {
-                            mediaItem.notesTokens = nil // Save memory - load on demand.
+                            mediaItem.notesTokens.cache = nil // Save memory - load on demand.
                         }
                         
                         print("notesTokens to add: \(notesTokens.count)")
@@ -304,44 +353,66 @@ class Lexicon : NSObject {
                             } else {
                                 self?.words?[token.key]?[mediaItem] = token.value
                             }
-                            
-                            if Globals.shared.isRefreshing || Globals.shared.isLoading {
-                                break
+
+//                            self?.words?[token.key]?[mediaItem] = token.value
+
+                            if let test = test, test() {
+                                return
+                            }
+
+                            if self?.halt == true {
+                                return
                             }
                         }
                     } else {
                         print("NO NOTES TOKENS!")
                     }
                 }
+                
+                if let test = test, test() {
+                    return
+                }
 
-                if Globals.shared.isRefreshing || Globals.shared.isLoading {
-                    break
+                if self?.halt == true {
+                    return
                 }
                 
-//                if let pauseUpdates = self.pauseUpdates, !pauseUpdates {
+                //                if let pauseUpdates = self.pauseUpdates, !pauseUpdates {
                 // What if the update takes longer than 10 seconds? => Need to queue updates.
                 // Now that updates are queued on the LIVC, we don't need this
                 // but it still seems like a good idea to avoid a flurry of updates
                 // even as the lexicon is continuing to change, which means if the LIVC queue
                 // has a backlog the pending updates will all be the same, which is waste of update time.
-                    if firstUpdate || (date.timeIntervalSinceNow <= -10) { // 2.5
-                        //                                print(date)
-                        
-//                                self?.words = dict.count > 0 ? dict : nil
-                        self?.update()
-                        
-                        date = Date()
-
-                        firstUpdate = false
-                    }
-//                }
+                if firstUpdate || (date.timeIntervalSinceNow <= -10) { // 2.5
+                    //                                print(date)
+                    
+                    //                                self?.words = dict.count > 0 ? dict : nil
+                    self?.update()
+                    
+                    date = Date()
+                    
+                    firstUpdate = false
+                }
+                //                }
                 
-                if Globals.shared.isRefreshing || Globals.shared.isLoading {
-                    break
+                if let test = test, test() {
+                    return
+                }
+                
+                if self?.halt == true {
+                    return
                 }
             } while list.count > 0
+            
+            if let test = test, test() {
+                return
+            }
+            
+            if self?.halt == true {
+                return
+            }
 
-//                self?.words = dict.count > 0 ? dict : nil
+            //                self?.words = dict.count > 0 ? dict : nil
             self?.update()
             
             self?.creating = false
@@ -355,6 +426,8 @@ class Lexicon : NSObject {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
             }
         }
+
+        operationQueue.addOperation(operation)
     }
     
     func load()
@@ -363,13 +436,13 @@ class Lexicon : NSObject {
             return
         }
         
-        let dict = Words(name: UUID().uuidString + "Words")
+        let dict = Words(name: UUID().uuidString + Constants.Strings.Words)
         
         if let list = eligible {
             for mediaItem in list {
 //                mediaItem.loadNotesTokens()
                 
-                if let notesTokens = mediaItem.notesTokens?.result {
+                if let notesTokens = mediaItem.notesTokens.result {
                     for token in notesTokens {
                         if dict[token.key] == nil {
                             dict[token.key] = [mediaItem:token.value]

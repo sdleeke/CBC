@@ -348,7 +348,7 @@ class PopoverTableViewController : UIViewController
     
     var alertController : UIAlertController?
     
-    var vc:UIViewController?
+//    var vc:UIViewController?
     
     var changesPending = false
     
@@ -788,9 +788,9 @@ class PopoverTableViewController : UIViewController
             return
         }
 
-        guard let vc = vc else {
-            return
-        }
+//        guard let vc = vc else {
+//            return
+//        }
         
         guard let strings = section.strings else {
             return
@@ -832,7 +832,7 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-        let viewWidth = vc.view.frame.width
+        let viewWidth = Globals.shared.splitViewController.view.frame.width
         
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
@@ -2532,7 +2532,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 popover.selectedMediaItem = self.selectedMediaItem
                 popover.transcript = self.transcript
                 
-                popover.vc = self.vc
+//                popover.vc = self.vc
                 popover.search = false // This keeps it to one level deep.
                 
                 popover.editActionsAtIndexPath = self.editActionsAtIndexPath

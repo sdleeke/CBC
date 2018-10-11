@@ -44,6 +44,8 @@ extension UIColor
 enum PopoverPurpose {
     case selectingShow
 
+    case selectingGapTime
+
     case selectingSorting
     case selectingGrouping
     case selectingSection
@@ -278,7 +280,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
 {
     // MARK: PopoverPickerControllerDelegate
     
-    func stringPicked(_ string:String?)
+    func stringPicked(_ string:String?, purpose:PopoverPurpose?)
     {
         Thread.onMainThread {
             self.dismiss(animated: true, completion: {
@@ -588,7 +590,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 alert.makeOpaque()
                 
-                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                     (action : UIAlertAction!) -> Void in
                     VoiceBase.delete(mediaID: mediaID)
                     
@@ -632,7 +634,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 alert.addAction(yesAction)
                 
-                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                     (action : UIAlertAction!) -> Void in
                     
                 })
@@ -932,7 +934,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         alert.makeOpaque()
 
-                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                             (action : UIAlertAction) -> Void in
                             VoiceBase.delete(mediaID: mediaID)
 
@@ -988,7 +990,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         })
                         alert.addAction(yesAction)
 
-                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
                             (action : UIAlertAction) -> Void in
 
                         })
@@ -1166,7 +1168,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                       preferredStyle: .alert)
         alert.makeOpaque()
         
-        let yesAction = UIAlertAction(title: "Yes", style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
+        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
             Globals.shared.history = nil
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
@@ -1338,7 +1340,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                popover.vc = self.splitViewController
+//                popover.vc = self.splitViewController
                 
                 present(navigationController, animated: true, completion: {
                     self.presentingVC = navigationController
@@ -1600,7 +1602,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 self.popover?.search = true
                 
-                self.popover?.vc = self.splitViewController
+//                self.popover?.vc = self.splitViewController
 
                 self.present(navigationController, animated: true, completion: {
                     self.popover?.activityIndicator.startAnimating()
@@ -2056,7 +2058,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 //                popover.detail = true
                 //                popover.detailAction = transcriptSegmentAction
                 
-                popover.vc = self.popover
+//                popover.vc = self.popover
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -2382,7 +2384,7 @@ class MediaTableViewController : UIViewController // MediaController
                                         preferredStyle: .alert)
         alert.makeOpaque()
         
-        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
             (action : UIAlertAction!) -> Void in
             self.dismiss(animated: true, completion: {
                 self.presentingVC = nil
@@ -2392,17 +2394,17 @@ class MediaTableViewController : UIViewController // MediaController
         })
         alert.addAction(yesAction)
         
-        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
             (action : UIAlertAction!) -> Void in
             
         })
         alert.addAction(noAction)
         
-        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
-        alert.addAction(cancel)
+//        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//            
+//        })
+//        alert.addAction(cancel)
         
         present(alert, animated: true, completion: nil)
     }
@@ -2542,7 +2544,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.section.strings = Globals.shared.mediaCategory.names
             
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2722,7 +2724,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.section.strings = showMenu
 
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
 
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2878,7 +2880,7 @@ class MediaTableViewController : UIViewController // MediaController
                 break
             }
             
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2920,7 +2922,7 @@ class MediaTableViewController : UIViewController // MediaController
             popover.section.strings = Globals.shared.groupingTitles
             popover.stringSelected = translate(Globals.shared.grouping)
 
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2962,7 +2964,7 @@ class MediaTableViewController : UIViewController // MediaController
             popover.section.strings = Constants.SortingTitles
             popover.stringSelected = translate(Globals.shared.sorting)
             
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -3618,7 +3620,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.section.strings = actionMenu()
             
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
 
             self.present(navigationController, animated: true, completion:  {
                 self.presentingVC = navigationController
@@ -3753,7 +3755,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.search = popover.section.strings?.count > 10
             
-            popover.vc = self.splitViewController
+//            popover.vc = self.splitViewController
             
             self.present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -4757,13 +4759,13 @@ extension MediaTableViewController : UITableViewDelegate
 //                                                    preferredStyle: .alert)
 //                    alert.makeOpaque()
 //                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        mediaItem.audioDownload?.delete()
 //                    })
 //                    alert.addAction(yesAction)
 //                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        
 //                    })
@@ -4791,13 +4793,13 @@ extension MediaTableViewController : UITableViewDelegate
 //                                                            preferredStyle: .alert)
 //                            alert.makeOpaque()
 //                            
-//                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                mediaItem.audioDownload?.delete()
 //                            })
 //                            alert.addAction(yesAction)
 //                            
-//                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                
 //                            })

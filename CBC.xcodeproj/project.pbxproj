@@ -46,6 +46,7 @@
 		179495621FDC4811001BB4D8 /* CloudLayoutOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179495611FDC4811001BB4D8 /* CloudLayoutOperation.swift */; };
 		179495641FDC4845001BB4D8 /* CloudWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179495631FDC4845001BB4D8 /* CloudWord.swift */; };
 		179495661FDC48C2001BB4D8 /* CloudViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179495651FDC48C2001BB4D8 /* CloudViewController.swift */; };
+		179621F1216EB74700474C66 /* CancellableOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179621F0216EB74700474C66 /* CancellableOperation.swift */; };
 		1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74D1CA93BC900CED4A5 /* Globals.swift */; };
 		1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */; };
 		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
@@ -143,6 +144,7 @@
 		179495611FDC4811001BB4D8 /* CloudLayoutOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudLayoutOperation.swift; sourceTree = "<group>"; };
 		179495631FDC4845001BB4D8 /* CloudWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudWord.swift; sourceTree = "<group>"; };
 		179495651FDC48C2001BB4D8 /* CloudViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudViewController.swift; sourceTree = "<group>"; };
+		179621F0216EB74700474C66 /* CancellableOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancellableOperation.swift; sourceTree = "<group>"; };
 		1798C74D1CA93BC900CED4A5 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveViewController.swift; sourceTree = "<group>"; };
 		1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBCUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -241,6 +243,7 @@
 				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
 				17FF98842030DA3E002AD442 /* Search.swift */,
 				17CDEF0D2167762900B21C87 /* FetchedImage.swift */,
+				179621F0216EB74700474C66 /* CancellableOperation.swift */,
 				17A952672158FE830033903C /* generics.swift */,
 				17FF98822030DA07002AD442 /* extensions.swift */,
 				17E75EC91B835FC600AE8ED5 /* functions.swift */,
@@ -526,6 +529,7 @@
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
 				17FF98832030DA07002AD442 /* extensions.swift in Sources */,
+				179621F1216EB74700474C66 /* CancellableOperation.swift in Sources */,
 				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
 				172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */,
 				17FF98872030DA5A002AD442 /* SelectedMediaItem.swift in Sources */,

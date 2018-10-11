@@ -416,6 +416,160 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
             })
 }
 
+func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!, string:String?, searchText:String?, wholeWordsOnly:Bool, test : (()->(Bool))?) -> NSAttributedString?
+{
+    guard var workingString = string, !workingString.isEmpty else {
+        return nil
+    }
+    
+    guard let searchText = searchText, !searchText.isEmpty else {
+        return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+    }
+    
+    guard wholeWordsOnly else {
+        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+        
+        var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
+        
+        while let range = attributedString.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+            if let test = test, test() {
+                break
+            }
+            
+            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+            
+            attributedText.addAttribute(NSAttributedStringKey.backgroundColor, value: UIColor.yellow, range: nsRange)
+            startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+        }
+        
+        return attributedText
+    }
+    
+    //    var stringBefore    = String()
+    //    var stringAfter     = String()
+    //
+    //    var foundString     = String()
+    
+    let newAttrString       = NSMutableAttributedString()
+    var foundAttrString     = NSAttributedString()
+    
+    var stringBefore:String = Constants.EMPTY_STRING
+    var stringAfter:String = Constants.EMPTY_STRING
+//    var newString:String = Constants.EMPTY_STRING
+    var foundString:String = Constants.EMPTY_STRING
+    
+    while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
+        if let test = test, test() {
+            break
+        }
+        
+        //                print(string)
+        
+        if let range = workingString.lowercased().range(of: searchText.lowercased()) {
+            stringBefore = String(workingString[..<range.lowerBound])
+            stringAfter = String(workingString[range.upperBound...])
+            
+            var skip = false
+            
+            if wholeWordsOnly {
+                if stringBefore == "" {
+                    if  let characterBefore:Character = newAttrString.string.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                } else {
+                    if  let characterBefore:Character = stringBefore.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                }
+                
+                if let characterAfter:Character = stringAfter.first {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+                        skip = true
+                    }
+                    
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                            if stringAfter.endIndex > stringAfter.startIndex {
+                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                
+                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                    skip = CharacterSet.letters.contains(unicodeScalar)
+                                }
+                            }
+                        }
+                    }
+                    
+                    //                            print(characterAfter)
+                    
+                    // What happens with other types of apostrophes?
+                    //                    if stringAfter.endIndex >= "'s".endIndex {
+                    //                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+                    //                            skip = false
+                    //                        }
+                    //                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+                    //                            skip = false
+                    //                        }
+                    //                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+                    //                            skip = false
+                    //                        }
+                    //                    }
+                }
+                
+                if let characterBefore:Character = stringBefore.last {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+                        skip = true
+                    }
+                }
+            }
+            
+            foundString = String(workingString[range.lowerBound...])
+            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                foundString = String(foundString[..<newRange.upperBound])
+            }
+            
+            if !skip {
+                foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+            }
+            
+            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+            
+            newAttrString.append(foundAttrString)
+            
+            //                stringBefore = stringBefore + foundString
+            
+            workingString = stringAfter
+        } else {
+            break
+        }
+    }
+    
+    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+    
+    if newAttrString.string.isEmpty, let string = string {
+        newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
+    }
+    
+    return newAttrString
+}
+
 func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
 {
     guard let string = string, !string.isEmpty else {
@@ -454,7 +608,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         }
                         
                         if searchText.count == 1 {
-                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
@@ -467,7 +621,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         }
                         
                         if searchText.count == 1 {
-                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
@@ -491,19 +645,32 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
 
                     //                            print(characterAfter)
                     
-                    // What happens with other types of apostrophes?
-                    if stringAfter.endIndex >= "'s".endIndex {
-                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                            skip = false
-                        }
-                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                            skip = false
-                        }
-                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                            skip = false
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                            if stringAfter.endIndex > stringAfter.startIndex {
+                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                
+                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                    skip = CharacterSet.letters.contains(unicodeScalar)
+                                }
+                            }
                         }
                     }
+
+                    // What happens with other types of apostrophes?
+//                    if stringAfter.endIndex >= "'s".endIndex {
+//                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+//                            skip = false
+//                        }
+//                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+//                            skip = false
+//                        }
+//                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+//                            skip = false
+//                        }
+//                    }
                 }
+                
                 if let characterBefore:Character = stringBefore.last {
                     if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
 //                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
@@ -2167,34 +2334,46 @@ func tokensFromString(_ string:String?) -> [String]?
     for index in str.indices {
         //        print(char)
         
-        let char = str[index]
-        
-        let remainder = String(str[index...])
-        
-        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
-//        print(suffix)
-        
-        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
-//        print(next)
-        
         var skip = false
         
-        // What happens with other types of apostrophes?
-        if suffix.lowercased() == "'s" {
-            skip = true
+        let char = str[index]
+        
+        if let charUnicodeScalar = UnicodeScalar(String(char)) {
+            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
+                if str.endIndex > index {
+                    let nextChar = str[str.index(index, offsetBy:1)]
+                    
+                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                        skip = CharacterSet.letters.contains(unicodeScalar)
+                    }
+                }
+            }
         }
         
-        if suffix.lowercased() == "'t" {
-            skip = true
-        }
-        
-        if suffix.lowercased() == "'d" {
-            skip = true
-        }
-        
-        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
-            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
-        }
+//        let remainder = String(str[index...])
+//
+//        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
+////        print(suffix)
+//
+//        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
+////        print(next)
+//
+//        // What happens with other types of apostrophes?
+//        if suffix.lowercased() == "'s" {
+//            skip = true
+//        }
+//
+//        if suffix.lowercased() == "'t" {
+//            skip = true
+//        }
+//
+//        if suffix.lowercased() == "'d" {
+//            skip = true
+//        }
+//
+//        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
+//            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
+//        }
         
 //        print(skip)
         
@@ -2576,34 +2755,46 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     for index in str.indices {
         //        print(char)
         
-        let char = str[index]
-
-        let remainder = String(str[index...])
-        
-        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
-//        print(suffix)
-        
-        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
-//        print(next)
-
         var skip = false
         
-        // What happens with other types of apostrophes?
-        if suffix.lowercased() == "'s" {
-            skip = true
+        let char = str[index]
+        
+        if let charUnicodeScalar = UnicodeScalar(String(char)) {
+            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
+                if str.endIndex > index {
+                    let nextChar = str[str.index(index, offsetBy:1)]
+                    
+                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                        skip = CharacterSet.letters.contains(unicodeScalar)
+                    }
+                }
+            }
         }
         
-        if suffix.lowercased() == "'t" {
-            skip = true
-        }
-        
-        if suffix.lowercased() == "'d" {
-            skip = true
-        }
-        
-        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
-            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
-        }
+//        let remainder = String(str[index...])
+//
+//        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
+//        //        print(suffix)
+//
+//        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
+//        //        print(next)
+//
+//        // What happens with other types of apostrophes?
+//        if suffix.lowercased() == "'s" {
+//            skip = true
+//        }
+//
+//        if suffix.lowercased() == "'t" {
+//            skip = true
+//        }
+//
+//        if suffix.lowercased() == "'d" {
+//            skip = true
+//        }
+//
+//        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
+//            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
+//        }
         
 //        print(skip)
         
@@ -3502,6 +3693,27 @@ func process(viewController:UIViewController,disableEnable:Bool = true,hideSubvi
     }
 }
 
+func mailText(viewController:UIViewController,to: [String],subject: String, string:String)
+{
+    let mailComposeViewController = MFMailComposeViewController()
+    
+    // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+    mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
+    
+    mailComposeViewController.setToRecipients(to)
+    mailComposeViewController.setSubject(subject)
+    
+    mailComposeViewController.setMessageBody(string, isHTML: false)
+    
+    if MFMailComposeViewController.canSendMail() {
+        Thread.onMainThread {
+            viewController.present(mailComposeViewController, animated: true, completion: nil)
+        }
+    } else {
+        showSendMailErrorAlert(viewController: viewController)
+    }
+}
+
 func mailHTML(viewController:UIViewController,to: [String],subject: String, htmlString:String)
 {
     let mailComposeViewController = MFMailComposeViewController()
@@ -3523,7 +3735,67 @@ func mailHTML(viewController:UIViewController,to: [String],subject: String, html
     }
 }
 
-func printJob(viewController:UIViewController,data:Data?,html:String?,orientation:UIPrintInfoOrientation)
+func printTextJob(viewController:UIViewController,data:Data?,string:String?,orientation:UIPrintInfoOrientation)
+{
+    guard UIPrintInteractionController.isPrintingAvailable, !((string != nil) && (data != nil)), (string != nil) || (data != nil) else {
+        return
+    }
+    
+    let pi = UIPrintInfo.printInfo()
+    pi.outputType = UIPrintInfoOutputType.general
+    pi.jobName = Constants.Strings.Print;
+    pi.duplex = UIPrintInfoDuplex.longEdge
+    
+    let pic = UIPrintInteractionController.shared
+    pic.printInfo = pi
+    //    pic.showsPageRange = true
+    pic.showsPaperSelectionForLoadedPapers = true
+    
+    if let string = string {
+        let formatter = UISimpleTextPrintFormatter(text: string)
+        let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
+        formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        //        pic.printFormatter = formatter
+        
+        let renderer = UIPrintPageRenderer()
+        renderer.headerHeight = margin
+        renderer.footerHeight = margin
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        pic.printPageRenderer = renderer
+        
+        pi.orientation = orientation
+    }
+    
+    if data != nil {
+        pic.printingItem = data
+    }
+    
+    Thread.onMainThread {
+        if let barButtonItem = viewController.navigationItem.rightBarButtonItem {
+            pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        }
+    }
+}
+
+func printText(viewController:UIViewController,string:String?)
+{
+    guard UIPrintInteractionController.isPrintingAvailable && (string != nil) else {
+        return
+    }
+    
+    pageOrientation(viewController: viewController,
+                    portrait: ({
+                        printTextJob(viewController: viewController,data:nil,string:string,orientation:.portrait)
+                    }),
+                    landscape: ({
+                        printTextJob(viewController: viewController,data:nil,string:string,orientation:.landscape)
+                    }),
+                    cancel: ({
+                    })
+    )
+}
+
+func printHTMLJob(viewController:UIViewController,data:Data?,html:String?,orientation:UIPrintInfoOrientation)
 {
     guard UIPrintInteractionController.isPrintingAvailable, !((html != nil) && (data != nil)), (html != nil) || (data != nil) else {
         return
@@ -3536,15 +3808,15 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
-//    pic.showsPageRange = true
+    //    pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
-
+    
     if let html = html {
         let formatter = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
         formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-//        pic.printFormatter = formatter
-
+        //        pic.printFormatter = formatter
+        
         let renderer = UIPrintPageRenderer()
         renderer.headerHeight = margin
         renderer.footerHeight = margin
@@ -3553,7 +3825,7 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
         
         pi.orientation = orientation
     }
-
+    
     if data != nil {
         pic.printingItem = data
     }
@@ -3573,10 +3845,10 @@ func printHTML(viewController:UIViewController,htmlString:String?)
     
     pageOrientation(viewController: viewController,
                     portrait: ({
-                        printJob(viewController: viewController,data:nil,html:htmlString,orientation:.portrait)
+                        printHTMLJob(viewController: viewController,data:nil,html:htmlString,orientation:.portrait)
                     }),
                     landscape: ({
-                        printJob(viewController: viewController,data:nil,html:htmlString,orientation:.landscape)
+                        printHTMLJob(viewController: viewController,data:nil,html:htmlString,orientation:.landscape)
                     }),
                     cancel: ({
                     })
@@ -3592,7 +3864,7 @@ func printDocument(viewController:UIViewController,documentURL:URL?)
     process(viewController: viewController, work: {
         return NSData(contentsOf: documentURL)
     }, completion: { (data:Any?) in
-        printJob(viewController: viewController, data: data as? Data, html: nil, orientation: .portrait)
+        printHTMLJob(viewController: viewController, data: data as? Data, html: nil, orientation: .portrait)
     })
 }
 
@@ -3605,7 +3877,7 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
     process(viewController: viewController, work: {
         return mediaItem?.contentsHTML
     }, completion: { (data:Any?) in
-        printJob(viewController:viewController,data:nil,html:(data as? String),orientation:.portrait)
+        printHTMLJob(viewController:viewController,data:nil,html:(data as? String),orientation:.portrait)
     })
 }
 
@@ -3629,7 +3901,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
         process(viewController: viewController, work: {
             return stringFunction?(mediaItems,links,columns)
         }, completion: { (data:Any?) in
-            printJob(viewController:viewController,data:nil,html:(data as? String),orientation:orientation)
+            printHTMLJob(viewController:viewController,data:nil,html:(data as? String),orientation:orientation)
         })
     }
     
@@ -3803,50 +4075,66 @@ func preferredModalPresentationStyle(viewController:UIViewController) -> UIModal
 //            }
 //        }
 //    }
-    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
-        let hClass = viewController.traitCollection.horizontalSizeClass
-        
-        if hClass == .compact {
-            return .overFullScreen
-        } else {
-            // I don't think this ever happens: collapsed and regular
-            return .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-        }
-    } else {
-        if viewController.splitViewController?.displayMode == .primaryHidden {
-            if !UIApplication.shared.isRunningInFullScreen() {
-                return .overFullScreen // Used to be .popover
-            } else {
-                let vClass = viewController.traitCollection.verticalSizeClass
-                
-                if vClass == .compact {
-                    return .overFullScreen // Used to be .popover
-                } else {
-                    return .formSheet // Used to be .popover
-                }
-            }
-        } else {
-            if !UIApplication.shared.isRunningInFullScreen() {
-                if let _ = viewController as? MediaTableViewController {
-                    return .overCurrentContext // Used to be .popover
-                } else {
-                    return .overFullScreen // Used to be .popover
-                }
-            } else {
-                if let _ = viewController as? MediaTableViewController {
-                    return .overCurrentContext // Used to be .popover
-                } else {
-                    let vClass = viewController.traitCollection.verticalSizeClass
-                    
-                    if vClass == .compact {
-                        return .overFullScreen // Used to be .popover
-                    } else {
-                        return .formSheet // Used to be .popover
-                    }
-                }
-            }
-        }
+    
+    
+    let vClass = viewController.traitCollection.verticalSizeClass
+    
+    if vClass == .compact {
+        return .overFullScreen
     }
+
+    let hClass = viewController.traitCollection.horizontalSizeClass
+    
+    if (hClass == .compact) {
+        return .overCurrentContext
+    }
+    
+    return .formSheet
+    
+//    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
+//        let hClass = viewController.traitCollection.horizontalSizeClass
+//
+//        if hClass == .compact {
+//            return .overFullScreen
+//        } else {
+//            // I don't think this ever happens: collapsed and regular
+//            return .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//        }
+//    } else {
+//        if viewController.splitViewController?.displayMode == .primaryHidden {
+//            if !UIApplication.shared.isRunningInFullScreen() {
+//                return .overFullScreen // Used to be .popover
+//            } else {
+//                let vClass = viewController.traitCollection.verticalSizeClass
+//
+//                if vClass == .compact {
+//                    return .overFullScreen // Used to be .popover
+//                } else {
+//                    return .formSheet // Used to be .popover
+//                }
+//            }
+//        } else {
+//            if !UIApplication.shared.isRunningInFullScreen() {
+//                if let _ = viewController as? MediaTableViewController {
+//                    return .overCurrentContext // Used to be .popover
+//                } else {
+//                    return .overFullScreen // Used to be .popover
+//                }
+//            } else {
+//                if let _ = viewController as? MediaTableViewController {
+//                    return .overCurrentContext // Used to be .popover
+//                } else {
+//                    let vClass = viewController.traitCollection.verticalSizeClass
+//
+//                    if vClass == .compact {
+//                        return .overFullScreen // Used to be .popover
+//                    } else {
+//                        return .formSheet // Used to be .popover
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem? = nil, transcript:VoiceBase? = nil, title:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String?)
@@ -4924,6 +5212,30 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
         (action : UIAlertAction!) -> Void in
     })
     alert.addAction(cancel)
+
+    Thread.onMainThread {
+        viewController.present(alert, animated: true, completion: nil)
+    }
+}
+
+func yesOrNo(viewController:UIViewController,title:String?,message:String?,
+                       yesAction:(()->(Void))?, yesStyle: UIAlertActionStyle,
+                       noAction:(()->(Void))?, noStyle: UIAlertActionStyle)
+{
+    let alert = UIAlertController(title: title,
+                                  message: message,
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
+    
+    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: { (UIAlertAction) -> Void in
+        yesAction?()
+    })
+    alert.addAction(yesAction)
+
+    let noAction = UIAlertAction(title: Constants.Strings.No, style: noStyle, handler: { (UIAlertAction) -> Void in
+        noAction?()
+    })
+    alert.addAction(noAction)
 
     Thread.onMainThread {
         viewController.present(alert, animated: true, completion: nil)

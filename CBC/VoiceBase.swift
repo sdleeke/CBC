@@ -936,7 +936,7 @@ class VoiceBase {
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -949,7 +949,7 @@ class VoiceBase {
                             }
                             
                             if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES + "'").contains(unicodeScalar) {
+                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
                                     skip = true
                                 }
                             }
@@ -971,20 +971,32 @@ class VoiceBase {
 //                            }
                         }
                         
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                                if stringAfter.endIndex > stringAfter.startIndex {
+                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                    
+                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                        skip = CharacterSet.letters.contains(unicodeScalar)
+                                    }
+                                }
+                            }
+                        }
+                        
 //                            print(characterAfter)
                         
                         // What happens with other types of apostrophes?
-                        if stringAfter.endIndex >= "'s".endIndex {
-                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                                skip = false
-                            }
-                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                                skip = false
-                            }
-                        }
+//                        if stringAfter.endIndex >= "'s".endIndex {
+//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+//                                skip = false
+//                            }
+//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+//                                skip = false
+//                            }
+//                        }
                     }
                     if let characterBefore:Character = stringBefore.last {
                         if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
@@ -4109,13 +4121,13 @@ class VoiceBase {
                                         if Globals.shared.reachability.isReachable {
                                             var alertActions = [AlertAction]()
                                             
-                                            alertActions.append(AlertAction(title: "Yes", style: .default, handler: {
+                                            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
                                                 self.getTranscript(alert: true) {}
                                                 //                            tableView.setEditing(false, animated: true)
                                                 mgtUpdate()
                                             }))
                                             
-                                            alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                                            alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                             
                                             if let text = self.mediaItem?.text {
                                                 alertActionsCancel( viewController: viewController,
@@ -4157,13 +4169,13 @@ class VoiceBase {
                     if Globals.shared.reachability.isReachable {
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .default, handler: {
+                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
                             self.getTranscript(alert: true) {}
 //                            tableView.setEditing(false, animated: true)
                             mgtUpdate()
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -4390,11 +4402,11 @@ class VoiceBase {
                                 actions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                                     var actions = [AlertAction]()
                                     
-                                    actions.append(AlertAction(title: "Yes", style: .destructive, handler: {
+                                    actions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                                         VoiceBase.delete(mediaID: self.mediaID)
                                     }))
                                     
-                                    actions.append(AlertAction(title: "No", style: .default, handler:nil))
+                                    actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:nil))
                                     
                                     Alerts.shared.alert(title:"Confirm Removal From VoiceBase", message:text + "\nMedia ID: " + mediaID, actions:actions)
                                 }))
@@ -4434,31 +4446,31 @@ class VoiceBase {
                         
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
+                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                             var alertActions = [AlertAction]()
                             
                             if self.mediaItem?.hasNotesHTML == true {
-                                alertActions.append(AlertAction(title: "HTML Transcript", style: .default, handler: {
+                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .default, handler: {
                                     process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                                        self?.mediaItem?.notesHTML?.load() // Do this in case there is delay.
+                                        self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
                                     }, completion: { [weak self] (data:Any?) in
-                                        self?.align(stripHTML(self?.mediaItem?.notesHTML?.result))
+                                        self?.align(stripHTML(self?.mediaItem?.notesHTML.result))
                                     })
                                     //                                tableView.setEditing(false, animated: true)
                                 }))
                             }
                             
-                            alertActions.append(AlertAction(title: "Transcript", style: .default, handler: {
+                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .default, handler: {
                                 self.align(self.transcript)
                                 //                                tableView.setEditing(false, animated: true)
                             }))
                             
-                            alertActions.append(AlertAction(title: "Segments", style: .default, handler: {
+                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .default, handler: {
                                 self.align(self.transcriptFromTranscriptSegments)
 //                                tableView.setEditing(false, animated: true)
                             }))
                             
-                            alertActions.append(AlertAction(title: "Words", style: .default, handler: {
+                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .default, handler: {
                                 self.align(self.transcriptFromWords)
 //                                tableView.setEditing(false, animated: true)
                             }))
@@ -4470,7 +4482,7 @@ class VoiceBase {
                                                 cancelAction: nil)
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -4499,11 +4511,11 @@ class VoiceBase {
                     alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, handler: {
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
+                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                             self.transcript = self.transcriptFromWords
                         }))
                         
-                        alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
@@ -4520,7 +4532,7 @@ class VoiceBase {
                                 if let text = self.mediaItem?.text {
                                     var alertActions = [AlertAction]()
                                     
-                                    alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
+                                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                                         Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
                                         
                                         if self.resultsTimer != nil {
@@ -4538,7 +4550,7 @@ class VoiceBase {
                                         }
                                     }))
                                     
-                                    alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                     
                                     if let text = self.mediaItem?.text {
                                         alertActionsCancel( viewController: viewController,
@@ -4583,12 +4595,12 @@ class VoiceBase {
                     
                     var alertActions = [AlertAction]()
                     
-                    alertActions.append(AlertAction(title: "Yes", style: .destructive, handler: {
+                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                         self.remove()
 //                        tableView.setEditing(false, animated: true)
                     }))
                     
-                    alertActions.append(AlertAction(title: "No", style: .default, handler: nil))
+                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                     
                     if let text = self.mediaItem?.text {
                         alertActionsCancel( viewController: viewController,
@@ -4816,7 +4828,7 @@ class VoiceBase {
                     popover.selectedMediaItem = self.mediaItem
                     popover.transcript = self
                     
-                    popover.vc = viewController
+//                    popover.vc = viewController
                     popover.search = true
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
@@ -4869,7 +4881,7 @@ class VoiceBase {
                     popover.selectedMediaItem = self.mediaItem
                     popover.transcript = self
                     
-                    popover.vc = viewController
+//                    popover.vc = viewController
                     popover.search = true
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
@@ -4970,7 +4982,7 @@ class VoiceBase {
                     popover.selectedMediaItem = self.mediaItem
                     popover.transcript = self
                     
-                    popover.vc = viewController
+//                    popover.vc = viewController
                     popover.search = true
                     
                     popover.editActionsAtIndexPath = self.rowActions
@@ -5103,7 +5115,7 @@ class VoiceBase {
                     popover.selectedMediaItem = self.mediaItem
                     popover.transcript = self
                     
-                    popover.vc = viewController
+//                    popover.vc = viewController
                     popover.search = true
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate

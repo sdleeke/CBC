@@ -160,7 +160,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 //                popover.detail = true
                 //                popover.detailAction = transcriptSegmentAction
                 
-                popover.vc = self.popover
+//                popover.vc = self.popover
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -1308,7 +1308,7 @@ class ScriptureIndexViewController : UIViewController
             
             popover.section.strings = actionMenuItems()
             
-            popover.vc = self
+//            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -1346,7 +1346,7 @@ class ScriptureIndexViewController : UIViewController
 
             popover.section.strings = sectionTitles
             
-            popover.vc = self
+//            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -1757,6 +1757,8 @@ extension ScriptureIndexViewController : UITableViewDataSource
         
         cell.hideUI()
         
+        cell.vc = self
+        
         if let _ = scriptureIndex?.selectedBook {
             cell.mediaItem = mediaItems?[indexPath.row]
         } else {
@@ -1764,8 +1766,6 @@ extension ScriptureIndexViewController : UITableViewDataSource
                 cell.mediaItem = sections?[sectionTitle]?[indexPath.row]
             }
         }
-        
-        cell.vc = self
         
         return cell
     }
@@ -1839,13 +1839,13 @@ extension ScriptureIndexViewController : UITableViewDelegate
 //                                                    preferredStyle: .alert)
 //                    alert.makeOpaque()
 //                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        mediaItem.audioDownload?.delete()
 //                    })
 //                    alert.addAction(yesAction)
 //                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                        (action : UIAlertAction!) -> Void in
 //                        
 //                    })
@@ -1873,13 +1873,13 @@ extension ScriptureIndexViewController : UITableViewDelegate
 //                                                            preferredStyle: .alert)
 //                            alert.makeOpaque()
 //                            
-//                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                mediaItem.audioDownload?.delete()
 //                            })
 //                            alert.addAction(yesAction)
 //                            
-//                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
 //                                (action : UIAlertAction!) -> Void in
 //                                
 //                            })

@@ -128,6 +128,15 @@ extension NSLayoutConstraint {
 }
 
 extension String {
+    var tokensAndCounts : [String:Int]?
+    {
+        get {
+            return tokensAndCountsFromString(self) // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
+        }
+    }
+}
+
+extension String {
     var url : URL?
     {
         get {
@@ -160,6 +169,52 @@ extension String {
     func download()
     {
         
+    }
+}
+
+extension String {
+    var html2AttributedString: NSAttributedString? {
+        return self.data(using: String.Encoding.utf16)?.html2AttributedString
+    }
+    var html2String: String? {
+        return html2AttributedString?.string
+    }
+}
+
+extension String {
+    var lemmas : [(String,String,NSRange)]?
+    {
+        get {
+            return lemmasInString(string: self)
+        }
+    }
+    
+    var nameTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return nameTypesInString(string: self)
+        }
+    }
+    
+    var lexicalTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return lexicalTypesInString(string: self)
+        }
+    }
+    
+    var tokenTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return tokenTypesInString(string: self)
+        }
+    }
+    
+    var nameAndLexicalTypes : [(String,String,NSRange)]?
+    {
+        get {
+            return nameTypesAndLexicalTypesInString(string: self)
+        }
     }
 }
 
@@ -280,50 +335,6 @@ extension URL
     }
 }
 
-extension String {
-    var lemmas : [(String,String,NSRange)]?
-    {
-        get {
-            return lemmasInString(string: self)
-        }
-    }
-    
-    var nameTypes : [(String,String,NSRange)]?
-    {
-        get {
-            return nameTypesInString(string: self)
-        }
-    }
-    
-    var lexicalTypes : [(String,String,NSRange)]?
-    {
-        get {
-            return lexicalTypesInString(string: self)
-        }
-    }
-    
-    var tokenTypes : [(String,String,NSRange)]?
-    {
-        get {
-            return tokenTypesInString(string: self)
-        }
-    }
-    
-    var nameAndLexicalTypes : [(String,String,NSRange)]?
-    {
-        get {
-            return nameTypesAndLexicalTypesInString(string: self)
-        }
-    }
-    
-    var tokensAndCounts : [String:Int]?
-    {
-        get {
-            return tokensAndCountsFromString(self) // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
-        }
-    }
-}
-
 extension Data {
     var html2AttributedString: NSAttributedString? {
         do {
@@ -336,15 +347,6 @@ extension Data {
             print("error:", error)
             return  nil
         }
-    }
-    var html2String: String? {
-        return html2AttributedString?.string
-    }
-}
-
-extension String {
-    var html2AttributedString: NSAttributedString? {
-        return self.data(using: String.Encoding.utf16)?.html2AttributedString
     }
     var html2String: String? {
         return html2AttributedString?.string

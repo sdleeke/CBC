@@ -38,20 +38,16 @@ class FetchImage
     var image : UIImage?
     {
         get {
-            return fetch?.result
+            return fetch.result
         }
     }
     
     func load()
     {
-        fetch?.load()
+        fetch.load()
     }
     
-    lazy var fetch:Fetch<UIImage>? = {
-        guard let imageName = imageName else {
-            return nil
-        }
-        
+    lazy var fetch:Fetch<UIImage> = {
         let fetch = Fetch<UIImage>(name:imageName)
         
         fetch.fetch = {

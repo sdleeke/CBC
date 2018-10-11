@@ -94,7 +94,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Print:
                 if let string = webViewController?.html.string, string.contains(" href=") {
                     firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
-                                      firstTitle: "Yes",
+                                      firstTitle: Constants.Strings.Yes,
                                       firstAction: {
                                         process(viewController: self, work: { [weak self] () -> (Any?) in
                                             return stripLinks(self?.webViewController?.html.string)
@@ -104,7 +104,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                                             }
                                         })
                     }, firstStyle: .default,
-                                      secondTitle: "No",
+                                      secondTitle: Constants.Strings.No,
                                       secondAction: {
                                         printHTML(viewController: self, htmlString: self.webViewController?.html.string)
                     }, secondStyle: .default,
@@ -624,7 +624,7 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    var ptvc:PopoverTableViewController?
+//    var ptvc:PopoverTableViewController?
     
     var activityViewController:UIActivityViewController?
 
@@ -638,7 +638,7 @@ class ScriptureViewController : UIViewController
         
         func action()
         {
-            ptvc?.dismiss(animated: false, completion: nil)
+            popover?.dismiss(animated: false, completion: nil)
             activityViewController?.dismiss(animated: false, completion: nil)
         }
         

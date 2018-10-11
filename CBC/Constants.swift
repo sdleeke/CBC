@@ -538,9 +538,9 @@ enum Constants {
     static let LEFT_DOUBLE_QUOTE = "\u{201C}"
     static let RIGHT_DOUBLE_QUOTE = "\u{201D}"
     
-    static let SINGLE_QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE
+    static let SINGLE_QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + SINGLE_QUOTE
     
-    static let DOUBLE_QUOTES = LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
+    static let DOUBLE_QUOTES = LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE + DOUBLE_QUOTE
     
     static let QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
     
@@ -763,15 +763,22 @@ enum Constants {
         static let Word_Picker = "Word Picker"
         static let Word_Cloud = "Word Cloud"
 
+        static let Segments = "Segments"
+        
         static let Sermon = "Sermon"
         static let Sermons = "Sermons"
+
+        static let Yes = "Yes"
+        static let No = "No"
 
         static let HTML = "HTML"
 
         static let Slides = "Slides"
         static let Transcript = "Transcript"
         static let Scripture = "Scripture"
-        
+
+        static let HTML_Transcript = HTML + Constants.SINGLE_SPACE + Transcript
+
         static let Actions = "Actions"
 
         static let Transcribing = "Transcribing"
