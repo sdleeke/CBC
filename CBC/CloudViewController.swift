@@ -385,7 +385,7 @@ class CloudViewController: UIViewController
     var cloudWords : [[String:Any]]?
     var cloudWordsFunction:(()->[[String:Any]]?)?
 
-    var mediaItem : MediaItem?
+//    var mediaItem : MediaItem?
     
     override func viewDidLoad()
     {
@@ -465,7 +465,7 @@ class CloudViewController: UIViewController
 
 //            UIPasteboard.general.image = snapshotImage
             
-            let activityViewController = UIActivityViewController(activityItems: [snapshotImage,mediaItem?.text], applicationActivities: nil)
+            let activityViewController = UIActivityViewController(activityItems: [snapshotImage,title], applicationActivities: nil)
             
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
@@ -516,6 +516,7 @@ class CloudViewController: UIViewController
                 return nil
             }, completion: { [weak self] (data:Any?) in
                 self?.cancelAndRelayoutCloudWords()
+                self?.wordsTableViewController.tableView.isHidden = false
                 self?.wordsTableViewController.tableView.reloadData()
             })
         }
@@ -832,6 +833,7 @@ class CloudViewController: UIViewController
                             }
                         }
                     }))
+                    
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
                         self.wordsTableViewController.tableView.isHidden = true
                         self.wordsTableViewController.activityIndicator.startAnimating()

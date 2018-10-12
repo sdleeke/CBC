@@ -645,59 +645,75 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
-                    if let mediaItem = mediaItem {
-                        popover.cloudTitle = mediaItem.title
-                        popover.mediaItem = mediaItem
+                    popover.cloudTitle = navigationItem.title
+
+                    let string = textView.text
+                    
+                    popover.cloudWordsFunction = {
+                        //                        mediaItem.loadNotesTokens()
                         
-                        popover.cloudWordsFunction = {
-                            //                        mediaItem.loadNotesTokens()
-                            
-                            let words:[[String:Any]]? = mediaItem.notesTokens.result?.map({ (key:String, value:Int) -> [String:Any] in
-                                return ["word":key,"count":value,"selected":true]
-                            })
-                            
-                            return words
-                        }
+                        let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
+                            return ["word":key,"count":value,"selected":true]
+                        })
                         
-                        //                .filter({ (dict:[String:Any]) -> Bool in
-                        //                    guard let word = dict["word"] as? String else {
-                        //                        return false
-                        //                    }
-                        //
-                        //                    guard let count = dict["count"] as? Int else {
-                        //                        return false
-                        //                    }
-                        //
-                        //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
-                        //                })
-                        
-                        //                    popover.cloudWords = words
-                    } else
-                        
-                        if let transcript = transcript {
-                            popover.cloudTitle = transcript.mediaItem?.title
-                            popover.mediaItem = transcript.mediaItem
-                            
-                            popover.cloudWordsFunction = {
-                                let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
-                                    return ["word":word,"count":count,"selected":true]
-                                })
-                                
-                                return words
-                            }
-                            
-                            //                    popover.cloudWords = words
-                        } else {
-                            popover.cloudTitle = navigationItem.title
-                            
-                            popover.cloudWordsFunction = {
-                                let words = self.textView.text.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
-                                    return ["word":word,"count":count,"selected":true]
-                                })
-                                
-                                return words
-                            }
+                        return words
                     }
+
+//                    if let mediaItem = mediaItem {
+//                        popover.cloudTitle = mediaItem.title
+////                        popover.mediaItem = mediaItem
+//                        
+//                        popover.cloudWordsFunction = {
+//                            //                        mediaItem.loadNotesTokens()
+//                            
+//                            let words:[[String:Any]]? = mediaItem.notesTokens.result?.map({ (key:String, value:Int) -> [String:Any] in
+//                                return ["word":key,"count":value,"selected":true]
+//                            })
+//                            
+//                            return words
+//                        }
+//                        
+//                        //                .filter({ (dict:[String:Any]) -> Bool in
+//                        //                    guard let word = dict["word"] as? String else {
+//                        //                        return false
+//                        //                    }
+//                        //
+//                        //                    guard let count = dict["count"] as? Int else {
+//                        //                        return false
+//                        //                    }
+//                        //
+//                        //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
+//                        //                })
+//                        
+//                        //                    popover.cloudWords = words
+//                    } else
+//                        
+//                        if let transcript = transcript {
+//                            popover.cloudTitle = transcript.mediaItem?.title
+////                            popover.mediaItem = transcript.mediaItem
+//                            
+//                            popover.cloudWordsFunction = {
+//                                let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
+//                                    return ["word":word,"count":count,"selected":true]
+//                                })
+//                                
+//                                return words
+//                            }
+//                            
+//                            //                    popover.cloudWords = words
+//                        } else {
+//                            popover.cloudTitle = navigationItem.title
+//                            
+//                            let string = self.textView.text
+//                            
+//                            popover.cloudWordsFunction = {
+//                                let words = string?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
+//                                    return ["word":word,"count":count,"selected":true]
+//                                })
+//                                
+//                                return words
+//                            }
+//                    }
                     
                     popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                     
@@ -1787,7 +1803,7 @@ class TextViewController : UIViewController
                                             webView.search = false
                                             webView.content = .html
                                             
-                                            newText = "<html><body>" + newText + "</body></html>"
+                                            newText = "<!DOCTYPE html><html><body>" + newText + "</body></html>"
                                             
                                             webView.html.string = insertHead(newText,fontSize: 24)
                                             
@@ -2054,8 +2070,13 @@ class TextViewController : UIViewController
                     actionMenu.append(Constants.Strings.Word_Picker)
                 }
                 
-                if splitViewController?.isCollapsed == false {
-                    actionMenu.append(Constants.Strings.Word_Cloud)
+                if Globals.shared.splitViewController?.isCollapsed == false {
+                    let vClass = traitCollection.verticalSizeClass
+                    let hClass = traitCollection.horizontalSizeClass
+                    
+                    if vClass != .compact, hClass != .compact {
+                        actionMenu.append(Constants.Strings.Word_Cloud)
+                    }
                 }
                 
                 actionMenu.append(Constants.Strings.Share)

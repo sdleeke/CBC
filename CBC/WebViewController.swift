@@ -16,7 +16,7 @@ class HTML {
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "LEXICON UPDATE"
+        operationQueue.name = "HTML"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -30,6 +30,8 @@ class HTML {
     }
     
     var original:String?
+    
+    var previousString:String?
     
     var string:String?
     {
@@ -48,7 +50,17 @@ class HTML {
                 original = string
             }
             
-            if string != oldValue {
+            if previousString == nil {
+                if string != oldValue {
+                    previousString = oldValue
+                }
+            } else {
+                if previousString != oldValue, string != oldValue {
+                    previousString = oldValue
+                }
+            }
+            
+            if string != previousString {
                 if let url = fileURL {
                     let fileManager = FileManager.default
 
@@ -207,7 +219,7 @@ extension WebViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return mediaItem?.text ?? (transcript?.mediaItem?.text ?? (self.navigationItem.title ?? ""))
+        return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
@@ -269,12 +281,8 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.isHidden = false
         self.activityIndicator.startAnimating()
         
-        if let mediaItem = mediaItem {
-            html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
-        }
-
-        if let transcript = transcript {
-            html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
+        if bodyHTML != nil, headerHTML != nil {
+            html.string = markBodyHTML(bodyHTML: bodyHTML, headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
         }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
@@ -339,7 +347,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             popover.search = self.search
             popover.mediaItem = self.mediaItem
-            popover.transcript = self.transcript
+
+            popover.bodyHTML = self.bodyHTML
+            popover.headerHTML = self.headerHTML
 
             popover.content = self.content
 
@@ -367,19 +377,21 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
-                yesOrNo(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
-                                  yesAction: {
-                                        process(viewController: self, work: { [weak self] () -> (Any?) in
-                                            return stripLinks(self?.html.string)
-                                        }, completion: { [weak self] (data:Any?) in
-                                            if let vc = self {
-                                                printHTML(viewController: vc, htmlString: data as? String)
-                                            }
-                                        })
-                                    }, yesStyle: .default,
-                                  noAction: {
-                                        printHTML(viewController: self, htmlString: self.html.string)
-                                    }, noStyle: .default)
+                firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
+                    firstTitle: Constants.Strings.Yes,
+                    firstAction: {
+                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                            return stripLinks(self?.html.string)
+                            }, completion: { [weak self] (data:Any?) in
+                                if let vc = self {
+                                    printHTML(viewController: vc, htmlString: data as? String)
+                                }
+                        })
+                }, firstStyle: .default,
+                   secondTitle: Constants.Strings.No,
+                   secondAction: {
+                    printHTML(viewController: self, htmlString: self.html.string)
+                }, secondStyle: .default)
             } else {
                 printHTML(viewController: self, htmlString: self.html.string)
             }
@@ -393,22 +405,22 @@ extension WebViewController : PopoverTableViewControllerDelegate
             searchAlert(viewController: self, title: "Search", message: nil, searchText:searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
                 self.searchText = alert.textFields?[0].text
                 
-                if let isEmpty = self.searchText?.isEmpty, isEmpty, self.html.string == self.html.original {
-                    return
-                }
-                
                 self.wkWebView?.isHidden = true
                 
                 self.activityIndicator.isHidden = false
                 self.activityIndicator.startAnimating()
                 
-                if self.mediaItem != nil {
-                    self.html.string = insertHead(stripHead(self.mediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
-                } else
-                if self.transcript != nil {
-                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                if let isEmpty = self.searchText?.isEmpty, isEmpty {
+                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
                 } else {
-                    self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                    if self.bodyHTML != nil, self.headerHTML != nil {
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                        //                } else
+                        //                if self.transcript != nil {
+                        //                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                    } else {
+                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                    }
                 }
                 
                 if let url = self.html.fileURL {
@@ -434,44 +446,59 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.stringTree = StringTree()
                 
-                if let mediaItem = mediaItem {
-                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
-                    
-//                    mediaItem.loadNotesTokens()
-//                    if let keys = mediaItem.notesTokens?.keys {
-//                        let strings = [String](keys).sorted()
-//                        popover.strings = strings
+//                if let mediaItem = mediaItem {
+//                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
+//
+////                    mediaItem.loadNotesTokens()
+////                    if let keys = mediaItem.notesTokens?.keys {
+////                        let strings = [String](keys).sorted()
+////                        popover.strings = strings
+////                    }
+//
+//                    popover.stringsFunction = {
+////                        mediaItem.notesTokens?.load()
+//                        if let keys = mediaItem.notesTokens.result?.keys {
+//                            let strings = [String](keys).sorted()
+//                            return strings
+//                        }
+//
+//                        return nil
 //                    }
+//
+////                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
+////                        return string
+////                    }).sorted()
+//                }
 
-                    popover.stringsFunction = {
-//                        mediaItem.notesTokens?.load()
-                        if let keys = mediaItem.notesTokens.result?.keys {
-                            let strings = [String](keys).sorted()
-                            return strings
-                        }
-                        
-                        return nil
-                    }
-
-//                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
-//                        return string
-//                    }).sorted()
-                }
-                
-                if let transcript = transcript {
-                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
+                if bodyHTML != nil {
+                    popover.navigationItem.title = title // Constants.Strings.Word_Picker
                     
-//                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-//                        return word
-//                    }).sorted()
+                    //                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+                    //                        return word
+                    //                    }).sorted()
                     
                     popover.stringsFunction = {
                         // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
+                        return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                             return word
                         }).sorted()
                     }
                 }
+
+//                if let transcript = transcript {
+//                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
+//
+////                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+////                        return word
+////                    }).sorted()
+//
+//                    popover.stringsFunction = {
+//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+//                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
+//                            return word
+//                        }).sorted()
+//                    }
+//                }
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -488,12 +515,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 if let mediaItem = mediaItem {
                     popover.cloudTitle = mediaItem.title
-                    popover.mediaItem = mediaItem
+//                    popover.mediaItem = mediaItem
                     
                     popover.cloudWordsFunction = {
 //                        mediaItem.loadNotesTokens()
                         
-                        let words:[[String:Any]]? = mediaItem.notesTokens.result?.map({ (key:String, value:Int) -> [String:Any] in
+                        let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })
                         
@@ -515,21 +542,17 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    popover.cloudWords = words
                 }
                 
-                if let transcript = transcript {
-                    popover.cloudTitle = transcript.mediaItem?.title
-                    popover.mediaItem = transcript.mediaItem
-
-                    popover.cloudWordsFunction = {
-                        let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
-                            return ["word":word,"count":count,"selected":true]
-                        })
-                        
-                        return words
-                    }
-                    
-//                    popover.cloudWords = words
-                }
+                popover.cloudTitle = navigationItem.title
+//                popover.mediaItem = transcript.mediaItem
                 
+                popover.cloudWordsFunction = {
+                    let words = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
+                        return ["word":word,"count":count,"selected":true]
+                    })
+                    
+                    return words
+                }
+
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                 
                 present(navigationController, animated: true, completion:  nil)
@@ -544,6 +567,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.delegate = self
                 
                 popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = navigationItem.title
                 
                 popover.delegate = self
                 popover.purpose = .selectingWord
@@ -594,53 +619,68 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.search = true
                 
-                if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
-                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
-                    
-                    popover.selectedMediaItem = mediaItem
-
-                    popover.stringsFunction = {
-                        //                            mediaItem.loadNotesTokens()
-                        
-                        return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                    }
-
-//                    if mediaItem.notesTokens == nil {
-//                        popover.stringsFunction = {
-////                            mediaItem.loadNotesTokens()
+//                if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
+//                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
 //
-//                            return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
-//                                return "\(string) (\(count))"
-//                            }).sorted()
-//                        }
-//                    } else {
-//                        popover.section.strings = mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
+//                    popover.selectedMediaItem = mediaItem
+//
+//                    popover.stringsFunction = {
+//                        //                            mediaItem.loadNotesTokens()
+//
+//                        return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
 //                            return "\(string) (\(count))"
 //                        }).sorted()
 //                    }
+//
+////                    if mediaItem.notesTokens == nil {
+////                        popover.stringsFunction = {
+//////                            mediaItem.loadNotesTokens()
+////
+////                            return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
+////                                return "\(string) (\(count))"
+////                            }).sorted()
+////                        }
+////                    } else {
+////                        popover.section.strings = mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
+////                            return "\(string) (\(count))"
+////                        }).sorted()
+////                    }
+//                }
+
+                popover.stringsFunction = {
+                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                    return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return "\(word) (\(count))"
+                    }).sorted()
                 }
+
+//                if bodyHTML != nil {
+//                    // If the transcript has been edited some of these words may not be found.
+//                    //                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+//                    //                        return "\(word) (\(count))"
+//                    //                    }).sorted()
+//
+//                }
                 
-                if let transcript = transcript {
-                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
-                    
-                    // If the transcript has been edited some of these words may not be found.
-//                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-//                        return "\(word) (\(count))"
-//                    }).sorted()
-
-                    popover.stringsFunction = {
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
-                            return "\(word) (\(count))"
-                        }).sorted()
-                    }
-
-//                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
-//                        return "\(word) (\(count))"
-//                    }).sorted()
-                }
+//                if let transcript = transcript {
+//                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
+//
+//                    // If the transcript has been edited some of these words may not be found.
+////                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+////                        return "\(word) (\(count))"
+////                    }).sorted()
+//
+//                    popover.stringsFunction = {
+//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+//                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
+//                            return "\(word) (\(count))"
+//                        }).sorted()
+//                    }
+//
+////                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
+////                        return "\(word) (\(count))"
+////                    }).sorted()
+//                }
                 
 //                popover.vc = self
 
@@ -722,12 +762,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.startAnimating()
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                if let mediaItem = mediaItem {
-                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
-                }
-                
-                if let transcript = self?.transcript {
-                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
+                if self?.bodyHTML != nil, self?.headerHTML != nil {
+                    self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
                 }
                 
                 if let fontSize = self?.html.fontSize {
@@ -978,196 +1014,6 @@ class WebViewController: UIViewController
     
     @IBOutlet weak var logo: UIImageView!
     
-    func markedHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
-    {
-        guard (stripHead(html.original) != nil) else {
-            return nil
-        }
-        
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return html.original
-        }
-        
-        var markCounter = 0
-        
-        func mark(_ input:String) -> String
-        {
-            var string = input
-            
-            var stringBefore:String = Constants.EMPTY_STRING
-            var stringAfter:String = Constants.EMPTY_STRING
-            var newString:String = Constants.EMPTY_STRING
-            var foundString:String = Constants.EMPTY_STRING
-            
-            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-                    break
-                }
-                
-                stringBefore = String(string[..<range.lowerBound])
-                stringAfter = String(string[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if stringBefore == "" {
-                        if  let characterBefore:Character = newString.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    } else {
-                        if  let characterBefore:Character = stringBefore.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    if let characterAfter:Character = stringAfter.first {
-                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
-//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        } else {
-//                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
-//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-//                                        skip = true
-//                                    }
-//                                }
-//                            }
-                        }
-                        
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                                if stringAfter.endIndex > stringAfter.startIndex {
-                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                    
-                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                        skip = CharacterSet.letters.contains(unicodeScalar)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        //                            print(characterAfter)
-                        
-                        // What happens with other types of apostrophes?
-//                        if stringAfter.endIndex >= "'s".endIndex {
-//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-//                                skip = false
-//                            }
-//                        }
-                    }
-                    
-                    if let characterBefore:Character = stringBefore.last {
-                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(string[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                }
-                
-                if !skip {
-                    markCounter += 1
-                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                }
-                
-                newString = newString + stringBefore + foundString
-                
-                stringBefore = stringBefore + foundString
-                
-                string = stringAfter
-            }
-            
-            newString = newString + stringAfter
-            
-            return newString == Constants.EMPTY_STRING ? string : newString
-        }
-        
-        var newString:String = Constants.EMPTY_STRING
-        var string:String = html.original ?? Constants.EMPTY_STRING
-        
-        while let searchRange = string.range(of: "<") {
-            let searchString = String(string[..<searchRange.lowerBound])
-            //            print(searchString)
-            
-            // mark search string
-            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
-            
-            let remainder = String(string[searchRange.lowerBound...])
-            
-            if let htmlRange = remainder.range(of: ">") {
-                let html = String(remainder[..<htmlRange.upperBound])
-                //                print(html)
-                
-                newString = newString + html
-                
-                string = String(remainder[htmlRange.upperBound...])
-            }
-        }
-        
-        var indexString:String!
-        
-        if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
-        } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
-        }
-        
-        // If we want an index of links to the occurrences of the searchText.
-        if index {
-            if markCounter > 0 {
-                indexString = indexString + "<div>Locations: "
-                
-                for counter in 1...markCounter {
-                    if counter > 1 {
-                        indexString = indexString + ", "
-                    }
-                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
-                }
-                
-                indexString = indexString + "<br/><br/></div>"
-            }
-        }
-        
-        var htmlString = "<!DOCTYPE html><html><body>"
-        
-        if index {
-            htmlString = htmlString + indexString
-        }
-        
-        htmlString = htmlString + newString + "</body></html>"
-        
-        return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
-    }
-
     @objc func updateDownload()
     {
         if let download = mediaItem?.download {
@@ -1217,15 +1063,18 @@ class WebViewController: UIViewController
         }
     }
     
-    var transcript:VoiceBase?
-    {
-        willSet {
-            
-        }
-        didSet {
-            
-        }
-    }
+//    var transcript:VoiceBase?
+//    {
+//        willSet {
+//            
+//        }
+//        didSet {
+//            
+//        }
+//    }
+    
+    var bodyHTML : String?
+    var headerHTML : String?
     
     var mediaItem:MediaItem?
     {
@@ -1334,16 +1183,23 @@ class WebViewController: UIViewController
             if (html.string != nil) && search {
                 actionMenu.append(Constants.Strings.Search)
                 
-                if (mediaItem != nil) || (transcript != nil) {
+                if (bodyHTML != nil) {
                     actionMenu.append(Constants.Strings.Words)
                     actionMenu.append(Constants.Strings.Word_Picker)
+                }
+            }
+            
+            if (bodyHTML != nil) {
+                if Globals.shared.splitViewController?.isCollapsed == false {
+                    let vClass = traitCollection.verticalSizeClass
+                    let hClass = traitCollection.horizontalSizeClass
                     
-                    if splitViewController?.isCollapsed == false {
+                    if vClass != .compact, hClass != .compact {
                         actionMenu.append(Constants.Strings.Word_Cloud)
                     }
                 }
             }
-            
+
             if self.navigationController?.modalPresentationStyle == .popover {
                 actionMenu.append(Constants.Strings.Full_Screen)
             }

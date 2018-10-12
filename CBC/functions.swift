@@ -570,15 +570,17 @@ func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!
     return newAttrString
 }
 
-func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
+func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
 {
-    guard let string = string, !string.isEmpty else {
+    guard (stripHead(html) != nil) else {
         return nil
     }
     
     guard let searchText = searchText, !searchText.isEmpty else {
-        return nil
+        return html
     }
+    
+    var markCounter = 0
     
     func mark(_ input:String) -> String
     {
@@ -588,7 +590,221 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
         var stringAfter:String = Constants.EMPTY_STRING
         var newString:String = Constants.EMPTY_STRING
         var foundString:String = Constants.EMPTY_STRING
+        
+        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+                break
+            }
+            
+            stringBefore = String(string[..<range.lowerBound])
+            stringAfter = String(string[range.upperBound...])
+            
+            var skip = false
+            
+            if wholeWordsOnly {
+                if stringBefore == "" {
+                    if  let characterBefore:Character = newString.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                } else {
+                    if  let characterBefore:Character = stringBefore.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        if searchText.count == 1 {
+                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                }
+                
+                if let characterAfter:Character = stringAfter.first {
+                    if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
+                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        skip = true
+                    } else {
+                        //                            if characterAfter == "." {
+                        //                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
+                        //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+                        //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                        //                                        skip = true
+                        //                                    }
+                        //                                }
+                        //                            }
+                    }
+                    
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+                            if stringAfter.endIndex > stringAfter.startIndex {
+                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+                                
+                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+                                    skip = CharacterSet.letters.contains(unicodeScalar)
+                                }
+                            }
+                        }
+                    }
+                    
+                    //                            print(characterAfter)
+                    
+                    // What happens with other types of apostrophes?
+                    //                        if stringAfter.endIndex >= "'s".endIndex {
+                    //                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+                    //                                skip = false
+                    //                            }
+                    //                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+                    //                                skip = false
+                    //                            }
+                    //                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+                    //                                skip = false
+                    //                            }
+                    //                        }
+                }
+                
+                if let characterBefore:Character = stringBefore.last {
+                    if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        skip = true
+                    }
+                }
+            }
+            
+            foundString = String(string[range.lowerBound...])
+            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                foundString = String(foundString[..<newRange.upperBound])
+            }
+            
+            if !skip {
+                markCounter += 1
+                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+            }
+            
+            newString = newString + stringBefore + foundString
+            
+            stringBefore = stringBefore + foundString
+            
+            string = stringAfter
+        }
+        
+        newString = newString + stringAfter
+        
+        return newString == Constants.EMPTY_STRING ? string : newString
+    }
+    
+    var newString:String = Constants.EMPTY_STRING
+    var string:String = html ?? Constants.EMPTY_STRING
+    
+    while let searchRange = string.range(of: "<") {
+        let searchString = String(string[..<searchRange.lowerBound])
+        //            print(searchString)
+        
+        // mark search string
+        newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
+        
+        let remainder = String(string[searchRange.lowerBound...])
+        
+        if let htmlRange = remainder.range(of: ">") {
+            let html = String(remainder[..<htmlRange.upperBound])
+            //                print(html)
+            
+            newString = newString + html
+            
+            string = String(remainder[htmlRange.upperBound...])
+        }
+    }
+    
+    var indexString:String!
+    
+    if markCounter > 0 {
+        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+    } else {
+        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+    }
+    
+    // If we want an index of links to the occurrences of the searchText.
+    if index {
+        if markCounter > 0 {
+            indexString = indexString + "<div>Locations: "
+            
+            for counter in 1...markCounter {
+                if counter > 1 {
+                    indexString = indexString + ", "
+                }
+                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+            }
+            
+            indexString = indexString + "<br/><br/></div>"
+        }
+    }
+    
+    var htmlString = "<!DOCTYPE html><html><body>"
+    
+    if index {
+        htmlString = htmlString + indexString
+    }
+    
+    htmlString = htmlString + newString + "</body></html>"
+    
+    return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
+}
 
+func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool, index:Bool) -> String?
+{
+    guard let bodyHTML = bodyHTML else {
+        return nil
+    }
+    
+    guard let headerHTML = headerHTML else {
+        return nil
+    }
+    
+    guard (stripHead(bodyHTML) != nil) else {
+        return nil
+    }
+    
+    guard let searchText = searchText, !searchText.isEmpty else {
+        return bodyHTML
+    }
+    
+    var searchTexts = Set<String>()
+    
+    if lemmas {
+        if let lemmas = bodyHTML.html2String?.lemmas {
+            for lemma in lemmas {
+                if lemma.1.lowercased() == searchText.lowercased() {
+                    searchTexts.insert(lemma.0.lowercased())
+                }
+            }
+        }
+    }
+    
+    var markCounter = 0
+    
+    func mark(_ input:String,searchText:String?) -> String
+    {
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return input
+        }
+        
+        var string = input
+        
+        var stringBefore:String = Constants.EMPTY_STRING
+        var stringAfter:String = Constants.EMPTY_STRING
+        var newString:String = Constants.EMPTY_STRING
+        var foundString:String = Constants.EMPTY_STRING
+        
         while (string.lowercased().range(of: searchText.lowercased()) != nil) {
             guard let range = string.lowercased().range(of: searchText.lowercased()) else {
                 break
@@ -628,22 +844,20 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     }
                 }
                 
-                if let characterAfter:Character = stringAfter.first {
-                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
-//                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                if  let characterAfter:Character = stringAfter.first,
+                    let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                    if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     } else {
-//                            if characterAfter == "." {
-//                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
-//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-//                                        skip = true
-//                                    }
-//                                }
-//                            }
+                        //                            if characterAfter == "." {
+                        //                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
+                        //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+                        //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+                        //                                        skip = true
+                        //                                    }
+                        //                                }
+                        //                            }
                     }
-
-                    //                            print(characterAfter)
                     
                     if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
                         if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
@@ -656,24 +870,25 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                             }
                         }
                     }
-
+                    
+                    //                            print(characterAfter)
+                    
                     // What happens with other types of apostrophes?
-//                    if stringAfter.endIndex >= "'s".endIndex {
-//                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-//                            skip = false
-//                        }
-//                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-//                            skip = false
-//                        }
-//                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-//                            skip = false
-//                        }
-//                    }
+                    //                        if stringAfter.endIndex >= "'s".endIndex {
+                    //                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+                    //                                skip = false
+                    //                            }
+                    //                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+                    //                                skip = false
+                    //                            }
+                    //                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+                    //                                skip = false
+                    //                            }
+                    //                        }
                 }
-                
                 if let characterBefore:Character = stringBefore.last {
                     if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-//                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     }
                 }
@@ -682,10 +897,13 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
             foundString = String(string[range.lowerBound...])
             if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
                 foundString = String(foundString[..<newRange.upperBound])
+            } else {
+                // ???
             }
             
             if !skip {
-                foundString = "<mark>" + foundString + "</mark>"
+                markCounter += 1
+                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
             }
             
             newString = newString + stringBefore + foundString
@@ -700,10 +918,211 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
         return newString == Constants.EMPTY_STRING ? string : newString
     }
     
-    let htmlString = "<!DOCTYPE html><html><body>" + mark(string) + "</body></html>"
+    searchTexts.insert(searchText.lowercased())
     
-    return htmlString
+    var newString = Constants.EMPTY_STRING
+    var string = bodyHTML // ?? Constants.EMPTY_STRING
+    
+    for searchText in Array(searchTexts).sorted() {
+        if string.html2String != string {
+            // This assumes the bodyHTML is, in fact, HTML, i.e. with tags.
+            // THIS IS A LOUSY WAY TO FIND TAGS.
+            while let searchRange = string.range(of: "<") {
+                let searchString = String(string[..<searchRange.lowerBound])
+                //            print(searchString)
+                
+                // mark search string
+                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
+                
+                let remainder = String(string[searchRange.lowerBound...])
+                
+                if let htmlRange = remainder.range(of: ">") {
+                    let html = String(remainder[..<htmlRange.upperBound])
+                    //                print(html)
+                    
+                    newString = newString + html
+                    
+                    string = String(remainder[htmlRange.upperBound...])
+                }
+            }
+        } else {
+            // mark search string
+            newString = mark(string.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
+        }
+        
+        string = newString
+        newString = Constants.EMPTY_STRING
+    }
+    
+    var indexString:String!
+    
+    if markCounter > 0 {
+        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+    } else {
+        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+    }
+    
+    // If we want an index of links to the occurrences of the searchText.
+    if index {
+        if markCounter > 0 {
+            indexString = indexString + "<div>Locations: "
+            
+            for counter in 1...markCounter {
+                if counter > 1 {
+                    indexString = indexString + ", "
+                }
+                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+            }
+            
+            indexString = indexString + "<br/><br/></div>"
+        }
+    }
+    
+    var htmlString = "<!DOCTYPE html><html><body>"
+    
+    if index {
+        htmlString = htmlString + indexString
+    }
+    
+    htmlString = htmlString + headerHTML + string + "</body></html>"
+    
+    return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
 }
+
+//func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
+//{
+//    guard let string = string, !string.isEmpty else {
+//        return nil
+//    }
+//
+//    guard let searchText = searchText, !searchText.isEmpty else {
+//        return nil
+//    }
+//
+//    func mark(_ input:String) -> String
+//    {
+//        var string = input
+//
+//        var stringBefore:String = Constants.EMPTY_STRING
+//        var stringAfter:String = Constants.EMPTY_STRING
+//        var newString:String = Constants.EMPTY_STRING
+//        var foundString:String = Constants.EMPTY_STRING
+//
+//        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+//            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+//                break
+//            }
+//
+//            stringBefore = String(string[..<range.lowerBound])
+//            stringAfter = String(string[range.upperBound...])
+//
+//            var skip = false
+//
+//            if wholeWordsOnly {
+//                if stringBefore == "" {
+//                    if  let characterBefore:Character = newString.last,
+//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//
+//                        if searchText.count == 1 {
+//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    if  let characterBefore:Character = stringBefore.last,
+//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//
+//                        if searchText.count == 1 {
+//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                if let characterAfter:Character = stringAfter.first {
+//                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
+////                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                        skip = true
+//                    } else {
+////                            if characterAfter == "." {
+////                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
+////                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+////                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+////                                        skip = true
+////                                    }
+////                                }
+////                            }
+//                    }
+//
+//                    //                            print(characterAfter)
+//
+//                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                            if stringAfter.endIndex > stringAfter.startIndex {
+//                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//
+//                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                    skip = CharacterSet.letters.contains(unicodeScalar)
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    // What happens with other types of apostrophes?
+////                    if stringAfter.endIndex >= "'s".endIndex {
+////                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+////                            skip = false
+////                        }
+////                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+////                            skip = false
+////                        }
+////                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+////                            skip = false
+////                        }
+////                    }
+//                }
+//
+//                if let characterBefore:Character = stringBefore.last {
+//                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+////                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                        skip = true
+//                    }
+//                }
+//            }
+//
+//            foundString = String(string[range.lowerBound...])
+//            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                foundString = String(foundString[..<newRange.upperBound])
+//            }
+//
+//            if !skip {
+//                foundString = "<mark>" + foundString + "</mark>"
+//            }
+//
+//            newString = newString + stringBefore + foundString
+//
+//            stringBefore = stringBefore + foundString
+//
+//            string = stringAfter
+//        }
+//
+//        newString = newString + stringAfter
+//
+//        return newString == Constants.EMPTY_STRING ? string : newString
+//    }
+//
+//    let htmlString = "<!DOCTYPE html><html><body>" + mark(string) + "</body></html>"
+//
+//    return htmlString
+//}
 
 func verifyNASB()
 {
@@ -4137,7 +4556,7 @@ func preferredModalPresentationStyle(viewController:UIViewController) -> UIModal
 //    }
 }
 
-func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem? = nil, transcript:VoiceBase? = nil, title:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String?)
+func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
@@ -4148,9 +4567,13 @@ func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem? = nil, 
         return
     }
     
-    guard htmlString != nil else {
-        return
-    }
+//    if bodyHTML != nil, htmlString != nil {
+//        return
+//    }
+    
+//    guard htmlString != nil else {
+//        return
+//    }
 
     if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
@@ -4210,18 +4633,27 @@ func popoverHTML(_ viewController:UIViewController, mediaItem:MediaItem? = nil, 
             }
         }
         
-        popover.navigationItem.title = mediaItem?.title
+//        popover.navigationItem.title = title
         
         if title != nil {
             popover.navigationItem.title = title
         }
         
         popover.html.fontSize = 12
-        popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
+        
+        if htmlString != nil {
+            popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
+        } else
+
+        if let bodyHTML = bodyHTML, let headerHTML = headerHTML {
+            let htmlString = "<!DOCTYPE html><html><body>" + headerHTML + bodyHTML + "</body></html>"
+
+            popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
+        }
         
         popover.search = true
-        popover.mediaItem = mediaItem
-        popover.transcript = transcript
+        popover.bodyHTML = bodyHTML
+        popover.headerHTML = headerHTML
 
         popover.content = .html
         
@@ -5245,7 +5677,7 @@ func yesOrNo(viewController:UIViewController,title:String?,message:String?,
 func firstSecondCancel(viewController:UIViewController,title:String?,message:String?,
                        firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertActionStyle,
                        secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertActionStyle,
-                       cancelAction:(()->(Void))?)
+                       cancelAction:(()->(Void))? = nil)
 {
     let alert = UIAlertController(title: title,
                                   message: message,

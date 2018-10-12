@@ -1477,6 +1477,50 @@ class MediaItem : NSObject
         return nil
     }
     
+    var headerHTML:String {
+        get {
+            var header = "<center><b>"
+            
+            if let string = title {
+                header = header + string + "</br>"
+            }
+            
+            if let string = scriptureReference {
+                header = header + string + "</br>"
+            }
+            
+            if let string = formattedDate {
+                header = header + string + "</br>"
+            }
+            
+            if let string = speaker {
+                header = header + "<i>by " + string + "</i></br>"
+            }
+            
+            header = header + "<i>Countryside Bible Church</i></br>"
+            
+            header = header + "</br>"
+            
+            if let websiteURL = websiteURL {
+                header = header + "Available online at <a href=\"\(websiteURL)\">www.countrysidebible.org</a></br>"
+            } else {
+                header = header + "Available online at <a href=\"http://www.countrysidebible.org\">www.countrysidebible.org</a></br>"
+            }
+            
+            if let string = yearString {
+                header = header + "Copyright \(string).  All rights reserved.</br>"
+            } else {
+                header = header + "Copyright, all rights reserved.</br>"
+            }
+            
+            header = header + "<i>Unedited transcript for personal use only.</i>"
+            
+            header = header + "</b></center>"
+            
+            return header
+        }
+    }
+    
     lazy var notesHTML:Fetch<String> = {
         let fetch = Fetch<String>(name: "HTML Transcript")
         
@@ -1559,7 +1603,7 @@ class MediaItem : NSObject
     {
         get {
             if #available(iOS 11.0, *) {
-                return pdfTextTokens
+                return pdfNotesTokens
             } else {
                 return notesHTMLTokens
             }
@@ -2498,7 +2542,7 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
-    lazy var pdfTextTokens:Fetch<[String:Int]> = {
+    lazy var pdfNotesTokens:Fetch<[String:Int]> = {
         let fetch = Fetch<[String:Int]>(name: "PDF Text Tokens")
         
         fetch.fetch = {
@@ -2510,14 +2554,33 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return self.pdfText.result?.tokensAndCounts
+            return self.pdfNotes.result?.tokensAndCounts
         }
         
         return fetch
     }()
+    
+    @available(iOS 11.0, *)
+    var fullPDFNotesHTML:String? {
+        get {
+            guard let pdfNotesHTML = pdfNotesHTML else {
+                return nil
+            }
+            
+            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + "<br/>" + pdfNotesHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
+        }
+    }
 
     @available(iOS 11.0, *)
-    lazy var pdfText:Fetch<String> = {
+    var pdfNotesHTML:String?
+    {
+        get {
+            return pdfNotes.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
+        }
+    }
+    
+    @available(iOS 11.0, *)
+    lazy var pdfNotes:Fetch<String> = {
         let fetch = Fetch<String>(name: "PDF TEXT")
         
         fetch.fetch = {
@@ -2585,267 +2648,7 @@ class MediaItem : NSObject
     lazy var searchMarkedFullNotesHTML:CachedString? = {
         return CachedString(index: nil)
     }()
-    
-    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,lemmas:Bool,index:Bool) -> String?
-    {
-        guard (stripHead(fullNotesHTML) != nil) else {
-            return nil
-        }
         
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return fullNotesHTML
-        }
-        
-        var searchTexts = Set<String>()
-
-        if lemmas {
-            if let lemmas = notesHTML.result?.html2String?.lemmas {
-                for lemma in lemmas {
-                    if lemma.1.lowercased() == searchText.lowercased() {
-                        searchTexts.insert(lemma.0.lowercased())
-                    }
-                }
-            }
-        }
-
-        var markCounter = 0
-
-        func mark(_ input:String,searchText:String?) -> String
-        {
-            guard let searchText = searchText, !searchText.isEmpty else {
-                return input
-            }
-
-            var string = input
-            
-            var stringBefore:String = Constants.EMPTY_STRING
-            var stringAfter:String = Constants.EMPTY_STRING
-            var newString:String = Constants.EMPTY_STRING
-            var foundString:String = Constants.EMPTY_STRING
-            
-            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-                    break
-                }
-                
-                stringBefore = String(string[..<range.lowerBound])
-                stringAfter = String(string[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if stringBefore == "" {
-                        if  let characterBefore:Character = newString.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    } else {
-                        if  let characterBefore:Character = stringBefore.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    if  let characterAfter:Character = stringAfter.first,
-                        let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        } else {
-                            //                            if characterAfter == "." {
-                            //                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
-                            //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                            //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                            //                                        skip = true
-                            //                                    }
-                            //                                }
-                            //                            }
-                        }
-                        
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                                if stringAfter.endIndex > stringAfter.startIndex {
-                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                    
-                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                        skip = CharacterSet.letters.contains(unicodeScalar)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        //                            print(characterAfter)
-                        
-                        // What happens with other types of apostrophes?
-//                        if stringAfter.endIndex >= "'s".endIndex {
-//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-//                                skip = false
-//                            }
-//                        }
-                    }
-                    if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(string[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                } else {
-                    // ???
-                }
-                
-                if !skip {
-                    markCounter += 1
-                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                }
-                
-                newString = newString + stringBefore + foundString
-                
-                stringBefore = stringBefore + foundString
-                
-                string = stringAfter
-            }
-            
-            newString = newString + stringAfter
-            
-            return newString == Constants.EMPTY_STRING ? string : newString
-        }
-
-        searchTexts.insert(searchText.lowercased())
-
-        var newString:String = Constants.EMPTY_STRING
-        var string:String = notesHTML.result ?? Constants.EMPTY_STRING
-        
-        for searchText in Array(searchTexts).sorted() {
-            while let searchRange = string.range(of: "<") {
-                let searchString = String(string[..<searchRange.lowerBound])
-                //            print(searchString)
-                
-                // mark search string
-                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
-                
-                let remainder = String(string[searchRange.lowerBound...])
-                
-                if let htmlRange = remainder.range(of: ">") {
-                    let html = String(remainder[..<htmlRange.upperBound])
-                    //                print(html)
-                    
-                    newString = newString + html
-                    
-                    string = String(remainder[htmlRange.upperBound...])
-                }
-            }
-            
-            string = newString
-            newString = Constants.EMPTY_STRING
-        }
-        
-        var indexString:String!
-            
-        if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
-        } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
-        }
-        
-        // If we want an index of links to the occurrences of the searchText.
-        if index {
-            if markCounter > 0 {
-                indexString = indexString + "<div>Locations: "
-                
-                for counter in 1...markCounter {
-                    if counter > 1 {
-                        indexString = indexString + ", "
-                    }
-                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
-                }
-                
-                indexString = indexString + "<br/><br/></div>"
-            }
-        }
-        
-        var htmlString = "<!DOCTYPE html><html><body>"
-        
-        if index {
-            htmlString = htmlString + indexString
-        }
-
-        htmlString = htmlString + headerHTML + string + "</body></html>"
-
-        searchMarkedFullNotesHTML?[searchText] = insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
-        
-        return searchMarkedFullNotesHTML?[searchText]
-    }
-    
-    var headerHTML:String {
-        get {
-            var header = "<center><b>"
-            
-            if let string = title {
-                header = header + string + "</br>"
-            }
-            
-            if let string = scriptureReference {
-                header = header + string + "</br>"
-            }
-            
-            if let string = formattedDate {
-                header = header + string + "</br>"
-            }
-            
-            if let string = speaker {
-                header = header + "<i>by " + string + "</i></br>"
-            }
-            
-            header = header + "<i>Countryside Bible Church</i></br>"
-            
-            header = header + "</br>"
-            
-            if let websiteURL = websiteURL {
-                header = header + "Available online at <a href=\"\(websiteURL)\">www.countrysidebible.org</a></br>"
-            } else {
-                header = header + "Available online at <a href=\"http://www.countrysidebible.org\">www.countrysidebible.org</a></br>"
-            }
-            
-            if let string = yearString {
-                header = header + "Copyright \(string).  All rights reserved.</br>"
-            } else {
-                header = header + "Copyright, all rights reserved.</br>"
-            }
-            
-            header = header + "<i>Unedited transcript for personal use only.</i>"
-            
-            header = header + "</b></center>"
-
-            return header
-        }
-    }
-    
     var fullNotesHTML:String? {
         get {
             guard let notesHTML = notesHTML.result else {
@@ -4309,7 +4112,7 @@ class MediaItem : NSObject
         pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
             if #available(iOS 11.0, *) {
                 process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                    return self?.pdfText.result
+                    return self?.pdfNotes.result
                 }, completion: { [weak self] (data:Any?) in
                     if  let documentContent = data as? String {
                         let alert = UIAlertController(  title: "Edit or View?",
@@ -4378,7 +4181,11 @@ class MediaItem : NSObject
                                 }
                                 
                                 textPopover.content = .html
-                                textPopover.html.string = insertHead("<html><body>" + headerHTML + documentContent.replacingOccurrences(of: "\n\n", with: "<br/><br/>") + "</body></html>",fontSize:24)
+                                textPopover.html.string = self?.fullPDFNotesHTML
+
+                                textPopover.search = true
+                                textPopover.bodyHTML = self?.pdfNotesHTML
+                                textPopover.headerHTML = headerHTML
                                 
                                 viewController.present(navigationController, animated: true, completion: nil)
                             } else {
@@ -4463,11 +4270,11 @@ class MediaItem : NSObject
                 var htmlString:String?
                 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = self?.markedFullNotesHTML(searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
+                    htmlString = markBodyHTML(bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
                 } else
                     
                 if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
-                    htmlString = self?.markedFullNotesHTML(searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
+                    htmlString = markBodyHTML(bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
                 } else {
                     htmlString = self?.fullNotesHTML
                 }
@@ -4475,7 +4282,7 @@ class MediaItem : NSObject
                 return htmlString
             }, completion: { [weak self] (data:Any?) in
                 if let htmlString = data as? String {
-                    popoverHTML(viewController, mediaItem:self, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
+                    popoverHTML(viewController, title:self?.title, bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
                 } else {
                     Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
                 }

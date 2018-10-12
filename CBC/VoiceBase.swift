@@ -876,223 +876,223 @@ class VoiceBase {
         }
     }
     
-    func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,lemmas:Bool,index:Bool) -> String?
-    {
-        guard (stripHead(fullHTML) != nil) else {
-            return nil
-        }
-        
-//        guard let headerHTML = mediaItem?.headerHTML else {
+//    func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,lemmas:Bool,index:Bool) -> String?
+//    {
+//        guard (stripHead(fullHTML) != nil) else {
 //            return nil
 //        }
-        
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return fullHTML
-        }
-        
-//        guard let headerHTML = mediaItem?.headerHTML else {
-//            return html
+//
+////        guard let headerHTML = mediaItem?.headerHTML else {
+////            return nil
+////        }
+//
+//        guard let searchText = searchText, !searchText.isEmpty else {
+//            return fullHTML
 //        }
-        
-        var searchTexts = Set<String>()
-        
-        if lemmas {
-            if let lemmas = html.html2String?.lemmas {
-                for lemma in lemmas {
-                    if lemma.1.lowercased() == searchText.lowercased() {
-                        searchTexts.insert(lemma.0.lowercased())
-                    }
-                }
-            }
-        }
-        
-        var markCounter = 0
-        
-        func mark(_ input:String) -> String
-        {
-            var string = input
-            
-            var stringBefore:String = Constants.EMPTY_STRING
-            var stringAfter:String = Constants.EMPTY_STRING
-            var newString:String = Constants.EMPTY_STRING
-            var foundString:String = Constants.EMPTY_STRING
-            
-            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-                    break
-                }
-                
-                stringBefore = String(string[..<range.lowerBound])
-                stringAfter = String(string[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if stringBefore == "" {
-                        if  let characterBefore:Character = newString.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    } else {
-                        if  let characterBefore:Character = stringBefore.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    if  let characterAfter:Character = stringAfter.first,
-                        let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        } else {
-//                            if characterAfter == "." {
-//                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
-//                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-//                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-//                                        skip = true
+//
+////        guard let headerHTML = mediaItem?.headerHTML else {
+////            return html
+////        }
+//
+//        var searchTexts = Set<String>()
+//
+//        if lemmas {
+//            if let lemmas = html.html2String?.lemmas {
+//                for lemma in lemmas {
+//                    if lemma.1.lowercased() == searchText.lowercased() {
+//                        searchTexts.insert(lemma.0.lowercased())
+//                    }
+//                }
+//            }
+//        }
+//
+//        var markCounter = 0
+//
+//        func mark(_ input:String) -> String
+//        {
+//            var string = input
+//
+//            var stringBefore:String = Constants.EMPTY_STRING
+//            var stringAfter:String = Constants.EMPTY_STRING
+//            var newString:String = Constants.EMPTY_STRING
+//            var foundString:String = Constants.EMPTY_STRING
+//
+//            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+//                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+//                    break
+//                }
+//
+//                stringBefore = String(string[..<range.lowerBound])
+//                stringAfter = String(string[range.upperBound...])
+//
+//                var skip = false
+//
+//                if wholeWordsOnly {
+//                    if stringBefore == "" {
+//                        if  let characterBefore:Character = newString.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        if  let characterBefore:Character = stringBefore.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if  let characterAfter:Character = stringAfter.first,
+//                        let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                            skip = true
+//                        } else {
+////                            if characterAfter == "." {
+////                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
+////                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+////                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
+////                                        skip = true
+////                                    }
+////                                }
+////                            }
+//                        }
+//
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                                if stringAfter.endIndex > stringAfter.startIndex {
+//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//
+//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                        skip = CharacterSet.letters.contains(unicodeScalar)
 //                                    }
 //                                }
 //                            }
-                        }
-                        
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                                if stringAfter.endIndex > stringAfter.startIndex {
-                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                    
-                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                        skip = CharacterSet.letters.contains(unicodeScalar)
-                                    }
-                                }
-                            }
-                        }
-                        
-//                            print(characterAfter)
-                        
-                        // What happens with other types of apostrophes?
-//                        if stringAfter.endIndex >= "'s".endIndex {
-//                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-//                                skip = false
-//                            }
-//                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-//                                skip = false
-//                            }
 //                        }
-                    }
-                    if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-//                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(string[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                } else {
-                    // ???
-                }
-                
-                if !skip {
-                    markCounter += 1
-                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                }
-                
-                newString = newString + stringBefore + foundString
-                
-                stringBefore = stringBefore + foundString
-                
-                string = stringAfter
-            }
-            
-            newString = newString + stringAfter
-            
-            return newString == Constants.EMPTY_STRING ? string : newString
-        }
-
-        searchTexts.insert(searchText.lowercased())
-
-        var newString:String = Constants.EMPTY_STRING
-        var string:String = html
-
-        for searchText in Array(searchTexts).sorted() {
-            while let searchRange = string.range(of: "<") {
-                let searchString = String(string[..<searchRange.lowerBound])
-                //            print(searchString)
-                
-                // mark search string
-                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
-                
-                let remainder = String(string[searchRange.lowerBound...])
-                
-                if let htmlRange = remainder.range(of: ">") {
-                    let html = String(remainder[..<htmlRange.upperBound])
-                    //                print(html)
-                    
-                    newString = newString + html
-                    
-                    string = String(remainder[htmlRange.upperBound...])
-                }
-            }
-            
-            string = newString
-            newString = Constants.EMPTY_STRING
-        }
-            
-        var indexString:String!
-        
-        if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
-        } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
-        }
-        
-        // If we want an index of links to the occurrences of the searchText.
-        if index {
-            if markCounter > 0 {
-                indexString = indexString + "<div>Locations: "
-                
-                for counter in 1...markCounter {
-                    if counter > 1 {
-                        indexString = indexString + ", "
-                    }
-                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
-                }
-                
-                indexString = indexString + "<br/><br/></div>"
-            }
-        }
-        
-        var htmlString = "<!DOCTYPE html><html><body>"
-        
-        if index {
-            htmlString = htmlString + indexString
-        }
-        
-        htmlString = htmlString + headerHTML + string + "</body></html>"
-
-        return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
-    }
+//
+////                            print(characterAfter)
+//
+//                        // What happens with other types of apostrophes?
+////                        if stringAfter.endIndex >= "'s".endIndex {
+////                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
+////                                skip = false
+////                            }
+////                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
+////                                skip = false
+////                            }
+////                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
+////                                skip = false
+////                            }
+////                        }
+//                    }
+//                    if let characterBefore:Character = stringBefore.last {
+//                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+////                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//                    }
+//                }
+//
+//                foundString = String(string[range.lowerBound...])
+//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                    foundString = String(foundString[..<newRange.upperBound])
+//                } else {
+//                    // ???
+//                }
+//
+//                if !skip {
+//                    markCounter += 1
+//                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+//                }
+//
+//                newString = newString + stringBefore + foundString
+//
+//                stringBefore = stringBefore + foundString
+//
+//                string = stringAfter
+//            }
+//
+//            newString = newString + stringAfter
+//
+//            return newString == Constants.EMPTY_STRING ? string : newString
+//        }
+//
+//        searchTexts.insert(searchText.lowercased())
+//
+//        var newString:String = Constants.EMPTY_STRING
+//        var string:String = html
+//
+//        for searchText in Array(searchTexts).sorted() {
+//            while let searchRange = string.range(of: "<") {
+//                let searchString = String(string[..<searchRange.lowerBound])
+//                //            print(searchString)
+//
+//                // mark search string
+//                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
+//
+//                let remainder = String(string[searchRange.lowerBound...])
+//
+//                if let htmlRange = remainder.range(of: ">") {
+//                    let html = String(remainder[..<htmlRange.upperBound])
+//                    //                print(html)
+//
+//                    newString = newString + html
+//
+//                    string = String(remainder[htmlRange.upperBound...])
+//                }
+//            }
+//
+//            string = newString
+//            newString = Constants.EMPTY_STRING
+//        }
+//
+//        var indexString:String!
+//
+//        if markCounter > 0 {
+//            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+//        } else {
+//            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+//        }
+//
+//        // If we want an index of links to the occurrences of the searchText.
+//        if index {
+//            if markCounter > 0 {
+//                indexString = indexString + "<div>Locations: "
+//
+//                for counter in 1...markCounter {
+//                    if counter > 1 {
+//                        indexString = indexString + ", "
+//                    }
+//                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+//                }
+//
+//                indexString = indexString + "<br/><br/></div>"
+//            }
+//        }
+//
+//        var htmlString = "<!DOCTYPE html><html><body>"
+//
+//        if index {
+//            htmlString = htmlString + indexString
+//        }
+//
+//        htmlString = htmlString + headerHTML + string + "</body></html>"
+//
+//        return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
+//    }
     
     var headerHTML : String {
         if  var headerHTML = self.mediaItem?.headerHTML,
@@ -1108,27 +1108,27 @@ class VoiceBase {
     }
     
     var fullHTML : String {
-        var htmlString = "<!DOCTYPE html><html><body>"
+//        var htmlString = "<!DOCTYPE html><html><body>"
+//
+//        if  let transcript = self.transcript {
+//            htmlString = htmlString + headerHTML +
+//                transcript.replacingOccurrences(of: "\n", with: "<br/>")
+//        }
+//
+//        htmlString = htmlString + "</body></html>"
 
-        if  let transcript = self.transcript {
-            htmlString = htmlString + headerHTML +
-                transcript.replacingOccurrences(of: "\n", with: "<br/>")
-        }
-        
-        htmlString = htmlString + "</body></html>"
-
-        return htmlString
+        return "<!DOCTYPE html><html><body>" + headerHTML + bodyHTML + "</body></html>"
     }
     
-    var html : String {
+    var bodyHTML : String {
         get {
-            var htmlString = "<!DOCTYPE html><html><body>"
+            var htmlString = String() // "<!DOCTYPE html><html><body>"
             
             if  let transcript = self.transcript {
                 htmlString = transcript.replacingOccurrences(of: "\n", with: "<br/>")
             }
             
-            htmlString = htmlString + "</body></html>"
+//            htmlString = htmlString + "</body></html>"
             
             return htmlString
         }
@@ -4237,7 +4237,7 @@ class VoiceBase {
 //                            // Fallback on earlier versions
 //                        }
 
-                        popoverHTML(viewController,transcript:self,title:self.mediaItem?.title,htmlString:self.fullHTML)
+                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML) // htmlString:self.fullHTML
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {

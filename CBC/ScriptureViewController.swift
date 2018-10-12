@@ -93,23 +93,21 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Print:
                 if let string = webViewController?.html.string, string.contains(" href=") {
-                    firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
-                                      firstTitle: Constants.Strings.Yes,
-                                      firstAction: {
-                                        process(viewController: self, work: { [weak self] () -> (Any?) in
-                                            return stripLinks(self?.webViewController?.html.string)
-                                        }, completion: { [weak self] (data:Any?) in
-                                            if let vc = self {
-                                                printHTML(viewController: vc, htmlString: data as? String)
-                                            }
-                                        })
+                    firstSecondCancel(  viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
+                        firstTitle: Constants.Strings.Yes,
+                        firstAction: {
+                            process(viewController: self, work: { [weak self] () -> (Any?) in
+                                return stripLinks(self?.webViewController?.html.string)
+                                }, completion: { [weak self] (data:Any?) in
+                                    if let vc = self {
+                                        printHTML(viewController: vc, htmlString: data as? String)
+                                    }
+                            })
                     }, firstStyle: .default,
-                                      secondTitle: Constants.Strings.No,
-                                      secondAction: {
-                                        printHTML(viewController: self, htmlString: self.webViewController?.html.string)
-                    }, secondStyle: .default,
-                                      cancelAction: {}
-                    )
+                       secondTitle: Constants.Strings.No,
+                       secondAction: {
+                        printHTML(viewController: self, htmlString: self.webViewController?.html.string)
+                    }, secondStyle: .default)
                 } else {
                     printHTML(viewController: self, htmlString: self.webViewController?.html.string)
                 }

@@ -1653,12 +1653,16 @@ class PopoverTableViewController : UIViewController
                 
             case (true,false):
                 segmentedControl.removeFromSuperview()
+                
                 topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: searchBar, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
 //                tableViewTopConstraint.constant = searchBar.frame.height
                 break
                 
             case (false,true):
                 searchBar.removeFromSuperview()
+                
+                view.addConstraint(NSLayoutConstraint(item: segmentedControl, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 8.0))
+                
                 topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
 //                tableViewTopConstraint.constant = segmentedControl.frame.height + 16
                 break
@@ -1666,6 +1670,7 @@ class PopoverTableViewController : UIViewController
             case (false,false):
                 searchBar.removeFromSuperview()
                 segmentedControl.removeFromSuperview()
+                
                 topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
 //                tableViewTopConstraint.constant = 0
                 break
