@@ -9,7 +9,6 @@
 import UIKit
 import MessageUI
 
-
 class ScriptureIndexViewControllerHeaderView : UITableViewHeaderFooterView
 {
     var label : UILabel?
@@ -157,11 +156,6 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 popover.selectedMediaItem = self.popover?.selectedMediaItem
                 popover.transcript = self.popover?.transcript
                 
-                //                popover.detail = true
-                //                popover.detailAction = transcriptSegmentAction
-                
-//                popover.vc = self.popover
-                
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
@@ -210,10 +204,6 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                                         let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
-                                        //                                    for string in transcriptSegmentArray {
-                                        //                                        text = text + string + (transcriptSegmentArray.index(of: string) == (transcriptSegmentArray.count - 1) ? "" : " ")
-                                        //                                    }
-                                        
                                         strings.append(string)
                                     }
                                 }
@@ -226,11 +216,6 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 }
                 
                 popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
-                //                    popover.section.strings = strings // popover.transcript?.transcriptSegmentTokenTimes(token: string)
-                //                    ?.map({ (string:String) -> String in
-                //                    return secondsToHMS(seconds: string) ?? "ERROR"
-                //                })
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -330,8 +315,6 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             pickerView.selectRow(0, inComponent: 1, animated: true)
             
             pickerView.selectRow(0, inComponent: 2, animated: true)
-            
-            //            pickerView.selectRow(0, inComponent: 3, animated: true)
             
             updateSearchResults()
             break
@@ -589,8 +572,6 @@ class ScriptureIndexViewController : UIViewController
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
-//    @IBOutlet weak var switchesLabel: UILabel!
-    
     @IBOutlet weak var bookLabel: UILabel!
     @IBOutlet weak var bookSwitch: UISwitch!
 
@@ -716,7 +697,7 @@ class ScriptureIndexViewController : UIViewController
             
         }
         didSet {
-            print(selectedMediaItem as Any)
+
         }
     }
     
@@ -951,18 +932,6 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
-//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-//    {
-//        switch identifier {
-//        case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
-//            return false
-//            
-//        default:
-//            return false
-//        }
-//
-//    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -997,26 +966,6 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
-//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-//    {
-//        var show:Bool
-//
-//        show = true
-//
-//        switch identifier {
-//        case "Show Index MediaItem":
-//            show = false
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        return show
-//    }
-
-//    var mask = false
-    
     func addNotifications()
     {
         Globals.shared.queue.async {
@@ -1031,32 +980,6 @@ class ScriptureIndexViewController : UIViewController
         super.viewWillAppear(animated)
         
         addNotifications()
-        
-//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-//            var vc : UIViewController?
-//            
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
-//                vc = Globals.shared.splitViewController.viewControllers[1]
-//            }
-//            
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
-//                vc = Globals.shared.splitViewController.viewControllers[0]
-//            }
-//            
-//            mask = true
-//            
-//            if let vc = vc {
-//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
-//                    // When mask is set to false this will end
-//                    while self?.mask == true {
-//                        Thread.sleep(forTimeInterval: 0.5)
-//                    }
-//                    return nil
-//                },completion:{ [weak self] (data:Any?) -> Void in
-//                    
-//                })
-//            }
-//        }
         
         navigationItem.hidesBackButton = false
         
@@ -1074,8 +997,6 @@ class ScriptureIndexViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        mask = false
         
         NotificationCenter.default.removeObserver(self)
     }
@@ -1215,10 +1136,6 @@ class ScriptureIndexViewController : UIViewController
                 
                 let speakers = Array(speakerCounts.keys)
                 
-//                let speakers = speakerCounts.keys.map({ (string:String) -> String in
-//                    return string
-//                }) as [String]
-                
                 if speakerCount == 1{
                     bodyString = bodyString + " by \(speakers[0])"
                 }
@@ -1288,9 +1205,6 @@ class ScriptureIndexViewController : UIViewController
     
     @objc func actionMenu()
     {
-        //In case we have one already showing
-        //        dismiss(animated: true, completion: nil)
-        
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             popover.navigationItem.title = "Select"
@@ -1307,8 +1221,6 @@ class ScriptureIndexViewController : UIViewController
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenuItems()
-            
-//            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -1345,8 +1257,6 @@ class ScriptureIndexViewController : UIViewController
             popover.purpose = .selectingSection
 
             popover.section.strings = sectionTitles
-            
-//            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -1547,7 +1457,6 @@ class ScriptureIndexViewController : UIViewController
         }
         
         directionLabel.isHidden = state
-//        switchesLabel.isHidden = state
         
         bookLabel.isHidden = state
         bookSwitch.isHidden = state
@@ -1725,7 +1634,8 @@ extension ScriptureIndexViewController : UITableViewDataSource
         return sectionTitles[section]
     }
     
-    func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int
+    {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         
@@ -1736,7 +1646,8 @@ extension ScriptureIndexViewController : UITableViewDataSource
         }
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         
@@ -1780,7 +1691,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
         var mediaItem : MediaItem?
         
         if let _ = scriptureIndex?.selectedBook {
-            //            print(scriptureIndex?.selectedBook)
             mediaItem = mediaItems?[indexPath.row]
         } else {
             if let sectionTitle = sectionTitles?[indexPath.section] {
@@ -1790,199 +1700,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
         return mediaItem?.editActions(viewController: self) != nil
     }
-    
-//    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [AlertAction]?
-//    {
-//        // causes recursive call to cellForRowAt
-////        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-////            return nil
-////        }
-//        
-//        guard let mediaItem = mediaItem else {
-//            return nil
-//        }
-//        
-//        var actions = [AlertAction]()
-//        
-//        var download:AlertAction!
-//        var transcript:AlertAction!
-//        var scripture:AlertAction!
-//        var share:AlertAction!
-//        
-//        if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-//            var title = ""
-//            var style = UIAlertActionStyle.default
-//            
-//            switch state {
-//            case .none:
-//                title = Constants.Strings.Download_Audio
-//                break
-//                
-//            case .downloading:
-//                title = Constants.Strings.Cancel_Audio_Download
-//                break
-//            case .downloaded:
-//                title = Constants.Strings.Delete_Audio_Download
-//                style = UIAlertActionStyle.destructive
-//                break
-//            }
-//            
-//            download = AlertAction(title: title, style: style, action: {
-//                switch title {
-//                case Constants.Strings.Download_Audio:
-//                    mediaItem.audioDownload?.download()
-//                    break
-//                    
-//                case Constants.Strings.Delete_Audio_Download:
-//                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                                    message: nil,
-//                                                    preferredStyle: .alert)
-//                    alert.makeOpaque()
-//                    
-//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//                        mediaItem.audioDownload?.delete()
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//                        
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancel)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                    break
-//                    
-//                case Constants.Strings.Cancel_Audio_Download:
-//                    if let state = mediaItem.audioDownload?.state {
-//                        switch state {
-//                        case .downloading:
-//                            mediaItem.audioDownload?.cancel()
-//                            break
-//                            
-//                        case .downloaded:
-//                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                                            message: nil,
-//                                                            preferredStyle: .alert)
-//                            alert.makeOpaque()
-//                            
-//                            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//                                mediaItem.audioDownload?.delete()
-//                            })
-//                            alert.addAction(yesAction)
-//                            
-//                            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//                                
-//                            })
-//                            alert.addAction(noAction)
-//                            
-//                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//                                
-//                            })
-//                            alert.addAction(cancel)
-//                            
-//                            self.present(alert, animated: true, completion: nil)
-//                            break
-//                            
-//                        default:
-//                            break
-//                        }
-//                    }
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-//            })
-//        }
-//        
-//        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
-//            let sourceView = cell?.subviews[0]
-//            let sourceRectView = cell?.subviews[0]
-//            
-//            if mediaItem.notesHTML != nil {
-//                var htmlString:String?
-//                
-//                htmlString = mediaItem.fullNotesHTML
-//                
-//                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//            } else {
-//                process(viewController: self, work: { () -> (Any?) in
-//                    mediaItem.loadNotesHTML()
-//                    
-//                    return mediaItem.fullNotesHTML
-//                }, completion: { (data:Any?) in
-//                    if let htmlString = data as? String {
-//                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                    } else {
-//                        networkUnavailable(self,"HTML transcript unavailable.")
-//                    }
-//                })
-//            }
-//        }
-//        
-//        share = AlertAction(title: Constants.Strings.Share, style: .default) {
-//            mediaItem.share(viewController: self,cell: cell)
-//            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
-//        }
-//        
-//        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
-//            let sourceView = cell?.subviews[0]
-//            let sourceRectView = cell?.subviews[0]
-//            
-//            if let reference = mediaItem.scriptureReference {
-//                if mediaItem.scripture?.html?[reference] != nil {
-//                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
-//                } else {
-//                    guard Globals.shared.reachability.isReachable else {
-//                        networkUnavailable(self,"Scripture text unavailable.")
-//                        return
-//                    }
-//                    
-//                    process(viewController: self, work: { () -> (Any?) in
-//                        mediaItem.scripture?.load() // reference
-//                        return mediaItem.scripture?.html?[reference]
-//                    }, completion: { (data:Any?) in
-//                        if let htmlString = data as? String {
-//                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                        } else {
-//                            networkUnavailable(self,"Scripture text unavailable.")
-//                        }
-//                    })
-//                }
-//            }
-//        }
-//        
-//        if mediaItem.books != nil {
-//            actions.append(scripture)
-//        }
-//        
-//        if mediaItem.hasNotesHTML {
-//            actions.append(transcript)
-//        }
-//        
-//        actions.append(share)
-//        
-//        if mediaItem.hasAudio && (download != nil) {
-//            actions.append(download)
-//        }
-//        
-//        if actions.count == 0 {
-//            print("")
-//        }
-//        
-//        return actions.count > 0 ? actions : nil
-//    }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
@@ -2019,12 +1736,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return
-        }
-        
-        print("didSelectRowAtIndexPath")
-        
         if let _ = scriptureIndex?.selectedBook {
             selectedMediaItem = mediaItems?[indexPath.row]
         } else {
@@ -2034,26 +1745,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
         }
         
         Globals.shared.addToHistory(selectedMediaItem)
-        
-        print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
-        
-//        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
-        
-//        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-//                let viewController = navigationController.viewControllers[0] as? MediaViewController {
-//                viewController.selectedMediaItem = selectedMediaItem
-//                splitViewController?.viewControllers[1] = navigationController
-//            }
-//        } else {
-//            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-//                viewController.selectedMediaItem = selectedMediaItem
-//                
-//                self.navigationController?.navigationItem.hidesBackButton = false
-//                
-//                self.navigationController?.pushViewController(viewController, animated: true)
-//            }
-//        }
     }
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
@@ -2089,15 +1780,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
             label.translatesAutoresizingMaskIntoConstraints = false
             
             view?.addSubview(label)
-
-//            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(left)
-//
-//            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(right)
-//
-//            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(centerY)
 
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))

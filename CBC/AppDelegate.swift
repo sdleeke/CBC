@@ -12,37 +12,10 @@ import AudioToolbox
 import UserNotifications
 import CoreData
 
-extension UIApplication
-{
-    func isRunningInFullScreen() -> Bool
-    {
-        if let w = self.keyWindow
-        {
-            let maxScreenSize = max(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
-            let minScreenSize = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
-            
-            let maxAppSize = max(w.bounds.size.width, w.bounds.size.height)
-            let minAppSize = min(w.bounds.size.width, w.bounds.size.height)
-            
-            return maxScreenSize == maxAppSize && minScreenSize == minAppSize
-        }
-        
-        return true
-    }
-}
-
 extension AppDelegate : UISplitViewControllerDelegate
 {
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool
     {
-        //        if ((primaryViewController as? UINavigationController)?.topViewController as? LexiconIndexViewController) != nil {
-        //            primaryViewController.navigationController?.popToRootViewController(animated: false)
-        //        }
-        //
-        //        if ((primaryViewController as? UINavigationController)?.topViewController as? ScriptureIndexViewController) != nil {
-        //            primaryViewController.navigationController?.popToRootViewController(animated: false)
-        //        }
-        
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else {
             return false
         }
@@ -58,20 +31,10 @@ extension AppDelegate : UISplitViewControllerDelegate
         }
 
         return false
-
-//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//            return false
-//        } else {
-//            return splitViewController.navigationController?.visibleViewController == splitViewController.navigationController?.topViewController
-//        }
     }
     
     func primaryViewController(forExpanding splitViewController: UISplitViewController) -> UIViewController?
     {
-//        guard UIDevice.current.userInterfaceIdiom == .pad else {
-//            return nil
-//        }
-        
         // SVC vc[0] is a navCon
         if let master = splitViewController.viewControllers[0] as? UINavigationController, master.viewControllers.count > 0 {
             // First vc in master navCon vc's better be an MTVC
@@ -105,17 +68,6 @@ extension AppDelegate : UISplitViewControllerDelegate
                 }
             }
             
-//            if master.viewControllers.count > 2, let mvc = master.viewControllers[2] as? MediaViewController {
-//                if master.topViewController == mvc {
-//                    return sivc
-//                }
-//            }
-//            if master.viewControllers.count > 2, let mvc = master.viewControllers[2] as? MediaViewController {
-//                if master.topViewController == mvc {
-//                    return livc
-//                }
-//            }
-
             // Check for the possibility that there is a navCon view controller,
             // which will always be found in the last vc in the master's vc's,
             // which we take to be the detail vc collapsed on to the master vc's.
@@ -260,11 +212,6 @@ extension AppDelegate : UISplitViewControllerDelegate
         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
             let mvc = navigationController.viewControllers[0] as? MediaViewController {
             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
-//            mvc.selectedMediaItem = Globals.shared.selectedMediaItem.detail
-//            DispatchQueue.main.async {
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-//            }
-            print("BLANK MVC")
             return navigationController
         }
         
@@ -278,16 +225,10 @@ extension AppDelegate : UISplitViewControllerDelegate
         // And in plus sized phones neither an SIVC nor an LIVC can be anywhere in the SVC vc's when the SVC is expanded
         // So neither an SIVC nor an LIVC should ever show up as the primary after collapsing
         
-//        guard UIDevice.current.userInterfaceIdiom == .pad else {
-//            return nil
-//        }
-        
         // If the SVC has a navCon in first position, i.e. master
         if let master = splitViewController.viewControllers[0] as? UINavigationController {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 // On an iPad hand back whatever is the visible vc in the master, could be an SIVC or LIVC
-//                return master.viewControllers[0].navigationController
-//                return master.topViewController?.navigationController
                 return master.topViewController?.navigationController
             } else {
                 // On an iPhone hand back only the MTVC
@@ -324,13 +265,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         svc.delegate = self
         svc.preferredDisplayMode = .allVisible
 
-//        globals = Globals()
-        
         Globals.shared.checkVoiceBaseAvailability()
-
-//        Globals.shared.splitViewController = svc
-//        Globals.shared.splitViewController.delegate = self
-//        Globals.shared.splitViewController.preferredDisplayMode = .allVisible
         
         let hClass = svc.traitCollection.horizontalSizeClass
         let vClass = svc.traitCollection.verticalSizeClass
@@ -345,8 +280,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         
         startAudio()
         
-//        Globals.shared.persistentContainer = persistentContainer
-        
         return true
     }
 
@@ -359,10 +292,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         if Globals.shared.mediaPlayer.isPlaying && (Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video) && (Globals.shared.mediaPlayer.pip != .started) {
             Globals.shared.mediaPlayer.pause()
         }
-        
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_ENTER_BACKGROUND), object: nil)
-//        }
     }
     
     func applicationWillEnterForeground(_ application: UIApplication)
@@ -380,10 +309,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 Globals.shared.mediaPlayer.reload()
             }
         }
-        
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-//        }
     }
     
     func applicationWillResignActive(_ application: UIApplication)
@@ -391,10 +316,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
         print("applicationWillResignActive")
-        
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-//        }
     }
     
     func applicationDidBecomeActive(_ application: UIApplication)
@@ -403,10 +324,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         print("applicationDidBecomeActive")
         
         Globals.shared.mediaPlayer.setupPlayingInfoCenter()
-//        
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
-//        }
     }
     
     func applicationWillTerminate(_ application: UIApplication)
@@ -414,9 +331,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         print("applicationWillTerminate")
         
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_TERMINATE), object: nil)
-//        }
     }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void)
@@ -447,53 +361,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             }
         }
     }
-
-    // MARK: - Core Data stack
-    
-//    @available(iOS 10.0, *)
-//    lazy var persistentContainer: NSPersistentContainer = {
-//        /*
-//         The persistent container for the application. This implementation
-//         creates and returns a container, having loaded the store for the
-//         application to it. This property is optional since there are legitimate
-//         error conditions that could cause the creation of the store to fail.
-//         */
-//        let container = NSPersistentContainer(name: "Model")
-//        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-//            if let error = error as NSError? {
-//                // Replace this implementation with code to handle the error appropriately.
-//                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//
-//                /*
-//                 Typical reasons for an error here include:
-//                 * The parent directory does not exist, cannot be created, or disallows writing.
-//                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-//                 * The device is out of space.
-//                 * The store could not be migrated to the current model version.
-//                 Check the error message to determine what the actual problem was.
-//                 */
-//                fatalError("Unresolved error \(error), \(error.userInfo)")
-//            }
-//        })
-//        return container
-//    }()
-//
-//    // MARK: - Core Data Saving support
-//
-//    @available(iOS 10.0, *)
-//    func saveContext()
-//    {
-//        let context = persistentContainer.viewContext
-//        if context.hasChanges {
-//            do {
-//                try context.save()
-//            } catch {
-//                // Replace this implementation with code to handle the error appropriately.
-//                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//                let nserror = error as NSError
-//                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-//            }
-//        }
-//    }
 }
 

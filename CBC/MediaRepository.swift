@@ -8,9 +8,8 @@
 
 import Foundation
 
-class MediaRepository {
-//    weak var globals:Globals!
-    
+class MediaRepository
+{
     var list:[MediaItem]? { //Not in any specific order
         willSet {
             

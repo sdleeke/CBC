@@ -8,12 +8,12 @@
 
 import Foundation
 
-class Search {
-//    weak var globals:Globals!
-    
+class Search
+{
     var complete:Bool = true
     
-    var active:Bool = false {
+    var active:Bool = false
+    {
         willSet {
             
         }
@@ -24,17 +24,16 @@ class Search {
         }
     }
     
-    var valid:Bool {
+    var valid:Bool
+    {
         get {
             return active && extant
         }
     }
     
-    var extant:Bool {
+    var extant:Bool
+    {
         get {
-            // Same result, just harder to read and understand quickly
-            //                return !(text?.isEmpty ?? false)
-            
             if let isEmpty = text?.isEmpty {
                 return !isEmpty
             } else {
@@ -43,7 +42,8 @@ class Search {
         }
     }
     
-    var text:String? {
+    var text:String?
+    {
         willSet {
             
         }
@@ -66,7 +66,8 @@ class Search {
         }
     }
     
-    var transcripts:Bool {
+    var transcripts:Bool
+    {
         get {
             return UserDefaults.standard.bool(forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
         }

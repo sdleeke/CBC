@@ -24,36 +24,87 @@ extension ScriptureViewController : UIAdaptivePresentationControllerDelegate
     }
 }
 
+extension ScriptureViewController : UIActivityItemSource
+{
+    func share()
+    {
+        guard let html = webViewController?.html.string else {
+            return
+        }
+        
+        let print = UIMarkupTextPrintFormatter(markupText: html)
+        let margin:CGFloat = 0.5 * 72
+        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        
+        let activityViewController = UIActivityViewController(activityItems:[self,html,print] , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+        
+        // present the view controller
+        Thread.onMainThread {
+            self.present(activityViewController, animated: true, completion: nil)
+        }
+    }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    {
+        guard let activityType = activityType else {
+            return nil
+        }
+        
+        guard let html = webViewController?.html.string else {
+            return nil
+        }
+        
+        if #available(iOS 11.0, *) {
+            ScriptureViewController.cases.append(.markupAsPDF)
+        }
+        
+        if ScriptureViewController.cases.contains(activityType) {
+            return html
+        } else {
+            if let text = webViewController?.html.text {
+                return text
+            } else {
+                return "HTML to text conversion still in process.  Please try again later."
+            }
+        }
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        guard let activityType = activityType else {
+            return "public.plain-text"
+        }
+        
+        if WebViewController.cases.contains(activityType) {
+            return "public.text"
+        } else {
+            return "public.plain-text"
+        }
+    }
+}
+
 extension ScriptureViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
 
-//    func shareHTML(_ htmlString:String?)
-//    {
-//        guard let htmlString = htmlString else {
-//            return
-//        }
-//        
-//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-//        let margin:CGFloat = 0.5 * 72
-//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-//
-//        activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print] , applicationActivities: nil)
-//        
-//        // exclude some activity types from the list (optional)
-//        
-//        activityViewController?.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-//        
-//        activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-//        
-//        if let activityViewController = self.activityViewController {
-//            // present the view controller
-//            Thread.onMainThread {
-//                self.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-//    }
-    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -113,9 +164,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-//            case Constants.Strings.Share:
-//                shareHTML(viewController: self, htmlString: webViewController?.html.string)
-//                break
+            case Constants.Strings.Share:
+                share()
+                break
                 
             default:
                 break
@@ -411,8 +462,6 @@ class ScriptureViewController : UIViewController
     
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
-
-    var vc:UIViewController?
     
     var webViewController:WebViewController?
     
@@ -537,8 +586,6 @@ class ScriptureViewController : UIViewController
                     }
 
                     self.webViewController?.view.isHidden = false
-
-//                    _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                 }
             } else {
                 process(viewController: self, work: { [weak self] () -> (Any?) in
@@ -551,8 +598,6 @@ class ScriptureViewController : UIViewController
                         if let url = self?.webViewController?.html.fileURL {
                             self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                         }
-
-//                        _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                     } else {
                         var bodyString = "<!DOCTYPE html><html><body>"
                         
@@ -566,8 +611,6 @@ class ScriptureViewController : UIViewController
                             if let url = self?.webViewController?.html.fileURL {
                                 self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                             }
-
-//                            _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                         }
                     }
 
@@ -621,8 +664,6 @@ class ScriptureViewController : UIViewController
             }
         }
     }
-    
-//    var ptvc:PopoverTableViewController?
     
     var activityViewController:UIActivityViewController?
 
@@ -876,7 +917,7 @@ class ScriptureViewController : UIViewController
             
             DispatchQueue.global(qos: .background).async { [weak self] in
                 self?.scripture?.reference = reference
-                self?.scripture?.load() // reference
+                self?.scripture?.load()
                 
                 if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]

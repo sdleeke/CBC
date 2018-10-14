@@ -11,87 +11,15 @@ import UIKit
 import AVKit
 
 //Group//String//Sort
-//typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
-
+//[String:[String:[String:[MediaItem]]]]
 typealias MediaGroupSort = ThreadSafeDictionaryOfDictionaries<[String:[MediaItem]]>
 
-//class MediaGroupSort {
-//    var storage : [String:[String:[String:[MediaItem]]]]?
-//
-//    // Make it threadsafe
-//    let queue = DispatchQueue(label: "MediaGroupSort")
-//
-//    subscript(key:String) -> [String:[String:[MediaItem]]]? {
-//        get {
-//            return queue.sync {
-//                return storage?[key]
-//            }
-//        }
-//        set {
-//            queue.sync {
-//                if storage == nil {
-//                    storage = [String:[String:[String:[MediaItem]]]]()
-//                }
-//                storage?[key] = newValue
-//            }
-//        }
-//    }
-//}
-
 //Group//String//Name
-//typealias MediaGroupNames = [String:[String:String]]
+//[String:[String:String]]
 
 typealias MediaGroupNames = ThreadSafeDictionaryOfDictionaries<String>
 
-//class MediaGroupNames {
-//    var storage : [String:[String:String]]?
-//
-//    // Make it threadsafe
-//    let queue = DispatchQueue(label: "MediaGroupNames")
-//
-//    subscript(key:String) -> [String:String]? {
-//        get {
-//            return queue.sync {
-//                return storage?[key]
-//            }
-//        }
-//        set {
-//            queue.sync {
-//                if storage == nil {
-//                    storage = [String:[String:String]]()
-//                }
-//                storage?[key] = newValue
-//            }
-//        }
-//    }
-//}
-
-//typealias Words = [String:[MediaItem:Int]]
-
 typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
-
-//class Words {
-//    var storage : [String:[MediaItem:Int]]?
-//    
-//    // Make it threadsafe
-//    let queue = DispatchQueue(label: "Words")
-//    
-//    subscript(key:String) -> [MediaItem:Int]? {
-//        get {
-//            return queue.sync {
-//                return storage?[key]
-//            }
-//        }
-//        set {
-//            queue.sync {
-//                if storage == nil {
-//                    storage = [String:[MediaItem:Int]]()
-//                }
-//                storage?[key] = newValue
-//            }
-//        }
-//    }
-//}
 
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
@@ -112,11 +40,10 @@ class MediaListGroupSort
             // Is this risky, to try and delete all but the current search?
             if let keys = searches?.keys {
                 for key in keys {
-                    //                    print(key,Globals.shared.search.text)
                     if key != Globals.shared.search.text {
                         searches?[key] = nil
                     } else {
-                        //                        print(key,Globals.shared.search.text)
+
                     }
                 }
             }
@@ -168,9 +95,6 @@ class MediaListGroupSort
     var events:[String]?
     
     lazy var lexicon:Lexicon? = {
-//        [weak self] in
-//        let lexicon = Lexicon(self)
-//        lexicon.mediaListGroupSort = self
         return Lexicon(self) // lexicon
     }()
     
@@ -178,9 +102,6 @@ class MediaListGroupSort
     var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     lazy var scriptureIndex:ScriptureIndex? = {
-//        [weak self] in
-//        let scriptureIndex = ScriptureIndex()
-//        scriptureIndex.mediaListGroupSort = self
         return ScriptureIndex(self) // scriptureIndex
     }()
     
@@ -254,10 +175,6 @@ class MediaListGroupSort
             
             let proposedTags = [String](possibleTags.keys)
                 
-//                .map { (string:String) -> String in
-//                return string
-//            }
-            
             return proposedTags.count > 0 ? proposedTags : nil
         }
     }
@@ -490,9 +407,6 @@ class MediaListGroupSort
     }
     
     lazy var section:Section? = {
-//        [weak self] in
-//        let section = Section()
-//        section.mlgs = self
         return Section(self) // section
     }()
     
@@ -540,12 +454,6 @@ class MediaListGroupSort
         
         return sectionIndexTitles(grouping: grouping,sorting: sorting)?.compactMap({ (string:String) -> String? in
             return groupNames?[grouping]?[string]
-            
-//            if let string = groupNames?[grouping]?[string] {
-//                return string
-//            } else {
-//                return "ERROR"
-//            }
         })
     }
     

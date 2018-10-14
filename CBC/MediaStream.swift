@@ -21,11 +21,6 @@ class MediaStream
                 return StreamEntry(dict)?.startDate > Date()
             }).compactMap({ (dict:[String : Any]) -> String? in
                 return StreamEntry(dict)?.text
-//                if let string = StreamEntry(dict)?.text {
-//                    return string
-//                } else {
-//                    return "ERROR"
-//                }
             })
         }
     }

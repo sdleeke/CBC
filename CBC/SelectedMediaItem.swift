@@ -9,10 +9,10 @@
 import Foundation
 
 
-class SelectedMediaItem {
-//    weak var globals:Globals!
-    
-    var master:MediaItem? {
+class SelectedMediaItem
+{
+    var master:MediaItem?
+    {
         get {
             var selectedMediaItem:MediaItem?
             
@@ -28,7 +28,8 @@ class SelectedMediaItem {
         }
     }
     
-    var detail:MediaItem? {
+    var detail:MediaItem?
+    {
         get {
             var selectedMediaItem:MediaItem?
             

@@ -13,6 +13,7 @@
 		17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172B7FCC1F41FBD200C714C0 /* Section.swift */; };
+		1731F624217290AE00609DE6 /* SearchHit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1731F623217290AE00609DE6 /* SearchHit.swift */; };
 		1742C6891F1127F00096B150 /* TextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1742C6881F1127F00096B150 /* TextViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
@@ -107,6 +108,7 @@
 		17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		172B7FCC1F41FBD200C714C0 /* Section.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Section.swift; sourceTree = "<group>"; };
+		1731F623217290AE00609DE6 /* SearchHit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHit.swift; sourceTree = "<group>"; };
 		1742C6881F1127F00096B150 /* TextViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 				177A74B41EF576CB00D36BE2 /* StringTree.swift */,
 				177A74B21EF576A500D36BE2 /* StringNode.swift */,
 				177A74B01EF5767B00D36BE2 /* ScriptureIndex.swift */,
+				1731F623217290AE00609DE6 /* SearchHit.swift */,
 				17763BE41BEA32C700BB5556 /* MediaItem.swift */,
 				17DFD9501F029A7C000AC63D /* VoiceBase.swift */,
 				175DF549203B2EB10087CF0B /* Document.swift */,
@@ -524,6 +527,7 @@
 				175DF54C203B2ED80087CF0B /* ControlView.swift in Sources */,
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,
 				1742C6891F1127F00096B150 /* TextViewController.swift in Sources */,
+				1731F624217290AE00609DE6 /* SearchHit.swift in Sources */,
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
 				174A14AB1E02A6F100736CEC /* Download.swift in Sources */,
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,

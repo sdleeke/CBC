@@ -97,34 +97,11 @@ extension AboutViewController : UIPopoverPresentationControllerDelegate
 
 extension AboutViewController : UIActivityItemSource
 {
-//    func share()
-//    {
-//        let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
-//        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church app",url], applicationActivities: nil)
-//
-//        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-//        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
-//
-//        let popoverPresentationController = activityViewController.popoverPresentationController
-//
-//        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-//
-//        present(activityViewController, animated: true, completion: nil)
-//    }
-    
     func share()
     {
-//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-//        let margin:CGFloat = 0.5 * 72
-//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-
         let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
         let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
 
-//        UIPasteboard.general.url = url
-
-//        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
-        
         // exclude some activity types from the list (optional)
         
         activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
@@ -252,8 +229,6 @@ class AboutViewController: UIViewController
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-//            popover.vc = self
             
             popover.delegate = self
             popover.purpose = .selectingAction

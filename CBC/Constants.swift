@@ -9,13 +9,6 @@
 import Foundation
 import UIKit
 
-//enum UIUserInterfaceIdiom : Int
-//{
-//    case Unspecified
-//    case Phone
-//    case Pad
-//}
-
 enum ScreenSize
 {
     static let SCREEN_WIDTH         = UIScreen.main.bounds.size.width
@@ -23,61 +16,6 @@ enum ScreenSize
     static let SCREEN_MAX_LENGTH    = max(ScreenSize.SCREEN_WIDTH, ScreenSize.SCREEN_HEIGHT)
     static let SCREEN_MIN_LENGTH    = min(ScreenSize.SCREEN_WIDTH, ScreenSize.SCREEN_HEIGHT)
 }
-
-//enum DeviceType
-//{
-//    static let IS_IPHONE_4_OR_LESS  = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH < 568.0
-//    static let IS_IPHONE_5          = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 568.0
-//    static let IS_IPHONE_6_7        = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 667.0
-//    static let IS_IPHONE_6P_7P      = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH >= 736.0
-//    static let IS_IPAD              = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH == 1024.0
-//    static let IS_IPAD_PRO          = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH >= 1366.0
-//}
-
-//enum Field : String {
-//    case id       = "mediacode"
-//    
-//    case date
-//    case service
-//    
-//    case title
-//    
-//    case name
-//    
-//    case audio    = "audio_url"
-//    
-//    case m3u8
-//    case mp4
-//    
-//    case notes        = "transcript"
-//    case notes_HTML   = "transcript_HTML"
-//    
-//    case slides
-//    case outline
-//    
-//    case files
-//    
-//    case playing
-//    case showing
-//    
-//    case speaker      = "teacher" // was "speaker"
-//    case speaker_sort = "speaker sort"
-//    
-//    case scripture    = "text" // was "scripture"
-//    
-//    case category
-//    
-//    case className    = "class"
-//    case eventName    = "event"
-//    
-//    case multi_part_name      = "multi part name"
-//    case multi_part_name_sort = "multi part name sort"
-//    
-//    case part
-//    case tags = "series"
-//    case book
-//    case year
-//}
 
 enum Field {
     static let id       = "mediacode"
@@ -127,15 +65,6 @@ enum Field {
     static let seriesImage = "series_image"
 }
 
-//enum MediaType : String {
-//    case AUDIO
-//    case VIDEO
-//    case SLIDES
-//    case NOTES
-//    case OUTLINE
-//    case NONE
-//}
-
 enum MediaType {
     static let AUDIO    = "AUDIO"
     static let VIDEO    = "VIDEO"
@@ -145,17 +74,6 @@ enum MediaType {
     static let NONE     = "NONE"
 }
 
-//typealias Purpose = MediaType
-
-//enum PurposeEnum : String {
-//    case AUDIO
-//    case VIDEO
-//    case SLIDES
-//    case NOTES
-//    case OUTLINE
-//    case NONE
-//}
-
 enum Purpose {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
@@ -164,22 +82,10 @@ enum Purpose {
     static let outline  = MediaType.OUTLINE
 }
 
-//enum Playing : String {
-//    case AUDIO
-//    case VIDEO
-//}
-
 enum Playing {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
 }
-
-//enum Showing : String {
-//    case VIDEO
-//    case SLIDES
-//    case NOTES
-//    case NONE
-//}
 
 enum Showing {
     static let video    = MediaType.VIDEO
@@ -187,24 +93,6 @@ enum Showing {
     static let slides   = MediaType.SLIDES
     static let none     = MediaType.NONE
 }
-
-//enum Grouping : String {
-//    case Year
-//    case Book
-//    case Speaker
-//    case Title
-//    case Class
-//    case Event
-//}
-
-//enum GROUPING : String {
-//    case YEAR
-//    case BOOK
-//    case SPEAKER
-//    case TITLE
-//    case CLASS // e.g. = "class"
-//    case EVENT
-//}
 
 enum Grouping {
     static let Year     = "Year"
@@ -224,30 +112,14 @@ enum GROUPING {
     static let EVENT    = "event"
 }
 
-//enum Sorting : String {
-//    case Newest_to_Oldest = "Newest to Oldest"
-//    case Oldest_to_Newest = "Oldest to Newest"
-//}
-
 enum Sorting {
     static let Newest_to_Oldest = "Newest to Oldest"
     static let Oldest_to_Newest = "Oldest to Newest"
 }
 
-//enum SORTING : String {
-//    case CHRONOLOGICAL // = "chronological"
-//    //    static let Chronological = "Chronological"
-//    
-//    case REVERSE_CHRONOLOGICAL // = "reverse chronological"
-//    //    static let Reverse_Chronological = "Reverse Chronological"
-//}
-
 enum SORTING {
-    static let CHRONOLOGICAL = "chronological"
-    //    static let Chronological = "Chronological"
-    
-    static let REVERSE_CHRONOLOGICAL = "reverse chronological"
-    //    static let Reverse_Chronological = "Reverse Chronological"
+    static let CHRONOLOGICAL            = "chronological"
+    static let REVERSE_CHRONOLOGICAL    = "reverse chronological"
 }
 
 enum Constants {
@@ -260,18 +132,18 @@ enum Constants {
     static let SCRIPTURE_BASE_URL = "http://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]="
     
     enum JSON {
-        static let MEDIA_PATH = "media" //
+        static let MEDIA_PATH = "media"
         
-        static let CATEGORIES_PATH = "categories" //
+        static let CATEGORIES_PATH = "categories"
 
         enum URL {
             static let BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
             
-            static let MEDIA = BASE + MEDIA_PATH //
+            static let MEDIA = BASE + MEDIA_PATH
             
-            static let CATEGORIES = BASE + CATEGORIES_PATH //
+            static let CATEGORIES = BASE + CATEGORIES_PATH
             
-            static let CATEGORY = MEDIA + "&categoryID=" //
+            static let CATEGORY = MEDIA + "&categoryID="
             
             static let SINGLE = BASE + "single&mediacode="
         }
@@ -301,7 +173,7 @@ enum Constants {
     enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
-        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" //3 
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media"
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
@@ -315,12 +187,6 @@ enum Constants {
         static let SORTING_CHANGED          = "SORTING CHANGED"
         
         static let DONE_SEEKING             = "DONE SEEKING"
-        
-//        static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"
-//        static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
-//        static let WILL_TERMINATE           = "WILL TERMINATE"
-//        static let WILL_ENTER_FORGROUND     = "WILL ENTER FORGROUND"
-//        static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
         
         static let VOICE_BASE_FINISHED      = "VOICE BASE FINISHED"
         
@@ -491,9 +357,6 @@ enum Constants {
     static let MEDIA_CATEGORY = "MEDIA CATEGORY"
     
     static let SEARCH_TEXT = "SEARCH TEXT"
-    
-//    static let CONTENT_OFFSET_X_RATIO = "ContentOffsetXRatio"
-//    static let CONTENT_OFFSET_Y_RATIO = "ContentOffsetYRatio"
     
     static let CONTENT_OFFSET_X = "ContentOffsetX"
     static let CONTENT_OFFSET_Y = "ContentOffsetY"
@@ -725,13 +588,9 @@ enum Constants {
     enum Strings {
         static let NumberChars = "$0123456789"
         
-        static let TokenDelimiters = "\r\n$\" :+-!;,.{}()?^#%/<>[]" + Constants.LINE_SEPARATOR + Constants.ELIPSIS + Constants.BULLET + Constants.EM_DASH + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // + NumberChars // + "'"
-
-//        static let PossessiveTokenDelimiters = NonPossessiveTokenDelimiters.replacingOccurrences(of: Constants.QUOTES, with: Constants.DOUBLE_QUOTES).replacingOccurrences(of: "'", with: "")
+        static let TokenDelimiters = "\r\n$\" :+-!;,.{}()?^#%/<>[]" + Constants.LINE_SEPARATOR + Constants.ELIPSIS + Constants.BULLET + Constants.EM_DASH + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES
         
-        //        static let BreakChars = "\r\n\" :-!;,.()?^#%/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
-        
-        static let TrimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
+        static let TrimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '"
         
         static let Selected_Scriptures  = "Selected Scriptures"
         

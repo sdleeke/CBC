@@ -175,7 +175,6 @@ class ScriptureIndex
                                 break
                             }
                             
-                            //                            print("\(mediaItem)")
                             if let contains = self?.byTestament[testament(book)]?.contains(mediaItem) {
                                 if !contains {
                                     self?.byTestament[testament(book)]?.append(mediaItem)

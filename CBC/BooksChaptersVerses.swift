@@ -23,8 +23,6 @@ class BooksChaptersVerses : Swift.Comparable
         
         bcv[book] = data?[book]
         
-        //        print(bcv[book])
-        
         return bcv
     }
     

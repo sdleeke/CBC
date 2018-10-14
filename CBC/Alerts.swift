@@ -86,34 +86,16 @@ class Alerts
     var queue = [Alert]()
     
     var alertTimer : Timer?
-    
-//    func alert(title:String,message:String?)
-//    {
-//        if !queue.contains(where: { (alert:Alert) -> Bool in
-//            return (alert.title == title) && (alert.message == message)
-//        }) {
-//            queue.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
-//        } else {
-//            // This is happening - how?
-//            print("DUPLICATE ALERT")
-//        }
-//    }
-    
+
     func alert(category:String? = nil,title:String,message:String? = nil,attributedText:NSAttributedString? = nil,actions:[AlertAction]? = nil)
     {
         if !queue.contains(where: { (alert:Alert) -> Bool in
             return (alert.title == title) && (alert.message == message)
         }) {
-//            queue.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
             queue.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
         } else {
             // This is happening - how?
             print("DUPLICATE ALERT")
         }
     }
-    
-//    func alert(title:String,message:String?,actions:[AlertAction]?)
-//    {
-//        queue.append(Alert(category:nil,title: title, message: message, attributedText: nil, actions: actions))
-//    }
 }

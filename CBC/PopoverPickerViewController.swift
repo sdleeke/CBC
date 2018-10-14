@@ -305,8 +305,6 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     bodyHTML = bodyHTML + "<html><body>"
                     
-//                    bodyHTML = bodyHTML + "<center>"
-                    
                     if let roots = self?.stringTree?.root?.stringNodes {
                         var total = 0
                         for root in roots {
@@ -343,8 +341,6 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                         bodyHTML = bodyHTML + "</table>"
                     }
                     
-//                    bodyHTML = bodyHTML + "</center>"
-                    
                     bodyHTML = bodyHTML + "</body></html>"
                     
                     return bodyHTML
@@ -379,23 +375,7 @@ class PopoverPickerViewController : UIViewController
     
     var action : ((String?)->())?
     
-//    var mediaListGroupSort:MediaListGroupSort?
-    
     var pickerSelections = [Int:Int]()
-    
-//    var root:StringNode?
-//    {
-//        get {
-//            return lexicon?.stringTree.root
-//        }
-//    }
-    
-//    var lexicon:Lexicon?
-//    {
-//        get {
-//            return mediaListGroupSort?.lexicon
-//        }
-//    }
     
     var stringsFunction:(()->[String]?)?
     var strings:[String]?
@@ -406,7 +386,6 @@ class PopoverPickerViewController : UIViewController
     
     @IBOutlet weak var selectButton: UIButton!
     @IBOutlet weak var expandedViewButton: UIButton!
-//    @IBOutlet weak var wordListButton: UIButton!
 
     @IBAction func expandedViewAction(_ sender: UIButton)
     {
@@ -468,78 +447,16 @@ class PopoverPickerViewController : UIViewController
         })
     }
     
-//    @IBAction func wordListAction(_ sender: UIButton)
-//    {
-//        process(viewController: self, work: { () -> (Any?) in
-//            var bodyHTML = "<!DOCTYPE html>"
-//
-//            var wordsHTML = ""
-//            var indexHTML = ""
-//            
-//            bodyHTML = bodyHTML + "<html><body>"
-//
-//            if let roots = self.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
-//                return lhs.string < rhs.string
-//            }) {
-//                var total = 0
-//
-//                wordsHTML = "<table>"
-//
-//                for root in roots {
-//                    if let rows = root.words(nil) {
-//                        total += rows.count
-//
-//                        if let string = root.string {
-//                            wordsHTML = wordsHTML + "<tr><td><br/></td></tr>"
-//
-//                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
-//                        }
-//                        
-//                        for row in rows {
-//                            // This is where we would add columns.
-//                            wordsHTML = wordsHTML + "<tr><td>" + row + "</td></tr>"
-//                        }
-//                    }
-//                }
-//
-//                wordsHTML = wordsHTML + "</table>"
-//
-//                indexHTML = "<table>"
-//
-//                indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
-//
-//                indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
-//
-//                for root in roots {
-//                    if let string = root.string {
-//                        indexHTML = indexHTML + "<td>" + "<a id=\"index\" name=\"index\" href=#\(string)>" + string + "</a>" + "</td>"
-//                    }
-//                }
-//
-//                indexHTML = indexHTML + "</tr></table>"
-//            }
-//
-//            bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
-//
-//            return bodyHTML
-//        }, completion: { (data:Any?) in
-//            presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//        })
-//    }
-    
     @IBAction func selectButtonAction(sender: UIButton)
     {
         string = wordFromPicker()
 
-//        print("\(string)")
         delegate?.stringPicked(string,purpose:purpose)
     }
     
     func actionMenu() -> [String]?
     {
         var actionMenu = [String]()
-        
-//        actionMenu.append(Constants.Strings.Expanded_View)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -558,17 +475,10 @@ class PopoverPickerViewController : UIViewController
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-//            popover.navigationController?.isNavigationBarHidden = true
-            
             popover.delegate = self
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenu()
-//            
-//            popover.section.showIndex = false
-//            popover.section.showHeaders = false
-            
-//            popover.vc = self
             
             self.popover = popover
             
@@ -636,17 +546,13 @@ class PopoverPickerViewController : UIViewController
         if (self.view.window == nil) {
             return
         }
-        
-        //        print("Size: \(size)")
-        
+                
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }
     }
-    
-//    var ptvc:PopoverTableViewController?
     
     var orientation : UIDeviceOrientation?
 

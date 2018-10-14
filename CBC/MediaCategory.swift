@@ -8,11 +8,13 @@
 
 import Foundation
 
-class MediaCategory {
+class MediaCategory
+{
     // Make thread safe?
     var dicts:[String:String]?
     
-    var filename:String? {
+    var filename:String?
+    {
         get {
             guard let selectedID = selectedID else {
                 return nil
@@ -22,7 +24,8 @@ class MediaCategory {
         }
     }
     
-    var url:String? {
+    var url:String?
+    {
         get {
             guard let selectedID = selectedID else {
                 return nil
@@ -33,23 +36,21 @@ class MediaCategory {
     }
     
     // Make thread safe?
-    var names:[String]? {
+    var names:[String]?
+    {
         get {
             guard let dicts = dicts else {
                 return nil
             }
             
             return Array(dicts.keys).sorted()
-            
-            //                return dicts?.keys.map({ (key:String) -> String in
-            //                    return key
-            //                }).sorted()
         }
     }
     
     // This doesn't work if we someday allow multiple categories to be selected at the same time - unless the string contains multiple categories, as with tags.
     // In that case it would need to be an array.  Not a big deal, just a change.
-    var selected:String? {
+    var selected:String?
+    {
         get {
             if UserDefaults.standard.object(forKey: Constants.MEDIA_CATEGORY) == nil {
                 UserDefaults.standard.set(Constants.Strings.Sermons, forKey: Constants.MEDIA_CATEGORY)
@@ -68,7 +69,8 @@ class MediaCategory {
         }
     }
     
-    var selectedID:String? {
+    var selectedID:String?
+    {
         get {
             if let selected = selected {
                 return dicts?[selected] ?? "1" // Sermons are category 1
@@ -79,74 +81,7 @@ class MediaCategory {
     }
     
     // Make thread safe?
-    var settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // = Settings() // ThreadSafeDictionary<[String:String]>
-    
-    // Using a generic does not include the methods for save and saveBackground.
-    // Those would have to be part of the initialization configuration
-    
-//    class Settings {
-//        var storage : [String:[String:String]]?
-//
-//        init(storage:[String:[String:String]]?)
-//        {
-//            self.storage = storage
-//        }
-//
-//        // Make it threadsafe
-//        let queue = DispatchQueue(label: "Settings")
-//
-//        subscript(key:String?) -> [String:String]? {
-//            get {
-//                return queue.sync {
-//                    guard let key = key else {
-//                        return nil
-//                    }
-//
-//                    return storage?[key]
-//                }
-//            }
-//            set {
-//                queue.sync {
-//                    guard let key = key else {
-//                        return
-//                    }
-//
-//                    if storage == nil, newValue != nil {
-//                        storage = [String:[String:String]]()
-//                    }
-//
-//                    storage?[key] = newValue
-//                }
-//            }
-//        }
-//
-//        var allowSave = true
-//
-//        func saveBackground()
-//        {
-//            guard allowSave else {
-//                return
-//            }
-//
-//            print("saveSettingsBackground")
-//
-//            DispatchQueue.global(qos: .background).async { // [weak self] in
-//                self.save()
-//            }
-//        }
-//
-//        func save()
-//        {
-//            guard allowSave else {
-//                return
-//            }
-//
-//            print("saveSettings")
-//            let defaults = UserDefaults.standard
-//            defaults.set(storage, forKey: Constants.SETTINGS.CATEGORY)
-//            defaults.synchronize()
-//        }
-//    }
+    var settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]?
     
     var allowSaveSettings = true
     
@@ -175,7 +110,8 @@ class MediaCategory {
         defaults.synchronize()
     }
 
-    subscript(key:String) -> String? {
+    subscript(key:String) -> String?
+    {
         get {
             if let selected = selected {
                 return settings[selected]?[key]
@@ -189,18 +125,6 @@ class MediaCategory {
                 return
             }
             
-//            if settings == nil {
-//                settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]()
-//            }
-            
-//            guard (settings != nil) else {
-//                print("settings == nil!")
-//                return
-//            }
-            
-//            if (settings?[selected] == nil) {
-//                settings?[selected] = [String:String]()
-//            }
             if (settings[selected,key] != newValue) {
                 settings[selected,key] = newValue
                 
@@ -210,7 +134,8 @@ class MediaCategory {
         }
     }
     
-    var tag:String? {
+    var tag:String?
+    {
         get {
             return self[Constants.SETTINGS.COLLECTION]
         }
@@ -219,7 +144,8 @@ class MediaCategory {
         }
     }
     
-    var playing:String? {
+    var playing:String?
+    {
         get {
             return self[Constants.SETTINGS.MEDIA_PLAYING]
         }
@@ -228,7 +154,8 @@ class MediaCategory {
         }
     }
     
-    var selectedInMaster:String? {
+    var selectedInMaster:String?
+    {
         get {
             return self[Constants.SETTINGS.SELECTED_MEDIA.MASTER]
         }
@@ -237,7 +164,8 @@ class MediaCategory {
         }
     }
     
-    var selectedInDetail:String? {
+    var selectedInDetail:String?
+    {
         get {
             return self[Constants.SETTINGS.SELECTED_MEDIA.DETAIL]
         }

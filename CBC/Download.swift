@@ -21,20 +21,6 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     {
-//        var downloadFound:Download?
-//
-//        for key in downloads.keys {
-//            if (downloads[key]?.task == downloadTask) {
-//                downloadFound = downloads[key]
-//                break
-//            }
-//        }
-//
-//        guard let download = downloadFound else {
-//            print("NO DOWNLOAD FOUND!")
-//            return
-//        }
-        
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
             
@@ -66,20 +52,10 @@ extension Download : URLSessionDownloadDelegate
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
         
-        //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
-        
-//        let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
-//
-//        let current = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
-        
-        //            print(progress,current)
-            
         if let purpose = purpose {
             switch purpose {
             case Purpose.audio:
                 if bytesWritten > 0 {
-                    //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    //                    Globals.shared.queue.async(execute: { () -> Void in
                     Thread.onMainThread {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     }
@@ -130,20 +106,6 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     {
-//        var downloadFound:Download?
-//
-//        for key in downloads.keys {
-//            if (downloads[key]?.task == downloadTask) {
-//                downloadFound = downloads[key]
-//                break
-//            }
-//        }
-//
-//        guard let download = downloadFound else {
-//            print("NO DOWNLOAD FOUND!")
-//            return
-//        }
-        
         print("didFinishDownloadingTo")
 
         guard let statusCode = (task?.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
@@ -200,9 +162,6 @@ extension Download : URLSessionDownloadDelegate
         
         let fileManager = FileManager.default
         
-        // Check if file exists
-        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
-        
         do {
             if (state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
                 if (fileManager.fileExists(atPath: fileSystemURL.path)){
@@ -239,20 +198,6 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
-//        var downloadFound:Download?
-//
-//        for key in downloads.keys {
-//            if (downloads[key]?.session == session) {
-//                downloadFound = downloads[key]
-//                break
-//            }
-//        }
-//
-//        guard let download = downloadFound else {
-//            print("NO DOWNLOAD FOUND!")
-//            return
-//        }
-        
         guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
             error == nil else {
                 print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite as Any)
@@ -320,14 +265,12 @@ extension Download : URLSessionDownloadDelegate
         
         if let error = error, let purpose = purpose {
             print("with error: \(error.localizedDescription)")
-            //            download?.state = .none
             
             switch purpose {
             case Purpose.slides:
                 fallthrough
             case Purpose.notes:
                 Thread.onMainThread {
-                    //                    print(download?.mediaItem)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
                 }
                 break
@@ -336,18 +279,6 @@ extension Download : URLSessionDownloadDelegate
                 break
             }
         }
-        
-        //        print("Download error: \(error)")
-        //
-        //        if (download?.totalBytesExpectedToWrite == 0) {
-        //            download?.state = .none
-        //        } else {
-        //            print("Download succeeded for: \(session.description)")
-        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
-        //        }
-        
-        // This may delete temp files other than the one we just downloaded, so don't do it.
-        //        removeTempFiles()
         
         session.invalidateAndCancel()
         
@@ -358,20 +289,6 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
     {
-//        var downloadFound:Download?
-//
-//        for key in downloads.keys {
-//            if (downloads[key]?.session == session) {
-//                downloadFound = downloads[key]
-//                break
-//            }
-//        }
-//
-//        guard let download = downloadFound else {
-//            print("NO DOWNLOAD FOUND!")
-//            return
-//        }
-        
         debug("URLSession:didBecomeInvalidWithError:")
         
         debug("session: \(String(describing: session.sessionDescription))")
@@ -410,12 +327,6 @@ extension Download : URLSessionDownloadDelegate
         if task?.taskDescription == filename {
             completionHandler?()
         }
-//        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
-//            //                print("\(filename) \(key)")
-//            return value.task?.taskDescription == filename
-//        }).first?.1 {
-//            completionHandler?()
-//        }
     }
 }
 
@@ -429,8 +340,6 @@ class Download : NSObject
         self.fileSystemURL = fileSystemURL
         
         if let fileSystemURL = fileSystemURL {
-            //            print(fileSystemURL!.path!)
-            //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
             if FileManager.default.fileExists(atPath: fileSystemURL.path) {
                 self.state = .downloaded
             }
@@ -442,8 +351,6 @@ class Download : NSObject
     }
     
     weak var mediaItem:MediaItem?
-    
-//    var observer:Selector?
     
     var purpose:String?
     
@@ -521,12 +428,6 @@ class Download : NSObject
             
             switch state {
             case .downloading:
-//                    if observer == nil {
-//                        observer = #selector(AppDelegate.downloadFailed)
-//                        DispatchQueue.main.async {
-//                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-//                        }
-//                    }
                 Thread.onMainThread {
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADING), object: self)
@@ -534,12 +435,6 @@ class Download : NSObject
                 break
                 
             case .downloaded:
-                // This will remove the observer before an error notification is processed - so leave the observer in place.
-//                    if observer == #selector(AppDelegate.downloadFailed) {
-//                        DispatchQueue.main.async {
-//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-//                        }
-//                    }
                 Thread.onMainThread {
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self)
@@ -547,12 +442,6 @@ class Download : NSObject
                 break
                 
             case .none:
-                // This will remove the observer before an error notification is processed - so leave the observer in place.
-//                    if observer == #selector(AppDelegate.downloadFailed) {
-//                        DispatchQueue.main.async {
-//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-//                        }
-//                    }
                 break
             }
 
@@ -618,8 +507,6 @@ class Download : NSObject
     {
         get {
             if let fileSystemURL = fileSystemURL {
-                //            print(fileSystemURL!.path!)
-                //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
                 return FileManager.default.fileExists(atPath: fileSystemURL.path)
             } else {
                 return false
@@ -661,18 +548,9 @@ class Download : NSObject
             return
         }
         
-//        print(state)
         guard (state == .none) else {
             return
         }
-        
-//        guard let purpose = purpose else {
-//            return
-//        }
-//
-//        guard let id = mediaItem?.id else {
-//            return
-//        }
         
         state = .downloading
 

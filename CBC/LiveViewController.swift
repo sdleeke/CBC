@@ -32,7 +32,7 @@ class LiveViewController: UIViewController
     }
     
     override var canBecomeFirstResponder : Bool {
-        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
+        return true
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
@@ -52,17 +52,12 @@ class LiveViewController: UIViewController
         }
 
         setupLivePlayerView()
-        
-        // Chage spaces before am/pm to be unbreakable
-//        textView.text = textView.text.replacingOccurrences(of: " am", with: "\u{00a0}am")
-//        textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
     }
 
     @objc func clearView()
     {
         Thread.onMainThread {
             Globals.shared.mediaPlayer.view?.isHidden = true
-//            self.textView.isHidden = true
             self.logo.isHidden = false
         }
     }
@@ -73,7 +68,6 @@ class LiveViewController: UIViewController
             self.setupLivePlayerView()
             
             Globals.shared.mediaPlayer.view?.isHidden = false
-//            self.textView.isHidden = false
             self.logo.isHidden = true
         }
     }
@@ -86,7 +80,6 @@ class LiveViewController: UIViewController
     @objc func done()
     {
         if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-//            self.splitViewController?.preferredDisplayMode = .allVisible
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_LAST_SEGUE), object: nil)
         }
     }
@@ -155,48 +148,6 @@ class LiveViewController: UIViewController
     @IBOutlet weak var logo: UIImageView!
     
     @IBOutlet weak var webView: UIView!
-
-//    @IBOutlet weak var textView: UITextView!
-//
-//    @IBOutlet weak var textViewHeight: NSLayoutConstraint!
-//    {
-//        didSet {
-//            textViewHeight.constant = 0
-//        }
-//    }
-    
-//    func showHideNotice(_ pan:UIPanGestureRecognizer)
-//    {
-//        switch pan.state {
-//        case .began:
-//            break
-//
-//        case .ended:
-//            break
-//
-//        case .changed:
-//            let translation = pan.translation(in: pan.view)
-//
-//            if translation.y != 0 {
-//                if textViewHeight.constant - translation.y < 0 {
-//                    textViewHeight.constant = 0
-//                } else
-//                    if textViewHeight.constant - translation.y > self.view.bounds.height {
-//                        textViewHeight.constant = self.view.bounds.height
-//                    } else {
-//                    textViewHeight.constant -= translation.y
-//                }
-//            }
-//
-//            self.view.setNeedsLayout()
-//
-//            pan.setTranslation(CGPoint.zero, in: pan.view)
-//            break
-//
-//        default:
-//            break
-//        }
-//    }
     
     fileprivate func setupLivePlayerView()
     {
@@ -212,9 +163,7 @@ class LiveViewController: UIViewController
         }
         
         Globals.shared.mediaPlayer.showsPlaybackControls = true
-        
-//        textView.sizeToFit()
-        
+                
         view.isHidden = true
         view.removeFromSuperview()
         

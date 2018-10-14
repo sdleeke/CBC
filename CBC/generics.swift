@@ -95,7 +95,8 @@ class BoundsCheckedArray<T>
         self.getIt = getIt
     }
     
-    subscript(key:Int) -> T? {
+    subscript(key:Int) -> T?
+    {
         get {
             if let array = getIt?() {
                 if key >= 0,key < array.count {
@@ -292,7 +293,8 @@ class ThreadSafeDictionary<T>
         self.name = name
     }
     
-    subscript(key:String?) -> T? {
+    subscript(key:String?) -> T?
+    {
         get {
             return queue.sync {
                 guard let key = key else {
@@ -412,7 +414,8 @@ class ThreadSafeDictionaryOfDictionaries<T>
         }
     }
     
-    subscript(outer:String?,inner:String?) -> T? {
+    subscript(outer:String?,inner:String?) -> T?
+    {
         get {
             return queue.sync {
                 guard let outer = outer else {
@@ -456,13 +459,11 @@ class Fetch<T>
         return operationQueue
     }()
 
-    init(name:String?,fetch:(()->(T?))? = nil) //
+    init(name:String?,fetch:(()->(T?))? = nil)
     {
         self.name = name
         self.fetch = fetch
     }
-    
-//    var queue = DispatchQueue.global(qos: .userInteractive)
     
     var fetch : (()->(T?))?
     
@@ -488,39 +489,11 @@ class Fetch<T>
         }
                 
         operationQueue.waitUntilAllOperationsAreFinished()
-
-//        return queue.sync {
-//            guard cache == nil else {
-//                return
-//            }
-//
-//            self.cache = self.fetch?()
-//        }
     }
     
     var result:T?
     {
         get {
-//            operationQueue.waitUntilAllOperationsAreFinished()
-//
-//            guard cache == nil else {
-//                return cache
-//            }
-            
-//            guard cache == nil else {
-//                return cache
-//            }
-//
-//            return queue.sync {
-//                guard cache == nil else {
-//                    return cache
-//                }
-//
-//                self.cache = self.fetch?()
-//
-//                return cache
-//            }
-
             load()
 
             return cache

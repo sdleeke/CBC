@@ -91,9 +91,6 @@ class HTML {
                 operationQueue.qualityOfService = .userInteractive
                 operationQueue.maxConcurrentOperationCount = 1
 
-//                operationQueue.cancelAllOperations()
-//                operationQueue.waitUntilAllOperationsAreFinished()
-
                 operationQueue.addOperation { [weak self] in
                     self?.text = stripHTML(self?.string) // This leaves an HTML frame around the text!
                     Thread.onMainThread {
@@ -124,15 +121,6 @@ class HTML {
     var zoomScale = 0.0
 }
 
-//class StripHTMLActivity : UIActivityItemProvider
-//{
-//    override var item : Any {
-//        get {
-//            return stripHTML(placeholderItem as? String)
-//        }
-//    }
-//}
-
 extension WebViewController : UIActivityItemSource
 {
     func share()
@@ -141,12 +129,6 @@ extension WebViewController : UIActivityItemSource
             return
         }
         
-//        if #available(iOS 10.0, *) {
-//            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
-//        } else {
-//            // Fallback on earlier versions
-//        }
-
         let print = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
@@ -158,13 +140,6 @@ extension WebViewController : UIActivityItemSource
         activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-        
-        //        if let cell = cell {
-        //            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
-        //            activityViewController.popoverPresentationController?.sourceView = cell
-        //        } else {
-        //            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-        //        }
         
         // present the view controller
         Thread.onMainThread {
@@ -193,23 +168,10 @@ extension WebViewController : UIActivityItemSource
             WebViewController.cases.append(.markupAsPDF)
         }
 
-//        if #available(iOS 10.0, *) {
-//            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
-//        } else {
-//            // Fallback on earlier versions
-//        }
-
         if WebViewController.cases.contains(activityType) {
             return self.html.string
         } else {
-//            html.operationQueue.waitUntilAllOperationsAreFinished()
-            
             if let text = self.html.text {
-//                if #available(iOS 10.0, *) {
-//                    UIPasteboard.general.addItems([[kUTTypeText as String: text]])
-//                } else {
-//                    // Fallback on earlier versions
-//                }
                 return text
             } else {
                 return "HTML to text conversion still in process.  Please try again later."
@@ -290,46 +252,12 @@ extension WebViewController : PopoverPickerControllerDelegate
         if let url = self.html.fileURL {
             wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
         }
-        
-        // Problem is hyperlinks do not work w/o file based HTML
-//        if let htmlString = self.html.string {
-//            _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//        }
     }
 }
 
 extension WebViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
-    
-//    func done()
-//    {
-//        dismiss(animated: true, completion: nil)
-//    }
-    
-//    func shareHTML(_ htmlString:String?)
-//    {
-//        guard let htmlString = htmlString else {
-//            return
-//        }
-//        
-//        let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-//        let margin:CGFloat = 0.5 * 72
-//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-//        
-//        let activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print] , applicationActivities: nil)
-//
-//        // exclude some activity types from the list (optional)
-//        
-//        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-//        
-//        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-//        
-//        // present the view controller
-//        Thread.onMainThread {
-//            self.present(activityViewController, animated: true, completion: nil)
-//        }
-//    }
     
     @objc func showFullScreen()
     {
@@ -415,9 +343,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 } else {
                     if self.bodyHTML != nil, self.headerHTML != nil {
                         self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
-                        //                } else
-                        //                if self.transcript != nil {
-                        //                    self.html.string = insertHead(stripHead(self.transcript?.markedFullHTML(searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
                     } else {
                         self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                     }
@@ -426,10 +351,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let url = self.html.fileURL {
                     self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
-                
-//                if let htmlString = self.html.string {
-//                    _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//                }
             })
             break
             
@@ -445,37 +366,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
 
                 popover.stringTree = StringTree()
-                
-//                if let mediaItem = mediaItem {
-//                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
-//
-////                    mediaItem.loadNotesTokens()
-////                    if let keys = mediaItem.notesTokens?.keys {
-////                        let strings = [String](keys).sorted()
-////                        popover.strings = strings
-////                    }
-//
-//                    popover.stringsFunction = {
-////                        mediaItem.notesTokens?.load()
-//                        if let keys = mediaItem.notesTokens.result?.keys {
-//                            let strings = [String](keys).sorted()
-//                            return strings
-//                        }
-//
-//                        return nil
-//                    }
-//
-////                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
-////                        return string
-////                    }).sorted()
-//                }
 
                 if bodyHTML != nil {
                     popover.navigationItem.title = title // Constants.Strings.Word_Picker
-                    
-                    //                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-                    //                        return word
-                    //                    }).sorted()
                     
                     popover.stringsFunction = {
                         // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -484,21 +377,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         }).sorted()
                     }
                 }
-
-//                if let transcript = transcript {
-//                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
-//
-////                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-////                        return word
-////                    }).sorted()
-//
-//                    popover.stringsFunction = {
-//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-//                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
-//                            return word
-//                        }).sorted()
-//                    }
-//                }
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -515,10 +393,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 if let mediaItem = mediaItem {
                     popover.cloudTitle = mediaItem.title
-//                    popover.mediaItem = mediaItem
                     
                     popover.cloudWordsFunction = {
-//                        mediaItem.loadNotesTokens()
                         
                         let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
@@ -526,24 +402,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         
                         return words
                     }
-                    
-                    //                .filter({ (dict:[String:Any]) -> Bool in
-                    //                    guard let word = dict["word"] as? String else {
-                    //                        return false
-                    //                    }
-                    //
-                    //                    guard let count = dict["count"] as? Int else {
-                    //                        return false
-                    //                    }
-                    //
-                    //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
-                    //                })
-                    
-//                    popover.cloudWords = words
                 }
                 
                 popover.cloudTitle = navigationItem.title
-//                popover.mediaItem = transcript.mediaItem
                 
                 popover.cloudWordsFunction = {
                     let words = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
@@ -600,52 +461,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     }
                 }))
 
-//                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-//                    popover.sort.method = Constants.Sort.Alphabetical
-//                    popover.section.showIndex = true
-//                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-//                    popover.tableView.reloadData()
-//                }))
-//                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-//                    popover.sort.method = Constants.Sort.Frequency
-//                    popover.section.showIndex = false
-//                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-//                    popover.tableView.reloadData()
-//                }))
-                
                 popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                 
                 popover.section.showIndex = true
                 
                 popover.search = true
-                
-//                if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
-//                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
-//
-//                    popover.selectedMediaItem = mediaItem
-//
-//                    popover.stringsFunction = {
-//                        //                            mediaItem.loadNotesTokens()
-//
-//                        return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
-//                            return "\(string) (\(count))"
-//                        }).sorted()
-//                    }
-//
-////                    if mediaItem.notesTokens == nil {
-////                        popover.stringsFunction = {
-//////                            mediaItem.loadNotesTokens()
-////
-////                            return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
-////                                return "\(string) (\(count))"
-////                            }).sorted()
-////                        }
-////                    } else {
-////                        popover.section.strings = mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
-////                            return "\(string) (\(count))"
-////                        }).sorted()
-////                    }
-//                }
 
                 popover.stringsFunction = {
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -653,36 +473,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         return "\(word) (\(count))"
                     }).sorted()
                 }
-
-//                if bodyHTML != nil {
-//                    // If the transcript has been edited some of these words may not be found.
-//                    //                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-//                    //                        return "\(word) (\(count))"
-//                    //                    }).sorted()
-//
-//                }
-                
-//                if let transcript = transcript {
-//                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
-//
-//                    // If the transcript has been edited some of these words may not be found.
-////                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-////                        return "\(word) (\(count))"
-////                    }).sorted()
-//
-//                    popover.stringsFunction = {
-//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-//                        return transcript.tokens?.map({ (word:String,count:Int) -> String in
-//                            return "\(word) (\(count))"
-//                        }).sorted()
-//                    }
-//
-////                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
-////                        return "\(word) (\(count))"
-////                    }).sorted()
-//                }
-                
-//                popover.vc = self
 
                 self.popover = popover
                 
@@ -696,14 +486,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             break
             
-//        case Constants.Strings.Open_in_Browser:
-//            if let url = selectedMediaItem?.downloadURL {
-//                open(scheme: url.absoluteString) {
-//                    networkUnavailable(self,"Unable to open: \(url)")
-//                }
-//            }
-//            break
-            
         case Constants.Strings.Refresh_Document:
             mediaItem?.download?.delete()
             
@@ -716,8 +498,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.startAnimating()
             
             setupWKWebView()
-            
-//            loadDocument()
             
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             break
@@ -775,10 +555,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         }
                     }
                 }
-                
-                //            if let htmlString = self.html.string {
-                //                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-                //            }
             }
             break
             
@@ -835,7 +611,6 @@ extension WebViewController : WKNavigationDelegate
     
     func webView(_ wkWebView: WKWebView, didFail navigation: WKNavigation!, withError: Error)
     {
-//        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
         if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed || (self == navigationController?.visibleViewController) {
             print("wkDidFail navigation")
             activityIndicator.stopAnimating()
@@ -844,14 +619,10 @@ extension WebViewController : WKNavigationDelegate
             networkUnavailable(self,withError.localizedDescription)
             NSLog(withError.localizedDescription)
         }
-        // Keep trying
-        //        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-        //        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
     }
     
     func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error)
     {
-//        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
         if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed || (self == navigationController?.visibleViewController) {
             print("wkDidFailProvisionalNavigation")
             activityIndicator.stopAnimating()
@@ -892,11 +663,6 @@ extension WebViewController : WKNavigationDelegate
 
 extension WebViewController: UIScrollViewDelegate
 {
-//    func viewForZooming(in scrollView: UIScrollView) -> UIView?
-//    {
-//        return 
-//    }
-    
     func scrollViewDidZoom(_ scrollView: UIScrollView)
     {
 
@@ -998,7 +764,7 @@ class WebViewController: UIViewController
     var content:Content = .document
     
     lazy var html:HTML! = {
-//        [weak self] in
+        [weak self] in
         let html = HTML()
         html.webViewController = self
         return html
@@ -1062,16 +828,6 @@ class WebViewController: UIViewController
             }
         }
     }
-    
-//    var transcript:VoiceBase?
-//    {
-//        willSet {
-//            
-//        }
-//        didSet {
-//            
-//        }
-//    }
     
     var bodyHTML : String?
     var headerHTML : String?
@@ -1155,8 +911,6 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-//    var ptvc:PopoverTableViewController?
-    
     var activityViewController:UIActivityViewController?
     
     @objc func actionMenu()
@@ -1214,8 +968,6 @@ class WebViewController: UIViewController
             
             popover.section.strings = actionMenu
             
-//            popover.vc = self
-            
             self.popover = popover
             
             present(navigationController, animated: true, completion: nil)
@@ -1242,10 +994,6 @@ class WebViewController: UIViewController
         if let url = html.fileURL {
             wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
         }
-
-//        if let htmlString = html.string {
-//            _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//        }
     }
     
     @objc func decreaseFontSize()
@@ -1269,10 +1017,6 @@ class WebViewController: UIViewController
             if let url = html.fileURL {
                 wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
             }
-
-//            if let htmlString = html.string {
-//                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//            }
         }
     }
     
@@ -1312,7 +1056,12 @@ class WebViewController: UIViewController
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
-                    navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
+                    
+                    if Globals.shared.splitViewController.isCollapsed == false {
+                        navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
+                    } else {
+                        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
+                    }
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
                         navigationItem.rightBarButtonItems?.append(actionButton)
@@ -1387,9 +1136,6 @@ class WebViewController: UIViewController
         var contentOffsetXRatioStr:String?
         var contentOffsetYRatioStr:String?
         
-//        contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-//        contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
-        
         contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X]
         contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y]
         zoomScaleStr = mediaItem?.mediaItemSettings?[showing + Constants.ZOOM_SCALE]
@@ -1433,32 +1179,15 @@ class WebViewController: UIViewController
             return
         }
         
-//        var contentOffsetXRatioStr:String?
-//        var contentOffsetYRatioStr:String?
-//
-//        contentOffsetXRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-//        contentOffsetYRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
-        
         var contentOffsetXStr:String?
         var contentOffsetYStr:String?
         
         contentOffsetXStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X]
         contentOffsetYStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y]
         
-//        var contentOffsetXRatio:CGFloat = 0.0
-//        var contentOffsetYRatio:CGFloat = 0.0
-        
         var contentOffsetX:CGFloat = 0.0
         var contentOffsetY:CGFloat = 0.0
-        
-//        if let ratio = contentOffsetXRatioStr, let num = Float(ratio) {
-//            contentOffsetXRatio = CGFloat(num)
-//        }
-//
-//        if let ratio = contentOffsetYRatioStr, let num = Float(ratio) {
-//            contentOffsetYRatio = CGFloat(num)
-//        }
-        
+
         if let x = contentOffsetXStr, let num = Float(x) {
             contentOffsetX = CGFloat(num)
         }
@@ -1466,9 +1195,6 @@ class WebViewController: UIViewController
         if let y = contentOffsetYStr, let num = Float(y) {
             contentOffsetY = CGFloat(num)
         }
-        
-//        let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width), //
-//            y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height)) //
         
         let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
                                     y: CGFloat(contentOffsetY)) //
@@ -1493,10 +1219,6 @@ class WebViewController: UIViewController
         }
         
         if !wkWebView.isLoading, wkWebView.url != nil {
-//            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
-//
-//            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
-            
             mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X] = "\(wkWebView.scrollView.contentOffset.x)"
             
             mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y] = "\(wkWebView.scrollView.contentOffset.y)"
@@ -1513,48 +1235,17 @@ class WebViewController: UIViewController
     {
         // This used in transition to size to set the content offset.
         
-//        guard let wkWebView = wkWebView else {
-//            return
-//        }
-//
-//        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)),
-//                                    y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height)))
-//
-//        Thread.onMainThread {
-//            wkWebView.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
-//            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
-//        }
     }
     
     func setupHTMLWKContentOffset(_ wkWebView: WKWebView?)
     {
         // This used in transition to size to set the content offset.
         
-//        guard let wkWebView = wkWebView else {
-//            return
-//        }
-//
-//        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)), //
-//            y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height))) //
-//
-//        Thread.onMainThread {
-//            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
-//        }
     }
     
     func captureHTMLContentOffsetAndZoomScale()
     {
-//        guard let wkWebView = wkWebView else {
-//            return
-//        }
-//
-//        if !wkWebView.isLoading {
-//            html.xRatio = Double(wkWebView.scrollView.contentOffset.x) / Double(wkWebView.scrollView.contentSize.width)
-//
-//            html.yRatio = Double(wkWebView.scrollView.contentOffset.y) / Double(wkWebView.scrollView.contentSize.height)
-//
-//            html.zoomScale = Double(wkWebView.scrollView.zoomScale)
-//        }
+
     }
     
     func setupSplitViewController()
@@ -1713,11 +1404,6 @@ class WebViewController: UIViewController
                     
                     loadTimer?.invalidate()
                     loadTimer = nil
-                    
-//                    DispatchQueue.global(qos: .background).async { [weak self] in
-//                        Thread.onMainThread {
-//                        }
-//                    }
                 } else {
                     download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url, fileSystemURL: urlString.fileSystemURL)
                     
@@ -1783,86 +1469,6 @@ class WebViewController: UIViewController
             }
         }
     }
-    
-//    func loadDocument()
-//    {
-//        if #available(iOS 9.0, *) {
-//            if Globals.shared.cacheDownloads {
-//                if let destinationURL = mediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
-//                    DispatchQueue.global(qos: .background).async { [weak self] in
-//                        _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
-//
-//                        Thread.onMainThread {
-//                            self?.activityIndicator.stopAnimating()
-//                            self?.activityIndicator.isHidden = true
-//
-//                            self?.progressIndicator.progress = 0.0
-//                            self?.progressIndicator.isHidden = true
-//
-//                            self?.loadTimer?.invalidate()
-//                            self?.loadTimer = nil
-//                        }
-//                    }
-//                } else {
-//                    activityIndicator.isHidden = false
-//                    activityIndicator.startAnimating()
-//
-//                    if let download = mediaItem?.download {
-//                        progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-//                        progressIndicator.isHidden = false
-//
-//                        download.download()
-//                    }
-//                }
-//            } else {
-//                DispatchQueue.global(qos: .background).async { [weak self] in
-//                    Thread.onMainThread {
-//                        if let activityIndicator = self?.activityIndicator {
-//                            self?.webView.bringSubview(toFront: activityIndicator)
-//                        }
-//
-//                        self?.activityIndicator.isHidden = false
-//                        self?.activityIndicator.startAnimating()
-//
-//                        self?.progressIndicator.progress = 0.0
-//                        self?.progressIndicator.isHidden = false
-//
-//                        if self?.loadTimer == nil, let target = self {
-//                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-//                        }
-//                    }
-//
-//                    if let url = self?.mediaItem?.downloadURL {
-//                        let request = URLRequest(url: url)
-//                        _ = self?.wkWebView?.load(request)
-//                    }
-//                }
-//            }
-//        } else {
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                Thread.onMainThread {
-//                    if let activityIndicator = self?.activityIndicator {
-//                        self?.webView.bringSubview(toFront: activityIndicator)
-//                    }
-//
-//                    self?.activityIndicator.isHidden = false
-//                    self?.activityIndicator.startAnimating()
-//
-//                    self?.progressIndicator.progress = 0.0
-//                    self?.progressIndicator.isHidden = false
-//
-//                    if self?.loadTimer == nil {
-//                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-//                    }
-//                }
-//
-//                if let url = self?.mediaItem?.downloadURL {
-//                    let request = URLRequest(url: url)
-//                    _ = self?.wkWebView?.load(request)
-//                }
-//            }
-//        }
-//    }
     
     @objc func setPreferredContentSize()
     {
@@ -2104,12 +1710,8 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-//    var mask = false
-    
     func addNotifications()
     {
-//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-        
         NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -2131,32 +1733,6 @@ class WebViewController: UIViewController
             activityButtonIndicator.startAnimating()
         }
         
-//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-//            var vc : UIViewController?
-//
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
-//                vc = Globals.shared.splitViewController.viewControllers[1]
-//            }
-//
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
-//                vc = Globals.shared.splitViewController.viewControllers[0]
-//            }
-//
-//            mask = true
-//
-//            if let vc = vc {
-//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
-//                    // Why are we doing this?
-//                    while self?.mask == true {
-//                        Thread.sleep(forTimeInterval: 0.5)
-//                    }
-//                    return nil
-//                },completion:{ [weak self] (data:Any?) -> Void in
-//
-//                })
-//            }
-//        }
-        
         orientation = UIDevice.current.orientation
 
         if let title = mediaItem?.title {
@@ -2168,8 +1744,6 @@ class WebViewController: UIViewController
             case .document:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-                
-//                loadDocument()
                 
                 loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
                 break
@@ -2188,10 +1762,6 @@ class WebViewController: UIViewController
                     if let url = html.fileURL {
                         wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
-
-//                    if let htmlString = html.string {
-//                        _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//                    }
                 }
                 break
             }
@@ -2229,17 +1799,12 @@ class WebViewController: UIViewController
     {
         super.viewDidAppear(animated)
 
-        // WHY WERE THESE ADDED?
-//        navigationItem.hidesBackButton = false
-//        navigationController?.navigationBar.backItem?.title = Constants.Strings.Back
     }
     
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        mask = false
-        
+                
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil
         

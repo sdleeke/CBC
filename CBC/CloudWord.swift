@@ -92,27 +92,6 @@ class CloudWord : NSObject
         default: // 30%
             wordColor = 4
         }
-
-//        if (scale >= 0.95) // 5%
-//        {
-//            self.wordColor = 0;
-//        }
-//        else if (scale >= 0.8) // 15%
-//        {
-//            self.wordColor = 1;
-//        }
-//        else if (scale >= 0.55) // 25%
-//        {
-//            self.wordColor = 2;
-//        }
-//        else if (scale >= 0.30) // 25%
-//        {
-//            self.wordColor = 3;
-//        }
-//        else // 30%
-//        {
-//            self.wordColor = 4;
-//        }
     }
     
     let containerMargin : CGFloat = 16.0
@@ -144,19 +123,7 @@ class CloudWord : NSObject
             random = arc4random_uniform(UInt32(chance))
         }
         
-//        if delta > 0 {
-//            print(containerSize.height/containerSize.width)
-//            random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
-//        }
-//
-//        if delta < 0 {
-//            print(containerSize.width/containerSize.height)
-//            random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
-//        }
-
-//        print(containerSize.width/containerSize.height)
         random = arc4random_uniform(UInt32(chance * containerSize.width/containerSize.height))
-//        print(random)
 
         switch orientation {
         case 0,1:
@@ -228,8 +195,6 @@ class CloudWord : NSObject
             return
         }
         
-//        print(wordText,pointSize)
-        
         wordOrientationVertical = isVertical;
         
         let attributes = [NSAttributedStringKey.font: font]
@@ -273,123 +238,5 @@ class CloudWord : NSObject
     {
         return Darwin.ceil(value * scale) / scale
     }
-    
-//    func setSizeToGlyphBoundingRect(containerSize:CGSize,cloudFont:UIFont?)
-//    {
-////        guard let containerSize = containerSize else {
-////            return
-////        }
-//        
-//        guard let cloudFont = cloudFont else {
-//            return
-//        }
-//        
-//        guard let font = UIFont(name: cloudFont.fontName, size: pointSize) else {
-//            return
-//        }
-//        
-//        guard let wordText = wordText else {
-//            return
-//        }
-//        
-//        var overallGlyphRect = CGRect.zero
-//        
-//        let wordRect = frame
-//        
-//        // Typesetting is always done in the horizontal direction
-//        
-//        // There's a small possibility that a particular typeset word using a particular font, may still not fit within a slightly larger frame.  Give the typesetter a very large frame, to ensure that any word, at any point size, can be typeset on a line
-//        
-//        let horizontalFrame = CGRect(x: 0.0,y: 0.0,
-//                                     width: wordOrientationVertical ? containerSize.height : containerSize.width,
-//                                     height: wordOrientationVertical ? containerSize.width : containerSize.height)
-//        
-//        let attributes = [NSFontAttributeName : font]
-//        
-//        let attributedString = NSAttributedString(string: wordText, attributes: attributes)
-//        
-//        let cfas = attributedString as CFAttributedString
-//        
-//        let framesetter = CTFramesetterCreateWithAttributedString(cfas)
-//        
-//        let drawingPath = CGPath(rect: horizontalFrame, transform: nil)
-//        
-//        let textFrame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, attributedString.length), drawingPath, nil)
-//        
-//        let lines = CTFrameGetLines(textFrame)
-//        
-//        if (CFArrayGetCount(lines) > 0) {
-//            var lineOrigin = CGPoint.zero
-//            
-//            CTFrameGetLineOrigins(textFrame, CFRangeMake(0, 1), &lineOrigin)
-//            
-//            let line = (lines as NSArray).object(at: 0) as! CTLine
-//            
-//            //            let line = CFArrayGetValueAtIndex(lines, 0) as! CTLine
-//            
-//            let runs = CTLineGetGlyphRuns(line)
-//            
-//            for runIndex in 0..<CFArrayGetCount(runs) {
-//                let run = (runs as NSArray).object(at: runIndex) as! CTRun
-//                
-//                //                let run = CFArrayGetValueAtIndex(runs, runIndex) as! CTRun
-//                
-//                let runAttributes:CFDictionary = CTRunGetAttributes(run)
-//                
-//                let font = (runAttributes as NSDictionary)[NSFontAttributeName] as! CTFont
-//                //                let font = CFDictionaryGetValue(runAttributes, NSFontAttributeName) as! CTFont
-//                
-//                for glyphIndex in 0..<CTRunGetGlyphCount(run) {
-//                    var glyphPosition = CGPoint.zero
-//                    
-//                    CTRunGetPositions(run, CFRangeMake(glyphIndex, 1), &glyphPosition)
-//                    
-//                    var glyph = CGGlyph()
-//                    
-//                    CTRunGetGlyphs(run, CFRangeMake(glyphIndex, 1), &glyph)
-//                    
-//                    var glyphBounds = CGRect.zero
-//                    
-//                    CTFontGetBoundingRectsForGlyphs(font, CTFontOrientation.default, &glyph, &glyphBounds, 1);
-//                    
-//                    var glyphRect = CGRect.zero
-//                    
-//                    let glyphX:CGFloat = lineOrigin.x + glyphPosition.x + glyphBounds.minX
-//                    let glyphY:CGFloat = horizontalFrame.height - (lineOrigin.y + glyphPosition.y + glyphBounds.maxY)
-//                    
-//                    if isWordOrientationVertical {
-//                        glyphRect = CGRect(x: wordRect.width - glyphY,y: glyphX, width: -glyphBounds.height, height: glyphBounds.width)
-//                    } else {
-//                        glyphRect = CGRect(x: glyphX,y: glyphY, width: glyphBounds.width, height: glyphBounds.height)
-//                    }
-//                    
-//                    glyphRect = glyphRect.offsetBy(dx: wordRect.minX, dy: wordRect.minY)
-//                    
-//                    // Added some buffer space
-//                    glyphRect = glyphRect.insetBy(dx: -2, dy: -2)
-//                    
-//                    if overallGlyphRect == CGRect.zero {
-//                        overallGlyphRect = glyphRect
-//                    } else {
-//                        overallGlyphRect = overallGlyphRect.union(glyphRect)
-//                    }
-//                    
-//                    //#ifdef DEBUG
-//                    //                __weak id<CloudLayoutOperationDelegate> delegate = self.delegate;
-//                    //                dispatch_async(dispatch_get_main_queue(), ^{
-//                    //                    [delegate insertBoundingRect:glyphRect];
-//                    //                });
-//                    //#endif
-//                }
-//            }
-//        }
-//
-//        if overallGlyphRect == CGRect.zero {
-//            boundsSize = frame.size
-//        } else {
-//            boundsSize = overallGlyphRect.size
-//            boundsCenter = CGPoint(x: overallGlyphRect.midX, y: overallGlyphRect.midY)
-//        }
-//    }
 }
 

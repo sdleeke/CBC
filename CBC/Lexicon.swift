@@ -124,8 +124,6 @@ class Lexicon : NSObject
     var pauseUpdates = false
     var completed = false
     
-//    var section = Section(stringsAction: nil)
-    
     var entries:[MediaItem]? {
         get {
             guard let words = words else {
@@ -135,10 +133,6 @@ class Lexicon : NSObject
             return Array(Set(
                 words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
                     return Array(mediaItemFrequency.value.keys)
-                    
-//                    return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
-//                        return mediaItem
-//                    })
                 }) ?? []
             ))
         }
@@ -179,23 +173,6 @@ class Lexicon : NSObject
         get {
             // What happens if build() inserts a new key while this is happening?
             return words?.keys.sorted()
-//            .map({ (word) -> String in
-//                return "\(word) (\(occurrences(word)!) in \(documents(word)!))"
-//            })
-//            
-//            if let keys = words?.keys.sorted() { // , let values = words?.values
-//                var strings = [String]()
-//                
-//                for word in keys {
-//                    if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
-//                        strings.append("\(word) (\(occurrences) in \(count))")
-//                    }
-//                }
-//                
-//                return strings
-//            }
-//
-//            return nil
         }
     }
 
@@ -221,16 +198,6 @@ class Lexicon : NSObject
             print("Minimum number of media items for a unique word: \(minMediaItems ?? 0)")
             print("Maximum number of media items for a unique word: \(maxMediaItems ?? 0)")
             
-//            var strings = [String]()
-//
-//            for word in keys {
-//                if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
-//                    strings.append("\(word) (\(occurrences) in \(count))")
-//                }
-//            }
-//
-//            section.strings = strings
-            
             Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
             }
@@ -245,18 +212,10 @@ class Lexicon : NSObject
         return operationQueue
     }()
 
-//    var cancelAllOperations = false
-    
     func stop()
     {
-//        cancelAllOperations = true
         operationQueue.cancelAllOperations()
-        
-        // This causes the program to hang - no idea why.
-//        operationQueue.waitUntilAllOperationsAreFinished()
-
         creating = false
-//        cancelAllOperations = false
     }
     
     var halt : Bool
@@ -275,17 +234,10 @@ class Lexicon : NSObject
         guard !creating else {
             return
         }
-//        print(words?.copy)
-//        guard words?.isEmpty != false else {
-//            return
-//        }
         
         creating = true
         
-//        DispatchQueue.global(qos: .background).async { [weak self] in
-        
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            //            let queue = DispatchQueue(label: "LEXICON", qos: .background, attributes: [], autoreleaseFrequency: .workItem, target: nil)
             if let test = test, test() {
                 return
             }
@@ -326,20 +278,11 @@ class Lexicon : NSObject
 
                 let purge = Globals.shared.purge && (mediaItem.notesTokens.cache == nil)
                 
-                //                queue.sync {
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
-                    //                    mediaItem.notesTokens?.load()
-                    //                }
-                    
                     if let notesTokens = mediaItem.notesTokens.result {
                         // Try indefinitely to load all media items
                         list.removeFirst()
-                        //                    if let index = list.index(of: mediaItem) {
-                        //                        list.remove(at: index)
-                        //                    } else {
-                        //                        print("ERROR")
-                        //                    }
                         
                         if purge {
                             mediaItem.notesTokens.cache = nil // Save memory - load on demand.
@@ -377,23 +320,18 @@ class Lexicon : NSObject
                     return
                 }
                 
-                //                if let pauseUpdates = self.pauseUpdates, !pauseUpdates {
                 // What if the update takes longer than 10 seconds? => Need to queue updates.
                 // Now that updates are queued on the LIVC, we don't need this
                 // but it still seems like a good idea to avoid a flurry of updates
                 // even as the lexicon is continuing to change, which means if the LIVC queue
                 // has a backlog the pending updates will all be the same, which is waste of update time.
-                if firstUpdate || (date.timeIntervalSinceNow <= -10) { // 2.5
-                    //                                print(date)
-                    
-                    //                                self?.words = dict.count > 0 ? dict : nil
+                if firstUpdate || (date.timeIntervalSinceNow <= -10) {
                     self?.update()
                     
                     date = Date()
                     
                     firstUpdate = false
                 }
-                //                }
                 
                 if let test = test, test() {
                     return
@@ -412,7 +350,6 @@ class Lexicon : NSObject
                 return
             }
 
-            //                self?.words = dict.count > 0 ? dict : nil
             self?.update()
             
             self?.creating = false
@@ -421,7 +358,6 @@ class Lexicon : NSObject
                 self?.completed = true
             }
             
-            //        print(dict)
             Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
             }
@@ -440,8 +376,6 @@ class Lexicon : NSObject
         
         if let list = eligible {
             for mediaItem in list {
-//                mediaItem.loadNotesTokens()
-                
                 if let notesTokens = mediaItem.notesTokens.result {
                     for token in notesTokens {
                         if dict[token.key] == nil {
@@ -453,8 +387,6 @@ class Lexicon : NSObject
                 }
             }
         }
-        
-        //        print(dict)
         
         words = dict.count > 0 ? dict : nil
     }

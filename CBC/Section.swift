@@ -206,7 +206,7 @@ class Section
                     indexStrings.compactMap({ (string:String) -> String? in
                         return indexHeadersTransform(string)
                     })
-                )) // .sorted()
+                ))
             } else {
                 indexHeaders = Array(Set(indexStrings
                     .map({ (string:String) -> String in
@@ -216,7 +216,7 @@ class Section
                             return string
                         }
                     })
-                )) // .sorted()
+                ))
             }
 
             if let indexSort = indexSort {
@@ -245,13 +245,10 @@ class Section
                         header = indexHeadersTransform?(indexString)
                     }
                     
-                    //                    print(header)
-                    
                     if let header = header {
                         if stringIndex[header] == nil {
                             stringIndex[header] = [String]()
                         }
-                        //                print(testString,string)
                         stringIndex[header]?.append(indexString)
                     }
                 }
@@ -271,8 +268,6 @@ class Section
                 }
                 
                 for key in keys {
-                    //                print(stringIndex[key]!)
-                    
                     if let segment = stringIndex[key] {
                         indexes.append(counter)
                         counts.append(segment.count)
@@ -306,11 +301,6 @@ class Section
 
     // Make thread safe?
     var headerStrings:[String]?
-//    {
-//        didSet {
-//            print("")
-//        }
-//    }
     
     // Make thread safe?
     var headers:[String]?

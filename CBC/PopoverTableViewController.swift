@@ -50,24 +50,6 @@ extension PopoverTableViewController: UISearchBarDelegate
     
     @objc func barButtonAction(_ sender:UIBarButtonItem)
     {
-        //        // Reset the toolbar buttons in case a section is gone.
-        //        if let keys = self.popover?.section.stringIndex?.keys.sorted(), keys.count > 1 {
-        //            var barButtonItems = [UIBarButtonItem]()
-        //
-        //            let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-        //
-        //            for key in keys {
-        //                if barButtonItems.count > 0 {
-        //                    barButtonItems.append(spaceButton)
-        //                }
-        //                barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(self.barButtonAction(_:))))
-        //            }
-        //
-        //            Thread.onMainThread {
-        //                self.popover?.toolbarItems = barButtonItems
-        //            }
-        //        }
-        
         let toolBarItems = toolbarItems?.filter({ (barButton) -> Bool in
             return barButton.title != nil
         })
@@ -172,8 +154,6 @@ extension PopoverTableViewController: UISearchBarDelegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
-        //        print("searchBarSearchButtonClicked:")
-
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
             return
@@ -184,8 +164,6 @@ extension PopoverTableViewController: UISearchBarDelegate
         searchBar.resignFirstResponder()
         
         tableView.reloadData()
-
-//        print(searchController?.isActive)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
@@ -208,8 +186,6 @@ extension PopoverTableViewController: UISearchBarDelegate
                 section.strings = function(sort.method,section.strings)
             }
         }
-
-//        section.buildIndex()
         
         searchBar.showsCancelButton = false
        
@@ -273,8 +249,6 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
             if let function = sort.function {
                 section.strings = function(sort.method,section.strings)
             }
-            
-//            section.buildIndex()
             
             tableView.reloadData()
             break
@@ -348,8 +322,6 @@ class PopoverTableViewController : UIViewController
     
     var alertController : UIAlertController?
     
-//    var vc:UIViewController?
-    
     var changesPending = false
     
     var selectedText:String!
@@ -371,8 +343,6 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-//        Globals.shared.mediaPlayer.pause()
-        
         trackingTimer?.invalidate()
         trackingTimer = nil
         
@@ -384,33 +354,6 @@ class PopoverTableViewController : UIViewController
         guard track else {
             return
         }
-        
-//        if let state = Globals.shared.mediaPlayer.state {
-//            switch state {
-//            case .none:
-//                Globals.shared.mediaPlayer.play()
-//                break
-//
-//            case .paused:
-//                Globals.shared.mediaPlayer.play()
-//                break
-//
-//            case .playing:
-//                break
-//
-//            case .seekingForward:
-//                Globals.shared.mediaPlayer.play()
-//                break
-//
-//            case .seekingBackward:
-//                Globals.shared.mediaPlayer.play()
-//                break
-//
-//            case .stopped:
-////                Globals.shared.mediaPlayer.play()
-//                break
-//            }
-//        }
         
         if trackingTimer == nil {
             if let indexPath = tableView.indexPathForSelectedRow {
@@ -475,25 +418,21 @@ class PopoverTableViewController : UIViewController
                     let end = timeWindow.components(separatedBy: " to ").last,
                     let startSeconds = hmsToSeconds(string: start),
                     let endSeconds = hmsToSeconds(string: end) {
-//                    print(startSeconds,seconds,endSeconds)
 
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
                         if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.5)) { // 
-//                            print("isTracking time window found")
                             timeWindowFound = true
                             break
                         } else {
-//                            print("Tail end of time window")
+
                         }
                     } else {
                         if (seconds >= startSeconds) && (seconds <= endSeconds) {
-//                            print("NOT isTracking time window found")
                             timeWindowFound = true
                             break
                         } else if (seconds < startSeconds) {
-//                            print("Next time window found")
                             timeWindowFound = true
                             break
                         }
@@ -608,13 +547,11 @@ class PopoverTableViewController : UIViewController
         didSet {
             if isTracking != oldValue {
                 if !isTracking {
-//                    syncButton.title = "Sync"
                     stopTracking()
                     restoreAssist()
                 }
                 
                 if isTracking {
-//                    syncButton.title = "Stop"
                     startTracking()
                     removeAssist()
                 }
@@ -649,7 +586,6 @@ class PopoverTableViewController : UIViewController
     
     var searchInteractive = true
     
-//    @IBOutlet weak var tableViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
@@ -788,10 +724,6 @@ class PopoverTableViewController : UIViewController
             return
         }
 
-//        guard let vc = vc else {
-//            return
-//        }
-        
         guard let strings = section.strings else {
             return
         }
@@ -963,13 +895,8 @@ class PopoverTableViewController : UIViewController
     
     @objc func done()
     {
-//        if self.isTracking {
-//            self.stopTracking()
-//        }
         dismiss(animated: true, completion: nil)
     }
-    
-//    let operationQueue = OperationQueue()
     
     @objc func autoEdit()
     {
@@ -986,7 +913,6 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-//                    Globals.shared.topViewController = self
                     Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
@@ -1005,7 +931,6 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-//                    Globals.shared.topViewController = self
                     Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
                 }
             }
@@ -1015,7 +940,6 @@ class PopoverTableViewController : UIViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-//        Alerts.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
@@ -1216,8 +1140,6 @@ class PopoverTableViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-
-//        mask = false
         
         NotificationCenter.default.removeObserver(self)
         
@@ -1464,24 +1386,6 @@ class PopoverTableViewController : UIViewController
         self.dismiss(animated: true, completion: nil)
     }
     
-//    var mask = false
-
-//    @objc func stopped()
-//    {
-//        trackingTimer?.invalidate()
-//        trackingTimer = nil
-//
-//        isTracking = false
-//
-//        syncButton.title = "Sync"
-//        syncButton.isEnabled = false
-//
-//        playPauseButton?.title = "Play"
-//        playPauseButton?.isEnabled = false
-//
-//        assistButton?.isEnabled = true
-//    }
-    
     @objc func stopped()
     {
         trackingTimer?.invalidate()
@@ -1504,8 +1408,6 @@ class PopoverTableViewController : UIViewController
     
     func addNotifications()
     {
-//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-        
         NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -1539,14 +1441,6 @@ class PopoverTableViewController : UIViewController
             assistButton.isEnabled = (section.strings?.count > 0) && !isTracking
             
             if track {
-                //            let actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
-                //
-                //            if navigationItem.rightBarButtonItems != nil {
-                //                navigationItem.rightBarButtonItems?.append(actionsButton)
-                //            } else {
-                //                navigationItem.rightBarButtonItem = actionsButton
-                //            }
-                
                 if assist && (transcript != nil) && (purpose == .selectingTime) {
                     barButtonItems.append(spaceButton)
                     barButtonItems.append(assistButton)
@@ -1557,24 +1451,6 @@ class PopoverTableViewController : UIViewController
 
                 barButtonItems.append(spaceButton)
                 barButtonItems.append(playPauseButton)
-
-                //            if assist && (transcript != nil) && (purpose == .selectingTime) {
-                //                if navigationItem.rightBarButtonItems != nil {
-                //                    navigationItem.rightBarButtonItems?.append(assistButton)
-                //                } else {
-                //                    navigationItem.rightBarButtonItem = assistButton
-                //                }
-                //            }
-                //            if navigationItem.rightBarButtonItems != nil {
-                //                navigationItem.rightBarButtonItems?.append(syncButton)
-                //            } else {
-                //                navigationItem.rightBarButtonItem = syncButton
-                //            }
-                //            if navigationItem.rightBarButtonItems != nil {
-                //                navigationItem.rightBarButtonItems?.append(playPauseButton)
-                //            } else {
-                //                navigationItem.rightBarButtonItem = playPauseButton
-                //            }
             } else {
                 if assist && (transcript != nil) && (purpose == .selectingTime) {
                     barButtonItems.append(spaceButton)
@@ -1628,83 +1504,39 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-//        if tableViewTopConstraint.isActive {
-//            var searchBarHeight:CGFloat = 0.0
-//
-//            // iOS 11 changed the height of search bars by 12 points!
-//            if #available(iOS 11.0, *) {
-//                searchBarHeight = searchBar.frame.height
-//            } else {
-//                // Fallback on earlier versions
-//                searchBarHeight = 44.0
-//            }
-        
         if topConstraint != nil {
             view.removeConstraint(topConstraint)
         }
         
-            switch (search,segments) {
-            case (true,true):
-                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
-//                tableView?.addConstraint(top)
-
-//                tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
-                break
-                
-            case (true,false):
-                segmentedControl.removeFromSuperview()
-                
-                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: searchBar, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
-//                tableViewTopConstraint.constant = searchBar.frame.height
-                break
-                
-            case (false,true):
-                searchBar.removeFromSuperview()
-                
-                view.addConstraint(NSLayoutConstraint(item: segmentedControl, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 8.0))
-                
-                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
-//                tableViewTopConstraint.constant = segmentedControl.frame.height + 16
-                break
-                
-            case (false,false):
-                searchBar.removeFromSuperview()
-                segmentedControl.removeFromSuperview()
-                
-                topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
-//                tableViewTopConstraint.constant = 0
-                break
-            }
+        switch (search,segments) {
+        case (true,true):
+            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
+            break
             
-            view.addConstraint(topConstraint)
-            self.view.setNeedsLayout()
-//        }
-    
-//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-//            var vc : UIViewController?
-//
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
-//                vc = Globals.shared.splitViewController.viewControllers[1]
-//            }
-//
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
-//                vc = Globals.shared.splitViewController.viewControllers[0]
-//            }
-//
-//            mask = true
-//
-//            if let vc = vc {
-//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
-//                    // When mask is set to false this will end
-//                    while self?.mask == true {
-//                        Thread.sleep(forTimeInterval: 0.5)
-//                    }
-//                    return nil
-//                },completion:{ [weak self] (data:Any?) -> Void in
-//
-//                })
-//            }
-//        }
+        case (true,false):
+            segmentedControl.removeFromSuperview()
+            
+            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: searchBar, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
+            break
+            
+        case (false,true):
+            searchBar.removeFromSuperview()
+            
+            view.addConstraint(NSLayoutConstraint(item: segmentedControl, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 8.0))
+            
+            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: segmentedControl, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 8.0)
+            break
+            
+        case (false,false):
+            searchBar.removeFromSuperview()
+            segmentedControl.removeFromSuperview()
+            
+            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
+            break
+        }
+        
+        view.addConstraint(topConstraint)
+        self.view.setNeedsLayout()
         
         if segments, let method = sort.method {
             switch method {
@@ -1746,44 +1578,12 @@ class PopoverTableViewController : UIViewController
             }
             
             updateToolbar()
-//            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
             
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
         } else
             
         if stringsFunction != nil, self.section.strings == nil {
-            // SEE BELOW FOR WHY THE FOLLOWING WAS REPLACED.
-            
-            // WHAT does the following do?  It catches the case where the mediaPlayer is seeking when stringsFunction is called below.
-//            if purpose == .selectingTime {
-//                if Globals.shared.mediaPlayer.isSeeking {
-//                    Globals.shared.mediaPlayer.seekingCompletion = {
-//                        //                        Thread.sleep(forTimeInterval: 0.4)
-//                        if self.section.strings != nil {
-//                            Thread.onMainThread {
-//                                self.tableView.reloadData()
-//
-//                                self.setPreferredContentSize()
-//
-//                                if let indexPath = self.section.indexPath(from: self.stringSelected) {
-//                                    // Throwing an exception when pushing in timing index search when row selected
-//                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-////                                    self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-//                                } else {
-//                                    self.follow()
-//                                }
-//
-//                                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
-//
-//                                self.activityIndicator.stopAnimating()
-//                                self.activityIndicator.isHidden = true
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-            
             Thread.onMainThread {
                 self.activityIndicator.startAnimating()
                 self.activityIndicator.isHidden = false
@@ -1792,10 +1592,6 @@ class PopoverTableViewController : UIViewController
             DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
-                // We need to reload and turn off the activity indicator regardless!
-//                if self?.section.strings != nil {
-//                }
-                
                 Thread.onMainThread {
                     self?.tableView.reloadData()
                     
@@ -1807,7 +1603,6 @@ class PopoverTableViewController : UIViewController
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                             Thread.onMainThread {
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-                                //                                        self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                             }
                         }
                     } else {
@@ -1831,7 +1626,6 @@ class PopoverTableViewController : UIViewController
                     }
 
                     self?.updateToolbar()
-//                    self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
                     
                     self?.activityIndicator.stopAnimating()
                     self?.activityIndicator.isHidden = true
@@ -1894,22 +1688,10 @@ class PopoverTableViewController : UIViewController
                             if key != keys.last {
                                 string = string + ","
                             }
-//                            if let value = stringsAny[key] as? String {
-//                                string = string + key + ":" + value
-//                            }
-//                            if let value = stringsAny[key] as? Double {
-//                                string = string + "\(key):\(value)"
-//                            } else
-//                            if let value = stringsAny[key] as? Int {
-//                                string = string + "\(key):\(value)"
-//                            }
                         }
                         string = string + ")"
                         strings.append(string)
                     }
-//                    if let _ = stringsAny["occurrences"] as? [String:Any] {
-//                        strings.append("occurrences")
-//                    }
                 }
                 self.section.strings = strings
 
@@ -1949,10 +1731,6 @@ class PopoverTableViewController : UIViewController
         searchBar.isUserInteractionEnabled = searchInteractive
         
         updateToolbar()
-        
-//        if purpose == .selectingTime, search {
-//            follow()
-//        }
     }
 
     override func viewDidAppear(_ animated: Bool)
@@ -2044,7 +1822,6 @@ extension PopoverTableViewController : UITableViewDataSource
         let index = section.index(indexPath)
         
         if let selected = selection?(index) {
-//            print(cell.title.text ?? "",selected)
             cell.setSelected(selected, animated: false)
             if selected {
                 tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
@@ -2313,15 +2090,6 @@ extension PopoverTableViewController : UITableViewDelegate
             
             view?.addSubview(label)
             
-//            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(left)
-//
-//            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(right)
-//
-//            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(centerY)
-
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
@@ -2476,28 +2244,6 @@ extension PopoverTableViewController : UITableViewDelegate
                     }
                 }
             }
-            
-//            if trackingTimer != nil {
-//                trackingTimer?.invalidate()
-//                trackingTimer = nil
-//
-//                activityIndicator.startAnimating()
-//                Globals.shared.mediaPlayer.seekingCompletion = {
-//                    // This stops jumping to the prior row
-//                    Thread.onMainThread {
-//                        self.activityIndicator.stopAnimating()
-//                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
-//                    }
-//                }
-//            } else {
-//                activityIndicator.startAnimating()
-//                Globals.shared.mediaPlayer.seekingCompletion = {
-//                    // This stops jumping to the prior row
-//                    Thread.onMainThread {
-//                        self.activityIndicator.stopAnimating()
-//                    }
-//                }
-//            }
         }
         
         if searchActive {
@@ -2537,7 +2283,6 @@ extension PopoverTableViewController : UITableViewDelegate
                 popover.selectedMediaItem = self.selectedMediaItem
                 popover.transcript = self.transcript
                 
-//                popover.vc = self.vc
                 popover.search = false // This keeps it to one level deep.
                 
                 popover.editActionsAtIndexPath = self.editActionsAtIndexPath
@@ -2602,7 +2347,6 @@ extension PopoverTableViewController : UITableViewDelegate
         var stringsAnyArray : [[String : Any]]?
 
         if self.stringsAny != nil {
-//            print(self.stringsAny)
             stringsAny = self.stringsAny?[string] as? [String : Any]
             stringsArray = self.stringsAny?[string] as? [String]
             stringsAnyArray = self.stringsAny?[string] as? [[String : Any]]
@@ -2621,10 +2365,6 @@ extension PopoverTableViewController : UITableViewDelegate
                 } else {
                     stringsAny = self.stringsAnyArray?[index]
                 }
-
-//                stringsAny = stringsAny?[string] as? [String : Any]
-//                stringsArray = stringsAny?[string] as? [String]
-//                stringsAnyArray = stringsAny?[string] as? [[String : Any]]
             }
         }
         

@@ -8,19 +8,16 @@
 
 import Foundation
 
-// Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
-// Problems went away when I switched to class
-
 struct MediaNeed
 {
     var sorting:Bool = true
     var grouping:Bool = true
 }
 
+// Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
+// Problems went away when I switched to class
 class Media
 {
-//    weak var globals:Globals!
-    
     var need = MediaNeed()
     
     //All mediaItems
@@ -31,14 +28,6 @@ class Media
     var tagged = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]()
     
     var tags = Tags()
-    
-//    lazy var tags:Tags! = {
-//        // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
-//        //            [unowned self] in
-//        var tags = Tags()
-////        tags.globals = self.globals
-//        return tags
-//    }()
     
     var toSearch:MediaListGroupSort?
     {

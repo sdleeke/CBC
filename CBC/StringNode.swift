@@ -47,9 +47,6 @@ class StringNode {
             }
             
             if let last = depthsBelow.sorted().last {
-                //                print(depthsBelow)
-                //                print(depthsBelow.sorted())
-                //                print("\n")
                 return last
             } else {
                 return 0
@@ -71,8 +68,6 @@ class StringNode {
                     print(string)
                 }
             }
-            
-            //            print("\n")
         }
         
         guard let stringNodes = stringNodes else {
@@ -80,7 +75,6 @@ class StringNode {
         }
         
         for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
-            //            print(string!+"-")
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     stringNode.printWords(cumulativeString + string + "-")
@@ -106,21 +100,16 @@ class StringNode {
                 if let string = string {
                     let word = cumulativeString + string + "</td>"
                     html.append(word)
-                    //                    print(word)
                 } else {
                     let word = cumulativeString + "</td>"
                     html.append(word)
-                    //                    print(word)
                 }
             } else {
                 if let string = string {
                     let word = "<td>" + string + "</td>"
                     html.append(word)
-                    //                    print(word)
                 }
             }
-            
-            //            print("\n")
         }
         
         guard let stringNodes = stringNodes else {
@@ -128,7 +117,6 @@ class StringNode {
         }
         
         for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
-            //            print(string!+"-")
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     if let words = stringNode.htmlWords(cumulativeString + string + "</td><td>") {
@@ -164,20 +152,15 @@ class StringNode {
                 if let string = string {
                     let word = cumulativeString + string
                     words.append(word)
-                    //                    print(word)
                 } else {
                     let word = cumulativeString
                     words.append(word)
-                    //                    print(word)
                 }
             } else {
                 if let word = string {
                     words.append(word)
-                    //                    print(word)
                 }
             }
-            
-            //            print("\n")
         }
         
         guard let stringNodes = stringNodes else {
@@ -185,7 +168,6 @@ class StringNode {
         }
         
         for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
-            //            print(string!+"-")
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     if let nodeWords = stringNode.words(cumulativeString + string) {

@@ -11,6 +11,9 @@ import Foundation
 // Crucial for Word Picker that this be a struct so that it is passed by value, not reference; i.e. a copy is made.
 // That means all of the stringNodes are frozen when it is passed by value so that Expanded Views are always complete as of that moment and
 // are not affected by changes to the tree while the expanded view is being prepared.
+////////////
+// So why is it a class?
+////////////
 
 class StringTree
 {
@@ -54,8 +57,6 @@ class StringTree
                     self?.root.addString(string)
                     
                     if (date == nil) || (date?.timeIntervalSinceNow <= -1) { // Any more frequent and the UI becomes unresponsive.
-//                        print(date)
-                        
                         Globals.shared.queue.async {
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                         }

@@ -34,8 +34,6 @@ extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
 
 class MediaTableViewCell: UITableViewCell
 {
-//    var downloadObserver:Timer?
-
     weak var vc:UIViewController?
     
     @IBOutlet weak var countLabel: UILabel!
@@ -91,31 +89,35 @@ class MediaTableViewCell: UITableViewCell
         
         let titleString = NSMutableAttributedString()
         
-        if mediaItem.searchHit(searchText).formattedDate, let formattedDate = mediaItem.formattedDate {
-            var string:String?
-            var before:String?
-            var after:String?
-            
-            if let searchText = searchText, let range = formattedDate.lowercased().range(of: searchText.lowercased()) {
-                before = String(formattedDate[..<range.lowerBound])
-                string = String(formattedDate[range]) // .substring(with: 
-                after = String(formattedDate[range.upperBound...])
-                
-                if let before = before {
-                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                }
-                if let string = string {
-                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                }
-                if let after = after {
-                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                }
-            }
-        } else {
-            if let formattedDate = mediaItem.formattedDate {
-                titleString.append(NSAttributedString(string:formattedDate, attributes: Constants.Fonts.Attributes.normal))
-            }
+        if let formattedDate = mediaItem.formattedDate?.highlighted(searchText) {
+            titleString.append(formattedDate)
         }
+        
+//        if mediaItem.searchHit(searchText).formattedDate, let formattedDate = mediaItem.formattedDate {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let searchText = searchText, let range = formattedDate.lowercased().range(of: searchText.lowercased()) {
+//                before = String(formattedDate[..<range.lowerBound])
+//                string = String(formattedDate[range]) // .substring(with:
+//                after = String(formattedDate[range.upperBound...])
+//
+//                if let before = before {
+//                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//                if let string = string {
+//                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//                }
+//                if let after = after {
+//                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//            }
+//        } else {
+//            if let formattedDate = mediaItem.formattedDate {
+//                titleString.append(NSAttributedString(string:formattedDate, attributes: Constants.Fonts.Attributes.normal))
+//            }
+//        }
         
         if !titleString.string.isEmpty {
             titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
@@ -124,38 +126,45 @@ class MediaTableViewCell: UITableViewCell
             titleString.append(NSAttributedString(string: service, attributes: Constants.Fonts.Attributes.normal))
         }
         
-        if mediaItem.hasSpeaker, mediaItem.searchHit(searchText).speaker, let speaker = mediaItem.speaker {
-            var string:String?
-            var before:String?
-            var after:String?
-            
-            if let searchText = searchText, let range = speaker.lowercased().range(of: searchText.lowercased()) {
-                before = String(speaker[..<range.lowerBound])
-                string = String(speaker[range])
-                after = String(speaker[range.upperBound...])
-                
-                if !titleString.string.isEmpty {
-                    titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
-                }
-                
-                if let before = before {
-                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                }
-                if let string = string {
-                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                }
-                if let after = after {
-                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                }
-            }
-        } else {
+        if let speaker = mediaItem.speaker?.highlighted(searchText) {
             if !titleString.string.isEmpty {
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
-            if mediaItem.hasSpeaker, let speaker = mediaItem.speaker {
-                titleString.append(NSAttributedString(string:speaker, attributes: Constants.Fonts.Attributes.normal))
-            }
+            titleString.append(speaker)
         }
+        
+//        if mediaItem.hasSpeaker, mediaItem.searchHit(searchText).speaker, let speaker = mediaItem.speaker {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let searchText = searchText, let range = speaker.lowercased().range(of: searchText.lowercased()) {
+//                before = String(speaker[..<range.lowerBound])
+//                string = String(speaker[range])
+//                after = String(speaker[range.upperBound...])
+//
+//                if !titleString.string.isEmpty {
+//                    titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
+//                }
+//
+//                if let before = before {
+//                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//                if let string = string {
+//                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//                }
+//                if let after = after {
+//                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//            }
+//        } else {
+//            if !titleString.string.isEmpty {
+//                titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
+//            }
+//            if mediaItem.hasSpeaker, let speaker = mediaItem.speaker {
+//                titleString.append(NSAttributedString(string:speaker, attributes: Constants.Fonts.Attributes.normal))
+//            }
+//        }
         
         self.title.attributedText = titleString
         
@@ -175,127 +184,159 @@ class MediaTableViewCell: UITableViewCell
             title = mediaItem.title
         }
         
-        if mediaItem.searchHit(searchText).title {
-            var string:String?
-            var before:String?
-            var after:String?
+        if let title = title?.boldHighlighted(searchText) {
+            if !detailString.string.isEmpty {
+                detailString.append(NSAttributedString(string: "\n"))
+            }
             
-            if let title = title, let searchText = searchText, let range = title.lowercased().range(of: searchText.lowercased()) {
-                before = String(title[..<range.lowerBound])
-                string = String(title[range])
-                after = String(title[range.upperBound...])
-                
-                if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
-                }
-                if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
-                }
-                if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
-                }
-            }
-        } else {
-            if let title = title, !title.isEmpty {
-                detailString.append(NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold))
-            }
+            detailString.append(title)
         }
         
-        if mediaItem.searchHit(searchText).scriptureReference, let scriptureReference = mediaItem.scriptureReference {
-            var string:String?
-            var before:String?
-            var after:String?
+//        if mediaItem.searchHit(searchText).title {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let title = title, let searchText = searchText, let range = title.lowercased().range(of: searchText.lowercased()) {
+//                before = String(title[..<range.lowerBound])
+//                string = String(title[range])
+//                after = String(title[range.upperBound...])
+//
+//                if let before = before {
+//                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
+//                }
+//                if let string = string {
+//                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
+//                }
+//                if let after = after {
+//                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
+//                }
+//            }
+//        } else {
+//            if let title = title, !title.isEmpty {
+//                detailString.append(NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold))
+//            }
+//        }
+        
+        if let scriptureReference = mediaItem.scriptureReference?.highlighted(searchText) {
+            if !detailString.string.isEmpty {
+                detailString.append(NSAttributedString(string: "\n"))
+            }
             
-            if let searchText = searchText, let range = scriptureReference.lowercased().range(of: searchText.lowercased()) {
-                before = String(scriptureReference[..<range.lowerBound])
-                string = String(scriptureReference[range])
-                after = String(scriptureReference[range.upperBound...])
-                
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                }
-                if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                }
-                if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                }
-            }
-        } else {
-            if let scriptureReference = mediaItem.scriptureReference {
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                detailString.append(NSAttributedString(string: scriptureReference,   attributes: Constants.Fonts.Attributes.normal))
-            }
+            detailString.append(scriptureReference)
         }
         
-        if mediaItem.hasClassName, mediaItem.searchHit(searchText).className {
-            var string:String?
-            var before:String?
-            var after:String?
+//        if mediaItem.searchHit(searchText).scriptureReference, let scriptureReference = mediaItem.scriptureReference {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let searchText = searchText, let range = scriptureReference.lowercased().range(of: searchText.lowercased()) {
+//                before = String(scriptureReference[..<range.lowerBound])
+//                string = String(scriptureReference[range])
+//                after = String(scriptureReference[range.upperBound...])
+//
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                if let before = before {
+//                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//                if let string = string {
+//                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//                }
+//                if let after = after {
+//                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//            }
+//        } else {
+//            if let scriptureReference = mediaItem.scriptureReference {
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                detailString.append(NSAttributedString(string: scriptureReference,   attributes: Constants.Fonts.Attributes.normal))
+//            }
+//        }
+        
+        if mediaItem.hasClassName, let className = mediaItem.className?.highlighted(searchText) {
+            if !detailString.string.isEmpty {
+                detailString.append(NSAttributedString(string: "\n"))
+            }
             
-            if let className = mediaItem.className, let searchText = searchText, let range = className.lowercased().range(of: searchText.lowercased()) {
-                before = String(className[..<range.lowerBound])
-                string = String(className[range])
-                after = String(className[range.upperBound...])
-                
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                }
-                if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                }
-                if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                }
-            }
-        } else {
-            if mediaItem.hasClassName, let className = mediaItem.className {
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                detailString.append(NSAttributedString(string: className, attributes: Constants.Fonts.Attributes.normal))
-            }
+            detailString.append(className)
         }
         
-        if mediaItem.hasEventName, mediaItem.searchHit(searchText).eventName {
-            var string:String?
-            var before:String?
-            var after:String?
+//        if mediaItem.hasClassName, mediaItem.searchHit(searchText).className {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let className = mediaItem.className, let searchText = searchText, let range = className.lowercased().range(of: searchText.lowercased()) {
+//                before = String(className[..<range.lowerBound])
+//                string = String(className[range])
+//                after = String(className[range.upperBound...])
+//
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                if let before = before {
+//                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//                if let string = string {
+//                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//                }
+//                if let after = after {
+//                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//            }
+//        } else {
+//            if mediaItem.hasClassName, let className = mediaItem.className {
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                detailString.append(NSAttributedString(string: className, attributes: Constants.Fonts.Attributes.normal))
+//            }
+//        }
+        
+        if mediaItem.hasEventName, let eventName = mediaItem.eventName?.highlighted(searchText) {
+            if !detailString.string.isEmpty {
+                detailString.append(NSAttributedString(string: "\n"))
+            }
             
-            if let eventName = mediaItem.eventName, let searchText = searchText, let range = eventName.lowercased().range(of: searchText.lowercased()) {
-                before = String(eventName[..<range.lowerBound])
-                string = String(eventName[range])
-                after = String(eventName[range.upperBound...])
-                
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                }
-                if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                }
-                if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                }
-            }
-        } else {
-            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
-                if !detailString.string.isEmpty {
-                    detailString.append(NSAttributedString(string: "\n"))
-                }
-                detailString.append(NSAttributedString(string: eventName, attributes: Constants.Fonts.Attributes.normal))
-            }
+            detailString.append(eventName)
         }
+
+//        if mediaItem.hasEventName, mediaItem.searchHit(searchText).eventName {
+//            var string:String?
+//            var before:String?
+//            var after:String?
+//
+//            if let eventName = mediaItem.eventName, let searchText = searchText, let range = eventName.lowercased().range(of: searchText.lowercased()) {
+//                before = String(eventName[..<range.lowerBound])
+//                string = String(eventName[range])
+//                after = String(eventName[range.upperBound...])
+//
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                if let before = before {
+//                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//                if let string = string {
+//                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//                }
+//                if let after = after {
+//                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+//                }
+//            }
+//        } else {
+//            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
+//                if !detailString.string.isEmpty {
+//                    detailString.append(NSAttributedString(string: "\n"))
+//                }
+//                detailString.append(NSAttributedString(string: eventName, attributes: Constants.Fonts.Attributes.normal))
+//            }
+//        }
         
         self.detail.attributedText = detailString
 
@@ -514,91 +555,6 @@ class MediaTableViewCell: UITableViewCell
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
             }
         }
-
-//            if ((Globals.shared.search.transcripts && Globals.shared.search.active) || ((vc as? LexiconIndexViewController) != nil)) {
-//                if Globals.shared.search.transcripts, Globals.shared.search.active {
-//                    DispatchQueue.global(qos: .userInteractive).async {
-//                        mediaItem.notesHTML?.load()
-//                    }
-//
-//                    if mediaItem.searchHit(searchText).transcriptHTML {
-//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-//                    } else {
-//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-//                    }
-//                }
-//
-//                if mediaItem.notesHTML?.cache == nil { // , !mediaItem.loadingNotesHTML
-//                    DispatchQueue.global(qos: .userInteractive).async {
-////                        guard !mediaItem.loadingNotesHTML else {
-////                            return
-////                        }
-//
-//                        mediaItem.notesHTML?.load()
-//
-//                        if self.mediaItem == mediaItem, self.mediaItem?.notesHTML?.cache != nil {
-//                            Thread.onMainThread {
-//                                self.setupIcons() // if mediaItem.notesHTML == nil, i.e. load failed, this becomes recursive
-//                            }
-//                        }
-//
-//                        if (self.vc as? LexiconIndexViewController) != nil, let searchText = self.searchText {
-////                            mediaItem.loadNotesTokens()
-//                            if let count = mediaItem.notesTokens?.result?[searchText] {
-//                                Thread.onMainThread {
-//                                    if self.mediaItem == mediaItem {
-//                                        self.countLabel.text = count.description
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-//                } else {
-//                    if mediaItem.searchHit(searchText).transcriptHTML {
-//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-//                    } else {
-//                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-//                    }
-//                }
-//            } else {
-//                //                    print(searchText!)
-//                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-//            }
-            
-//            if (vc as? LexiconIndexViewController) != nil, let searchText = searchText {
-//                countLabel.text = nil
-//
-//                DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-//                    //                        mediaItem.loadNotesTokens()
-//
-//                    if let count = mediaItem.notesTokens?.result?[searchText] {
-//                        Thread.onMainThread {
-//                            if self.mediaItem == mediaItem {
-//                                self.countLabel.text = count.description
-//                            }
-//                        }
-//                    }
-//                }
-//
-////                if mediaItem.notesTokens == nil {
-////                    DispatchQueue.global(qos: .userInteractive).async { // [weak self] in
-//////                        mediaItem.loadNotesTokens()
-////
-////                        if let count = mediaItem.notesTokens?.result?[searchText] {
-////                            Thread.onMainThread {
-////                                if self.mediaItem == mediaItem {
-////                                    self.countLabel.text = count.description
-////                                }
-////                            }
-////                        }
-////                    }
-////                } else {
-////                    if let count = mediaItem.notesTokens?.result?[searchText] {
-////                        countLabel.text = count.description
-////                    }
-////                }
-//            }
         
         if mediaItem.hasSlides {
             attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))
@@ -631,78 +587,6 @@ class MediaTableViewCell: UITableViewCell
         }
         
         self.icons.attributedText = attrString
-        
-//        if let searchText = searchText {
-//           
-//        } else {
-//            self.icons.attributedText = nil
-//
-//            var string = String()
-//            
-//            if (Globals.shared.mediaPlayer.mediaItem == mediaItem) {
-//                if let state = Globals.shared.mediaPlayer.state {
-//                    switch state {
-//                    case .paused:
-//                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAY
-//                        break
-//                        
-//                    case .playing:
-//                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
-//                        break
-//                        
-//                    case .stopped:
-//                        break
-//                        
-//                    case .none:
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                }
-//            }
-//
-//            if mediaItem.hasTags {
-//                if (mediaItem.tagsSet?.count > 1) {
-//                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAGS
-//                } else {
-//                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAG
-//                }
-//            }
-//            
-//            if mediaItem.hasNotes {
-//                string = string + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
-//            }
-//            
-//            if mediaItem.hasSlides {
-//                string = string + Constants.SINGLE_SPACE + Constants.FA.SLIDES
-//            }
-//            
-//            if mediaItem.hasVideo {
-//                string = string + Constants.SINGLE_SPACE + Constants.FA.VIDEO
-//            }
-//            
-//            if mediaItem.hasAudio {
-//                string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
-//            }
-//            
-//            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-//                switch state {
-//                case .none:
-//                    break
-//                    
-//                case .downloaded:
-//                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADED
-//                    break
-//                    
-//                case .downloading:
-//                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADING
-//                    break
-//                }
-//            }
-//            
-//            self.icons.text = string
-//        }
     }
     
     func setupProgressBarForAudio()

@@ -157,16 +157,6 @@ extension CloudViewController : PopoverTableViewControllerDelegate
 
 extension CloudViewController : CloudLayoutOperationDelegate
 {
-    //    func insertTitle(cloudTitle:String)
-    //    {
-    //        updateCloudTitle(cloudTitle)
-    //    }
-    
-    //    func updateCloudTitle(_ newTitle:String)
-    //    {
-    //        navigationItem.title = newTitle
-    //    }
-    
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     {
         guard pointSize > 0 else {
@@ -202,17 +192,6 @@ extension CloudViewController : CloudLayoutOperationDelegate
                     wordLabel.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / 2))
                 }
                 
-                //#ifdef DEBUG
-                //    wordLabel.layer.borderColor = [UIColor redColor].CGColor;
-                //    wordLabel.layer.borderWidth = 1;
-                //#endif
-                
-                //        if wordLabels == nil {
-                //            wordLabels = [String:UILabel]()
-                //        }
-                //
-                //        wordLabels?[word] = wordLabel
-                
                 self.cloudView.addSubview(wordLabel)
             }
         }
@@ -238,9 +217,6 @@ class CloudViewController: UIViewController
     
     var wordsTableViewController:PopoverTableViewController!
     
-    // Make thread safe?
-//    var wordLabels : [String:UILabel]?
-    
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "CLOUD"
@@ -264,52 +240,15 @@ class CloudViewController: UIViewController
             return
         }
 
-//        wordsTableViewController.activityIndicator.isHidden = false
-//        wordsTableViewController.activityIndicator.startAnimating()
-        
-//        wordsTableViewController.tableView.isHidden = true
-
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = true
         }
         
         self.cloudWords = cloudWords
-        
-//        self.wordsTableViewController.tableView.isHidden = false
-        
+
         self.wordsTableViewController.tableView.reloadData()
         
-//        self.wordsTableViewController.activityIndicator.stopAnimating()
-//        self.wordsTableViewController.activityIndicator.isHidden = true
-
         cancelAndRelayoutCloudWords()
-        
-//        DispatchQueue.global(qos: .background).async { [weak self] in
-//            Thread.onMainThread {
-////                if let cells = self?.wordsTableViewController.tableView.visibleCells {
-////                    for cell in cells {
-////                        if let cell = cell as? PopoverTableViewCell {
-////                            if let word = cell.title.text, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-////                                self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-////                            }
-////                        }
-////                    }
-////                }
-//
-////                for index in 0..<cloudWords.count {
-////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-////                        self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-////                    }
-////                }
-//
-//                self?.wordsTableViewController.tableView.isHidden = false
-//
-//                self?.wordsTableViewController.tableView.reloadData()
-//
-//                self?.wordsTableViewController.activityIndicator.stopAnimating()
-//                self?.wordsTableViewController.activityIndicator.isHidden = true
-//            }
-//        }
     }
     
     @IBOutlet weak var selectNoneButton: UIButton!
@@ -318,11 +257,6 @@ class CloudViewController: UIViewController
         guard var cloudWords = cloudWords else {
             return
         }
-
-//        wordsTableViewController.activityIndicator.isHidden = false
-//        wordsTableViewController.activityIndicator.startAnimating()
-        
-//        wordsTableViewController.tableView.isHidden = true
         
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = false
@@ -330,31 +264,9 @@ class CloudViewController: UIViewController
         
         self.cloudWords = cloudWords
 
-//        self.wordsTableViewController.tableView.isHidden = false
-        
         self.wordsTableViewController.tableView.reloadData()
-        
-//        self.wordsTableViewController.activityIndicator.stopAnimating()
-//        self.wordsTableViewController.activityIndicator.isHidden = true
 
         cancelAndRelayoutCloudWords()
-
-//        DispatchQueue.global(qos: .background).async { [weak self] in
-//            Thread.onMainThread {
-////                for index in 0..<cloudWords.count {
-////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-////                        self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
-////                    }
-////                }
-//
-//                self?.wordsTableViewController.tableView.isHidden = false
-//
-//                self?.wordsTableViewController.tableView.reloadData()
-//
-//                self?.wordsTableViewController.activityIndicator.stopAnimating()
-//                self?.wordsTableViewController.activityIndicator.isHidden = true
-//            }
-//        }
     }
     
     @IBOutlet weak var cloudView: UIView!
@@ -373,10 +285,6 @@ class CloudViewController: UIViewController
     
     let debug = false
     
-//    var allowVertical = true
-//    var maxWords = 0
-//    var minFrequency = 0
-    
     var cloudTitle : String?
     var cloudColors : [UIColor]? = CloudColors.GreenBlue
     var cloudFont : UIFont?
@@ -384,8 +292,6 @@ class CloudViewController: UIViewController
     // Make thread safe?
     var cloudWords : [[String:Any]]?
     var cloudWordsFunction:(()->[[String:Any]]?)?
-
-//    var mediaItem : MediaItem?
     
     override func viewDidLoad()
     {
@@ -400,10 +306,6 @@ class CloudViewController: UIViewController
         cloudView.addGestureRecognizer(layoutTap)
         
         selectTap.require(toFail: layoutTap)
-        
-//        cloudLayoutOperationQueue = OperationQueue()
-//        cloudLayoutOperationQueue?.name = "Cloud layout operation queue"
-//        cloudLayoutOperationQueue?.maxConcurrentOperationCount = 1;
     }
     
     @objc func selectCloudWord(_ tap:UITapGestureRecognizer)
@@ -417,7 +319,6 @@ class CloudViewController: UIViewController
             for view in cloudView.subviews {
                 if let label = view as? UILabel {
                     if label.frame.contains(location) {
-                        print(label.text)
                         // Dismiss WordCloud and select that word in the document?
                         break
                     }
@@ -462,8 +363,6 @@ class CloudViewController: UIViewController
 
         if (success) {
             let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
-
-//            UIPasteboard.general.image = snapshotImage
             
             let activityViewController = UIActivityViewController(activityItems: [snapshotImage,title], applicationActivities: nil)
             
@@ -494,8 +393,6 @@ class CloudViewController: UIViewController
         }
         
         addNotifications()
-        
-//        wordsTableViewController?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
@@ -526,32 +423,7 @@ class CloudViewController: UIViewController
     {
         super.viewDidAppear(animated)
         
-//        guard var cloudWords = self.cloudWords else {
-//            return
-//        }
-        
-//        wordsTableViewController?.activityIndicator?.isHidden = false
-//        wordsTableViewController?.activityIndicator?.startAnimating()
-
-//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-//            Thread.onMainThread {
-//                for index in 0..<cloudWords.count {
-//                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-//                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                            self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-//                        } else {
-//                            self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
-//                        }
-//                    }
-//                }
-                
-//                self?.wordsTableViewController?.tableView?.isHidden = false
-//                self?.wordsTableViewController?.activityIndicator?.stopAnimating()
-//                self?.wordsTableViewController?.activityIndicator?.isHidden = true
-                
-                self.cancelAndRelayoutCloudWords()
-//            }
-//        }
+        self.cancelAndRelayoutCloudWords()
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -623,8 +495,6 @@ class CloudViewController: UIViewController
     
     func layoutCloudWords()
     {
-//        wordLabels = nil
-        
         cloudColors = CloudColors.GreenBlue
         
         cloudView.backgroundColor = UIColor.white
@@ -644,35 +514,6 @@ class CloudViewController: UIViewController
         }
     }
     
-//    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
-//    {
-//        var actions = [AlertAction]()
-//
-//        var action:AlertAction!
-//
-//        action = AlertAction(title: "Select All Above", style: .default) {
-//
-//        }
-//        actions.append(action)
-//
-//        action = AlertAction(title: "Deselect All Above", style: .default) {
-//
-//        }
-//        actions.append(action)
-//
-//        action = AlertAction(title: "Select All Below", style: .default) {
-//
-//        }
-//        actions.append(action)
-//
-//        action = AlertAction(title: "Deselect All Below", style: .default) {
-//
-//        }
-//        actions.append(action)
-//
-//        return actions.count > 0 ? actions : nil
-//    }
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -692,7 +533,6 @@ class CloudViewController: UIViewController
                     
                     wordsTableViewController.allowsMultipleSelection = true
                     wordsTableViewController.selection = { (index:Int) -> Bool in
-//                        print(index,self.cloudWords?[index]["word"])
                         guard let cloudWords = self.cloudWords else {
                             return false
                         }
@@ -728,54 +568,7 @@ class CloudViewController: UIViewController
                     }
                     wordsTableViewController.segments = true
                     
-//                    wordsTableViewController.editActionsAtIndexPath = rowActions
-                    
                     wordsTableViewController.sort.function = sort
-//                    { (method:String?,strings:[String]?) -> [String]? in
-//                        guard let strings = strings else {
-//                            return nil
-//                        }
-//
-//                        guard let method = method else {
-//                            return nil
-//                        }
-//
-//                        switch method {
-//                        case Constants.Sort.Alphabetical:
-//                            return strings.sorted()
-//
-//                        case Constants.Sort.Frequency:
-//                            return strings.sorted(by: { (first:String, second:String) -> Bool in
-//                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-//                                    let left = String(first[rangeFirst.upperBound...])
-//                                    let right = String(second[rangeSecond.upperBound...])
-//
-//                                    let first = String(first[..<rangeFirst.lowerBound])
-//                                    let second = String(second[..<rangeSecond.lowerBound])
-//
-//                                    if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
-//                                        let left = String(left[..<rangeLeft.lowerBound])
-//                                        let right = String(right[..<rangeRight.lowerBound])
-//
-//                                        if let left = Int(left), let right = Int(right) {
-//                                            if left == right {
-//                                                return first < second
-//                                            } else {
-//                                                return left > right
-//                                            }
-//                                        }
-//                                    }
-//
-//                                    return false
-//                                } else {
-//                                    return false
-//                                }
-//                            })
-//
-//                        default:
-//                            return nil
-//                        }
-//                    }
                     
                     var segmentActions = [SegmentAction]()
                     
@@ -809,27 +602,9 @@ class CloudViewController: UIViewController
                                     self?.wordsTableViewController.tableView.reloadData()
                                 }
                                 
-//                                DispatchQueue.global(qos: .background).async {
-//                                    guard var cloudWords = self?.cloudWords else {
-//                                        return
-//                                    }
-                                    
-//                                    Thread.onMainThread {
-//                                        for index in 0..<cloudWords.count {
-//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-//                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                                                    self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-//                                                } else {
-//                                                    self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
-//                                                }
-//                                            }
-//                                        }
-                                        
-                                        self?.wordsTableViewController.tableView.isHidden = false
-                                        self?.wordsTableViewController.activityIndicator.stopAnimating()
-                                        self?.wordsTableViewController.segmentedControl.isEnabled = true
-//                                    }
-//                                }
+                                self?.wordsTableViewController.tableView.isHidden = false
+                                self?.wordsTableViewController.activityIndicator.stopAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = true
                             }
                         }
                     }))
@@ -864,27 +639,9 @@ class CloudViewController: UIViewController
                                     self?.wordsTableViewController.tableView.reloadData()
                                 }
 
-//                                DispatchQueue.global(qos: .background).async {
-//                                    guard var cloudWords = self?.cloudWords else {
-//                                        return
-//                                    }
-                                    
-//                                    Thread.onMainThread {
-//                                        for index in 0..<cloudWords.count {
-//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.wordsTableViewController.section.indexPath(from: word) {
-//                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
-//                                                    self?.wordsTableViewController.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-//                                                } else {
-//                                                    self?.wordsTableViewController.tableView?.deselectRow(at: indexPath, animated: true)
-//                                                }
-//                                            }
-//                                        }
-                                        
-                                        self?.wordsTableViewController.tableView.isHidden = false
-                                        self?.wordsTableViewController.activityIndicator.stopAnimating()
-                                        self?.wordsTableViewController.segmentedControl.isEnabled = true
-//                                    }
-//                                }
+                                self?.wordsTableViewController.tableView.isHidden = false
+                                self?.wordsTableViewController.activityIndicator.stopAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = true
                             }
                         }
                     }))

@@ -261,8 +261,6 @@ class Scripture : NSObject
                     reference = String(scripture[range.upperBound...])
                 }
                 
-                //                print(book,reference)
-                
                 // What if a reference includes the book more than once?
                 
                 if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
@@ -475,9 +473,7 @@ class Scripture : NSObject
                             lastVerse = verse
                         }
                     }
-                    
-//                    print(scriptureReference)
-                    
+                                        
                     guard let dict = loadXMLVerseFromURL(scriptureReference) else {
                         return
                     }

@@ -69,23 +69,14 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
-                //                popover.navigationItem.title = Constants.Actions
-                
                 popover.navigationItem.title = "Select"
                 navigationController.isNavigationBarHidden = false
-
-//                popover.navigationController?.isNavigationBarHidden = true
                 
                 popover.delegate = self
                 popover.purpose = .selectingSorting
                 popover.stringSelected = self.wordsTableViewController.sort.method
                 
                 popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
-//                
-//                popover.section.showIndex = false
-//                popover.section.showHeaders = false
-                
-//                popover.vc = self
                 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -110,8 +101,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 }
                 
-//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -120,8 +109,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 popover.navigationItem.title = Constants.Strings.Word_Picker
                 
                 popover.delegate = self
-                
-//                popover.mediaListGroupSort = mediaListGroupSort
                 
                 popover.stringTree = StringTree(incremental: true)
                 popover.strings = mediaListGroupSort?.lexicon?.tokens
@@ -159,10 +146,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                         }
                     })
                     
-//                    let roots = Array(Set(words.map({ (word:String) -> String in
-//                        return String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
-//                    }))).sorted()
-
                     bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
                     
                     indexHTML = "<table>"
@@ -172,8 +155,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     for root in roots.keys.sorted() {
                         indexHTML = indexHTML + "<td>" + "<a id=\"index\(root)\" name=\"index\(root)\" href=#\(root)>" + root + "</a>" + "</td>"
                     }
-                    
-//                    indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
                     
                     indexHTML = indexHTML + "</tr>"
                     
@@ -196,7 +177,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                             wordsHTML = wordsHTML + "<tr><td></td></tr>"
                             
                             wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-
                         }
                         
                         wordsHTML = wordsHTML + "<tr><td>" + word + "</td></tr>"
@@ -234,15 +214,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
             })
             alert.addAction(noAction)
-            
-            //                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-            //                            (action : UIAlertAction!) -> Void in
-            //
-            //                        })
-            //                        alert.addAction(cancel)
-            
-            // For .actionSheet style
-            //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
             
             self.present(alert, animated: true, completion: nil)
             break
@@ -303,8 +274,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             
             wordsTableViewController.section.strings = wordsTableViewController.sort.function?(wordsTableViewController.sort.method,wordsTableViewController.section.strings)
-            
-//            wordsTableViewController.section.buildIndex()
             
             wordsTableViewController.tableView.reloadData()
             break
@@ -410,11 +379,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 popover.selectedMediaItem = self.popover?.selectedMediaItem
                 popover.transcript = self.popover?.transcript
                 
-                //                popover.detail = true
-                //                popover.detailAction = transcriptSegmentAction
-                
-//                popover.vc = self.popover
-                
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
@@ -463,10 +427,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                                         let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                         let string = "\(count)\n\(start) to \(end)\n" + text
                                         
-                                        //                                    for string in transcriptSegmentArray {
-                                        //                                        text = text + string + (transcriptSegmentArray.index(of: string) == (transcriptSegmentArray.count - 1) ? "" : " ")
-                                        //                                    }
-                                        
                                         strings.append(string)
                                     }
                                 }
@@ -479,11 +439,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 }
                 
                 popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
-                //                    popover.section.strings = strings // popover.transcript?.transcriptSegmentTokenTimes(token: string)
-                //                    ?.map({ (string:String) -> String in
-                //                    return secondsToHMS(seconds: string) ?? "ERROR"
-                //                })
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -554,30 +509,6 @@ class LexiconIndexViewController : UIViewController
             tableViewHeightConstraint.constant = view.bounds.height
         }
         
-//        guard let navBarHeight = navigationController?.navigationBar.bounds.height else {
-//            return
-//        }
-        
-//        var toolbarHeight:CGFloat = 0.0
-//
-//        if let isToolbarHidden = navigationController?.isToolbarHidden, !isToolbarHidden {
-//            toolbarHeight = navigationController?.toolbar.bounds.height ?? 0
-//        }
-
-//        var toolbarHeight:CGFloat = 0.0
-//        if let height = navigationController?.toolbar.frame.height, navigationController?.isToolbarHidden == false {
-//            toolbarHeight = height
-//        }
-
-//        var navbarHeight:CGFloat = 0.0
-//        if let height = navigationController?.navigationBar.frame.height {
-//            navbarHeight = height
-//        }
-        
-        //  + locateView.bounds.height - container.frame.origin.y - navbarHeight
-        
-//        let space = view.bounds.height -  - toolbarHeight // - navigationController!.navigationBar.frame.height - 28.5 // Height of direction label space. // -  // - toolbarHeight - navBarHeight - container.frame.origin.y
-
         updateToolbar()
 
         var maxHeight:CGFloat = 250
@@ -611,12 +542,6 @@ class LexiconIndexViewController : UIViewController
         UserDefaults.standard.set(tableViewHeightConstraint.constant, forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT")
         UserDefaults.standard.synchronize()
 
-//        print("view.bounds: \(view.bounds)")
-//        print("tableViewSpace: \(tableViewSpace)")
-//        print("tableViewHeightConstraint.constant: \(tableViewHeightConstraint.constant)")
-//        print("wordsTableViewControllerSpace: \(wordsTableViewControllerSpace)")
-//        print("wordsTableViewControllerHeightConstraint.constant: \(wordsTableViewControllerHeightConstraint.constant)")
-
         updateLocateButton()
         updateToolbar()
 
@@ -628,9 +553,6 @@ class LexiconIndexViewController : UIViewController
     {
         tableViewHeightConstraint.constant = view.bounds.height / 2
         setTableViewHeightConstraint(change: 0)
-//
-//        view.setNeedsLayout()
-//        view.layoutSubviews()
     }
     
     func zeroConstraint()
@@ -642,30 +564,6 @@ class LexiconIndexViewController : UIViewController
     }
     
     @IBOutlet weak var locateView: UIView!
-//    {
-//        didSet {
-//            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(LexiconIndexViewController.resetConstraint))
-//            doubleTap.numberOfTapsRequired = 2
-//            locateView.addGestureRecognizer(doubleTap)
-//
-//            let singleTap = UITapGestureRecognizer(target: self, action: #selector(LexiconIndexViewController.zeroConstraint))
-//            singleTap.numberOfTapsRequired = 1
-//            locateView.addGestureRecognizer(singleTap)
-//
-//            singleTap.require(toFail: doubleTap)
-//            panGesture.require(toFail: singleTap)
-//        }
-//    }
-
-    //    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-//                           shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool
-//    {
-//        // Don't recognize a double tap until a pan fails.
-//        if gestureRecognizer == tapGesture, otherGestureRecognizer == panGesture {
-//            return true
-//        }
-//        return false
-//    }
     
     @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
     {
@@ -680,38 +578,14 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    //    @IBOutlet var tapGesture: UITapGestureRecognizer!
-//    @IBAction func tapGestureAction(_ tap: UITapGestureRecognizer)
-//    {
-//        switch tap.state {
-//        case .began:
-//            tableViewHeightConstraint.constant = view.bounds.height / 2
-//
-//            view.setNeedsLayout()
-//            view.layoutSubviews()
-//            break
-//
-//        case .ended:
-//            break
-//
-//        case .changed:
-//            break
-//
-//        default:
-//            break
-//        }
-//    }
-    
     @IBOutlet var panGesture: UIPanGestureRecognizer!
     @IBAction func panGestureAction(_ pan: UIPanGestureRecognizer)
     {
         switch pan.state {
         case .began:
-//            panning = true
             break
             
         case .ended:
-//            panning = false
             break
             
         case .changed:
@@ -720,9 +594,6 @@ class LexiconIndexViewController : UIViewController
             if change != 0 {
                 pan.setTranslation(CGPoint.zero, in: pan.view)
                 setTableViewHeightConstraint(change:change)
-//
-//                self.view.setNeedsLayout()
-//                self.view.layoutSubviews()
             }
             break
             
@@ -766,7 +637,6 @@ class LexiconIndexViewController : UIViewController
 
     var selectedMediaItem:MediaItem?
     
-//    @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
     @IBOutlet weak var spinner: UIActivityIndicatorView!
@@ -857,17 +727,6 @@ class LexiconIndexViewController : UIViewController
     
     @objc var wordsTableViewController:PopoverTableViewController!
     
-//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-//    {
-//        switch identifier {
-//        case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
-//            return false
-//            
-//        default:
-//            return true
-//        }
-//    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -911,30 +770,6 @@ class LexiconIndexViewController : UIViewController
                             
                             sortedStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
                                 return occurrences[first] > occurrences[second]
-//                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-//                                    let left = String(first[rangeFirst.upperBound...])
-//                                    let right = String(second[rangeSecond.upperBound...])
-//
-//                                    let first = String(first[..<rangeFirst.lowerBound])
-//                                    let second = String(second[..<rangeSecond.lowerBound])
-//
-//                                    if let rangeLeft = left.range(of: " "), let rangeRight = right.range(of: " ") {
-//                                        let left = String(left[..<rangeLeft.lowerBound])
-//                                        let right = String(right[..<rangeRight.lowerBound])
-//
-//                                        if let left = Int(left), let right = Int(right) {
-//                                            if left == right {
-//                                                return first < second
-//                                            } else {
-//                                                return left > right
-//                                            }
-//                                        }
-//                                    }
-//
-//                                    return false
-//                                } else {
-//                                    return false
-//                                }
                             }).map({ (string:String) -> String in
                                 if let count = occurrences[string] {
                                     return string + " (\(count))"
@@ -1036,7 +871,6 @@ class LexiconIndexViewController : UIViewController
                     wordsTableViewController.stringsFunction = {
                         return self.mediaListGroupSort?.lexicon?.strings
                     }
-//                    wordsTableViewController.section.strings = self.mediaListGroupSort?.lexicon?.strings // .section
                 }
                 break
                 
@@ -1061,24 +895,6 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-//    {
-//        var show:Bool
-//        
-//        show = true
-//        
-//        switch identifier {
-//        case "Show Index MediaItem":
-//            show = false
-//            break
-//            
-//        default:
-//            break
-//        }
-//        
-//        return show
-//    }
-
     func updateSelectedWord()
     {
         guard let searchText = self.searchText else {
@@ -1169,10 +985,6 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-//        if searchText == nil {
-//            tableViewHeightConstraint.constant = view.bounds.height //+ (view.window == nil ? navigationController!.navigationBar.frame.height : 0) // The last term seems like a hack.
-//        }
-        
         addNotifications()
         
         navigationItem.hidesBackButton = false
@@ -1338,13 +1150,13 @@ class LexiconIndexViewController : UIViewController
                         }
                         
                         if Globals.shared.grouping != GROUPING.CLASS {
-                            if mediaItem.hasClassName, let className = mediaItem.className {
+                            if mediaItem.hasClassName {
                                 order.append("class")
                             }
                         }
                         
                         if Globals.shared.grouping != GROUPING.EVENT {
-                            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
+                            if mediaItem.hasEventName {
                                 order.append("event")
                             }
                         }
@@ -1482,9 +1294,6 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-        //In case we have one already showing
-        //        dismiss(animated: true, completion: nil)
-        
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             popover.navigationItem.title = "Select"
@@ -1503,9 +1312,7 @@ class LexiconIndexViewController : UIViewController
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenuItems()
-            
-//            popover.vc = self
-            
+
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -1548,7 +1355,6 @@ class LexiconIndexViewController : UIViewController
             
             self.wordsTableViewController.sort.sorting = self.wordsTableViewController.sort.function != nil
             
-            // self.lexicon?.section.strings
             self.wordsTableViewController.unfilteredSection.strings = (self.wordsTableViewController.sort.function == nil) ? self.lexicon?.strings : self.wordsTableViewController.sort.function?(self.wordsTableViewController.sort.method,self.lexicon?.strings)
             
             self.wordsTableViewController.updateSearchResults()
@@ -1618,8 +1424,6 @@ class LexiconIndexViewController : UIViewController
             
             popover.section.strings = results?.section?.headerStrings
             
-//            popover.vc = self
-            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -1688,13 +1492,6 @@ class LexiconIndexViewController : UIViewController
     
     func updateToolbar()
     {
-//        guard self.view.window != nil else {
-//            print("TRYING TO CHANGE TOOLBAR")
-//            return
-//        }
-//
-//        print("CHANGING TOOLBAR")
-//
         guard tableView.numberOfSections > 1  else {
             self.navigationController?.isToolbarHidden = true //, animated: true)
             return
@@ -1724,10 +1521,6 @@ class LexiconIndexViewController : UIViewController
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
-        
-//        logo.isHidden = searchText != nil
-
-//        setTableViewHeightConstraint(change:0)
 
         updateActionMenu()
         
@@ -1780,24 +1573,6 @@ extension LexiconIndexViewController : UITableViewDelegate
         mediaItem = cell.mediaItem
         
         Globals.shared.addToHistory(mediaItem)
-        
-//        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
-        
-//        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-//                let viewController = navigationController.viewControllers[0] as? MediaViewController {
-//                viewController.selectedMediaItem = mediaItem
-//                splitViewController?.viewControllers[1] = navigationController
-//            }
-//        } else {
-//            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-//                viewController.selectedMediaItem = mediaItem
-//                
-//                self.navigationController?.navigationItem.hidesBackButton = false
-//                
-//                self.navigationController?.pushViewController(viewController, animated: true)
-//            }
-//        }
     }
 
     func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
@@ -1834,200 +1609,6 @@ extension LexiconIndexViewController : UITableViewDelegate
 
         return mediaItem?.editActions(viewController: self) != nil
     }
-    
-//    func editActions(cell:MediaTableViewCell?,mediaItem:MediaItem?) -> [AlertAction]?
-//    {
-//        // causes recursive call to cellForRow
-////        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-////            return nil
-////        }
-//
-//        guard let mediaItem = mediaItem else {
-//            return nil
-//        }
-//
-//        let searchText = cell?.searchText
-//
-//        var actions = [AlertAction]()
-//
-//        var download:AlertAction!
-//        var transcript:AlertAction!
-//        var scripture:AlertAction!
-//        var share:AlertAction!
-//
-//        if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-//            var title = ""
-//            var style = UIAlertActionStyle.default
-//
-//            switch state {
-//            case .none:
-//                title = Constants.Strings.Download_Audio
-//                break
-//
-//            case .downloading:
-//                title = Constants.Strings.Cancel_Audio_Download
-//                break
-//            case .downloaded:
-//                title = Constants.Strings.Delete_Audio_Download
-//                style = UIAlertActionStyle.destructive
-//                break
-//            }
-//
-//            download = AlertAction(title: title, style: style, action: {
-//                switch title {
-//                case Constants.Strings.Download_Audio:
-//                    mediaItem.audioDownload?.download()
-//                    break
-//
-//                case Constants.Strings.Delete_Audio_Download:
-//                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                                    message: nil,
-//                                                    preferredStyle: .alert)
-//                    alert.makeOpaque()
-//
-//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//                        mediaItem.audioDownload?.delete()
-//                    })
-//                    alert.addAction(yesAction)
-//
-//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//
-//                    })
-//                    alert.addAction(noAction)
-//
-//                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-//                        (action : UIAlertAction!) -> Void in
-//
-//                    })
-//                    alert.addAction(cancel)
-//
-//                    self.present(alert, animated: true, completion: nil)
-//                    break
-//
-//                case Constants.Strings.Cancel_Audio_Download:
-//                    if let state = mediaItem.audioDownload?.state {
-//                        switch state {
-//                        case .downloading:
-//                            mediaItem.audioDownload?.cancel()
-//                            break
-//
-//                        case .downloaded:
-//                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                                            message: nil,
-//                                                            preferredStyle: .alert)
-//                            alert.makeOpaque()
-//
-//                            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//                                mediaItem.audioDownload?.delete()
-//                            })
-//                            alert.addAction(yesAction)
-//
-//                            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//
-//                            })
-//                            alert.addAction(noAction)
-//
-//                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-//                                (action : UIAlertAction!) -> Void in
-//
-//                            })
-//                            alert.addAction(cancel)
-//
-//                            self.present(alert, animated: true, completion: nil)
-//                            break
-//
-//                        default:
-//                            break
-//                        }
-//                    }
-//                    break
-//
-//                default:
-//                    break
-//                }
-//            })
-//        }
-//
-//        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
-//            let sourceView = cell?.subviews[0]
-//            let sourceRectView = cell?.subviews[0]
-//
-//            if mediaItem.notesHTML != nil {
-//                var htmlString:String?
-//
-//                htmlString = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false,index: true)
-//
-//                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//            } else {
-//                process(viewController: self, work: { () -> (Any?) in
-//                    mediaItem.loadNotesHTML()
-//                    return mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false,index: true)
-//                }, completion: { (data:Any?) in
-//                    if let htmlString = data as? String {
-//                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                    } else {
-//                        networkUnavailable(self,"HTML transcript unavailable.")
-//                    }
-//                })
-//            }
-//        }
-//
-//        share = AlertAction(title: Constants.Strings.Share, style: .default) {
-//            mediaItem.share(viewController: self, cell: cell)
-//            //            shareHTML(viewController: self, htmlString: mediaItem.webLink)
-//        }
-//
-//        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
-//            let sourceView = cell?.subviews[0]
-//            let sourceRectView = cell?.subviews[0]
-//
-//            if let reference = mediaItem.scriptureReference {
-//                if mediaItem.scripture?.html?[reference] != nil {
-//                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
-//                } else {
-//                    guard Globals.shared.reachability.isReachable else {
-//                        networkUnavailable(self,"Scripture text unavailable.")
-//                        return
-//                    }
-//
-//                    process(viewController: self, work: { () -> (Any?) in
-//                        mediaItem.scripture?.load()
-//                        return mediaItem.scripture?.html?[reference]
-//                    }, completion: { (data:Any?) in
-//                        if let htmlString = data as? String {
-//                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                        } else {
-//                            networkUnavailable(self,"Scripture text unavailable.")
-//                        }
-//                    })
-//                }
-//            }
-//        }
-//
-//        if mediaItem.books != nil {
-//            actions.append(scripture)
-//        }
-//
-//        if mediaItem.hasNotesHTML {
-//            actions.append(transcript)
-//        }
-//
-//        actions.append(share)
-//
-//        if mediaItem.hasAudio && (download != nil) {
-//            actions.append(download)
-//        }
-//
-//        if actions.count == 0 {
-//            print("")
-//        }
-//
-//        return actions.count > 0 ? actions : nil
-//    }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
@@ -2169,15 +1750,6 @@ extension LexiconIndexViewController : UITableViewDataSource
             label.translatesAutoresizingMaskIntoConstraints = false
             
             view?.addSubview(label)
-            
-//            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(left)
-//            
-//            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(right)
-//            
-//            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//            label.superview?.addConstraint(centerY)
             
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))

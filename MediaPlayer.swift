@@ -121,17 +121,6 @@ class MediaPlayer : NSObject {
         didSet {
             if isSeeking != oldValue, !isSeeking, let state = state {
                 switch state {
-//                case .playing:
-//                    if let startTime = currentTime {
-//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//                            repeat {
-//                                Thread.sleep(forTimeInterval: 0.1)
-//                            } while self?.currentTime <= startTime
-//                            
-//                            self?.seekingCompletion?()
-//                            self?.seekingCompletion = nil
-//                        }
-//                    }
 
                 default:
                     self.seekingCompletion?()
@@ -208,11 +197,7 @@ class MediaPlayer : NSObject {
         
         if keyPath == #keyPath(UIView.frame) {
             if let rect = change?[.newKey] as? CGRect {
-//                print(rect.size,UIScreen.main.bounds.size)
-                
                 isVideoFullScreen = rect.size == UIScreen.main.bounds.size
- 
-//                isVideoFullScreen ? print("Player in full screen") : print("Player not in full screen")
             }
         }
 
@@ -305,9 +290,6 @@ class MediaPlayer : NSObject {
             switch status {
             case .readyToPlay:
                 // Player item is ready to play.
-                //                print(player?.currentItem?.duration.value)
-                //                print(player?.currentItem?.duration.timescale)
-                //                print(player?.currentItem?.duration.seconds)
                 if !loaded, let mediaItem = mediaItem {
                     loaded = true
                     
@@ -327,11 +309,6 @@ class MediaPlayer : NSObject {
                                 seek(to: time)
                             }
                         }
-                        
-                        // Why was this needed?
-                        //                        if isPaused {
-                        //                            seek(to: Double(mediaItem!.currentTime!))
-                        //                        }
                     } else {
                         mediaItem.currentTime = Constants.ZERO
                         seek(to: 0)
@@ -505,8 +482,7 @@ class MediaPlayer : NSObject {
                         // BUT it is in a timer so it may fire when start and currentTime are changing and may cause problems
                         // due to timing errors.  It certainly does in tvOS.  May just want to eliminate it.
                         if (timeElapsed > Constants.MIN_LOAD_TIME) {
-                            //                            pause()
-                            //                            failedToLoad()
+
                         } else {
                             // Kick the player in the pants to get it going (audio primarily requiring this when the network is poor)
                             print("KICK")
@@ -532,14 +508,10 @@ class MediaPlayer : NSObject {
             if loaded {
                 if (pip == .started) || fullScreen {
                     // System caused
-//                    if (rate != 0) {
-//                        play() // "fullScreen" (in MVC) then touch causes this play.  Why???
-//                    }
+
                 } else {
                     // What would cause this?
-//                    if (rate != 0) {
-//                        pause()
-//                    }
+
                 }
             } else {
                 if !loadFailed {
@@ -613,8 +585,6 @@ class MediaPlayer : NSObject {
         if (rate > 0) {
             updateCurrentTimeForPlaying()
         }
-        
-            //            logPlayerState()
     }
 
     func failedToLoad()
@@ -626,10 +596,6 @@ class MediaPlayer : NSObject {
         }
         
         Alerts.shared.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
-
-//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
-//        }
     }
     
     func failedToPlay()
@@ -641,10 +607,6 @@ class MediaPlayer : NSObject {
         }
         
         Alerts.shared.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
-        
-//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//            alert(viewController:nil,title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
-//        }
     }
 
     func play()
@@ -712,16 +674,7 @@ class MediaPlayer : NSObject {
             return
         }
         
-        //        print("didPlayToEnd",mediaItem)
-        
-        //        print(currentTime?.seconds)
-        //        print(duration?.seconds)
-        
         pause()
-
-//        Thread.onMainThread {
-//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-//        }
         
         mediaItem?.atEnd = true
         
@@ -782,7 +735,7 @@ class MediaPlayer : NSObject {
             }
         }
         
-        NotificationCenter.default.removeObserver(self) //, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.removeObserver(self)
     }
     
     @objc func reachableTransition()
@@ -827,15 +780,9 @@ class MediaPlayer : NSObject {
         
         NotificationCenter.default.addObserver(self, selector: #selector(didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
 
-        // This creates too many problems, not the least because the player buffers and may play on for minutes after the network goes down.  Also, if audio is downloaded stopping is exactly the wrong thing to do!
-//        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-
-        //
-        //        // Why was this put here?  To set the state to .paused from .none
-        //        pause()
     }
     
     var pip : PIP = .stopped
@@ -958,9 +905,6 @@ class MediaPlayer : NSObject {
             print("seekToTime == 0")
         }
         
-        //    print(seekToTime)
-        //    print(seekToTime.description)
-        
         if (seekToTime >= 0) {
             mediaItem?.currentTime = seekToTime.description
         } else {
@@ -976,20 +920,6 @@ class MediaPlayer : NSObject {
             checkPlayToEnd()
         }
     }
-    
-//    func seek(to: Double?)
-//    {
-//        isSeeking = true
-//
-//        seek(to: to,completion:{ [weak self] (finished:Bool) in
-//            if finished {
-//                self?.isSeeking = false
-//                Thread.onMainThread {
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-//                }
-//            }
-//        })
-//    }
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -1031,13 +961,8 @@ class MediaPlayer : NSObject {
                     seek = 0
                 }
                 
-//                self.isSeeking = false
-                
                 mediaItem?.atEnd = seek >= length
 
-//                operationQueue.cancelAllOperations()
-//                operationQueue.waitUntilAllOperationsAreFinished()
-//
                 operationQueue.addOperation { [weak self] in
                     self?.isSeeking = true
                     
@@ -1058,80 +983,9 @@ class MediaPlayer : NSObject {
                                             Thread.onMainThread {
                                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
                                             }
-//                                            completion?(finished)
-
-                                            // There is simply no avoiding the fact that currentTime may not be what you try to set it to, often less.
-                                            
-//                                            if let currentTime = self.currentTime, currentTime.seconds < to {
-//                                                print(currentTime.seconds,to)
-//                                                let newTime = CMTimeMakeWithSeconds(currentTime.seconds + 0.1,Int32(10))
-//                                                self.player?.seek(to: newTime, toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-//                                                                  toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-//                                                                  completionHandler: { (finished:Bool) in
-//                                                                    if finished {
-//                                                                        completion?(finished)
-//                                                                    }
-//                                                })
-//                                            } else {
-//                                                completion?(finished)
-//                                            }
-
-//                                            var counter:Double = 1
-//                                            while let currentTime = self.currentTime, currentTime.seconds < to {
-//                                                let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
-//                                                print(newTime.seconds)
-//                                                self.player?.seek(to: newTime)
-//                                                Thread.sleep(forTimeInterval: 0.1)
-//                                                counter += 1
-//                                            }
-//                                            completion?(finished)
                                         }
                     })
                 }
-
-                
-//                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-//                             completionHandler: { (finished:Bool) in
-//                                if finished {
-//                                    self.operationQueue.addOperation {
-//                                        var counter:Double = 1
-//                                        while let currentTime = self.currentTime, currentTime.seconds < to {
-//                                            let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
-//                                            print(newTime.seconds)
-//                                            self.player?.seek(to: newTime)
-//                                            Thread.sleep(forTimeInterval: 0.1)
-//                                            counter += 1
-//                                        }
-//                                        completion?(finished)
-//                                    }
-//
-////                                    DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-////                                        var counter:Double = 1
-////                                        while let currentTime = self?.currentTime, currentTime.seconds < to {
-////                                            let newTime = CMTimeMakeWithSeconds(currentTime.seconds + (counter * 0.001),Int32(1000))
-////                                            print(newTime.seconds)
-////                                            self?.player?.seek(to: newTime)
-////                                            Thread.sleep(forTimeInterval: 0.1)
-////                                            counter += 1
-////                                        }
-////                                        completion?(finished)
-////                                    }
-//                                }
-//                })
-
-//                if let completion = completion {
-//                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-//                                 completionHandler: { (finished:Bool) in
-//                                    if finished {
-//                                        while let currentTime = self.currentTime, currentTime < CMTimeMakeWithSeconds(to,Constants.CMTime_Resolution) {
-//                                            self.player?.seek(to: currentTime + CMTimeMakeWithSeconds(0.001,Constants.CMTime_Resolution))
-//                                        }
-//                                        completion(finished)
-//                                    }
-//                    })
-//                } else {
-//                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
-//                }
             }
             break
         }
@@ -1220,9 +1074,7 @@ class MediaPlayer : NSObject {
         loaded = false
         loadFailed = false
     }
-    
-    //    var observer: Timer?
-    
+
     var mediaItem:MediaItem? {
         willSet {
             
@@ -1239,10 +1091,7 @@ class MediaPlayer : NSObject {
             
             if mediaItem == nil {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-                
                 // For some reason setting player to nil is LETHAL.
-//                player = nil
-//                stateTime = nil
             }
         }
     }
@@ -1315,10 +1164,6 @@ class MediaPlayer : NSObject {
                 nowPlayingInfo[MPMediaItemPropertyPlaybackDuration]          = duration?.seconds
                 nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime]  = currentTime?.seconds
                 nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate]         = rate
-                
-                //    print("\(mediaItemInfo.count)")
-                
-                //                print(nowPlayingInfo)
                 
                 Thread.onMainThread {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo

@@ -41,7 +41,6 @@ class SettingsViewController: UIViewController
             
             // Does this REALLY need to be .user* ?
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//                Globals.shared.loadSingles = false
     
                 if let mediaItems = Globals.shared.mediaRepository.list {
                     for mediaItem in mediaItems {
@@ -51,8 +50,6 @@ class SettingsViewController: UIViewController
                     }
                 }
                 
-//                Globals.shared.loadSingles = true
-
                 Thread.onMainThread {
                     self?.updateCacheSize()
                 }
@@ -72,13 +69,9 @@ class SettingsViewController: UIViewController
     func updateCacheSize()
     {
         // Does this REALLY need to be .user* ?
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//            Globals.shared.loadSingles = false
-            
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in            
             let sizeOfCache = Globals.shared.cacheSize(Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
             
-//            Globals.shared.loadSingles = true
-
             var size:Float = Float(sizeOfCache)
             
             var count = 0

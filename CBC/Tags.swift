@@ -10,7 +10,6 @@ import Foundation
 
 // Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
 // Problems went away when I switched to class
-
 class Tags
 {
 //    weak var globals:Globals!

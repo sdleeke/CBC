@@ -11,7 +11,6 @@ import UIKit
 
 protocol CloudLayoutOperationDelegate
 {
-//    func insertTitle(cloudTitle:String)
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     func insertBoundingRect(boundingRect:CGRect)
 }
@@ -30,7 +29,7 @@ class CloudLayoutOperation : Operation
     override var description: String
     {
         get {
-            return "container size = (\(containerSize?.height) \(containerSize?.width)), delegate = \(delegate); words = \(cloudWords.debugDescription)"
+            return "container size = (\(containerSize?.height ?? 0) \(containerSize?.width ?? 0)), delegate = \(delegate); words = \(cloudWords.debugDescription)"
         }
     }
     
@@ -76,12 +75,6 @@ class CloudLayoutOperation : Operation
     
     override func main()
     {
-//        if isCancelled {
-//            return
-//        }
-//
-//        layoutCloudTitle()
-        
         if isCancelled {
             return
         }
@@ -100,12 +93,6 @@ class CloudLayoutOperation : Operation
         
         assignPreferredPlacementsForWords()
 
-//        if isCancelled {
-//            return
-//        }
-//
-//        setSizesForWords()
-        
         if isCancelled {
             return
         }
@@ -146,29 +133,18 @@ class CloudLayoutOperation : Operation
             return
         }
         
-//        CGFloat minWordCount = [[self.cloudWords valueForKeyPath:@"@min.wordCount"] doubleValue];
-//        CGFloat maxWordCount = [[self.cloudWords valueForKeyPath:@"@max.wordCount"] doubleValue];
-        
         let deltaWordCount:CGFloat = CGFloat(maxWordCount) - CGFloat(minWordCount)
         
         let ratioCap:CGFloat = 20.0 // parameter to vary
         
         let maxMinRatio:CGFloat = CGFloat(min((CGFloat(maxWordCount) / CGFloat(minWordCount)), ratioCap))
-//        if maxMinRatio == ratioCap {
-//            print(CGFloat(maxWordCount) / CGFloat(minWordCount))
-//        }
         
         // Start with these values, which will be decreased as needed that all the words may fit the container
-        
         let minFontMin:CGFloat = 4.0
         var oldFontMin:CGFloat = 0.0
         var fontMin:CGFloat = 12.0
         var fontMax:CGFloat = fontMin * maxMinRatio;
 
-//        let dynamicTypeDelta:CGFloat = 1.0
-        
-//        NSInteger dynamicTypeDelta = [UIFont lal_preferredContentSizeDelta]
-        
         // A way to account for whitespace between words
         let whitespaceFactor:CGFloat = 0.95 // parameter to vary
         let containerArea:CGFloat = CGFloat(containerSize.width * containerSize.height) * whitespaceFactor
@@ -191,8 +167,6 @@ class CloudLayoutOperation : Operation
                 
                 let scale:CGFloat = CGFloat(cloudWord.wordCount - minWordCount) / (deltaWordCount != 0 ? deltaWordCount : 1)
                 cloudWord.pointSize = fontMin + (fontStep * floor(scale * (fontRange / fontStep))) // + dynamicTypeDelta
-                
-//                print(cloudWord.wordCount,minWordCount,deltaWordCount,cloudWord.pointSize,fontMin,fontRange,fontStep,scale)
                 
                 cloudWord.determineWordOrientation(orientation: orientation, containerSize: containerSize, scale:containerScale, fontName:cloudFont.fontName)
                 
@@ -220,9 +194,7 @@ class CloudLayoutOperation : Operation
         guard let cloudWords = cloudWords else {
             return
         }
-
-//        let cloudWordsCount:CGFloat = CGFloat(cloudWords.count)
-
+        
         var index = 0
         
         for cloudWord in cloudWords {
@@ -232,18 +204,8 @@ class CloudLayoutOperation : Operation
 
             cloudWord.wordColor = index % 5 // Simple way to allocate color - round-robin
             
-//            let scale:CGFloat = (cloudWordsCount - index) / cloudWordsCount
-//
-//            cloudWord.determineColorForScale(scale:scale)
-            
             index += 1
         }
-
-//        [self.cloudWords enumerateObjectsUsingBlock:^(CloudWord *word, NSUInteger index, BOOL *stop) {
-//            *stop = [self isCancelled];
-//            CGFloat scale = (cloudWordsCount - index) / cloudWordsCount;
-//            [word determineColorForScale:scale];
-//            }];
     }
     
     func assignPreferredPlacementsForWords()
@@ -266,31 +228,10 @@ class CloudLayoutOperation : Operation
         }
     }
     
-//    func setSizesForWords()
-//    {
-//        guard let cloudWords = cloudWords else {
-//            return
-//        }
-//
-//        guard let containerSize = containerSize else {
-//            return
-//        }
-//
-//        for cloudWord in cloudWords {
-//            if (isCancelled) {
-//                return;
-//            }
-//
-//            // Assign a new size for each word
-//            cloudWord.setSizeToGlyphBoundingRect(containerSize:containerSize, cloudFont:cloudFont)
-//        }
-//    }
-
     func reorderWordsByDescendingWordArea()
     {
         // Words that only fit one way go to the top of the list.
         cloudWords?.sort(by: { (first:CloudWord, second:CloudWord) -> Bool in
-            //            print(first.wordText!,first.onlyFitsOneWay(containerSize:self.containerSize),second.wordText!,second.onlyFitsOneWay(containerSize:self.containerSize))
             switch (first.onlyFitsOneWay(containerSize:self.containerSize), second.onlyFitsOneWay(containerSize:self.containerSize)) {
             case (false, true):
                 return false
@@ -298,25 +239,7 @@ class CloudLayoutOperation : Operation
             default:
                 return true
             }
-            
-            //            if first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
-            //                return false
-            //            } else
-            //            if first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
-            //                return false
-            //            } else
-            //            if !first.onlyFitsOneWay(containerSize:self.containerSize) && second.onlyFitsOneWay(containerSize:self.containerSize) {
-            //                return true
-            //            } else
-            //            if !first.onlyFitsOneWay(containerSize:self.containerSize) && !second.onlyFitsOneWay(containerSize:self.containerSize) {
-            //                return false
-            //            }
-            //            return false
         })
-        
-//        cloudWords?.forEach({
-//            print($0.description,$0.onlyFitsOneWay(containerSize: self.containerSize))
-//        })
         
         var sortDescriptors = [NSSortDescriptor]()
         
@@ -325,63 +248,8 @@ class CloudLayoutOperation : Operation
         sortDescriptors.append(NSSortDescriptor(key: #keyPath(CloudWord.boundsArea), ascending: false))
         
         cloudWords = (cloudWords as NSArray?)?.sortedArray(using: sortDescriptors) as? [CloudWord]
-        
-//        cloudWords?.forEach({
-//            print($0.description,$0.onlyFitsOneWay(containerSize: self.containerSize))
-//        })
-        
-//        sortedArrayUsingDescriptors:@[primarySortDescriptor, secondarySortDescriptor]];
-
-//        NSSortDescriptor *primarySortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"boundsArea" ascending:NO];
-//        NSSortDescriptor *secondarySortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"pointSize" ascending:NO];
-        
-//        cloudWords?.sorted(by: { (first:CloudWord, second:CloudWord) -> Bool in
-//            if first.boundsArea < second.boundsArea {
-//                return false
-//            }
-//            if first.boundsArea > second.boundsArea {
-//                return true
-//            }
-//            if first.boundsArea == second.boundsArea {
-//                if first.pointSize < second.pointSize {
-//                    return false
-//                }
-//                if first.pointSize > second.pointSize {
-//                    return true
-//                }
-//                if first.pointSize == second.pointSize {
-//                    return true
-//                }
-//            }
-//
-//            return false
-//        })
     }
-    
-//    func layoutCloudTitle()
-//    {
-//        UIButton *sizingButton = [UIButton buttonWithType:UIButtonTypeSystem];
-//        sizingButton.contentEdgeInsets = UIEdgeInsetsMake(0.0, 8.0, 5.0, 2.0);
-//
-//        [sizingButton setTitle:self.cloudTitle forState:UIControlStateNormal];
-//        CGFloat pointSize = kLALsystemPointSize + [UIFont lal_preferredContentSizeDelta];
-//        sizingButton.titleLabel.font = [UIFont systemFontOfSize:pointSize];
-//
-//        // UIKit sizeToFit is not thread-safe
-//        [sizingButton performSelectorOnMainThread:@selector(sizeToFit) withObject:nil waitUntilDone:YES];
-//
-//        CGRect bounds = CGRectMake(0.0, self.containerSize.height - CGRectGetHeight(sizingButton.bounds), CGRectGetWidth(sizingButton.bounds), CGRectGetHeight(sizingButton.bounds));
-//        [self.glyphBoundingRects insertBoundingRect:bounds];
-//
-//        __weak id<CloudLayoutOperationDelegate> delegate = self.delegate;
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [delegate insertTitle:self.cloudTitle];
-//            //#ifdef DEBUG
-//            //        [delegate insertBoundingRect:bounds];
-//            //#endif
-//            });
-//    }
-    
+
     func layoutCloudWords()
     {
         guard var cloudWords = cloudWords else {
@@ -420,8 +288,6 @@ class CloudLayoutOperation : Operation
                     return
                 }
                 
-//                print(cloudWords.count,index,cloudWord.wordText ?? "nil",cloudWord.wordCount)
-                
                 index += 1
                 
                 if index == cloudWord.wordCount {
@@ -430,78 +296,6 @@ class CloudLayoutOperation : Operation
                 }
             }
         } while cloudWords.count > 0
-        
-//        var failed = false
-//
-//        for cloudWord in cloudWords {
-//            if (isCancelled) {
-//                return
-//            }
-//
-//            // Can the word can be placed at its preferred location?
-//            if (hasPlacedWord(word: cloudWord)) {
-//                // Yes. Move on to the next word
-//                continue
-//            }
-//
-////            var placed = false
-//
-//            var index = 0
-//
-//            while !hasFoundConcentricPlacementForWord(word: cloudWord) {
-//                // No placement found centered on preferred location. Pick a new location at random
-//                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize:containerSize, scale:containerScale, fontName:fontName)
-//                cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
-//
-//                if (isCancelled) {
-//                    return
-//                }
-//
-//                index += 1
-//
-//                if index == 100 {
-//                    failed = true
-//                    break
-//                }
-//            }
-//
-//            if failed {
-//                break
-//            }
-
-//            placed = true
-
-            // If there's a spot for a word, it will almost always be found within 50 attempts.
-            // Make 100 attempts to handle extremely rare cases where more than 50 attempts are needed to place a word
-            
-//            for attempt in 0..<100 {
-//                // Try alternate placements along concentric circles
-//                if (hasFoundConcentricPlacementForWord(word: cloudWord)) {
-//                    placed = true
-//                    break
-//                }
-//
-//                if (isCancelled) {
-//                    return
-//                }
-//
-//                // No placement found centered on preferred location. Pick a new location at random
-//                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize:containerSize, scale:containerScale, fontName:cloudFont!.fontName)
-//                cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
-//            }
-            
-            // Reduce font size if word doesn't fit
-//            if (!placed) {
-//                NSLog("Couldn't find a spot for \(cloudWord.debugDescription)");
-//            }
-//        }
-        
-//        if failed {
-//            Thread.onMainThread {
-//                (self.delegate as? CloudViewController)?.relayoutCloudWords()
-//            }
-//            self.cancel()
-//        }
     }
     
     func hasFoundConcentricPlacementForWord(word:CloudWord) -> Bool
@@ -650,19 +444,14 @@ class CloudLayoutOperation : Operation
 
             let line = (lines as NSArray).object(at: 0) as! CTLine
 
-    //            let line = CFArrayGetValueAtIndex(lines, 0) as! CTLine
-
             let runs = CTLineGetGlyphRuns(line)
 
             for runIndex in 0..<CFArrayGetCount(runs) {
                 let run = (runs as NSArray).object(at: runIndex) as! CTRun
 
-    //                let run = CFArrayGetValueAtIndex(runs, runIndex) as! CTRun
-
                 let runAttributes:CFDictionary = CTRunGetAttributes(run)
 
                 let font = (runAttributes as NSDictionary)[NSAttributedStringKey.font] as! CTFont
-    //                let font = CFDictionaryGetValue(runAttributes, NSFontAttributeName) as! CTFont
 
                 for glyphIndex in 0..<CTRunGetGlyphCount(run) {
                     var glyphPosition = CGPoint.zero
@@ -698,13 +487,6 @@ class CloudLayoutOperation : Operation
                     } else {
                         overallGlyphRect = overallGlyphRect.union(glyphRect)
                     }
-                    
-                    //#ifdef DEBUG
-                    //                __weak id<CloudLayoutOperationDelegate> delegate = self.delegate;
-                    //                dispatch_async(dispatch_get_main_queue(), ^{
-                    //                    [delegate insertBoundingRect:glyphRect];
-                    //                });
-                    //#endif
                 }
             }
         }

@@ -9,24 +9,6 @@
 import Foundation
 import UIKit
 
-extension UITextView {
-    func scrollRangeToVisible(_ range:Range<String.Index>)
-    {
-//        let utf16 = attributedText.string.utf16
-//
-//        let from = range.lowerBound.samePosition(in: utf16)
-//        let to = range.upperBound.samePosition(in: utf16)
-        
-//        let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
-//                              length: utf16.distance(from: from, to: to))
-        
-        Thread.onMainThread {
-            let nsRange = NSRange(range, in: self.attributedText.string)
-            self.scrollRangeToVisible(nsRange)
-        }
-    }
-}
-
 extension TextViewController: UISearchBarDelegate
 {
     //MARK: SearchBarDelegate
@@ -44,18 +26,7 @@ extension TextViewController: UISearchBarDelegate
             searchBar.text = nil
         }
         
-//        if searchText?.isEmpty == false {
-//            if let _ = textView.attributedText.string.lowercased().range(of: searchText!.lowercased()) {
-//                self.searchBar(searchBar, textDidChange: searchText!)
-//            }
-//        }
-        
-//        let currentRange = textView.selectedRange
-//        let currentRect = textView.bounds.offsetBy(dx: textView.contentOffset.x, dy: textView.contentOffset.x)
-        
-        
         operationQueue.cancelAllOperations()
-//        operationQueue.waitUntilAllOperationsAreFinished()
         
         let attributedText = self.textView.attributedText
         
@@ -68,30 +39,6 @@ extension TextViewController: UISearchBarDelegate
         }
         
         operationQueue.addOperation(searchOp)
-        
-//        DispatchQueue.global(qos: .background).async { // [weak self] in
-//            Thread.sleep(forTimeInterval: 0.1)
-//            Thread.onMainThread {
-//                self.textView.scrollRectToVisible(currentRect, animated: true)
-//            }
-//        }
-
-//        textView.scrollRangeToVisible(currentRange)
-
-//        if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-////            let utf16 = textView.attributedText.string.utf16
-////
-////            let from = range.lowerBound.samePosition(in: utf16)
-////            let to = range.upperBound.samePosition(in: utf16)
-////
-////            let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
-////                                  length: utf16.distance(from: from, to: to))
-////
-////            textView.scrollRangeToVisible(nsRange)
-//
-//            textView.scrollToRange(range)
-//            lastRange = range
-//        }
         
         return true
     }
@@ -141,7 +88,6 @@ extension TextViewController: UISearchBarDelegate
         searchText = searchBar.text
         
         operationQueue.cancelAllOperations()
-//        operationQueue.waitUntilAllOperationsAreFinished()
 
         let attributedText = self.textView.attributedText
         
@@ -276,10 +222,6 @@ extension TextViewController : UITextViewDelegate
     func textViewDidEndEditing(_ textView: UITextView)
     {
         // Tells the delegate that editing of the specified text view has ended.
-        
-//        if let searchText = searchText, searchActive {
-//            textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
-//        }
 
         editingActive = false
     }
@@ -408,12 +350,6 @@ extension TextViewController : UIActivityItemSource
             return
         }
         
-        //        if #available(iOS 10.0, *) {
-        //            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
-        //        } else {
-        //            // Fallback on earlier versions
-        //        }
-        
         let print = UISimpleTextPrintFormatter(text: text)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
@@ -425,13 +361,6 @@ extension TextViewController : UIActivityItemSource
         activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-        
-        //        if let cell = cell {
-        //            activityViewController.popoverPresentationController?.sourceRect = cell.bounds
-        //            activityViewController.popoverPresentationController?.sourceView = cell
-        //        } else {
-        //            activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-        //        }
         
         // present the view controller
         Thread.onMainThread {
@@ -460,28 +389,10 @@ extension TextViewController : UIActivityItemSource
             TextViewController.cases.append(.markupAsPDF)
         }
         
-        //        if #available(iOS 10.0, *) {
-        //            UIPasteboard.general.addItems([[kUTTypeHTML as String: html]])
-        //        } else {
-        //            // Fallback on earlier versions
-        //        }
-        
         if TextViewController.cases.contains(activityType) {
             return text
         } else {
-            //            html.operationQueue.waitUntilAllOperationsAreFinished()
             return text
-
-//            if let text = self.html.text {
-//                //                if #available(iOS 10.0, *) {
-//                //                    UIPasteboard.general.addItems([[kUTTypeText as String: text]])
-//                //                } else {
-//                //                    // Fallback on earlier versions
-//                //                }
-//                return text
-//            } else {
-//                return "HTML to text conversion still in process.  Please try again later."
-//            }
         }
     }
     
@@ -581,14 +492,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     if let mediaItem = mediaItem {
                         popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
                         
-                        //                    mediaItem.loadNotesTokens()
-                        //                    if let keys = mediaItem.notesTokens?.keys {
-                        //                        let strings = [String](keys).sorted()
-                        //                        popover.strings = strings
-                        //                    }
-                        
                         popover.stringsFunction = {
-                            //                        mediaItem.notesTokens?.load()
                             if let keys = mediaItem.notesTokens.result?.keys {
                                 let strings = [String](keys).sorted()
                                 return strings
@@ -596,18 +500,10 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             
                             return nil
                         }
-                        
-                        //                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
-                        //                        return string
-                        //                    }).sorted()
                     } else
                         
                     if let transcript = transcript {
                         popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
-                        
-                        //                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-                        //                        return word
-                        //                    }).sorted()
                         
                         popover.stringsFunction = {
                             // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -617,10 +513,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         }
                     } else {
                         popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
-                        
-                        //                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-                        //                        return word
-                        //                    }).sorted()
                         
                         let text = self.textView.text
                         
@@ -650,70 +542,12 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     let string = textView.text
                     
                     popover.cloudWordsFunction = {
-                        //                        mediaItem.loadNotesTokens()
-                        
                         let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })
                         
                         return words
                     }
-
-//                    if let mediaItem = mediaItem {
-//                        popover.cloudTitle = mediaItem.title
-////                        popover.mediaItem = mediaItem
-//                        
-//                        popover.cloudWordsFunction = {
-//                            //                        mediaItem.loadNotesTokens()
-//                            
-//                            let words:[[String:Any]]? = mediaItem.notesTokens.result?.map({ (key:String, value:Int) -> [String:Any] in
-//                                return ["word":key,"count":value,"selected":true]
-//                            })
-//                            
-//                            return words
-//                        }
-//                        
-//                        //                .filter({ (dict:[String:Any]) -> Bool in
-//                        //                    guard let word = dict["word"] as? String else {
-//                        //                        return false
-//                        //                    }
-//                        //
-//                        //                    guard let count = dict["count"] as? Int else {
-//                        //                        return false
-//                        //                    }
-//                        //
-//                        //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
-//                        //                })
-//                        
-//                        //                    popover.cloudWords = words
-//                    } else
-//                        
-//                        if let transcript = transcript {
-//                            popover.cloudTitle = transcript.mediaItem?.title
-////                            popover.mediaItem = transcript.mediaItem
-//                            
-//                            popover.cloudWordsFunction = {
-//                                let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
-//                                    return ["word":word,"count":count,"selected":true]
-//                                })
-//                                
-//                                return words
-//                            }
-//                            
-//                            //                    popover.cloudWords = words
-//                        } else {
-//                            popover.cloudTitle = navigationItem.title
-//                            
-//                            let string = self.textView.text
-//                            
-//                            popover.cloudWordsFunction = {
-//                                let words = string?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
-//                                    return ["word":word,"count":count,"selected":true]
-//                                })
-//                                
-//                                return words
-//                            }
-//                    }
                     
                     popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                     
@@ -760,19 +594,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         }
                     }))
                     
-                    //                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                    //                    popover.sort.method = Constants.Sort.Alphabetical
-                    //                    popover.section.showIndex = true
-                    //                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    //                    popover.tableView.reloadData()
-                    //                }))
-                    //                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                    //                    popover.sort.method = Constants.Sort.Frequency
-                    //                    popover.section.showIndex = false
-                    //                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
-                    //                    popover.tableView.reloadData()
-                    //                }))
-                    
                     popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                     
                     popover.section.showIndex = true
@@ -791,29 +612,12 @@ extension TextViewController : PopoverTableViewControllerDelegate
                                 return "\(string) (\(count))"
                             }).sorted()
                         }
-                        
-                        //                    if mediaItem.notesTokens == nil {
-                        //                        popover.stringsFunction = {
-                        ////                            mediaItem.loadNotesTokens()
-                        //
-                        //                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-                        //                                return "\(string) (\(count))"
-                        //                            }).sorted()
-                        //                        }
-                        //                    } else {
-                        //                        popover.section.strings = mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-                        //                            return "\(string) (\(count))"
-                        //                        }).sorted()
-                        //                    }
                     } else
                         
                         if let transcript = transcript {
                             popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
                             
                             // If the transcript has been edited some of these words may not be found.
-                            //                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
-                            //                        return "\(word) (\(count))"
-                            //                    }).sorted()
                             
                             popover.stringsFunction = {
                                 // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -821,10 +625,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                                     return "\(word) (\(count))"
                                 }).sorted()
                             }
-                            
-                            //                    popover.section.strings = tokensAndCountsFromString(transcript.transcript)?.map({ (word:String,count:Int) -> String in
-                            //                        return "\(word) (\(count))"
-                            //                    }).sorted()
                         } else {
                             popover.navigationItem.title = navigationItem.title // Constants.Strings.Words
                             
@@ -838,8 +638,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             }
                     }
                     
-                    //                popover.vc = self
-                    
                     self.popover = popover
                     
                     present(navigationController, animated: true, completion: nil)
@@ -852,14 +650,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-                //        case Constants.Strings.Open_in_Browser:
-                //            if let url = selectedMediaItem?.downloadURL {
-                //                open(scheme: url.absoluteString) {
-                //                    networkUnavailable(self,"Unable to open: \(url)")
-                //                }
-                //            }
-                //            break
-                
             default:
                 break
             }
@@ -868,6 +658,21 @@ extension TextViewController : PopoverTableViewControllerDelegate
         default:
             break
         }
+    }
+}
+
+extension TextViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
     }
 }
 
@@ -1016,25 +821,14 @@ class TextViewController : UIViewController
 
             if searchActive {
                 oldRange = nil
-                
-//                removeTracking()
-//                removeAssist()
-//                disableBarButtons()
             } else {
-//                enableBarButtons()
+
             }
 
             if !searchActive {
-//                if !editingActive {
-//                    restoreTracking()
-//                    restoreAssist()
-//                }
                 searchBar.text = nil
                 searchBar.showsCancelButton = false
-                //        searchBar.resignFirstResponder()
             }
-
-//            updateBarButtons()
         }
     }
     
@@ -1062,17 +856,9 @@ class TextViewController : UIViewController
                 oldRange = nil
                 
                 navigationItem.rightBarButtonItems?.append(dismissButton)
-                
-//                removeTracking()
-//                removeAssist()
             } else {
                 navigationItem.rightBarButtonItems?.removeLast()
             }
-//
-//            if !searchActive && !editingActive {
-//                restoreTracking()
-//                restoreAssist()
-//            }
         }
     }
 
@@ -1106,11 +892,6 @@ class TextViewController : UIViewController
             
             var closest : [String:Any]?
             var minDistance : Int?
-            
-            //                    let nsRange = NSRange(location: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.start), length: 0)
-            //                    let textRange = Range(nsRange, in: textView.text)
-            
-            //                    print(textView.text?[textRange!.lowerBound...])
             
             for wordRangeTime in wordRangeTiming {
                 if  let lowerBound = wordRangeTime["lowerBound"] as? Int,
@@ -1193,13 +974,7 @@ class TextViewController : UIViewController
             return
         }
         
-//        guard saveButton != nil else {
-//            return
-//        }
-        
         assistButton?.isEnabled = false
-        
-//        navigationItem.rightBarButtonItems = fullScreenButton != nil ? [fullScreenButton,saveButton] : [saveButton]
     }
     
     func restoreAssist()
@@ -1217,16 +992,6 @@ class TextViewController : UIViewController
         }
         
         assistButton?.isEnabled = true
-        
-//        if navigationItem.rightBarButtonItems != nil {
-////            if fullScreenButton != nil {
-////                navigationItem.rightBarButtonItems?.append(fullScreenButton)
-////            }
-//            navigationItem.rightBarButtonItems?.append(assistButton)
-//        } else {
-//            navigationItem.rightBarButtonItems = fullScreenButton != nil ? [fullScreenButton,saveButton,assistButton] : [saveButton,assistButton]
-////            navigationItem.rightBarButtonItem = assistButton
-//        }
     }
     
     func removeTracking()
@@ -1245,8 +1010,6 @@ class TextViewController : UIViewController
         
         isTracking = false
         stopTracking()
-        
-//        navigationItem.leftBarButtonItems = [cancelButton]
     }
     
     func restoreTracking()
@@ -1264,21 +1027,6 @@ class TextViewController : UIViewController
 
         syncButton.isEnabled = true
         
-//        if navigationItem.leftBarButtonItems != nil {
-//            navigationItem.leftBarButtonItems?.append(syncButton)
-//        } else {
-//            navigationItem.leftBarButtonItem = syncButton
-//        }
-//
-//        activityIndicator = UIActivityIndicatorView()
-//        activityIndicator.activityIndicatorViewStyle = .gray
-//        activityIndicator.hidesWhenStopped = true
-//
-//        activityBarButton = UIBarButtonItem(customView: activityIndicator)
-//        activityBarButton.isEnabled = true
-//
-//        navigationItem.leftBarButtonItems?.append(activityBarButton)
-        
         if wordRangeTiming == nil {
             activityIndicator.startAnimating()
         }
@@ -1289,8 +1037,6 @@ class TextViewController : UIViewController
         guard track else {
             return
         }
-        
-//        Globals.shared.mediaPlayer.pause()
         
         trackingTimer?.invalidate()
         trackingTimer = nil
@@ -1305,8 +1051,6 @@ class TextViewController : UIViewController
         guard track else {
             return
         }
-        
-//        Globals.shared.mediaPlayer.play()
         
         if trackingTimer == nil {
             trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(follow), userInfo: nil, repeats: true)
@@ -1324,32 +1068,6 @@ class TextViewController : UIViewController
         }
         
         guard !editingActive else {
-//            if let selectedTextRange = textView.selectedTextRange {
-//                let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.start), upper: textView.offset(from: textView.beginningOfDocument, to: selectedTextRange.end)))
-//
-//                if let segment = wordRangeTiming?.filter({ (dict:[String:Any]) -> Bool in
-//                    if  let lowerBound = dict["lowerBound"] as? Int,
-//                        let upperBound = dict["upperBound"] as? Int {
-//                        return (range.lowerBound >= lowerBound) && (range.upperBound <= upperBound)
-//                    } else {
-//                        return false
-//                    }
-//                }).first {
-//                    if (oldTextRange == nil) || (oldTextRange != selectedTextRange) {
-//                        if  let start = segment["start"] as? Double,
-//                            let end = segment["end"] as? Double,
-//                            let lowerBound = segment["lowerBound"] as? Int,
-//                            let upperBound = segment["upperBound"] as? Int {
-//                            let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
-//                            Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
-//                        }
-//                    }
-//                }
-//
-//                if oldTextRange != selectedTextRange {
-//                    oldTextRange = selectedTextRange
-//                }
-//            }
             return
         }
         
@@ -1373,20 +1091,8 @@ class TextViewController : UIViewController
             
             index = max(index,0)
             
-            if  // let text = (wordRangeTiming[index]["text"] as? String),
-                let range = wordRangeTiming[index]["range"] as? Range<String.Index>
-//                let lowerBound = wordRangeTiming[index]["lowerBound"] as? String.Index,
-//                let upperBound = wordRangeTiming[index]["upperBound"] as? String.Index
-            {
-//                var range = changedText?.range(of: text)
-//
-//                if range == nil {
-//                    range = changedText?.range(of: text.replacingOccurrences(of: ".  ", with: ". "))
-//                }
-                
-//                let range = Range(uncheckedBounds: (lower: lowerBound, upper: upperBound))
-                
-                if let changedText = changedText, range != oldRange { // , let range = range
+            if let range = wordRangeTiming[index]["range"] as? Range<String.Index> {
+                if let changedText = changedText, range != oldRange {
                     let before = String(changedText[..<range.lowerBound])
                     let text = String(changedText[range])
                     let after = String(changedText[range.upperBound...])
@@ -1403,10 +1109,7 @@ class TextViewController : UIViewController
                     
                     oldRange = range
                 } else {
-                    // Too annoying when not playing.
-//                    if let range = range {
-//                        textView.scrollToRange(range)
-//                    }
+                    // Annoying to scroll to range when not playing.
                 }
             } else {
                 if let text = wordRangeTiming[index]["text"] {
@@ -1429,11 +1132,7 @@ class TextViewController : UIViewController
     var track = false
     {
         didSet {
-//            if track {
-//                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//                    self?.wordRangeTiming = self?.transcript?.wordRangeTiming
-//                }
-//            }
+
         }
     }
     
@@ -1513,7 +1212,6 @@ class TextViewController : UIViewController
         }
         
         operationQueue.cancelAllOperations()
-        //        operationQueue.waitUntilAllOperationsAreFinished()
         
         let attributedText = self.textView.attributedText
         
@@ -1532,32 +1230,6 @@ class TextViewController : UIViewController
                     }
                 }
             }
-            
-            // Process spawns another thread and that becomes uncontrollable!
-            //            process(viewController: Globals.shared.splitViewController, work: {
-            //                return stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
-            //                }, completion: { (data:Any?) in
-            //                    guard let test = test?(), !test else {
-            //                        return
-            //                    }
-            //
-            //                    guard let text = data as? NSAttributedString else {
-            //                        return
-            //                    }
-            //
-            //                    Thread.onMainThread {
-            //                        self.textView.attributedText = text
-            //
-            //                        if !searchText.isEmpty {
-            //                            if let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-            //                                self.textView.scrollRangeToVisible(range)
-            //                                self.lastRange = range
-            //                            } else {
-            //                                Alerts.shared.alert(title: "Not Found", message: "")
-            //                            }
-            //                        }
-            //                    }
-            //            })
         }
         
         operationQueue.addOperation(searchOp)
@@ -1595,18 +1267,6 @@ class TextViewController : UIViewController
                             
                             return first["gap"] != nil
                         }) {
-                            //                        var i = 0
-                            //
-                            //                        for word in words {
-                            //                            print(i)
-                            //                            print("gap: ",word["gap"])
-                            //                            print("start: ",word["start"])
-                            //                            print("end: ",word["end"])
-                            //                            print("text: ",word["text"])
-                            //                            print("lowerBound: ",word["lowerBound"])
-                            //                            i += 1
-                            //                        }
-                            
                             let text = self?.textView.attributedText.string
                             
                             var actions = [AlertAction]()
@@ -1618,8 +1278,6 @@ class TextViewController : UIViewController
                                         self?.changedText = string
                                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                                     })
-                                    
-                                    //                            self?.operationQueue.waitUntilAllOperationsAreFinished()
                                     
                                     return nil
                                 }) { [weak self] (data:Any?) in
@@ -1634,8 +1292,6 @@ class TextViewController : UIViewController
                                         self?.changedText = string
                                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                                     })
-                                    
-                                    //                            self?.operationQueue.waitUntilAllOperationsAreFinished()
                                     
                                     return nil
                                 }) { [weak self] (data:Any?) in
@@ -1674,8 +1330,6 @@ class TextViewController : UIViewController
                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                         })
                         
-                        //                    self?.operationQueue.waitUntilAllOperationsAreFinished()
-                        
                         return nil
                     }) { [weak self] (data:Any?) in
                         self?.updateBarButtons()
@@ -1694,8 +1348,6 @@ class TextViewController : UIViewController
                         self?.changedText = string
                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                     })
-                    
-                    //                    self?.operationQueue.waitUntilAllOperationsAreFinished()
                     
                     return nil
                 }) { [weak self] (data:Any?) in
@@ -1730,11 +1382,11 @@ class TextViewController : UIViewController
                                 
                                 navigationController.modalPresentationStyle = .overCurrentContext
                                 
-                                navigationController.popoverPresentationController?.delegate = vc as? UIPopoverPresentationControllerDelegate
+                                navigationController.popoverPresentationController?.delegate = vc
                                 
                                 popover.navigationController?.isNavigationBarHidden = false
                                 
-                                popover.navigationItem.title = "Select Gap Threshold" // Constants.Strings.Word_Picker
+                                popover.navigationItem.title = "Select Gap Threshold"
                                 
                                 popover.delegate = vc
                                 
@@ -1798,8 +1450,6 @@ class TextViewController : UIViewController
                                             let webView = navigationController.viewControllers[0] as? WebViewController {
                                             navigationController.modalPresentationStyle = .overCurrentContext
                                             
-//                                            webView.html.fontSize = 12
-                                            
                                             webView.search = false
                                             webView.content = .html
                                             
@@ -1808,9 +1458,6 @@ class TextViewController : UIViewController
                                             webView.html.string = insertHead(newText,fontSize: 24)
                                             
                                             Thread.onMainThread {
-                                                //                                            popover.activityIndicator.stopAnimating()
-                                                //                                            popover.activityIndicator.isHidden = true
-                                                
                                                 webView.navigationItem.title = self?.navigationItem.title
                                                 
                                                 popover.present(navigationController, animated: true)
@@ -1956,7 +1603,6 @@ class TextViewController : UIViewController
             dismiss(animated: false, completion: nil)
             
             navigationController.modalPresentationStyle = .overFullScreen
-//            navigationController.popoverPresentationController?.delegate = popover
             
             popover.navigationItem.title = self.navigationItem.title
 
@@ -2000,9 +1646,7 @@ class TextViewController : UIViewController
             popover.shrink = self.shrink
 
             popover.lastRange = self.lastRange
-            
-//            popover.mask = self.mask
-            
+
             popover.onCancel = self.onCancel
             
             popover.operationQueue = self.operationQueue
@@ -2092,8 +1736,6 @@ class TextViewController : UIViewController
             
             popover.section.strings = actionMenu
             
-            //            popover.vc = self
-            
             self.popover = popover
             
             present(navigationController, animated: true, completion: nil)
@@ -2104,8 +1746,6 @@ class TextViewController : UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
-//        operationQueue = OperationQueue()
         
         playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
 
@@ -2139,15 +1779,6 @@ class TextViewController : UIViewController
         var barButtonItems = [UIBarButtonItem]()
         
         if track {
-//            if toolbarItems != nil { // navigationItem.leftBarButtonItems
-//                toolbarItems?.append(spaceButton)
-//                toolbarItems?.append(syncButton)
-////                navigationItem.leftBarButtonItems?.append(syncButton)
-//            } else {
-//                toolbarItems = [spaceButton,syncButton] //
-////                navigationItem.leftBarButtonItem = syncButton
-//            }
-
             barButtonItems.append(spaceButton)
             barButtonItems.append(syncButton)
 
@@ -2159,19 +1790,11 @@ class TextViewController : UIViewController
             activityBarButton.isEnabled = true
             
             barButtonItems.append(activityBarButton)
-//            toolbarItems?.append(activityBarButton)
-            //            navigationItem.leftBarButtonItems?.append(activityBarButton)
             
             if wordRangeTiming == nil {
                 activityIndicator.startAnimating()
             }
 
-//            if toolbarItems != nil {
-//                toolbarItems?.append(spaceButton)
-//                toolbarItems?.append(playPauseButton)
-//            } else {
-//                toolbarItems = [spaceButton,playPauseButton]
-//            }
             barButtonItems.append(spaceButton)
             barButtonItems.append(playPauseButton)
         }
@@ -2181,32 +1804,11 @@ class TextViewController : UIViewController
         dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItemStyle.plain, target: self, action: #selector(dismissKeyboard))
 
         if assist {
-//            if toolbarItems != nil {
-//                toolbarItems?.append(spaceButton)
-//                toolbarItems?.append(assistButton)
-//            } else {
-//                toolbarItems = [spaceButton,assistButton]
-//            }
             barButtonItems.append(spaceButton)
             barButtonItems.append(assistButton)
-
-//            if navigationItem.rightBarButtonItems != nil {
-//                navigationItem.rightBarButtonItems?.append(assistButton)
-//            } else {
-//                navigationItem.rightBarButtonItem = assistButton
-//            }
         }
         
         if !readOnly {
-//            if toolbarItems != nil {
-//                toolbarItems?.append(spaceButton)
-//                toolbarItems?.append(saveButton)
-//            } else {
-//                toolbarItems = [spaceButton,saveButton]
-//            }
-//
-//            toolbarItems?.append(spaceButton)
-
             barButtonItems.append(spaceButton)
             barButtonItems.append(saveButton)
             barButtonItems.append(spaceButton)
@@ -2218,8 +1820,6 @@ class TextViewController : UIViewController
         
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
-        
-//        let actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share))
         
         if navigationItem.rightBarButtonItem == nil {
             navigationItem.rightBarButtonItem = actionButton
@@ -2235,12 +1835,14 @@ class TextViewController : UIViewController
                 fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
                 fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
                 
-                if navigationItem.rightBarButtonItems != nil {
-                    navigationItem.rightBarButtonItems?.append(fullScreenButton)
-                } else {
-                    navigationItem.rightBarButtonItem = fullScreenButton
+                if Globals.shared.splitViewController.isCollapsed == false {
+                    if navigationItem.rightBarButtonItems != nil {
+                        navigationItem.rightBarButtonItems?.append(fullScreenButton)
+                    } else {
+                        navigationItem.rightBarButtonItem = fullScreenButton
+                    }
                 }
-                
+
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
@@ -2252,15 +1854,7 @@ class TextViewController : UIViewController
         }
 
         navigationController?.toolbar.isTranslucent = false
-        
-        //        if navigationItem.rightBarButtonItems != nil {
-        //            navigationItem.rightBarButtonItems?.append(saveButton)
-        //        } else {
-        //            navigationItem.rightBarButtonItem = saveButton
-        //        }
     }
-    
-//    var mask = false
     
     var creatingWordRangeTiming = false
     
@@ -2302,13 +1896,6 @@ class TextViewController : UIViewController
         isTracking = false
 
         updateBarButtons()
-//        syncButton.title = "Sync"
-//        syncButton.isEnabled = false
-//
-//        playPauseButton.title = "Play"
-//        playPauseButton.isEnabled = false
-//
-//        assistButton.isEnabled = true
     }
     
     @objc func playing()
@@ -2343,32 +1930,6 @@ class TextViewController : UIViewController
         }
         
         addNotifications()
-
-//        if !Globals.shared.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
-//            var vc : UIViewController?
-//            
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[0] {
-//                vc = Globals.shared.splitViewController.viewControllers[1]
-//            }
-//            
-//            if presentingViewController == Globals.shared.splitViewController.viewControllers[1] {
-//                vc = Globals.shared.splitViewController.viewControllers[0]
-//            }
-//            
-//            mask = true
-//            
-//            if let vc = vc {
-//                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ [weak self] (Void) -> Any? in
-//                    // Why are we doing this?
-//                    while self?.mask == true {
-//                        Thread.sleep(forTimeInterval: 0.5)
-//                    }
-//                    return nil
-//                },completion:{ [weak self] (data:Any?) -> Void in
-//                    
-//                })
-//            }
-//        }
         
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
@@ -2384,13 +1945,6 @@ class TextViewController : UIViewController
                 self?.wordRangeTiming = self?.transcript?.wordRangeTiming
                 self?.creatingWordRangeTiming = false
             }
-
-//            process(viewController: self, work: { () -> (Any?) in
-//                self.wordRangeTiming = self.transcript?.wordRangeTiming
-//                return nil
-//            }, completion: { (data:Any?) in
-//                self.creatingWordRangeTiming = false
-//            })
         }
         
         updateBarButtons()
@@ -2776,10 +2330,6 @@ class TextViewController : UIViewController
             gapString = "<\(gap)>" + gapString
         }
         
-//        let before = String(text[..<range.lowerBound])
-//        let string = String(text[range])
-//        let after = String(text[range.upperBound...])
-            
         let fullAttributedString = NSMutableAttributedString()
         
         let beforeFull = String(text[..<range.lowerBound])
@@ -2813,41 +2363,25 @@ class TextViewController : UIViewController
             var actions = [AlertAction]()
             
             actions.append(AlertAction(title: "Show", style: .default, handler: {
-//                var newText = String(text[..<range.lowerBound]) + "<mark>" + String(text[range]) + "</mark>" + String(text[range.upperBound...])
-
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
                     let textView = navigationController.viewControllers[0] as? TextViewController {
                     navigationController.modalPresentationStyle = .overCurrentContext
-                    
-                    //                                            webView.html.fontSize = 12
-                    
-//                    webView.search = false
-//                    webView.content = .html
-//
-//                    newText = "<html><body>" + newText + "</body></html>"
-//
-//                    webView.html.string = insertHead(newText,fontSize: 24)
 
                     textView.readOnly = true
                     textView.text = fullAttributedString.string
 
                     textView.onCancel = {
-//                        Globals.shared.topViewController = self
                         words.insert(first, at:0)
                         self.addParagraphBreaks(interactive:interactive, showGaps:showGaps, words:words, text:text, completion:completion)
                     }
                     
                     Thread.onMainThread {
-                        //                                            popover.activityIndicator.stopAnimating()
-                        //                                            popover.activityIndicator.isHidden = true
-                        
                         textView.navigationItem.title = self.navigationItem.title
                         
                         self.present(navigationController, animated: true, completion: {
                             textView.textView.attributedText = fullAttributedString
                             textView.textView.scrollRangeToVisible(range)
                         })
-//                        self.present(navigationController, animated: true)
                     }
                 }
             }))
@@ -3029,20 +2563,11 @@ class TextViewController : UIViewController
             return
         }
         
-//        guard var changes = masterChanges[masterKey] else {
-//            return
-//        }
-        
         guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
             return
         }
         
         var range : Range<String.Index>?
-        
-//        print(changes)
-//        print(changes?.count)
-        
-//        print(masterKey,key,masterChanges[masterKey]?[key])
         
         if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
             if startingRange == nil {
@@ -3185,52 +2710,6 @@ class TextViewController : UIViewController
             }
         }
     }
-    
-//    func changes(interactive: Bool)
-//    {
-//        if let hierarchicalChanges = heirarchicalChanges() {
-//            for hierarchicalChange in hierarchicalChanges.keys {
-//                print(hierarchicalChange)
-//                if self.textView.attributedText.string.lowercased().contains(hierarchicalChange), let hierarchicalChanges = hierarchicalChanges[hierarchicalChange] {
-//                    self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: hierarchicalChanges, completion: { (string:String) -> (Void) in
-//                        self.changedText = string
-//                        self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-//                    })
-//                    
-//                    while self.operationQueue.operationCount > 0 {
-//                        
-//                    }
-//                }
-//            }
-//        }
-//        
-////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.textToNumbers(), completion: { (string:String) -> (Void) in
-////            self.changedText = string
-////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-////        })
-////        
-////        while self.operationQueue.operationCount > 0 {
-////            
-////        }
-////
-////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.books(), completion: { (string:String) -> (Void) in
-////            self.changedText = string
-////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-////        })
-////        
-////        while self.operationQueue.operationCount > 0 {
-////            
-////        }
-////
-////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.words(), completion: { (string:String) -> (Void) in
-////            self.changedText = string
-////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-////        })
-////        
-////        while self.operationQueue.operationCount > 0 {
-////            
-////        }
-//    }
 
     override func viewDidAppear(_ animated: Bool)
     {
@@ -3261,14 +2740,10 @@ class TextViewController : UIViewController
 
                 return nil
             }) { [weak self] (data:Any?) in
-//                self.dismiss(animated: true, completion: nil)
-//                self.completion?(self.textView.text)
-//                self.automaticCompletion?()
+
             }
         } else {
-//            if track {
-//                follow()
-//            }
+
         }
     }
 
@@ -3290,8 +2765,6 @@ class TextViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        mask = false
         
         NotificationCenter.default.removeObserver(self)
 

@@ -10,6 +10,25 @@ import Foundation
 import UIKit
 import PDFKit
 
+extension UIApplication
+{
+    func isRunningInFullScreen() -> Bool
+    {
+        if let w = self.keyWindow
+        {
+            let maxScreenSize = max(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+            let minScreenSize = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+            
+            let maxAppSize = max(w.bounds.size.width, w.bounds.size.height)
+            let minAppSize = min(w.bounds.size.width, w.bounds.size.height)
+            
+            return maxScreenSize == maxAppSize && minScreenSize == minAppSize
+        }
+        
+        return true
+    }
+}
+
 extension UIImage
 {
     func resize(scale:CGFloat) -> UIImage?
@@ -98,7 +117,8 @@ extension UIViewController
     }
 }
 
-extension NSLayoutConstraint {
+extension NSLayoutConstraint
+{
     /**
      Change multiplier constraint
      
@@ -127,7 +147,68 @@ extension NSLayoutConstraint {
     }
 }
 
-extension String {
+extension UITextView
+{
+    func scrollRangeToVisible(_ range:Range<String.Index>)
+    {
+        Thread.onMainThread {
+            let nsRange = NSRange(range, in: self.attributedText.string)
+            self.scrollRangeToVisible(nsRange)
+        }
+    }
+}
+
+extension String
+{
+    func highlighted(_ searchText:String?) -> NSAttributedString
+    {
+        guard let searchText = searchText else {
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.normal)
+        }
+        
+        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.normal)
+        }
+        
+        let highlightedString = NSMutableAttributedString()
+        
+        let before = String(self[..<range.lowerBound])
+        let string = String(self[range])
+        let after = String(self[range.upperBound...])
+        
+        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+        
+        return highlightedString
+    }
+    
+    func boldHighlighted(_ searchText:String?) -> NSAttributedString
+    {
+        guard let searchText = searchText else {
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
+        }
+        
+        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
+        }
+        
+        let highlightedString = NSMutableAttributedString()
+        
+        let before = String(self[..<range.lowerBound])
+        let string = String(self[range])
+        let after = String(self[range.upperBound...])
+        
+        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
+        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
+        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
+        
+        return highlightedString
+    }
+}
+
+extension String
+{
     var tokensAndCounts : [String:Int]?
     {
         get {
@@ -136,7 +217,8 @@ extension String {
     }
 }
 
-extension String {
+extension String
+{
     var url : URL?
     {
         get {
@@ -172,7 +254,8 @@ extension String {
     }
 }
 
-extension String {
+extension String
+{
     var html2AttributedString: NSAttributedString? {
         return self.data(using: String.Encoding.utf16)?.html2AttributedString
     }
@@ -181,7 +264,8 @@ extension String {
     }
 }
 
-extension String {
+extension String
+{
     var lemmas : [(String,String,NSRange)]?
     {
         get {
@@ -335,13 +419,10 @@ extension URL
     }
 }
 
-extension Data {
+extension Data
+{
     var html2AttributedString: NSAttributedString? {
         do {
-            //            var options = ["DocumentReadingOptionKey" : ".html", .characterEncoding: String.Encoding.utf8.rawValue]
-            // options: [:],
-            // DocumentAttributeKey.documentType
-            // DocumentAttributeKey.characterEncoding
             return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
         } catch {
             print("error:", error)

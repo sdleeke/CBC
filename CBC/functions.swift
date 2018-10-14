@@ -22,12 +22,6 @@ func startAudio()
         print("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
     }
     
-    //        do {
-    //            try audioSession.setActive(true)
-    //        } catch let error as NSError {
-    //            print("failed to audioSession.setActive(true): \(error.localizedDescription)")
-    //        }
-    
     UIApplication.shared.beginReceivingRemoteControlEvents()
 }
 
@@ -58,12 +52,6 @@ func open(scheme: String?,cannotOpen:(()->(Void))?)
     }
     
     if #available(iOS 10, *) {
-        //UIApplicationOpenURLOptionUniversalLinksOnly:
-        //Use a boolean value set to true (YES) to only open the URL if it is a valid universal link with an application configured to open it.
-        //If there is no application configured or the user disabled using it to open the link the completion handler is called with false (NO).
-        
-//        let options = [UIApplicationOpenURLOptionUniversalLinksOnly : true]
-
         UIApplication.shared.open(url, options: [:],
                                   completionHandler: {
                                     (success) in
@@ -132,7 +120,6 @@ func jsonToFileSystemDirectory(key:String)
                 print("failed to copy mediaItems.json: \(error.localizedDescription)")
             }
         } else {
-            //    fileManager.removeItemAtPath(destination)
             // Which is newer, the bundle file or the file in the Documents folder?
             do {
                 let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath)
@@ -186,12 +173,11 @@ func jsonFromURL(url:String) -> Any?
     }
     
     do {
-        let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+        let data = try Data(contentsOf: url)
         print("able to read json from the URL.")
         
         do {
             let json = try JSONSerialization.jsonObject(with: data, options: [])
-//            print(json)
             return json
         } catch let error as NSError {
             NSLog(error.localizedDescription)
@@ -246,9 +232,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
     }
 
     if let json = jsonFromFileSystem(filename: filename) {
-        // Causes deadlock in refresh
-//        operationQueue.cancelAllOperations()
-//        operationQueue.waitUntilAllOperationsAreFinished()
+        // waitUntilAllOperationsAreFinished causes deadlock in refresh
 
         jsonQueue.addOperation {
             do {
@@ -314,7 +298,6 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     }
     
     let sourceString = fromString.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
-//    print(sourceString)
     
     let prefixes = ["A ","An ","The "] // "And ",
     
@@ -445,25 +428,17 @@ func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!
         return attributedText
     }
     
-    //    var stringBefore    = String()
-    //    var stringAfter     = String()
-    //
-    //    var foundString     = String()
-    
     let newAttrString       = NSMutableAttributedString()
     var foundAttrString     = NSAttributedString()
     
     var stringBefore:String = Constants.EMPTY_STRING
     var stringAfter:String = Constants.EMPTY_STRING
-//    var newString:String = Constants.EMPTY_STRING
     var foundString:String = Constants.EMPTY_STRING
     
     while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
         if let test = test, test() {
             break
         }
-        
-        //                print(string)
         
         if let range = workingString.lowercased().range(of: searchText.lowercased()) {
             stringBefore = String(workingString[..<range.lowerBound])
@@ -516,21 +491,6 @@ func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!
                             }
                         }
                     }
-                    
-                    //                            print(characterAfter)
-                    
-                    // What happens with other types of apostrophes?
-                    //                    if stringAfter.endIndex >= "'s".endIndex {
-                    //                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                    //                            skip = false
-                    //                        }
-                    //                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                    //                            skip = false
-                    //                        }
-                    //                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                    //                            skip = false
-                    //                        }
-                    //                    }
                 }
                 
                 if let characterBefore:Character = stringBefore.last {
@@ -605,7 +565,7 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
                 if stringBefore == "" {
                     if  let characterBefore:Character = newString.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -618,7 +578,7 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
                 } else {
                     if  let characterBefore:Character = stringBefore.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -632,17 +592,9 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
                 
                 if let characterAfter:Character = stringAfter.first {
                     if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
-                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     } else {
-                        //                            if characterAfter == "." {
-                        //                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
-                        //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                        //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                        //                                        skip = true
-                        //                                    }
-                        //                                }
-                        //                            }
+
                     }
                     
                     if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
@@ -656,26 +608,10 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
                             }
                         }
                     }
-                    
-                    //                            print(characterAfter)
-                    
-                    // What happens with other types of apostrophes?
-                    //                        if stringAfter.endIndex >= "'s".endIndex {
-                    //                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                    //                                skip = false
-                    //                            }
-                    //                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                    //                                skip = false
-                    //                            }
-                    //                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                    //                                skip = false
-                    //                            }
-                    //                        }
                 }
                 
                 if let characterBefore:Character = stringBefore.last {
                     if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
                         skip = true
                     }
                 }
@@ -819,7 +755,7 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
                 if stringBefore == "" {
                     if  let characterBefore:Character = newString.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -832,7 +768,7 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
                 } else {
                     if  let characterBefore:Character = stringBefore.last,
                         let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                        if CharacterSet.letters.contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -846,17 +782,10 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
                 
                 if  let characterAfter:Character = stringAfter.first,
                     let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                    if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+                    if CharacterSet.letters.contains(unicodeScalar) {
                         skip = true
                     } else {
-                        //                            if characterAfter == "." {
-                        //                                if let afterFirst = String(stringAfter[String(characterAfter).endIndex...]).first,
-                        //                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-                        //                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                        //                                        skip = true
-                        //                                    }
-                        //                                }
-                        //                            }
+
                     }
                     
                     if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
@@ -870,21 +799,6 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
                             }
                         }
                     }
-                    
-                    //                            print(characterAfter)
-                    
-                    // What happens with other types of apostrophes?
-                    //                        if stringAfter.endIndex >= "'s".endIndex {
-                    //                            if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-                    //                                skip = false
-                    //                            }
-                    //                            if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-                    //                                skip = false
-                    //                            }
-                    //                            if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-                    //                                skip = false
-                    //                            }
-                    //                        }
                 }
                 if let characterBefore:Character = stringBefore.last {
                     if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
@@ -898,7 +812,7 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
             if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
                 foundString = String(foundString[..<newRange.upperBound])
             } else {
-                // ???
+
             }
             
             if !skip {
@@ -921,7 +835,7 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
     searchTexts.insert(searchText.lowercased())
     
     var newString = Constants.EMPTY_STRING
-    var string = bodyHTML // ?? Constants.EMPTY_STRING
+    var string = bodyHTML
     
     for searchText in Array(searchTexts).sorted() {
         if string.html2String != string {
@@ -988,141 +902,6 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
     
     return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
 }
-
-//func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
-//{
-//    guard let string = string, !string.isEmpty else {
-//        return nil
-//    }
-//
-//    guard let searchText = searchText, !searchText.isEmpty else {
-//        return nil
-//    }
-//
-//    func mark(_ input:String) -> String
-//    {
-//        var string = input
-//
-//        var stringBefore:String = Constants.EMPTY_STRING
-//        var stringAfter:String = Constants.EMPTY_STRING
-//        var newString:String = Constants.EMPTY_STRING
-//        var foundString:String = Constants.EMPTY_STRING
-//
-//        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-//            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-//                break
-//            }
-//
-//            stringBefore = String(string[..<range.lowerBound])
-//            stringAfter = String(string[range.upperBound...])
-//
-//            var skip = false
-//
-//            if wholeWordsOnly {
-//                if stringBefore == "" {
-//                    if  let characterBefore:Character = newString.last,
-//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                            skip = true
-//                        }
-//
-//                        if searchText.count == 1 {
-//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    if  let characterBefore:Character = stringBefore.last,
-//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                        if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                            skip = true
-//                        }
-//
-//                        if searchText.count == 1 {
-//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                if let characterAfter:Character = stringAfter.first {
-//                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
-////                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                        skip = true
-//                    } else {
-////                            if characterAfter == "." {
-////                                if let afterFirst = stringAfter[String(String(characterAfter).endIndex...]).first,
-////                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
-////                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) && !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-////                                        skip = true
-////                                    }
-////                                }
-////                            }
-//                    }
-//
-//                    //                            print(characterAfter)
-//
-//                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-//                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-//                            if stringAfter.endIndex > stringAfter.startIndex {
-//                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-//
-//                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-//                                    skip = CharacterSet.letters.contains(unicodeScalar)
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    // What happens with other types of apostrophes?
-////                    if stringAfter.endIndex >= "'s".endIndex {
-////                        if (String(stringAfter[..<"'s".endIndex]) == "'s") {
-////                            skip = false
-////                        }
-////                        if (String(stringAfter[..<"'t".endIndex]) == "'t") {
-////                            skip = false
-////                        }
-////                        if (String(stringAfter[..<"'d".endIndex]) == "'d") {
-////                            skip = false
-////                        }
-////                    }
-//                }
-//
-//                if let characterBefore:Character = stringBefore.last {
-//                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-////                        !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                        skip = true
-//                    }
-//                }
-//            }
-//
-//            foundString = String(string[range.lowerBound...])
-//            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-//                foundString = String(foundString[..<newRange.upperBound])
-//            }
-//
-//            if !skip {
-//                foundString = "<mark>" + foundString + "</mark>"
-//            }
-//
-//            newString = newString + stringBefore + foundString
-//
-//            stringBefore = stringBefore + foundString
-//
-//            string = stringAfter
-//        }
-//
-//        newString = newString + stringAfter
-//
-//        return newString == Constants.EMPTY_STRING ? string : newString
-//    }
-//
-//    let htmlString = "<!DOCTYPE html><html><body>" + mark(string) + "</body></html>"
-//
-//    return htmlString
-//}
 
 func verifyNASB()
 {
@@ -1238,8 +1017,6 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
     guard let colon = string.range(of: ":") else {
         return []
     }
-//        let hyphen = string?.range(of: "-")
-//        let comma = string?.range(of: ",")
     
     //Is not correct for books with only one chapter
     // e.g. ["Philemon","Jude","2 John","3 John"]
@@ -1287,7 +1064,6 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
             
         default:
             chars.append(character)
-//                print(chars)
             break
         }
     }
@@ -1320,9 +1096,9 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
     return verses.count > 0 ? verses : nil
 }
 
-func debug(_ string:String)
+func debug(_ any:Any...)
 {
-//    print(string)
+//    print(any)
 }
 
 func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
@@ -1432,19 +1208,18 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book) {
         case Constants.Old_Testament:
-//            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
-//                print(index,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index].count)
-//            }
+            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+                debug(index,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index].count)
+            }
             break
         case Constants.New_Testament:
-//            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
-//                print(index,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index].count)
-//            }
+            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+                debug(index,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index].count)
+            }
             break
         default:
             break
         }
-//        print(book!,index,chapter)
     }
     
     return verses.count > 0 ? verses : nil
@@ -1476,20 +1251,13 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
     var startVerse = 0
     var endVerse = 0
     
-    //        print(book!,reference!)
-    
     let string = reference?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
     
     if (string == nil) || (string == Constants.EMPTY_STRING) {
-//        print(book,reference)
-        
         // Now we have a book w/ no chapter or verse references
         // FILL in all chapters and all verses and return
-        
         return chaptersAndVersesForBook(book)
     }
-    
-//    print(string)
     
     var token = Constants.EMPTY_STRING
     
@@ -1671,17 +1439,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 startChapter = 0
                             }
                         }
-
-//                        if tokens.first == ":" {
-//                            tokens.remove(at: 0)
-//                            startVerses = true
-//                            
-//                            if let number = Int(first) {
-//                                startChapter = number
-//                                currentChapter = number
-//                            }
-//                        } else {
-//                        }
                     }
                     break
                     
@@ -1739,7 +1496,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ startChapter")
                             
                             startVerse = 0
-//                            endVerse = 0
                             
                             debug("Now determine whether there are any chapters between the first and the last in the reference")
                             
@@ -1814,7 +1570,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-//                                endVerse = 0
                             }
                             
                             debug("Done w/ endChapter")
@@ -1862,7 +1617,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ startChapter")
                             
                             startVerse = 0
-//                            endVerse = 0
                             
                             debug("Now determine whether there are any chapters between the first and the last in the reference")
                             
@@ -1950,7 +1704,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ verses")
                             
                             startVerse = 0
-//                            endVerse = 0
                             
                             debug("Done w/ endChapter")
                         }
@@ -2006,7 +1759,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-//                                endVerse = 0
                                 
                                 debug("Now determine whehter there are any chapters between the first and the last in the reference")
                                 
@@ -2079,7 +1831,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     debug("Done w/ verses")
                                     
                                     startVerse = 0
-//                                    endVerse = 0
                                 }
                             } else {
                                 debug("reference is not split across chapters")
@@ -2102,7 +1853,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-//                                endVerse = 0
                             }
                             
                             debug("Done w/ chapters")
@@ -2153,7 +1903,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
         debug("Done w/ processing tokens")
         debug("If start and end (chapter,verse) remaining, process them")
         
-//        print(book!,reference!)
+        debug(book,reference)
         
         if startChapter > 0 {
             if endChapter > 0 {
@@ -2191,11 +1941,8 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
             endVerse = 0
         }
     } else {
-//        print(book,reference,string,tokens)
         return chaptersAndVersesForBook(book)
     }
-
-//    print(chaptersAndVerses)
 
     return chaptersAndVerses.count > 0 ? chaptersAndVerses : nil
 }
@@ -2218,13 +1965,9 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
         return nil
     }
     
-    //        print("\(string!)")
-    
     let colon = string.range(of: ":")
     let hyphen = string.range(of: "-")
     let comma = string.range(of: ",")
-    
-    //        print(scripture,string)
     
     if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
         if let num = Int(string) {
@@ -2338,9 +2081,6 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
         }
     }
     
-    //    print("\(scripture)")
-    //    print("\(chapters)")
-    
     return chapters.count > 0 ? chapters : nil
 }
 
@@ -2385,8 +2125,6 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     books.append(contentsOf: ntBooks)
     
     string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
-
-//        print(string)
     
     // Only works for "<book> - <book>"
     
@@ -2398,9 +2136,6 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
 
             if ((book1?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book2?.lowerBound)) ||
                 ((book2?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book1?.lowerBound)) {
-                //                print(first)
-                //                print(last)
-                
                 books = [String]()
                 
                 let first = books[0]
@@ -2442,8 +2177,7 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
         }
     }
     
-//    print(books)
-    return books.count > 0 ? books.sorted() { scriptureReference.range(of: $0)?.lowerBound < scriptureReference.range(of: $1)?.lowerBound } : nil // redundant
+    return books.count > 0 ? books.sorted() { scriptureReference.range(of: $0)?.lowerBound < scriptureReference.range(of: $1)?.lowerBound } : nil
 }
 
 func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
@@ -2707,18 +2441,10 @@ func tokensFromString(_ string:String?) -> [String]?
         str = String(str[..<range.lowerBound])
     }
     
-    //        print(name)
-    //        print(string)
-    
     var token = Constants.EMPTY_STRING
 
     func processToken()
     {
-//        guard (token.endIndex > String.Index(encodedOffset: 2)) else { // "XX".endIndex
-//            token = Constants.EMPTY_STRING
-//            return
-//        }
-        
         let excludedWords = [String]() //["and", "are", "can", "for", "the"]
         
         for word in excludedWords {
@@ -2727,16 +2453,6 @@ func tokensFromString(_ string:String?) -> [String]?
                 break
             }
         }
-        
-//        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
-//            token = Constants.EMPTY_STRING
-//        }
-        
-//        if token.lowercased() != "it's" {
-//            if let range = token.lowercased().range(of: "'s") {
-//                token = String(token[..<range.lowerBound])
-//            }
-//        }
         
         if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
             //                print("\(token)")
@@ -2751,8 +2467,6 @@ func tokensFromString(_ string:String?) -> [String]?
     }
     
     for index in str.indices {
-        //        print(char)
-        
         var skip = false
         
         let char = str[index]
@@ -2768,48 +2482,12 @@ func tokensFromString(_ string:String?) -> [String]?
                 }
             }
         }
-        
-//        let remainder = String(str[index...])
-//
-//        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
-////        print(suffix)
-//
-//        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
-////        print(next)
-//
-//        // What happens with other types of apostrophes?
-//        if suffix.lowercased() == "'s" {
-//            skip = true
-//        }
-//
-//        if suffix.lowercased() == "'t" {
-//            skip = true
-//        }
-//
-//        if suffix.lowercased() == "'d" {
-//            skip = true
-//        }
-//
-//        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
-//            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
-//        }
-        
-//        print(skip)
-        
+
         if let unicodeScalar = UnicodeScalar(String(char)) {
             if !CharacterSet.letters.contains(unicodeScalar), !skip {
-//            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-                //                print(token)
                 processToken()
             } else {
-//                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
-//                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
-                        // DO NOT WANT LEADING CHARS IN SET
-                        //                        print(token)
-                        token.append(char)
-                        //                        print(token)
-//                    }
-//                }
+                token.append(char)
             }
         }
         
@@ -2845,14 +2523,6 @@ func lemmasInString(string:String?) -> [(String,String,NSRange)]?
     
     let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
     
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
-    
     var ranges : NSArray?
     
     let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.lemma.rawValue, options: options, tokenRanges: &ranges)
@@ -2862,7 +2532,6 @@ func lemmasInString(string:String?) -> [(String,String,NSRange)]?
         if let range = ranges?[index] as? NSRange {
             let token = (string as NSString).substring(with: range)
             tokens.append((token,tag,range))
-            //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -2886,14 +2555,6 @@ func nameTypesInString(string:String?) -> [(String,String,NSRange)]?
     
     let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
     
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
-    
     var ranges : NSArray?
     
     let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.nameType.rawValue, options: options, tokenRanges: &ranges)
@@ -2903,7 +2564,6 @@ func nameTypesInString(string:String?) -> [(String,String,NSRange)]?
         if let range = ranges?[index] as? NSRange {
             let token = (string as NSString).substring(with: range)
             tokens.append((token,tag,range))
-        //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -2925,15 +2585,7 @@ func lexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
     let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
     tagger.string = string
     
-    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
-    
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
+    let range = NSRange(location: 0, length: (string as NSString).length)
     
     var ranges : NSArray?
     
@@ -2944,7 +2596,6 @@ func lexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
         if let range = ranges?[index] as? NSRange {
             let token = (string as NSString).substring(with: range)
             tokens.append((token,tag,range))
-            //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -2966,15 +2617,7 @@ func tokenTypesInString(string:String?) -> [(String,String,NSRange)]?
     let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
     tagger.string = string
     
-    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
-    
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
+    let range = NSRange(location: 0, length: (string as NSString).length)
     
     var ranges : NSArray?
     
@@ -2985,7 +2628,6 @@ func tokenTypesInString(string:String?) -> [(String,String,NSRange)]?
         if let range = ranges?[index] as? NSRange {
             let token = (string as NSString).substring(with: range)
             tokens.append((token,tag,range))
-            //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -3007,15 +2649,7 @@ func nameTypesAndLexicalTypesInString(string:String?) -> [(String,String,NSRange
     let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
     tagger.string = string
     
-    let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
-    
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
+    let range = NSRange(location: 0, length: (string as NSString).length)
     
     var ranges : NSArray?
     
@@ -3026,7 +2660,6 @@ func nameTypesAndLexicalTypesInString(string:String?) -> [(String,String,NSRange
         if let range = ranges?[index] as? NSRange {
             let token = (string as NSString).substring(with: range)
             tokens.append((token,tag,range))
-            //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -3049,15 +2682,7 @@ func tokensAndCountsInString(_ string:String?) -> [String:Int]?
     tagger.string = string
     
     let range = NSRange(location: 0, length: (string as NSString).length) // string.utf16.count
-    
-    //    tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: options) { tag, tokenRange, sentenceRange, stop in
-    //        let token = (string as NSString).substring(with: tokenRange)
-    //        print(tag,token)
-    //        tokens.append(token)
-    ////        //                                let sentence = (string as NSString).substring(with: sentenceRange)
-    ////        print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-    //    }
-    
+
     var ranges : NSArray?
     
     let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.tokenType.rawValue, options: options, tokenRanges: &ranges)
@@ -3074,11 +2699,6 @@ func tokensAndCountsInString(_ string:String?) -> [String:Int]?
                     tokens[token] = 1
                 }
             }
-            
-//            if tag == "Word", Int(token) == nil {
-//            }
-            
-            //        print("\(token): \(tag)") // \n\(sentence)\n
         }
         index += 1
     }
@@ -3105,30 +2725,11 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         str = String(str[..<range.lowerBound])
     }
     
-    //        print(name)
-    //        print(string)
-    
-//    var startIndex : String.Index?
-    
     var token = Constants.EMPTY_STRING
-//    {
-//        didSet {
-//            if token == Constants.EMPTY_STRING {
-//                startIndex = nil
-//            }
-//        }
-//    }
     
     func processToken()
     {
         token = token.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        
-        // Only if we want to eliminate everything 2 characters and shorter.
-//        guard (token.endIndex > String.Index(encodedOffset: 2)) else {
-////            print(token)
-//            token = Constants.EMPTY_STRING
-//            return
-//        }
         
         let excludedWords = [String]() // ["and", "are", "can", "for", "the"]
         
@@ -3139,28 +2740,11 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
             }
         }
         
-//        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
-//            token = Constants.EMPTY_STRING
-//        }
-        
-//        print(token)
-        
-//        if token.lowercased() != "it's" {
-//            if let range = token.lowercased().range(of: "'s") {
-//                token = String(token[..<range.lowerBound])
-//            }
-//        }
-        
         if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
-//                print("\(token)")
             token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
-//                print("\(token)")
         }
         
-//        print(token)
-        
         if token != Constants.EMPTY_STRING {
-//                print(token.uppercased())
             if let count = tokens[token.uppercased()] {
                 tokens[token.uppercased()] = count + 1
             } else {
@@ -3189,111 +2773,12 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
                 }
             }
         }
-        
-//        let remainder = String(str[index...])
-//
-//        let suffix = remainder.endIndex >= "'s".endIndex ? remainder[..<"'s".endIndex] : ""
-//        //        print(suffix)
-//
-//        let next = remainder.endIndex > "'s".endIndex ? remainder[suffix.endIndex] : nil
-//        //        print(next)
-//
-//        // What happens with other types of apostrophes?
-//        if suffix.lowercased() == "'s" {
-//            skip = true
-//        }
-//
-//        if suffix.lowercased() == "'t" {
-//            skip = true
-//        }
-//
-//        if suffix.lowercased() == "'d" {
-//            skip = true
-//        }
-//
-//        if let next = next, let unicodeScalar = UnicodeScalar(String(next)) {
-//            skip = skip && !CharacterSet.letters.contains(unicodeScalar)
-//        }
-        
-//        print(skip)
-        
+
         if let unicodeScalar = UnicodeScalar(String(char)) {
             if !CharacterSet.letters.contains(unicodeScalar), !skip {
-//            if CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar) {
-//                print(token)
                 processToken()
-                
-//                var charBefore:Character?
-//                var charAfter:Character?
-//
-//                var charNext:Character?
-//
-//                if let startIndex = startIndex, startIndex > str.startIndex {
-//                    let before = str.index(startIndex,offsetBy: -1)
-//                    charBefore = str[before]
-//                }
-//
-//                if let startIndex = startIndex, startIndex < str.index(str.endIndex,offsetBy: -token.count) {
-//                    let after = str.index(startIndex,offsetBy: token.count)
-//                    charAfter = str[after]
-//                }
-//
-//                if index < str.index(str.endIndex,offsetBy: -1) {
-//                    let next = str.index(index,offsetBy: 1)
-//                    charNext = str[next]
-//                }
-//
-//                var process = true
-//
-//                if token.count == 1 {
-//                    if String(char) != "." {
-//                        if let charBefore = charBefore, let before = UnicodeScalar(String(charBefore)) {
-//                            if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(before) {
-//                                process = false
-//                            }
-//                        }
-//                    } else {
-//                        if let charBefore = charBefore, let before = UnicodeScalar(String(charBefore)) {
-//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before) {
-//                                process = false
-//                            }
-//                        }
-//
-//                        if let charAfter = charAfter, let after = UnicodeScalar(String(charAfter)) {
-//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
-//                                process = false
-//                            }
-//                        }
-//
-//                        if let charNext = charNext, let next = UnicodeScalar(String(charNext)) {
-//                            if !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(next) {
-//                                process = false
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                if process {
-//                    processToken()
-//                } else {
-//                    print(char,charNext,token,charBefore,charAfter)
-//                    token = Constants.EMPTY_STRING
-//                }
             } else {
                 token.append(char)
-//                if !CharacterSet(charactersIn: Constants.Strings.NumberChars).contains(unicodeScalar) {
-//                    if !CharacterSet(charactersIn: Constants.Strings.TrimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
-//                        // DO NOT WANT LEADING CHARS IN SET
-////                        print(token)
-//
-////                        if token == Constants.EMPTY_STRING {
-////                            startIndex = index
-////                        }
-//
-//                        token.append(char)
-////                        print(token)
-//                    }
-//                }
             }
         }
 
@@ -3363,9 +2848,6 @@ func firstNameFromName(_ name:String?) -> String?
             newString.append(char)
         }
     }
-
-//        print(name)
-//        print(string)
     
     return firstName
 }
@@ -3448,46 +2930,14 @@ func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 func sortMediaItemsChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-//        print($0.dateService,$1.dateService)
         return $0.dateService < $1.dateService
-        
-        // VERY Computationally Expensive
-//        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
-//            return false // arbitrary
-//        }
-//
-//        if (firstDate.isEqualTo(secondDate)) {
-//            if ($0.service == $1.service) {
-//                return $0.part < $1.part
-//            } else {
-//                 return $0.service < $1.service
-//            }
-//        } else {
-//            return firstDate.isOlderThan(secondDate)
-//        }
     }
 }
 
 func sortMediaItemsReverseChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-//        print($0.dateService,$1.dateService)
         return $0.dateService > $1.dateService
-        
-        // VERY Computationally Expensive
-//        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
-//            return false // arbitrary
-//        }
-//
-//        if (firstDate.isEqualTo(secondDate)) {
-//            if ($0.service == $1.service) {
-//                return $0.part > $1.part
-//            } else {
-//                return $0.service > $1.service
-//            }
-//        } else {
-//            return firstDate.isNewerThan(secondDate)
-//        }
     }
 }
 
@@ -3658,7 +3108,7 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
             if (showTesting) {
                 print("Testing: \(counter) \(mediaItem.title ?? mediaItem.description)")
             } else {
-//                    print(".", terminator: Constants.EMPTY_STRING)
+
             }
             
             if (mediaItem.audio == nil) {
@@ -3775,22 +3225,6 @@ func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
     let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR)
     
     return array.count > 0 ? Set(array) : nil
-    
-//    var tags = tagsString
-//    var tag:String
-//    var setOfTags = Set<String>()
-//
-//    while let range = tags.range(of: Constants.TAGS_SEPARATOR) {
-//        tag = String(tags[..<range.lowerBound])
-//        setOfTags.insert(tag)
-//        tags = String(tags[range.upperBound...])
-//    }
-//
-//    if !tags.isEmpty {
-//        setOfTags.insert(tags)
-//    }
-//
-//    return setOfTags.count > 0 ? setOfTags : nil
 }
 
 func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
@@ -3800,14 +3234,6 @@ func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
     }
 
     return tagsArray.count > 0 ? tagsArray.joined(separator: Constants.TAGS_SEPARATOR) : nil
-    
-//    var tagString:String?
-//
-//    for tag in tagsArray {
-//        tagString = (tagString != nil ? tagString! + Constants.TAGS_SEPARATOR : "") + tag
-//    }
-//
-//    return tagString
 }
 
 func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
@@ -3819,14 +3245,6 @@ func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
     let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR) 
 
     return array.count > 0 ? array : nil
-    
-//    var arrayOfTags:[String]?
-//
-//    if let tags = tagsSetFromTagsString(tagsString) {
-//        arrayOfTags = Array(tags) //.sort() { $0 < $1 } // .sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) } // Not sorted
-//    }
-//
-//    return arrayOfTags
 }
 
 func mediaItemsWithTag(_ mediaItems:[MediaItem]?,tag:String?) -> [MediaItem]?
@@ -3863,9 +3281,6 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     
     tagsArray.append(Constants.Strings.All)
     
-    //    print("Tag Set: \(tagsSet)")
-    //    print("Tag Array: \(tagsArray)")
-    
     return tagsArray.count > 0 ? tagsArray : nil
 }
 
@@ -3894,11 +3309,6 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
         showSendMailErrorAlert(viewController: viewController)
     }
 }
-
-//func presentHTMLModal(viewController:UIViewController, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
-//{
-//    presentHTMLModal(viewController:viewController, dismiss:true, mediaItem:mediaItem, style:style, title:title, htmlString:htmlString)
-//}
 
 func presentHTMLModal(viewController:UIViewController, dismiss:Bool = true, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
@@ -4020,11 +3430,6 @@ func sort(method:String?,strings:[String]?) -> [String]?
         return nil
     }
 }
-
-//func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
-//{
-//    process(viewController:viewController,disableEnable:true,hideSubviews:false,work:work,completion:completion)
-//}
 
 func process(viewController:UIViewController,disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
 {
@@ -4167,7 +3572,6 @@ func printTextJob(viewController:UIViewController,data:Data?,string:String?,orie
     
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
-    //    pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
     
     if let string = string {
@@ -4227,7 +3631,6 @@ func printHTMLJob(viewController:UIViewController,data:Data?,html:String?,orient
     
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
-    //    pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
     
     if let html = html {
@@ -4380,17 +3783,6 @@ func hmsToSeconds(string:String?) -> Double?
         return nil
     }
     
-//    guard var str = string else {
-//        return nil
-//    }
-    
-//    var milliseconds : Double = 0
-//
-//    if let range = str.range(of: ","), let ms = Int(String(str[range.upperBound...])) {
-//        milliseconds = Double(ms)/1000
-//        str = String(str[..<range.lowerBound])
-//    }
-    
     var numbers = [Double]()
     
     repeat {
@@ -4418,8 +3810,6 @@ func hmsToSeconds(string:String?) -> Double?
         seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
         counter += 1
     }
-    
-//    seconds += milliseconds
     
     return seconds
 }
@@ -4455,47 +3845,8 @@ func secondsToHMS(seconds:String?) -> String?
     return hms
 }
 
-//func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
-//{
-//    popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//}
-
 func preferredModalPresentationStyle(viewController:UIViewController) -> UIModalPresentationStyle
 {
-    // Assumes the viewController has a splitViewController.
-    
-//    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
-//        let hClass = viewController.traitCollection.horizontalSizeClass
-//
-//        if hClass == .compact {
-//            return .overFullScreen
-//        } else {
-//            // I don't think this ever happens: collapsed and regular
-//            return .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//        }
-//    } else {
-//        let vClass = viewController.traitCollection.verticalSizeClass
-//
-//        if vClass == .compact {
-//            return .overFullScreen // Used to be .popover
-//        } else {
-//            if viewController.splitViewController?.displayMode == .primaryHidden {
-//                if !UIApplication.shared.isRunningInFullScreen() {
-//                    return .overFullScreen // Used to be .popover
-//                } else {
-//                    return .formSheet // Used to be .popover
-//                }
-//            } else {
-//                if !UIApplication.shared.isRunningInFullScreen() {
-//                    return .overFullScreen // Used to be .popover
-//                } else {
-//                    return .formSheet //.overCurrentContext // Used to be .popover
-//                }
-//            }
-//        }
-//    }
-    
-    
     let vClass = viewController.traitCollection.verticalSizeClass
     
     if vClass == .compact {
@@ -4509,51 +3860,6 @@ func preferredModalPresentationStyle(viewController:UIViewController) -> UIModal
     }
     
     return .formSheet
-    
-//    if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
-//        let hClass = viewController.traitCollection.horizontalSizeClass
-//
-//        if hClass == .compact {
-//            return .overFullScreen
-//        } else {
-//            // I don't think this ever happens: collapsed and regular
-//            return .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//        }
-//    } else {
-//        if viewController.splitViewController?.displayMode == .primaryHidden {
-//            if !UIApplication.shared.isRunningInFullScreen() {
-//                return .overFullScreen // Used to be .popover
-//            } else {
-//                let vClass = viewController.traitCollection.verticalSizeClass
-//
-//                if vClass == .compact {
-//                    return .overFullScreen // Used to be .popover
-//                } else {
-//                    return .formSheet // Used to be .popover
-//                }
-//            }
-//        } else {
-//            if !UIApplication.shared.isRunningInFullScreen() {
-//                if let _ = viewController as? MediaTableViewController {
-//                    return .overCurrentContext // Used to be .popover
-//                } else {
-//                    return .overFullScreen // Used to be .popover
-//                }
-//            } else {
-//                if let _ = viewController as? MediaTableViewController {
-//                    return .overCurrentContext // Used to be .popover
-//                } else {
-//                    let vClass = viewController.traitCollection.verticalSizeClass
-//
-//                    if vClass == .compact {
-//                        return .overFullScreen // Used to be .popover
-//                    } else {
-//                        return .formSheet // Used to be .popover
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
 
 func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil)
@@ -4566,54 +3872,9 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
     guard let storyboard = viewController.storyboard else {
         return
     }
-    
-//    if bodyHTML != nil, htmlString != nil {
-//        return
-//    }
-    
-//    guard htmlString != nil else {
-//        return
-//    }
 
     if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-//        if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
-//            let hClass = viewController.traitCollection.horizontalSizeClass
-//
-//            if hClass == .compact {
-//                navigationController.modalPresentationStyle = .overFullScreen
-//            } else {
-//                // I don't think this ever happens: collapsed and regular
-//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//
-//                navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//            }
-//        } else {
-//            let vClass = viewController.traitCollection.verticalSizeClass
-//
-//            if vClass == .compact {
-//                navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-//            } else {
-//                if viewController.splitViewController?.displayMode == .primaryHidden {
-//                    if !UIApplication.shared.isRunningInFullScreen() {
-//                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-//                    } else {
-//                        navigationController.modalPresentationStyle = .formSheet // Used to be .popover
-//                    }
-//                } else {
-//                    if !UIApplication.shared.isRunningInFullScreen() {
-//                        navigationController.modalPresentationStyle = .overFullScreen // Used to be .popover
-//                    } else {
-//                        navigationController.modalPresentationStyle = .formSheet //.overCurrentContext // Used to be .popover
-//                    }
-//                }
-//            }
-//
-////            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-////            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//        }
-        
         navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
         
         if navigationController.modalPresentationStyle == .popover {
@@ -4632,8 +3893,6 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
                 navigationController.popoverPresentationController?.barButtonItem = barButtonItem
             }
         }
-        
-//        popover.navigationItem.title = title
         
         if title != nil {
             popover.navigationItem.title = title
@@ -4664,53 +3923,6 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
         }
     }
 }
-
-//func shareHTML(viewController:UIViewController,htmlString:String?)
-//{
-//    guard Thread.isMainThread else {
-//        alert(viewController:viewController,title: "Not Main Thread", message: "functions:shareHTML", completion: nil)
-//        return
-//    }
-//
-//    guard let htmlString = htmlString else {
-//        return
-//    }
-//
-//    let print = UIMarkupTextPrintFormatter(markupText: htmlString)
-//    let margin:CGFloat = 0.5 * 72
-//    print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-//
-//    let activityViewController = UIActivityViewController(activityItems:[stripHTML(htmlString),htmlString,print], applicationActivities: nil)
-//
-//    // exclude some activity types from the list (optional)
-//
-//    activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-//
-//    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-//
-//    // present the view controller
-//    Thread.onMainThread {
-//        viewController.present(activityViewController, animated: true, completion: nil)
-//    }
-//}
-
-//func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)
-//{
-//    guard (mediaItems != nil) && (stringFunction != nil) else {
-//        return
-//    }
-//    
-//    process(viewController: viewController, work: {
-//        return stringFunction?(mediaItems)
-//    }, completion: { (data:Any?) in
-//        shareHTML(viewController: viewController, htmlString: data as? String)
-//    })
-//}
-
-//func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
-//{
-//    return setupMediaItemsHTML(mediaItems,includeURLs:true,includeColumns:true)
-//}
 
 func stripHead(_ string:String?) -> String?
 {
@@ -4786,8 +3998,6 @@ func insertHead(_ string:String?,fontSize:Int) -> String?
     
     head = head + style + "</head>"
     
-//    print(string?.replacingOccurrences(of: "<html>", with: head))
-    
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
 
@@ -4817,7 +4027,6 @@ func stripLinks(_ string:String?) -> String?
         }
     }
     
-//    bodyString = bodyString.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
     bodyString = bodyString.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/>", with: "")
 
     while bodyString.range(of: "<a") != nil {
@@ -4851,8 +4060,6 @@ func stripHTML(_ string:String?) -> String?
         return nil
     }
     
-//    return insertHead(string.html2String,fontSize: Constants.FONT_SIZE)
-    
     guard var bodyString = stripLinks(stripHead(string)) else {
         return nil
     }
@@ -4868,10 +4075,6 @@ func stripHTML(_ string:String?) -> String?
                 let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
 
                 bodyString = to + "\n\n" + String(bodyString[(to + from).endIndex...])
-                //                    let string = to + from
-                //                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-                //                        bodyString = to + from
-                //                    }
             }
         }
     }
@@ -4883,10 +4086,6 @@ func stripHTML(_ string:String?) -> String?
                 let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
                 
                 bodyString = to + String(bodyString[(to + from).endIndex...])
-//                    let string = to + from
-//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-//                        bodyString = to + from
-//                    }
             }
         }
     }
@@ -4897,11 +4096,6 @@ func stripHTML(_ string:String?) -> String?
                 let to = String(bodyString[..<startRange.lowerBound])
                 let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
                 bodyString = to + String(bodyString[(to + from).endIndex...])
-                
-//                    let string = to + from
-//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-//                        bodyString = to + from
-//                    }
             }
         }
     }
@@ -4912,30 +4106,10 @@ func stripHTML(_ string:String?) -> String?
                 let to = String(bodyString[..<startRange.lowerBound])
                 let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
                 bodyString = to + String(bodyString[(to + from).endIndex...])
-//                    let string = to + from
-//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-//                        bodyString = to + from
-//                    }
             }
         }
     }
-    
-//    while bodyString.range(of: "<sup") != nil {
-//        if let startRange = bodyString.range(of: "<sup") {
-//            if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                if let to = String(bodyString?[..<startRange.lowerBound]), let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound]) {
-//                    if let from = String(bodyString[(to + from).endIndex...]) {
-//                        bodyString = to + from
-//                    }
-////                    let string = to + from
-////                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-////                        bodyString = to + from
-////                    }
-//                }
-//            }
-//        }
-//    }
-    
+
     while bodyString.range(of: "<sup>") != nil {
         if let startRange = bodyString.range(of: "<sup>") {
             if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</sup>") {
@@ -4943,11 +4117,6 @@ func stripHTML(_ string:String?) -> String?
                 let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
 
                 bodyString = to + String(bodyString[(to + from).endIndex...])
-                    
-//                    let string = to + from
-//                    if let range = string.range(of: string), let from = String(bodyString[range.upperBound...]) {
-//                        bodyString = to + from
-//                    }
             }
         }
     }
@@ -5003,8 +4172,6 @@ func stripHTML(_ string:String?) -> String?
     
     bodyString = bodyString.replacingOccurrences(of: "</font>", with: "")
     
-//    bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
-    
     bodyString = bodyString.replacingOccurrences(of: "</body>", with: "")
     bodyString = bodyString.replacingOccurrences(of: "</html>", with: "")
 
@@ -5026,9 +4193,6 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString.replacingOccurrences(of: "<b>", with: "")
     bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
 
-//        print(bodyString)
-
-//    return bodyString // why in the world were we putting the head back in?  So it works w/ WebViewController
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
@@ -5122,13 +4286,13 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 
                 if includeColumns {
                     if includeURLs {
-                        bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>" //  name=\"\(tag)\" name=\"\(tag)\"
+                        bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
                     } else {
                         bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
                     }
                 } else {
                     if includeURLs {
-                        bodyString = bodyString + "<br/>" //  name=\"\(tag)\" name=\"\(tag)\"
+                        bodyString = bodyString + "<br/>"
                     } else {
                         bodyString = bodyString + "<br/>"
                     }
@@ -5136,7 +4300,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 if includeColumns {
                     bodyString = bodyString + "<tr>"
-                    bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+                    bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
@@ -5283,8 +4447,6 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     
     bodyString = bodyString + "</body></html>"
     
-//    print(insertHead(bodyString,fontSize: Constants.FONT_SIZE) as Any)
-    
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
@@ -5402,12 +4564,6 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
         stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
     }
     
-//    .map({ (string:String) -> String in
-//        return string
-//    }).sorted() {
-//        stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
-//    }
-    
     if includeURLs, (keys.count > 1) {
         bodyString = bodyString + "<a href=\"#index\">Index</a><br/><br/>"
     }
@@ -5429,7 +4585,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
                     
                     if includeColumns {
                         bodyString  = bodyString + "<tr>"
-                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                     }
                     
                     bodyString = bodyString + "<br/>"
@@ -5445,7 +4601,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
                 if let lastKey = lastKey, let count = mediaListSort[lastKey]?.count, count == 1 {
                     if includeColumns {
                         bodyString  = bodyString + "<tr>"
-                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" // valign=\"baseline\"
+                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                     }
                     
                     bodyString = bodyString + "<br/>"
@@ -5472,7 +4628,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
                 
                 if includeColumns {
                     bodyString  = bodyString + "<tr>"
-                    bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+                    bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {

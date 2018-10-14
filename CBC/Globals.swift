@@ -11,8 +11,6 @@ import MediaPlayer
 import AVKit
 import CoreData
 
-//var globals:Globals!
-
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     static var shared = Globals()
@@ -37,31 +35,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var purge = false
     
-//    var persistentContainer: NSPersistentContainer!
-//    
-//    func saveContext()
-//    {
-//        let context = persistentContainer.viewContext
-//        if context.hasChanges {
-//            do {
-//                try context.save()
-//            } catch {
-//                // Replace this implementation with code to handle the error appropriately.
-//                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//                let nserror = error as NSError
-//                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-//            }
-//        }
-//    }
-
     var queue = DispatchQueue(label: "CBC")
     
     var allowMGTs = true
-//    {
-//        get {
-//            return isVoiceBaseAvailable ?? false
-//        }
-//    }
     
     var isVoiceBaseAvailable : Bool // = false
     {
@@ -167,83 +143,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-//    @objc func alertViewer()
-//    {
-//        for alert in alerts {
-//            print(alert)
-//        }
-//
-//        guard UIApplication.shared.applicationState == UIApplicationState.active else {
-//            return
-//        }
-//
-//        if let alert = alerts.first {
-//            let alertVC = UIAlertController(title:alert.title,
-//                                          message:alert.message,
-//                                          preferredStyle: .alert)
-//            alertVC.makeOpaque()
-//
-//            if let attributedText = alert.attributedText {
-//                alertVC.addTextField(configurationHandler: { (textField:UITextField) in
-//                    textField.isUserInteractionEnabled = false
-//                    textField.textAlignment = .center
-//                    textField.attributedText = attributedText
-//                    textField.adjustsFontSizeToFitWidth = true
-//                })
-//            }
-//
-//            if let alertActions = alert.actions {
-//                for alertAction in alertActions {
-//                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-//                        alertAction.handler?()
-//                    })
-//                    alertVC.addAction(action)
-//                }
-//            } else {
-//                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//
-//                })
-//                alertVC.addAction(action)
-//            }
-//
-//            Thread.onMainThread {
-//                let viewController = self.topViewController.last ?? self.splitViewController
-//
-//                viewController?.present(alertVC, animated: true, completion: {
-//                    if self.alerts.count > 0 {
-//                        self.alerts.remove(at: 0)
-//                    }
-//                })
-//            }
-//        }
-//    }
-//
-//    var alerts = [Alert]()
-//
-//    var alertTimer : Timer?
-//
-//    func alert(title:String,message:String?)
-//    {
-//        if !alerts.contains(where: { (alert:Alert) -> Bool in
-//            return (alert.title == title) && (alert.message == message)
-//        }) {
-//            alerts.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
-//        } else {
-//            // This is happening - how?
-//            print("DUPLICATE ALERT")
-//        }
-//    }
-//
-//    func alert(category:String?,title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
-//    {
-//        alerts.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
-//    }
-//
-//    func alert(title:String,message:String?,actions:[AlertAction]?)
-//    {
-//        alerts.append(Alert(category:nil,title: title, message: message, attributedText: nil, actions: actions))
-//    }
-    
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
     {
         return true
@@ -281,8 +180,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         mediaPlayer.pip = .started
         mediaPlayer.startingPIP = false
     }
-    
-//    var loadSingles = true
     
     var allowSaveSettings = true
     
@@ -381,10 +278,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         super.init()
         
-//        Thread.onMainThread {
-//            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.alertViewer), userInfo: nil, repeats: true)
-//        }
-
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:
@@ -466,8 +359,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var cacheDownloads:Bool {
         get {
-//            print(UserDefaults.standard.object(forKey: Constants.SETTINGS.CACHE_DOWNLOADS))
-
             if UserDefaults.standard.object(forKey: Constants.SETTINGS.CACHE_DOWNLOADS) == nil {
                 if #available(iOS 9.0, *) {
                     UserDefaults.standard.set(true, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
@@ -488,13 +379,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var isLoading:Bool      = false
     
     var search = Search()
-    
-//    lazy var search:Search! = {
-////        [weak self] in
-//        var search = Search()
-////        search.globals = self
-//        return search
-//    }()
     
     var contextTitle:String? {
         get {
@@ -573,20 +457,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return string
         }
     }
-    
-//    var gotoPlayingPaused:Bool = false
 
     var mediaPlayer = MediaPlayer()
 
     var selectedMediaItem = SelectedMediaItem()
     
-//    lazy var selectedMediaItem:SelectedMediaItem! = {
-////        [weak self] in
-//        let selectedMediaItem = SelectedMediaItem()
-////        selectedMediaItem.globals = self
-//        return selectedMediaItem
-//    }()
-
     var mediaCategory = MediaCategory()
     
     var mediaStream = MediaStream()
@@ -596,82 +471,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     // Make thread safe?
 
-    var multiPartSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // = MultiPartSettings() // ThreadSafeDictionary<[String:String]>?
-    
-//    class MultiPartSettings {
-//        var storage : [String:[String:String]]?
-//
-//        init(storage:[String:[String:String]]?)
-//        {
-//            self.storage = storage
-//        }
-//
-//        // Make it threadsafe
-//        let queue = DispatchQueue(label: "MultiPartSettings")
-//
-//        subscript(key:String?) -> [String:String]? {
-//            get {
-//                return queue.sync {
-//                    guard let key = key else {
-//                        return nil
-//                    }
-//
-//                    return storage?[key]
-//                }
-//            }
-//            set {
-//                queue.sync {
-//                    guard let key = key else {
-//                        return
-//                    }
-//
-//                    if storage == nil {
-//                        storage = [String:[String:String]]()
-//                    }
-//                    storage?[key] = newValue
-//                }
-//            }
-//        }
-//    }
+    var multiPartSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]?
 
     // Make thread safe?
-    var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // = MediaItemSettings() // ThreadSafeDictionary<[String:String]>?
-    
-//    class MediaItemSettings {
-//        var storage : [String:[String:String]]?
-//
-//        init(storage:[String:[String:String]]?)
-//        {
-//            self.storage = storage
-//        }
-//
-//        // Make it threadsafe
-//        let queue = DispatchQueue(label: "MediaItemSettings")
-//
-//        subscript(key:String?) -> [String:String]? {
-//            get {
-//                return queue.sync {
-//                    guard let key = key else {
-//                        return nil
-//                    }
-//
-//                    return storage?[key]
-//                }
-//            }
-//            set {
-//                queue.sync {
-//                    guard let key = key else {
-//                        return
-//                    }
-//
-//                    if storage == nil {
-//                        storage = [String:[String:String]]()
-//                    }
-//                    storage?[key] = newValue
-//                }
-//            }
-//        }
-//    }
+    var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]?
 
     // Make thread safe?
     var history:[String]?
@@ -710,22 +513,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
 
     var mediaRepository = MediaRepository()
-    
-//    lazy var mediaRepository:MediaRepository! = {
-////        [weak self] in
-//        let mediaRepository = MediaRepository()
-////        mediaRepository.globals = self
-//        return mediaRepository
-//    }()
 
     var media = Media()
-    
-//    lazy var media:Media! = {
-////        [weak self] in
-//        var media = Media()
-////        media.globals = self
-//        return media
-//    }()
     
     func freeMemory()
     {
@@ -736,18 +525,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         URLCache.shared.removeAllCachedResponses()
     }
-    
-//    func clearDisplay()
-//    {
-//        display.clear()
-//    }
-//    
-//    func setupDisplay(_ active:MediaListGroupSort? = nil)
-//    {
-////        print("setupDisplay")
-//
-//        display.setup(active)
-//    }
     
     func saveSettingsBackground()
     {
@@ -801,22 +578,15 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
             if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
-                //        print("\(settingsDictionary)")
-                
                 mediaItemSettings.update(storage: mediaItemSettingsDictionary)
-//                mediaItemSettings = mediaItemSettingsDictionary as? [String:[String:String]]
             }
             
             if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
-                //        print("\(viewSplitsDictionary)")
                 multiPartSettings.update(storage: seriesSettingsDictionary)
-//                multiPartSettings = seriesSettingsDictionary as? [String:[String:String]]
             }
             
             if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
-                //        print("\(viewSplitsDictionary)")
                 mediaCategory.settings.update(storage: categorySettingsDictionary)
-//                mediaCategory.settings = categorySettingsDictionary as? [String:[String:String]]
             }
             
             if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
@@ -831,8 +601,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 grouping = GROUPING.YEAR
             }
             
-//                media.tags.selected = mediaCategory.tag
-
             if (media.tags.selected == Constants.Strings.New) {
                 media.tags.selected = nil
             }
@@ -866,8 +634,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)
             defaults.synchronize()
         }
-        
-        //    print("\(settings)")
     }
     
     func cancelAllDownloads()
