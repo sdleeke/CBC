@@ -1632,7 +1632,7 @@ class MediaItem : NSObject
     }
 
     lazy var seriesImage = {
-       return FetchCachedImage(url: seriesImageName?.url)
+       return FetchCachedImage(url: seriesImageURL)
     }()
 
     var mp3:String?
