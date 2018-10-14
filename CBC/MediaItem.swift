@@ -1582,12 +1582,12 @@ class MediaItem : NSObject
         }
     }
     
-    var hasPoster : Bool
+    var hasPosterImage : Bool
     {
-        return posterURL != nil
+        return posterImageURL != nil
     }
     
-    var posterURL:String?
+    var posterImageURL:String?
     {
         get {
             guard hasVideo else {
@@ -1607,7 +1607,7 @@ class MediaItem : NSObject
     }
 
     lazy var poster = {
-        return FetchImage(url: self.posterURL?.url)
+        return FetchImage(url: self.posterImageURL?.url)
     }()
 
     var hasSeriesImage : Bool
@@ -1620,7 +1620,7 @@ class MediaItem : NSObject
         return self[Field.seriesImage]
     }
     
-    var seriesImageURL : URL?
+    var seriesImageURL : String?
     {
         guard let seriesImageName = seriesImageName else {
             return nil
@@ -1628,11 +1628,11 @@ class MediaItem : NSObject
         
         let urlString = Constants.BASE_URL.MEDIA + "series/\(seriesImageName)"
 
-        return urlString.url
+        return urlString
     }
 
     lazy var seriesImage = {
-       return FetchCachedImage(url: seriesImageURL)
+       return FetchCachedImage(url: seriesImageURL?.url)
     }()
 
     var mp3:String?

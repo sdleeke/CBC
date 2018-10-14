@@ -2660,7 +2660,7 @@ class MediaViewController: UIViewController // MediaController
             mediaItemNotesAndSlides.bringSubview(toFront: logo)
             logo.isHidden = false
 
-            if selectedMediaItem.hasPoster {
+            if selectedMediaItem.hasPosterImage {
                 DispatchQueue.global(qos: .userInitiated).async {
                     Thread.onMainThread {
                         guard self.selectedMediaItem == selectedMediaItem else {

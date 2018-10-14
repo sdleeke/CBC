@@ -346,39 +346,42 @@ extension URL
     
     func image(block:((UIImage)->()))
     {
-        guard let fileSystemURL = fileSystemURL else {
-            return
-        }
-        
-        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
-            //                    print("Image \(imageName) in file system")
+        if let image = image {
             block(image)
-        } else {
-            //                    print("Image \(imageName) not in file system")
-            guard let data = data else {
-                return
-            }
-            
-            guard let image = UIImage(data: data) else {
-                return
-            }
-
-            block(image)
-
-            DispatchQueue.global(qos: .background).async {
-                guard Globals.shared.cacheDownloads else {
-                    return
-                }
-                
-                do {
-                    try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
-                    print("Image \(self.lastPathComponent) saved to file system")
-                } catch let error as NSError {
-                    NSLog(error.localizedDescription)
-                    print("Image \(self.lastPathComponent) not saved to file system")
-                }
-            }
         }
+//        guard let fileSystemURL = fileSystemURL else {
+//            return
+//        }
+//        
+//        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
+//            //                    print("Image \(imageName) in file system")
+//            block(image)
+//        } else {
+//            //                    print("Image \(imageName) not in file system")
+//            guard let data = data else {
+//                return
+//            }
+//            
+//            guard let image = UIImage(data: data) else {
+//                return
+//            }
+//
+//            block(image)
+//
+//            DispatchQueue.global(qos: .background).async {
+//                guard Globals.shared.cacheDownloads else {
+//                    return
+//                }
+//                
+//                do {
+//                    try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
+//                    print("Image \(self.lastPathComponent) saved to file system")
+//                } catch let error as NSError {
+//                    NSLog(error.localizedDescription)
+//                    print("Image \(self.lastPathComponent) not saved to file system")
+//                }
+//            }
+//        }
     }
     
     var image : UIImage?
@@ -399,18 +402,6 @@ extension URL
                 
                 guard let image = UIImage(data: data) else {
                     return nil
-                }
-                
-                if Globals.shared.cacheDownloads {
-                    DispatchQueue.global(qos: .background).async {
-                        do {
-                            try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
-                            print("Image \(self.lastPathComponent) saved to file system")
-                        } catch let error as NSError {
-                            NSLog(error.localizedDescription)
-                            print("Image \(self.lastPathComponent) not saved to file system")
-                        }
-                    }
                 }
                 
                 return image
