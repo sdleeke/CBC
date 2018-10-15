@@ -1443,27 +1443,28 @@ class MediaItem : NSObject
         }
         
         let sortTag = tag.withoutPrefixes
-        
-        if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
-                Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
+        if !sortTag.isEmpty {
+            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
+                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
+                    Globals.shared.media.all?.tagNames?[sortTag] = tag
+                }
+            } else {
+                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
                 Globals.shared.media.all?.tagNames?[sortTag] = tag
             }
-        } else {
-            Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
-            Globals.shared.media.all?.tagNames?[sortTag] = tag
-        }
-        
-        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-
-        if (Globals.shared.media.tags.selected == tag) {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // Globals.shared.media.tagged
+            
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+            
+            if (Globals.shared.media.tags.selected == tag) {
+                Thread.onMainThread {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+                }
             }
-        }
-        
-        Thread.onMainThread {
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            }
         }
     }
     
@@ -1479,34 +1480,34 @@ class MediaItem : NSObject
         
         var tags = tagsArrayFromTagsString(mediaItemSettings?[Field.tags])
         
-        while tags?.index(of: tag) != nil {
-            if let index = tags?.index(of: tag) {
-                tags?.remove(at: index)
-            }
+        while let index = tags?.index(of: tag) {
+            tags?.remove(at: index)
         }
         
         mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
         
         let sortTag = tag.withoutPrefixes
         
-        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
-            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-        }
-        
-        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-            _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
-        }
-        
-        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-        
-        if (Globals.shared.media.tags.selected == tag) {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // Globals.shared.media.tagged
+        if !sortTag.isEmpty {
+            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
+                Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
             }
-        }
-        
-        Thread.onMainThread {
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+                _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
+            }
+            
+            if Globals.shared.media.tags.selected == tag {
+                Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+                
+                Thread.onMainThread {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+                }
+            }
+            
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            }
         }
     }
     

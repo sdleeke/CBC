@@ -384,10 +384,13 @@ extension String
 
 extension String
 {
-    var html2AttributedString: NSAttributedString? {
+    var html2AttributedString: NSAttributedString?
+    {
         return self.data(using: String.Encoding.utf16)?.html2AttributedString
     }
-    var html2String: String? {
+    
+    var html2String: String?
+    {
         return html2AttributedString?.string
     }
 }
@@ -536,7 +539,8 @@ extension URL
 
 extension Data
 {
-    var html2AttributedString: NSAttributedString? {
+    var html2AttributedString: NSAttributedString?
+    {
         do {
             return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
         } catch {
@@ -544,7 +548,9 @@ extension Data
             return  nil
         }
     }
-    var html2String: String? {
+    
+    var html2String: String?
+    {
         return html2AttributedString?.string
     }
 }

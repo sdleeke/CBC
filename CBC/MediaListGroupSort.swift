@@ -606,12 +606,14 @@ class MediaListGroupSort
                 for tag in tags {
                     let sortTag = tag.withoutPrefixes
                     
-                    if tagMediaItems?[sortTag] == nil {
-                        tagMediaItems?[sortTag] = [mediaItem]
-                    } else {
-                        tagMediaItems?[sortTag]?.append(mediaItem)
+                    if !sortTag.isEmpty {
+                        if tagMediaItems?[sortTag] == nil {
+                            tagMediaItems?[sortTag] = [mediaItem]
+                        } else {
+                            tagMediaItems?[sortTag]?.append(mediaItem)
+                        }
+                        tagNames?[sortTag] = tag
                     }
-                    tagNames?[sortTag] = tag
                 }
             }
         }
