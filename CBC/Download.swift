@@ -402,7 +402,7 @@ class Download : NSObject
     
     var totalBytesExpectedToWrite:Int64 = 0
     
-    var session:URLSession? // We're using a session for each download.  Not sure is the best but it works for TWU.
+    var session:URLSession? // We're using a session for each download.  Not sure is the best but it works.
     
     var task:URLSessionDownloadTask?
     
@@ -562,7 +562,6 @@ class Download : NSObject
         //            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
         //            configuration.sessionSendsLaunchEvents = true
         
-        // Why is the mediaItem the delegate rather than this download object?
         session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         session?.reset() {}
         

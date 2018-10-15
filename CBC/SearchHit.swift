@@ -107,7 +107,14 @@ class SearchHit {
             return mediaItem.tags?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
-    var transcriptHTML:Bool {
+    var transcript:Bool {
+        if #available(iOS 11.0, *) {
+            return transcriptPDF
+        } else {
+            return transcriptHTML
+        }
+    }
+    private var transcriptHTML:Bool {
         get {
             guard let mediaItem = mediaItem else {
                 return false
@@ -118,6 +125,20 @@ class SearchHit {
             }
             
             return mediaItem.notesHTML.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    @available(iOS 11.0, *)
+    private var transcriptPDF:Bool {
+        get {
+            guard let mediaItem = mediaItem else {
+                return false
+            }
+            
+            guard let searchText = searchText else {
+                return false
+            }
+            
+            return mediaItem.notesPDFText.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 }

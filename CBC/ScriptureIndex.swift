@@ -54,7 +54,7 @@ class ScriptureIndex
     }
     
     lazy var html:CachedString? = {
-        // unowned self MIGHT BE needed because we are capturing a function in self that is used by the object owned by self.
+        // unowned self MIGHT BE needed because we are capturing self in a function that is used by the object owned by self.
         [unowned self] in
         return CachedString(index:self.index)
     }()

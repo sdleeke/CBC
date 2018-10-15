@@ -25,7 +25,7 @@ class HTML {
     var text : String?
     {
         didSet {
-//            print(text)
+
         }
     }
     
@@ -104,9 +104,6 @@ class HTML {
     var fileURL : URL?
     {
         get {
-            // Same result, just harder to read and understand.
-//            return !(string?.isEmpty ?? true) ? cachesURL()?.appendingPathComponent("string.html") : nil
-            
             if let isEmpty = string?.isEmpty, !isEmpty {
                 return cachesURL()?.appendingPathComponent("string.html")
             } else {
@@ -137,7 +134,8 @@ extension WebViewController : UIActivityItemSource
         
         // exclude some activity types from the list (optional)
         
-        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ]
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
@@ -160,10 +158,6 @@ extension WebViewController : UIActivityItemSource
             return nil
         }
 
-        guard let html = self.html.string else {
-            return nil
-        }
-        
         if #available(iOS 11.0, *) {
             WebViewController.cases.append(.markupAsPDF)
         }
@@ -1054,7 +1048,8 @@ class WebViewController: UIViewController
             case .formSheet:
                 fallthrough
             case .overCurrentContext:
-                if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
+                // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
+                if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
                     
                     if Globals.shared.splitViewController.isCollapsed == false {
@@ -1247,6 +1242,10 @@ class WebViewController: UIViewController
     {
 
     }
+    
+    //
+    ////////////////////////////////////
+    //
     
     func setupSplitViewController()
     {
@@ -1825,7 +1824,8 @@ class WebViewController: UIViewController
         
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
         Globals.shared.freeMemory()

@@ -10,6 +10,154 @@ import Foundation
 import UIKit
 import PDFKit
 
+extension UIAlertController
+{
+    func makeOpaque()
+    {
+        if  let subView = view.subviews.first,
+            let alertContentView = subView.subviews.first {
+            alertContentView.backgroundColor = UIColor.white
+            alertContentView.layer.cornerRadius = 10
+            alertContentView.layer.masksToBounds = true
+        }
+    }
+}
+
+extension UIColor
+{
+    // MARK: UIColor extension
+    
+    convenience init(red: Int, green: Int, blue: Int) {
+        let newRed = CGFloat(red)/255
+        let newGreen = CGFloat(green)/255
+        let newBlue = CGFloat(blue)/255
+        
+        self.init(red: newRed, green: newGreen, blue: newBlue, alpha: 1.0)
+    }
+    
+    static func controlBlue() -> UIColor
+    {
+        return UIColor(red: 14, green: 122, blue: 254)
+    }
+}
+
+extension Double {
+    var secondsToHMS : String?
+    {
+        get {
+            let hours = max(Int(self / (60*60)),0)
+            let mins = max(Int((self - (Double(hours) * 60*60)) / 60),0)
+            let sec = max(Int(self.truncatingRemainder(dividingBy: 60)),0)
+            
+            var string:String
+            
+            if (hours > 0) {
+                string = "\(String(format: "%d",hours)):"
+            } else {
+                string = Constants.EMPTY_STRING
+            }
+            
+            string += "\(String(format: "%02d",mins)):\(String(format: "%02d",sec))"
+            
+            return string
+        }
+    }
+}
+
+extension String
+{
+    var withoutPrefixes : String
+    {
+        get {
+            if let range = self.range(of: "A is "), range.lowerBound == "a".startIndex {
+                return self
+            }
+            
+            let sourceString = self.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
+            
+            let prefixes = ["A ","An ","The "] // "And ",
+            
+            var sortString = sourceString
+            
+            for prefix in prefixes {
+                if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
+                    sortString = String(sourceString[prefix.endIndex...])
+                    break
+                }
+            }
+            
+            return sortString
+        }
+    }
+    
+    var hmsToSeconds : Double?
+    {
+        get {
+            guard self.range(of: ":") != nil else {
+                return nil
+            }
+            
+            var str = self.replacingOccurrences(of: ",", with: ".")
+            
+            var numbers = [Double]()
+            
+            repeat {
+                if let index = str.range(of: ":") {
+                    let numberString = String(str[..<index.lowerBound])
+                    
+                    if let number = Double(numberString) {
+                        numbers.append(number)
+                    }
+                    
+                    str = String(str[index.upperBound...])
+                }
+            } while str.range(of: ":") != nil
+            
+            if !str.isEmpty {
+                if let number = Double(str) {
+                    numbers.append(number)
+                }
+            }
+            
+            var seconds = 0.0
+            var counter = 0.0
+            
+            for number in numbers.reversed() {
+                seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
+                counter += 1
+            }
+            
+            return seconds
+        }
+    }
+
+    var secondsToHMS : String?
+    {
+        get {
+            guard let timeNow = Double(self) else {
+                return nil
+            }
+            
+            let hours = max(Int(timeNow / (60*60)),0)
+            let mins = max(Int((timeNow - (Double(hours) * 60*60)) / 60),0)
+            let sec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
+            let fraction = timeNow - Double(Int(timeNow))
+            
+            var hms:String
+            
+            if (hours > 0) {
+                hms = "\(String(format: "%02d",hours)):"
+            } else {
+                hms = "00:"
+            }
+            
+            hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
+            
+            return hms
+        }
+    }
+}
+
 extension UIApplication
 {
     func isRunningInFullScreen() -> Bool
@@ -229,28 +377,8 @@ extension String
     var fileSystemURL : URL?
     {
         get {
-            if let lastPathComponent = self.url?.lastPathComponent {
-                return cachesURL()?.appendingPathComponent(lastPathComponent)
-            } else {
-                return nil
-            }
+            return url?.fileSystemURL
         }
-    }
-    
-    var downloaded : Bool
-    {
-        get {
-            if let fileSystemURL = fileSystemURL {
-                return FileManager.default.fileExists(atPath: fileSystemURL.path)
-            } else {
-                return false
-            }
-        }
-    }
-    
-    func download()
-    {
-        
     }
 }
 
@@ -302,6 +430,8 @@ extension String
     }
 }
 
+fileprivate var queue = DispatchQueue(label: UUID().uuidString)
+
 extension URL
 {
     var fileSystemURL : URL?
@@ -309,6 +439,17 @@ extension URL
         return cachesURL()?.appendingPathComponent(self.lastPathComponent)
     }
 
+    var downloaded : Bool
+    {
+        get {
+            if let fileSystemURL = fileSystemURL {
+                return FileManager.default.fileExists(atPath: fileSystemURL.path)
+            } else {
+                return false
+            }
+        }
+    }
+    
     var data : Data?
     {
         get {
@@ -349,59 +490,42 @@ extension URL
         if let image = image {
             block(image)
         }
-//        guard let fileSystemURL = fileSystemURL else {
-//            return
-//        }
-//        
-//        if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
-//            //                    print("Image \(imageName) in file system")
-//            block(image)
-//        } else {
-//            //                    print("Image \(imageName) not in file system")
-//            guard let data = data else {
-//                return
-//            }
-//            
-//            guard let image = UIImage(data: data) else {
-//                return
-//            }
-//
-//            block(image)
-//
-//            DispatchQueue.global(qos: .background).async {
-//                guard Globals.shared.cacheDownloads else {
-//                    return
-//                }
-//                
-//                do {
-//                    try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
-//                    print("Image \(self.lastPathComponent) saved to file system")
-//                } catch let error as NSError {
-//                    NSLog(error.localizedDescription)
-//                    print("Image \(self.lastPathComponent) not saved to file system")
-//                }
-//            }
-//        }
     }
     
     var image : UIImage?
     {
         get {
-            guard let fileSystemURL = fileSystemURL else {
+            guard let imageURL = fileSystemURL else {
                 return nil
             }
             
-            if Globals.shared.cacheDownloads, let image = UIImage(contentsOfFile: fileSystemURL.path) {
-                //                    print("Image \(imageName) in file system")
+            if Globals.shared.cacheDownloads, imageURL.downloaded, let image = UIImage(contentsOfFile: imageURL.path) {
                 return image
             } else {
-                //                    print("Image \(imageName) not in file system")
                 guard let data = data else {
                     return nil
                 }
                 
                 guard let image = UIImage(data: data) else {
                     return nil
+                }
+                
+                if Globals.shared.cacheDownloads {
+                    DispatchQueue.global(qos: .background).async {
+                        queue.sync {
+                            guard !imageURL.downloaded else {
+                                return
+                            }
+                            
+                            do {
+                                try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
+                                print("Image \(self.lastPathComponent) saved to file system")
+                            } catch let error as NSError {
+                                NSLog(error.localizedDescription)
+                                print("Image \(self.lastPathComponent) not saved to file system")
+                            }
+                        }
+                    }
                 }
                 
                 return image

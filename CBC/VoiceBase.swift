@@ -85,7 +85,7 @@ extension VoiceBase // Class Methods
                 htmlString = htmlString + "\nMetadata\n"
                 
                 if let length = metadata["length"] as? [String:Any] {
-                    if let length = length["milliseconds"] as? Int, let hms = secondsToHMS(seconds: "\(Double(length) / 1000.0)") {
+                    if let length = length["milliseconds"] as? Int, let hms = (Double(length) / 1000.0).secondsToHMS {
                         htmlString = htmlString + "Length: \(hms)\n"
                     }
                 }
@@ -709,7 +709,9 @@ class VoiceBase {
         }
     }
     
-    var settingTimer = false // Prevents a background thread from creating multiple timers accidentally by accessing transcript before the timer creation on the main thread is complete.
+    // Prevents a background thread from creating multiple timers accidentally
+    // by accessing transcript before the timer creation on the main thread is complete.
+    var settingTimer = false
     
     var transcript:String?
     {
@@ -1061,7 +1063,7 @@ class VoiceBase {
             for name in keywordDictionaries.keys {
                 if let dict = keywordDictionaries[name], let speakers = dict["t"] as? [String:Any], let times = speakers["unknown"] as? [String] {
                     keywordTimes[name] = times.map({ (time) -> String in
-                        return secondsToHMS(seconds: time)!
+                        return time.secondsToHMS!
                     })
                 }
             }
@@ -1287,6 +1289,7 @@ class VoiceBase {
         
         for (key, value) in parameters {
             switch key {
+                // This works? But isn't necessary?
 //            case "transcript":
 //                if let id = mediaItem?.id { // , let data = value.data(using: String.Encoding.utf8)
 //                    let mimeType = "text/plain"
@@ -1374,7 +1377,6 @@ class VoiceBase {
         sessionConfig.timeoutIntervalForRequest = 30.0 * 60.0
         let session = URLSession(configuration: sessionConfig)
 
-        // URLSession.shared
         let task = session.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             var errorOccured = false
             
@@ -1691,7 +1693,8 @@ class VoiceBase {
                     }
                     
                     if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
-                        // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
+                        // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil
+                        // OR it couldn't be found (404) in which case it should also be set to nil.
 
                         // WE DO NOT HAVE TO SET THIS TO NIL.
                         // self.mediaID = nil
@@ -2049,10 +2052,8 @@ class VoiceBase {
                             return
                         }
 
-                        // Don't do this because we're just re-aligning.
-//                        self.transcribing = true
-//                        self.completed = false
-                        
+                        // Don't set transcribing to true and completed to false because we're just re-aligning.
+
                         if let text = self.mediaItem?.text {
                             Alerts.shared.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                         }
@@ -2144,10 +2145,8 @@ class VoiceBase {
                                                                         return
                                                                     }
                                                                     
-                                                                    // Don't do this because we're just re-aligning.
-                                                                    //                        self.transcribing = true
-                                                                    //                        self.completed = false
-                                                                    
+                                                                    // Don't set transcribing to true and completed to false because we're just re-aligning.
+
                                                                     self.aligning = true
                                                                     
                                                                     if let text = self.mediaItem?.text {
@@ -2331,7 +2330,7 @@ class VoiceBase {
                 if let times = transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
                     if let tokens = tokensFromString(transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)) {
                         for token in tokens {
-                            let key = token //.lowercased()
+                            let key = token
                             
                             if tokenTimes[key] == nil {
                                 tokenTimes[key] = [startTime]
@@ -2388,21 +2387,17 @@ class VoiceBase {
     
     func transcriptSegmentArrayStartTime(transcriptSegmentArray:[String]?) -> Double?
     {
-        return hmsToSeconds(string: transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.first)
+        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.first?.hmsToSeconds
     }
     
     func transcriptSegmentArrayEndTime(transcriptSegmentArray:[String]?) -> Double?
     {
-        return hmsToSeconds(string: transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.last)
+        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.last?.hmsToSeconds
     }
     
     func transcriptSegmentArrayIndex(transcriptSegmentArray:[String]?) -> String?
     {
-        if let count = transcriptSegmentArray?.first {
-            return count
-        } else {
-            return nil
-        }
+        return transcriptSegmentArray?.first
     }
     
     func transcriptSegmentArrayTimes(transcriptSegmentArray:[String]?) -> [String]?
@@ -2426,7 +2421,6 @@ class VoiceBase {
         if let timeWindow = array.first, !timeWindow.isEmpty {
             array.remove(at: 0)
             let times = timeWindow.components(separatedBy: " --> ")
-            //            print(times)
             
             return times
         } else {
@@ -2712,9 +2706,9 @@ class VoiceBase {
                 
                 for element in wordRangeTiming {
                     if  let start = element["start"] as? Double,
-                        let startSeconds = secondsToHMS(seconds: "\(start)"),
+                        let startSeconds = start.secondsToHMS,
                         let end = element["end"] as? Double,
-                        let endSeconds = secondsToHMS(seconds: "\(end)"),
+                        let endSeconds = end.secondsToHMS,
                         let text = element["text"] as? String {
                         transcriptSegmentComponents.append("\(count)\n\(startSeconds) --> \(endSeconds)\n\(text)")
                     }
@@ -2914,7 +2908,7 @@ class VoiceBase {
                         })
     }
     
-    func recognizeAlertActions(viewController:UIViewController) -> AlertAction? // ,tableView:UITableView
+    func recognizeAlertActions(viewController:UIViewController) -> AlertAction?
     {
         guard let purpose = purpose else {
             return nil
@@ -3009,7 +3003,6 @@ class VoiceBase {
                                             
                                             alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
                                                 self.getTranscript(alert: true) {}
-                                                //                            tableView.setEditing(false, animated: true)
                                                 mgtUpdate()
                                             }))
                                             
@@ -3085,7 +3078,7 @@ class VoiceBase {
                             print("THEY ARE THE SAME!")
                         }
 
-                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML) // htmlString:self.fullHTML
+                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
@@ -3117,7 +3110,7 @@ class VoiceBase {
                                             var gap = String()
                                             var duration = String()
 
-                                            if let startTime = hmsToSeconds(string: start), let endTime = hmsToSeconds(string: end) {
+                                            if let startTime = start.hmsToSeconds, let endTime = end.hmsToSeconds {
                                                 let durationTime = endTime - startTime
                                                 duration = String(format:"%.3f",durationTime)
 
@@ -3127,7 +3120,7 @@ class VoiceBase {
                                                 }
                                             }
 
-                                            priorEndTime = hmsToSeconds(string: end)
+                                            priorEndTime = end.hmsToSeconds
 
                                             let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(gap)</td><td>\(start)</td><td>\(end)</td><td>\(duration)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
                                             transcriptSegmentHTML = transcriptSegmentHTML + row
@@ -3179,7 +3172,7 @@ class VoiceBase {
 
                         textPopover.navigationController?.isNavigationBarHidden = false
                         
-                        textPopover.navigationItem.title = (self.mediaItem?.title ?? "") + " (\(self.transcriptPurpose))" // "Edit Text"
+                        textPopover.navigationItem.title = (self.mediaItem?.title ?? "") + " (\(self.transcriptPurpose))"
                         
                         let text = self.transcript
                         
@@ -3562,7 +3555,7 @@ class VoiceBase {
         return actions.count > 0 ? actions : nil
     }
 
-    func keywordAlertActions(viewController:UIViewController,completion:((PopoverTableViewController)->(Void))?) -> AlertAction? // ,tableView:UITableView
+    func keywordAlertActions(viewController:UIViewController,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
     {
         var action : AlertAction!
         
@@ -3660,7 +3653,7 @@ class VoiceBase {
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
-                    popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
+                    popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))"
                     
                     popover.selectedMediaItem = self.mediaItem
                     popover.transcript = self
@@ -3685,7 +3678,6 @@ class VoiceBase {
                     popover.section.indexHeadersTransform = { (string:String?)->(String?) in
                         return string
                     }
-                    //                        popover.section.showHeaders = true
                     
                     // Must use stringsFunction with .selectingTime.
                     popover.stringsFunction = { () -> [String]? in
@@ -3773,8 +3765,8 @@ class VoiceBase {
                                     let start = words[i]["s"] as? Int,
                                     let end = words[i]["e"] as? Int,
                                     let word = words[i]["w"] as? String,
-                                    let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
-                                    let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
+                                    let startHMS = (Double(start)/1000.0).secondsToHMS,
+                                    let endHMS = (Double(end)/1000.0).secondsToHMS {
                                     strings.append("\(position+1)\n")
                                     
                                     if let lastEnd = lastEnd {

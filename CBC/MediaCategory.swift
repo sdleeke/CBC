@@ -80,7 +80,6 @@ class MediaCategory
         }
     }
     
-    // Make thread safe?
     var settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]?
     
     var allowSaveSettings = true

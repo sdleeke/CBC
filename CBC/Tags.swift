@@ -14,13 +14,15 @@ class Tags
 {
 //    weak var globals:Globals!
     
-    var showing:String? {
+    var showing:String?
+    {
         get {
             return selected == nil ? Constants.ALL : Constants.TAGGED
         }
     }
     
-    var selected:String? {
+    var selected:String?
+    {
         get {
             return Globals.shared.mediaCategory.tag
         }
@@ -31,7 +33,7 @@ class Tags
                         //This is filtering, i.e. searching all mediaItems => s/b in background
                         Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItemsWithTag(Globals.shared.mediaRepository.list, tag: newValue))
                     } else {
-                        if let key = stringWithoutPrefixes(newValue), let mediaItems = Globals.shared.media.all?.tagMediaItems?[key] {
+                        if let mediaItems = Globals.shared.media.all?.tagMediaItems?[newValue.withoutPrefixes] {
                             Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItems)
                         }
                     }

@@ -181,7 +181,6 @@ class MediaItem : NSObject
         return lhs.id == rhs.id
     }
     
-    // Make thread safe?
     var storage : ThreadSafeDictionary<String>? = { // [String:String]?
         return ThreadSafeDictionary<String>(name: UUID().uuidString) // Can't be id because that becomes recursive.
     }()
@@ -331,7 +330,7 @@ class MediaItem : NSObject
             
             let afterDate = String(afterClassCode[ymd.endIndex...])
             
-            let code = String(afterDate[..<String.Index(encodedOffset: 1)]) // "x".endIndex
+            let code = String(afterDate[..<String.Index(encodedOffset: 1)])
             
             return code
         }
@@ -526,21 +525,9 @@ class MediaItem : NSObject
         return searchHit.title || searchHit.formattedDate || searchHit.speaker || searchHit.scriptureReference || searchHit.className || searchHit.eventName || searchHit.tags
     }
         
-    func searchFullNotesHTML(_ searchText:String?) -> Bool
+    func searchNotes(_ searchText:String?) -> Bool
     {
-        if hasNotesHTML {
-            let purge = Globals.shared.purge && (notesHTML.cache == nil)
-            
-            let searchHit = SearchHit(self,searchText).transcriptHTML
-            
-            if purge {
-                notesHTML.cache = nil
-            }
-            
-            return searchHit
-        } else {
-            return false
-        }
+        return SearchHit(self,searchText).transcript
     }
 
     func mediaItemsInCollection(_ tag:String) -> [MediaItem]?
@@ -978,13 +965,24 @@ class MediaItem : NSObject
     {
         get {
             if #available(iOS 11.0, *) {
-                return pdfNotesTokens
+                return notesPDFTokens
             } else {
                 return notesHTMLTokens
             }
         }
     }
-        
+    
+    var notesText:String?
+    {
+        get {
+            if #available(iOS 11.0, *) {
+                return notesPDFText.result
+            } else {
+                return notesHTML.result?.html2String
+            }
+        }
+    }
+    
     lazy var notesHTMLTokens:Fetch<[String:Int]> = {
         let fetch = Fetch<[String:Int]>(name: "Notes HTML Tokens")
         
@@ -1186,7 +1184,7 @@ class MediaItem : NSObject
                 if let speakerSort = mediaItemSettings?[Field.speaker_sort] {
                     self[Field.speaker_sort] = speakerSort
                 } else {
-                    //Sort on last names.  This assumes the speaker names are all fo the form "... <last name>" with one or more spaces before the last name and no spaces IN the last name, e.g. "Van Kirk"
+                    //Sort on last names.  This assumes the speaker names are all fo the form "... <last name>" with one or more spaces before the last name and no spaces IN the last name, e.g. "Van Winkle"
 
                     var speakerSort:String?
                     
@@ -1220,7 +1218,7 @@ class MediaItem : NSObject
                     return "ERROR"
                 }
             } else {
-                if let sort = stringWithoutPrefixes(title)?.lowercased() {
+                if let sort = title?.withoutPrefixes.lowercased() {
                     return sort
                 } else {
                     return "ERROR"
@@ -1241,7 +1239,7 @@ class MediaItem : NSObject
                 if let multiPartSort = mediaItemSettings?[Field.multi_part_name_sort] {
                     self[Field.multi_part_name_sort] = multiPartSort
                 } else {
-                    if let multiPartSort = stringWithoutPrefixes(multiPartName) {
+                    if let multiPartSort = multiPartName?.withoutPrefixes {
                         self[Field.multi_part_name_sort] = multiPartSort
                     } else {
 
@@ -1444,19 +1442,19 @@ class MediaItem : NSObject
             }
         }
         
-        if let sortTag = stringWithoutPrefixes(tag) {
-            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
-                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
-                    Globals.shared.media.all?.tagNames?[sortTag] = tag
-                }
-            } else {
-                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+        let sortTag = tag.withoutPrefixes
+        
+        if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+                Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
                 Globals.shared.media.all?.tagNames?[sortTag] = tag
             }
-            
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+        } else {
+            Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+            Globals.shared.media.all?.tagNames?[sortTag] = tag
         }
+        
+        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
 
         if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
@@ -1489,17 +1487,17 @@ class MediaItem : NSObject
         
         mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
         
-        if let sortTag = stringWithoutPrefixes(tag) {
-            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
-                Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-            }
-            
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-                _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
-            }
-            
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+        let sortTag = tag.withoutPrefixes
+        
+        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
+            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
         }
+        
+        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+            _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
+        }
+        
+        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         
         if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
@@ -1519,7 +1517,7 @@ class MediaItem : NSObject
         }
         
         let array = Array(tagsSet).sorted { (first:String, second:String) -> Bool in
-            return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
+            return first.withoutPrefixes < second.withoutPrefixes
         }
         
         guard array.count > 0 else {
@@ -1587,7 +1585,7 @@ class MediaItem : NSObject
         return posterImageURL != nil
     }
     
-    var posterImageURL:String?
+    var posterImageURL:URL?
     {
         get {
             guard hasVideo else {
@@ -1602,12 +1600,12 @@ class MediaItem : NSObject
                 self[Field.poster] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + "poster.jpg"
             }
             
-            return self[Field.poster]
+            return self[Field.poster]?.url
         }
     }
 
     lazy var poster = {
-        return FetchImage(url: self.posterImageURL?.url)
+        return FetchImage(url: self.posterImageURL)
     }()
 
     var hasSeriesImage : Bool
@@ -1620,7 +1618,7 @@ class MediaItem : NSObject
         return self[Field.seriesImage]
     }
     
-    var seriesImageURL : String?
+    var seriesImageURL : URL?
     {
         guard let seriesImageName = seriesImageName else {
             return nil
@@ -1628,11 +1626,11 @@ class MediaItem : NSObject
         
         let urlString = Constants.BASE_URL.MEDIA + "series/\(seriesImageName)"
 
-        return urlString
+        return urlString.url
     }
 
     lazy var seriesImage = {
-       return FetchCachedImage(url: seriesImageURL?.url)
+       return FetchCachedImage(url: seriesImageURL)
     }()
 
     var mp3:String?
@@ -1698,7 +1696,7 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
-    lazy var pdfNotesTokens:Fetch<[String:Int]> = {
+    lazy var notesPDFTokens:Fetch<[String:Int]> = {
         let fetch = Fetch<[String:Int]>(name: "PDF Text Tokens")
         
         fetch.fetch = {
@@ -1710,33 +1708,33 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return self.pdfNotes.result?.tokensAndCounts
+            return self.notesPDFText.result?.tokensAndCounts
         }
         
         return fetch
     }()
     
     @available(iOS 11.0, *)
-    var fullPDFNotesHTML:String? {
+    var fullNotesPDFHTML:String? {
         get {
-            guard let pdfNotesHTML = pdfNotesHTML else {
+            guard let notesPDFHTML = notesPDFHTML else {
                 return nil
             }
             
-            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + "<br/>" + pdfNotesHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
+            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + "<br/>" + notesPDFHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
         }
     }
 
     @available(iOS 11.0, *)
-    var pdfNotesHTML:String?
+    var notesPDFHTML:String?
     {
         get {
-            return pdfNotes.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
+            return notesPDFText.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
         }
     }
     
     @available(iOS 11.0, *)
-    lazy var pdfNotes:Fetch<String> = {
+    lazy var notesPDFText:Fetch<String> = {
         let fetch = Fetch<String>(name: "PDF TEXT")
         
         fetch.fetch = {
@@ -3000,7 +2998,6 @@ class MediaItem : NSObject
             if let url = self.websiteURL {
                 open(scheme: url.absoluteString) {
                     Alerts.shared.alert(title: "Network Error",message: "Unable to open: \(url)")
-//                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
         }
@@ -3023,7 +3020,7 @@ class MediaItem : NSObject
                 navigationController.popoverPresentationController?.barButtonItem = mtvc.tagsButton
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 
-                popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
+                popover.navigationItem.title = Constants.Strings.Show
                 
                 popover.delegate = mtvc
                 popover.purpose = .selectingTags
@@ -3171,7 +3168,7 @@ class MediaItem : NSObject
         pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
             if #available(iOS 11.0, *) {
                 process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                    return self?.pdfNotes.result
+                    return self?.notesPDFText.result
                 }, completion: { [weak self] (data:Any?) in
                     if  let documentContent = data as? String {
                         let alert = UIAlertController(  title: "Edit or View?",
@@ -3208,36 +3205,27 @@ class MediaItem : NSObject
                         
                         let viewAction = UIAlertAction(title: "View", style: UIAlertActionStyle.default, handler: {
                             (action : UIAlertAction!) -> Void in
-                            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                                let textPopover = navigationController.viewControllers[0] as? WebViewController {
-                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-
-                                if navigationController.modalPresentationStyle == .popover {
-                                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                                }
-
-                                textPopover.navigationController?.isNavigationBarHidden = false
+                            
+                            process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                                var htmlString:String?
                                 
-                                textPopover.navigationItem.title = self?.title ?? ""
-                                
-                                var headerHTML = String()
-                                
-                                if let html = self?.headerHTML {
-                                    headerHTML = html + "<br/>"
+                                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
+                                    htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
+                                } else
+                                    if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
+                                        htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
+                                    } else {
+                                        htmlString = self?.fullNotesPDFHTML
                                 }
                                 
-                                textPopover.content = .html
-                                textPopover.html.string = self?.fullPDFNotesHTML
-
-                                textPopover.search = true
-                                textPopover.bodyHTML = self?.pdfNotesHTML
-                                textPopover.headerHTML = headerHTML
-                                
-                                viewController.present(navigationController, animated: true, completion: nil)
-                            } else {
-                                print("ERROR")
-                            }
+                                return htmlString
+                                }, completion: { [weak self] (data:Any?) in
+                                    if let htmlString = data as? String {
+                                        popoverHTML(viewController, title:self?.title, bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
+                                    } else {
+                                        Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
+                                    }
+                            })
                         })
                         alert.addAction(viewAction)
                         

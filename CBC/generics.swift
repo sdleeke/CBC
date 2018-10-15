@@ -1,6 +1,5 @@
 //
 //  generics.swift
-//  MapBuddy
 //
 //  Created by Steve Leeke on 9/22/18.
 //  Copyright © 2018 Steve Leeke. All rights reserved.
@@ -59,7 +58,7 @@ class BoundsCheckedArray<T>
         }
         
         let sorted = getIt().sorted(by: sort)
-        //        print(sorted)
+
         return sorted
     }
     
@@ -70,7 +69,7 @@ class BoundsCheckedArray<T>
         }
         
         let filtered = getIt().filter(fctn)
-        //        print(filtered)
+
         return filtered
     }
     
@@ -451,14 +450,6 @@ class ThreadSafeDictionaryOfDictionaries<T>
 
 class Fetch<T>
 {
-    lazy private var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = name
-        operationQueue.qualityOfService = .userInteractive
-        operationQueue.maxConcurrentOperationCount = 1
-        return operationQueue
-    }()
-
     init(name:String?,fetch:(()->(T?))? = nil)
     {
         self.name = name
@@ -477,24 +468,16 @@ class Fetch<T>
     }
     
     lazy private var queue : DispatchQueue = {
-        return DispatchQueue(label: UUID().uuidString)
+        return DispatchQueue(label: name ?? UUID().uuidString)
     }()
 
     func load()
     {
         queue.sync {
-//            operationQueue.waitUntilAllOperationsAreFinished()
-            
             guard cache == nil else {
                 return
             }
             self.cache = self.fetch?()
-
-//            operationQueue.addOperation {
-//                self.cache = self.fetch?()
-//            }
-//
-//            operationQueue.waitUntilAllOperationsAreFinished()
         }
     }
     

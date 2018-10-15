@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 class SelectedMediaItem
 {
     var master:MediaItem?

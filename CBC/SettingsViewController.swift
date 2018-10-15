@@ -46,8 +46,8 @@ class SettingsViewController: UIViewController
                     for mediaItem in mediaItems {
                         mediaItem.notesDownload?.delete()
                         mediaItem.slidesDownload?.delete()
-                        mediaItem.posterImageURL?.url?.delete()
-                        mediaItem.seriesImageURL?.url?.delete()
+                        mediaItem.posterImageURL?.delete()
+                        mediaItem.seriesImageURL?.delete()
                     }
                 }
                 

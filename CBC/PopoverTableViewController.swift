@@ -293,9 +293,7 @@ class Sort
             
         }
         didSet {
-            if method != oldValue {
-//                print(method)
-            }
+
         }
     }
 }
@@ -416,8 +414,8 @@ class PopoverTableViewController : UIViewController
                 
                 if  let start = timeWindow.components(separatedBy: " to ").first,
                     let end = timeWindow.components(separatedBy: " to ").last,
-                    let startSeconds = hmsToSeconds(string: start),
-                    let endSeconds = hmsToSeconds(string: end) {
+                    let startSeconds = start.hmsToSeconds,
+                    let endSeconds = end.hmsToSeconds {
 
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
@@ -1860,7 +1858,7 @@ extension PopoverTableViewController : UITableViewDataSource
             return cell
         }
         
-        if search, searchActive, let searchText = searchText?.lowercased() { // string.lowercased().contains(searchText)
+        if search, searchActive, let searchText = searchText?.lowercased() {
             var titleString = NSMutableAttributedString()
             
             var before:String?
@@ -1968,8 +1966,8 @@ extension PopoverTableViewController : UITableViewDataSource
                     }
                     
                     if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
-                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before), // CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(before),
-                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) { // CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(after) {
+                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before),
+                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) {
                             break
                         }
                     }
@@ -2047,8 +2045,6 @@ extension PopoverTableViewController : UITableViewDelegate
         let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
         
         let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height + 20
-        
-        //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
         
         return height
     }

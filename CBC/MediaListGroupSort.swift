@@ -16,7 +16,6 @@ typealias MediaGroupSort = ThreadSafeDictionaryOfDictionaries<[String:[MediaItem
 
 //Group//String//Name
 //[String:[String:String]]
-
 typealias MediaGroupNames = ThreadSafeDictionaryOfDictionaries<String>
 
 typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
@@ -98,11 +97,11 @@ class MediaListGroupSort
         return Lexicon(self) // lexicon
     }()
     
-    // Make thread safe?
-    var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
+    // Hierarchical means we could search within searches - but not right now.
+    var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]?
     
     lazy var scriptureIndex:ScriptureIndex? = {
-        return ScriptureIndex(self) // scriptureIndex
+        return ScriptureIndex(self)
     }()
     
     var groupSort:MediaGroupSort?
@@ -343,7 +342,7 @@ class MediaListGroupSort
                         
                     case GROUPING.BOOK:
                         if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                            return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+                            return $0.withoutPrefixes < $1.withoutPrefixes
                         } else {
                             return bookNumberInBible($0) < bookNumberInBible($1)
                         }
@@ -433,7 +432,7 @@ class MediaListGroupSort
                 
             case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                    return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+                    return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
                     return bookNumberInBible($0) < bookNumberInBible($1)
                 }
@@ -480,7 +479,7 @@ class MediaListGroupSort
                 
             case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                    return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+                    return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
                     return bookNumberInBible($0) < bookNumberInBible($1)
                 }
@@ -531,7 +530,7 @@ class MediaListGroupSort
                 
             case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                    return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+                    return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
                     return bookNumberInBible($0) < bookNumberInBible($1)
                 }
@@ -605,18 +604,14 @@ class MediaListGroupSort
         for mediaItem in mediaItems {
             if let tags =  mediaItem.tagsSet {
                 for tag in tags {
-                    if let sortTag = stringWithoutPrefixes(tag) {
-                        if sortTag == "" {
-                            print(sortTag as Any)
-                        }
-                        
-                        if tagMediaItems?[sortTag] == nil {
-                            tagMediaItems?[sortTag] = [mediaItem]
-                        } else {
-                            tagMediaItems?[sortTag]?.append(mediaItem)
-                        }
-                        tagNames?[sortTag] = tag
+                    let sortTag = tag.withoutPrefixes
+                    
+                    if tagMediaItems?[sortTag] == nil {
+                        tagMediaItems?[sortTag] = [mediaItem]
+                    } else {
+                        tagMediaItems?[sortTag]?.append(mediaItem)
                     }
+                    tagNames?[sortTag] = tag
                 }
             }
         }

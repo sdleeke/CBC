@@ -137,8 +137,6 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         }
         
         if let count = stringNode?.stringNodes?.count, row >= 0, row < count {
-            //            print("Component: ",component," Row: ",row," String: ",string)
-            
             switch count {
 
             default:

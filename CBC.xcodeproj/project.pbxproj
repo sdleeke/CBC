@@ -14,6 +14,8 @@
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172B7FCC1F41FBD200C714C0 /* Section.swift */; };
 		1731F624217290AE00609DE6 /* SearchHit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1731F623217290AE00609DE6 /* SearchHit.swift */; };
+		1736F2DE21750D3B00F2D8EC /* StringIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1736F2DD21750D3B00F2D8EC /* StringIndex.swift */; };
+		1736F2E0217522FF00F2D8EC /* Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1736F2DF217522FF00F2D8EC /* Display.swift */; };
 		1742C6891F1127F00096B150 /* TextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1742C6881F1127F00096B150 /* TextViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
@@ -53,7 +55,7 @@
 		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
 		17A952682158FE830033903C /* generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A952672158FE830033903C /* generics.swift */; };
 		17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */; };
-		17CDEF0E2167762A00B21C87 /* FetchedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17CDEF0D2167762900B21C87 /* FetchedImage.swift */; };
+		17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17CDEF0D2167762900B21C87 /* FetchImage.swift */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
 		17DFD9511F029A7C000AC63D /* VoiceBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DFD9501F029A7C000AC63D /* VoiceBase.swift */; };
 		17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* functions.swift */; };
@@ -109,6 +111,8 @@
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		172B7FCC1F41FBD200C714C0 /* Section.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Section.swift; sourceTree = "<group>"; };
 		1731F623217290AE00609DE6 /* SearchHit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHit.swift; sourceTree = "<group>"; };
+		1736F2DD21750D3B00F2D8EC /* StringIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringIndex.swift; sourceTree = "<group>"; };
+		1736F2DF217522FF00F2D8EC /* Display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Display.swift; sourceTree = "<group>"; };
 		1742C6881F1127F00096B150 /* TextViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
@@ -154,7 +158,7 @@
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17A952672158FE830033903C /* generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generics.swift; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
-		17CDEF0D2167762900B21C87 /* FetchedImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedImage.swift; sourceTree = "<group>"; };
+		17CDEF0D2167762900B21C87 /* FetchImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchImage.swift; sourceTree = "<group>"; };
 		17D21A2D2134914600CA5F57 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		17D21A2F2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17D21A352134914600CA5F57 /* IntentsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IntentsUI.framework; path = System/Library/Frameworks/IntentsUI.framework; sourceTree = SDKROOT; };
@@ -244,7 +248,7 @@
 				17FF98882030DA75002AD442 /* MediaCategory.swift */,
 				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
 				17FF98842030DA3E002AD442 /* Search.swift */,
-				17CDEF0D2167762900B21C87 /* FetchedImage.swift */,
+				17CDEF0D2167762900B21C87 /* FetchImage.swift */,
 				179621F0216EB74700474C66 /* CancellableOperation.swift */,
 				17A952672158FE830033903C /* generics.swift */,
 				17FF98822030DA07002AD442 /* extensions.swift */,
@@ -268,6 +272,8 @@
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
 				17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */,
+				1736F2DD21750D3B00F2D8EC /* StringIndex.swift */,
+				1736F2DF217522FF00F2D8EC /* Display.swift */,
 				174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */,
 				174EEE861B74C11E004F6942 /* MediaTableViewController.swift */,
 				174EEE891B74C11E004F6942 /* MediaViewController.swift */,
@@ -540,9 +546,11 @@
 				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
 				179495621FDC4811001BB4D8 /* CloudLayoutOperation.swift in Sources */,
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
+				1736F2E0217522FF00F2D8EC /* Display.swift in Sources */,
 				17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */,
 				17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
+				1736F2DE21750D3B00F2D8EC /* StringIndex.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
 				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
@@ -551,7 +559,7 @@
 				17A952682158FE830033903C /* generics.swift in Sources */,
 				17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */,
 				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
-				17CDEF0E2167762A00B21C87 /* FetchedImage.swift in Sources */,
+				17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */,
 				17FF98912030DC84002AD442 /* Tags.swift in Sources */,
 				17FF988F2030DBC9002AD442 /* Media.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,

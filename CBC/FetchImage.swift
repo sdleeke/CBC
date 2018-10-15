@@ -1,5 +1,5 @@
 //
-//  FetchedImage.swift
+//  FetchImage.swift
 //  TWU
 //
 //  Created by Steve Leeke on 10/5/18.
@@ -24,7 +24,7 @@ class FetchImage
             return nil
         }
         
-        if Globals.shared.cacheDownloads, let fileSystemURL = url?.fileSystemURL, !fileSystemURL.absoluteString.downloaded {
+        if Globals.shared.cacheDownloads, let fileSystemURL = url?.fileSystemURL, !fileSystemURL.downloaded {
             do {
                 try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
                 print("Image \(fileSystemURL.lastPathComponent) saved to file system")

@@ -15,19 +15,22 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     static var shared = Globals()
     
-    var rootViewController : UIViewController! {
+    var rootViewController : UIViewController!
+    {
         get {
             return UIApplication.shared.keyWindow?.rootViewController
         }
     }
     
-    var splitViewController : UISplitViewController! {
+    var splitViewController : UISplitViewController!
+    {
         get {
             return rootViewController as? UISplitViewController
         }
     }
     
-    var storyboard : UIStoryboard! {
+    var storyboard : UIStoryboard!
+    {
         get {
             return rootViewController?.storyboard
         }
@@ -159,23 +162,27 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         mediaPlayer.pip = .stopped
     }
     
-    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
         print("playerViewControllerWillStopPictureInPicture")
         mediaPlayer.stoppingPIP = true
     }
     
-    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
         print("playerViewControllerDidStopPictureInPicture")
         mediaPlayer.pip = .stopped
         mediaPlayer.stoppingPIP = false
     }
 
-    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
         print("playerViewControllerWillStartPictureInPicture")
         mediaPlayer.startingPIP = true
     }
     
-    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
         print("playerViewControllerDidStartPictureInPicture")
         mediaPlayer.pip = .started
         mediaPlayer.startingPIP = false
@@ -311,7 +318,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var groupings = Constants.groupings
     var groupingTitles = Constants.GroupingTitles
     
-    var grouping:String? = GROUPING.YEAR {
+    var grouping:String? = GROUPING.YEAR
+    {
         willSet {
             
         }
@@ -329,7 +337,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var sorting:String? = SORTING.REVERSE_CHRONOLOGICAL {
+    var sorting:String? = SORTING.REVERSE_CHRONOLOGICAL
+    {
         willSet {
             
         }
@@ -347,7 +356,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var autoAdvance:Bool {
+    var autoAdvance:Bool
+    {
         get {
             return UserDefaults.standard.bool(forKey: Constants.SETTINGS.AUTO_ADVANCE)
         }
@@ -357,7 +367,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var cacheDownloads:Bool {
+    var cacheDownloads:Bool
+    {
         get {
             if UserDefaults.standard.object(forKey: Constants.SETTINGS.CACHE_DOWNLOADS) == nil {
                 if #available(iOS 9.0, *) {
@@ -380,7 +391,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var search = Search()
     
-    var contextTitle:String? {
+    var contextTitle:String?
+    {
         get {
             var string:String?
             
@@ -400,15 +412,18 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    func context() -> String? {
+    func context() -> String?
+    {
         return contextString
     }
     
-    func searchText() -> String? {
+    func searchText() -> String?
+    {
         return search.text
     }
     
-    var contextString:String? {
+    var contextString:String?
+    {
         get {
             var string:String?
             
@@ -428,7 +443,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
 
-    func contextOrder() -> String? {
+    func contextOrder() -> String?
+    {
         var string:String?
         
         if let context = contextString {
@@ -442,7 +458,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         return string
     }
 
-    var orderString:String? {
+    var orderString:String?
+    {
         get {
             var string:String?
             
@@ -469,18 +486,16 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     
-    // Make thread safe?
-
     var multiPartSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]?
 
-    // Make thread safe?
     var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]?
 
     // Make thread safe?
     var history:[String]?
     
     // Make thread safe?
-    var relevantHistory:[String]? {
+    var relevantHistory:[String]?
+    {
         get {
             guard let index = mediaRepository.index else {
                 return nil
@@ -498,7 +513,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
     
     // Make thread safe?
-    var relevantHistoryList:[String]? {
+    var relevantHistoryList:[String]?
+    {
         get {
             return relevantHistory?.map({ (string:String) -> String in
                 if  let range = string.range(of: Constants.TAGS_SEPARATOR),
@@ -610,7 +626,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     //This is filtering, i.e. searching all mediaItems => s/b in background
                     media.tagged[tag] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
                 } else {
-                    if let tagSelected = media.tags.selected, let sortTag = stringWithoutPrefixes(tagSelected) {
+                    if let sortTag = media.tags.selected?.withoutPrefixes {
                         media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
                     }
                 }

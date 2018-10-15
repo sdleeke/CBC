@@ -92,7 +92,6 @@ class Lexicon : NSObject
             if var currentCandidate = candidates.first {
                 for candidate in candidates {
                     if candidate != candidates.first {
-                        //                        print(candidate,currentCandidate)
                         if currentCandidate.endIndex <= candidate.endIndex {
                             if String(candidate[..<currentCandidate.endIndex]) == currentCandidate {
                                 if let index = finalRoots.index(of: currentCandidate) {
@@ -178,29 +177,8 @@ class Lexicon : NSObject
 
     func update()
     {
-        if let keys = words?.keys.sorted(), let values = words?.values {
-            print("Unique words: \(keys.count)")
-            //                print("Dicts: \(values.count)")
-            
-            var mediaItems = 0
-            var minMediaItems:Int?
-            var maxMediaItems:Int?
-            
-            for value in values {
-                mediaItems += value.keys.count
-                
-                minMediaItems = min(minMediaItems ?? value.keys.count,value.keys.count)
-                maxMediaItems = max(maxMediaItems ?? value.keys.count,value.keys.count)
-            }
-            print("(Media item, frequency) pairs: \(mediaItems)")
-            
-            print("Average number of media items per unique word: \(Double(mediaItems) / Double(keys.count))")
-            print("Minimum number of media items for a unique word: \(minMediaItems ?? 0)")
-            print("Maximum number of media items for a unique word: \(maxMediaItems ?? 0)")
-            
-            Globals.shared.queue.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-            }
+        Globals.shared.queue.async {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
         }
     }
     
@@ -221,7 +199,7 @@ class Lexicon : NSObject
     var halt : Bool
     {
         get {
-            return Globals.shared.isRefreshing || Globals.shared.isLoading // || cancelAllOperations
+            return Globals.shared.isRefreshing || Globals.shared.isLoading
         }
     }
     
@@ -264,7 +242,7 @@ class Lexicon : NSObject
             }
             
             repeat {
-                guard let mediaItem = list.first else { // removeFirst() - One chance to load tokens per media item
+                guard let mediaItem = list.first else { // One chance to load tokens per media item
                     break
                 }
                 
@@ -391,7 +369,35 @@ class Lexicon : NSObject
         words = dict.count > 0 ? dict : nil
     }
     
-    override var description:String {
+    var statistics : String
+    {
+        get {
+            var string = String()
+            
+            if let keys = words?.keys.sorted(), let values = words?.values {
+                var mediaItems = 0
+                
+                var minMediaItems:Int?
+                var maxMediaItems:Int?
+                
+                for value in values {
+                    mediaItems += value.keys.count
+                    
+                    minMediaItems = min(minMediaItems ?? value.keys.count,value.keys.count)
+                    maxMediaItems = max(maxMediaItems ?? value.keys.count,value.keys.count)
+                }
+                
+                string += "Number of (Media item, frequency) pairs: \(mediaItems)\n"
+                string += "Average number of media items per unique word: \(Double(mediaItems) / Double(keys.count))"
+                string += "Minimum number of media items for a unique word: \(minMediaItems ?? 0)"
+                string += "Maximum number of media items for a unique word: \(maxMediaItems ?? 0)"
+            }
+            
+            return string
+        }
+    }
+    override var description:String
+    {
         get {
             load()
             

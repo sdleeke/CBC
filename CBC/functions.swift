@@ -292,29 +292,8 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     guard let fromString = fromString else {
         return nil
     }
-    
-    if let range = fromString.range(of: "A is "), range.lowerBound == "a".startIndex {
-        return fromString
-    }
-    
-    let sourceString = fromString.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
-    
-    let prefixes = ["A ","An ","The "] // "And ",
-    
-    var sortString = sourceString
-    
-    for prefix in prefixes {
-        if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
-            sortString = String(sourceString[prefix.endIndex...])
-            break
-        }
-    }
 
-    if sortString == "" {
-        print(sortString as Any)
-    }
-
-    return sortString
+    return fromString.withoutPrefixes
 }
 
 func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String?) -> [String]?
@@ -2325,7 +2304,7 @@ func seriesFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
-                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
+                return first.withoutPrefixes < second.withoutPrefixes
             })
 }
 
@@ -2347,7 +2326,7 @@ func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
-                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
+                return first.withoutPrefixes < second.withoutPrefixes
             })
 }
 
@@ -2369,7 +2348,7 @@ func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> 
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
-                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
+                return first.withoutPrefixes < second.withoutPrefixes
             })
 }
 
@@ -3277,7 +3256,7 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
         }
     }
     
-    var tagsArray = Array(tagsSet).sorted(by: { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
+    var tagsArray = Array(tagsSet).sorted(by: { $0.withoutPrefixes < $1.withoutPrefixes })
     
     tagsArray.append(Constants.Strings.All)
     
@@ -3777,73 +3756,73 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     })
 }
 
-func hmsToSeconds(string:String?) -> Double?
-{
-    guard var str = string?.replacingOccurrences(of: ",", with: ".") else {
-        return nil
-    }
-    
-    var numbers = [Double]()
-    
-    repeat {
-        if let index = str.range(of: ":") {
-            let numberString = String(str[..<index.lowerBound])
-            
-            if let number = Double(numberString) {
-                numbers.append(number)
-            }
-
-            str = String(str[index.upperBound...])
-        }
-    } while str.range(of: ":") != nil
-
-    if !str.isEmpty {
-        if let number = Double(str) {
-            numbers.append(number)
-        }
-    }
-
-    var seconds = 0.0
-    var counter = 0.0
-    
-    for number in numbers.reversed() {
-        seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
-        counter += 1
-    }
-    
-    return seconds
-}
-
-func secondsToHMS(seconds:String?) -> String?
-{
-    guard let seconds = seconds else {
-        return nil
-    }
-    
-    guard let timeNow = Double(seconds) else {
-        return nil
-    }
-    
-    let hours = max(Int(timeNow / (60*60)),0)
-    let mins = max(Int((timeNow - (Double(hours) * 60*60)) / 60),0)
-    let sec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
-    let fraction = timeNow - Double(Int(timeNow))
-    
-    var hms:String
-    
-    if (hours > 0) {
-        hms = "\(String(format: "%02d",hours)):"
-    } else {
-        hms = "00:" //Constants.EMPTY_STRING
-    }
-    
-    // \(String(format: "%.3f",fraction)
-    // .trimmingCharacters(in: CharacterSet(charactersIn: "0."))
-    
-    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
-    
-    return hms
-}
+//func hmsToSeconds(string:String?) -> Double?
+//{
+//    guard var str = string?.replacingOccurrences(of: ",", with: ".") else {
+//        return nil
+//    }
+//    
+//    var numbers = [Double]()
+//    
+//    repeat {
+//        if let index = str.range(of: ":") {
+//            let numberString = String(str[..<index.lowerBound])
+//            
+//            if let number = Double(numberString) {
+//                numbers.append(number)
+//            }
+//
+//            str = String(str[index.upperBound...])
+//        }
+//    } while str.range(of: ":") != nil
+//
+//    if !str.isEmpty {
+//        if let number = Double(str) {
+//            numbers.append(number)
+//        }
+//    }
+//
+//    var seconds = 0.0
+//    var counter = 0.0
+//    
+//    for number in numbers.reversed() {
+//        seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
+//        counter += 1
+//    }
+//    
+//    return seconds
+//}
+//
+//func secondsToHMS(seconds:String?) -> String?
+//{
+//    guard let seconds = seconds else {
+//        return nil
+//    }
+//    
+//    guard let timeNow = Double(seconds) else {
+//        return nil
+//    }
+//    
+//    let hours = max(Int(timeNow / (60*60)),0)
+//    let mins = max(Int((timeNow - (Double(hours) * 60*60)) / 60),0)
+//    let sec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
+//    let fraction = timeNow - Double(Int(timeNow))
+//    
+//    var hms:String
+//    
+//    if (hours > 0) {
+//        hms = "\(String(format: "%02d",hours)):"
+//    } else {
+//        hms = "00:" //Constants.EMPTY_STRING
+//    }
+//    
+//    // \(String(format: "%.3f",fraction)
+//    // .trimmingCharacters(in: CharacterSet(charactersIn: "0."))
+//    
+//    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
+//    
+//    return hms
+//}
 
 func preferredModalPresentationStyle(viewController:UIViewController) -> UIModalPresentationStyle
 {
@@ -4372,11 +4351,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 if let indexTitles = Globals.shared.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
-                            if let string = stringWithoutPrefixes(string) {
-                                return String(string[..<a.endIndex]).uppercased()
-                            }
-                            
-                            return "ERROR"
+                            return String(string.withoutPrefixes[..<a.endIndex]).uppercased()
                         } else {
                             return string
                         }
@@ -4561,7 +4536,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
     }
     
     let keys = Array(mediaListSort.keys).sorted() {
-        stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+        $0.withoutPrefixes < $1.withoutPrefixes
     }
     
     if includeURLs, (keys.count > 1) {

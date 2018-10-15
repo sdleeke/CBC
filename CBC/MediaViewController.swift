@@ -43,7 +43,7 @@ extension MediaViewController : UIActivityItemSource
 
             }
 
-                activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
+            activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
 
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
@@ -67,9 +67,9 @@ extension MediaViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
     {
-        guard let activityType = activityType else {
-            return nil
-        }
+//        guard let activityType = activityType else {
+//            return nil
+//        }
         
         if #available(iOS 11.0, *) {
             MediaViewController.cases.append(.markupAsPDF)
@@ -85,9 +85,9 @@ extension MediaViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
     {
-        guard let activityType = activityType else {
-            return "public.plain-text"
-        }
+//        guard let activityType = activityType else {
+//            return "public.plain-text"
+//        }
         
         return "public.plain-text"
     }
@@ -237,9 +237,6 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(cancel)
             
-            // For .actionSheet style
-            //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
-            
             self.present(alert, animated: true, completion: nil)
             break
             
@@ -388,7 +385,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                 if transcriptSegmentArray.count > 2  {
                                     let count = transcriptSegmentArray.removeFirst()
                                     let timeWindow = transcriptSegmentArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
+                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
                                     
                                     if  let start = times.first,
                                         let end = times.last,
@@ -478,21 +475,21 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                     let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
                                     let string = "\(count)\n\(start) to \(end)\n" + text
                                     
-                                    if (hmsToSeconds(string: start) <= hmsToSeconds(string: time)) && (hmsToSeconds(string: time) <= hmsToSeconds(string: end)) { //
+                                    if (start.hmsToSeconds <= time.hmsToSeconds) && (time.hmsToSeconds <= end.hmsToSeconds) {
                                         strings.append(string)
                                         found = true
                                         gap = nil
                                         break
                                     } else {
-                                        guard let time = hmsToSeconds(string: time) else {
+                                        guard let time = time.hmsToSeconds else {
                                             continue
                                         }
                                         
-                                        guard let start = hmsToSeconds(string: start) else {
+                                        guard let start = start.hmsToSeconds else {
                                             continue
                                         }
 
-                                        guard let end = hmsToSeconds(string: end) else { //
+                                        guard let end = end.hmsToSeconds else { //
                                             continue
                                         }
 
@@ -588,7 +585,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 
                 if let topic = self.popover?.navigationController?.visibleViewController?.navigationItem.title {
                     popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
-                        return secondsToHMS(seconds: string) ?? "ERROR"
+                        return string.secondsToHMS ?? "ERROR"
                     })
                 }
                 
@@ -601,7 +598,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
                 Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
@@ -658,7 +655,6 @@ extension MediaViewController : WKNavigationDelegate
             // error has occurred
             Thread.onMainThread {
                 webView.isHidden = true
-                //                    webView.isUserInteractionEnabled = !webView.isHidden
                 
                 self.activityIndicator.stopAnimating()
                 self.activityIndicator.isHidden = true
@@ -745,7 +741,7 @@ extension MediaViewController : WKNavigationDelegate
         
         logo.isHidden = !shouldShowLogo() // && roomForLogo()
         
-        if (!logo.isHidden) {
+        if !logo.isHidden {
             mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
         }
         
@@ -895,7 +891,7 @@ enum VideoLocation {
     case withTableView
 }
 
-class MediaViewController: UIViewController // MediaController
+class MediaViewController: UIViewController
 {
     var popover : PopoverTableViewController?
     
@@ -907,7 +903,8 @@ class MediaViewController: UIViewController // MediaController
     
     var videoLocation : VideoLocation = .withDocuments
     
-    var scripture:Scripture? {
+    var scripture:Scripture?
+    {
         get {
             return selectedMediaItem?.scripture
         }
@@ -973,9 +970,12 @@ class MediaViewController: UIViewController // MediaController
         return wkWebView
     }()
     
-    var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
+    // Each document has its own loadTimer because each has its own WKWebView.
+    // This is only used when a direct load is used, not when a document is cached and then loaded.
+    var loadTimer:Timer?
 
-    var download:Download? {
+    var download:Download?
+    {
         get {
             return document?.download
         }
@@ -1207,9 +1207,6 @@ class MediaViewController: UIViewController // MediaController
                     if Globals.shared.mediaPlayer.url != selectedMediaItem.playingURL {
                         updateUI()
                     }
-                    
-                    // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
-                    //                addSliderObserver()
                 } else {
                     if let url = selectedMediaItem.playingURL {
                         playerURL(url: url)
@@ -1220,8 +1217,8 @@ class MediaViewController: UIViewController // MediaController
 
                 Globals.shared.selectedMediaItem.detail = selectedMediaItem
             } else {
-                // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
-                //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
+                // We always select, never deselect
+                
             }
         }
     }
@@ -1320,7 +1317,7 @@ class MediaViewController: UIViewController // MediaController
                 switch playing {
                 case Playing.audio:
                     if (Globals.shared.mediaPlayer.mediaItem == selectedMediaItem) {
-                        Globals.shared.mediaPlayer.stop() // IfPlaying
+                        Globals.shared.mediaPlayer.stop()
                         
                         tableView.isEditing = false
                         setupSpinner()
@@ -1755,7 +1752,6 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
                 self.view.setNeedsLayout()
-//                self.view.layoutSubviews()
             }
 
             pan.setTranslation(CGPoint.zero, in: pan.view)
@@ -2193,8 +2189,6 @@ class MediaViewController: UIViewController // MediaController
             popover.selectedMediaItem = selectedMediaItem
             
             popover.section.strings = actionMenu()
-            
-//            popover.vc = self
             
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
@@ -2708,29 +2702,17 @@ class MediaViewController: UIViewController // MediaController
         if (hasSlides && !hasNotes) {
             selectedMediaItem.showing = Showing.slides
 
-            if let wkWebView = wkWebView {
-                logo.isHidden = true
-            } else {
-                logo.isHidden = false
-            }
+            logo.isHidden = wkWebView != nil
         } else
         if (!hasSlides && hasNotes) {
             selectedMediaItem.showing = Showing.notes
             
-            if let wkWebView = wkWebView {
-                logo.isHidden = true
-            } else {
-                logo.isHidden = false
-            }
+            logo.isHidden = wkWebView != nil
         } else
         if (hasSlides && hasNotes) {
             selectedMediaItem.showing = selectedMediaItem.wasShowing
             
-            if let wkWebView = wkWebView {
-                logo.isHidden = true
-            } else {
-                logo.isHidden = false
-            }
+            logo.isHidden = wkWebView != nil
         }
     }
     
@@ -2792,8 +2774,6 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func loadDocument(_ document:Document?)
     {
-//        print("loadDocument")
-        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
             return
@@ -3042,17 +3022,9 @@ class MediaViewController: UIViewController // MediaController
                 Globals.shared.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
                 logo.isHidden = true
     
-                if let wkWebView = wkWebView {
-                    if Globals.shared.cacheDownloads {
-                        if let state = document?.download?.state {
-                            // Don't want to show it just because it is already downloaded!
-                            // The scale and offset have not yet been set!
-                        }
-                    } else {
-                        // Don't want to show it just because it is already loaded!
-                        // The scale and offset have not yet been set!
-                    }
-                    
+                if wkWebView != nil {
+                    // Don't want to show it just because it is already (down)loaded!
+                    // The scale and offset have not yet been set!
                     mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
                 }
                 break
@@ -3842,30 +3814,10 @@ class MediaViewController: UIViewController // MediaController
     {
         // Player is refreshed in AppDelegate
         
-        // Refresh the visible document
-//        guard let document = document else {
-//            return
-//        }
-//
-//        document.download?.cancelOrDelete()
-//        document.loaded = false
-//        setupDocumentsAndVideo()
-        
-        // Refresh all documents
-//        let documents = self.documents.values.flatMap { (dict:[String:Document]) -> [Document] in
-//            return Array(dict.values)
-//        }
-//        
-//        for document in documents {
-//            document.download?.cancelOrDelete()
-//            document.loaded = false
-//            setupDocumentsAndVideo()
-//        }
     }
     
     @objc func didBecomeActive()
     {
-//        updateUI() // TOO MUCH.  The mediaPlayer.reload in AppDelegate willEnterForeground makes a mess of this.
         setDVCLeftBarButton()
     }
     
@@ -4187,38 +4139,11 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        let elapsedHours = max(Int(timeNow / (60*60)),0)
-        let elapsedMins = max(Int((timeNow - (Double(elapsedHours) * 60*60)) / 60),0)
-        let elapsedSec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
-        
-        var elapsed:String
-        
-        if (elapsedHours > 0) {
-            elapsed = "\(String(format: "%d",elapsedHours)):"
-        } else {
-            elapsed = Constants.EMPTY_STRING
-        }
-        
-        elapsed = elapsed + "\(String(format: "%02d",elapsedMins)):\(String(format: "%02d",elapsedSec))"
-        
-        self.elapsed.text = elapsed
+        self.elapsed.text = timeNow.secondsToHMS
         
         let timeRemaining = max(length - timeNow,0)
-        let remainingHours = max(Int(timeRemaining / (60*60)),0)
-        let remainingMins = max(Int((timeRemaining - (Double(remainingHours) * 60*60)) / 60),0)
-        let remainingSec = max(Int(timeRemaining.truncatingRemainder(dividingBy: 60)),0)
         
-        var remaining:String
-
-        if (remainingHours > 0) {
-            remaining = "\(String(format: "%d",remainingHours)):"
-        } else {
-            remaining = Constants.EMPTY_STRING
-        }
-        
-        remaining = remaining + "\(String(format: "%02d",remainingMins)):\(String(format: "%02d",remainingSec))"
-        
-        self.remaining.text = remaining
+        self.remaining.text = timeRemaining.secondsToHMS
     }
     
     
@@ -4701,13 +4626,10 @@ class MediaViewController: UIViewController // MediaController
                     }
                 }
                 
-                //                print(purpose,zoomScale,contentOffset,wkWebView.scrollView.contentSize)
                 self.wkSetZoomScaleThenContentOffset(wkWebView, scale: zoomScale ?? 1.0, offset: contentOffset)
                 
                 self.progressIndicator.isHidden = true
-                
-                //                    webView.isHidden = false
-                
+
                 self.activityIndicator.stopAnimating()
                 self.activityIndicator.isHidden = true
                 

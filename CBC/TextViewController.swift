@@ -134,7 +134,6 @@ extension TextViewController: UISearchBarDelegate
         
         if let changedText = changedText {
             operationQueue.cancelAllOperations()
-//            operationQueue.waitUntilAllOperationsAreFinished()
             
             let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
             
@@ -237,7 +236,7 @@ extension TextViewController : UITextViewDelegate
         // Tells the delegate that the text or attributes in the specified text view were changed by the user.
     
         // Hopefully this isn't expensive
-        changedText = textView.attributedText.string //textView.text
+        changedText = textView.attributedText.string
     }
     
     func textViewDidChangeSelection(_ textView: UITextView)
@@ -358,7 +357,8 @@ extension TextViewController : UIActivityItemSource
         
         // exclude some activity types from the list (optional)
         
-        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ]
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
@@ -883,7 +883,6 @@ class TextViewController : UIViewController
         }
         
         let pos = tap.location(in: textView)
-//        pos.y += textView.contentOffset.y
         
         let tapPos = textView.closestPosition(to: pos)
         
@@ -1561,18 +1560,18 @@ class TextViewController : UIViewController
                 // The toolbar and navBar are the same height.  Which should be deducted?  Why?  Why does this work?  Why is textView.bounds.minY not 0?
                 
                 if navigationController?.modalPresentationStyle == .formSheet {
-                    shrink = intersectRect.height - (navigationController?.toolbar.frame.size.height ?? 0)// - txtRect.minY
+                    shrink = intersectRect.height - (navigationController?.toolbar.frame.size.height ?? 0)
                 } else {
-                    shrink = intersectRect.height + 16 // - (navigationController?.toolbar.frame.size.height ?? 0)// - txtRect.minY
+                    shrink = intersectRect.height + 16
                 }
                 
-                bottomLayoutConstraint.constant += shrink // textView.frame.size.height -
+                bottomLayoutConstraint.constant += shrink
             } else {
                 if (intersectRect.height != shrink) {
                     let delta = shrink - intersectRect.height
                     shrink -= delta
                     if delta != 0 {
-                        bottomLayoutConstraint.constant -= delta // textView.frame.size.height +
+                        bottomLayoutConstraint.constant -= delta
                     }
                 }
             }
@@ -1633,7 +1632,8 @@ class TextViewController : UIViewController
             popover.confirmationTitle = self.confirmationTitle
             popover.confirmationMessage = self.confirmationMessage
 
-            // Can't copy this or the sync button may never become active because the following data structure is never setup in the full screen view
+            // Can't copy this or the sync button may never become active
+            // because the following data structure must be setup in and by the full screen view
 //            popover.creatingWordRangeTiming = self.creatingWordRangeTiming
             
             popover.editingActive = self.editingActive
@@ -1770,8 +1770,6 @@ class TextViewController : UIViewController
             } else {
                 // Fallback on earlier versions
             }
-            
-//            self.view.setNeedsLayout()
         }
         
         navigationItem.leftBarButtonItem = cancelButton
@@ -2720,6 +2718,7 @@ class TextViewController : UIViewController
         }
 
         if isTracking {
+            // Why are these commented out?
             //            startTracking()
             //            removeAssist()
             oldRange = nil // Forces the range to be highlighted.

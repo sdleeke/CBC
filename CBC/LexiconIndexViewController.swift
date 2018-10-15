@@ -169,7 +169,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
 
                     for word in words {
-                        let first = String(word[..<String.Index(encodedOffset: 1)]) // "A".endIndex
+                        let first = String(word[..<String.Index(encodedOffset: 1)])
 
                         if first != keys[section] {
                             // New Section
@@ -449,7 +449,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
                 Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
@@ -1021,11 +1021,6 @@ class LexiconIndexViewController : UIViewController
         }
 
         wordsTableViewController.selectString(searchText,scroll: true,select: true)
-
-        // also updates UI and brings up the toolbar if needed for the index.
-        // THIS WILL NOT HAPPEN in viewWillAppear() - I have no idea why.
-        // Seems like when view.window == nil
-        updateSearchResults()
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1192,8 +1187,8 @@ class LexiconIndexViewController : UIViewController
                         
                         if let indexTitles = results?.section?.indexStrings {
                             let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-                                if string.endIndex >= a.endIndex, let string = stringWithoutPrefixes(string) {
-                                    let indexString = String(string[..<a.endIndex]).uppercased()
+                                if string.endIndex >= a.endIndex {
+                                    let indexString = String(string.withoutPrefixes[..<a.endIndex]).uppercased()
                                     
                                     return indexString
                                 } else {

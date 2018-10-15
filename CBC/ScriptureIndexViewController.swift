@@ -226,7 +226,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
                 Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break
@@ -390,8 +390,6 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
         
         switch component {
         case 0:
-            //            numberOfRows = 2 // N.T. or O.T.
-            
             if (scriptureIndex?.byTestament[Constants.Old_Testament] != nil) {
                 numberOfRows += 1
             }
