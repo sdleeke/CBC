@@ -2978,8 +2978,6 @@ class MediaItem : NSObject
         var download:AlertAction!
         
         var transcript:AlertAction!
-//        var htmlTranscript:AlertAction!
-//        var pdfTranscript:AlertAction!
         
         var words:AlertAction!
         var search:AlertAction!
@@ -3269,36 +3267,6 @@ class MediaItem : NSObject
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
                     self.view(viewController:viewController, bodyHTML:self.notesPDFHTML)
-                    
-//                    if self.hasNotesHTML {
-//                        let alert = UIAlertController(  title: "Source",
-//                                                        message: nil,
-//                                                        preferredStyle: .alert)
-//                        alert.makeOpaque()
-//
-//                        let pdfAction = UIAlertAction(title: "PDF", style: UIAlertActionStyle.default, handler: {
-//                            (action : UIAlertAction!) -> Void in
-//                            self.view(viewController:viewController, bodyHTML:self.notesPDFHTML)
-////                            self.editOrView(viewController:viewController, bodyText: self.notesPDFText.result, bodyHTML:self.notesPDFHTML)
-//                        })
-//                        alert.addAction(pdfAction)
-//
-//                        let htmlAction = UIAlertAction(title: "HTML", style: UIAlertActionStyle.default, handler: {
-//                            (action : UIAlertAction!) -> Void in
-//                            self.view(viewController:viewController, bodyHTML:self.notesHTML.result)
-//                        })
-//                        alert.addAction(htmlAction)
-//
-//                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-//                            (action : UIAlertAction!) -> Void in
-//
-//                        })
-//                        alert.addAction(cancel)
-//
-//                        viewController.present(alert, animated: true, completion: nil)
-//                    } else {
-//                        self.view(viewController:viewController, bodyHTML:self.notesPDFHTML)
-//                    }
                 }
             } else {
                 if self.hasNotesHTML {
@@ -3308,129 +3276,6 @@ class MediaItem : NSObject
                 }
             }
         }
-        
-//        pdfTranscript = AlertAction(title: "PDF Transcript Text", style: .default) {
-//            if #available(iOS 11.0, *) {
-//                process(viewController: viewController, work: { [weak self] () -> (Any?) in
-//                    return self?.notesPDFText.result
-//                }, completion: { [weak self] (data:Any?) in
-//                    if  let documentContent = data as? String {
-//                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
-//                            var htmlString:String?
-//
-//                            if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-//                                htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
-//                            } else
-//                                if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
-//                                    htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
-//                                } else {
-//                                    htmlString = self?.fullNotesPDFHTML
-//                            }
-//
-//                            return htmlString
-//                        }, completion: { [weak self] (data:Any?) in
-//                            if let htmlString = data as? String {
-//                                popoverHTML(viewController, title:self?.title, bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
-//                            } else {
-//                                Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-//                            }
-//                        })
-//
-////                        let alert = UIAlertController(  title: "Edit or View?",
-////                                                        message: nil,
-////                                                        preferredStyle: .alert)
-////                        alert.makeOpaque()
-////
-////                        let editAction = UIAlertAction(title: "Edit", style: UIAlertActionStyle.default, handler: {
-////                            (action : UIAlertAction!) -> Void in
-////                            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
-////                                let textPopover = navigationController.viewControllers[0] as? TextViewController {
-////                                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-////
-////                                if navigationController.modalPresentationStyle == .popover {
-////                                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-////                                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-////                                }
-////
-////                                textPopover.navigationController?.isNavigationBarHidden = false
-////
-////                                textPopover.navigationItem.title = self?.title ?? ""
-////
-////                                textPopover.text = documentContent
-////                                textPopover.readOnly = true
-////
-////                                textPopover.search = true
-////
-////                                viewController.present(navigationController, animated: true, completion: nil)
-////                            } else {
-////                                print("ERROR")
-////                            }
-////                        })
-////                        alert.addAction(editAction)
-////
-////                        let viewAction = UIAlertAction(title: "View", style: UIAlertActionStyle.default, handler: {
-////                            (action : UIAlertAction!) -> Void in
-////
-////                            process(viewController: viewController, work: { [weak self] () -> (Any?) in
-////                                var htmlString:String?
-////
-////                                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-////                                    htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
-////                                } else
-////                                    if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
-////                                        htmlString = markBodyHTML(bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
-////                                    } else {
-////                                        htmlString = self?.fullNotesPDFHTML
-////                                }
-////
-////                                return htmlString
-////                                }, completion: { [weak self] (data:Any?) in
-////                                    if let htmlString = data as? String {
-////                                        popoverHTML(viewController, title:self?.title, bodyHTML: self?.notesPDFHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
-////                                    } else {
-////                                        Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-////                                    }
-////                            })
-////                        })
-////                        alert.addAction(viewAction)
-////
-////                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-////                            (action : UIAlertAction!) -> Void in
-////
-////                        })
-////                        alert.addAction(cancel)
-////
-////                        viewController.present(alert, animated: true, completion: nil)
-//                    }
-//                })
-//            } else {
-//                // Fallback on earlier versions
-//            }
-//        }
-//
-//        htmlTranscript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) {
-//            process(viewController: viewController, work: { [weak self] () -> (Any?) in
-//                var htmlString:String?
-//
-//                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-//                    htmlString = markBodyHTML(bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
-//                } else
-//
-//                if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
-//                    htmlString = markBodyHTML(bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
-//                } else {
-//                    htmlString = self?.fullNotesHTML
-//                }
-//
-//                return htmlString
-//            }, completion: { [weak self] (data:Any?) in
-//                if let htmlString = data as? String {
-//                    popoverHTML(viewController, title:self?.title, bodyHTML: self?.notesHTML.result, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
-//                } else {
-//                    Alerts.shared.alert(title: "Network Error",message: "HTML transcript unavailable.")
-//                }
-//            })
-//        }
 
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             if let reference = self.scriptureReference {
@@ -3548,16 +3393,6 @@ class MediaItem : NSObject
                 }
             }
         }
-        
-//        if hasNotes {
-//            if #available(iOS 11.0, *) {
-//                actions.append(pdfTranscript)
-//            }
-//        }
-        
-//        if hasNotesHTML {
-//            actions.append(htmlTranscript)
-//        }
         
         actions.append(favorites)
         
