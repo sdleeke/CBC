@@ -134,14 +134,14 @@ enum Constants {
     enum JSON {
         static let MEDIA_PATH = "media"
         
-        static let CATEGORIES_PATH = "categories"
-
         enum URL {
             static let BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
             
             static let MEDIA = BASE + MEDIA_PATH
             
-            static let CATEGORIES = BASE + CATEGORIES_PATH
+            static let CATEGORIES = BASE + "categories"
+            
+            static let TEACHERS = BASE + "teachers"
             
             static let CATEGORY = MEDIA + "&categoryID="
             
@@ -149,6 +149,7 @@ enum Constants {
         }
 
         enum ARRAY_KEY {
+            static let TEACHER_ENTRIES = "teacherEntries"
             static let CATEGORY_ENTRIES = "categoryEntries"
             static let MEDIA_ENTRIES    = "mediaEntries"
             static let SINGLE_ENTRY     = "singleEntry"
@@ -159,6 +160,7 @@ enum Constants {
         
         enum FILENAME {
             static let CATEGORIES = ARRAY_KEY.CATEGORY_ENTRIES + FILENAME_EXTENSION
+            static let TEACHERS = ARRAY_KEY.TEACHER_ENTRIES + FILENAME_EXTENSION
         }
     }
 

@@ -233,15 +233,14 @@ func jsonFromURL(url:String,filename:String) -> Any?
 
     if let json = jsonFromFileSystem(filename: filename) {
         // waitUntilAllOperationsAreFinished causes deadlock in refresh
-
         jsonQueue.addOperation {
             do {
-                let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+                let data = try Data(contentsOf: url)
                 print("able to read json from the URL.")
                 
                 do {
                     if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-                        try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                        try data.write(to: jsonFileSystemURL)
                     }
                     
                     print("able to write json to the file system")
@@ -257,7 +256,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
         return json
     } else {
         do {
-            let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+            let data = try Data(contentsOf: url)
             print("able to read json from the URL.")
             
             do {
@@ -265,7 +264,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
                 
                 do {
                     if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-                        try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                        try data.write(to: jsonFileSystemURL)
                     }
                     
                     print("able to write json to the file system")
@@ -274,7 +273,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
                     
                     NSLog(error.localizedDescription)
                 }
-                //            print(json)
+
                 return json
             } catch let error as NSError {
                 NSLog(error.localizedDescription)
@@ -675,7 +674,7 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
     return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
 }
 
-func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool, index:Bool) -> String?
+func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> String?
 {
     guard let bodyHTML = bodyHTML else {
         return nil

@@ -902,8 +902,12 @@ class MediaItem : NSObject
                 header = header + string + "</br>"
             }
             
-            if let string = speaker {
-                header = header + "<i>by " + string + "</i></br>"
+            if var string = speaker {
+                if let speakerTitle = Globals.shared.mediaTeachers?[string] {
+                    string += ", \(speakerTitle)"
+                }
+
+                header = header + "<i>" + string + "</i></br>"
             }
             
             header = header + "<i>Countryside Bible Church</i></br>"
@@ -2878,22 +2882,18 @@ class MediaItem : NSObject
             var htmlString:String?
             
             if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
+                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true)
             } else
                 
             if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
-            } else {
-                htmlString = bodyHTML
+                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true)
             }
             
             return htmlString
         }, completion: { [weak self] (data:Any?) in
-            if let _ = data as? String {
-                popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view)
-            } else {
-                Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-            }
+            let htmlString = data as? String
+            
+            popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
         })
     }
     
@@ -3170,7 +3170,7 @@ class MediaItem : NSObject
         }
         
         words = AlertAction(title: Constants.Strings.Words, style: .default) {
-            guard self.hasNotesHTML else {
+            guard self.hasNotes else { // HTML
                 return
             }
             
@@ -3258,20 +3258,28 @@ class MediaItem : NSObject
 
             process(viewController: mtvc, work: { [weak self] () -> (Any?) in
                 self?.notesTokens.load() // Have to do this because transcriptTokens has UI.
-                }, completion: { [weak self] (data:Any?) in
-                    transcriptTokens()
+            }, completion: { [weak self] (data:Any?) in
+                transcriptTokens()
             })
         }
 
         if hasNotes {
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
-                    self.view(viewController:viewController, bodyHTML:self.notesPDFHTML)
+                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                        self?.notesPDFText.load()
+                    }, completion: { [weak self] (data:Any?) in
+                        self?.view(viewController:viewController, bodyHTML:self?.notesPDFHTML)
+                    })
                 }
             } else {
                 if self.hasNotesHTML {
                     transcript = AlertAction(title: "HTML Transcript", style: .default) {
-                        self.view(viewController:viewController, bodyHTML:self.notesHTML.result)
+                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                            self?.notesHTML.load()
+                        }, completion: { [weak self] (data:Any?) in
+                            self?.view(viewController:viewController, bodyHTML:self?.notesHTML.result)
+                        })
                     }
                 }
             }
@@ -3379,7 +3387,7 @@ class MediaItem : NSObject
             
             actions.append(search)
 
-            if hasNotesHTML {
+            if hasNotes { // HTML
                 actions.append(words)
             }
         }

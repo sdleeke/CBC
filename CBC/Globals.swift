@@ -483,6 +483,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var mediaStream = MediaStream()
     
+    var mediaTeachers : [String:String]?
+    
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     

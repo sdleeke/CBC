@@ -330,8 +330,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             if tableViewHeightConstraint.constant == view.bounds.height {
                 tableViewHeightConstraint.constant = view.bounds.height - tableView.rowHeight
             }
-
-            updateSearchResults()
             break
             
         case .selectingAction:
@@ -613,7 +611,8 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    var searchText:String? {
+    var searchText:String?
+    {
         get {
             return lexicon?.selected
         }

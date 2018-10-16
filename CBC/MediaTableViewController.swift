@@ -2354,6 +2354,21 @@ class MediaTableViewController : UIViewController
         }
     }
     
+    func loadTeachers()
+    {
+        if let teachersDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES,filename: Constants.JSON.FILENAME.TEACHERS) {
+            var mediaTeachersDict = [String:String]()
+            
+            for teachersDict in teachersDicts {
+                if let name = teachersDict["name"] {
+                    mediaTeachersDict[name] = teachersDict["status"]
+                }
+            }
+            
+            Globals.shared.mediaTeachers = mediaTeachersDict
+        }
+    }
+    
     func loadMediaItems(completion: (() -> Void)?)
     {
         Globals.shared.isLoading = true
@@ -2387,7 +2402,17 @@ class MediaTableViewController : UIViewController
                         Globals.shared.mediaCategory.dicts = mediaCategoryDicts
                     }
                     
-                    print(Globals.shared.mediaCategory.filename as Any)
+                    if let teachersDicts = self?.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
+                        var mediaTeachersDict = [String:String]()
+                        
+                        for teachersDict in teachersDicts {
+                            if let name = teachersDict["category_name"] {
+                                mediaTeachersDict[name] = teachersDict["status"]
+                            }
+                        }
+                        
+                        Globals.shared.mediaTeachers = mediaTeachersDict
+                    }
                     
                     if  let mediaItemDicts = self?.loadJSONDictsFromFileSystem(filename:Globals.shared.mediaCategory.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
                         Globals.shared.mediaRepository.list = self?.mediaItemsFromMediaItemDicts(mediaItemDicts)
@@ -2398,8 +2423,9 @@ class MediaTableViewController : UIViewController
                     break
                     
                 case .direct:
+                    self?.loadTeachers()
                     self?.loadCategories()
-                    
+
                     if  let url = Globals.shared.mediaCategory.url,
                         let filename = Globals.shared.mediaCategory.filename,
                         let mediaItemDicts = self?.loadJSONDictsFromURL(url: url,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
