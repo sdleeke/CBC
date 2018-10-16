@@ -14,20 +14,20 @@ import MobileCoreServices
 class HTML {
     weak var webViewController: WebViewController?
     
-    lazy var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "HTML"
-        operationQueue.qualityOfService = .userInteractive
-        operationQueue.maxConcurrentOperationCount = 1
-        return operationQueue
-    }()
-
-    var text : String?
-    {
-        didSet {
-
-        }
-    }
+//    lazy var operationQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = "HTML"
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
+//
+//    var text : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
     
     var original:String?
     
@@ -81,22 +81,36 @@ class HTML {
                     }
                 }
 
-                Thread.onMainThread {
-                    self.webViewController?.activityButtonIndicator?.startAnimating()
-                }
+//                Thread.onMainThread {
+//                    self.webViewController?.activityButtonIndicator?.startAnimating()
+//                }
+//
+//                operationQueue.addOperation { [weak self] in
+//                    self?.text = self?.string?.html2String
+//                    Thread.onMainThread {
+//                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
+//                    }
+//                }
                 
-                // Get a new queue - does this ever happen more than once?  Yes, when font size is changed or searching occurs.
-                operationQueue = OperationQueue()
-                operationQueue.name = "HTML"
-                operationQueue.qualityOfService = .userInteractive
-                operationQueue.maxConcurrentOperationCount = 1
-
-                operationQueue.addOperation { [weak self] in
-                    self?.text = stripHTML(self?.string) // This leaves an HTML frame around the text!
-                    Thread.onMainThread {
-                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
-                    }
-                }
+                // THIS DOES NOT WORK.  THe old opQ keeps working!
+//                Thread.onMainThread {
+//                    self.webViewController?.activityButtonIndicator?.startAnimating()
+//                }
+//
+//                // Get a new queue - does this ever happen more than once?  Yes, when font size is changed or searching occurs.
+//                // The motivation for doing this rather than cancelling is the belief that we can just throw away the old operationQueue
+//                // and it will stop executing.  I don't think that is true!
+//                operationQueue = OperationQueue()
+//                operationQueue.name = "HTML"
+//                operationQueue.qualityOfService = .userInteractive
+//                operationQueue.maxConcurrentOperationCount = 1
+//
+//                operationQueue.addOperation { [weak self] in
+//                    self?.text = stripHTML(self?.string) // This leaves an HTML frame around the text!
+//                    Thread.onMainThread {
+//                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
+//                    }
+//                }
             }
         }
     }
@@ -130,7 +144,7 @@ extension WebViewController : UIActivityItemSource
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        let activityViewController = UIActivityViewController(activityItems:[self,html,print] , applicationActivities: nil)
+        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -164,13 +178,9 @@ extension WebViewController : UIActivityItemSource
 
         if WebViewController.cases.contains(activityType) {
             return self.html.string
-        } else {
-            if let text = self.html.text {
-                return text
-            } else {
-                return "HTML to text conversion still in process.  Please try again later."
-            }
         }
+        
+        return nil
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
@@ -304,10 +314,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     firstAction: {
                         process(viewController: self, work: { [weak self] () -> (Any?) in
                             return stripLinks(self?.html.string)
-                            }, completion: { [weak self] (data:Any?) in
-                                if let vc = self {
-                                    printHTML(viewController: vc, htmlString: data as? String)
-                                }
+                        }, completion: { [weak self] (data:Any?) in
+                            if let vc = self {
+                                printHTML(viewController: vc, htmlString: data as? String)
+                            }
                         })
                 }, firstStyle: .default,
                    secondTitle: Constants.Strings.No,
@@ -589,17 +599,19 @@ extension WebViewController : WKNavigationDelegate
             self.progressIndicator.isHidden = true
             
             self.barButtonItems(isEnabled: true)
-            
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
-                
-                Thread.onMainThread {
-                    wkWebView.isHidden = false
-                    wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
-                    
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
-                }
-            }
+
+            wkWebView.isHidden = false
+
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+//                Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
+//                
+//                Thread.onMainThread {
+//                    wkWebView.isHidden = false
+//                    wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
+//                    
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
+//                }
+//            }
         }
     }
     
@@ -1728,9 +1740,9 @@ class WebViewController: UIViewController
         
         addNotifications()
         
-        if html.operationQueue.operationCount > 0 {
-            activityButtonIndicator.startAnimating()
-        }
+//        if html.operationQueue.operationCount > 0 {
+//            activityButtonIndicator.startAnimating()
+//        }
         
         orientation = UIDevice.current.orientation
 
@@ -1813,6 +1825,8 @@ class WebViewController: UIViewController
             Alerts.shared.topViewController.removeLast()
         }
 
+//        html.operationQueue.cancelAllOperations()
+        
         Thread.onMainThread {
             NotificationCenter.default.removeObserver(self)
         }

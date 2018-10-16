@@ -267,7 +267,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             process(viewController: self, work: { [weak self] in
-                return setupMediaItemsHTML(self?.mediaItems,includeURLs:false,includeColumns:true)
+                return setupMediaItemsHTML(self?.mediaItems, includeURLs:false, includeColumns:true)
             }, completion: { [weak self] (data:Any?) in
                 if let vc = self {
                     printHTML(viewController: vc, htmlString: data as? String)

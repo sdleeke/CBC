@@ -1475,9 +1475,12 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-        Thread.onMainThread {
-            self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
-            self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+        // This prevents the toolbarItems from being set if this is an embedded viewController.
+        if self == navigationController?.topViewController {
+            Thread.onMainThread {
+                self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+            }
         }
     }
     
@@ -1625,6 +1628,10 @@ class PopoverTableViewController : UIViewController
 
                     self?.updateToolbar()
                     
+                    if let indexPath = self?.section.indexPath(from: self?.selectedText) {
+                        self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                    }
+
                     self?.activityIndicator.stopAnimating()
                     self?.activityIndicator.isHidden = true
                 }

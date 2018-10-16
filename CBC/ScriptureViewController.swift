@@ -73,13 +73,9 @@ extension ScriptureViewController : UIActivityItemSource
         
         if ScriptureViewController.cases.contains(activityType) {
             return html
-        } else {
-            if let text = webViewController?.html.text {
-                return text
-            } else {
-                return "HTML to text conversion still in process.  Please try again later."
-            }
         }
+        
+        return nil
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String

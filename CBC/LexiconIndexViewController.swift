@@ -119,12 +119,15 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.View_Words:
             process(viewController: self, work: { [weak self] () -> (Any?) in
-                var bodyHTML = "<!DOCTYPE html>"
+                // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
+                // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
+                
+                var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</html></body>", with: "") //
+                
+                bodyHTML = bodyHTML + "<html><body>"
                 
                 var wordsHTML = ""
                 var indexHTML = ""
-                
-                bodyHTML = bodyHTML + "<html><body>"
                 
                 if let words = self?.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
                     return lhs < rhs
@@ -146,49 +149,118 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                         }
                     })
                     
-                    bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
+                    bodyHTML += "<br/>"
                     
-                    indexHTML = "<table>"
+//                    bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
+                    bodyHTML = bodyHTML + "<div>Word Index (\(words.count)) (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)<br/><br/>"
                     
-                    indexHTML = indexHTML + "<tr>"
+//                    indexHTML = "<table>"
+//
+//                    indexHTML += "<tr>"
+                    
+                    var index : String?
                     
                     for root in roots.keys.sorted() {
-                        indexHTML = indexHTML + "<td>" + "<a id=\"index\(root)\" name=\"index\(root)\" href=#\(root)>" + root + "</a>" + "</td>"
+                        let link = "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=\"#words\(root)\">\(root)</a>"
+                        index = ((index != nil) ? index! + " " : "") + link
                     }
                     
-                    indexHTML = indexHTML + "</tr>"
+                    indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
                     
-                    indexHTML = indexHTML + "</table>"
+                    if let index = index {
+                        indexHTML += index + "<br/>"
+                    }
 
-                    wordsHTML = "<table>"
+//                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
+//                    for root in roots.keys.sorted() {
+//                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
+//                    }
                     
-                    wordsHTML = wordsHTML + "<tr><td></td></tr>"
+//                    indexHTML += "</tr>"
+//
+//                    indexHTML += "</table>"
+
+                    indexHTML += "<br/>"
+
+                    wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
                     
+                    wordsHTML += "<div class=\"index\">"
+                    
+                    wordsHTML += "<ul class=\"words\">"
+
+//                    wordsHTML += "<tr><td></td></tr>"
+
+//                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
+
                     var section = 0
                     
-                    wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-
+//                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+                    
+                    wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                    
                     for word in words {
                         let first = String(word[..<String.Index(encodedOffset: 1)])
 
                         if first != keys[section] {
                             // New Section
                             section += 1
-                            wordsHTML = wordsHTML + "<tr><td></td></tr>"
+//                            wordsHTML += "<tr><td></td></tr>"
+
+//                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+
+                            wordsHTML += "</ul>"
                             
-                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+                            wordsHTML += "<br/>"
+                            
+                            wordsHTML += "<ul class=\"words\">"
+                            
+                            wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
                         }
                         
-                        wordsHTML = wordsHTML + "<tr><td>" + word + "</td></tr>"
+//                        wordsHTML += "<tr><td>" + word + "</td></tr>"
+                        
+//                        wordsHTML += "<li>" + word + "</li>"
+                        wordsHTML += "<li>"
+                        wordsHTML += word
+                        
+                        // Word Frequency and Links Back to Documents
+//                        if let entries = self?.lexicon?.words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
+//                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
+//                        }) {
+//                            var count = 0
+//                            for entry in entries {
+//                                count += entry.value
+//                            }
+//                            wordsHTML += " (\(count))"
+//
+//                            wordsHTML += "<ul>"
+//                            var i = 1
+//                            for entry in entries {
+//                                if let tag = entry.key.title?.asTag {
+//                                    wordsHTML += "<li class\"back\">"
+//                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
+//                                    wordsHTML += "</li>"
+//                                }
+//                                i += 1
+//                            }
+//                            wordsHTML += "</ul>"
+//                        }
+                        
+                        wordsHTML += "</li>"
                     }
 
-                    wordsHTML = wordsHTML + "</table>"
+                    wordsHTML += "</ul>"
+
+                    wordsHTML += "</div>"
+
+                    wordsHTML += "</div>"
                 }
                 
                 bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
                 
                 return bodyHTML
             }, completion: { (data:Any?) in
+                // preferredModalPresentationStyle(viewController: self)
                 presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
             })
             break
@@ -221,7 +293,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.View_List:
             process(viewController: self, work: { [weak self] () -> (Any?) in
                 if self?.results?.html?.string == nil {
-                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
+                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true)
                 }
                 
                 return self?.results?.html?.string
@@ -490,11 +562,20 @@ class LexiconIndexViewController : UIViewController
         super.viewWillTransition(to: size, with: coordinator)
         
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            self.setTableViewHeightConstraint(change:0)
+
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            self.setTableViewHeightConstraint(change:0)
+            if self.tableViewHeightConstraint.isActive {
+                self.tableViewHeightConstraint.constant = CGFloat(UserDefaults.standard.double(forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT"))
+            }
             self.updateLocateButton()
         }
+    }
+    
+    override func viewDidLayoutSubviews()
+    {
+        super.viewDidLayoutSubviews()
+        
+        setTableViewHeightConstraint(change:0)
     }
     
     func setTableViewHeightConstraint(change:CGFloat)
@@ -503,44 +584,55 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
+        var constant:CGFloat = tableViewHeightConstraint.constant
+        
         if searchText == nil {
-            tableViewHeightConstraint.constant = view.bounds.height
+            constant = 0
         }
         
         updateToolbar()
 
-        var maxHeight:CGFloat = 250
+        var maxHeight:CGFloat = 200
         
-        let tableViewControllerSpace = view.bounds.height - container.frame.origin.y
+        let wordsTableViewControllerSpace = self.view.bounds.height - container.frame.origin.y
         
         if searchText == nil {
-            maxHeight = tableViewControllerSpace // - locateView.frame.height
+            maxHeight = wordsTableViewControllerSpace
         }
         
-        let newConstraintConstant = tableViewHeightConstraint.constant - change
+        let newConstraintConstant = constant + change
         
-        let minimum = searchText != nil ? locateView.frame.height : 0
+        let resultsOverhead = searchText != nil ? locateView.frame.height : 0
         
-        let tableViewSpace = view.bounds.height //- minimum
+        let resultsMinimum = searchText != nil ? tableView.rowHeight : 0
         
-        if (newConstraintConstant >= minimum) && (newConstraintConstant <= tableViewSpace) {
-            tableViewHeightConstraint.constant = newConstraintConstant
+        let resultsTableViewSpace = self.view.bounds.height - resultsOverhead
+        
+        if (newConstraintConstant >= resultsMinimum) && (newConstraintConstant <= resultsTableViewSpace) {
+            constant = newConstraintConstant
         } else {
-            if newConstraintConstant < minimum {
-                tableViewHeightConstraint.constant = minimum
+            if newConstraintConstant < resultsMinimum {
+                constant = resultsMinimum
             }
             
-            if newConstraintConstant > tableViewSpace {
-                tableViewHeightConstraint.constant = tableViewSpace
+            if newConstraintConstant > resultsTableViewSpace {
+                constant = resultsTableViewSpace
             }
         }
         
-        wordsTableViewControllerHeightConstraint.constant = max(tableViewControllerSpace - ((view.bounds.height - tableViewHeightConstraint.constant) + minimum),maxHeight)
-        
-        UserDefaults.standard.set(tableViewHeightConstraint.constant, forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT")
-        UserDefaults.standard.synchronize()
+        wordsTableViewControllerHeightConstraint.constant = max(wordsTableViewControllerSpace - (constant + resultsOverhead),maxHeight) // ((view.bounds.height - constant) + minimum)
 
-        updateLocateButton()
+        locateButton.isEnabled = maxHeight <= (wordsTableViewControllerSpace - (constant + resultsOverhead))
+        
+        tableViewHeightConstraint.constant = constant
+
+        if change != 0 {
+            // If the change is non-zero we need to update the locate button and save the constraint height.
+            updateLocateButton()
+            UserDefaults.standard.set(tableViewHeightConstraint.constant, forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT")
+            UserDefaults.standard.synchronize()
+        }
+
         updateToolbar()
 
         view.setNeedsLayout()
@@ -924,37 +1016,27 @@ class LexiconIndexViewController : UIViewController
     {
         // Not necessarily called on the main thread.
         
-        if (self.searchText != nil) {
-            Thread.onMainThread {
-                self.locateView.isHidden = false
-                self.locateButton.isHidden = false
-                
-                if self.tableViewHeightConstraint.isActive {
-                    if self.tableViewHeightConstraint.constant < 250 {
-                        self.locateButton.isEnabled = false
-                    } else {
-                        if !self.wordsTableViewController.tableView.isHidden {
-                            // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
-                            // See notification SORTING_CHANGED
-                            self.locateButton.isEnabled = !self.wordsTableViewController.sort.sorting
-                        } else {
-                            self.locateButton.isEnabled = false
-                        }
-                    }
-                } else {
-                    if !self.wordsTableViewController.tableView.isHidden {
-                        // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
-                        // See notification SORTING_CHANGED
-                        self.locateButton.isEnabled = !self.wordsTableViewController.sort.sorting
-                    } else {
-                        self.locateButton.isEnabled = false
-                    }
-                }
-            }
-        } else {
+        guard self.searchText != nil else {
             Thread.onMainThread {
                 self.locateView.isHidden = true
                 self.locateButton.isHidden = true
+                self.locateButton.isEnabled = false
+            }
+            return
+        }
+
+        // isEnabled is first set here.
+        setTableViewHeightConstraint(change:0)
+
+        Thread.onMainThread {
+            self.locateView.isHidden = false
+            self.locateButton.isHidden = false
+            
+            if !self.wordsTableViewController.tableView.isHidden {
+                // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
+                // See notification SORTING_CHANGED
+                self.locateButton.isEnabled = !self.wordsTableViewController.sort.sorting && (self.tableViewHeightConstraint.isActive ? self.locateButton.isEnabled : true)
+            } else {
                 self.locateButton.isEnabled = false
             }
         }
@@ -993,9 +1075,19 @@ class LexiconIndexViewController : UIViewController
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
 
-        updateSearchResults()
+        wordsTableViewController.selectedText = searchText
 
-        lexicon?.build()
+        updateSearchResults()
+    }
+    
+    override func viewDidAppear(_ animated: Bool)
+    {
+        super.viewDidAppear(animated)
+        
+        if lexicon?.completed == false {
+            wordsTableViewController.activityIndicator.startAnimating()
+            lexicon?.build()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1011,17 +1103,6 @@ class LexiconIndexViewController : UIViewController
         
     }
 
-    override func viewDidAppear(_ animated: Bool)
-    {
-        super.viewDidAppear(animated)
-        
-        if lexicon?.completed == false {
-            wordsTableViewController.activityIndicator.startAnimating()
-        }
-
-        wordsTableViewController.selectString(searchText,scroll: true,select: true)
-    }
-    
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
     {
         guard let mediaItems = results?.mediaItems else {
@@ -1110,7 +1191,7 @@ class LexiconIndexViewController : UIViewController
                     
                     let speakerCount = speakerCounts.keys.count
                     
-                    let tag = key.replacingOccurrences(of: " ", with: "")
+                    let tag = key.asTag
 
                     if includeColumns {
                         bodyString = bodyString + "<tr><td><br/></td></tr>"
@@ -1228,7 +1309,7 @@ class LexiconIndexViewController : UIViewController
                                     for key in keys {
                                         if let title = results?.groupNames?[grouping]?[key],
                                             let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
-                                            let tag = key.replacingOccurrences(of: " ", with: "")
+                                            let tag = key.asTag
                                             bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                         }
                                     }
@@ -1244,7 +1325,7 @@ class LexiconIndexViewController : UIViewController
                         for key in keys {
                             if let title = results?.groupNames?[grouping]?[key],
                                 let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
-                                let tag = key.replacingOccurrences(of: " ", with: "")
+                                let tag = key.asTag
                                 bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                             }
                         }
@@ -1267,7 +1348,7 @@ class LexiconIndexViewController : UIViewController
 
         if lexicon?.tokens?.count > 0 {
             actionMenu.append(Constants.Strings.Word_Picker)
-//            actionMenu.append(Constants.Strings.View_Words)
+            actionMenu.append(Constants.Strings.View_Words)
         }
 
         if results?.list?.count > 0 {
@@ -1495,14 +1576,15 @@ class LexiconIndexViewController : UIViewController
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)
-
-        if let isToolbarHidden = navigationController?.isToolbarHidden, let height = navigationController?.toolbar.frame.height {
-            let height = view.bounds.height + (!isToolbarHidden ? height : 0)
-            
-            if navigationController?.visibleViewController == self {
-                self.navigationController?.isToolbarHidden = (height - tableViewHeightConstraint.constant) < tableView.rowHeight
-            }
-        }
+        self.navigationController?.isToolbarHidden = false
+        
+//        if let isToolbarHidden = navigationController?.isToolbarHidden, let height = navigationController?.toolbar.frame.height {
+//            let height = self.view.bounds.height + (!isToolbarHidden ? height : 0)
+//
+//            if navigationController?.visibleViewController == self {
+//                self.navigationController?.isToolbarHidden = (height - tableViewHeightConstraint.constant) < tableView.rowHeight
+//            }
+//        }
     }
     
     func updateUI()

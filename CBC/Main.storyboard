@@ -2005,7 +2005,7 @@ Web site: www.countrysidebible.org</string>
                                 <rect key="frame" x="0.0" y="100" width="600" height="262.5"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
+                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="22" width="600" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
@@ -2013,7 +2013,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="15" y="11" width="258" height="13"/>
+                                                    <rect key="frame" x="15" y="11" width="818" height="13"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2501,6 +2501,9 @@ Web site: www.countrysidebible.org</string>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="87d-zJ-TEW">
                                 <rect key="frame" x="0.0" y="390" width="600" height="146"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="146" id="WEj-cT-VmX"/>
+                                </constraints>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="1" width="600" height="100"/>
@@ -2590,6 +2593,11 @@ Web site: www.countrysidebible.org</string>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
+                                <variation key="heightClass=compact">
+                                    <mask key="constraints">
+                                        <exclude reference="WEj-cT-VmX"/>
+                                    </mask>
+                                </variation>
                                 <connections>
                                     <outlet property="dataSource" destination="3Dc-QY-O2e" id="LCs-jh-Hd1"/>
                                     <outlet property="delegate" destination="3Dc-QY-O2e" id="8hm-b1-DpS"/>
@@ -2630,6 +2638,7 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="jed-4m-NM7"/>
                                 <exclude reference="wLX-xL-swV"/>
                                 <exclude reference="9Zg-3B-5SV"/>
+                                <exclude reference="xDq-Q9-4W3"/>
                                 <exclude reference="f4l-NH-H0I"/>
                             </mask>
                         </variation>
@@ -2668,7 +2677,7 @@ Web site: www.countrysidebible.org</string>
                         <outlet property="selectedWord" destination="VQa-4x-Xe7" id="yTp-n7-mzr"/>
                         <outlet property="spinner" destination="G5M-pO-tba" id="rfp-VS-kTI"/>
                         <outlet property="tableView" destination="87d-zJ-TEW" id="mb5-go-Fju"/>
-                        <outlet property="tableViewHeightConstraint" destination="xDq-Q9-4W3" id="ET9-1A-fN8"/>
+                        <outlet property="tableViewHeightConstraint" destination="WEj-cT-VmX" id="bdA-EI-Vnc"/>
                         <outlet property="wordsTableViewControllerHeightConstraint" destination="Ylg-kh-VNF" id="KT8-ch-PDf"/>
                     </connections>
                 </viewController>
@@ -2782,7 +2791,7 @@ Web site: www.countrysidebible.org</string>
         <image name="tom_pennington" width="576" height="576"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="Ssd-jc-3ar"/>
+        <segue reference="JSY-k4-oht"/>
         <segue reference="aB1-TK-hgY"/>
         <segue reference="h1S-N1-N0w"/>
         <segue reference="viU-Ce-4kR"/>

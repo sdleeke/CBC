@@ -66,6 +66,21 @@ extension Double {
 
 extension String
 {
+    var asTag : String
+    {
+        get {
+            var string = String()
+            
+            for char in self {
+                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet.alphanumerics.contains(unicodeScalar) { // !CharacterSet(charactersIn:
+                    string.append(char)
+                }
+            }
+
+            return string
+        }
+    }
+        
     var withoutPrefixes : String
     {
         get {

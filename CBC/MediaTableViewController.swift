@@ -1448,7 +1448,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 } else {
                     process(viewController: self, work: { [weak self] () -> (Any?) in
                         if Globals.shared.media.active?.html?.string == nil {
-                            Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
+                            Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
                         }
                         return Globals.shared.media.active?.html?.string
                     }, completion: { [weak self] (data:Any?) in

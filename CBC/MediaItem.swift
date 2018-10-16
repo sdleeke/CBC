@@ -903,7 +903,7 @@ class MediaItem : NSObject
             }
             
             if var string = speaker {
-                if let speakerTitle = Globals.shared.mediaTeachers?[string] {
+                if let speakerTitle = speakerTitle {
                     string += ", \(speakerTitle)"
                 }
 
@@ -1169,6 +1169,17 @@ class MediaItem : NSObject
             }
 
             return speaker
+        }
+    }
+    
+    var speakerTitle:String?
+    {
+        get {
+            guard let speaker = speaker else {
+                return nil
+            }
+            
+            return Globals.shared.mediaTeachers?[speaker]
         }
     }
     
@@ -2280,7 +2291,7 @@ class MediaItem : NSObject
         get {
             var bodyString = "<!DOCTYPE html><html><body>"
             
-            if let string = bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: true, includeColumns: true) {
+            if let string = bodyHTML(order:["date","title","scripture","speaker"], token:nil, includeURLs:true, includeColumns:true) {
                 bodyString = bodyString + string
             }
             
@@ -2363,7 +2374,8 @@ class MediaItem : NSObject
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">"
                     if let title = self.title {
                         if includeURLs, let websiteURL = websiteURL?.absoluteString {
-                            bodyString = bodyString! + "<a target=\"_blank\" href=\"" + websiteURL + "\">\(title)</a>"
+                            let tag = title.asTag
+                            bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" target=\"_blank\" href=\"" + websiteURL + "\">\(title)</a>"
                         } else {
                             bodyString = bodyString! + title
                         }
@@ -2381,7 +2393,11 @@ class MediaItem : NSObject
                     
                 case "speaker":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">"
-                    if hasSpeaker, let speaker = self.speaker {
+                    if hasSpeaker, var speaker = self.speaker {
+                        if let speakerTitle = speakerTitle {
+                            speaker += ", \(speakerTitle)"
+                        }
+
                         bodyString = bodyString! + speaker
                     }
                     bodyString = bodyString! + "</td>"

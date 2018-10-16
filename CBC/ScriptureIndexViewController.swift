@@ -81,7 +81,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.View_List:
                 process(viewController: self, work: { [weak self] () -> (Any?) in
                     if self?.scriptureIndex?.html?.string == nil {
-                        self?.scriptureIndex?.html?.string = self?.setupMediaItemsHTMLScripture(self?.mediaItems, includeURLs: true, includeColumns: true)
+                        self?.scriptureIndex?.html?.string = self?.setupMediaItemsHTMLScripture(self?.mediaItems, includeURLs:true, includeColumns:true)
                     }
                     
                     return self?.scriptureIndex?.html?.string
@@ -1103,7 +1103,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         for book in books {
-            let tag = book.replacingOccurrences(of: " ", with: "")
+            let tag = book.asTag
 
             if includeColumns {
                 bodyString  = bodyString + "<tr><td><br/></td></tr>"
@@ -1174,7 +1174,7 @@ class ScriptureIndexViewController : UIViewController
 
             for book in books {
                 if let count = bodyItems[book]?.count {
-                    bodyString = bodyString + "<a href=\"#\(book.replacingOccurrences(of: " ", with: ""))\">\(book) (\(count))</a><br/>"
+                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
                 }
             }
             
