@@ -152,7 +152,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     bodyHTML += "<br/>"
                     
 //                    bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
-                    bodyHTML = bodyHTML + "<div>Word Index (\(words.count)) (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)<br/><br/>"
+                    bodyHTML = bodyHTML + "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
                     
 //                    indexHTML = "<table>"
 //

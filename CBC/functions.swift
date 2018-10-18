@@ -1058,8 +1058,10 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
             chars = Constants.EMPTY_STRING
         }
         if (endVerse != 0) {
-            for verse in startVerse...endVerse {
-                verses.append(verse)
+            if endVerse >= startVerse {
+                for verse in startVerse...endVerse {
+                    verses.append(verse)
+                }
             }
         } else {
             verses.append(startVerse)
@@ -1131,11 +1133,13 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
             break
         }
         
-        for verse in startVerse...endVerse {
-            if chaptersAndVerses[chapter] == nil {
-                chaptersAndVerses[chapter] = [verse]
-            } else {
-                chaptersAndVerses[chapter]?.append(verse)
+        if endVerse >= startVerse {
+            for verse in startVerse...endVerse {
+                if chaptersAndVerses[chapter] == nil {
+                    chaptersAndVerses[chapter] = [verse]
+                } else {
+                    chaptersAndVerses[chapter]?.append(verse)
+                }
             }
         }
     }
@@ -1374,8 +1378,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                                     if startVerse == endVerse {
                                                         chaptersAndVerses[chapter]?.append(startVerse)
                                                     } else {
-                                                        for verse in startVerse...endVerse {
-                                                            chaptersAndVerses[chapter]?.append(verse)
+                                                        if endVerse >= startVerse {
+                                                            for verse in startVerse...endVerse {
+                                                                chaptersAndVerses[chapter]?.append(verse)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1391,8 +1397,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                             if chaptersAndVerses[currentChapter] == nil {
                                                 chaptersAndVerses[currentChapter] = [Int]()
                                             }
-                                            for verse in startVerse...endVerse {
-                                                chaptersAndVerses[currentChapter]?.append(verse)
+                                            if endVerse >= startVerse {
+                                                for verse in startVerse...endVerse {
+                                                    chaptersAndVerses[currentChapter]?.append(verse)
+                                                }
                                             }
                                             startVerse = 0
                                         }
@@ -1466,8 +1474,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             if startVerse == endVerse {
                                 chaptersAndVerses[startChapter]?.append(startVerse)
                             } else {
-                                for verse in startVerse...endVerse {
-                                    chaptersAndVerses[startChapter]?.append(verse)
+                                if endVerse >= startVerse {
+                                    for verse in startVerse...endVerse {
+                                        chaptersAndVerses[startChapter]?.append(verse)
+                                    }
                                 }
                             }
                             
@@ -1512,8 +1522,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                         if startVerse == endVerse {
                                             chaptersAndVerses[chapter]?.append(startVerse)
                                         } else {
-                                            for verse in startVerse...endVerse {
-                                                chaptersAndVerses[chapter]?.append(verse)
+                                            if endVerse >= startVerse {
+                                                for verse in startVerse...endVerse {
+                                                    chaptersAndVerses[chapter]?.append(verse)
+                                                }
                                             }
                                         }
                                     }
@@ -1539,8 +1551,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     if startVerse == endVerse {
                                         chaptersAndVerses[endChapter]?.append(startVerse)
                                     } else {
-                                        for verse in startVerse...endVerse {
-                                            chaptersAndVerses[endChapter]?.append(verse)
+                                        if endVerse >= startVerse {
+                                            for verse in startVerse...endVerse {
+                                                chaptersAndVerses[endChapter]?.append(verse)
+                                            }
                                         }
                                     }
                                 }
@@ -1587,8 +1601,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             if startVerse == endVerse {
                                 chaptersAndVerses[startChapter]?.append(startVerse)
                             } else {
-                                for verse in startVerse...endVerse {
-                                    chaptersAndVerses[startChapter]?.append(verse)
+                                if endVerse >= startVerse {
+                                    for verse in startVerse...endVerse {
+                                        chaptersAndVerses[startChapter]?.append(verse)
+                                    }
                                 }
                             }
                             
@@ -1633,8 +1649,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                         if startVerse == endVerse {
                                             chaptersAndVerses[chapter]?.append(startVerse)
                                         } else {
-                                            for verse in startVerse...endVerse {
-                                                chaptersAndVerses[chapter]?.append(verse)
+                                            if endVerse >= startVerse {
+                                                for verse in startVerse...endVerse {
+                                                    chaptersAndVerses[chapter]?.append(verse)
+                                                }
                                             }
                                         }
                                     }
@@ -1673,8 +1691,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 if startVerse == endVerse {
                                     chaptersAndVerses[endChapter]?.append(startVerse)
                                 } else {
-                                    for verse in startVerse...endVerse {
-                                        chaptersAndVerses[endChapter]?.append(verse)
+                                    if endVerse >= startVerse {
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[endChapter]?.append(verse)
+                                        }
                                     }
                                 }
                             }
@@ -1729,8 +1749,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 if startVerse == endVerse {
                                     chaptersAndVerses[currentChapter]?.append(startVerse)
                                 } else {
-                                    for verse in startVerse...endVerse {
-                                        chaptersAndVerses[currentChapter]?.append(verse)
+                                    if endVerse >= startVerse {
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        }
                                     }
                                 }
                                 
@@ -1778,8 +1800,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                             if startVerse == endVerse {
                                                 chaptersAndVerses[chapter]?.append(startVerse)
                                             } else {
-                                                for verse in startVerse...endVerse {
-                                                    chaptersAndVerses[chapter]?.append(verse)
+                                                if endVerse >= startVerse {
+                                                    for verse in startVerse...endVerse {
+                                                        chaptersAndVerses[chapter]?.append(verse)
+                                                    }
                                                 }
                                             }
                                         }
@@ -1801,8 +1825,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     if startVerse == endVerse {
                                         chaptersAndVerses[currentChapter]?.append(startVerse)
                                     } else {
-                                        for verse in startVerse...endVerse {
-                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        if endVerse >= startVerse {
+                                            for verse in startVerse...endVerse {
+                                                chaptersAndVerses[currentChapter]?.append(verse)
+                                            }
                                         }
                                     }
                                     
@@ -1823,8 +1849,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 if startVerse == endVerse {
                                     chaptersAndVerses[currentChapter]?.append(startVerse)
                                 } else {
-                                    for verse in startVerse...endVerse {
-                                        chaptersAndVerses[currentChapter]?.append(verse)
+                                    if endVerse >= startVerse {
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        }
                                     }
                                 }
                                 
@@ -1909,8 +1937,10 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                 if chaptersAndVerses[currentChapter] == nil {
                     chaptersAndVerses[currentChapter] = [Int]()
                 }
-                for verse in startVerse...endVerse {
-                    chaptersAndVerses[currentChapter]?.append(verse)
+                if endVerse >= startVerse {
+                    for verse in startVerse...endVerse {
+                        chaptersAndVerses[currentChapter]?.append(verse)
+                    }
                 }
             } else {
                 chaptersAndVerses[currentChapter] = [startVerse]

@@ -79,8 +79,7 @@ class BooksChaptersVerses : Swift.Comparable
                         if lhsBooks?.count != rhsBooks?.count {
                             return false
                         } else {
-                            //                        print(lhsBooks)
-                            if let count = lhsBooks?.count {
+                            if let count = lhsBooks?.count, count > 0 {
                                 for index in 0...(count - 1) {
                                     if lhsBooks?[index] != rhsBooks?[index] {
                                         return false
@@ -103,7 +102,7 @@ class BooksChaptersVerses : Swift.Comparable
                                                 if lhsChapters?.count != rhsChapters?.count {
                                                     return false
                                                 } else {
-                                                    if let count = lhsChapters?.count {
+                                                    if let count = lhsChapters?.count, count > 0 {
                                                         for index in 0...(count - 1) {
                                                             if lhsChapters?[index] != rhsChapters?[index] {
                                                                 return false
@@ -126,7 +125,7 @@ class BooksChaptersVerses : Swift.Comparable
                                                                         if lhsVerses?.count != rhsVerses?.count {
                                                                             return false
                                                                         } else {
-                                                                            if let count = lhsVerses?.count {
+                                                                            if let count = lhsVerses?.count, count > 0 {
                                                                                 for index in 0...(count - 1) {
                                                                                     if lhsVerses?[index] != rhsVerses?[index] {
                                                                                         return false

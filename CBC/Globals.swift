@@ -565,9 +565,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         print("saveSettings")
         let defaults = UserDefaults.standard
-        //    print("\(settings)")
         defaults.set(mediaItemSettings.copy,forKey: Constants.SETTINGS.MEDIA)
-        //    print("\(seriesViewSplits)")
         defaults.set(multiPartSettings.copy, forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
         defaults.synchronize()
     }
@@ -575,7 +573,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     func clearSettings()
     {
         let defaults = UserDefaults.standard
-        //    print("\(settings)")
         defaults.removeObject(forKey: Constants.SETTINGS.MEDIA)
         defaults.removeObject(forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
         defaults.removeObject(forKey: Constants.SETTINGS.CATEGORY)
@@ -644,7 +641,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
 
             if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
-                //        print("\(settingsDictionary)")
                 history = historyArray as? [String]
             }
         } else {
@@ -689,8 +685,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         } else {
             history?.append(entry)
         }
-        
-        //        print(history)
         
         let defaults = UserDefaults.standard
         defaults.set(history, forKey: Constants.SETTINGS.HISTORY)

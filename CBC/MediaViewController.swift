@@ -4621,7 +4621,15 @@ class MediaViewController: UIViewController
                 if #available(iOS 11.0, *) {
                     if zoomScale == nil {
                         if let data = document?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
-                            zoomScale = self.mediaItemNotesAndSlides.frame.width / (page.bounds(for: .bleedBox).width * 1.05)
+                            // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
+                            // I have no idea why these magic numbers are required.
+                            // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
+                            // varies by device.
+                            if page.bounds(for: .mediaBox).width > self.mediaItemNotesAndSlides.frame.width {
+                                zoomScale = (self.mediaItemNotesAndSlides.frame.width * 0.75) / page.bounds(for: .mediaBox).width
+                            } else {
+                                zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / self.mediaItemNotesAndSlides.frame.width
+                            }
                         }
                     }
                 }

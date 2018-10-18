@@ -378,73 +378,79 @@ class MediaItem : NSObject
         }
     }
     
-    var multiPartMediaItems:[MediaItem]? {
+    var multiPartMediaItems:[MediaItem]?
+    {
         get {
-            if (hasMultipleParts) {
-                var mediaItemParts:[MediaItem]?
+            guard hasMultipleParts else {
+                return [self]
+            }
 
-                if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-                    mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        if testMediaItem.hasMultipleParts {
-                            return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
-                        } else {
-                            return false
-                        }
+            var mediaItemParts:[MediaItem]?
+
+            if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+                mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    if testMediaItem.hasMultipleParts {
+                        return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
+                    } else {
+                        return false
+                    }
+                })
+            } else {
+                if let multiPartSort = multiPartSort {
+                    mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
+                    })
+                }
+            }
+
+            // Filter for conference series
+            
+            // Second sort by title is necessary if they all fall on the same day!
+            if conferenceCode != nil {
+                mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    return testMediaItem.conferenceCode == conferenceCode
+                }),sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                    first.title?.withoutPrefixes < second.title?.withoutPrefixes
+                })
+            } else {
+                if hasClassName {
+                    mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                        return testMediaItem.classCode == classCode
+                    }),sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                        first.title?.withoutPrefixes < second.title?.withoutPrefixes
                     })
                 } else {
-                    if let multiPartSort = multiPartSort {
-                        mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
-                            return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
-                        })
-                    }
+                    mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: SORTING.CHRONOLOGICAL)
                 }
-
-                // Filter for conference series
+            }
+            
+            // Filter for multiple series of the same name
+            var mediaList = [MediaItem]()
+            
+            if mediaItemParts?.count > 1 {
+                var number = 0
                 
-                if conferenceCode != nil {
-                    mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        return testMediaItem.conferenceCode == conferenceCode
-                    }),sorting: SORTING.CHRONOLOGICAL)
-                } else {
-                    if hasClassName {
-                        mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
-                            return testMediaItem.classCode == classCode
-                        }),sorting: SORTING.CHRONOLOGICAL)
-                    } else {
-                        mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: SORTING.CHRONOLOGICAL)
-                    }
-                }
-                
-                // Filter for multiple series of the same name
-                var mediaList = [MediaItem]()
-                
-                if mediaItemParts?.count > 1 {
-                    var number = 0
-                    
-                    if let mediaItemParts = mediaItemParts {
-                        for mediaItem in mediaItemParts {
-                            if let part = mediaItem.part, let partNumber = Int(part) {
-                                if partNumber > number {
-                                    mediaList.append(mediaItem)
-                                    number = partNumber
+                if let mediaItemParts = mediaItemParts {
+                    for mediaItem in mediaItemParts {
+                        if let part = mediaItem.part, let partNumber = Int(part) {
+                            if partNumber > number {
+                                mediaList.append(mediaItem)
+                                number = partNumber
+                            } else {
+                                if (mediaList.count > 0) && mediaList.contains(self) {
+                                    break
                                 } else {
-                                    if (mediaList.count > 0) && mediaList.contains(self) {
-                                        break
-                                    } else {
-                                        mediaList = [mediaItem]
-                                        number = partNumber
-                                    }
+                                    mediaList = [mediaItem]
+                                    number = partNumber
                                 }
                             }
                         }
                     }
-                    
-                    return mediaList.count > 0 ? mediaList : nil
-                } else {
-                    return mediaItemParts
                 }
+                
+                return mediaList.count > 0 ? mediaList : nil
             } else {
-                return [self]
+                return mediaItemParts
             }
         }
     }

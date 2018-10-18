@@ -50,7 +50,7 @@ class Document : NSObject
             if #available(iOS 11.0, *) {
                 if self.purpose == Purpose.slides, let docData = data {
                     if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
-                        let rect = page.bounds(for: .cropBox)
+                        let rect = page.bounds(for: .mediaBox)
                         
                         if let pageImage = self.mediaItem?.poster.image {
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
