@@ -1123,35 +1123,71 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             Globals.shared.mediaCategory.selected = string
             
-            Globals.shared.mediaPlayer.unobserve()
-            
-            Globals.shared.mediaPlayer.pause()
-
-            Globals.shared.cancelAllDownloads()
-            display.clear()
-            
             Thread.onMainThread {
-                self.tableView?.reloadData()
+                self.mediaCategoryButton.setTitle(Globals.shared.mediaCategory.selected)
+                self.tagLabel.text = nil
+            }
+
+            process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
+                self.display.clear()
                 
-                self.tableView?.isHidden = true
-                if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                    self.logo.isHidden = true // Don't like it offset, just hide it for now
+                self.selectedMediaItem = Globals.shared.selectedMediaItem.master
+                
+                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                    mediaItem.category == Globals.shared.mediaCategory.selected
+                }))
+                
+                if let tag = Globals.shared.media.tags.selected {
+                    Globals.shared.media.tagged.clear()
+                    Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
                 }
 
-                if self.splitViewController?.viewControllers.count > 1 {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+                self.display.setup(Globals.shared.media.active)
+                
+                return nil
+            }) { (data:Any?) in
+                self.updateUI()
+                Thread.onMainThread {
+                    self.tableView?.reloadData()
+                    
+                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
+                    
+                    // Need to update the MVC cells.
+                    if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed {
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+                    }
                 }
             }
-            
-            tagLabel.text = nil
-            
-            // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-            Globals.shared.media = Media()
 
-            loadMediaItems()
-            {
-                self.loadCompletion()
-            }
+//            Globals.shared.mediaPlayer.unobserve()
+//
+//            Globals.shared.mediaPlayer.pause()
+//
+//            Globals.shared.cancelAllDownloads()
+//            display.clear()
+//
+//            Thread.onMainThread {
+//                self.tableView?.reloadData()
+//
+//                self.tableView?.isHidden = true
+//                if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+//                    self.logo.isHidden = true // Don't like it offset, just hide it for now
+//                }
+//
+//                if self.splitViewController?.viewControllers.count > 1 {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+//                }
+//            }
+//
+//            tagLabel.text = nil
+//
+//            // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+//            Globals.shared.media = Media()
+//
+//            loadMediaItems()
+//            {
+//                self.loadCompletion()
+//            }
             break
             
         case .selectingCellSearch:
@@ -1633,7 +1669,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Couldn't get categories from network, try to get media, use last downloaded
                     if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
-                        downloadJSON(url:Constants.JSON.URL.CATEGORY + selectedID,filename:mediaFileName)
+                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
                     }
                     break
                     
@@ -1655,7 +1691,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Load media
                     if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
-                        downloadJSON(url:Constants.JSON.URL.CATEGORY + selectedID,filename:mediaFileName)
+                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
                     }
                     break
                     
@@ -2447,7 +2483,9 @@ class MediaTableViewController : UIViewController
                 self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
             }
             
-            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                mediaItem.category == Globals.shared.mediaCategory.selected
+            }))
             
             if Globals.shared.search.valid {
                 Thread.onMainThread {
@@ -2768,6 +2806,28 @@ class MediaTableViewController : UIViewController
         self.setupTitle()
         self.tableView?.isHidden = false
         self.logo.isHidden = true
+        
+        if let goto = Globals.shared.media.goto {
+            navigationController?.popToRootViewController(animated: false)
+            Globals.shared.media.goto = nil 
+            if let mediaItem = Globals.shared.mediaRepository.index?[goto] {
+                Globals.shared.selectedMediaItem.master = mediaItem
+                selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
+               
+                // Delay required for iPhone
+                DispatchQueue.global(qos: .background).async {
+                    Thread.onMainThread {
+                        self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
+                    }
+                }
+//            } else {
+//                if let category = Globals.shared.mediaCategory.selected {
+//                    Alerts.shared.alert(title: "Unable to Find Media", message: "The media \(goto) is not in the current category: \(category)")
+//                } else {
+//                    Alerts.shared.alert(title: "Unable to Find Media", message: "The media \(goto) was not found.")
+//                }
+            }
+        }
     }
 
     func load()
@@ -3306,7 +3366,6 @@ class MediaTableViewController : UIViewController
             }
         }
     }
-
     
     fileprivate func setupTag()
     {
@@ -3329,7 +3388,6 @@ class MediaTableViewController : UIViewController
             }
         }
     }
-    
 
     func setupTitle()
     {

@@ -632,6 +632,27 @@ class ScriptureViewController : UIViewController
         dismiss(animated: true, completion: nil)
     }
     
+    @objc func showFullScreen()
+    {
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? ScriptureViewController else {
+            return
+        }
+
+        dismiss(animated: false, completion: nil)
+        
+        navigationController.modalPresentationStyle = .overFullScreen
+        navigationController.popoverPresentationController?.delegate = popover
+        
+        popover.navigationItem.title = self.scripture?.description // navigationItem.title
+
+        popover.scripture = scripture
+        
+        popover.navigationController?.isNavigationBarHidden = false
+        
+        Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
+    }
+    
     fileprivate func setupBarButtons()
     {
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(increaseFontSize))
@@ -640,25 +661,33 @@ class ScriptureViewController : UIViewController
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        if let minusButton = minusButton, let plusButton = plusButton {
-            navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
-        }
-        
-        if let presentationStyle = navigationController?.modalPresentationStyle {
+        let fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
+        fullScreenButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
+        if let minusButton = minusButton, let plusButton = plusButton, let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .formSheet:
-                fallthrough
+                navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                
             case .overCurrentContext:
-                fallthrough
+                if Globals.shared.splitViewController.isCollapsed == false {
+                    navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                } else {
+                    navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                }
+                
             case .fullScreen:
                 fallthrough
+                
             case .overFullScreen:
-                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+                navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
 
             default:
                 break
             }
         }
+
+        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
     }
     
     var activityViewController:UIActivityViewController?

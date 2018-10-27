@@ -23,7 +23,9 @@ class SelectedMediaItem
         }
         
         set {
-            Globals.shared.mediaCategory.selectedInMaster = newValue?.id
+            if newValue?.category == Globals.shared.mediaCategory.selected {
+                Globals.shared.mediaCategory.selectedInMaster = newValue?.id
+            }
         }
     }
     
@@ -32,16 +34,30 @@ class SelectedMediaItem
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInDetail {
+            if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
                 selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
             }
             
             return selectedMediaItem
         }
-        
         set {
-            Globals.shared.mediaCategory.selectedInDetail = newValue?.id
+            UserDefaults.standard.set(newValue?.id, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+            UserDefaults.standard.synchronize()
         }
+
+//        get {
+//            var selectedMediaItem:MediaItem?
+//
+//            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInDetail {
+//                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
+//            }
+//
+//            return selectedMediaItem
+//        }
+//
+//        set {
+//            Globals.shared.mediaCategory.selectedInDetail = newValue?.id
+//        }
     }
 }
 

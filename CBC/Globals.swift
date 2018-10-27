@@ -623,7 +623,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             if media.tags.showing == Constants.TAGGED, let tag = mediaCategory.tag, media.tagged[tag] == nil {
                 if media.all == nil {
                     //This is filtering, i.e. searching all mediaItems => s/b in background
-                    media.tagged[tag] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
+                    media.tagged[tag] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                        return mediaItem.category == mediaCategory.selected
+                    }), tag: media.tags.selected))
                 } else {
                     if let sortTag = media.tags.selected?.withoutPrefixes {
                         media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])

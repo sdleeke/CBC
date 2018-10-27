@@ -104,15 +104,15 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case Constants.Strings.Print_Slides:
-            fallthrough
-        case Constants.Strings.Print_Transcript:
-            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
-            break
+//        case Constants.Strings.Print_Slides:
+//            fallthrough
+//        case Constants.Strings.Print_Transcript:
+//            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+//            break
             
         case Constants.Strings.Share_Slides:
             fallthrough
-        case Constants.Strings.Share_Transcript:
+        case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
             share()
             break
 
@@ -277,7 +277,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Refresh_Document:
             fallthrough
-        case Constants.Strings.Refresh_Transcript:
+        case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
             fallthrough
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
@@ -2076,7 +2076,9 @@ class MediaViewController: UIViewController
         if let purpose = document?.purpose { // UIPrintInteractionController.isPrintingAvailable
             switch purpose {
             case Purpose.notes:
-                actionMenu.append(Constants.Strings.Share_Transcript)
+                if let notesName = selectedMediaItem.notesName {
+                    actionMenu.append(Constants.Strings.Share + " " + notesName)
+                }
                 break
                 
             case Purpose.slides:
@@ -2091,7 +2093,9 @@ class MediaViewController: UIViewController
         if document != nil, let purpose = document?.purpose { // Globals.shared.cacheDownloads,
             switch purpose {
             case Purpose.notes:
-                actionMenu.append(Constants.Strings.Refresh_Transcript)
+                if let notesName = selectedMediaItem.notesName {
+                    actionMenu.append(Constants.Strings.Refresh + " " + notesName)
+                }
                 break
                 
             case Purpose.slides:
@@ -3494,8 +3498,24 @@ class MediaViewController: UIViewController
         guard Thread.isMainThread else {
             return
         }
-        
+
         self.navigationItem.title = selectedMediaItem?.title
+
+//        if let title = selectedMediaItem?.title, let category = selectedMediaItem?.category {
+//            self.navigationItem.title = title + "\n" + category
+//        } else {
+//            self.navigationItem.title = selectedMediaItem?.title
+//        }
+
+//        if Globals.shared.mediaCategory.selected != selectedMediaItem?.category {
+//            if let title = selectedMediaItem?.title, let category = selectedMediaItem?.category {
+//                self.navigationItem.title = category + ": " + title
+//            } else {
+//                self.navigationItem.title = selectedMediaItem?.title
+//            }
+//        } else {
+//            self.navigationItem.title = selectedMediaItem?.title
+//        }
     }
     
     fileprivate func setupAudioOrVideo()

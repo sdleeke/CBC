@@ -20,7 +20,7 @@ class MediaCategory
                 return nil
             }
             
-            return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + selectedID +  Constants.JSON.FILENAME_EXTENSION
+            return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + Constants.JSON.FILENAME_EXTENSION //  + selectedID <- after entries.
         }
     }
     
@@ -31,7 +31,7 @@ class MediaCategory
                 return nil
             }
             
-            return Constants.JSON.URL.CATEGORY + selectedID // CATEGORY + selectedID!
+            return Constants.JSON.URL.MEDIA // CATEGORY + selectedID
         }
     }
     

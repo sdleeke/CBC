@@ -157,6 +157,12 @@ extension CloudViewController : PopoverTableViewControllerDelegate
 
 extension CloudViewController : CloudLayoutOperationDelegate
 {
+    func finished()
+    {
+        activityIndicator.stopAnimating()
+        activityIndicator.isHidden = true
+    }
+    
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     {
         guard pointSize > 0 else {
@@ -232,6 +238,8 @@ class CloudViewController: UIViewController
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
+    
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var selectAllButton: UIButton!
     @IBAction func selectAllAction(_ sender: UIButton)
@@ -502,6 +510,9 @@ class CloudViewController: UIViewController
         if let cloudWords = cloudWords?.filter({ (dict:[String:Any]) -> Bool in
             return (dict["selected"] as? Bool) ?? false
         }), cloudWords.count > 0 {
+            activityIndicator.isHidden = false
+            activityIndicator.startAnimating()
+            
             let newCloudLayoutOperation = CloudLayoutOperation(cloudWords:cloudWords,
                                                                title:cloudTitle,
                                                                containerSize:cloudView.bounds.size,

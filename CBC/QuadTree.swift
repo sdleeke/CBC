@@ -11,14 +11,16 @@ import UIKit
 
 let BoundingRectThreashold = 8
 
-enum Quadrants : String {
+enum Quadrants : String
+{
     case topLeft
     case topRight
     case bottomLeft
     case bottomRight
 }
 
-class QuadTree {
+class QuadTree
+{
     var frame : CGRect?
     
     var boundingRects : [CGRect]?

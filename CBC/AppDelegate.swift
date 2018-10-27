@@ -256,6 +256,46 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         Alerts.shared.alert(title: "Network Error",message: "Download failed.")
     }
     
+    func application(_ application: UIApplication, didUpdate userActivity: NSUserActivity)
+    {
+        
+    }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool
+    {
+        guard let scheme = url.scheme else {
+            Alerts.shared.alert(title: "Unable to Read Scheme", message: url.absoluteString)
+            return false
+        }
+        
+        guard let host = url.host else {
+            Alerts.shared.alert(title: "Unable to Read Host", message: url.absoluteString)
+            return false
+        }
+
+        guard let mediaItem = Globals.shared.mediaRepository.index?[host] else {
+            Globals.shared.media.goto = host
+            return false
+        }
+        
+        if let nvc = Globals.shared.splitViewController.viewControllers[0] as? UINavigationController {
+            nvc.popToRootViewController(animated: false)
+            if let mtvc = nvc.viewControllers[0] as? MediaTableViewController {
+                Globals.shared.selectedMediaItem.master = mediaItem
+                mtvc.selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
+                
+                // Delay required for iPhone
+                DispatchQueue.global(qos: .background).async {
+                    Thread.onMainThread {
+                        mtvc.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
+                    }
+                }
+            }
+        }
+        
+        return true
+    }
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
         guard let svc = window?.rootViewController as? UISplitViewController else {
@@ -280,6 +320,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         
         startAudio()
         
+//        Alerts.shared.alert(title: "Finished Launching")
+
         return true
     }
 

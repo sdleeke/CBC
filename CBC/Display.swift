@@ -17,6 +17,23 @@ class Display
     {
         mediaItems = active?.mediaItems
         
+        Globals.shared.groupings = Constants.groupings
+        Globals.shared.groupingTitles = Constants.GroupingTitles
+        
+        if active?.classes?.count > 0 {
+            Globals.shared.groupings.append(GROUPING.CLASS)
+            Globals.shared.groupingTitles.append(Grouping.Class)
+        }
+        
+        if active?.events?.count > 0 {
+            Globals.shared.groupings.append(GROUPING.EVENT)
+            Globals.shared.groupingTitles.append(Grouping.Event)
+        }
+        
+        if let grouping = Globals.shared.grouping, !Globals.shared.groupings.contains(grouping) {
+            Globals.shared.grouping = GROUPING.YEAR
+        }
+
         section.showHeaders = true
         
         section.headerStrings = active?.section?.headerStrings

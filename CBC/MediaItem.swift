@@ -1378,8 +1378,8 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Slides
             }
             
-            if hasNotes {
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript
+            if hasNotes, let notesName = notesName {
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + notesName
             }
             
             if hasNotesHTML {
@@ -1669,19 +1669,22 @@ class MediaItem : NSObject
         }
     }
     
-    var m3u8:String? {
+    var m3u8:String?
+    {
         get {
             return self[Field.m3u8]
         }
     }
     
-    var video:String? {
+    var video:String?
+    {
         get {
             return m3u8
         }
     }
     
-    var videoID:String? {
+    var videoID:String?
+    {
         get {
             guard let video = video else {
                 return nil
@@ -1701,7 +1704,8 @@ class MediaItem : NSObject
         }
     }
     
-    var externalVideo:String? {
+    var externalVideo:String?
+    {
         get {
             return videoID != nil ? Constants.BASE_URL.EXTERNAL_VIDEO_PREFIX + videoID! : nil
         }
@@ -1712,8 +1716,27 @@ class MediaItem : NSObject
             if (self[Field.notes] == nil), hasNotes, let year = year, let id = id {
                 self[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.notes + Constants.FILENAME_EXTENSION.PDF
             }
-
+            
             return self[Field.notes]
+        }
+    }
+    
+    var notesName:String?
+    {
+        get {
+            guard hasNotes else {
+                return nil
+            }
+            
+            guard let category = category else {
+                return nil
+            }
+            
+            if Globals.shared.mediaCategory.dicts?[category] == 1.description {
+                return Constants.Strings.Transcript
+            } else {
+                return Constants.Strings.Notes
+            }
         }
     }
     
@@ -1925,9 +1948,9 @@ class MediaItem : NSObject
     {
         get {
             if #available(iOS 11.0, *) {
-                return hasNotes
+                return hasNotes && (notesName == Constants.Strings.Transcript)
             } else {
-                return hasNotesHTML
+                return hasNotesHTML && (notesName == Constants.Strings.Transcript)
             }
         }
     }
@@ -3192,7 +3215,7 @@ class MediaItem : NSObject
         }
         
         words = AlertAction(title: Constants.Strings.Words, style: .default) {
-            guard self.hasNotes else { // HTML
+            guard self.hasNotesTokens else { // HTML
                 return
             }
             
@@ -3285,7 +3308,7 @@ class MediaItem : NSObject
             })
         }
 
-        if hasNotes {
+        if hasNotes, notesName == Constants.Strings.Transcript {
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in
@@ -3409,7 +3432,7 @@ class MediaItem : NSObject
             
             actions.append(search)
 
-            if hasNotes { // HTML
+            if hasNotesTokens {
                 actions.append(words)
             }
         }

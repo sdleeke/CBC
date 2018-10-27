@@ -13,6 +13,7 @@ protocol CloudLayoutOperationDelegate
 {
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     func insertBoundingRect(boundingRect:CGRect)
+    func finished()
 }
 
 class CloudLayoutOperation : Operation
@@ -264,7 +265,11 @@ class CloudLayoutOperation : Operation
             return
         }
         
+        let wordCount = cloudWords.count
+        
         repeat {
+            print("\(String(format: "%0.1f",Float(cloudWords.count)/Float(wordCount)*100))%")
+            
             let cloudWord = cloudWords.removeFirst()
             
             if (isCancelled) {
@@ -280,6 +285,8 @@ class CloudLayoutOperation : Operation
             var index = 0
             
             while !hasFoundConcentricPlacementForWord(word: cloudWord) {
+                print("\(String(format: "%0.1f",Float(cloudWords.count)/Float(wordCount)*100))%")
+
                 // No placement found centered on preferred location. Pick a new location at random
                 cloudWord.determineWordOrientation(orientation: orientation, containerSize:containerSize, scale:containerScale, fontName:fontName)
                 cloudWord.determineRandomWordPlacement(containerSize:containerSize, scale:containerScale)
@@ -296,6 +303,8 @@ class CloudLayoutOperation : Operation
                 }
             }
         } while cloudWords.count > 0
+        
+        delegate?.finished()
     }
     
     func hasFoundConcentricPlacementForWord(word:CloudWord) -> Bool

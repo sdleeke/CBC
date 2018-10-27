@@ -175,11 +175,15 @@ extension Scripture : XMLParserDelegate
 
 class Scripture : NSObject
 {
+//    var passages : [[String:Any]]?
+    
     var picker = Picker()
 
     var selected = Selected()
 
-    var xml = XML()
+    lazy var xml = {
+        return XML()
+    }()
     
     var booksChaptersVerses:BooksChaptersVerses?
     
@@ -327,6 +331,7 @@ class Scripture : NSObject
             return nil
         }
         
+        //
         let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
         return jsonFromURL(url: urlString) as? [String:Any]
@@ -334,7 +339,7 @@ class Scripture : NSObject
     
     func load()
     {
-        loadJSON()
+        loadHTMLFromJSON()
     }
     
     func loadHTML()
@@ -583,7 +588,7 @@ class Scripture : NSObject
         html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
-    func loadJSON()
+    func loadHTMLFromJSON()
     {
         var bodyString:String!
         
@@ -592,14 +597,14 @@ class Scripture : NSObject
         guard let books = booksFromScriptureReference(reference) else {
             return
         }
-
-        print(books)
+        
+        //        print(books)
         
         guard let data = booksChaptersVerses?.data else {
             return
         }
         
-        print(data)
+        //        print(data)
         
         var copyright:String?
         
@@ -676,10 +681,12 @@ class Scripture : NSObject
                     guard let result = search["result"] as? [String:Any] else {
                         return
                     }
-
+                    
                     guard let passages = result["passages"] as? [[String:Any]] else {
                         return
                     }
+                    
+//                    self.passages = passages
                     
                     for passage in passages {
                         if let display = passage["display"] as? String {
@@ -695,13 +702,13 @@ class Scripture : NSObject
                             
                             if var lastRange = text.range(of: "</h3>") {
                                 var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-//                                print(text.substring(with: range))
+                                //                                print(text.substring(with: range))
                                 
                                 while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
                                     if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
                                         lastRange = newRange
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-//                                        print(text.substring(with: range))
+                                        //                                        print(text.substring(with: range))
                                     } else {
                                         break
                                     }
@@ -711,13 +718,13 @@ class Scripture : NSObject
                                     if let newRange = text.range(of: "<h3 class=\"s\">") {
                                         lastRange = newRange
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-//                                        print(text.substring(with: range))
+                                        //                                        print(text.substring(with: range))
                                         
                                         while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
                                             if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
                                                 lastRange = newRange
                                                 range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-//                                                print(text.substring(with: range))
+                                                //                                                print(text.substring(with: range))
                                             } else {
                                                 break
                                             }
@@ -727,7 +734,7 @@ class Scripture : NSObject
                                     }
                                 }
                             }
-
+                            
                             
                             bodyString = bodyString + text
                         }

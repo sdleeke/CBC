@@ -327,7 +327,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                         for root in roots {
                             if let rows = root.htmlWords(nil) {
                                 if let string = root.string {
-                                    bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))</td></tr>"
+                                    bodyHTML = bodyHTML + "<tr><td>" + "<br/>" +  "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
                                 }
                                 
                                 for row in rows {
@@ -455,6 +455,8 @@ class PopoverPickerViewController : UIViewController
     func actionMenu() -> [String]?
     {
         var actionMenu = [String]()
+        
+        actionMenu.append(Constants.Strings.Expanded_View)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }

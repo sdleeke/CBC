@@ -145,7 +145,6 @@ class MediaTableViewCell: UITableViewCell
             if !detailString.string.isEmpty {
                 detailString.append(NSAttributedString(string: "\n"))
             }
-            
             detailString.append(className)
         }
         
@@ -153,8 +152,14 @@ class MediaTableViewCell: UITableViewCell
             if !detailString.string.isEmpty {
                 detailString.append(NSAttributedString(string: "\n"))
             }
-            
             detailString.append(eventName)
+        }
+
+        if let category = mediaItem.category, category != Globals.shared.mediaCategory.selected {
+            if !detailString.string.isEmpty {
+                detailString.append(NSAttributedString(string: "\n"))
+            }
+            detailString.append(NSAttributedString(string: category))
         }
 
         self.detail.attributedText = detailString
@@ -397,12 +402,14 @@ class MediaTableViewCell: UITableViewCell
     
     @IBOutlet weak var downloadProgressBar: UIProgressView!
     
-    override func awakeFromNib() {
+    override func awakeFromNib()
+    {
         super.awakeFromNib()
         // Initialization code
     }
 
-    override func setSelected(_ selected: Bool, animated: Bool) {
+    override func setSelected(_ selected: Bool, animated: Bool)
+    {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state

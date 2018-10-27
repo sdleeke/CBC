@@ -143,7 +143,7 @@ enum Constants {
             
             static let TEACHERS = BASE + "teachers"
             
-            static let CATEGORY = MEDIA + "&categoryID="
+//            static let CATEGORY = MEDIA + "&categoryID="
             
             static let SINGLE = BASE + "single&mediacode="
         }
@@ -263,6 +263,8 @@ enum Constants {
         
         static let WEB_VIEW                 = "Web View"
         static let TEXT_VIEW                = "Text View"
+        
+        static let SCRIPTURE_VIEW           = "Scripture View"
 
         static let MEDIAITEM                = "MediaItem"
         static let MULTIPART_MEDIAITEM      = "MultiPartMediaItem"
@@ -365,7 +367,7 @@ enum Constants {
     
     static let ZOOM_SCALE = "ZoomScale"
     
-    static let Constant_Tags:Set = [Constants.Strings.Video,Constants.Strings.Slides,Constants.Strings.Transcript,Constants.Strings.Lexicon]
+//    static let Constant_Tags:Set = [Constants.Strings.Video,Constants.Strings.Slides,Constants.Strings.Transcript,Constants.Strings.Lexicon]
     
     static let EMAIL_SUBJECT = CBC.LONG
     static let EMAIL_ONE_SUBJECT = CBC.LONG + " Media"
@@ -637,6 +639,7 @@ enum Constants {
         static let Slides = "Slides"
         static let Transcript = "Transcript"
         static let Scripture = "Scripture"
+        static let Notes = "Notes"
 
         static let HTML_Transcript = HTML + Constants.SINGLE_SPACE + Transcript
 
@@ -717,17 +720,19 @@ enum Constants {
         
         static let Print = "Print"
         static let Print_All = "Print All"
+
+        static let Refresh = "Refresh"
         
         static let Print_Slides = "Print Slides"
-        static let Print_Transcript = "Print Transcript"
+//        static let Print_Transcript = "Print Transcript"
         
         static let Share_Slides = "Share Slides"
-        static let Share_Transcript = "Share Transcript"
+//        static let Share_Transcript = "Share Transcript"
         
         static let Refresh_Document = "Refresh Document"
         
         static let Refresh_Slides = "Refresh Slides"
-        static let Refresh_Transcript = "Refresh Transcript"
+//        static let Refresh_Transcript = "Refresh Transcript"
         
         static let Zoom = "Zoom"
         static let Full_Screen = "Full Screen"
