@@ -136,7 +136,8 @@ class Section
     }
     
     // Make thread safe?
-    var strings:[String]? {
+    var strings:[String]?
+    {
         willSet {
             
         }

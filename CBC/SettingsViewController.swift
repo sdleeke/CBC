@@ -41,7 +41,9 @@ class SettingsViewController: UIViewController
             
             // Does this REALLY need to be .user* ?
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-    
+                // This really should be looking at what is in the directory as well.
+                // E.g. what if a sermon is no longer in the list but its slides or notes
+                // were downloaded previously?
                 if let mediaItems = Globals.shared.mediaRepository.list {
                     for mediaItem in mediaItems {
                         mediaItem.notesDownload?.delete()

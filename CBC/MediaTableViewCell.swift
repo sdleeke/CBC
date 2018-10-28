@@ -100,7 +100,7 @@ class MediaTableViewCell: UITableViewCell
             titleString.append(NSAttributedString(string: service, attributes: Constants.Fonts.Attributes.normal))
         }
         
-        if let speaker = mediaItem.speaker?.highlighted(searchText) {
+        if mediaItem.hasSpeaker, let speaker = mediaItem.speaker?.highlighted(searchText) {
             if !titleString.string.isEmpty {
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }

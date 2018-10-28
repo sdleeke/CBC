@@ -47,7 +47,8 @@ class BooksChaptersVerses : Swift.Comparable
         }
     }
     
-    subscript(key:String) -> [Int:[Int]]? {
+    subscript(key:String) -> [Int:[Int]]?
+    {
         get {
             return data?[key]
         }

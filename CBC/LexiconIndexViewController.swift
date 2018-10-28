@@ -967,9 +967,6 @@ class LexiconIndexViewController : UIViewController
                 
             case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
-                        Globals.shared.addToHistory(myCell.mediaItem)
-                    }
                     selectedMediaItem = myCell.mediaItem
                     
                     if selectedMediaItem != nil {
@@ -1644,11 +1641,11 @@ extension LexiconIndexViewController : UITableViewDelegate
             return
         }
         
-        var mediaItem:MediaItem?
-        
-        mediaItem = cell.mediaItem
-        
-        Globals.shared.addToHistory(mediaItem)
+//        var mediaItem:MediaItem?
+//        
+//        mediaItem = cell.mediaItem
+//        
+//        Globals.shared.addToHistory(mediaItem)
     }
 
     func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)

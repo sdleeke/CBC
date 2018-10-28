@@ -389,7 +389,8 @@ class Download : NSObject
     
     var downloadURL:URL?
     
-    var fileSystemURL:URL? {
+    var fileSystemURL:URL?
+    {
         willSet {
             
         }

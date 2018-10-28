@@ -22,7 +22,8 @@ enum PlayerState {
 }
 
 class PlayerStateTime {
-    var mediaItem:MediaItem? {
+    var mediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -47,7 +48,8 @@ class PlayerStateTime {
     var startTime:String?
     
     var dateEntered:Date?
-    var timeElapsed:TimeInterval? {
+    var timeElapsed:TimeInterval?
+    {
         get {
             if let dateEntered = dateEntered {
                 return Date().timeIntervalSince(dateEntered)
@@ -142,7 +144,8 @@ class MediaPlayer : NSObject {
     
     var fullScreen = false
     
-    var url : URL? {
+    var url : URL?
+    {
         get {
             return (currentItem?.asset as? AVURLAsset)?.url
         }
@@ -991,19 +994,22 @@ class MediaPlayer : NSObject {
         }
     }
     
-    var currentTime:CMTime? {
+    var currentTime:CMTime?
+    {
         get {
             return player?.currentTime()
         }
     }
     
-    var currentItem:AVPlayerItem? {
+    var currentItem:AVPlayerItem?
+    {
         get {
             return player?.currentItem
         }
     }
     
-    var player:AVPlayer? {
+    var player:AVPlayer?
+    {
         get {
             return controller?.player
         }
@@ -1020,19 +1026,22 @@ class MediaPlayer : NSObject {
         }
     }
     
-    var duration:CMTime? {
+    var duration:CMTime?
+    {
         get {
             return currentItem?.duration
         }
     }
     
-    var state:PlayerState? {
+    var state:PlayerState?
+    {
         get {
             return stateTime?.state
         }
     }
     
-    var startTime:String? {
+    var startTime:String?
+    {
         get {
             return stateTime?.startTime
         }
@@ -1041,13 +1050,15 @@ class MediaPlayer : NSObject {
         }
     }
     
-    var rate:Float? {
+    var rate:Float?
+    {
         get {
             return player?.rate
         }
     }
     
-    var view:UIView? {
+    var view:UIView?
+    {
         get {
             return controller?.view
         }
@@ -1075,7 +1086,8 @@ class MediaPlayer : NSObject {
         loadFailed = false
     }
 
-    var mediaItem:MediaItem? {
+    var mediaItem:MediaItem?
+    {
         willSet {
             
         }

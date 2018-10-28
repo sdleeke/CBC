@@ -1379,22 +1379,24 @@ class MediaViewController: UIViewController
             }
         }
 
-        if (stvControl.selectedSegmentIndex >= 0) && (stvControl.selectedSegmentIndex < stvControl.numberOfSegments){
-            switch stvControl.titleForSegment(at: stvControl.selectedSegmentIndex)! {
-            case Constants.STV_SEGMENT_TITLE.SLIDES:
-                selectedMediaItem?.showing = Showing.slides
-                break
-                
-            case Constants.STV_SEGMENT_TITLE.TRANSCRIPT:
-                selectedMediaItem?.showing = Showing.notes
-                break
-                
-            case Constants.STV_SEGMENT_TITLE.VIDEO:
-                selectedMediaItem?.showing = Showing.video
-                break
-                
-            default:
-                break
+        if (stvControl.selectedSegmentIndex >= 0) && (stvControl.selectedSegmentIndex < stvControl.numberOfSegments) {
+            if let title = stvControl.titleForSegment(at: stvControl.selectedSegmentIndex) {
+                switch title {
+                case Constants.STV_SEGMENT_TITLE.SLIDES:
+                    selectedMediaItem?.showing = Showing.slides
+                    break
+                    
+                case Constants.STV_SEGMENT_TITLE.TRANSCRIPT:
+                    selectedMediaItem?.showing = Showing.notes
+                    break
+                    
+                case Constants.STV_SEGMENT_TITLE.VIDEO:
+                    selectedMediaItem?.showing = Showing.video
+                    break
+                    
+                default:
+                    break
+                }
             }
         }
 
@@ -1874,7 +1876,8 @@ class MediaViewController: UIViewController
         }
     }
     
-    @IBOutlet weak var remaining: UILabel! {
+    @IBOutlet weak var remaining: UILabel!
+    {
         didSet {
             let doubleTap = UITapGestureRecognizer(target: self, action: #selector(resetConstraint))
             doubleTap.numberOfTapsRequired = 2
@@ -4346,7 +4349,7 @@ class MediaViewController: UIViewController
             return
         }
         
-        guard (Globals.shared.mediaPlayer.state != nil) else {
+        guard let state = Globals.shared.mediaPlayer.state else {
             return
         }
 
@@ -4359,7 +4362,7 @@ class MediaViewController: UIViewController
 //            print(state)
         }
         
-        switch Globals.shared.mediaPlayer.state! {
+        switch state {
         case .none:
             showState("none")
             break
@@ -4757,9 +4760,6 @@ extension MediaViewController : UITableViewDelegate
             captureContentOffset(document)
         }
 
-        if (selectedMediaItem != mediaItems?[indexPath.row]) || (Globals.shared.history == nil) {
-            Globals.shared.addToHistory(mediaItems?[indexPath.row])
-        }
         selectedMediaItem = mediaItems?[indexPath.row]
         
         updateUI()

@@ -636,7 +636,8 @@ class VoiceBase {
         }
     }
     
-    var url:String? {
+    var url:String?
+    {
         get {
             guard let purpose = purpose else {
                 return nil
@@ -661,7 +662,8 @@ class VoiceBase {
         }
     }
     
-    var fileSystemURL:URL? {
+    var fileSystemURL:URL?
+    {
         get {
             guard let purpose = purpose else {
                 return nil

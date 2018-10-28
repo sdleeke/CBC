@@ -25,13 +25,15 @@ class Lexicon : NSObject
         
     }
     
-    var tokens:[String]? {
+    var tokens:[String]?
+    {
         get {
             return words?.keys.sorted()
         }
     }
     
-    var gcw:[String]? {
+    var gcw:[String]?
+    {
         get {
             var words = [String:Int]()
             
@@ -57,7 +59,8 @@ class Lexicon : NSObject
         }
     }
     
-    var gcr:[String]? {
+    var gcr:[String]?
+    {
         get {
             guard let tokens = tokens else {
                 return nil
@@ -123,7 +126,8 @@ class Lexicon : NSObject
     var pauseUpdates = false
     var completed = false
     
-    var entries:[MediaItem]? {
+    var entries:[MediaItem]?
+    {
         get {
             guard let words = words else {
                 return nil
@@ -137,7 +141,8 @@ class Lexicon : NSObject
         }
     }
     
-    var eligible:[MediaItem]? {
+    var eligible:[MediaItem]?
+    {
         get {
             if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.hasNotesTokens

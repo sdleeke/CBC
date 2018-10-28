@@ -324,6 +324,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             
         }
         didSet {
+            // This assumes it only changes ONCE.  I.e. another call w/ the new value and need.grouping will be false.
             media.need.grouping = (grouping != oldValue)
             
             let defaults = UserDefaults.standard
@@ -499,7 +500,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var relevantHistory:[String]?
     {
         get {
-            guard let index = mediaRepository.index else {
+            guard let index = media.all?.index else {
                 return nil
             }
             
@@ -514,13 +515,33 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
+    var relevantHistoryFirst : MediaItem?
+    {
+        get {
+            if let first = relevantHistory?.first {
+                let components = first.components(separatedBy: Constants.TAGS_SEPARATOR)
+                
+                if components.count == 2 {
+                    let id = components[1]
+                    return mediaRepository.index?[id]
+                }
+            }
+            
+            return nil
+        }
+    }
+    
     // Make thread safe?
     var relevantHistoryList:[String]?
     {
         get {
+            guard let index = media.all?.index else {
+                return nil
+            }
+            
             return relevantHistory?.map({ (string:String) -> String in
                 if  let range = string.range(of: Constants.TAGS_SEPARATOR),
-                    let mediaItem = mediaRepository.index?[String(string[range.upperBound...])],
+                    let mediaItem = index[String(string[range.upperBound...])],
                     let text = mediaItem.text {
                     return text
                 }
@@ -528,6 +549,26 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return ("ERROR")
             })
         }
+    }
+    
+    func addToHistory(_ mediaItem:MediaItem? = nil)
+    {
+        guard let mediaItem = mediaItem else {
+            print("mediaItem NIL!")
+            return
+        }
+        
+        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem.id
+        
+        if history == nil {
+            history = [entry]
+        } else {
+            history?.append(entry)
+        }
+        
+        let defaults = UserDefaults.standard
+        defaults.set(history, forKey: Constants.SETTINGS.HISTORY)
+        defaults.synchronize()
     }
 
     var mediaRepository = MediaRepository()
@@ -671,26 +712,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 }
             }
         }
-    }
-    
-    func addToHistory(_ mediaItem:MediaItem? = nil)
-    {
-        guard let mediaItem = mediaItem else {
-            print("mediaItem NIL!")
-            return
-        }
-        
-        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem.id
-        
-        if history == nil {
-            history = [entry]
-        } else {
-            history?.append(entry)
-        }
-        
-        let defaults = UserDefaults.standard
-        defaults.set(history, forKey: Constants.SETTINGS.HISTORY)
-        defaults.synchronize()
     }
 
     func totalCacheSize() -> Int

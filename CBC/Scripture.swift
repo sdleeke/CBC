@@ -16,7 +16,8 @@ struct Selected {
     var chapter:Int = 0
     var verse:Int = 0
     
-    var reference:String? {
+    var reference:String?
+    {
         get {
             guard testament != nil else {
                 return nil
@@ -66,7 +67,8 @@ class Dict : NSObject {
     // Make thread safe?
     var data = [String:Any]()
     
-    subscript(key:String) -> Any? {
+    subscript(key:String) -> Any?
+    {
         get {
             return data[key]
         }

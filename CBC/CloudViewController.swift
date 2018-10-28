@@ -676,40 +676,41 @@ class CloudViewController: UIViewController
                     
                     wordsTableViewController.section.strings = wordsTableViewController.sort.function?(wordsTableViewController.sort.method,wordsTableViewController.section.strings)
                     
-                    switch wordsTableViewController.sort.method! {
-                    case Constants.Sort.Alphabetical:
-                        self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
-                            let firstWord = first["word"] as? String
-                            let secondWord = second["word"] as? String
+                    if let method = wordsTableViewController.sort.method {
+                        switch method {
+                        case Constants.Sort.Alphabetical:
+                            self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                                let firstWord = first["word"] as? String
+                                let secondWord = second["word"] as? String
+                                
+                                let firstCount = first["count"] as? Int
+                                let secondCount = second["count"] as? Int
+                                
+                                if firstWord == secondWord {
+                                    return firstCount > secondCount
+                                } else {
+                                    return firstWord < secondWord
+                                }
+                            })
                             
-                            let firstCount = first["count"] as? Int
-                            let secondCount = second["count"] as? Int
+                        case Constants.Sort.Frequency:
+                            self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                                let firstWord = first["word"] as? String
+                                let secondWord = second["word"] as? String
+                                
+                                let firstCount = first["count"] as? Int
+                                let secondCount = second["count"] as? Int
+                                
+                                if firstCount == secondCount {
+                                    return firstWord < secondWord
+                                } else {
+                                    return firstCount > secondCount
+                                }
+                            })
                             
-                            if firstWord == secondWord {
-                                return firstCount > secondCount
-                            } else {
-                                return firstWord < secondWord
-                            }
-                        })
-                        
-                    case Constants.Sort.Frequency:
-                        self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
-                            let firstWord = first["word"] as? String
-                            let secondWord = second["word"] as? String
-                            
-                            let firstCount = first["count"] as? Int
-                            let secondCount = second["count"] as? Int
-                            
-                            if firstCount == secondCount {
-                                return firstWord < secondWord
-                            } else {
-                                return firstCount > secondCount
-                            }
-                        })
-
-                    default:
-                        break
-                    }
+                        default:
+                            break
+                        }                    }
                 }
                 break
                 

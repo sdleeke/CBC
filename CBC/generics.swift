@@ -188,7 +188,8 @@ class ThreadSafeArray<T>
         self.name = name
     }
     
-    subscript(key:Int) -> T? {
+    subscript(key:Int) -> T?
+    {
         get {
             return queue.sync {
                 if key >= 0,key < storage.count {
@@ -392,7 +393,8 @@ class ThreadSafeDictionaryOfDictionaries<T>
         self.name = name
     }
     
-    subscript(outer:String?) -> [String:T]? {
+    subscript(outer:String?) -> [String:T]?
+    {
         get {
             return queue.sync {
                 guard let outer = outer else {

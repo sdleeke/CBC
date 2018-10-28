@@ -589,10 +589,18 @@ class ScriptureViewController : UIViewController
                     return self?.scripture?.html?[reference]
                 }) { [weak self] (data:Any?) in
                     if let string = data as? String {
-                        self?.webViewController?.html.string = string
-                        
-                        if let url = self?.webViewController?.html.fileURL {
-                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+//                        self?.webViewController?.html.string = string
+
+                        if let string = insertHead(stripHead(string),fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
+                            self?.webViewController?.html.string = string
+                            
+                            if let url = self?.webViewController?.html.fileURL {
+                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                            }
+                        } else {
+                            if let url = self?.webViewController?.html.fileURL {
+                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                            }
                         }
                     } else {
                         var bodyString = "<!DOCTYPE html><html><body>"
@@ -601,7 +609,7 @@ class ScriptureViewController : UIViewController
                         
                         bodyString = bodyString + "</html></body>"
                         
-                        if let string = insertHead(bodyString,fontSize:Constants.FONT_SIZE) {
+                        if let string = insertHead(bodyString,fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
                             self?.webViewController?.html.string = string
                             
                             if let url = self?.webViewController?.html.fileURL {

@@ -98,7 +98,8 @@ class Document : NSObject
         }
     }
     
-    var download:Download? {
+    var download:Download?
+    {
         get {
             guard let purpose = purpose else {
                 return nil

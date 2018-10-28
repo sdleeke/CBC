@@ -53,7 +53,8 @@ class MediaListGroupSort
         return CachedString(index: Globals.shared.contextOrder)
     }()
     
-    var list:[MediaItem]? { //Not in any specific order
+    var list:[MediaItem]?
+    { //Not in any specific order
         willSet {
             
         }
@@ -134,7 +135,8 @@ class MediaListGroupSort
     }
     
     // Make thread safe?
-    var proposedTags:[String]? {
+    var proposedTags:[String]?
+    {
         get {
             var possibleTags = [String:Int]()
             
@@ -179,7 +181,8 @@ class MediaListGroupSort
     }
     
     // Make thread safe?
-    var mediaItemTags:[String]? {
+    var mediaItemTags:[String]?
+    {
         get {
             return tagMediaItems?.keys.sorted(by: { $0 < $1 }).map({ (string:String) -> String in
                 if let tagName = self.tagNames?[string] {
@@ -192,7 +195,8 @@ class MediaListGroupSort
     }
     
     // Make thread safe?
-    var mediaItems:[MediaItem]? {
+    var mediaItems:[MediaItem]?
+    {
         get {
             return mediaItems(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
         }
@@ -380,25 +384,29 @@ class MediaListGroupSort
             
         }
         
-        var headerStrings:[String]? {
+        var headerStrings:[String]?
+        {
             get {
                 return mediaListGroupSort?.sectionTitles(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
             }
         }
         
-        var counts:[Int]? {
+        var counts:[Int]?
+        {
             get {
                 return mediaListGroupSort?.sectionCounts(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
             }
         }
         
-        var indexes:[Int]? {
+        var indexes:[Int]?
+        {
             get {
                 return mediaListGroupSort?.sectionIndexes(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
             }
         }
         
-        var indexStrings:[String]? {
+        var indexStrings:[String]?
+        {
             get {
                 return mediaListGroupSort?.sectionIndexTitles(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
             }
@@ -499,7 +507,8 @@ class MediaListGroupSort
         })
     }
     
-    var sectionIndexes:[Int]? {
+    var sectionIndexes:[Int]?
+    {
         get {
             return sectionIndexes(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
         }

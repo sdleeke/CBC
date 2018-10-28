@@ -1136,9 +1136,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                     mediaItem.category == Globals.shared.mediaCategory.selected
                 }))
-                
+
+                Globals.shared.media.tagged.clear()
+
                 if let tag = Globals.shared.media.tags.selected {
-                    Globals.shared.media.tagged.clear()
                     Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
                 }
 
@@ -2027,7 +2028,8 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    var selectedMediaItem:MediaItem? {
+    var selectedMediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -3662,9 +3664,6 @@ class MediaTableViewController : UIViewController
                 }
                 
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
-                        Globals.shared.addToHistory(myCell.mediaItem)
-                    }
                     selectedMediaItem = myCell.mediaItem
                     
                     if selectedMediaItem != nil {

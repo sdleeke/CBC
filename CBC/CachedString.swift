@@ -20,7 +20,8 @@ class CachedString {
     var cache = [String:String]()
     
     // if index DOES NOT produce the full key
-    subscript(key:String?) -> String? {
+    subscript(key:String?) -> String?
+    {
         get {
             guard let key = key else {
                 return nil
@@ -46,7 +47,8 @@ class CachedString {
     }
     
     // if index DOES produce the full key
-    var string:String? {
+    var string:String?
+    {
         get {
             if let index = self.index?() {
                 return cache[index]

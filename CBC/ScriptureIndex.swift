@@ -59,11 +59,13 @@ class ScriptureIndex
         return CachedString(index:self.index)
     }()
     
-    func index() -> String? {
+    func index() -> String?
+    {
         return context
     }
     
-    var context:String? {
+    var context:String?
+    {
         get {
             var index:String?
             
@@ -105,7 +107,8 @@ class ScriptureIndex
     
     var selectedTestament:String? = Constants.OT
     
-    var selectedBook:String? {
+    var selectedBook:String?
+    {
         willSet {
             
         }
@@ -130,7 +133,8 @@ class ScriptureIndex
     
     var selectedVerse:Int = 0
     
-    var eligible:[MediaItem]? {
+    var eligible:[MediaItem]?
+    {
         get {
             if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.books != nil

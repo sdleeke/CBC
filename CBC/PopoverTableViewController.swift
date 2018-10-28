@@ -657,7 +657,8 @@ class PopoverTableViewController : UIViewController
     var shouldSelect:((IndexPath)->Bool)?
     var didSelect:((IndexPath)->Void)?
     
-    var indexStringsTransform:((String?)->String?)? {
+    var indexStringsTransform:((String?)->String?)?
+    {
         willSet {
             
         }
@@ -690,7 +691,8 @@ class PopoverTableViewController : UIViewController
         return section
     }()
     
-    var section:Section! {
+    var section:Section!
+    {
         get {
             if searchActive {
                 return filteredSection

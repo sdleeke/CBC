@@ -690,7 +690,8 @@ class ScriptureIndexViewController : UIViewController
             self.sections = sections
         }
     }
-    var selectedMediaItem:MediaItem? {
+    var selectedMediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -945,9 +946,6 @@ class ScriptureIndexViewController : UIViewController
             switch identifier {
             case Constants.SEGUE.SHOW_INDEX_MEDIAITEM:
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedMediaItem != myCell.mediaItem) || (Globals.shared.history == nil) {
-                        Globals.shared.addToHistory(myCell.mediaItem)
-                    }
                     selectedMediaItem = myCell.mediaItem
                     
                     if selectedMediaItem != nil {
@@ -1599,7 +1597,8 @@ extension ScriptureIndexViewController : UITableViewDataSource
 {
     // MARK: UITableViewDataSource
     
-    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+    func sectionIndexTitles(for tableView: UITableView) -> [String]?
+    {
         return nil
     }
     
@@ -1741,8 +1740,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
             }
         }
-        
-        Globals.shared.addToHistory(selectedMediaItem)
     }
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
