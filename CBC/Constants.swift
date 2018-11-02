@@ -304,6 +304,9 @@ enum Constants {
         static let WEBSITE = "https://www.countrysidebible.org"
         static let MEDIA_WEBSITE = WEBSITE + "/cbcmedia"
         static let SINGLE_WEBSITE = MEDIA_WEBSITE + "?return=single&mediacode="
+        
+        static let APP_URL = "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8"
+        
         static let STREET_ADDRESS = "250 Countryside Court"
         static let CITY_STATE_ZIPCODE_COUNTRY = "Southlake, TX 76092, USA"
         static let PHONE_NUMBER = "(817) 488-5381"

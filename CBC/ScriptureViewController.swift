@@ -678,7 +678,7 @@ class ScriptureViewController : UIViewController
                 navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
                 
             case .overCurrentContext:
-                if Globals.shared.splitViewController.isCollapsed == false {
+                if Globals.shared.splitViewController?.isCollapsed == false {
                     navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
                 } else {
                     navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)

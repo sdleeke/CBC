@@ -3001,21 +3001,31 @@ class VoiceBase {
                                 Globals.shared.checkVoiceBaseAvailability {
                                     if !self.transcribing {
                                         if Globals.shared.reachability.isReachable {
-                                            var alertActions = [AlertAction]()
-                                            
-                                            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
-                                                self.getTranscript(alert: true) {}
-                                                mgtUpdate()
-                                            }))
-                                            
-                                            alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
+//                                            var alertActions = [AlertAction]()
+//
+//                                            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
+//                                                self.getTranscript(alert: true) {}
+//                                                mgtUpdate()
+//                                            }))
+//
+//                                            alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                             
                                             if let text = self.mediaItem?.text {
-                                                alertActionsCancel( viewController: viewController,
-                                                                    title: "Begin Creating\nMachine Generated Transcript?",
-                                                                    message: "\(text) (\(self.transcriptPurpose))",
-                                                    alertActions: alertActions,
-                                                    cancelAction: nil)
+                                                yesOrNo(viewController: viewController,
+                                                        title: "Begin Creating\nMachine Generated Transcript?",
+                                                        message: "\(text) (\(self.transcriptPurpose))",
+                                                        yesAction: { () -> (Void) in
+                                                            self.getTranscript(alert: true) {}
+                                                            mgtUpdate()
+                                                        },
+                                                        yesStyle: .default,
+                                                        noAction: nil,
+                                                        noStyle: .default)
+//                                                alertActionsCancel( viewController: viewController,
+//                                                                    title: "Begin Creating\nMachine Generated Transcript?",
+//                                                                    message: "\(text) (\(self.transcriptPurpose))",
+//                                                    alertActions: alertActions,
+//                                                    cancelAction: nil)
                                             }
                                         } else {
                                             networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
@@ -3047,21 +3057,31 @@ class VoiceBase {
                 
                 if !self.transcribing {
                     if Globals.shared.reachability.isReachable {
-                        var alertActions = [AlertAction]()
-                        
-                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
-                            self.getTranscript(alert: true) {}
-                            mgtUpdate()
-                        }))
-                        
-                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
+//                        var alertActions = [AlertAction]()
+//
+//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
+//                            self.getTranscript(alert: true) {}
+//                            mgtUpdate()
+//                        }))
+//
+//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
                         if let text = self.mediaItem?.text {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Begin Creating\nMachine Generated Transcript?",
-                                                message: "\(text) (\(self.transcriptPurpose))",
-                                alertActions: alertActions,
-                                cancelAction: nil)
+                            yesOrNo(viewController: viewController,
+                                    title: "Begin Creating\nMachine Generated Transcript?",
+                                    message: "\(text) (\(self.transcriptPurpose))",
+                                yesAction: { () -> (Void) in
+                                    self.getTranscript(alert: true) {}
+                                    mgtUpdate()
+                            },
+                                yesStyle: .default,
+                                noAction: nil,
+                                noStyle: .default)
+//                            alertActionsCancel( viewController: viewController,
+//                                                title: "Begin Creating\nMachine Generated Transcript?",
+//                                                message: "\(text) (\(self.transcriptPurpose))",
+//                                alertActions: alertActions,
+//                                cancelAction: nil)
                         }
                     } else {
                         networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
@@ -3186,7 +3206,7 @@ class VoiceBase {
                         textPopover.assist = true
                         textPopover.search = true
                         
-                        textPopover.completion = { (text:String) -> Void in
+                        textPopover.onSave = { (text:String) -> Void in
                             guard text != textPopover.text else {
                                 return
                             }
@@ -3269,31 +3289,83 @@ class VoiceBase {
                             return
                         }
                         
-                        var alertActions = [AlertAction]()
+//                        var alertActions = [AlertAction]()
+//
+//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+//                            var alertActions = [AlertAction]()
+//
+//                            if self.mediaItem?.hasNotesHTML == true {
+//                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .default, handler: {
+//                                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
+//                                        self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
+//                                    }, completion: { [weak self] (data:Any?) in
+//                                        self?.align(stripHTML(self?.mediaItem?.notesHTML.result))
+//                                    })
+//                                }))
+//                            }
+//
+//                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .default, handler: {
+//                                self.align(self.transcript)
+//                            }))
+//
+//                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .default, handler: {
+//                                self.align(self.transcriptFromTranscriptSegments)
+//                            }))
+//
+//                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .default, handler: {
+//                                self.align(self.transcriptFromWords)
+//                            }))
+//
+//                            alertActionsCancel( viewController: viewController,
+//                                                title: "Select Source for Realignment",
+//                                                message: text,
+//                                                alertActions: alertActions,
+//                                                cancelAction: nil)
+//                        }))
+//
+//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
-                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+                        func confirmRealignment(_ action:(()->())?)
+                        {
+                            yesOrNo(viewController: viewController, title: "Confirm Realignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
+                                yesAction: { () -> (Void) in
+                                    action?()
+                                },
+                                yesStyle: .destructive,
+                                noAction: nil, noStyle: .default)
+                        }
+                        
+                        if let text = self.mediaItem?.text {
                             var alertActions = [AlertAction]()
                             
-                            if self.mediaItem?.hasNotesHTML == true {
-                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .default, handler: {
-                                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                                        self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
-                                    }, completion: { [weak self] (data:Any?) in
-                                        self?.align(stripHTML(self?.mediaItem?.notesHTML.result))
-                                    })
+                            if (self.mediaItem?.hasNotes == true) || (self.mediaItem?.hasNotesHTML == true) {
+                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .destructive, handler: {
+                                    confirmRealignment {
+                                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                                            self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
+                                            }, completion: { [weak self] (data:Any?) in
+                                                self?.align(self?.mediaItem?.notesText) // stripHTML(self?.mediaItem?.notesHTML.result)
+                                        })
+                                    }
                                 }))
                             }
                             
-                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .default, handler: {
-                                self.align(self.transcript)
+                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
+                                confirmRealignment {
+                                    self.align(self.transcript)
+                                }
                             }))
                             
-                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .default, handler: {
-                                self.align(self.transcriptFromTranscriptSegments)
+                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .destructive, handler: {
+                                confirmRealignment {
+                                    self.align(self.transcriptFromTranscriptSegments)
+                                }
                             }))
                             
-                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .default, handler: {
-                                self.align(self.transcriptFromWords)
+                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .destructive, handler: {
+                                confirmRealignment {
+                                    self.align(self.transcriptFromWords)
+                                }
                             }))
                             
                             alertActionsCancel( viewController: viewController,
@@ -3301,16 +3373,12 @@ class VoiceBase {
                                                 message: text,
                                                 alertActions: alertActions,
                                                 cancelAction: nil)
-                        }))
-                        
-                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                        
-                        if let text = self.mediaItem?.text {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Confirm Realignment of Machine Generated Transcript",
-                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
-                                alertActions: alertActions,
-                                cancelAction: nil)
+                    
+//                            alertActionsCancel( viewController: viewController,
+//                                                title: "Confirm Realignment of Machine Generated Transcript",
+//                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
+//                                alertActions: alertActions,
+//                                cancelAction: nil)
                         }
                     }))
                 }
@@ -3330,21 +3398,31 @@ class VoiceBase {
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, handler: {
-                        var alertActions = [AlertAction]()
-                        
-                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                            self.transcript = self.transcriptFromWords
-                        }))
-                        
-                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                        
                         if let text = self.mediaItem?.text {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Confirm Regeneration of Transcript",
-                                                message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
-                                alertActions: alertActions,
-                                cancelAction: nil)
+                            yesOrNo(viewController: viewController,
+                                    title: "Confirm Regeneration of Transcript",
+                                    message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
+                                    yesAction: { () -> (Void) in
+                                        self.transcript = self.transcriptFromWords
+                                    }, yesStyle: .destructive,
+                                    noAction: nil, noStyle: .default)
                         }
+                        
+//                        var alertActions = [AlertAction]()
+//                        
+//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+//                            self.transcript = self.transcriptFromWords
+//                        }))
+//                        
+//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
+//                        
+//                        if let text = self.mediaItem?.text {
+//                            alertActionsCancel( viewController: viewController,
+//                                                title: "Confirm Regeneration of Transcript",
+//                                                message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
+//                                alertActions: alertActions,
+//                                cancelAction: nil)
+//                        }
                     }))
                     
                     if Globals.shared.isVoiceBaseAvailable {
@@ -3374,11 +3452,33 @@ class VoiceBase {
                                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                     
                                     if let text = self.mediaItem?.text {
-                                        alertActionsCancel( viewController: viewController,
-                                                            title: "Confirm Reloading",
-                                                            message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
-                                            alertActions: alertActions,
-                                            cancelAction: nil)
+                                        yesOrNo(viewController: viewController,
+                                                title: "Confirm Reloading",
+                                                message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
+                                                yesAction: { () -> (Void) in
+                                                    Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
+                                                    
+                                                    if self.resultsTimer != nil {
+                                                        print("TIMER NOT NIL!")
+                                                        
+                                                        var actions = [AlertAction]()
+                                                        
+                                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
+                                                        
+                                                        Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
+                                                    } else {
+                                                        Thread.onMainThread {
+                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                                                        }
+                                                    }
+                                                }, yesStyle: .destructive,
+                                                noAction: nil, noStyle: .default)
+                                        
+//                                        alertActionsCancel( viewController: viewController,
+//                                                            title: "Confirm Reloading",
+//                                                            message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
+//                                            alertActions: alertActions,
+//                                            cancelAction: nil)
                                     }
                                 }
                             }, onError:  { (dict:[String:Any]?)->(Void) in
@@ -3414,20 +3514,30 @@ class VoiceBase {
                         return
                     }
                     
-                    var alertActions = [AlertAction]()
-                    
-                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                        self.remove()
-                    }))
-                    
-                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
+//                    var alertActions = [AlertAction]()
+//
+//                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+//                        self.remove()
+//                    }))
+//
+//                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                     
                     if let text = self.mediaItem?.text {
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Confirm Deletion of Machine Generated Transcript",
-                                            message: "\(text) (\(self.transcriptPurpose))",
-                            alertActions: alertActions,
-                            cancelAction: nil)
+                        yesOrNo(viewController: viewController,
+                                title: "Confirm Deletion of Machine Generated Transcript",
+                                message: "\(text) (\(self.transcriptPurpose))",
+                                yesAction: { () -> (Void) in
+                                    self.remove()
+                                },
+                                yesStyle: .destructive,
+                                noAction: nil,
+                                noStyle: .default)
+
+//                        alertActionsCancel( viewController: viewController,
+//                                            title: "Confirm Deletion of Machine Generated Transcript",
+//                                            message: "\(text) (\(self.transcriptPurpose))",
+//                            alertActions: alertActions,
+//                            cancelAction: nil)
                     }
                 }))
                 
@@ -3442,12 +3552,12 @@ class VoiceBase {
         return action
     }
     
-    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath)
-    {
-        editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticInteractive:false,automaticCompletion:nil)
-    }
+//    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath)
+//    {
+//        editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticVisible:false,automaticInteractive:false,automaticCompletion:nil)
+//    }
     
-    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath,automatic:Bool,automaticInteractive:Bool,automaticCompletion:(()->(Void))?)
+    func editTranscriptSegment(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath, automatic:Bool = false, automaticVisible:Bool = false, automaticInteractive:Bool = false, automaticCompletion:(()->(Void))? = nil)
     {
         let stringIndex = popover.section.index(indexPath)
         
@@ -3485,17 +3595,19 @@ class VoiceBase {
             textPopover.text = text
             textPopover.assist = true
             
+            textPopover.automatic = automatic
+            textPopover.automaticVisible = automaticVisible
+            textPopover.automaticInteractive = automaticInteractive
+            textPopover.automaticCompletion = automaticCompletion
+ 
             textPopover.onCancel = {
                 if playing {
                     Globals.shared.mediaPlayer.play()
                 }
             }
             
-            textPopover.automatic = automatic
-            textPopover.automaticInteractive = automaticInteractive
-            textPopover.automaticCompletion = automaticCompletion
- 
-            textPopover.completion = { (text:String) -> Void in
+            textPopover.onSave = { (text:String) -> Void in
+                // This guard condition will be false after save
                 guard text != textPopover.text else {
                     if playing {
                         Globals.shared.mediaPlayer.play()
@@ -3503,11 +3615,22 @@ class VoiceBase {
                     return
                 }
                 
+                // I.e. THIS SHOULD NEVER HAPPEN WHEN CALLED FROM onDone UNLESS
+                // It is called during automatic.
                 self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
                 if popover.searchActive {
                     popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
                 }
                 popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
+            }
+            
+            textPopover.onDone = { (text:String) -> Void in
+                textPopover.onSave?(text)
+//                self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
+//                if popover.searchActive {
+//                    popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
+//                }
+//                popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
                 
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments

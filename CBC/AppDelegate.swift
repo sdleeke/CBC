@@ -269,19 +269,150 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         }
         
         guard let host = url.host else {
-            Alerts.shared.alert(title: "Unable to Read Host", message: url.absoluteString)
-            return false
+//            Alerts.shared.alert(title: "Unable to Read Host", message: url.absoluteString)
+            return true
         }
 
-        guard let mediaItem = Globals.shared.mediaRepository.index?[host] else {
-            Globals.shared.media.goto = host
+        guard let nvc = Globals.shared.splitViewController?.viewControllers[0] as? UINavigationController else {
             return false
         }
         
-        if let nvc = Globals.shared.splitViewController.viewControllers[0] as? UINavigationController {
-            nvc.popToRootViewController(animated: false)
-            if let mtvc = nvc.viewControllers[0] as? MediaTableViewController {
-                Globals.shared.selectedMediaItem.master = mediaItem
+        guard let mtvc = nvc.viewControllers[0] as? MediaTableViewController else {
+            return false
+        }
+
+        var newTag:Bool = false
+        var newCategory:Bool = false
+
+        let components = host.components(separatedBy: "&")
+
+        for component in components {
+            let parts = component.components(separatedBy: "=")
+            
+            switch parts[0] {
+            case "mediaCode":
+                Globals.shared.media.goto = parts[1]
+                break
+
+            case "category":
+                if Globals.shared.mediaCategory.selected != parts[1] {
+                    newCategory = true
+                    Globals.shared.mediaCategory.selected = parts[1]
+                }
+                break
+                
+            case "sorting":
+                Globals.shared.sorting = parts[1]
+                break
+                
+            case "grouping":
+                Globals.shared.grouping = parts[1]
+                break
+                
+            case "tag":
+                let string = parts[1]
+                        
+                switch string {
+                case Constants.Strings.All:
+                    if (Globals.shared.media.tags.showing != Constants.ALL) {
+                        newTag = true
+                        Globals.shared.media.tags.selected = nil
+                    }
+                    break
+                    
+                default:
+                    //Tagged
+                    
+                    let tagSelected = string
+                    
+                    newTag = (Globals.shared.media.tags.showing != Constants.TAGGED) || (Globals.shared.media.tags.selected != tagSelected)
+                    
+                    if (newTag) {
+                        Globals.shared.media.tags.selected = tagSelected
+                    }
+                    break
+                }
+                break
+                
+                default:
+                break
+            }
+        }
+        
+        if newCategory || newTag {
+            Globals.shared.selectedMediaItem.detail = nil
+        }
+        
+        guard Globals.shared.mediaRepository.list != nil, !Globals.shared.isLoading else {
+//            Alerts.shared.alert(title: "Not ready for UI.")
+            return true
+        }
+        
+        if newCategory {
+            Thread.onMainThread {
+                mtvc.mediaCategoryButton.setTitle(Globals.shared.mediaCategory.selected)
+                mtvc.tagLabel.text = nil
+            }
+            
+            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                mediaItem.category == Globals.shared.mediaCategory.selected
+            }))
+            
+            mtvc.selectedMediaItem = Globals.shared.selectedMediaItem.master
+        }
+        
+        if newCategory || newTag {
+            Globals.shared.media.tagged.clear()
+            
+            if let tag = Globals.shared.media.tags.selected {
+                Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+            }
+        }
+        
+        if newCategory || newTag || Globals.shared.media.need.sorting || Globals.shared.media.need.grouping {
+            Thread.onMainThread {
+                nvc.popToRootViewController(animated: false)
+                
+                mtvc.display.clear()
+                
+                mtvc.tableView?.reloadData()
+                
+                mtvc.startAnimating()
+                
+                mtvc.disableBarButtons()
+            }
+            
+            if (Globals.shared.search.active) {
+                mtvc.updateSearchResults(Globals.shared.search.text,completion: nil)
+            }
+            
+            mtvc.display.setup(Globals.shared.media.active)
+            
+            Thread.onMainThread {
+                mtvc.tableView?.reloadData()
+                
+                mtvc.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+                
+                //                                    mtvc.selectOrScrollToMediaItem(mtvc.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                
+                mtvc.stopAnimating()
+                
+                mtvc.updateUI()
+                
+                // Need to update the MVC cells.
+                if let isCollapsed = mtvc.splitViewController?.isCollapsed, !isCollapsed {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+                }
+            }
+        }
+        
+        if let mediaCode = Globals.shared.media.goto {
+            if let mediaItem = Globals.shared.mediaRepository.index?[mediaCode] {
+                Thread.onMainThread {
+                    nvc.popToRootViewController(animated: false)
+                }
+                
+                mtvc.selectedMediaItem = mediaItem
                 mtvc.selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
                 
                 // Delay required for iPhone
@@ -290,6 +421,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                         mtvc.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
                 }
+                
+                Globals.shared.media.goto = nil
+            } else {
+//                Alerts.shared.alert(title: "Got mediaCode to open later: \(parts[1])")
             }
         }
         

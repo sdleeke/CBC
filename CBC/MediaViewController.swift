@@ -231,11 +231,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(noAction)
             
-            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                (action : UIAlertAction!) -> Void in
-                
-            })
-            alert.addAction(cancel)
+//            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                (action : UIAlertAction!) -> Void in
+//                
+//            })
+//            alert.addAction(cancel)
             
             self.present(alert, animated: true, completion: nil)
             break

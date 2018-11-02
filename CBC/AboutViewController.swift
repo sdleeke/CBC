@@ -99,7 +99,7 @@ extension AboutViewController : UIActivityItemSource
 {
     func share()
     {
-        let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
+        let url = URL(string: Constants.CBC.APP_URL)
         let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
 
         // exclude some activity types from the list (optional)

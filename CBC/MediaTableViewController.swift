@@ -240,57 +240,57 @@ extension MediaTableViewController : MFMailComposeViewControllerDelegate
     }
 }
 
-extension MediaTableViewController : PopoverPickerControllerDelegate
-{
-    // MARK: PopoverPickerControllerDelegate
-    
-    func stringPicked(_ string:String?, purpose:PopoverPurpose?)
-    {
-        Thread.onMainThread {
-            self.dismiss(animated: true, completion: {
-                self.presentingVC = nil
-            })
-        }
-        
-        guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
-            return
-        }
-        
-        Globals.shared.mediaCategory.selected = string
-        
-        Globals.shared.mediaPlayer.unobserve()
-        
-        if Globals.shared.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-            Globals.shared.mediaPlayer.pause()
-        }
-        
-        Globals.shared.cancelAllDownloads()
-        display.clear()
-        
-        Thread.onMainThread {
-            self.tableView?.reloadData()
-            
-            self.tableView?.isHidden = true
-            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                self.logo.isHidden = true // Don't like it offset, just hide it for now
-            }
-
-            if self.splitViewController?.viewControllers.count > 1 {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-            }
-        }
-        
-        tagLabel.text = nil
-        
-        // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        Globals.shared.media = Media()
-        
-        loadMediaItems()
-        {
-            self.loadCompletion()
-        }
-    }
-}
+//extension MediaTableViewController : PopoverPickerControllerDelegate
+//{
+//    // MARK: PopoverPickerControllerDelegate
+//    
+//    func stringPicked(_ string:String?, purpose:PopoverPurpose?)
+//    {
+//        Thread.onMainThread {
+//            self.dismiss(animated: true, completion: {
+//                self.presentingVC = nil
+//            })
+//        }
+//        
+//        guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
+//            return
+//        }
+//        
+//        Globals.shared.mediaCategory.selected = string
+//        
+////        Globals.shared.mediaPlayer.unobserve()
+////
+////        if Globals.shared.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
+////            Globals.shared.mediaPlayer.pause()
+////        }
+////
+////        Globals.shared.cancelAllDownloads()
+//        display.clear()
+//        
+//        Thread.onMainThread {
+//            self.tableView?.reloadData()
+//            
+//            self.tableView?.isHidden = true
+//            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+//                self.logo.isHidden = true // Don't like it offset, just hide it for now
+//            }
+//
+////            if self.splitViewController?.viewControllers.count > 1 {
+////                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+////            }
+//        }
+//        
+//        tagLabel.text = nil
+//        
+//        // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+////        Globals.shared.media = Media()
+////
+////        loadMediaItems()
+////        {
+////            self.loadCompletion()
+////        }
+//    }
+//}
 
 extension MediaTableViewController : PopoverTableViewControllerDelegate
 {
@@ -1123,14 +1123,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             Globals.shared.mediaCategory.selected = string
             
+            self.display.clear()
+            
             Thread.onMainThread {
                 self.mediaCategoryButton.setTitle(Globals.shared.mediaCategory.selected)
                 self.tagLabel.text = nil
+                self.tableView?.reloadData()
             }
 
             process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
-                self.display.clear()
-                
                 self.selectedMediaItem = Globals.shared.selectedMediaItem.master
                 
                 Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
@@ -1311,61 +1312,68 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             
             // Should we be showing Globals.shared.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                if (index < strings.count) {
-                    var new:Bool = false
-                    
-                    switch string {
-                    case Constants.Strings.All:
-                        if (Globals.shared.media.tags.showing != Constants.ALL) {
-                            new = true
-                            Globals.shared.media.tags.selected = nil
-                        }
-                        break
-                        
-                    default:
-                        //Tagged
-                        
-                        let tagSelected = strings[index]
-                        
-                        new = (Globals.shared.media.tags.showing != Constants.TAGGED) || (Globals.shared.media.tags.selected != tagSelected)
-                        
-                        if (new) {
-                            Globals.shared.media.tags.selected = tagSelected
-                        }
-                        break
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+
+            if (index < 0) || (index >= strings.count) {
+                print("Index out of range")
+            }
+            
+            process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
+                var new:Bool = false
+                
+                switch string {
+                case Constants.Strings.All:
+                    if (Globals.shared.media.tags.showing != Constants.ALL) {
+                        new = true
+                        Globals.shared.media.tags.selected = nil
                     }
+                    break
+                    
+                default:
+                    //Tagged
+                    
+                    let tagSelected = strings[index]
+                    
+                    new = (Globals.shared.media.tags.showing != Constants.TAGGED) || (Globals.shared.media.tags.selected != tagSelected)
                     
                     if (new) {
-                        Thread.onMainThread {
-                            self?.display.clear()
-                            
-                            self?.tableView?.reloadData()
-                            
-                            self?.startAnimating()
-                            
-                            self?.disableBarButtons()
-                        }
-                        
-                        if (Globals.shared.search.active) {
-                            self?.updateSearchResults(Globals.shared.search.text,completion: nil)
-                        }
-                        
-                        Thread.onMainThread {
-                            self?.display.setup(Globals.shared.media.active)
-                            
-                            self?.tableView?.reloadData()
-                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
-                            
-                            self?.stopAnimating()
-                            
-                            self?.enableBarButtons()
-                            self?.setupActionAndTagsButton()
-                            self?.setupTag()
-                        }
+                        Globals.shared.media.tags.selected = tagSelected
                     }
-                } else {
-                    print("Index out of range")
+                    break
+                }
+                return new
+            }) { [weak self] (data:Any?) in
+                guard let new = data as? Bool else {
+                    return
+                }
+                
+                if (new) {
+                    Thread.onMainThread {
+                        self?.display.clear()
+                        
+                        self?.tableView?.reloadData()
+                        
+                        self?.startAnimating()
+                        
+                        self?.disableBarButtons()
+                    }
+                    
+                    if (Globals.shared.search.active) {
+                        self?.updateSearchResults(Globals.shared.search.text,completion: nil)
+                    }
+                    
+                    Thread.onMainThread {
+                        self?.display.setup(Globals.shared.media.active)
+                        
+                        self?.tableView?.reloadData()
+                        self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                        
+                        self?.stopAnimating()
+                        
+                        self?.enableBarButtons()
+                        self?.setupActionAndTagsButton()
+                        self?.setupTag()
+                    }
                 }
             }
             break
@@ -1939,7 +1947,8 @@ class MediaTableViewController : UIViewController
             }
             
             //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
-            if (display.mediaItems != nil) && (selectedMediaItem != nil) {
+            
+            if let selectedMediaItem = selectedMediaItem, display.mediaItems?.contains(selectedMediaItem) == true {
                 showMenu.append(Constants.Strings.Current_Selection)
             }
             
@@ -3369,7 +3378,7 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    fileprivate func setupTag()
+    func setupTag()
     {
         guard let showing = Globals.shared.media.tags.showing else {
             return

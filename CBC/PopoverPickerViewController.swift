@@ -372,7 +372,8 @@ class PopoverPickerViewController : UIViewController
     var incremental = false
     
     var action : ((String?)->())?
-    
+    var actionTitle : String?
+
     var pickerSelections = [Int:Int]()
     
     var stringsFunction:(()->[String]?)?
@@ -382,75 +383,75 @@ class PopoverPickerViewController : UIViewController
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     @IBOutlet weak var picker: UIPickerView!
     
-    @IBOutlet weak var selectButton: UIButton!
-    @IBOutlet weak var expandedViewButton: UIButton!
-
-    @IBAction func expandedViewAction(_ sender: UIButton)
-    {
-        process(viewController: self, work: { [weak self] () -> (Any?) in
-            var bodyHTML = "<!DOCTYPE html>"
-            
-            var wordsHTML = ""
-            var indexHTML = ""
-            
-            bodyHTML = bodyHTML + "<html><body>"
-            
-            if let roots = self?.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
-                return lhs.string < rhs.string
-            }) {
-                var total = 0
-                
-                wordsHTML = "<table>"
-                
-                for root in roots {
-                    if let rows = root.htmlWords(nil) {
-                        total += rows.count
-                        
-                        if let string = root.string {
-                            wordsHTML = wordsHTML + "<tr><td><br/></td></tr>"
-                            
-                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
-                        }
-                        
-                        for row in rows {
-                            wordsHTML = wordsHTML + "<tr>" + row + "</tr>"
-                        }
-                    }
-                }
-                
-                wordsHTML = wordsHTML + "</table>"
-                
-                indexHTML = "<table>"
-                
-                indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
-                
-                indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
-                
-                for root in roots {
-                    if let string = root.string {
-                        indexHTML = indexHTML + "<td>" + "<a id=\"index\" name=\"index\" href=#\(string)>" + string + "</a>" + "</td>"
-                    }
-                }
-                
-                indexHTML = indexHTML + "</tr></table>"
-            }
-            
-            bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
-            
-            return bodyHTML
-        }, completion: { [weak self] (data:Any?) in
-            if let vc = self {
-                presentHTMLModal(viewController: vc, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-            }
-        })
-    }
-    
-    @IBAction func selectButtonAction(sender: UIButton)
-    {
-        string = wordFromPicker()
-
-        delegate?.stringPicked(string,purpose:purpose)
-    }
+//    @IBOutlet weak var selectButton: UIButton!
+//    @IBOutlet weak var expandedViewButton: UIButton!
+//
+//    @IBAction func expandedViewAction(_ sender: UIButton)
+//    {
+//        process(viewController: self, work: { [weak self] () -> (Any?) in
+//            var bodyHTML = "<!DOCTYPE html>"
+//            
+//            var wordsHTML = ""
+//            var indexHTML = ""
+//            
+//            bodyHTML = bodyHTML + "<html><body>"
+//            
+//            if let roots = self?.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
+//                return lhs.string < rhs.string
+//            }) {
+//                var total = 0
+//                
+//                wordsHTML = "<table>"
+//                
+//                for root in roots {
+//                    if let rows = root.htmlWords(nil) {
+//                        total += rows.count
+//                        
+//                        if let string = root.string {
+//                            wordsHTML = wordsHTML + "<tr><td><br/></td></tr>"
+//                            
+//                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
+//                        }
+//                        
+//                        for row in rows {
+//                            wordsHTML = wordsHTML + "<tr>" + row + "</tr>"
+//                        }
+//                    }
+//                }
+//                
+//                wordsHTML = wordsHTML + "</table>"
+//                
+//                indexHTML = "<table>"
+//                
+//                indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
+//                
+//                indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
+//                
+//                for root in roots {
+//                    if let string = root.string {
+//                        indexHTML = indexHTML + "<td>" + "<a id=\"index\" name=\"index\" href=#\(string)>" + string + "</a>" + "</td>"
+//                    }
+//                }
+//                
+//                indexHTML = indexHTML + "</tr></table>"
+//            }
+//            
+//            bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
+//            
+//            return bodyHTML
+//        }, completion: { [weak self] (data:Any?) in
+//            if let vc = self {
+//                presentHTMLModal(viewController: vc, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//            }
+//        })
+//    }
+//    
+//    @IBAction func selectButtonAction(sender: UIButton)
+//    {
+//        string = wordFromPicker()
+//
+//        delegate?.stringPicked(string,purpose:purpose)
+//    }
     
     func actionMenu() -> [String]?
     {
@@ -835,8 +836,40 @@ class PopoverPickerViewController : UIViewController
                 })
             }
         }
+        
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+
+        var barButtons = [UIBarButtonItem]()
+        
+        if action != nil {
+            barButtons.append(spaceButton)
+            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doSelect)))
+            barButtons.append(spaceButton)
+            barButtons.append(UIBarButtonItem(title: actionTitle ?? "Action", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doAction)))
+            barButtons.append(spaceButton)
+        } else {
+            barButtons.append(spaceButton)
+            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doSelect)))
+            barButtons.append(spaceButton)
+        }
+
+        toolbarItems = barButtons.count > 0 ? barButtons : nil
+        
+        navigationController?.isToolbarHidden = toolbarItems == nil
 
         setPreferredContentSize() // = CGSize(width: 300, height: 300)
+    }
+    
+    @objc func doSelect()
+    {
+        string = wordFromPicker()
+        
+        delegate?.stringPicked(string,purpose:purpose)
+    }
+    
+    @objc func doAction()
+    {
+        self.action?(self.wordFromPicker())
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -924,8 +957,6 @@ class PopoverPickerViewController : UIViewController
             }
             
             self.picker.setNeedsLayout()
-            
-            self.action?(self.wordFromPicker())
         }
     }
     

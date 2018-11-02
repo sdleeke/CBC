@@ -607,6 +607,11 @@ class MediaListGroupSort
         
         sortGroup(Globals.shared.grouping)
 
+        // Why isn't this done on demand?
+        //
+        // Because we use tagNames (and tagMediaItems.keys for sorting the tagNames)
+        // in the tag menu
+        //
         tagMediaItems = [String:[MediaItem]]()
         tagNames = [String:String]()
 

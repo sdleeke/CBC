@@ -728,6 +728,10 @@ class PopoverTableViewController : UIViewController
             return
         }
         
+        guard let viewWidth = Globals.shared.splitViewController?.view.frame.width else {
+            return
+        }
+        
         preferredContentSize = CGSize(width: 0, height: 0)
 
         let margins:CGFloat = 2
@@ -763,8 +767,6 @@ class PopoverTableViewController : UIViewController
                 break
             }
         }
-        
-        let viewWidth = Globals.shared.splitViewController.view.frame.width
         
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)

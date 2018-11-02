@@ -78,7 +78,11 @@ class SelectedMediaItem
 //                Globals.shared.addToHistory(mediaItems?[indexPath.row])
 //            }
 
-            UserDefaults.standard.set(newValue?.id, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+            if let newValue = newValue {
+                UserDefaults.standard.set(newValue.id, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+            }
             UserDefaults.standard.synchronize()
         }
 

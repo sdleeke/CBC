@@ -1251,7 +1251,7 @@ class MediaItem : NSObject
                                 speakerSort = lastName
                             }
                             if let firstName = firstNameFromName(speaker) {
-                                speakerSort = ((speakerSort != nil) ? speakerSort! + "," : "") + firstName
+                                speakerSort = ((speakerSort != nil) ? speakerSort! + ", " : "") + firstName
                             }
                         } else {
                             speakerSort = speaker
@@ -1417,6 +1417,30 @@ class MediaItem : NSObject
         get {
             var constantTags:String?
             
+            ///////////////////////////////////////////////////
+            // Unfortunately these slow things down...
+            ///////////////////////////////////////////////////
+            
+            // We need this to show Tom's Archives from TWU.
+            if hasSpeaker, let speakerSort = speakerSort {
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + speakerSort
+            }
+
+            // Compromise...
+//            if let books = books {
+//                for book in books {
+//                    constantTags = (constantTags != nil ? constantTags! + "|" : "") + book
+//                }
+//            }
+            
+            ///////////////////////////////////////////////////
+            // And to be fair the rest of this does as well
+            // because they aren't tags specified by CBC
+            //
+            // The real problem is that we index by tag up front
+            // not on demand.
+            ///////////////////////////////////////////////////
+
             if hasSlides {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Slides
             }

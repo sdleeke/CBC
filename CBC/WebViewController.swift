@@ -1064,7 +1064,7 @@ class WebViewController: UIViewController
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
                     
-                    if Globals.shared.splitViewController.isCollapsed == false {
+                    if Globals.shared.splitViewController?.isCollapsed == false {
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)

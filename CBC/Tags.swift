@@ -27,6 +27,12 @@ class Tags
             return Globals.shared.mediaCategory.tag
         }
         set {
+            Globals.shared.mediaCategory.tag = newValue
+
+            guard !Globals.shared.isLoading, Globals.shared.mediaRepository.list != nil else {
+                return
+            }
+            
             if let newValue = newValue {
                 if (Globals.shared.media.tagged[newValue] == nil) {
                     if Globals.shared.media.all == nil {
@@ -43,8 +49,6 @@ class Tags
             } else {
                 
             }
-            
-            Globals.shared.mediaCategory.tag = newValue
         }
     }
 }
