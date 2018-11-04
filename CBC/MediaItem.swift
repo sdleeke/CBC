@@ -2022,7 +2022,7 @@ class MediaItem : NSObject
         }
     }
     
-    var hasNotesTokens:Bool
+    var hasNotesText:Bool
     {
         get {
             if #available(iOS 11.0, *) {
@@ -3302,7 +3302,7 @@ class MediaItem : NSObject
         }
         
         words = AlertAction(title: Constants.Strings.Words, style: .default) {
-            guard self.hasNotesTokens else { // HTML
+            guard self.hasNotesText else { // HTML
                 return
             }
             
@@ -3420,7 +3420,7 @@ class MediaItem : NSObject
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             if let reference = self.scriptureReference {
                 if self.scripture?.html?[reference] != nil {
-                    popoverHTML(viewController,title:reference,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:self.scripture?.html?[reference])
+                    popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference])
                 } else {
                     guard Globals.shared.reachability.isReachable else {
                         networkUnavailable(viewController,"Scripture text unavailable.")
@@ -3432,7 +3432,7 @@ class MediaItem : NSObject
                         return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
-                            popoverHTML(viewController,title:reference,sourceView:viewController.view,sourceRectView:viewController.view,htmlString:htmlString)
+                            popoverHTML(viewController, title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
                         } else {
                             networkUnavailable(viewController,"Scripture text unavailable.")
                         }
@@ -3444,16 +3444,16 @@ class MediaItem : NSObject
         voiceBase = AlertAction(title: Constants.Strings.VoiceBase, style: .default) {
             var alertActions = [AlertAction]()
             
-            if let actions = self.audioTranscript?.recognizeAlertActions(viewController:viewController) {
+            if let actions = self.audioTranscript?.alertActions(viewController:viewController) {
                 alertActions.append(actions)
             }
-            if let actions = self.videoTranscript?.recognizeAlertActions(viewController:viewController) {
+            if let actions = self.videoTranscript?.alertActions(viewController:viewController) {
                 alertActions.append(actions)
             }
             
             // At most, only ONE of the following TWO will be added.
             if  var vc = viewController as? PopoverTableViewControllerDelegate,
-                let actions = self.audioTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                let actions = self.audioTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
                 vc.popover = popover
             }) {
                 if self == Globals.shared.mediaPlayer.mediaItem, self.playing == Playing.audio, self.audioTranscript?.keywords != nil {
@@ -3461,7 +3461,7 @@ class MediaItem : NSObject
                 }
             }
             if  var vc = viewController as? PopoverTableViewControllerDelegate,
-                let actions = self.videoTranscript?.keywordAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
+                let actions = self.videoTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
                 vc.popover = popover
             }) {
                 if self == Globals.shared.mediaPlayer.mediaItem, self.playing == Playing.video, self.videoTranscript?.keywords != nil {
@@ -3519,7 +3519,7 @@ class MediaItem : NSObject
             
             actions.append(search)
 
-            if hasNotesTokens {
+            if hasNotesText {
                 actions.append(words)
             }
         }

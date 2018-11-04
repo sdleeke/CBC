@@ -647,7 +647,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.search = true
                     
-                    if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
+                    if let mediaItem = mediaItem, mediaItem.hasNotesText {
                         popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
                         
                         popover.selectedMediaItem = mediaItem

@@ -285,6 +285,83 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             setupDocumentsAndVideo()
             break
             
+            
+        case Constants.Strings.Transcribe_All_Audio:
+            guard let mediaItems = mediaItems else {
+                break
+            }
+            
+            for mediaItem in mediaItems {
+                guard mediaItem.audioTranscript?.transcribing == false else {
+                    break
+                }
+                
+                guard mediaItem.audioTranscript?.completed == false else {
+                    break
+                }
+                
+                mediaItem.audioTranscript?.getTranscript(alert: true, atEnd: nil)
+                mediaItem.audioTranscript?.alert(viewController: self)
+            }
+            break
+            
+        case Constants.Strings.Transcribe_All_Video:
+            guard let mediaItems = mediaItems else {
+                break
+            }
+            
+            for mediaItem in mediaItems {
+                guard mediaItem.videoTranscript?.transcribing == false else {
+                    break
+                }
+                
+                guard mediaItem.videoTranscript?.completed == false else {
+                    break
+                }
+                
+                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
+                mediaItem.audioTranscript?.alert(viewController: self)
+            }
+            break
+            
+            
+        case Constants.Strings.Align_All_Audio:
+            guard let mediaItems = mediaItems else {
+                break
+            }
+            
+            for mediaItem in mediaItems {
+                guard mediaItem.audioTranscript?.transcribing == false else {
+                    break
+                }
+                
+                guard mediaItem.audioTranscript?.completed == true else {
+                    break
+                }
+                
+                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
+            }
+            break
+            
+        case Constants.Strings.Align_All_Video:
+            guard let mediaItems = mediaItems else {
+                break
+            }
+            
+            for mediaItem in mediaItems {
+                guard mediaItem.videoTranscript?.transcribing == false else {
+                    break
+                }
+                
+                guard mediaItem.videoTranscript?.completed == true else {
+                    break
+                }
+                
+                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
+            }
+            break
+            
+
         default:
             break
         }
@@ -909,7 +986,10 @@ class MediaViewController: UIViewController
             return selectedMediaItem?.scripture
         }
     }
-    
+//    = {
+//        return Scripture(reference: selectedMediaItem?.scripture?.reference)
+//    }()
+
     var observerActive = false
     var observedItem:AVPlayerItem?
 
@@ -2114,6 +2194,12 @@ class MediaViewController: UIViewController
         var mediaItemsDownloading = 0
         var mediaItemsDownloaded = 0
         
+        var mediaItemsToTranscribeAudio = 0
+        var mediaItemsToTranscribeVideo = 0
+        
+        var mediaItemsToAlignAudio = 0
+        var mediaItemsToAlignVideo = 0
+        
         for mediaItem in mediaItems {
             if let download = mediaItem.audioDownload {
                 switch download.state {
@@ -2127,6 +2213,22 @@ class MediaViewController: UIViewController
                     mediaItemsDownloaded += 1
                     break
                 }
+            }
+            
+            if mediaItem.hasAudio, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == false {
+                mediaItemsToTranscribeAudio += 1
+            }
+            
+            if mediaItem.hasVideo, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == false {
+                mediaItemsToTranscribeVideo += 1
+            }
+            
+            if mediaItem.hasAudio, mediaItem.hasNotesText, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == true {
+                mediaItemsToAlignAudio += 1
+            }
+            
+            if mediaItem.hasVideo, mediaItem.hasNotesText, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == true {
+                mediaItemsToAlignVideo += 1
             }
         }
         
@@ -2169,7 +2271,23 @@ class MediaViewController: UIViewController
                 break
             }
         }
-
+        
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeAudio > 0 {
+            actionMenu.append(Constants.Strings.Transcribe_All_Audio)
+        }
+        
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeVideo > 0 {
+            actionMenu.append(Constants.Strings.Transcribe_All_Video)
+        }
+        
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignAudio > 0 {
+            actionMenu.append(Constants.Strings.Align_All_Audio)
+        }
+        
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignVideo > 0 {
+            actionMenu.append(Constants.Strings.Align_All_Video)
+        }
+        
         return actionMenu.count > 0 ? actionMenu : nil
     }
     

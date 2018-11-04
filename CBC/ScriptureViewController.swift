@@ -160,6 +160,31 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
+            case "Lexical Analysis":
+                process(viewController: self, disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
+                    if #available(iOS 12.0, *) {
+                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup
+                    } else {
+                        // Fallback on earlier versions
+                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup
+                    }
+                }) { (data:Any?) in
+                    if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? WebViewController {
+                        popover.navigationItem.title = self.scripture?.reference // "Lexical Analysis"
+                        navigationController.isNavigationBarHidden = false
+                        
+                        navigationController.modalPresentationStyle = .overCurrentContext
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.html.string = data as? String
+                        popover.content = .html
+                        
+                        self.present(navigationController, animated: true, completion: nil)
+                    }
+                }
+                break
+                
             case Constants.Strings.Share:
                 share()
                 break
@@ -458,6 +483,7 @@ class ScriptureViewController : UIViewController
     
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
+    var actionButton:UIBarButtonItem?
     
     var webViewController:WebViewController?
     
@@ -493,6 +519,43 @@ class ScriptureViewController : UIViewController
             default:
                 break
             }
+        }
+    }
+    
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        actionMenu.append("Lexical Analysis")
+        
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
+    @objc func actions()
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
+            return
+        }
+        
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+            
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.barButtonItem = actionButton
+            
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            popover.section.strings = actionMenu()
+            
+            self.present(navigationController, animated: true, completion:  nil)
         }
     }
     
@@ -672,23 +735,26 @@ class ScriptureViewController : UIViewController
         let fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
         fullScreenButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        if let minusButton = minusButton, let plusButton = plusButton, let presentationStyle = navigationController?.modalPresentationStyle {
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+        
+        if let minusButton = minusButton, let plusButton = plusButton, let actionButton = actionButton, let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .formSheet:
-                navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton], animated: true)
                 
             case .overCurrentContext:
                 if Globals.shared.splitViewController?.isCollapsed == false {
-                    navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                    navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton], animated: true)
                 } else {
-                    navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                    navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
                 }
                 
             case .fullScreen:
                 fallthrough
                 
             case .overFullScreen:
-                navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
 
             default:
                 break
@@ -1012,7 +1078,7 @@ class ScriptureViewController : UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
+        
     }
     
     func updatePicker()

@@ -369,6 +369,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             }
         }
         
+        if let isCollapsed = mtvc.splitViewController?.isCollapsed {
+            if newCategory || newTag || Globals.shared.media.need.sorting || Globals.shared.media.need.grouping || isCollapsed {
+                Thread.onMainThread {
+                    nvc.popToRootViewController(animated: false)
+                }
+            }
+        }
+
         if newCategory || newTag || Globals.shared.media.need.sorting || Globals.shared.media.need.grouping {
             Thread.onMainThread {
                 nvc.popToRootViewController(animated: false)
@@ -404,8 +412,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
                 }
             }
+        } else {
+            Thread.onMainThread {
+                mtvc.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+            }
         }
-        
+
         if let mediaCode = Globals.shared.media.goto {
             if let mediaItem = Globals.shared.mediaRepository.index?[mediaCode] {
                 Thread.onMainThread {

@@ -11,6 +11,7 @@ import MediaPlayer
 import AVKit
 import MessageUI
 import UserNotifications
+import NaturalLanguage
 
 func startAudio()
 {
@@ -2481,7 +2482,7 @@ func tokensFromString(_ string:String?) -> [String]?
         
         if let charUnicodeScalar = UnicodeScalar(String(char)) {
             if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
-                if str.endIndex > index {
+                if str.endIndex > str.index(index, offsetBy:1) {
                     let nextChar = str[str.index(index, offsetBy:1)]
                     
                     if let unicodeScalar = UnicodeScalar(String(nextChar)) {
@@ -2643,7 +2644,7 @@ func tokenTypesInString(string:String?) -> [(String,String,NSRange)]?
     return tokens.count > 0 ? tokens : nil
 }
 
-func nameTypesAndLexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
+func nsNameTypesAndLexicalClassesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
@@ -2670,6 +2671,32 @@ func nameTypesAndLexicalTypesInString(string:String?) -> [(String,String,NSRange
             tokens.append((token,tag,range))
         }
         index += 1
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+@available(iOS 12.0, *)
+func nlNameTypesAndLexicalClassesInString(string:String?) -> [(String,String,Range<String.Index>)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
+
+    tagger.string = string
+
+    let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
+
+    var tokens = [(String,String,Range<String.Index>)]()
+    
+    tagger.enumerateTags(in: string.startIndex..<string.endIndex, unit: .word, scheme: .nameTypeOrLexicalClass, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
+        let token = String(string[range])
+        if let tag = tag?.rawValue {
+            tokens.append((token,tag,range))
+        }
+        return true
     }
     
     return tokens.count > 0 ? tokens : nil
@@ -2772,7 +2799,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         
         if let charUnicodeScalar = UnicodeScalar(String(char)) {
             if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
-                if str.endIndex > index {
+                if str.endIndex > str.index(index, offsetBy:1) {
                     let nextChar = str[str.index(index, offsetBy:1)]
                     
                     if let unicodeScalar = UnicodeScalar(String(nextChar)) {

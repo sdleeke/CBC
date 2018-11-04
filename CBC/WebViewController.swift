@@ -506,6 +506,37 @@ extension WebViewController : PopoverTableViewControllerDelegate
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             break
             
+        case "Lexical Analysis":
+            process(viewController: self, disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
+                if #available(iOS 12.0, *) {
+                    return stripHTML(self.bodyHTML)?.nlNameAndLexicalTypesMarkup
+                } else {
+                    // Fallback on earlier versions
+                    return stripHTML(self.bodyHTML)?.nsNameAndLexicalTypesMarkup
+                }
+            }) { (data:Any?) in
+                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    
+                    if let title = self.navigationItem.title {
+                        popover.navigationItem.title = title + " Lexical Analysis"
+                    } else {
+                        popover.navigationItem.title = "Lexical Analysis"
+                    }
+                    
+                    navigationController.isNavigationBarHidden = false
+                    
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    popover.html.string = data as? String
+                    popover.content = .html
+                    
+                    self.present(navigationController, animated: true, completion: nil)
+                }
+            }
+            break
+
         default:
             break
         }
@@ -958,6 +989,7 @@ class WebViewController: UIViewController
                         actionMenu.append(Constants.Strings.Word_Cloud)
                     }
                 }
+                actionMenu.append("Lexical Analysis")
             }
 
             if self.navigationController?.modalPresentationStyle == .popover {
@@ -1064,7 +1096,7 @@ class WebViewController: UIViewController
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
                     
-                    if Globals.shared.splitViewController?.isCollapsed == false {
+                    if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)

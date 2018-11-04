@@ -648,6 +648,8 @@ enum Constants {
 
         static let Actions = "Actions"
 
+        static let Align = "Align"
+        static let Transcribe = "Transcribe"
         static let Transcribing = "Transcribing"
 
         static let Download = "Download"
@@ -665,6 +667,16 @@ enum Constants {
         
         static let Download_All_Audio = Download_All + SINGLE_SPACE + Audio
         static let Download_All_Video = Download_All + SINGLE_SPACE + Video
+
+        static let Transcribe_All = Transcribe + SINGLE_SPACE + All
+        
+        static let Transcribe_All_Audio = Transcribe_All + SINGLE_SPACE + Audio
+        static let Transcribe_All_Video = Transcribe_All + SINGLE_SPACE + Video
+        
+        static let Align_All = Align + SINGLE_SPACE + All
+        
+        static let Align_All_Audio = Align_All + SINGLE_SPACE + Audio
+        static let Align_All_Video = Align_All + SINGLE_SPACE + Video
         
         static let Cancel_All = Cancel + SINGLE_SPACE + All
         static let Delete_All = Delete + SINGLE_SPACE + All

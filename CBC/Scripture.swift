@@ -207,6 +207,63 @@ class Scripture : NSObject
         }
     }
     
+//    var htmlString : String?
+//    {
+//        guard let reference = reference else {
+//            return nil
+//        }
+//
+//        return html?[reference]
+//    }
+    
+    func text(_ reference:String?) -> String?
+    {
+        guard let reference = reference else {
+            return nil
+        }
+        
+        guard var string = stripHTML(html?[reference]) else {
+            return nil
+        }
+
+        if let startRange = string.range(of: "</sup>") {
+            string = String(string[startRange.upperBound...])
+        }
+
+        while string.range(of: "<sup ") != nil {
+            if let startRange = string.range(of: "<sup ") {
+                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
+                    let to = String(string[..<startRange.lowerBound])
+                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
+                    
+                    string = to + String(string[(to + from).endIndex...])
+                }
+            }
+        }
+        
+        while string.range(of: "<h3") != nil {
+            if let startRange = string.range(of: "<h3") {
+                if let endRange = String(string[startRange.lowerBound...]).range(of: "</h3>") {
+                    let to = String(string[..<startRange.lowerBound])
+                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
+                    
+                    string = to + String(string[(to + from).endIndex...])
+                }
+            }
+        }
+        
+        if let startRange = string.range(of: "\n\n\n ") {
+            if let endRange = String(string[startRange.lowerBound...]).range(of: "</noscript>") {
+                let to = String(string[..<startRange.lowerBound])
+                let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
+                
+                string = to + String(string[(to + from).endIndex...])
+            }
+        }
+
+        return string
+    }
+    
     init(reference:String?)
     {
         super.init()

@@ -145,7 +145,7 @@ class Lexicon : NSObject
     {
         get {
             if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.hasNotesTokens
+                return mediaItem.hasNotesText
             }), list.count > 0 {
                 return list
             } else {
