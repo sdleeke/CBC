@@ -96,7 +96,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 if let reference = scripture?.selected.reference {
                     scripture?.reference = reference
                     if scripture?.html?[reference] != nil {
-                        popoverHTML(self,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,htmlString:scripture?.html?[reference])
+                        popoverHTML(self,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,htmlString:scripture?.html?[reference], search:false)
                     } else {
                         process(viewController: self, work: { [weak self] () -> (Any?) in
                             self?.scripture?.load() // reference
@@ -104,7 +104,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                         }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
                                 if let vc = self {
-                                    popoverHTML(vc,title:reference,barButtonItem:self?.navigationItem.rightBarButtonItem,htmlString:htmlString)
+                                    popoverHTML(vc,title:reference,barButtonItem:self?.navigationItem.rightBarButtonItem,htmlString:htmlString, search:false)
                                 }
                             } else {
                                 if let vc = self {

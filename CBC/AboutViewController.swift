@@ -1,6 +1,6 @@
 //
 //  AboutViewController.swift
-//  TWU
+//  CBC
 //
 //  Created by Steve Leeke on 8/6/15.
 //  Copyright (c) 2015 Steve Leeke. All rights reserved.

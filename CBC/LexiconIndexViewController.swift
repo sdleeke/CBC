@@ -1118,7 +1118,7 @@ class LexiconIndexViewController : UIViewController
             var appearances = 0
 
             for mediaItem in mediaItems {
-                if let count = mediaItem.notesTokens.result?[searchText] {
+                if let count = mediaItem.notesTokens?.result?[searchText] {
                     appearances += count
                 }
             }
@@ -1613,6 +1613,10 @@ class LexiconIndexViewController : UIViewController
 
         setTableViewHeightConstraint(change:0)
         
+        if lexicon?.completed == false {
+            wordsTableViewController.activityIndicator.startAnimating()
+        }
+
         spinner.isHidden = true
         spinner.stopAnimating()
     }

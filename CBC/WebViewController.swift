@@ -247,7 +247,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.isHidden = false
         self.activityIndicator.startAnimating()
         
-        if bodyHTML != nil, headerHTML != nil {
+        if bodyHTML != nil { // , headerHTML != nil // Not necessary
             html.string = markBodyHTML(bodyHTML: bodyHTML, headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
         }
 
@@ -291,7 +291,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
     }
 
-    func actions(action: String?, mediaItem:MediaItem?)
+    func selectingAction(action: String?, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
@@ -345,7 +345,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let isEmpty = self.searchText?.isEmpty, isEmpty {
                     self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
                 } else {
-                    if self.bodyHTML != nil, self.headerHTML != nil {
+                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
                         self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
                     } else {
                         self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
@@ -397,9 +397,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 if let mediaItem = mediaItem {
                     popover.cloudTitle = mediaItem.title
+
+                    popover.cloudString = self.bodyHTML?.html2String
                     
                     popover.cloudWordsFunction = {
-                        
                         let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })
@@ -577,7 +578,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.startAnimating()
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                if self?.bodyHTML != nil, self?.headerHTML != nil {
+                if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
                     self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
                 }
                 
@@ -594,7 +595,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            actions(action: string, mediaItem:mediaItem)
+            selectingAction(action: string, mediaItem:mediaItem)
             break
             
         default:
@@ -950,7 +951,47 @@ class WebViewController: UIViewController
     
     var activityViewController:UIActivityViewController?
     
-    @objc func actionMenu()
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        if (html.string != nil) && search {
+            actionMenu.append(Constants.Strings.Search)
+            
+            if (bodyHTML != nil) {
+                actionMenu.append(Constants.Strings.Words)
+                actionMenu.append(Constants.Strings.Word_Picker)
+            }
+        }
+        
+        if (bodyHTML != nil) {
+            if Globals.shared.splitViewController?.isCollapsed == false {
+                let vClass = traitCollection.verticalSizeClass
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if vClass != .compact, hClass != .compact {
+                    actionMenu.append(Constants.Strings.Word_Cloud)
+                }
+            }
+            actionMenu.append("Lexical Analysis")
+        }
+        
+        if self.navigationController?.modalPresentationStyle == .popover {
+            actionMenu.append(Constants.Strings.Full_Screen)
+        }
+        
+        if UIPrintInteractionController.isPrintingAvailable {
+            actionMenu.append(Constants.Strings.Print)
+        }
+        
+        if html.string != nil {
+            actionMenu.append(Constants.Strings.Share)
+        }
+        
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
+    @objc func actions()
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -969,42 +1010,7 @@ class WebViewController: UIViewController
             
             popover.selectedMediaItem = mediaItem
             
-            var actionMenu = [String]()
-            
-            if (html.string != nil) && search {
-                actionMenu.append(Constants.Strings.Search)
-                
-                if (bodyHTML != nil) {
-                    actionMenu.append(Constants.Strings.Words)
-                    actionMenu.append(Constants.Strings.Word_Picker)
-                }
-            }
-            
-            if (bodyHTML != nil) {
-                if Globals.shared.splitViewController?.isCollapsed == false {
-                    let vClass = traitCollection.verticalSizeClass
-                    let hClass = traitCollection.horizontalSizeClass
-                    
-                    if vClass != .compact, hClass != .compact {
-                        actionMenu.append(Constants.Strings.Word_Cloud)
-                    }
-                }
-                actionMenu.append("Lexical Analysis")
-            }
-
-            if self.navigationController?.modalPresentationStyle == .popover {
-                actionMenu.append(Constants.Strings.Full_Screen)
-            }
-            
-            if UIPrintInteractionController.isPrintingAvailable {
-                actionMenu.append(Constants.Strings.Print)
-            }
-            
-            if html.string != nil {
-                actionMenu.append(Constants.Strings.Share)
-            }
-            
-            popover.section.strings = actionMenu
+            popover.section.strings = actionMenu()
             
             self.popover = popover
             
@@ -1063,7 +1069,7 @@ class WebViewController: UIViewController
         fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
         fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actionMenu))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(increaseFontSize))
@@ -1095,7 +1101,8 @@ class WebViewController: UIViewController
                 // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
-                    
+
+                                                                                // To Keep WEB VIEWS over other Forms from failing.
                     if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {

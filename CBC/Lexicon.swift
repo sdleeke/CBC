@@ -259,16 +259,16 @@ class Lexicon : NSObject
                     return
                 }
 
-                let purge = Globals.shared.purge && (mediaItem.notesTokens.cache == nil)
+                let purge = Globals.shared.purge && (mediaItem.notesTokens?.cache == nil)
                 
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
-                    if let notesTokens = mediaItem.notesTokens.result {
+                    if let notesTokens = mediaItem.notesTokens?.result {
                         // Try indefinitely to load all media items
                         list.removeFirst()
                         
                         if purge {
-                            mediaItem.notesTokens.cache = nil // Save memory - load on demand.
+                            mediaItem.notesTokens?.cache = nil // Save memory - load on demand.
                         }
                         
                         print("notesTokens to add: \(notesTokens.count)")
@@ -359,7 +359,7 @@ class Lexicon : NSObject
         
         if let list = eligible {
             for mediaItem in list {
-                if let notesTokens = mediaItem.notesTokens.result {
+                if let notesTokens = mediaItem.notesTokens?.result {
                     for token in notesTokens {
                         if dict[token.key] == nil {
                             dict[token.key] = [mediaItem:token.value]

@@ -1,6 +1,6 @@
 //
 //  MediaViewController.swift
-//  TWU
+//  CBC
 //
 //  Created by Steve Leeke on 7/31/15.
 //  Copyright (c) 2015 Steve Leeke. All rights reserved.
@@ -147,7 +147,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
                 
                 popover.scripture = self.scripture
-                                
+                
                 // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: self)
 
@@ -320,7 +320,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 }
                 
                 mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
-                mediaItem.audioTranscript?.alert(viewController: self)
+                mediaItem.videoTranscript?.alert(viewController: self)
             }
             break
             
@@ -2272,19 +2272,19 @@ class MediaViewController: UIViewController
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeAudio > 0 {
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeVideo > 0 {
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignAudio > 0 {
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignVideo > 0 {
+        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video)
         }
         

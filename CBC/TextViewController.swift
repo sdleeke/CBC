@@ -540,7 +540,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
                         
                         popover.stringsFunction = {
-                            if let keys = mediaItem.notesTokens.result?.keys {
+                            if let keys = mediaItem.notesTokens?.result?.keys {
                                 let strings = [String](keys).sorted()
                                 return strings
                             }
@@ -587,6 +587,8 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     popover.cloudTitle = navigationItem.title
 
                     let string = textView.text
+
+                    popover.cloudString = string
                     
                     popover.cloudWordsFunction = {
                         let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
@@ -655,7 +657,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         popover.stringsFunction = {
                             //                            mediaItem.loadNotesTokens()
                             
-                            return mediaItem.notesTokens.result?.map({ (string:String,count:Int) -> String in
+                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                                 return "\(string) (\(count))"
                             }).sorted()
                         }
@@ -1346,16 +1348,24 @@ class TextViewController : UIViewController
             }
 
             if  let transcriptString = self?.textView.attributedText.string.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), transcriptString == transcriptFromWordsString {
+                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                transcriptString == transcriptFromWordsString {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
                     //                    print(wordRangeTiming)
                     
+                    var speakerNotesParagraphWords : [String:Int]?
+                    
                     let block = {
+                        // Multiply the gap time by the frequency of the word that appears after it and sort
+                        // in descending order to suggest the most likely paragraph breaks.
+                        
                         if let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
-                            if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
-                                return first > second
+                            if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
+                                if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
+                                    return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
+                                }
                             }
                             
                             return first["gap"] != nil
@@ -1397,20 +1407,47 @@ class TextViewController : UIViewController
                             Alerts.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
                         }
                     }
+
+                    guard let vc = self else {
+                        return
+                    }
                     
-                    if self?.wordRangeTiming != nil {
-                        block()
-                    } else {
-                        self?.creatingWordRangeTiming = true
+                    yesOrNo(viewController: vc, title: "Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", yesAction: { () -> (Void) in
                         process(viewController: self!, work: { [weak self] () -> (Any?) in
-                            self?.wordRangeTiming = self?.transcript?.wordRangeTiming
-                            self?.creatingWordRangeTiming = false
-                            return nil
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
+                            
+                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+                                if first.value == second.value {
+                                    return first.key < second.key
+                                } else {
+                                    return first.value > second.value
+                                }
+                            }))
+                            
+                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
+                            self?.wordRangeTiming = data as? [[String:Any]]
+                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
-                    }
+                    }, yesStyle: .default, noAction: { () -> (Void) in
+                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+                        }, completion: { (data:Any?) in
+                            self?.wordRangeTiming = data as? [[String:Any]]
+                            self?.creatingWordRangeTiming = false
+                            self?.updateBarButtons()
+                            block()
+                        })
+                    }, noStyle: .default)
+
+//                    if self?.wordRangeTiming != nil {
+//                        block()
+//                    } else {
+//                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -1455,7 +1492,8 @@ class TextViewController : UIViewController
             }
             
             if  let transcriptString = self?.textView.attributedText.string.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), transcriptString == transcriptFromWordsString {
+                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                transcriptString == transcriptFromWordsString {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
@@ -2067,12 +2105,12 @@ class TextViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        navigationController?.isToolbarHidden = toolbarItems == nil
-
         if let navigationController = navigationController, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         
+        navigationController?.isToolbarHidden = toolbarItems == nil
+
         addNotifications()
         
         searchBar.text = searchText
@@ -2479,12 +2517,94 @@ class TextViewController : UIViewController
         if showGaps {
             gapString = "<\(gap)>" + gapString
         }
-        
-        let fullAttributedString = NSMutableAttributedString()
-        
+
         let beforeFull = String(text[..<range.lowerBound])
         let stringFull = String(text[range])
         let afterFull = String(text[range.upperBound...])
+        
+        //////////////////////////////////////////////////////////////////////////////
+        // If words.first["range"] (either lowerBound or upperBound) is "too close"
+        // (whatever that is defined to be) to a paragraph break then we should skip
+        // and move on to the next word.
+        //////////////////////////////////////////////////////////////////////////////
+        
+        let tooClose = 240 // Completely arbitrary.
+        
+        var lowerRange : Range<String.Index>?
+        var upperRange : Range<String.Index>?
+        
+        var rng : Range<String.Index>?
+        
+        var searchRange : Range<String.Index>!
+            
+        searchRange = Range(uncheckedBounds: (lower: text.startIndex, upper: range.lowerBound))
+        
+        rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+        
+        // But even if there is a match we have to find the LAST match
+        if rng != nil {
+            repeat {
+                lowerRange = rng
+                searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: range.lowerBound))
+                rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            } while rng != nil
+        } else {
+            // NONE FOUND BEFORE
+        }
+
+        if let lowerRange = lowerRange, lowerRange.upperBound.encodedOffset + tooClose > range.lowerBound.encodedOffset {
+            if interactive {
+                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGaps:showGaps, words:words, text:text, completion:completion)
+            } else {
+                guard gap >= gapThreshold else {
+                    if !automatic {
+                        var actions = [AlertAction]()
+                        
+                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                            self.updateBarButtons()
+                        }))
+                        
+                        Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                    }
+                    return
+                }
+                
+                operationQueue.addOperation { [weak self] in
+                    self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGaps:showGaps, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
+                }
+            }
+            return
+        }
+
+        searchRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+        
+        upperRange = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+        
+        if let upperRange = upperRange, range.upperBound.encodedOffset + tooClose > upperRange.lowerBound.encodedOffset {
+            if interactive {
+                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGaps:showGaps, words:words, text:text, completion:completion)
+            } else {
+                guard gap >= gapThreshold else {
+                    if !automatic {
+                        var actions = [AlertAction]()
+                        
+                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                            self.updateBarButtons()
+                        }))
+                        
+                        Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                    }
+                    return
+                }
+                
+                operationQueue.addOperation { [weak self] in
+                    self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGaps:showGaps, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
+                }
+            }
+            return
+        }
+
+        let fullAttributedString = NSMutableAttributedString()
         
         fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.normal))
         fullAttributedString.append(NSAttributedString(string: stringFull,attributes: Constants.Fonts.Attributes.highlighted))
@@ -2564,7 +2684,7 @@ class TextViewController : UIViewController
                     }
                 }
                 
-                // Calling completion we change something makes sense.
+                // Calling completion when we change something makes sense?
                 completion?(newText)
                 
                 self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGaps:showGaps, words:words, text:newText, completion:completion)

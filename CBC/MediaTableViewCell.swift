@@ -1,6 +1,6 @@
 //
 //  MediaTableViewCell.swift
-//  TWU
+//  CBC
 //
 //  Created by Steve Leeke on 8/1/15.
 //  Copyright (c) 2015 Steve Leeke. All rights reserved.
@@ -320,7 +320,7 @@ class MediaTableViewCell: UITableViewCell
                     }
                     
                     DispatchQueue.global(qos: .userInteractive).async {
-                        if let count = mediaItem.notesTokens.result?[searchText] {
+                        if let count = mediaItem.notesTokens?.result?[searchText] {
                             Thread.onMainThread {
                                 if self.mediaItem == mediaItem {
                                     self.countLabel.text = count.description

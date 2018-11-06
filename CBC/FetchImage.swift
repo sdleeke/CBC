@@ -1,6 +1,6 @@
 //
 //  FetchImage.swift
-//  TWU
+//  CBC
 //
 //  Created by Steve Leeke on 10/5/18.
 //  Copyright © 2018 Steve Leeke. All rights reserved.
@@ -18,23 +18,23 @@ class FetchImage
         self.url = url
     }
     
+    var fileSystemURL:URL?
+    {
+        get {
+            return url?.fileSystemURL
+        }
+    }
+    
+    var downloaded:Bool
+    {
+        get {
+            return fileSystemURL?.downloaded ?? false
+        }
+    }
+    
     func fetchIt() -> UIImage?
     {
-        guard let image = self.url?.image else {
-            return nil
-        }
-        
-        if Globals.shared.cacheDownloads, let fileSystemURL = url?.fileSystemURL, !fileSystemURL.downloaded {
-            do {
-                try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
-                print("Image \(fileSystemURL.lastPathComponent) saved to file system")
-            } catch let error as NSError {
-                NSLog(error.localizedDescription)
-                print("Image \(fileSystemURL.lastPathComponent) not saved to file system")
-            }
-        }
-        
-        return image
+        return self.url?.image
     }
     
     func block(_ block:((UIImage?)->()))
@@ -63,6 +63,52 @@ class FetchImage
     
     lazy var fetch:Fetch<UIImage> = {
         let fetch = Fetch<UIImage>(name:imageName)
+        
+        fetch.store = { (image:UIImage?) in
+            guard let image = image else {
+                return
+            }
+            
+            guard Globals.shared.cacheDownloads else {
+                return
+            }
+            
+            guard let fileSystemURL = self.fileSystemURL else {
+                return
+            }
+            
+            guard !fileSystemURL.downloaded else {
+                return
+            }
+            
+            do {
+                try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
+                print("Image \(fileSystemURL.lastPathComponent) saved to file system")
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
+                print("Image \(fileSystemURL.lastPathComponent) not saved to file system")
+            }
+        }
+
+        fetch.retrieve = {
+            guard Globals.shared.cacheDownloads else {
+                return nil
+            }
+            
+            guard let fileSystemURL = self.fileSystemURL else {
+                return nil
+            }
+            
+            guard fileSystemURL.downloaded else {
+                return nil
+            }
+            
+            guard let image = UIImage(contentsOfFile: fileSystemURL.path) else {
+                return nil
+            }
+            
+            return image
+        }
         
         fetch.fetch = {
             return self.fetchIt()

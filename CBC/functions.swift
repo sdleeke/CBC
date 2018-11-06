@@ -681,9 +681,9 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
         return nil
     }
     
-    guard let headerHTML = headerHTML else {
-        return nil
-    }
+//    guard let headerHTML = headerHTML else {
+//        return nil
+//    }
     
     guard (stripHead(bodyHTML) != nil) else {
         return nil
@@ -696,10 +696,21 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
     var searchTexts = Set<String>()
     
     if lemmas {
-        if let lemmas = bodyHTML.html2String?.lemmas {
-            for lemma in lemmas {
-                if lemma.1.lowercased() == searchText.lowercased() {
-                    searchTexts.insert(lemma.0.lowercased())
+        if #available(iOS 12.0, *) {
+            if let lemmas = bodyHTML.html2String?.nlLemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
+                }
+            }
+        } else {
+            // Fallback on earlier versions
+            if let lemmas = bodyHTML.html2String?.nsLemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
                 }
             }
         }
@@ -877,7 +888,11 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
         htmlString = htmlString + indexString
     }
     
-    htmlString = htmlString + headerHTML + string + "</body></html>"
+    if let headerHTML = headerHTML {
+        htmlString = htmlString + headerHTML + string + "</body></html>"
+    } else {
+        htmlString = htmlString + string + "</body></html>"
+    }
     
     return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
 }
@@ -2516,7 +2531,7 @@ func tokensFromString(_ string:String?) -> [String]?
     return tokenArray.count > 0 ? tokenArray : nil
 }
 
-func lemmasInString(string:String?) -> [(String,String,NSRange)]?
+func nsLemmasInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
@@ -2548,7 +2563,7 @@ func lemmasInString(string:String?) -> [(String,String,NSRange)]?
     return tokens.count > 0 ? tokens : nil
 }
 
-func nameTypesInString(string:String?) -> [(String,String,NSRange)]?
+func nsNameTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
@@ -2580,7 +2595,7 @@ func nameTypesInString(string:String?) -> [(String,String,NSRange)]?
     return tokens.count > 0 ? tokens : nil
 }
 
-func lexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
+func nsLexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
@@ -2612,7 +2627,7 @@ func lexicalTypesInString(string:String?) -> [(String,String,NSRange)]?
     return tokens.count > 0 ? tokens : nil
 }
 
-func tokenTypesInString(string:String?) -> [(String,String,NSRange)]?
+func nsTokenTypesInString(string:String?) -> [(String,String,NSRange)]?
 {
     guard let string = string else {
         return nil
@@ -2677,6 +2692,58 @@ func nsNameTypesAndLexicalClassesInString(string:String?) -> [(String,String,NSR
 }
 
 @available(iOS 12.0, *)
+func nlLemmasInString(string:String?) -> [(String,String,Range<String.Index>)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    let tagger = NLTagger(tagSchemes: [.lemma])
+    
+    tagger.string = string
+    
+    let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
+    
+    var tokens = [(String,String,Range<String.Index>)]()
+    
+    tagger.enumerateTags(in: string.startIndex..<string.endIndex, unit: .word, scheme: .lemma, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
+        let token = String(string[range])
+        if let tag = tag?.rawValue {
+            tokens.append((token,tag,range))
+        }
+        return true
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+@available(iOS 12.0, *)
+func nlTokenTypesInString(string:String?) -> [(String,String,Range<String.Index>)]?
+{
+    guard let string = string else {
+        return nil
+    }
+    
+    let tagger = NLTagger(tagSchemes: [.tokenType])
+    
+    tagger.string = string
+    
+    let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
+    
+    var tokens = [(String,String,Range<String.Index>)]()
+    
+    tagger.enumerateTags(in: string.startIndex..<string.endIndex, unit: .word, scheme: .tokenType, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
+        let token = String(string[range])
+        if let tag = tag?.rawValue {
+            tokens.append((token,tag,range))
+        }
+        return true
+    }
+    
+    return tokens.count > 0 ? tokens : nil
+}
+
+@available(iOS 12.0, *)
 func nlNameTypesAndLexicalClassesInString(string:String?) -> [(String,String,Range<String.Index>)]?
 {
     guard let string = string else {
@@ -2684,11 +2751,11 @@ func nlNameTypesAndLexicalClassesInString(string:String?) -> [(String,String,Ran
     }
     
     let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
-
+    
     tagger.string = string
-
+    
     let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
-
+    
     var tokens = [(String,String,Range<String.Index>)]()
     
     tagger.enumerateTags(in: string.startIndex..<string.endIndex, unit: .word, scheme: .nameTypeOrLexicalClass, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
@@ -3113,17 +3180,17 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 //                    print(".", terminator: Constants.EMPTY_STRING)
             }
             
-            if let title = mediaItem.title, let notes = mediaItem.notes, let notesURL = mediaItem.notesURL {
+            if let title = mediaItem.title, let notesURLString = mediaItem.notesURLString, let notesURL = mediaItem.notesURL {
                 if ((try? Data(contentsOf: notesURL)) == nil) {
-                    print("Transcript DOES NOT exist for: \(title) PDF: \(notes)")
+                    print("Transcript DOES NOT exist for: \(title) PDF: \(notesURLString)")
                 } else {
                     
                 }
             }
             
-            if let title = mediaItem.title, let slides = mediaItem.slides, let slidesURL = mediaItem.slidesURL {
+            if let title = mediaItem.title, let slidesURLString = mediaItem.slidesURLString, let slidesURL = mediaItem.slidesURL {
                 if ((try? Data(contentsOf: slidesURL)) == nil) {
-                    print("Slides DO NOT exist for: \(title) PDF: \(slides)")
+                    print("Slides DO NOT exist for: \(title) PDF: \(slidesURLString)")
                 } else {
                     
                 }
@@ -3896,7 +3963,7 @@ func preferredModalPresentationStyle(viewController:UIViewController) -> UIModal
     return .formSheet
 }
 
-func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil)
+func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil, search:Bool)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
@@ -3944,7 +4011,7 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
             popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
         }
         
-        popover.search = true
+        popover.search = search
         popover.bodyHTML = bodyHTML
         popover.headerHTML = headerHTML
 

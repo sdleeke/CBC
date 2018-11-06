@@ -214,8 +214,8 @@ class MediaItem : NSObject
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
-        notesHTML.cache = nil
-        notesTokens.cache = nil
+        notesHTML?.cache = nil
+        notesTokens?.cache = nil
         
         booksChaptersVerses = nil
     }
@@ -305,6 +305,13 @@ class MediaItem : NSObject
     {
         get {
             // Potential crash if nil
+            return mediaCode
+        }
+    }
+    
+    var mediaCode:String?
+    {
+        get {
             return self[Field.id]
         }
     }
@@ -956,8 +963,60 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var notesHTML:Fetch<String> = {
-        let fetch = Fetch<String>(name: "HTML Transcript")
+    lazy var notesHTML:FetchCodable<String>? = {
+        guard let mediaCode = self.mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<String>(name: mediaCode + "." + "HTML Transcript")
+        
+//        var fileSystemURL : URL?
+//        {
+//            get {
+//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
+//                    return nil
+//                }
+//
+//                guard let mediaCode = self.mediaCode else {
+//                    return nil
+//                }
+//
+//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
+//            }
+//        }
+//
+//        fetch.store = { (string:String?) in
+//            guard let fileSystemURL = fileSystemURL else {
+//                return
+//            }
+//
+//            do {
+//                try string?.write(to: fileSystemURL, atomically: true, encoding: String.Encoding.utf16)
+//
+//                print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
+//            } catch let error as NSError {
+//                print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
+//                NSLog(error.localizedDescription)
+//            }
+//        }
+//
+//        fetch.retrieve = {
+//            guard let fileSystemURL = fileSystemURL else {
+//                return nil
+//            }
+//
+//            do {
+//                let data = try Data(contentsOf: fileSystemURL)
+//
+//                print("able to read string from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                return String(data: data, encoding:String.Encoding.utf16)
+//            } catch let error {
+//                print("unable to read string from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                return nil
+//            }
+//        }
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -987,7 +1046,7 @@ class MediaItem : NSObject
         return fetch
     }()
     
-    var notesTokens:Fetch<[String:Int]>
+    var notesTokens:FetchCodable<[String:Int]>?
     {
         get {
             if #available(iOS 11.0, *) {
@@ -998,19 +1057,157 @@ class MediaItem : NSObject
         }
     }
     
+    var _speakerNotesParagraphWords:[String:Int]?
+    
+    var speakerNotesParagraphWords:[String:Int]?
+    {
+        get {
+            guard _speakerNotesParagraphWords == nil else {
+                return _speakerNotesParagraphWords
+            }
+            
+            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
+            }) else {
+                return nil
+            }
+
+            var allNotesParagraphWords = [String:Int]()
+
+            for mediaItem in mediaItems {
+                if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
+                    // notesParagraphWords.count is the number of paragraphs.
+                    // So we can get the distribution of the number of paragraphs
+                    // in each document - if that is useful.
+                    allNotesParagraphWords.merge(notesParagraphWords) { (firstValue, secondValue) -> Int in
+                        return firstValue + secondValue
+                    }
+                }
+            }
+            
+            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
+            
+            return _speakerNotesParagraphWords
+        }
+    }
+    
+    lazy var notesParagraphWords:FetchCodable<[String:Int]>? = {
+        guard let mediaCode = mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes Paragraph Words")
+        
+        fetch.fetch = {
+            guard let paragraphs = self.notesText?.components(separatedBy: "\n\n") else {
+                return nil
+            }
+            
+            var words = [String:Int]()
+            
+            for paragraph in paragraphs {
+                if #available(iOS 12.0, *) {
+                    if let token = paragraph.nlTokenTypes?.first {
+                        if let count = words[token.0.lowercased()] {
+                            words[token.0.lowercased()] = count + 1
+                        } else {
+                            words[token.0.lowercased()] = 1
+                        }
+                    }
+                } else {
+                    // Fallback on earlier versions
+                    if let token = paragraph.nsTokenTypes?.first {
+                        if let count = words[token.0.lowercased()] {
+                            words[token.0.lowercased()] = count + 1
+                        } else {
+                            words[token.0.lowercased()] = 1
+                        }
+                    }
+                }
+            }
+            
+            return words.count > 0 ? words : nil
+        }
+        
+        return fetch
+    }()
+    
     var notesText:String?
     {
         get {
             if #available(iOS 11.0, *) {
-                return notesPDFText.result
+                return notesPDFText?.result
             } else {
-                return notesHTML.result?.html2String
+                return notesHTML?.result?.html2String
             }
         }
     }
     
-    lazy var notesHTMLTokens:Fetch<[String:Int]> = {
-        let fetch = Fetch<[String:Int]>(name: "Notes HTML Tokens")
+    lazy var notesHTMLTokens:FetchCodable<[String:Int]>? = {
+        guard let mediaCode = self.mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes HTML Tokens")
+        
+//        var fileSystemURL : URL?
+//        {
+//            get {
+//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
+//                    return nil
+//                }
+//
+//                guard let mediaCode = self.mediaCode else {
+//                    return nil
+//                }
+//
+//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
+//            }
+//        }
+//
+//        fetch.store = { (dict:[String:Int]?) in
+//            guard let fileSystemURL = fileSystemURL else {
+//                return
+//            }
+//
+//            do {
+//                let data = try JSONEncoder().encode(dict)
+//                print("able to encode dict: \(fileSystemURL.lastPathComponent)")
+//
+//                do {
+//                    try data.write(to: fileSystemURL)
+//                    print("able to write dict to the file system: \(fileSystemURL.lastPathComponent)")
+//                } catch let error {
+//                    print("unable to write dict to the file system: \(fileSystemURL.lastPathComponent)")
+//                }
+//            } catch let error as NSError {
+//                print("unable to encode dict: \(fileSystemURL.lastPathComponent)")
+//                NSLog(error.localizedDescription)
+//            }
+//        }
+//
+//        fetch.retrieve = {
+//            guard let fileSystemURL = fileSystemURL else {
+//                return nil
+//            }
+//
+//            do {
+//                let data = try Data(contentsOf: fileSystemURL)
+//                print("able to read dict from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                do {
+//                    let dict = try JSONDecoder().decode([String:Int].self, from: data)
+//                    print("able to decode dict from storage: \(fileSystemURL.lastPathComponent)")
+//                    return dict
+//                } catch let error {
+//                    print("unable to decode dict from storage: \(fileSystemURL.lastPathComponent)")
+//                }
+//            } catch let error {
+//                print("unable to read dict from storage: \(fileSystemURL.lastPathComponent)")
+//            }
+//
+//            return nil
+//        }
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1021,7 +1218,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return self.notesHTML.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+            return self.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         }
         
         return fetch
@@ -1449,10 +1646,10 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + notesName
             }
             
-            if hasNotesHTML {
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Lexicon
-                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.HTML
-            }
+//            if hasNotesText {
+//                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Lexicon
+//                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.HTML
+//            }
 
             if hasVideo {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Video
@@ -1496,6 +1693,7 @@ class MediaItem : NSObject
             // This coalesces the tags so there are no duplicates
             if let tagsArray = tagsArrayFromTagsString(tags) {
                 let tagsString = tagsSetToString(Set(tagsArray.filter({ (string:String) -> Bool in
+                    // WHY? Backwards compatibility
                     return  !string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) &&
                             !string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript)
                 })))
@@ -1782,7 +1980,7 @@ class MediaItem : NSObject
         }
     }
     
-    var notes:String?
+    var notesURLString:String?
     {
         get {
             if (self[Field.notes] == nil), hasNotes, let year = year, let id = id {
@@ -1813,8 +2011,71 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
-    lazy var notesPDFTokens:Fetch<[String:Int]> = {
-        let fetch = Fetch<[String:Int]>(name: "PDF Text Tokens")
+    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = {
+        guard let mediaCode = self.mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "PDF Text Tokens")
+        
+//        var fileSystemURL : URL?
+//        {
+//            get {
+//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
+//                    return nil
+//                }
+//
+//                guard let mediaCode = self.mediaCode else {
+//                    return nil
+//                }
+//
+//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
+//            }
+//        }
+//
+//        fetch.store = { (dict:[String:Int]?) in
+//            guard let fileSystemURL = fileSystemURL else {
+//                return
+//            }
+//
+//            do {
+//                let data = try JSONEncoder().encode(dict)
+//                print("able to encode dict: \(fileSystemURL.lastPathComponent)")
+//
+//                do {
+//                    try data.write(to: fileSystemURL)
+//                    print("able to write dict to the file system: \(fileSystemURL.lastPathComponent)")
+//                } catch let error {
+//                    print("unable to write dict to the file system: \(fileSystemURL.lastPathComponent)")
+//                }
+//            } catch let error as NSError {
+//                print("unable to encode dict: \(fileSystemURL.lastPathComponent)")
+//                NSLog(error.localizedDescription)
+//            }
+//        }
+//
+//        fetch.retrieve = {
+//            guard let fileSystemURL = fileSystemURL else {
+//                return nil
+//            }
+//
+//            do {
+//                let data = try Data(contentsOf: fileSystemURL)
+//                print("able to read dict from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                do {
+//                    let dict = try JSONDecoder().decode([String:Int].self, from: data)
+//                    print("able to decode dict from storage: \(fileSystemURL.lastPathComponent)")
+//                    return dict
+//                } catch let error {
+//                    print("unable to decode dict from storage: \(fileSystemURL.lastPathComponent)")
+//                }
+//            } catch let error {
+//                print("unable to read dict from storage: \(fileSystemURL.lastPathComponent)")
+//            }
+//
+//            return nil
+//        }
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1825,7 +2086,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return self.notesPDFText.result?.tokensAndCounts
+            return self.notesPDFText?.result?.tokensAndCounts
         }
         
         return fetch
@@ -1847,7 +2108,7 @@ class MediaItem : NSObject
     var notesPDFHTML:String?
     {
         get {
-            guard let body = notesPDFText.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>") else {
+            guard let body = notesPDFText?.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>") else {
                 return nil
             }
             return "<br/>" + body
@@ -1855,63 +2116,117 @@ class MediaItem : NSObject
     }
     
     @available(iOS 11.0, *)
-    lazy var notesPDFText:Fetch<String> = {
-        let fetch = Fetch<String>(name: "PDF TEXT")
+    lazy var notesPDFText:FetchCodable<String>? = {
+        guard let mediaCode = self.mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<String>(name: mediaCode + "." + "PDF Text")
+        
+//        var fileSystemURL : URL?
+//        {
+//            get {
+//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
+//                    return nil
+//                }
+//
+//                guard let mediaCode = self.mediaCode else {
+//                    return nil
+//                }
+//
+//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
+//            }
+//        }
+//
+//        fetch.store = { (string:String?) in
+//            guard let fileSystemURL = fileSystemURL else {
+//                return
+//            }
+//
+//            do {
+//                try string?.write(to: fileSystemURL, atomically: true, encoding: String.Encoding.utf16)
+//
+//                print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
+//            } catch let error as NSError {
+//                print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
+//                NSLog(error.localizedDescription)
+//            }
+//        }
+//
+//        fetch.retrieve = {
+//            guard let fileSystemURL = fileSystemURL else {
+//                return nil
+//            }
+//
+//            do {
+//                let data = try Data(contentsOf: fileSystemURL)
+//
+//                print("able to read string from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                return String(data: data, encoding:String.Encoding.utf16)
+//            } catch let error {
+//                print("unable to read string from storage: \(fileSystemURL.lastPathComponent)")
+//
+//                return nil
+//            }
+//        }
         
         fetch.fetch = {
             guard self.hasNotes else {
                 return nil
             }
+
+            guard let pdf = self.notesURL?.pdf else {
+                return nil
+            }
             
             var documentText = String()
             
-            if let pdf = self.notes?.url?.pdf {
-                let pageCount = pdf.pageCount
-                for i in 0 ..< pageCount {
-                    var pageText = String()
-                    
-                    guard let page = pdf.page(at: i) else { continue }
-                    guard let pageContent = page.attributedString else { continue }
-
-                    var topRange:Range<String.Index>?
-                        
-                    topRange = pageContent.string.range(of: "Countryside Bible Church, Southlake, Texas")
-                    
-                    if topRange == nil {
-                        topRange = pageContent.string.range(of: "Countryside Bible Church www.countrysidebible.org")
-                    }
-                    
-                    if topRange == nil {
-                        topRange = pageContent.string.range(of: "Countryside Bible Church")
-                    }
-                    
-                    if let topRange = topRange {
-                        if let bottomRange = pageContent.string.range(of: "Available online") {
-                            pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
-                        } else {
-                            pageText = String(pageContent.string[topRange.upperBound...])
-                        }
-                    } else {
-                        pageText = pageContent.string
-                    }
-                    
-                    var components = pageText.components(separatedBy: "\n").filter({ (string) -> Bool in
-                        return !string.isEmpty
-                    })
-                    
-                    components.removeLast()
-                    
-                    var string = String()
-                    
-                    for component in components {
-                        string += !string.isEmpty ? "\n\n" + component : component
-                    }
-
-                    documentText += !documentText.isEmpty ? " " + string : string
+            let pageCount = pdf.pageCount
+            for i in 0 ..< pageCount {
+                var pageText = String()
+                
+                guard let page = pdf.page(at: i) else { continue }
+                guard let pageContent = page.attributedString else { continue }
+                
+                var topRange:Range<String.Index>?
+                
+                topRange = pageContent.string.range(of: "Countryside Bible Church, Southlake, Texas")
+                
+                if topRange == nil {
+                    topRange = pageContent.string.range(of: "Countryside Bible Church www.countrysidebible.org")
                 }
+                
+                if topRange == nil {
+                    topRange = pageContent.string.range(of: "Countryside Bible Church")
+                }
+                
+                if let topRange = topRange {
+                    if let bottomRange = pageContent.string.range(of: "Available online") {
+                        pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
+                    } else {
+                        pageText = String(pageContent.string[topRange.upperBound...])
+                    }
+                } else {
+                    pageText = pageContent.string
+                }
+                
+                var components = pageText.components(separatedBy: "\n").filter({ (string) -> Bool in
+                    return !string.isEmpty
+                })
+                
+                components.removeLast()
+                
+                var string = String()
+                
+                for component in components {
+                    string += !string.isEmpty ? "\n\n" + component : component
+                }
+                
+                documentText += !documentText.isEmpty ? " " + string : string
             }
-            
-            return documentText
+
+            return documentText.count > 0 ? documentText : nil
         }
         
         return fetch
@@ -1924,7 +2239,7 @@ class MediaItem : NSObject
     var fullNotesHTML:String?
     {
         get {
-            guard let notesHTML = notesHTML.result else {
+            guard let notesHTML = notesHTML?.result else {
                 return nil
             }
 
@@ -1933,7 +2248,7 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var slides:String?
+    var slidesURLString:String?
     {
         get {
             if (self[Field.slides] == nil) && hasSlides, let year = year, let id = id {
@@ -1945,7 +2260,7 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var outline:String?
+    var outlineURLString:String?
     {
         get {
             if (self[Field.outline] == nil), hasSlides, let year = year, let id = id {
@@ -2069,33 +2384,36 @@ class MediaItem : NSObject
     var notesURL:URL?
     {
         get {
-            if let notes = notes {
-                return URL(string: notes)
-            } else {
-                return nil
-            }
+            return notesURLString?.url
+//            if let notes = notes {
+//                return URL(string: notes)
+//            } else {
+//                return nil
+//            }
         }
     }
     
     var slidesURL:URL?
     {
         get {
-            if let slides = slides {
-                return URL(string: slides)
-            } else {
-                return nil
-            }
+            return slidesURLString?.url
+//            if let slides = slides {
+//                return URL(string: slides)
+//            } else {
+//                return nil
+//            }
         }
     }
     
     var outlineURL:URL?
     {
         get {
-            if let outline = outline {
-                return URL(string: outline)
-            } else {
-                return nil
-            }
+            return outlineURLString?.url
+//            if let outline = outline {
+//                return URL(string: outline)
+//            } else {
+//                return nil
+//            }
         }
     }
     
@@ -2532,7 +2850,7 @@ class MediaItem : NSObject
                     
                 case "count":
                     bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">"
-                    if let token = token, let count = self.notesTokens.result?[token] {
+                    if let token = token, let count = self.notesTokens?.result?[token] {
                         bodyString = bodyString! + "(\(count))"
                     }
                     bodyString = bodyString! + "</td>"
@@ -2592,7 +2910,7 @@ class MediaItem : NSObject
                     break
                     
                 case "count":
-                    if let token = token, let count = self.notesTokens.result?[token] {
+                    if let token = token, let count = self.notesTokens?.result?[token] {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "(\(count))"
                     }
                     break
@@ -3017,7 +3335,7 @@ class MediaItem : NSObject
                 htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true)
             } else
                 
-            if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
+            if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
                 htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true)
             }
             
@@ -3025,7 +3343,7 @@ class MediaItem : NSObject
         }, completion: { [weak self] (data:Any?) in
             let htmlString = data as? String
             
-            popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
+            popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:true)
         })
     }
     
@@ -3073,7 +3391,7 @@ class MediaItem : NSObject
                     htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
                 } else
                     
-                    if let _ = viewController as? MediaTableViewController, Globals.shared.search.active {
+                    if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
                         htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
                     } else {
                         htmlString = bodyHTML
@@ -3082,7 +3400,7 @@ class MediaItem : NSObject
                 return htmlString
                 }, completion: { [weak self] (data:Any?) in
                     if let _ = data as? String {
-                        popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view)
+                        popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
                     } else {
                         Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
                     }
@@ -3317,7 +3635,7 @@ class MediaItem : NSObject
                     return
                 }
                 
-                guard let tokens = self.notesTokens.result?.map({ (string:String,count:Int) -> String in
+                guard let tokens = self.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
                 }).sorted() else {
                     networkUnavailable(viewController,"HTML transcript vocabulary unavailable.")
@@ -3389,7 +3707,7 @@ class MediaItem : NSObject
             }
 
             process(viewController: mtvc, work: { [weak self] () -> (Any?) in
-                self?.notesTokens.load() // Have to do this because transcriptTokens has UI.
+                self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
             }, completion: { [weak self] (data:Any?) in
                 transcriptTokens()
             })
@@ -3399,7 +3717,7 @@ class MediaItem : NSObject
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                        self?.notesPDFText.load()
+                        self?.notesPDFText?.load()
                     }, completion: { [weak self] (data:Any?) in
                         self?.view(viewController:viewController, bodyHTML:self?.notesPDFHTML)
                     })
@@ -3408,9 +3726,9 @@ class MediaItem : NSObject
                 if self.hasNotesHTML {
                     transcript = AlertAction(title: "HTML Transcript", style: .default) {
                         process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                            self?.notesHTML.load()
+                            self?.notesHTML?.load()
                         }, completion: { [weak self] (data:Any?) in
-                            self?.view(viewController:viewController, bodyHTML:self?.notesHTML.result)
+                            self?.view(viewController:viewController, bodyHTML:self?.notesHTML?.result)
                         })
                     }
                 }
@@ -3420,7 +3738,7 @@ class MediaItem : NSObject
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             if let reference = self.scriptureReference {
                 if self.scripture?.html?[reference] != nil {
-                    popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference])
+                    popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference], search:false)
                 } else {
                     guard Globals.shared.reachability.isReachable else {
                         networkUnavailable(viewController,"Scripture text unavailable.")
@@ -3432,7 +3750,7 @@ class MediaItem : NSObject
                         return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
-                            popoverHTML(viewController, title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString)
+                            popoverHTML(viewController, title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
                         } else {
                             networkUnavailable(viewController,"Scripture text unavailable.")
                         }

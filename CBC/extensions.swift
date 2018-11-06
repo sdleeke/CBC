@@ -10,6 +10,32 @@ import Foundation
 import UIKit
 import PDFKit
 
+//extension Dictionary
+//{
+//    // How do we know the Key, Value types are the same between the two dictionaries?
+//    // Wouldn't we be better off using the merge methods of Dictionary?
+//    func union(_ dictionary: Dictionary<Key, Value>?) -> Dictionary<Key, Value>?
+//    {
+//        var dict = Dictionary<Key, Value>()
+//        
+//        for (key, value) in self {
+//            dict[key] = value
+//        }
+//        
+//        if let dictionary = dictionary {
+//            for (key, value) in dictionary {
+//                if dict[key] == nil {
+//                    dict[key] = value
+//                } else {
+//                    // collision!
+//                }
+//            }
+//        }
+//        
+//        return dict.count > 0 ? dict : nil
+//    }
+//}
+
 extension UIAlertController
 {
     func makeOpaque()
@@ -399,6 +425,46 @@ extension String
             return url?.fileSystemURL
         }
     }
+    
+    func save(filename:String?)
+    {
+        guard let filename = filename else {
+            return
+        }
+
+        guard let fileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+            return
+        }
+        
+        do {
+            try self.data(using: String.Encoding.utf16)?.write(to: fileSystemURL)
+            print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
+        } catch let error as NSError {
+            print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
+            NSLog(error.localizedDescription)
+        }
+    }
+    
+    static func load(filename:String?) -> String?
+    {
+        guard let filename = filename else {
+            return nil
+        }
+        
+        guard let fileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+            return nil
+        }
+        
+        do {
+            let data = try Data(contentsOf: fileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+            print("able to read string from the file system: \(fileSystemURL.lastPathComponent)")
+            return String(data: data, encoding: String.Encoding.utf16)
+        } catch let error as NSError {
+            print("unable to read string from the file system: \(fileSystemURL.lastPathComponent)")
+            NSLog(error.localizedDescription)
+            return nil
+        }
+    }
 }
 
 extension String
@@ -414,33 +480,35 @@ extension String
     }
 }
 
+let colors = ["LimeGreen", "Red", "Aqua", "Silver", "Fuchsia", "Lime", "Yellow", "Pink", "Gold", "LightBlue", "GoldenRod", "LightCoral", "DodgerBlue", "DarkTurquoise", "DarkCyan"]
+
 extension String
 {
-    var lemmas : [(String,String,NSRange)]?
+    var nsLemmas : [(String,String,NSRange)]?
     {
         get {
-            return lemmasInString(string: self)
+            return nsLemmasInString(string: self)
         }
     }
     
-    var nameTypes : [(String,String,NSRange)]?
+    var nsNameTypes : [(String,String,NSRange)]?
     {
         get {
-            return nameTypesInString(string: self)
+            return nsNameTypesInString(string: self)
         }
     }
     
-    var lexicalTypes : [(String,String,NSRange)]?
+    var nsLexicalTypes : [(String,String,NSRange)]?
     {
         get {
-            return lexicalTypesInString(string: self)
+            return nsLexicalTypesInString(string: self)
         }
     }
     
-    var tokenTypes : [(String,String,NSRange)]?
+    var nsTokenTypes : [(String,String,NSRange)]?
     {
         get {
-            return tokenTypesInString(string: self)
+            return nsTokenTypesInString(string: self)
         }
     }
     
@@ -452,13 +520,29 @@ extension String
     }
     
     @available(iOS 12.0, *)
+    var nlLemmas : [(String,String,Range<String.Index>)]?
+    {
+        get {
+            return nlLemmasInString(string: self)
+        }
+    }
+    
+    @available(iOS 12.0, *)
+    var nlTokenTypes : [(String,String,Range<String.Index>)]?
+    {
+        get {
+            return nlTokenTypesInString(string: self)
+        }
+    }
+    
+    @available(iOS 12.0, *)
     var nlNameTypesAndLexicalClasses : [(String,String,Range<String.Index>)]?
     {
         get {
             return nlNameTypesAndLexicalClassesInString(string: self)
         }
     }
-    
+
     var nsNameAndLexicalTypesMarkup : String?
     {
         get {
@@ -477,8 +561,6 @@ extension String
             let lexicalTypes = Array(types).sorted()
             
             var lexicalTypeColors = [String:String]()
-            
-            let colors = ["Green", "Red", "Aqua", "Silver", "Fuchsia", "Lime", "Yellow", "Pink", "Gold", "SlateBlue", "GoldenRod", "Salmon", "LightCoral", "DodgerBlue"]
             
             var count = 0
             for lexicalType in lexicalTypes {
@@ -543,8 +625,6 @@ extension String
             
             var lexicalTypeColors = [String:String]()
             
-            let colors = ["Green", "Red", "Aqua", "Silver", "Fuchsia", "Lime", "Yellow", "Pink", "Gold", "SlateBlue", "GoldenRod", "Salmon", "LightCoral", "DodgerBlue"]
-            
             var count = 0
             for lexicalType in lexicalTypes {
                 lexicalTypeColors[lexicalType] = colors[count % colors.count]
@@ -586,7 +666,7 @@ extension String
     }
 }
 
-fileprivate var queue = DispatchQueue(label: UUID().uuidString)
+//fileprivate var queue = DispatchQueue(label: UUID().uuidString)
 
 extension URL
 {
@@ -627,17 +707,20 @@ extension URL
     
     func delete()
     {
+        // Check if file exists and if so, delete it.
+        
+        guard downloaded else {
+            return
+        }
+        
         guard let fileSystemURL = fileSystemURL else {
             return
         }
         
-        // Check if file exists and if so, delete it.
-        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
-            do {
-                try FileManager.default.removeItem(at: fileSystemURL)
-            } catch let error as NSError {
-                print("failed to delete download: \(error.localizedDescription)")
-            }
+        do {
+            try FileManager.default.removeItem(at: fileSystemURL)
+        } catch let error as NSError {
+            print("failed to delete download: \(error.localizedDescription)")
         }
     }
     
@@ -651,41 +734,47 @@ extension URL
     var image : UIImage?
     {
         get {
-            guard let imageURL = fileSystemURL else {
+            guard let data = data else {
                 return nil
             }
             
-            if Globals.shared.cacheDownloads, imageURL.downloaded, let image = UIImage(contentsOfFile: imageURL.path) {
-                return image
-            } else {
-                guard let data = data else {
-                    return nil
-                }
-                
-                guard let image = UIImage(data: data) else {
-                    return nil
-                }
-                
-                if Globals.shared.cacheDownloads {
-                    DispatchQueue.global(qos: .background).async {
-                        queue.sync {
-                            guard !imageURL.downloaded else {
-                                return
-                            }
-                            
-                            do {
-                                try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
-                                print("Image \(self.lastPathComponent) saved to file system")
-                            } catch let error as NSError {
-                                NSLog(error.localizedDescription)
-                                print("Image \(self.lastPathComponent) not saved to file system")
-                            }
-                        }
-                    }
-                }
-                
-                return image
-            }
+            return UIImage(data: data)
+            
+//            guard let imageURL = fileSystemURL else {
+//                return nil
+//            }
+//
+//            if Globals.shared.cacheDownloads, imageURL.downloaded, let image = UIImage(contentsOfFile: imageURL.path) {
+//                return image
+//            } else {
+//                guard let data = data else {
+//                    return nil
+//                }
+//
+//                guard let image = UIImage(data: data) else {
+//                    return nil
+//                }
+//
+//                if Globals.shared.cacheDownloads {
+//                    DispatchQueue.global(qos: .background).async {
+//                        queue.sync {
+//                            guard !imageURL.downloaded else {
+//                                return
+//                            }
+//
+//                            do {
+//                                try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
+//                                print("Image \(self.lastPathComponent) saved to file system")
+//                            } catch let error as NSError {
+//                                NSLog(error.localizedDescription)
+//                                print("Image \(self.lastPathComponent) not saved to file system")
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                return image
+//            }
         }
     }
 }

@@ -47,6 +47,24 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
+class Shadowed<T>
+{
+    var _backingStore : T?
+    
+    var get : (()->(T))?
+    
+    var value : T?
+    {
+        guard _backingStore == nil else {
+            return _backingStore
+        }
+        
+        _backingStore = get?()
+        
+        return _backingStore
+    }
+}
+
 class BoundsCheckedArray<T>
 {
     private var storage = [T]()
@@ -460,15 +478,20 @@ class Fetch<T>
     
     var fetch : (()->(T?))?
     
+    var store : ((T?)->())?
+    var retrieve : (()->(T?))?
+    
     var name : String?
     
     var cache : T?
     
     func clear()
     {
-        cache = nil
+        queue.sync {
+            cache = nil
+        }
     }
-    
+
     lazy private var queue : DispatchQueue = {
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
@@ -479,7 +502,16 @@ class Fetch<T>
             guard cache == nil else {
                 return
             }
+
+            cache = retrieve?()
+            
+            guard cache == nil else {
+                return
+            }
+            
             self.cache = self.fetch?()
+            
+            store?(self.cache)
         }
     }
     
@@ -490,5 +522,91 @@ class Fetch<T>
 
             return cache
         }
+    }
+}
+
+class FetchCodable<T:Codable> : Fetch<T>
+{
+    var fileSystemURL : URL?
+    {
+        get {
+            guard let name = name?.replacingOccurrences(of: " ", with: "") else {
+                return nil
+            }
+            
+            return cachesURL()?.appendingPathComponent(name)
+        }
+    }
+    
+    // name MUST be unique to ever INSTANCE, not just the class!
+    override init(name: String?, fetch: (() -> (T?))? = nil)
+    {
+        super.init(name: name, fetch: fetch)
+        
+        store = { (t:T?) in
+            guard Globals.shared.cacheDownloads else {
+                return
+            }
+            
+            guard let t = t else {
+                return
+            }
+            
+            guard let fileSystemURL = self.fileSystemURL else {
+                return
+            }
+            
+            do {
+                let data = try JSONEncoder().encode(t)
+                print("able to encode T: \(fileSystemURL.lastPathComponent)")
+                
+                do {
+                    try data.write(to: fileSystemURL)
+                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
+                } catch let error {
+                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
+                    NSLog(error.localizedDescription)
+                }
+            } catch let error {
+                print("unable to encode T: \(fileSystemURL.lastPathComponent)")
+                NSLog(error.localizedDescription)
+                
+                if let string = t as? String {
+                    string.save(filename: fileSystemURL.lastPathComponent)
+                }
+            }
+        }
+        
+        retrieve = {
+            guard Globals.shared.cacheDownloads else {
+                return nil
+            }
+            
+            guard let fileSystemURL = self.fileSystemURL else {
+                return nil
+            }
+            
+            do {
+                let data = try Data(contentsOf: fileSystemURL)
+                print("able to read T from storage: \(fileSystemURL.lastPathComponent)")
+                
+                do {
+                    let t = try JSONDecoder().decode(T.self, from: data)
+                    print("able to decode T from storage: \(fileSystemURL.lastPathComponent)")
+                    return t
+                } catch let error {
+                    print("unable to decode T from storage: \(fileSystemURL.lastPathComponent)")
+                    NSLog(error.localizedDescription)
+                    
+                    return String.load(filename: fileSystemURL.lastPathComponent) as? T
+                }
+            } catch let error {
+                print("unable to read T from storage: \(fileSystemURL.lastPathComponent)")
+                NSLog(error.localizedDescription)
+            }
+            
+            return nil
+        }
+        
     }
 }

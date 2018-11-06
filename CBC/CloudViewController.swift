@@ -159,8 +159,10 @@ extension CloudViewController : CloudLayoutOperationDelegate
 {
     func finished()
     {
-        activityIndicator.stopAnimating()
-        activityIndicator.isHidden = true
+        Thread.onMainThread { () -> (Void) in
+            self.activityIndicator.stopAnimating()
+            self.activityIndicator.isHidden = true
+        }
     }
     
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
@@ -214,6 +216,65 @@ extension CloudViewController : CloudLayoutOperationDelegate
         layer.borderWidth = 1;
         
         cloudView.layer.addSublayer(layer)
+    }
+}
+
+extension CloudViewController : UIActivityItemSource
+{
+    @objc func share()
+    {
+        let activityViewController = UIActivityViewController(activityItems: [self,image,title], applicationActivities: nil)
+        
+        // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+        activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
+        
+        let popoverPresentationController = activityViewController.popoverPresentationController
+        
+        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        present(activityViewController, animated: true, completion: nil)
+    }
+    
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
+    {
+        return ""
+    }
+    
+    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    {
+        guard let activityType = activityType else {
+            return nil
+        }
+        
+        if #available(iOS 11.0, *) {
+            CloudViewController.cases.append(.markupAsPDF)
+        }
+        
+        if CloudViewController.cases.contains(activityType) {
+            return image
+        }
+        
+        return nil
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    {
+        return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    {
+        guard let activityType = activityType else {
+            return "public.plain-text"
+        }
+        
+        if WebViewController.cases.contains(activityType) {
+            return "public.text"
+        } else {
+            return "public.plain-text"
+        }
     }
 }
 
@@ -293,6 +354,8 @@ class CloudViewController: UIViewController
     
     let debug = false
     
+    var cloudString : String?
+    
     var cloudTitle : String?
     var cloudColors : [UIColor]? = CloudColors.GreenBlue
     var cloudFont : UIFont?
@@ -300,6 +363,23 @@ class CloudViewController: UIViewController
     // Make thread safe?
     var cloudWords : [[String:Any]]?
     var cloudWordsFunction:(()->[[String:Any]]?)?
+    
+    var image : UIImage?
+    {
+        var snapShotImage : UIImage?
+        
+        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
+        
+        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
+        
+        if (success) {
+            snapShotImage = UIGraphicsGetImageFromCurrentImageContext()
+        }
+        
+        UIGraphicsEndImageContext()
+        
+        return snapShotImage
+    }
     
     override func viewDidLoad()
     {
@@ -361,30 +441,6 @@ class CloudViewController: UIViewController
     @objc func done()
     {
         dismiss(animated: true, completion: nil)
-    }
-    
-    @objc func share()
-    {
-        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
-
-        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
-
-        if (success) {
-            let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
-            
-            let activityViewController = UIActivityViewController(activityItems: [snapshotImage,title], applicationActivities: nil)
-            
-            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-            activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
-            
-            let popoverPresentationController = activityViewController.popoverPresentationController
-            
-            popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-            present(activityViewController, animated: true, completion: nil)
-        }
-        
-        UIGraphicsEndImageContext();
     }
     
     func addNotifications()

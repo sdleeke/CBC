@@ -124,7 +124,7 @@ class SearchHit {
                 return false
             }
             
-            return mediaItem.notesHTML.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesHTML?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     @available(iOS 11.0, *)
@@ -138,7 +138,7 @@ class SearchHit {
                 return false
             }
             
-            return mediaItem.notesPDFText.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesPDFText?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 }

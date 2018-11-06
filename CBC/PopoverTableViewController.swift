@@ -1494,7 +1494,8 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // Because it is embedded in LexiconViewController
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         
@@ -1583,17 +1584,24 @@ class PopoverTableViewController : UIViewController
             }
             
             updateToolbar()
-            
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
+
+            if self.navigationController?.topViewController == self {
+                // Where does it start?
+                Thread.onMainThread {
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                }
+            }
         } else
             
         if stringsFunction != nil, self.section.strings == nil {
-            Thread.onMainThread {
-                self.activityIndicator.startAnimating()
-                self.activityIndicator.isHidden = false
+            if self.navigationController?.topViewController == self {
+                Thread.onMainThread {
+                    self.activityIndicator.startAnimating()
+                    self.activityIndicator.isHidden = false
+                }
             }
-            
+
             DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
@@ -1636,8 +1644,10 @@ class PopoverTableViewController : UIViewController
                         self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
                     }
 
-                    self?.activityIndicator.stopAnimating()
-                    self?.activityIndicator.isHidden = true
+                    if self?.navigationController?.topViewController == self {
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
+                    }
                 }
             }
         } else

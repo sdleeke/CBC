@@ -18,32 +18,33 @@ enum ScreenSize
 }
 
 enum Field {
-    static let id       = "mediacode"
-    
-    static let date     = "date"
-    static let service  = "service"
-    
-    static let title    = "title"
-    
-    static let name     = "name"
-    
-    static let audio    = "audio_url"
-    
-    static let m3u8     = "m3u8"
-    static let mp4      = "mp4"
-    static let mp3      = "mp3"
+    static let id           = "mediacode"
+    static let mediacode    = "mediacode"
 
-    static let poster   = "poster"
+    static let date         = "date"
+    static let service      = "service"
+    
+    static let title        = "title"
+    
+    static let name         = "name"
+    
+    static let audio        = "audio_url"
+    
+    static let m3u8         = "m3u8"
+    static let mp4          = "mp4"
+    static let mp3          = "mp3"
+
+    static let poster       = "poster"
     
     static let notes        = "transcript"
     static let notes_HTML   = "transcript_HTML"
     static let slides       = "slides"
     static let outline      = "outline"
     
-    static let files = "files"
+    static let files        = "files"
     
-    static let playing = "playing"
-    static let showing = "showing"
+    static let playing      = "playing"
+    static let showing      = "showing"
     
     static let speaker      = "teacher" // was "speaker"
     static let speaker_sort = "speaker sort"

@@ -909,7 +909,7 @@ class VoiceBase {
                     continue
                 }
                 
-                var dict:[String:Any] = ["start":Double(start) / 1000.0,"end":Double(end) / 1000.0,"text":text]
+                var dict:[String:Any] = ["start":Double(start) / 1000.0, "end":Double(end) / 1000.0, "text":text]
             
                 if let lastEnd = lastEnd {
                     dict["gap"] = (Double(start) - Double(lastEnd)) / 1000.0
@@ -3091,12 +3091,12 @@ class VoiceBase {
         var message = "You will be notified when the machine generated transcript"
         
         if let text = self.mediaItem?.text {
-            message = " for\n\n\(text)\(completion) "
+            message += " for\n\n\(text)\(completion) "
         }
         
         if (mediaID != nil) {
-            title = title + "in Progress"
-            message = message + "\n\nis available."
+            title += "in Progress"
+            message += "\n\nis available."
             
             var actions = [AlertAction]()
             
@@ -3128,8 +3128,8 @@ class VoiceBase {
             
             Alerts.shared.alert(title:title, message:message, actions:actions)
         } else {
-            title = title + "Requested"
-            message = message + "\n\nhas started."
+            title += "Requested"
+            message += "\n\nhas started."
             
             Alerts.shared.alert(title:title, message:message)
         }
@@ -3345,7 +3345,7 @@ class VoiceBase {
                             print("THEY ARE THE SAME!")
                         }
 
-                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML)
+                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML, search:true)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
@@ -3403,7 +3403,7 @@ class VoiceBase {
                             return htmlString as Any
                         }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
-                                popoverHTML(viewController,title:self?.mediaItem?.title,htmlString:htmlString)
+                                popoverHTML(viewController,title:self?.mediaItem?.title,htmlString:htmlString, search:true)
                             }
                         })
                     }))

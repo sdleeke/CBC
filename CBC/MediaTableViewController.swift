@@ -1,6 +1,6 @@
 //
 //  MediaTableViewController.swift
-//  TWU
+//  CBC
 //
 //  Created by Steve Leeke on 7/28/15.
 //  Copyright (c) 2015 Steve Leeke. All rights reserved.
