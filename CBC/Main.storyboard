@@ -257,6 +257,50 @@
                         <rect key="frame" x="0.0" y="0.0" width="703.5" height="768"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
+                                <rect key="frame" x="0.0" y="70" width="703.5" height="498"/>
+                                <subviews>
+                                    <imageView hidden="YES" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
+                                        <rect key="frame" x="212.5" y="213" width="279" height="72"/>
+                                        <accessibility key="accessibilityConfiguration">
+                                            <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
+                                        </accessibility>
+                                        <gestureRecognizers/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="Ay8-yt-A6W" secondAttribute="height" multiplier="31:8" id="e3a-HZ-SoL"/>
+                                        </constraints>
+                                    </imageView>
+                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="NEp-ku-QG6">
+                                        <rect key="frame" x="333.5" y="230.5" width="37" height="37"/>
+                                        <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </activityIndicatorView>
+                                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="CSL-J3-OFX">
+                                        <rect key="frame" x="277" y="248" width="150" height="2"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="150" id="eJT-tl-zGY"/>
+                                        </constraints>
+                                    </progressView>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <gestureRecognizers/>
+                                <constraints>
+                                    <constraint firstAttribute="centerY" secondItem="NEp-ku-QG6" secondAttribute="centerY" id="3N0-oZ-bHf"/>
+                                    <constraint firstAttribute="centerX" secondItem="NEp-ku-QG6" secondAttribute="centerX" id="FLE-uO-6r0"/>
+                                    <constraint firstItem="CSL-J3-OFX" firstAttribute="centerY" secondItem="NEp-ku-QG6" secondAttribute="centerY" id="KHM-lV-ONy"/>
+                                    <constraint firstItem="Ay8-yt-A6W" firstAttribute="height" relation="lessThanOrEqual" secondItem="sSN-Ac-J4R" secondAttribute="height" constant="1" id="OMr-9K-0oP"/>
+                                    <constraint firstItem="Ay8-yt-A6W" firstAttribute="width" relation="lessThanOrEqual" secondItem="sSN-Ac-J4R" secondAttribute="width" constant="1" id="Q3a-hI-p8X"/>
+                                    <constraint firstAttribute="centerY" secondItem="Ay8-yt-A6W" secondAttribute="centerY" id="byQ-fs-nxm"/>
+                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="Ay8-yt-A6W" secondAttribute="bottom" id="cCP-mb-1HC"/>
+                                    <constraint firstAttribute="centerX" secondItem="Ay8-yt-A6W" secondAttribute="centerX" id="ha8-P1-FMx"/>
+                                    <constraint firstItem="CSL-J3-OFX" firstAttribute="centerX" secondItem="NEp-ku-QG6" secondAttribute="centerX" id="jyI-tk-lEI"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="OMr-9K-0oP"/>
+                                        <exclude reference="cCP-mb-1HC"/>
+                                    </mask>
+                                </variation>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="i5a-B7-7oc" userLabel="ViewSplit">
                                 <rect key="frame" x="0.0" y="568" width="703.5" height="44"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -395,46 +439,51 @@
                                     </mask>
                                 </variation>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
-                                <rect key="frame" x="0.0" y="70" width="703.5" height="498"/>
-                                <subviews>
-                                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="212.5" y="213" width="279" height="72"/>
-                                        <accessibility key="accessibilityConfiguration">
-                                            <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
-                                        </accessibility>
-                                        <constraints>
-                                            <constraint firstAttribute="width" secondItem="Ay8-yt-A6W" secondAttribute="height" multiplier="31:8" id="e3a-HZ-SoL"/>
-                                        </constraints>
-                                    </imageView>
-                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="NEp-ku-QG6">
-                                        <rect key="frame" x="333.5" y="230.5" width="37" height="37"/>
-                                        <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    </activityIndicatorView>
-                                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="CSL-J3-OFX">
-                                        <rect key="frame" x="277" y="248" width="150" height="2"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" constant="150" id="eJT-tl-zGY"/>
-                                        </constraints>
-                                    </progressView>
-                                </subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jXS-hY-gto">
+                                <rect key="frame" x="0.0" y="612" width="703.5" height="156"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="94Q-2f-NGa" userLabel="V Slide View">
+                                <rect key="frame" x="274" y="76" width="20" height="244"/>
+                                <gestureRecognizers/>
                                 <constraints>
-                                    <constraint firstAttribute="centerY" secondItem="NEp-ku-QG6" secondAttribute="centerY" id="3N0-oZ-bHf"/>
-                                    <constraint firstAttribute="centerX" secondItem="NEp-ku-QG6" secondAttribute="centerX" id="FLE-uO-6r0"/>
-                                    <constraint firstItem="CSL-J3-OFX" firstAttribute="centerY" secondItem="NEp-ku-QG6" secondAttribute="centerY" id="KHM-lV-ONy"/>
-                                    <constraint firstItem="Ay8-yt-A6W" firstAttribute="height" relation="lessThanOrEqual" secondItem="sSN-Ac-J4R" secondAttribute="height" constant="1" id="OMr-9K-0oP"/>
-                                    <constraint firstItem="Ay8-yt-A6W" firstAttribute="width" relation="lessThanOrEqual" secondItem="sSN-Ac-J4R" secondAttribute="width" constant="1" id="Q3a-hI-p8X"/>
-                                    <constraint firstAttribute="centerY" secondItem="Ay8-yt-A6W" secondAttribute="centerY" id="byQ-fs-nxm"/>
-                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="Ay8-yt-A6W" secondAttribute="bottom" id="cCP-mb-1HC"/>
-                                    <constraint firstAttribute="centerX" secondItem="Ay8-yt-A6W" secondAttribute="centerX" id="ha8-P1-FMx"/>
-                                    <constraint firstItem="CSL-J3-OFX" firstAttribute="centerX" secondItem="NEp-ku-QG6" secondAttribute="centerX" id="jyI-tk-lEI"/>
+                                    <constraint firstAttribute="width" constant="20" id="z6E-sw-g1p"/>
                                 </constraints>
                                 <variation key="default">
                                     <mask key="constraints">
-                                        <exclude reference="cCP-mb-1HC"/>
+                                        <exclude reference="z6E-sw-g1p"/>
                                     </mask>
                                 </variation>
+                                <variation key="heightClass=compact-widthClass=compact">
+                                    <mask key="constraints">
+                                        <include reference="z6E-sw-g1p"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="M4D-vB-lRF" appends="YES" id="tUY-UT-WfJ"/>
+                                    <outletCollection property="gestureRecognizers" destination="PP3-iU-jCT" appends="YES" id="n2a-dT-7rH"/>
+                                </connections>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ut8-lg-8ab" userLabel="H Slide View">
+                                <rect key="frame" x="0.0" y="300" width="568" height="20"/>
+                                <gestureRecognizers/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="sED-b0-uFm"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="sED-b0-uFm"/>
+                                    </mask>
+                                </variation>
+                                <variation key="heightClass=compact-widthClass=compact">
+                                    <mask key="constraints">
+                                        <include reference="sED-b0-uFm"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="Rea-9j-IsB" appends="YES" id="H1o-ct-YrM"/>
+                                    <outletCollection property="gestureRecognizers" destination="dCE-wD-PP8" appends="YES" id="OsG-BN-PEY"/>
+                                </connections>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="91J-fh-SJo">
                                 <rect key="frame" x="0.0" y="612" width="703.5" height="156"/>
@@ -543,48 +592,6 @@
                                     <outlet property="delegate" destination="H2E-ZS-FbW" id="n00-vU-Zsc"/>
                                 </connections>
                             </tableView>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="94Q-2f-NGa" userLabel="V Slide View">
-                                <rect key="frame" x="274" y="76" width="20" height="244"/>
-                                <gestureRecognizers/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="20" id="z6E-sw-g1p"/>
-                                </constraints>
-                                <variation key="default">
-                                    <mask key="constraints">
-                                        <exclude reference="z6E-sw-g1p"/>
-                                    </mask>
-                                </variation>
-                                <variation key="heightClass=compact-widthClass=compact">
-                                    <mask key="constraints">
-                                        <include reference="z6E-sw-g1p"/>
-                                    </mask>
-                                </variation>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="M4D-vB-lRF" appends="YES" id="tUY-UT-WfJ"/>
-                                    <outletCollection property="gestureRecognizers" destination="PP3-iU-jCT" appends="YES" id="n2a-dT-7rH"/>
-                                </connections>
-                            </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ut8-lg-8ab" userLabel="H Slide View">
-                                <rect key="frame" x="0.0" y="300" width="568" height="20"/>
-                                <gestureRecognizers/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="sED-b0-uFm"/>
-                                </constraints>
-                                <variation key="default">
-                                    <mask key="constraints">
-                                        <exclude reference="sED-b0-uFm"/>
-                                    </mask>
-                                </variation>
-                                <variation key="heightClass=compact-widthClass=compact">
-                                    <mask key="constraints">
-                                        <include reference="sED-b0-uFm"/>
-                                    </mask>
-                                </variation>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Rea-9j-IsB" appends="YES" id="H1o-ct-YrM"/>
-                                    <outletCollection property="gestureRecognizers" destination="dCE-wD-PP8" appends="YES" id="OsG-BN-PEY"/>
-                                </connections>
-                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
@@ -592,13 +599,17 @@
                             <constraint firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="5BB-Ay-qNn"/>
                             <constraint firstAttribute="trailing" secondItem="Ut8-lg-8ab" secondAttribute="trailing" id="9RS-p5-gJG"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="Bnz-L0-ebT"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="centerX" secondItem="91J-fh-SJo" secondAttribute="centerX" id="DPh-KZ-brQ"/>
                             <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="Ut8-lg-8ab" secondAttribute="bottom" id="EC7-xr-i5p"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="leading" secondItem="sSN-Ac-J4R" secondAttribute="trailing" constant="-10" id="Gee-mK-zaj"/>
                             <constraint firstAttribute="trailing" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="HEd-vY-teK"/>
                             <constraint firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" constant="200" id="HOe-Ks-3kR"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="bottom" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="KCd-mo-EHx"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="bottom" secondItem="91J-fh-SJo" secondAttribute="bottom" id="LBK-5R-Xmi"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="OsV-IC-JLv"/>
                             <constraint firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Otl-8U-ke8"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="leading" secondItem="91J-fh-SJo" secondAttribute="leading" id="RYf-Yc-Naw"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="top" secondItem="91J-fh-SJo" secondAttribute="top" id="RoO-wR-KX0"/>
                             <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="94Q-2f-NGa" secondAttribute="bottom" id="UIA-aB-fuC"/>
                             <constraint firstItem="91J-fh-SJo" firstAttribute="leading" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="UTu-1b-fA3"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Ujg-Dd-jZe"/>
@@ -611,7 +622,9 @@
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="91J-fh-SJo" secondAttribute="trailing" id="f9R-Gt-YvP"/>
                             <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="91J-fh-SJo" secondAttribute="bottom" id="gfQ-TI-2tU"/>
                             <constraint firstItem="sSN-Ac-J4R" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="hHn-qT-3ih"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="k2v-2A-6OY"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="top" id="nmy-u3-oU6"/>
+                            <constraint firstItem="jXS-hY-gto" firstAttribute="centerY" secondItem="91J-fh-SJo" secondAttribute="centerY" id="on5-fm-jii"/>
                             <constraint firstItem="Bq5-HS-Wzs" firstAttribute="top" secondItem="sSN-Ac-J4R" secondAttribute="bottom" id="qUY-iM-EXz"/>
                             <constraint firstItem="sSN-Ac-J4R" firstAttribute="leading" secondItem="ev9-lG-hyo" secondAttribute="leading" id="uFh-jI-O3r"/>
                             <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="sSN-Ac-J4R" secondAttribute="bottom" id="wWa-1o-oXk"/>
@@ -623,12 +636,12 @@
                                 <exclude reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="9RS-p5-gJG"/>
                                 <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="Bnz-L0-ebT"/>
                                 <exclude reference="Gee-mK-zaj"/>
                                 <exclude reference="hHn-qT-3ih"/>
+                                <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="OsV-IC-JLv"/>
                                 <exclude reference="f9R-Gt-YvP"/>
                                 <exclude reference="UTu-1b-fA3"/>
@@ -645,9 +658,6 @@
                                 <include reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="0Jv-l5-4Tu"/>
-                                <exclude reference="qUY-iM-EXz"/>
-                                <exclude reference="KCd-mo-EHx"/>
                                 <include reference="9RS-p5-gJG"/>
                                 <include reference="XcF-SL-vQ7"/>
                                 <include reference="Bnz-L0-ebT"/>
@@ -656,6 +666,9 @@
                                 <exclude reference="HOe-Ks-3kR"/>
                                 <exclude reference="VmD-wu-0aL"/>
                                 <include reference="hHn-qT-3ih"/>
+                                <include reference="0Jv-l5-4Tu"/>
+                                <exclude reference="qUY-iM-EXz"/>
+                                <exclude reference="KCd-mo-EHx"/>
                                 <exclude reference="Ujg-Dd-jZe"/>
                                 <exclude reference="ahL-wp-zfw"/>
                                 <exclude reference="nmy-u3-oU6"/>
@@ -673,6 +686,7 @@
                     <navigationItem key="navigationItem" id="Xmf-oM-CgA"/>
                     <connections>
                         <outlet property="activityIndicator" destination="NEp-ku-QG6" id="B7f-EX-bQ5"/>
+                        <outlet property="alternateView" destination="jXS-hY-gto" id="tqF-fO-3os"/>
                         <outlet property="audioOrVideoControl" destination="oDn-Ci-DOw" id="Pns-3e-eDB"/>
                         <outlet property="audioOrVideoWidthConstraint" destination="CLo-cZ-wQN" id="P2z-zn-cSO"/>
                         <outlet property="controlView" destination="Bq5-HS-Wzs" id="uxN-aa-DqM"/>

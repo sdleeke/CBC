@@ -976,6 +976,8 @@ class MediaViewController: UIViewController
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
     
+    @IBOutlet weak var alternateView: UIView!
+    
     var searchText:String?
     
     var videoLocation : VideoLocation = .withDocuments
@@ -1985,8 +1987,20 @@ class MediaViewController: UIViewController
     @IBOutlet weak var mediaItemNotesAndSlidesConstraint: NSLayoutConstraint!
     
     @IBOutlet weak var mediaItemNotesAndSlides: UIView!
-
+    {
+        didSet {
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+            self.mediaItemNotesAndSlides.addGestureRecognizer(pan)
+        }
+    }
+    
     @IBOutlet weak var logo: UIImageView!
+    {
+        didSet {
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+            self.logo.addGestureRecognizer(pan)
+        }
+    }
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
@@ -2378,7 +2392,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    @objc func videoPan(_ pan:UIPanGestureRecognizer)
+    @objc func changeVerticalSplit(_ pan:UIPanGestureRecognizer)
     {
         guard !Globals.shared.mediaPlayer.fullScreen else {
             return
@@ -2480,13 +2494,15 @@ class MediaViewController: UIViewController
         switch videoLocation {
         case .withDocuments:
             parentView = mediaItemNotesAndSlides
+            tableView.superview?.bringSubview(toFront: tableView)
             tableView.isScrollEnabled = true
             break
             
         case .withTableView:
-            parentView = tableView
+            parentView = alternateView
             tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
             tableView.isScrollEnabled = false
+            alternateView.superview?.bringSubview(toFront: alternateView)
             break
         }
         
@@ -2511,8 +2527,14 @@ class MediaViewController: UIViewController
             }
         }
         
+        view.isHidden = true
+        view.removeFromSuperview()
+        
+        view.removeConstraints(view.constraints)
+
         view.gestureRecognizers = nil
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(videoPan(_:)))
+        
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(changeVerticalSplit(_:)))
         view.addGestureRecognizer(pan)
         
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(videoPinch(_:)))
@@ -2521,39 +2543,49 @@ class MediaViewController: UIViewController
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(videoLongPress(_:)))
         view.addGestureRecognizer(longPress)
         
-        view.isHidden = true
-        view.removeFromSuperview()
-        
         Globals.shared.mediaPlayer.showsPlaybackControls = Globals.shared.mediaPlayer.fullScreen
 
-        view.frame = parentView.bounds
-        
         view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
         if let contain = parentView?.subviews.contains(view), !contain {
             parentView.addSubview(view)
         }
         
-        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(centerX)
-        
-        let width = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(width)
+        view.frame = parentView.bounds
         
         if offset == 0 {
+            let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
+            view.superview?.addConstraint(top)
+            
             let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
             view.superview?.addConstraint(centerY)
-            
+
             let height = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: offset)
             view.superview?.addConstraint(height)
         } else {
-            let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(bottom)
-            
-            let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: topView, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(top)
+            if topView != nil {
+                let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: topView, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0)
+                view.superview?.addConstraint(top)
+            } else {
+                
+            }
         }
         
+        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(centerX)
+
+        let width = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(width)
+        
+        let leading = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.leading, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.leading, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(leading)
+        
+        let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.trailing, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.trailing, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(trailing)
+
+        let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(bottom)
+
         view.superview?.setNeedsLayout()
     }
     
