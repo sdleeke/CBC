@@ -970,54 +970,6 @@ class MediaItem : NSObject
         
         let fetch = FetchCodable<String>(name: mediaCode + "." + "HTML Transcript")
         
-//        var fileSystemURL : URL?
-//        {
-//            get {
-//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
-//                    return nil
-//                }
-//
-//                guard let mediaCode = self.mediaCode else {
-//                    return nil
-//                }
-//
-//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
-//            }
-//        }
-//
-//        fetch.store = { (string:String?) in
-//            guard let fileSystemURL = fileSystemURL else {
-//                return
-//            }
-//
-//            do {
-//                try string?.write(to: fileSystemURL, atomically: true, encoding: String.Encoding.utf16)
-//
-//                print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
-//            } catch let error as NSError {
-//                print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
-//                NSLog(error.localizedDescription)
-//            }
-//        }
-//
-//        fetch.retrieve = {
-//            guard let fileSystemURL = fileSystemURL else {
-//                return nil
-//            }
-//
-//            do {
-//                let data = try Data(contentsOf: fileSystemURL)
-//
-//                print("able to read string from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                return String(data: data, encoding:String.Encoding.utf16)
-//            } catch let error {
-//                print("unable to read string from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                return nil
-//            }
-//        }
-        
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
                 return nil
@@ -1149,65 +1101,6 @@ class MediaItem : NSObject
         }
         
         let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes HTML Tokens")
-        
-//        var fileSystemURL : URL?
-//        {
-//            get {
-//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
-//                    return nil
-//                }
-//
-//                guard let mediaCode = self.mediaCode else {
-//                    return nil
-//                }
-//
-//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
-//            }
-//        }
-//
-//        fetch.store = { (dict:[String:Int]?) in
-//            guard let fileSystemURL = fileSystemURL else {
-//                return
-//            }
-//
-//            do {
-//                let data = try JSONEncoder().encode(dict)
-//                print("able to encode dict: \(fileSystemURL.lastPathComponent)")
-//
-//                do {
-//                    try data.write(to: fileSystemURL)
-//                    print("able to write dict to the file system: \(fileSystemURL.lastPathComponent)")
-//                } catch let error {
-//                    print("unable to write dict to the file system: \(fileSystemURL.lastPathComponent)")
-//                }
-//            } catch let error as NSError {
-//                print("unable to encode dict: \(fileSystemURL.lastPathComponent)")
-//                NSLog(error.localizedDescription)
-//            }
-//        }
-//
-//        fetch.retrieve = {
-//            guard let fileSystemURL = fileSystemURL else {
-//                return nil
-//            }
-//
-//            do {
-//                let data = try Data(contentsOf: fileSystemURL)
-//                print("able to read dict from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                do {
-//                    let dict = try JSONDecoder().decode([String:Int].self, from: data)
-//                    print("able to decode dict from storage: \(fileSystemURL.lastPathComponent)")
-//                    return dict
-//                } catch let error {
-//                    print("unable to decode dict from storage: \(fileSystemURL.lastPathComponent)")
-//                }
-//            } catch let error {
-//                print("unable to read dict from storage: \(fileSystemURL.lastPathComponent)")
-//            }
-//
-//            return nil
-//        }
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -2018,65 +1911,6 @@ class MediaItem : NSObject
         
         let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "PDF Text Tokens")
         
-//        var fileSystemURL : URL?
-//        {
-//            get {
-//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
-//                    return nil
-//                }
-//
-//                guard let mediaCode = self.mediaCode else {
-//                    return nil
-//                }
-//
-//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
-//            }
-//        }
-//
-//        fetch.store = { (dict:[String:Int]?) in
-//            guard let fileSystemURL = fileSystemURL else {
-//                return
-//            }
-//
-//            do {
-//                let data = try JSONEncoder().encode(dict)
-//                print("able to encode dict: \(fileSystemURL.lastPathComponent)")
-//
-//                do {
-//                    try data.write(to: fileSystemURL)
-//                    print("able to write dict to the file system: \(fileSystemURL.lastPathComponent)")
-//                } catch let error {
-//                    print("unable to write dict to the file system: \(fileSystemURL.lastPathComponent)")
-//                }
-//            } catch let error as NSError {
-//                print("unable to encode dict: \(fileSystemURL.lastPathComponent)")
-//                NSLog(error.localizedDescription)
-//            }
-//        }
-//
-//        fetch.retrieve = {
-//            guard let fileSystemURL = fileSystemURL else {
-//                return nil
-//            }
-//
-//            do {
-//                let data = try Data(contentsOf: fileSystemURL)
-//                print("able to read dict from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                do {
-//                    let dict = try JSONDecoder().decode([String:Int].self, from: data)
-//                    print("able to decode dict from storage: \(fileSystemURL.lastPathComponent)")
-//                    return dict
-//                } catch let error {
-//                    print("unable to decode dict from storage: \(fileSystemURL.lastPathComponent)")
-//                }
-//            } catch let error {
-//                print("unable to read dict from storage: \(fileSystemURL.lastPathComponent)")
-//            }
-//
-//            return nil
-//        }
-        
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
                 return nil
@@ -2122,54 +1956,6 @@ class MediaItem : NSObject
         }
         
         let fetch = FetchCodable<String>(name: mediaCode + "." + "PDF Text")
-        
-//        var fileSystemURL : URL?
-//        {
-//            get {
-//                guard let name = fetch.name?.replacingOccurrences(of: " ", with: "") else {
-//                    return nil
-//                }
-//
-//                guard let mediaCode = self.mediaCode else {
-//                    return nil
-//                }
-//
-//                return cachesURL()?.appendingPathComponent(mediaCode + "." + name)
-//            }
-//        }
-//
-//        fetch.store = { (string:String?) in
-//            guard let fileSystemURL = fileSystemURL else {
-//                return
-//            }
-//
-//            do {
-//                try string?.write(to: fileSystemURL, atomically: true, encoding: String.Encoding.utf16)
-//
-//                print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
-//            } catch let error as NSError {
-//                print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
-//                NSLog(error.localizedDescription)
-//            }
-//        }
-//
-//        fetch.retrieve = {
-//            guard let fileSystemURL = fileSystemURL else {
-//                return nil
-//            }
-//
-//            do {
-//                let data = try Data(contentsOf: fileSystemURL)
-//
-//                print("able to read string from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                return String(data: data, encoding:String.Encoding.utf16)
-//            } catch let error {
-//                print("unable to read string from storage: \(fileSystemURL.lastPathComponent)")
-//
-//                return nil
-//            }
-//        }
         
         fetch.fetch = {
             guard self.hasNotes else {

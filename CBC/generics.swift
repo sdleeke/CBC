@@ -533,33 +533,35 @@ class FetchCodable<T:Codable> : Fetch<T>
             guard let name = name?.replacingOccurrences(of: " ", with: "") else {
                 return nil
             }
-            
+
             return cachesURL()?.appendingPathComponent(name)
         }
     }
-    
+
     // name MUST be unique to ever INSTANCE, not just the class!
     override init(name: String?, fetch: (() -> (T?))? = nil)
     {
         super.init(name: name, fetch: fetch)
-        
+
         store = { (t:T?) in
             guard Globals.shared.cacheDownloads else {
                 return
             }
-            
+
             guard let t = t else {
                 return
             }
-            
+
             guard let fileSystemURL = self.fileSystemURL else {
                 return
             }
+
+            let dict = ["value":t]
             
             do {
-                let data = try JSONEncoder().encode(t)
+                let data = try JSONEncoder().encode(dict)
                 print("able to encode T: \(fileSystemURL.lastPathComponent)")
-                
+
                 do {
                     try data.write(to: fileSystemURL)
                     print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
@@ -570,43 +572,37 @@ class FetchCodable<T:Codable> : Fetch<T>
             } catch let error {
                 print("unable to encode T: \(fileSystemURL.lastPathComponent)")
                 NSLog(error.localizedDescription)
-                
-                if let string = t as? String {
-                    string.save(filename: fileSystemURL.lastPathComponent)
-                }
             }
         }
-        
+
         retrieve = {
             guard Globals.shared.cacheDownloads else {
                 return nil
             }
-            
+
             guard let fileSystemURL = self.fileSystemURL else {
                 return nil
             }
-            
+
             do {
                 let data = try Data(contentsOf: fileSystemURL)
                 print("able to read T from storage: \(fileSystemURL.lastPathComponent)")
-                
+
                 do {
-                    let t = try JSONDecoder().decode(T.self, from: data)
+                    let dict = try JSONDecoder().decode([String:T].self, from: data)
                     print("able to decode T from storage: \(fileSystemURL.lastPathComponent)")
-                    return t
+                    return dict["value"]
                 } catch let error {
                     print("unable to decode T from storage: \(fileSystemURL.lastPathComponent)")
                     NSLog(error.localizedDescription)
-                    
-                    return String.load(filename: fileSystemURL.lastPathComponent) as? T
                 }
             } catch let error {
                 print("unable to read T from storage: \(fileSystemURL.lastPathComponent)")
                 NSLog(error.localizedDescription)
             }
-            
+
             return nil
         }
-        
+
     }
 }
