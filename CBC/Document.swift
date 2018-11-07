@@ -52,7 +52,7 @@ class Document : NSObject
                     if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
                         let rect = page.bounds(for: .mediaBox)
                         
-                        if let pageImage = self.mediaItem?.poster.image {
+                        if let pageImage = self.mediaItem?.posterImage.image {
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {

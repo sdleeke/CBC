@@ -18,8 +18,8 @@ class LiveViewController: UIViewController
         didSet {
             let defaults = UserDefaults.standard
             if streamEntry != nil {
-                if (streamEntry?.dict != nil) {
-                    defaults.set(streamEntry?.dict,forKey: Constants.SETTINGS.LIVE)
+                if (streamEntry?.storage != nil) {
+                    defaults.set(streamEntry?.storage,forKey: Constants.SETTINGS.LIVE)
                 } else {
                     //Should not happen
                     defaults.removeObject(forKey: Constants.SETTINGS.LIVE)

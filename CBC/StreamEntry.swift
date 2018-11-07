@@ -10,29 +10,46 @@ import Foundation
 
 class StreamEntry
 {
-    init?(_ dict:[String:Any]?)
+    init?(_ storage:[String:Any]?)
     {
-        guard dict != nil else {
+        guard storage != nil else {
             return nil
         }
         
-        self.dict = dict
+        self.storage = storage
     }
     
     // Make thread safe?
-    var dict : [String:Any]?
+    var storage : [String:Any]?
     
+    subscript(key:String?) -> Any?
+    {
+        get {
+            guard let key = key else {
+                return nil
+            }
+            return storage?[key]
+        }
+        set {
+            guard let key = key else {
+                return
+            }
+            
+            storage?[key] = newValue
+        }
+    }
+
     var id : Int?
     {
         get {
-            return dict?["id"] as? Int
+            return self["id"] as? Int
         }
     }
     
     var start : Int?
     {
         get {
-            return dict?["start"] as? Int
+            return self["start"] as? Int
         }
     }
     
@@ -50,7 +67,7 @@ class StreamEntry
     var end : Int?
     {
         get {
-            return dict?["end"] as? Int
+            return self["end"] as? Int
         }
     }
     
@@ -68,14 +85,14 @@ class StreamEntry
     var name : String?
     {
         get {
-            return dict?["name"] as? String
+            return self["name"] as? String
         }
     }
     
     var date : String?
     {
         get {
-            return dict?["date"] as? String
+            return self["date"] as? String
         }
     }
     

@@ -1788,7 +1788,7 @@ class MediaItem : NSObject
         }
     }
 
-    lazy var poster = {
+    lazy var posterImage = {
         return FetchImage(url: self.posterImageURL)
     }()
 
