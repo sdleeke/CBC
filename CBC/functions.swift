@@ -4001,13 +4001,17 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
         
         popover.html.fontSize = 12
         
+        if let bodyHTML = bodyHTML, let headerHTML = headerHTML {
+            let htmlString = "<!DOCTYPE html><html><body>" + headerHTML + bodyHTML + "</body></html>"
+            popover.html.original = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
+        }
+        
         if htmlString != nil {
             popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
         } else
 
         if let bodyHTML = bodyHTML, let headerHTML = headerHTML {
             let htmlString = "<!DOCTYPE html><html><body>" + headerHTML + bodyHTML + "</body></html>"
-
             popover.html.string = insertHead(stripHead(htmlString),fontSize: popover.html.fontSize)
         }
         

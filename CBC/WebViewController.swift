@@ -30,6 +30,11 @@ class HTML {
 //    }
     
     var original:String?
+    {
+        didSet {
+            
+        }
+    }
     
     var previousString:String?
     
@@ -334,7 +339,17 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Search:
-            searchAlert(viewController: self, title: "Search", message: nil, searchText:searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
+            let alert = UIAlertController(  title: Constants.Strings.Search,
+                                            message: nil,
+                                            preferredStyle: .alert)
+            alert.makeOpaque()
+            
+            alert.addTextField(configurationHandler: { (textField:UITextField) in
+                textField.placeholder = self.searchText ?? "search string"
+            })
+            
+            let search = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+                (action : UIAlertAction!) -> Void in
                 self.searchText = alert.textFields?[0].text
                 
                 self.wkWebView?.isHidden = true
@@ -356,6 +371,64 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
             })
+            alert.addAction(search)
+            
+            let searchWhole = UIAlertAction(title: "Search - Whole Words Only", style: UIAlertActionStyle.default, handler: {
+                (action : UIAlertAction!) -> Void in
+                self.searchText = alert.textFields?[0].text
+                
+                self.wkWebView?.isHidden = true
+                
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+                
+                if let isEmpty = self.searchText?.isEmpty, isEmpty {
+                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
+                } else {
+                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                    } else {
+                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: true, index: true)),fontSize: self.html.fontSize)
+                    }
+                }
+                
+                if let url = self.html.fileURL {
+                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                }
+            })
+            alert.addAction(searchWhole)
+            
+            let clear = UIAlertAction(title: "Clear", style: UIAlertActionStyle.destructive, handler: {
+                (action : UIAlertAction!) -> Void in
+                self.searchText = ""
+                
+                self.wkWebView?.isHidden = true
+                
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+                
+                if let isEmpty = self.searchText?.isEmpty, isEmpty {
+                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
+                } else {
+                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                    } else {
+                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                    }
+                }
+                
+                if let url = self.html.fileURL {
+                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                }
+            })
+            alert.addAction(clear)
+            
+            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                (action : UIAlertAction!) -> Void in
+            })
+            alert.addAction(cancel)
+            
+            present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Word_Picker:

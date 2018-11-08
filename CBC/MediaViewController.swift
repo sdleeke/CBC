@@ -1370,7 +1370,9 @@ class MediaViewController: UIViewController
                         Globals.shared.mediaPlayer.view?.isHidden = true
                         
                         videoLocation = .withDocuments
-                        
+                        tableView.superview?.bringSubview(toFront: tableView)
+                        tableView.isScrollEnabled = true
+
                         setupSpinner()
                         
                         removeSliderObserver()
@@ -1565,17 +1567,20 @@ class MediaViewController: UIViewController
             switch showing {
             case Showing.slides:
                 stvControl.selectedSegmentIndex = slidesIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
+                // Why were we setting this to nil?
+//                mediaItemNotesAndSlides?.gestureRecognizers = nil
                 break
                 
             case Showing.notes:
                 stvControl.selectedSegmentIndex = notesIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
+                // Why were we setting this to nil?
+//                mediaItemNotesAndSlides?.gestureRecognizers = nil
                 break
                 
             case Showing.video:
                 stvControl.selectedSegmentIndex = videoIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
+                // Why were we setting this to nil?
+//                mediaItemNotesAndSlides?.gestureRecognizers = nil
                 break
                 
             case Showing.none:
@@ -2607,6 +2612,8 @@ class MediaViewController: UIViewController
         mediaItemNotesAndSlides.addSubview(wkWebView)
         
         mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+        
+        // Why not top and bottom?
         
         let centerXNotes = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
         mediaItemNotesAndSlides.addConstraint(centerXNotes)

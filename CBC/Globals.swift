@@ -86,6 +86,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         guard reachability.isReachable else {
             isVoiceBaseAvailable = false
+            completion?()
             return
         }
         

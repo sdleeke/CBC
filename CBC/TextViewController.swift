@@ -2528,7 +2528,7 @@ class TextViewController : UIViewController
         // and move on to the next word.
         //////////////////////////////////////////////////////////////////////////////
         
-        let tooClose = 240 // Completely arbitrary.
+        let tooClose = 360 // Completely arbitrary.
         
         var lowerRange : Range<String.Index>?
         var upperRange : Range<String.Index>?
