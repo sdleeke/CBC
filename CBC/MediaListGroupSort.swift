@@ -23,6 +23,17 @@ typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
+    func loadTokenCountMarkCountMismatches()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        list.forEach { (mediaItem) in
+            mediaItem.loadTokenCountMarkCountMismatches()
+        }
+    }
+    
     @objc func freeMemory()
     {
         lexicon = Lexicon(self) // Side effects?

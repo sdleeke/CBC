@@ -10,6 +10,17 @@ import Foundation
 
 class MediaRepository
 {
+    func loadTokenCountMarkCountMismatches()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        list.forEach { (mediaItem) in
+            mediaItem.loadTokenCountMarkCountMismatches()
+        }
+    }
+    
     var list:[MediaItem]? // Not in any specific order
     {
         willSet {

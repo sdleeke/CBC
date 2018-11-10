@@ -1253,6 +1253,10 @@ class MediaViewController: UIViewController
         return operationQueue
     }()
 
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     var selectedMediaItem:MediaItem?
     {
         willSet {

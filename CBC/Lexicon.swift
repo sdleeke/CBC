@@ -21,10 +21,6 @@ class Lexicon : NSObject
         self.mediaListGroupSort = mediaListGroupSort
     }
     
-    deinit {
-        
-    }
-    
     var tokens:[String]?
     {
         get {
@@ -195,6 +191,10 @@ class Lexicon : NSObject
         return operationQueue
     }()
 
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func stop()
     {
         operationQueue.cancelAllOperations()
@@ -271,7 +271,7 @@ class Lexicon : NSObject
                             mediaItem.notesTokens?.cache = nil // Save memory - load on demand.
                         }
                         
-                        print("notesTokens to add: \(notesTokens.count)")
+//                        print("notesTokens to add: \(notesTokens.count)")
                         
                         for token in notesTokens {
                             if self?.words?[token.key] == nil {
@@ -294,7 +294,7 @@ class Lexicon : NSObject
                         print("NO NOTES TOKENS!")
                     }
                 }
-                
+
                 if let test = test, test() {
                     return
                 }
@@ -407,6 +407,7 @@ class Lexicon : NSObject
             return string
         }
     }
+    
     override var description:String
     {
         get {

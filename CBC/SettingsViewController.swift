@@ -46,19 +46,7 @@ class SettingsViewController: UIViewController
                 // were downloaded previously?
                 if let mediaItems = Globals.shared.mediaRepository.list {
                     for mediaItem in mediaItems {
-                        mediaItem.notesDownload?.delete()
-                        mediaItem.slidesDownload?.delete()
-                        mediaItem.posterImageURL?.delete()
-                        mediaItem.seriesImageURL?.delete()
-                        
-                        mediaItem.notesHTML?.fileSystemURL?.delete()
-                        mediaItem.notesTokens?.fileSystemURL?.delete()
-                        if #available(iOS 11.0, *) {
-                            mediaItem.notesPDFText?.fileSystemURL?.delete()
-                        } else {
-                            // Fallback on earlier versions
-                        }
-                        mediaItem.notesParagraphWords?.fileSystemURL?.delete()
+                        mediaItem.clearCache()
                     }
                 }
                 

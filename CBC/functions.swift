@@ -509,20 +509,47 @@ func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!
     return newAttrString
 }
 
-func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)
 {
     guard (stripHead(html) != nil) else {
-        return nil
+        return (nil,0)
     }
     
     guard let searchText = searchText, !searchText.isEmpty else {
-        return html
+        return (html,0)
+    }
+    
+    var searchTexts = Set<String>()
+    
+    if lemmas {
+        if #available(iOS 12.0, *) {
+            if let lemmas = html?.html2String?.nlLemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
+                }
+            }
+        } else {
+            // Fallback on earlier versions
+            if let lemmas = html?.html2String?.nsLemmas {
+                for lemma in lemmas {
+                    if lemma.1.lowercased() == searchText.lowercased() {
+                        searchTexts.insert(lemma.0.lowercased())
+                    }
+                }
+            }
+        }
     }
     
     var markCounter = 0
     
-    func mark(_ input:String) -> String
+    func mark(_ input:String,searchText:String?) -> String
     {
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return input
+        }
+        
         var string = input
         
         var stringBefore:String = Constants.EMPTY_STRING
@@ -618,225 +645,20 @@ func markedHTML(html:String?, searchText:String?,wholeWordsOnly:Bool,index:Bool)
         return newString == Constants.EMPTY_STRING ? string : newString
     }
     
-    var newString:String = Constants.EMPTY_STRING
-    var string:String = html ?? Constants.EMPTY_STRING
-    
-    while let searchRange = string.range(of: "<") {
-        let searchString = String(string[..<searchRange.lowerBound])
-        //            print(searchString)
-        
-        // mark search string
-        newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
-        
-        let remainder = String(string[searchRange.lowerBound...])
-        
-        if let htmlRange = remainder.range(of: ">") {
-            let html = String(remainder[..<htmlRange.upperBound])
-            //                print(html)
-            
-            newString = newString + html
-            
-            string = String(remainder[htmlRange.upperBound...])
-        }
-    }
-    
-    var indexString:String!
-    
-    if markCounter > 0 {
-        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
-    } else {
-        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
-    }
-    
-    // If we want an index of links to the occurrences of the searchText.
-    if index {
-        if markCounter > 0 {
-            indexString = indexString + "<div>Locations: "
-            
-            for counter in 1...markCounter {
-                if counter > 1 {
-                    indexString = indexString + ", "
-                }
-                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
-            }
-            
-            indexString = indexString + "<br/><br/></div>"
-        }
-    }
-    
-    var htmlString = "<!DOCTYPE html><html><body>"
-    
-    if index {
-        htmlString = htmlString + indexString
-    }
-    
-    htmlString = htmlString + newString + "</body></html>"
-    
-    return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
-}
-
-func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> String?
-{
-    guard let bodyHTML = bodyHTML else {
-        return nil
-    }
-    
-//    guard let headerHTML = headerHTML else {
-//        return nil
-//    }
-    
-    guard (stripHead(bodyHTML) != nil) else {
-        return nil
-    }
-    
-    guard let searchText = searchText, !searchText.isEmpty else {
-        return bodyHTML
-    }
-    
-    var searchTexts = Set<String>()
-    
-    if lemmas {
-        if #available(iOS 12.0, *) {
-            if let lemmas = bodyHTML.html2String?.nlLemmas {
-                for lemma in lemmas {
-                    if lemma.1.lowercased() == searchText.lowercased() {
-                        searchTexts.insert(lemma.0.lowercased())
-                    }
-                }
-            }
-        } else {
-            // Fallback on earlier versions
-            if let lemmas = bodyHTML.html2String?.nsLemmas {
-                for lemma in lemmas {
-                    if lemma.1.lowercased() == searchText.lowercased() {
-                        searchTexts.insert(lemma.0.lowercased())
-                    }
-                }
-            }
-        }
-    }
-    
-    var markCounter = 0
-    
-    func mark(_ input:String,searchText:String?) -> String
-    {
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return input
-        }
-        
-        var string = input
-        
-        var stringBefore:String = Constants.EMPTY_STRING
-        var stringAfter:String = Constants.EMPTY_STRING
-        var newString:String = Constants.EMPTY_STRING
-        var foundString:String = Constants.EMPTY_STRING
-        
-        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-                break
-            }
-            
-            stringBefore = String(string[..<range.lowerBound])
-            stringAfter = String(string[range.upperBound...])
-            
-            var skip = false
-            
-            if wholeWordsOnly {
-                if stringBefore == "" {
-                    if  let characterBefore:Character = newString.last,
-                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) {
-                            skip = true
-                        }
-                        
-                        if searchText.count == 1 {
-                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                skip = true
-                            }
-                        }
-                    }
-                } else {
-                    if  let characterBefore:Character = stringBefore.last,
-                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if CharacterSet.letters.contains(unicodeScalar) {
-                            skip = true
-                        }
-                        
-                        if searchText.count == 1 {
-                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                skip = true
-                            }
-                        }
-                    }
-                }
-                
-                if  let characterAfter:Character = stringAfter.first,
-                    let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                    if CharacterSet.letters.contains(unicodeScalar) {
-                        skip = true
-                    } else {
-
-                    }
-                    
-                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                            if stringAfter.endIndex > stringAfter.startIndex {
-                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                
-                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                    skip = CharacterSet.letters.contains(unicodeScalar)
-                                }
-                            }
-                        }
-                    }
-                }
-                if let characterBefore:Character = stringBefore.last {
-                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                        skip = true
-                    }
-                }
-            }
-            
-            foundString = String(string[range.lowerBound...])
-            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                foundString = String(foundString[..<newRange.upperBound])
-            } else {
-
-            }
-            
-            if !skip {
-                markCounter += 1
-                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-            }
-            
-            newString = newString + stringBefore + foundString
-            
-            stringBefore = stringBefore + foundString
-            
-            string = stringAfter
-        }
-        
-        newString = newString + stringAfter
-        
-        return newString == Constants.EMPTY_STRING ? string : newString
-    }
-    
     searchTexts.insert(searchText.lowercased())
     
     var newString = Constants.EMPTY_STRING
-    var string = bodyHTML
-    
+    var string:String = html ?? Constants.EMPTY_STRING
+
     for searchText in Array(searchTexts).sorted() {
-        if string.html2String != string {
-            // This assumes the bodyHTML is, in fact, HTML, i.e. with tags.
-            // THIS IS A LOUSY WAY TO FIND TAGS.
+        // TERRIBLE way to detect HTML
+        if string.range(of: "<") != nil {
             while let searchRange = string.range(of: "<") {
                 let searchString = String(string[..<searchRange.lowerBound])
                 //            print(searchString)
                 
                 // mark search string
-                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
+                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "), searchText: searchText)
                 
                 let remainder = String(string[searchRange.lowerBound...])
                 
@@ -857,13 +679,13 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
         string = newString
         newString = Constants.EMPTY_STRING
     }
-    
+
     var indexString:String!
     
     if markCounter > 0 {
-        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)" // <br/>
     } else {
-        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>" // <br/> needed since markCounter == 0 so the below div isn't added.
     }
     
     // If we want an index of links to the occurrences of the searchText.
@@ -878,7 +700,7 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
                 indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
             }
             
-            indexString = indexString + "<br/><br/></div>"
+            indexString = indexString + "<br/></div>" // <br/>
         }
     }
     
@@ -888,13 +710,235 @@ func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, whol
         htmlString = htmlString + indexString
     }
     
+    htmlString = htmlString + string + "</body></html>"
+    
+    return (insertHead(htmlString,fontSize: Constants.FONT_SIZE),markCounter)
+}
+
+func markBodyHTML(bodyHTML:String?, headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)
+{
     if let headerHTML = headerHTML {
-        htmlString = htmlString + headerHTML + string + "</body></html>"
+        let markedHTML = markHTML(html: bodyHTML, searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index)
+            
+        return (markedHTML.0?.replacingOccurrences(of: "<body>", with: "<body>"+headerHTML+"<br/>"),markedHTML.1)
     } else {
-        htmlString = htmlString + string + "</body></html>"
+        return markHTML(html: bodyHTML, searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index)
     }
     
-    return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
+////    guard let headerHTML = headerHTML else {
+////        return nil
+////    }
+//
+//    guard (stripHead(bodyHTML) != nil) else {
+//        return nil
+//    }
+//
+//    guard let searchText = searchText, !searchText.isEmpty else {
+//        return bodyHTML
+//    }
+//
+//    var searchTexts = Set<String>()
+//
+//    if lemmas {
+//        if #available(iOS 12.0, *) {
+//            if let lemmas = bodyHTML.html2String?.nlLemmas {
+//                for lemma in lemmas {
+//                    if lemma.1.lowercased() == searchText.lowercased() {
+//                        searchTexts.insert(lemma.0.lowercased())
+//                    }
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//            if let lemmas = bodyHTML.html2String?.nsLemmas {
+//                for lemma in lemmas {
+//                    if lemma.1.lowercased() == searchText.lowercased() {
+//                        searchTexts.insert(lemma.0.lowercased())
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    var markCounter = 0
+//
+//    func mark(_ input:String,searchText:String?) -> String
+//    {
+//        guard let searchText = searchText, !searchText.isEmpty else {
+//            return input
+//        }
+//
+//        var string = input
+//
+//        var stringBefore:String = Constants.EMPTY_STRING
+//        var stringAfter:String = Constants.EMPTY_STRING
+//        var newString:String = Constants.EMPTY_STRING
+//        var foundString:String = Constants.EMPTY_STRING
+//
+//        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+//            guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+//                break
+//            }
+//
+//            stringBefore = String(string[..<range.lowerBound])
+//            stringAfter = String(string[range.upperBound...])
+//
+//            var skip = false
+//
+//            if wholeWordsOnly {
+//                if stringBefore == "" {
+//                    if  let characterBefore:Character = newString.last,
+//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                        if CharacterSet.letters.contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//
+//                        if searchText.count == 1 {
+//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    if  let characterBefore:Character = stringBefore.last,
+//                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                        if CharacterSet.letters.contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//
+//                        if searchText.count == 1 {
+//                            if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                if  let characterAfter:Character = stringAfter.first,
+//                    let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                    if CharacterSet.letters.contains(unicodeScalar) {
+//                        skip = true
+//                    } else {
+//
+//                    }
+//
+//                    if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                        if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                            if stringAfter.endIndex > stringAfter.startIndex {
+//                                let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//
+//                                if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                    skip = CharacterSet.letters.contains(unicodeScalar)
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                if let characterBefore:Character = stringBefore.last {
+//                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+//                        //                            !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                        skip = true
+//                    }
+//                }
+//            }
+//
+//            foundString = String(string[range.lowerBound...])
+//            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                foundString = String(foundString[..<newRange.upperBound])
+//            } else {
+//
+//            }
+//
+//            if !skip {
+//                markCounter += 1
+//                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+//            }
+//
+//            newString = newString + stringBefore + foundString
+//
+//            stringBefore = stringBefore + foundString
+//
+//            string = stringAfter
+//        }
+//
+//        newString = newString + stringAfter
+//
+//        return newString == Constants.EMPTY_STRING ? string : newString
+//    }
+//
+//    searchTexts.insert(searchText.lowercased())
+//
+//    var newString = Constants.EMPTY_STRING
+//    var string = bodyHTML
+//
+//    for searchText in Array(searchTexts).sorted() {
+//        if string.html2String != string {
+//            // This assumes the bodyHTML is, in fact, HTML, i.e. with tags.
+//            // THIS IS A LOUSY WAY TO FIND TAGS.
+//            while let searchRange = string.range(of: "<") {
+//                let searchString = String(string[..<searchRange.lowerBound])
+//                //            print(searchString)
+//
+//                // mark search string
+//                newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
+//
+//                let remainder = String(string[searchRange.lowerBound...])
+//
+//                if let htmlRange = remainder.range(of: ">") {
+//                    let html = String(remainder[..<htmlRange.upperBound])
+//                    //                print(html)
+//
+//                    newString = newString + html
+//
+//                    string = String(remainder[htmlRange.upperBound...])
+//                }
+//            }
+//        } else {
+//            // mark search string
+//            newString = mark(string.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
+//        }
+//
+//        string = newString
+//        newString = Constants.EMPTY_STRING
+//    }
+//
+//    var indexString:String!
+//
+//    if markCounter > 0 {
+//        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+//    } else {
+//        indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+//    }
+//
+//    // If we want an index of links to the occurrences of the searchText.
+//    if index {
+//        if markCounter > 0 {
+//            indexString = indexString + "<div>Locations: "
+//
+//            for counter in 1...markCounter {
+//                if counter > 1 {
+//                    indexString = indexString + ", "
+//                }
+//                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+//            }
+//
+//            indexString = indexString + "<br/><br/></div>"
+//        }
+//    }
+//
+//    var htmlString = "<!DOCTYPE html><html><body>"
+//
+//    if index {
+//        htmlString = htmlString + indexString
+//    }
+//
+//    if let headerHTML = headerHTML {
+//        htmlString = htmlString + headerHTML + string + "</body></html>"
+//    } else {
+//        htmlString = htmlString + string + "</body></html>"
+//    }
+//
+//    return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
 }
 
 func verifyNASB()
@@ -3533,8 +3577,12 @@ func sort(method:String?,strings:[String]?) -> [String]?
     }
 }
 
-func process(viewController:UIViewController,disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
+func process(viewController:UIViewController?,disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
 {
+    guard let viewController = viewController else {
+        return
+    }
+    
     guard (work != nil) && (completion != nil) else {
         return
     }
@@ -3619,45 +3667,61 @@ func process(viewController:UIViewController,disableEnable:Bool = true,hideSubvi
     }
 }
 
-func mailText(viewController:UIViewController,to: [String],subject: String, string:String)
+func mailText(viewController:UIViewController?,to: [String]?,subject: String?, body:String)
 {
+    guard let viewController = viewController else {
+        return
+    }
+    
+    guard MFMailComposeViewController.canSendMail() else {
+        showSendMailErrorAlert(viewController: viewController)
+        return
+    }
+
     let mailComposeViewController = MFMailComposeViewController()
     
     // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
     mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
     
     mailComposeViewController.setToRecipients(to)
-    mailComposeViewController.setSubject(subject)
     
-    mailComposeViewController.setMessageBody(string, isHTML: false)
+    if let subject = subject {
+        mailComposeViewController.setSubject(subject)
+    }
     
-    if MFMailComposeViewController.canSendMail() {
-        Thread.onMainThread {
-            viewController.present(mailComposeViewController, animated: true, completion: nil)
-        }
-    } else {
-        showSendMailErrorAlert(viewController: viewController)
+    mailComposeViewController.setMessageBody(body, isHTML: false)
+    
+    Thread.onMainThread {
+        viewController.present(mailComposeViewController, animated: true, completion: nil)
     }
 }
 
-func mailHTML(viewController:UIViewController,to: [String],subject: String, htmlString:String)
+func mailHTML(viewController:UIViewController?,to: [String]?,subject: String?, htmlString:String)
 {
+    guard let viewController = viewController else {
+        return
+    }
+    
+    guard MFMailComposeViewController.canSendMail() else {
+        showSendMailErrorAlert(viewController: viewController)
+        return
+    }
+    
     let mailComposeViewController = MFMailComposeViewController()
     
     // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
     mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
     
     mailComposeViewController.setToRecipients(to)
-    mailComposeViewController.setSubject(subject)
+    
+    if let subject = subject {
+        mailComposeViewController.setSubject(subject)
+    }
     
     mailComposeViewController.setMessageBody(htmlString, isHTML: true)
     
-    if MFMailComposeViewController.canSendMail() {
-        Thread.onMainThread {
-            viewController.present(mailComposeViewController, animated: true, completion: nil)
-        }
-    } else {
-        showSendMailErrorAlert(viewController: viewController)
+    Thread.onMainThread {
+        viewController.present(mailComposeViewController, animated: true, completion: nil)
     }
 }
 
@@ -3963,7 +4027,7 @@ func preferredModalPresentationStyle(viewController:UIViewController) -> UIModal
     return .formSheet
 }
 
-func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil, search:Bool)
+func popoverHTML(_ viewController:UIViewController, title:String?, mediaItem:MediaItem? = nil, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil, search:Bool)
 {
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
@@ -4016,6 +4080,9 @@ func popoverHTML(_ viewController:UIViewController, title:String?, bodyHTML:Stri
         }
         
         popover.search = search
+        
+        popover.mediaItem = mediaItem
+        
         popover.bodyHTML = bodyHTML
         popover.headerHTML = headerHTML
 

@@ -253,7 +253,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.startAnimating()
         
         if bodyHTML != nil { // , headerHTML != nil // Not necessary
-            html.string = markBodyHTML(bodyHTML: bodyHTML, headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
+            html.string = markBodyHTML(bodyHTML: bodyHTML, headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
         }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
@@ -361,9 +361,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -386,9 +386,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true).0),fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: true, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: true, index: true).0),fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -411,9 +411,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markedHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -547,8 +547,22 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.stringsFunction = {
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                    
                     return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                        return "\(word) (\(count))"
+                        if let mismatches = self.mediaItem?.notesTokensMarkMismatches?.cache {
+                            var dict = [String:(String,String)]()
+                            for mismatch in mismatches {
+                                let parts = mismatch.components(separatedBy: " ")
+                                dict[parts[0]] = (parts[1],parts[2])
+                            }
+                            if let tuple = dict[word] {
+                                return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+                            } else {
+                                return "\(word) (\(count))"
+                            }
+                        } else {
+                            return "\(word) (\(count))"
+                        }
                     }).sorted()
                 }
 
@@ -652,7 +666,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
-                    self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
+                    self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
                 }
                 
                 if let fontSize = self?.html.fontSize {

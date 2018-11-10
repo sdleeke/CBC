@@ -932,6 +932,10 @@ class MediaPlayer : NSObject {
         return operationQueue
     }()
 
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     var lastSeek:Double?
     
     func seek(to: Double?) // ,completion:((Bool)->(Void))?

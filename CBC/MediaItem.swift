@@ -91,6 +91,24 @@ class MediaItem : NSObject
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
     
+    func clearCache()
+    {
+        notesDownload?.delete()
+        slidesDownload?.delete()
+        posterImageURL?.delete()
+        seriesImageURL?.delete()
+        
+        notesHTML?.fileSystemURL?.delete()
+        notesTokens?.fileSystemURL?.delete()
+        if #available(iOS 11.0, *) {
+            notesPDFText?.fileSystemURL?.delete()
+        } else {
+            // Fallback on earlier versions
+        }
+        notesParagraphWords?.fileSystemURL?.delete()
+        notesTokensMarkMismatches?.fileSystemURL?.delete()
+    }
+    
     @objc func downloaded(_ notification : NSNotification)
     {
         guard let download = notification.object as? Download else {
@@ -232,10 +250,6 @@ class MediaItem : NSObject
         Thread.onMainThread {
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
-    }
-    
-    deinit {
-        
     }
     
     // Make thread safe?
@@ -998,6 +1012,48 @@ class MediaItem : NSObject
         return fetch
     }()
     
+    lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = {
+        guard let mediaCode = mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<[String]>(name: mediaCode + "." + "Notes Tokens Mark Mismatches")
+
+        fetch.didSet = { (strings:[String]?) in
+            guard let strings = strings, strings.count > 0 else {
+                return
+            }
+            
+            print("Token Count vs. Mark Count Mismatch(es) Found")
+            print(self.text ?? "NO MEDIA ITEM TEXT")
+            print(strings)
+            print("\n\n")
+        }
+        
+        fetch.fetch = {
+            guard let notesTokens = self.notesTokens?.result else {
+                return nil
+            }
+
+            var mismatches = [String]()
+            
+            for notesToken in notesTokens {
+                let tokenWord = notesToken.key
+                let tokenCount = notesToken.value
+                
+                let markCount = markHTML(html: self.notesText, searchText: tokenWord, wholeWordsOnly: true, index: false).1
+
+                if tokenCount != markCount {
+                    mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
+                }
+            }
+            // Should we return empty rather than nil?  YES.  Nil may mean fetch never stores so it never retrieves so it does the calculation over again.
+            return mismatches // .count > 0 ? mismatches : nil
+        }
+        
+        return fetch
+    }()
+    
     var notesTokens:FetchCodable<[String:Int]>?
     {
         get {
@@ -1023,9 +1079,9 @@ class MediaItem : NSObject
             }) else {
                 return nil
             }
-
+            
             var allNotesParagraphWords = [String:Int]()
-
+            
             for mediaItem in mediaItems {
                 if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
                     // notesParagraphWords.count is the number of paragraphs.
@@ -1042,8 +1098,83 @@ class MediaItem : NSObject
             return _speakerNotesParagraphWords
         }
     }
+
+    var overallAverageSpeakerNotesParagraphLength : Int?
+    {
+        get {
+            guard let values = averageSpeakerNotesParagraphLength?.values else {
+                return nil
+            }
+            
+            let averageLengths = Array(values)
+            
+            return averageLengths.reduce(0,+) / averageLengths.count
+        }
+    }
     
-    lazy var notesParagraphWords:FetchCodable<[String:Int]>? = {
+    var averageSpeakerNotesParagraphLength : [String:Int]?
+    {
+        get {
+            return speakerNotesParagraphLengths?.mapValues({ (paragraphLengths:[Int]) -> Int in
+                return paragraphLengths.reduce(0,+) / paragraphLengths.count
+            })
+        }
+    }
+    
+    var _speakerNotesParagraphLengths : [String:[Int]]?
+    
+    var speakerNotesParagraphLengths : [String:[Int]]?
+    {
+        get {
+            guard _speakerNotesParagraphLengths == nil else {
+                return _speakerNotesParagraphLengths
+            }
+            
+            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
+            }) else {
+                return nil
+            }
+            
+            var allNotesParagraphLengths = [String:[Int]]()
+            
+            for mediaItem in mediaItems {
+                if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
+                    allNotesParagraphLengths[mediaItem.id] = notesParagraphLengths
+                }
+            }
+            
+            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
+            
+            return _speakerNotesParagraphLengths
+        }
+    }
+    
+    lazy var notesParagraphLengths : FetchCodable<[Int]>? = {
+        guard let mediaCode = mediaCode else {
+            return nil
+        }
+        
+        let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "Notes Paragraph Lengths")
+        
+        fetch.fetch = {
+            guard let paragraphs = self.notesText?.components(separatedBy: "\n\n") else {
+                return nil
+            }
+            
+            var lengths = [Int]()
+            
+            for paragraph in paragraphs {
+                lengths.append(paragraph.count)
+            }
+            
+            return lengths.count > 0 ? lengths : nil
+        }
+        
+        return fetch
+    }()
+    
+    lazy var notesParagraphWords : FetchCodable<[String:Int]>? = {
         guard let mediaCode = mediaCode else {
             return nil
         }
@@ -1094,8 +1225,27 @@ class MediaItem : NSObject
             }
         }
     }
+
+    func loadTokenCountMarkCountMismatches()
+    {
+        self.operationQueue.addOperation {
+            self.notesTokensMarkMismatches?.load()
+        }
+    }
     
-    lazy var notesHTMLTokens:FetchCodable<[String:Int]>? = {
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = id
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
+    lazy var notesHTMLTokens : FetchCodable<[String:Int]>? = {
         guard let mediaCode = self.mediaCode else {
             return nil
         }
@@ -1110,7 +1260,7 @@ class MediaItem : NSObject
             guard self.hasNotesHTML else {
                 return nil
             }
-            
+
             return self.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         }
         
@@ -1919,7 +2069,7 @@ class MediaItem : NSObject
             guard self.hasNotes else {
                 return nil
             }
-            
+
             return self.notesPDFText?.result?.tokensAndCounts
         }
         
@@ -1977,18 +2127,22 @@ class MediaItem : NSObject
                 
                 var topRange:Range<String.Index>?
                 
-                topRange = pageContent.string.range(of: "Countryside Bible Church, Southlake, Texas")
+                topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church, Southlake, Texas".lowercased())
                 
                 if topRange == nil {
-                    topRange = pageContent.string.range(of: "Countryside Bible Church www.countrysidebible.org")
+                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church www.countrysidebible.org".lowercased())
                 }
                 
                 if topRange == nil {
-                    topRange = pageContent.string.range(of: "Countryside Bible Church")
+                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church".lowercased())
+                }
+                
+                if topRange == nil {
+                    topRange = pageContent.string.lowercased().range(of: "Southlake Bible Church".lowercased())
                 }
                 
                 if let topRange = topRange {
-                    if let bottomRange = pageContent.string.range(of: "Available online") {
+                    if let bottomRange = pageContent.string.lowercased().range(of: "Available online".lowercased()) {
                         pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
                     } else {
                         pageText = String(pageContent.string[topRange.upperBound...])
@@ -3118,18 +3272,18 @@ class MediaItem : NSObject
             var htmlString:String?
             
             if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true)
+                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
             } else
                 
             if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true)
+                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true).0
             }
             
             return htmlString
         }, completion: { [weak self] (data:Any?) in
             let htmlString = data as? String
             
-            popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:true)
+            popoverHTML(viewController, title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:true)
         })
     }
     
@@ -3174,22 +3328,22 @@ class MediaItem : NSObject
                 var htmlString:String?
                 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true)
+                    htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
                 } else
                     
                     if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
-                        htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true)
+                        htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
                     } else {
                         htmlString = bodyHTML
                 }
                 
                 return htmlString
-                }, completion: { [weak self] (data:Any?) in
-                    if let _ = data as? String {
-                        popoverHTML(viewController, title:self?.title, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
-                    } else {
-                        Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-                    }
+            }, completion: { [weak self] (data:Any?) in
+                if let _ = data as? String {
+                    popoverHTML(viewController, title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
+                } else {
+                    Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
+                }
             })
         })
         alert.addAction(viewAction)
@@ -3220,6 +3374,12 @@ class MediaItem : NSObject
         var tags:AlertAction!
         var voiceBase:AlertAction!
         var topics:AlertAction!
+        
+        var clearCache:AlertAction!
+        
+        clearCache = AlertAction(title: "Clear Cache", style: .default) {
+            self.clearCache()
+        }
         
         if hasAudio, let audioDownload = audioDownload {
             var title = ""
@@ -3651,6 +3811,8 @@ class MediaItem : NSObject
         if Globals.shared.allowMGTs {
             actions.append(voiceBase)
         }
+        
+        actions.append(clearCache)
         
         return actions.count > 0 ? actions : nil
     }

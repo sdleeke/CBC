@@ -1412,6 +1412,10 @@ class LexiconIndexViewController : UIViewController
         return operationQueue
     }()
 
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     @objc func updated()
     {
         guard !self.wordsTableViewController.sort.sorting else {

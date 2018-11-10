@@ -300,6 +300,11 @@ class CloudViewController: UIViewController
         return operationQueue
     }()
     
+    deinit {
+        operationQueue.cancelAllOperations()
+        labelQueue.cancelAllOperations()
+    }
+    
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var selectAllButton: UIButton!

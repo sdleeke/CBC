@@ -405,7 +405,7 @@ extension String
     var tokensAndCounts : [String:Int]?
     {
         get {
-            return tokensAndCountsFromString(self) // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
+            return tokensAndCountsFromString(self) // tokensAndCountsFromString // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
         }
     }
 }

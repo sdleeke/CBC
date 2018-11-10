@@ -42,44 +42,46 @@ class Alerts
             return
         }
         
-        if let alert = queue.first {
-            let alertVC = UIAlertController(title:alert.title,
-                                            message:alert.message,
-                                            preferredStyle: .alert)
-            alertVC.makeOpaque()
-            
-            if let attributedText = alert.attributedText {
-                alertVC.addTextField(configurationHandler: { (textField:UITextField) in
-                    textField.isUserInteractionEnabled = false
-                    textField.textAlignment = .center
-                    textField.attributedText = attributedText
-                    textField.adjustsFontSizeToFitWidth = true
-                })
-            }
-            
-            if let alertActions = alert.actions {
-                for alertAction in alertActions {
-                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.handler?()
-                    })
-                    alertVC.addAction(action)
-                }
-            } else {
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
+        guard let alert = queue.first else {
+            return
+        }
+        
+        let alertVC = UIAlertController(title:alert.title,
+                                        message:alert.message,
+                                        preferredStyle: .alert)
+        alertVC.makeOpaque()
+        
+        if let attributedText = alert.attributedText {
+            alertVC.addTextField(configurationHandler: { (textField:UITextField) in
+                textField.isUserInteractionEnabled = false
+                textField.textAlignment = .center
+                textField.attributedText = attributedText
+                textField.adjustsFontSizeToFitWidth = true
+            })
+        }
+        
+        if let alertActions = alert.actions {
+            for alertAction in alertActions {
+                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                    alertAction.handler?()
                 })
                 alertVC.addAction(action)
             }
-            
-            Thread.onMainThread {
-                let viewController = self.topViewController.last ?? Globals.shared.splitViewController
+        } else {
+            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                 
-                viewController?.present(alertVC, animated: true, completion: {
-                    if self.queue.count > 0 {
-                        self.queue.remove(at: 0)
-                    }
-                })
-            }
+            })
+            alertVC.addAction(action)
+        }
+        
+        Thread.onMainThread {
+            let viewController = self.topViewController.last ?? Globals.shared.splitViewController
+            
+            viewController?.present(alertVC, animated: true, completion: {
+                if self.queue.count > 0 {
+                    self.queue.remove(at: 0)
+                }
+            })
         }
     }
     

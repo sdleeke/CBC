@@ -198,9 +198,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         self.webViewController?.html.string = insertHead(stripHead(self.webViewController?.html.original),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
                         if self.webViewController?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                            self.webViewController?.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.webViewController?.bodyHTML, headerHTML: self.webViewController?.headerHTML, searchText:self.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true)),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            self.webViewController?.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.webViewController?.bodyHTML, headerHTML: self.webViewController?.headerHTML, searchText:self.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                         } else {
-                            self.webViewController?.html.string = insertHead(stripHead(markedHTML(html:self.webViewController?.html.original, searchText:self.webViewController?.searchText, wholeWordsOnly: false, index: true)),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            self.webViewController?.html.string = insertHead(stripHead(markHTML(html:self.webViewController?.html.original, searchText:self.webViewController?.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                         }
                     }
                     
@@ -383,7 +383,7 @@ extension ScriptureViewController : PopoverPickerControllerDelegate
         self.webViewController?.activityIndicator.startAnimating()
         
         if webViewController?.bodyHTML != nil { // , headerHTML != nil // Not necessary
-            webViewController?.html.string = markBodyHTML(bodyHTML: webViewController?.bodyHTML, headerHTML: webViewController?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)
+            webViewController?.html.string = markBodyHTML(bodyHTML: webViewController?.bodyHTML, headerHTML: webViewController?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
         }
         
         webViewController?.html.string = insertHead(stripHead(webViewController?.html.string),fontSize: webViewController?.html.fontSize ?? Constants.FONT_SIZE)

@@ -491,7 +491,13 @@ class Fetch<T>
     
     var name : String?
     
+    var didSet : ((T?)->())?
     var cache : T?
+    {
+        didSet {
+            didSet?(cache)
+        }
+    }
     
     func clear()
     {
@@ -568,17 +574,17 @@ class FetchCodable<T:Codable> : Fetch<T>
             
             do {
                 let data = try JSONEncoder().encode(dict)
-                print("able to encode T: \(fileSystemURL.lastPathComponent)")
+//                print("able to encode T: \(fileSystemURL.lastPathComponent)")
 
                 do {
                     try data.write(to: fileSystemURL)
-                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
+//                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
                 } catch let error {
-                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
+//                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
                     NSLog(error.localizedDescription)
                 }
             } catch let error {
-                print("unable to encode T: \(fileSystemURL.lastPathComponent)")
+//                print("unable to encode T: \(fileSystemURL.lastPathComponent)")
                 NSLog(error.localizedDescription)
             }
         }
@@ -594,18 +600,18 @@ class FetchCodable<T:Codable> : Fetch<T>
 
             do {
                 let data = try Data(contentsOf: fileSystemURL)
-                print("able to read T from storage: \(fileSystemURL.lastPathComponent)")
+//                print("able to read T from storage: \(fileSystemURL.lastPathComponent)")
 
                 do {
                     let dict = try JSONDecoder().decode([String:T].self, from: data)
-                    print("able to decode T from storage: \(fileSystemURL.lastPathComponent)")
+//                    print("able to decode T from storage: \(fileSystemURL.lastPathComponent)")
                     return dict["value"]
                 } catch let error {
-                    print("unable to decode T from storage: \(fileSystemURL.lastPathComponent)")
+//                    print("unable to decode T from storage: \(fileSystemURL.lastPathComponent)")
                     NSLog(error.localizedDescription)
                 }
             } catch let error {
-                print("unable to read T from storage: \(fileSystemURL.lastPathComponent)")
+//                print("unable to read T from storage: \(fileSystemURL.lastPathComponent)")
                 NSLog(error.localizedDescription)
             }
 
