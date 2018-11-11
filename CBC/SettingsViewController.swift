@@ -37,11 +37,13 @@ class SettingsViewController: UIViewController
         Globals.shared.cacheDownloads = sender.isOn
         
         if !sender.isOn {
-            cacheSizeLabel.text = "Updating..."
-
             URLCache.shared.removeAllCachedResponses()
             
             operationQueue.addOperation { [weak self] in
+                Thread.onMainThread {
+                    self?.cacheSizeLabel.text = "Updating..."
+                }
+                
                 // This really should be looking at what is in the directory as well.
                 // E.g. what if a sermon is no longer in the list but its slides or notes
                 // were downloaded previously?
@@ -51,9 +53,7 @@ class SettingsViewController: UIViewController
                     }
                 }
                 
-                Thread.onMainThread {
-                    self?.updateCacheSize()
-                }
+                self?.updateCacheSize()
             }
         }
     }
@@ -69,46 +69,43 @@ class SettingsViewController: UIViewController
     
     func updateCacheSize()
     {
-        // Does this REALLY need to be .user* ?
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in            
-            let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+        let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+        
+        var size:Float = Float(cacheSize ?? 0)
+        
+        var count = 0
+        
+        while size > 1024 {
+            size /= 1024
+            count += 1
+        }
+        
+        var sizeLabel:String
+        
+        switch count {
+        case 0:
+            sizeLabel = "bytes"
+            break
             
-            var size:Float = Float(cacheSize ?? 0)
+        case 1:
+            sizeLabel = "KB"
+            break
             
-            var count = 0
+        case 2:
+            sizeLabel = "MB"
+            break
             
-            while size > 1024 {
-                size /= 1024
-                count += 1
-            }
+        case 3:
+            sizeLabel = "GB"
+            break
             
-            var sizeLabel:String
-            
-            switch count {
-            case 0:
-                sizeLabel = "bytes"
-                break
-                
-            case 1:
-                sizeLabel = "KB"
-                break
-                
-            case 2:
-                sizeLabel = "MB"
-                break
-                
-            case 3:
-                sizeLabel = "GB"
-                break
-                
-            default:
-                sizeLabel = "ERROR"
-                break
-            }
-
-            Thread.onMainThread {
-                self?.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
-            }
+        default:
+            sizeLabel = "ERROR"
+            break
+        }
+        
+        Thread.onMainThread {
+            self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
         }
     }
     
@@ -187,13 +184,15 @@ class SettingsViewController: UIViewController
             cacheSwitch.isEnabled = false
         }
 
-        cacheSizeLabel.text = "Updating..."
-        audioSizeLabel.text = "Audio Storage: updating..."
-
         operationQueue.addOperation {
+            Thread.onMainThread {
+                self.cacheSizeLabel.text = "Updating..."
+            }
+            
             self.updateCacheSize()
         }
         
+        audioSizeLabel.text = "Audio Storage: updating..."
         self.updateAudioSize()
     }
 

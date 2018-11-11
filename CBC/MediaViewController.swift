@@ -293,11 +293,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             for mediaItem in mediaItems {
                 guard mediaItem.audioTranscript?.transcribing == false else {
-                    break
+                    continue
                 }
                 
                 guard mediaItem.audioTranscript?.completed == false else {
-                    break
+                    continue
                 }
                 
                 mediaItem.audioTranscript?.getTranscript(alert: true, atEnd: nil)
@@ -312,11 +312,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             for mediaItem in mediaItems {
                 guard mediaItem.videoTranscript?.transcribing == false else {
-                    break
+                    continue
                 }
                 
                 guard mediaItem.videoTranscript?.completed == false else {
-                    break
+                    continue
                 }
                 
                 mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
@@ -332,11 +332,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             for mediaItem in mediaItems {
                 guard mediaItem.audioTranscript?.transcribing == false else {
-                    break
+                    continue
                 }
                 
                 guard mediaItem.audioTranscript?.completed == true else {
-                    break
+                    continue
                 }
                 
                 mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
@@ -350,11 +350,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             for mediaItem in mediaItems {
                 guard mediaItem.videoTranscript?.transcribing == false else {
-                    break
+                    continue
                 }
                 
                 guard mediaItem.videoTranscript?.completed == true else {
-                    break
+                    continue
                 }
                 
                 mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
