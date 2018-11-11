@@ -37,10 +37,11 @@ class SettingsViewController: UIViewController
         Globals.shared.cacheDownloads = sender.isOn
         
         if !sender.isOn {
+            cacheSizeLabel.text = "Updating..."
+
             URLCache.shared.removeAllCachedResponses()
             
-            // Does this REALLY need to be .user* ?
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 // This really should be looking at what is in the directory as well.
                 // E.g. what if a sermon is no longer in the list but its slides or notes
                 // were downloaded previously?
@@ -70,9 +71,9 @@ class SettingsViewController: UIViewController
     {
         // Does this REALLY need to be .user* ?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in            
-            let sizeOfCache = Globals.shared.cacheSize(Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+            let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
             
-            var size:Float = Float(sizeOfCache)
+            var size:Float = Float(cacheSize ?? 0)
             
             var count = 0
             
@@ -115,9 +116,9 @@ class SettingsViewController: UIViewController
     {
         // Does this REALLY need to be .user* ?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let sizeOfAudio = Globals.shared.cacheSize(Purpose.audio)
+            let sizeOfAudio = Globals.shared.mediaRepository.cacheSize(Purpose.audio)
             
-            var size:Float = Float(sizeOfAudio)
+            var size:Float = Float(sizeOfAudio ?? 0)
             
             var count = 0
             
@@ -189,10 +190,25 @@ class SettingsViewController: UIViewController
         cacheSizeLabel.text = "Updating..."
         audioSizeLabel.text = "Audio Storage: updating..."
 
-        updateCacheSize()
-        updateAudioSize()
+        operationQueue.addOperation {
+            self.updateCacheSize()
+        }
+        
+        self.updateAudioSize()
     }
 
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "SETTINGS"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     override func didReceiveMemoryWarning()
     {
         super.didReceiveMemoryWarning()

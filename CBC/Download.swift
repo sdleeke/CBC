@@ -515,27 +515,6 @@ class Download : NSObject
         }
     }
     
-    var fileSize:Int
-    {
-        var size = 0
-        
-        guard let fileSystemURL = fileSystemURL else {
-            return size
-        }
-        
-        do {
-            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
-            
-            if let num = fileAttributes[FileAttributeKey.size] as? Int {
-                size = num
-            }
-        } catch let error as NSError {
-            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
-        }
-        
-        return size
-    }
-    
     func download()
     {
         guard state != .downloading else {
@@ -578,20 +557,54 @@ class Download : NSObject
         }
     }
     
+//    var fileSize:Int
+//    {
+//        var size = 0
+//
+//        guard let fileSystemURL = fileSystemURL else {
+//            return size
+//        }
+//
+//        guard fileSystemURL.downloaded else {
+//            return size
+//        }
+//
+//        do {
+//            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
+//
+//            if let num = fileAttributes[FileAttributeKey.size] as? Int {
+//                size = num
+//            }
+//        } catch let error as NSError {
+//            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
+//        }
+//
+//        return size
+//    }
+    
+    var fileSize : Int?
+    {
+        get {
+            return fileSystemURL?.fileSize
+        }
+    }
+    
     func delete()
     {
-        guard let fileSystemURL = fileSystemURL, state == .downloaded else {
+        guard state == .downloaded else {
             return
         }
         
-        // Check if file exists and if so, delete it.
-        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
-            do {
-                try FileManager.default.removeItem(at: fileSystemURL)
-            } catch let error as NSError {
-                print("failed to delete download: \(error.localizedDescription)")
-            }
-        }
+        fileSystemURL?.delete()
+        
+//        // Check if file exists and if so, delete it.
+//        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
+//            do {
+//                try FileManager.default.removeItem(at: fileSystemURL)
+//            } catch let error as NSError {
+//                print("failed to delete download: \(error.localizedDescription)")
+//            }
+//        }
         
         state = .none // MUST delete file first as state change updates UI.
         totalBytesWritten = 0

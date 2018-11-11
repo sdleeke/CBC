@@ -2828,6 +2828,7 @@ class TextViewController : UIViewController
         //////////////////////////////////////////////////////////////////////////////
         
         if gapThreshold == nil {
+            // Should tooClose be passed in as a parameters?  Yes.
             let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 320 // default value is arbitrary - at best based on trial and error
             
             var lowerRange : Range<String.Index>?

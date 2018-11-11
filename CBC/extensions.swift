@@ -675,6 +675,31 @@ extension URL
         return cachesURL()?.appendingPathComponent(self.lastPathComponent)
     }
 
+    var fileSize:Int
+    {
+        var size = 0
+        
+        guard let fileSystemURL = fileSystemURL else {
+            return size
+        }
+        
+        guard fileSystemURL.downloaded else {
+            return size
+        }
+        
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
+            
+            if let num = fileAttributes[FileAttributeKey.size] as? Int {
+                size = num
+            }
+        } catch let error as NSError {
+            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
+        }
+        
+        return size
+    }
+    
     var downloaded : Bool
     {
         get {

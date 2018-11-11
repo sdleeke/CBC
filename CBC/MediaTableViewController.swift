@@ -2636,7 +2636,7 @@ class MediaTableViewController : UIViewController
         
         Globals.shared.mediaPlayer.pause() // IfPlaying
 
-        Globals.shared.cancelAllDownloads()
+        Globals.shared.mediaRepository.cancelAllDownloads()
 
         display.clear()
         

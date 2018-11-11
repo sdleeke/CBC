@@ -10,6 +10,43 @@ import Foundation
 
 class MediaRepository
 {
+    var cacheSize : Int?
+    {
+        get {
+            return list?.reduce(0, { (result, mediaItem) -> Int in
+                return result + mediaItem.cacheSize
+            })
+        }
+    }
+    
+    func cacheSize(_ purpose:String) -> Int?
+    {
+        return list?.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.cacheSize(purpose)
+        })
+    }
+    
+    func cancelAllDownloads()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        for mediaItem in list {
+            for download in mediaItem.downloads.values {
+                if download.active {
+                    download.task?.cancel()
+                    download.task = nil
+                    
+                    download.totalBytesWritten = 0
+                    download.totalBytesExpectedToWrite = 0
+                    
+                    download.state = .none
+                }
+            }
+        }
+    }
+    
     func loadTokenCountMarkCountMismatches()
     {
         guard let list = list else {

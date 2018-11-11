@@ -124,6 +124,8 @@ class FetchCachedImage : FetchImage
         return ThreadSafeDictionary<UIImage>(name:"FetchImageCache")
     }()
 
+    // Need to override store and retrieve to avoid multiple saves in FetchImage
+    
     override func fetchIt() -> UIImage?
     {
         if let image = self.cachedImage {

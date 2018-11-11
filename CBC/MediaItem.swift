@@ -91,22 +91,65 @@ class MediaItem : NSObject
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
     
+    var cacheSize : Int
+    {
+        get {
+            var totalCacheSize = 0
+            
+            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
+            
+            totalCacheSize += cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
+            
+            totalCacheSize += posterImageURL?.fileSize ?? 0
+            totalCacheSize += seriesImageURL?.fileSize ?? 0
+
+            totalCacheSize += notesHTML?.fileSize ?? 0
+            totalCacheSize += notesTokens?.fileSize ?? 0
+            
+            if #available(iOS 11.0, *) {
+                totalCacheSize += notesPDFText?.fileSize ?? 0
+            } else {
+                // Fallback on earlier versions
+            }
+
+            totalCacheSize += notesParagraphWords?.fileSize ?? 0
+            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
+
+            return totalCacheSize
+        }
+    }
+
+    func cacheSize(_ purpose:String) -> Int
+    {
+        var totalFileSize = 0
+        
+        if let download = downloads[purpose], download.isDownloaded {
+            totalFileSize += download.fileSize ?? 0
+        }
+
+        return totalFileSize
+    }
+    
     func clearCache()
     {
         notesDownload?.delete()
         slidesDownload?.delete()
+        
         posterImageURL?.delete()
         seriesImageURL?.delete()
         
-        notesHTML?.fileSystemURL?.delete()
-        notesTokens?.fileSystemURL?.delete()
+        notesHTML?.delete()
+        notesTokens?.delete()
+        
         if #available(iOS 11.0, *) {
-            notesPDFText?.fileSystemURL?.delete()
+            notesPDFText?.delete()
         } else {
             // Fallback on earlier versions
         }
-        notesParagraphWords?.fileSystemURL?.delete()
-        notesTokensMarkMismatches?.fileSystemURL?.delete()
+        
+        notesParagraphWords?.delete()
+        notesParagraphLengths?.delete()
+        notesTokensMarkMismatches?.delete()
     }
     
     @objc func downloaded(_ notification : NSNotification)
@@ -978,6 +1021,10 @@ class MediaItem : NSObject
     }
     
     lazy var notesHTML:FetchCodable<String>? = {
+        guard hasNotesHTML else {
+            return nil
+        }
+        
         guard let mediaCode = self.mediaCode else {
             return nil
         }
@@ -1151,6 +1198,10 @@ class MediaItem : NSObject
     }
     
     lazy var notesParagraphLengths : FetchCodable<[Int]>? = {
+        guard hasNotesText else {
+            return nil
+        }
+        
         guard let mediaCode = mediaCode else {
             return nil
         }
@@ -1175,6 +1226,10 @@ class MediaItem : NSObject
     }()
     
     lazy var notesParagraphWords : FetchCodable<[String:Int]>? = {
+        guard hasNotesText else {
+            return nil
+        }
+        
         guard let mediaCode = mediaCode else {
             return nil
         }
@@ -1246,6 +1301,10 @@ class MediaItem : NSObject
     }
     
     lazy var notesHTMLTokens : FetchCodable<[String:Int]>? = {
+        guard hasNotesText else {
+            return nil
+        }
+        
         guard let mediaCode = self.mediaCode else {
             return nil
         }
@@ -2101,6 +2160,10 @@ class MediaItem : NSObject
     
     @available(iOS 11.0, *)
     lazy var notesPDFText:FetchCodable<String>? = {
+        guard hasNotes else {
+            return nil
+        }
+        
         guard let mediaCode = self.mediaCode else {
             return nil
         }
@@ -3812,7 +3875,9 @@ class MediaItem : NSObject
             actions.append(voiceBase)
         }
         
-        actions.append(clearCache)
+        if cacheSize > 0 {
+            actions.append(clearCache)
+        }
         
         return actions.count > 0 ? actions : nil
     }

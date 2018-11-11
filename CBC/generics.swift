@@ -551,7 +551,19 @@ class FetchCodable<T:Codable> : Fetch<T>
             return cachesURL()?.appendingPathComponent(name)
         }
     }
-
+    
+    var fileSize : Int?
+    {
+        get {
+            return fileSystemURL?.fileSize
+        }
+    }
+    
+    func delete()
+    {
+        fileSystemURL?.delete()
+    }
+    
     // name MUST be unique to ever INSTANCE, not just the class!
     override init(name: String?, fetch: (() -> (T?))? = nil)
     {

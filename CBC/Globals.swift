@@ -694,48 +694,48 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    func cancelAllDownloads()
-    {
-        guard let list = mediaRepository.list else {
-            return
-        }
+//    func cancelAllDownloads()
+//    {
+//        guard let list = mediaRepository.list else {
+//            return
+//        }
+//
+//        for mediaItem in list {
+//            for download in mediaItem.downloads.values {
+//                if download.active {
+//                    download.task?.cancel()
+//                    download.task = nil
+//
+//                    download.totalBytesWritten = 0
+//                    download.totalBytesExpectedToWrite = 0
+//
+//                    download.state = .none
+//                }
+//            }
+//        }
+//    }
 
-        for mediaItem in list {
-            for download in mediaItem.downloads.values {
-                if download.active {
-                    download.task?.cancel()
-                    download.task = nil
-                    
-                    download.totalBytesWritten = 0
-                    download.totalBytesExpectedToWrite = 0
-                    
-                    download.state = .none
-                }
-            }
-        }
-    }
-
-    func totalCacheSize() -> Int
-    {
-        return cacheSize(Purpose.audio) + cacheSize(Purpose.video) + cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
-    }
-    
-    func cacheSize(_ purpose:String) -> Int
-    {
-        guard let list = mediaRepository.list else {
-            return 0
-        }
-        
-        var totalFileSize = 0
-        
-        for mediaItem in list {
-            if let download = mediaItem.downloads[purpose], download.isDownloaded {
-                totalFileSize += download.fileSize
-            }
-        }
-
-        return totalFileSize
-    }
+//    func totalCacheSize() -> Int
+//    {
+//        return cacheSize(Purpose.audio) + cacheSize(Purpose.video) + cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
+//    }
+//    
+//    func cacheSize(_ purpose:String) -> Int
+//    {
+//        guard let list = mediaRepository.list else {
+//            return 0
+//        }
+//        
+//        var totalFileSize = 0
+//        
+//        for mediaItem in list {
+//            if let download = mediaItem.downloads[purpose], download.isDownloaded {
+//                totalFileSize += download.fileSize
+//            }
+//        }
+//
+//        return totalFileSize
+//    }
 
     func motionEnded(_ motion: UIEventSubtype, event: UIEvent?)
     {
