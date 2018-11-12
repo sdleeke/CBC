@@ -21,6 +21,8 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     {
+        debug("urlSession:didWriteData")
+        
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
             
@@ -106,7 +108,7 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     {
-        print("didFinishDownloadingTo")
+        debug("urlSession:didFinishDownloadingTo \(location.lastPathComponent)")
 
         guard let statusCode = (task?.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(task?.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite as Any)
@@ -198,6 +200,8 @@ extension Download : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
+        debug("urlSession:didCompleteWithError")
+        
         guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
             error == nil else {
                 print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite as Any)

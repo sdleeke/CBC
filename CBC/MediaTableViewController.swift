@@ -1625,7 +1625,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     {
-        print("URLSession:downloadTask:didFinishDownloadingToURL")
+        print("URLSession:downloadTask:didFinishDownloadingToURL \(location.lastPathComponent)")
         
         print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
         print("countOfBytesReceived: \(downloadTask.countOfBytesReceived)")

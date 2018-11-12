@@ -505,18 +505,18 @@ class Fetch<T>
             cache = nil
         }
     }
-
+    
     lazy private var queue : DispatchQueue = {
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
-
+    
     func load()
     {
         queue.sync {
             guard cache == nil else {
                 return
             }
-
+            
             cache = retrieve?()
             
             guard cache == nil else {
@@ -533,11 +533,16 @@ class Fetch<T>
     {
         get {
             load()
-
+            
             return cache
         }
     }
 }
+
+// It would nice if properties that were FetchCodable were kept track of so the class would know
+// how to get the size of all the cache files or to delete them, or to clear all the cache properties to reduce memory usage
+// without having to keep track of each individual proeprty, e.g. a FetchCodable index whenever a class (or struct)
+// uses one(?) or more FetchCodable properties.
 
 class FetchCodable<T:Codable> : Fetch<T>
 {

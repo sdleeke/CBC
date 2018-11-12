@@ -39,6 +39,8 @@ class SettingsViewController: UIViewController
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
             
+            operationQueue.cancelAllOperations()
+            
             operationQueue.addOperation { [weak self] in
                 Thread.onMainThread {
                     self?.cacheSizeLabel.text = "Updating..."
@@ -62,9 +64,40 @@ class SettingsViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+                
+            default:
+                break
+            }
+        }
+        
+        if #available(iOS 9.0, *) {
+            cacheSwitch.isEnabled = true
+        } else {
+            cacheSwitch.isEnabled = false
+        }
+        
         searchTranscriptsSwitch.isOn = Globals.shared.search.transcripts
         autoAdvanceSwitch.isOn = Globals.shared.autoAdvance
         cacheSwitch.isOn = Globals.shared.cacheDownloads
+        
+        operationQueue.addOperation {
+            Thread.onMainThread {
+                self.cacheSizeLabel.text = "Updating..."
+            }
+            
+            self.updateCacheSize()
+        }
+        
+        audioSizeLabel.text = "Audio Storage: updating..."
+        self.updateAudioSize()
     }
     
     func updateCacheSize()
@@ -163,37 +196,8 @@ class SettingsViewController: UIViewController
     {
         super.viewDidLoad()
 
-        if let presentationStyle = navigationController?.modalPresentationStyle {
-            switch presentationStyle {
-            case .overCurrentContext:
-                fallthrough
-            case .fullScreen:
-                fallthrough
-            case .overFullScreen:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
-                
-            default:
-                break
-            }
-        }
-
         // Do any additional setup after loading the view.
-        if #available(iOS 9.0, *) {
-            cacheSwitch.isEnabled = true
-        } else {
-            cacheSwitch.isEnabled = false
-        }
 
-        operationQueue.addOperation {
-            Thread.onMainThread {
-                self.cacheSizeLabel.text = "Updating..."
-            }
-            
-            self.updateCacheSize()
-        }
-        
-        audioSizeLabel.text = "Audio Storage: updating..."
-        self.updateAudioSize()
     }
 
     lazy var operationQueue : OperationQueue! = {

@@ -112,6 +112,7 @@ class MediaItem : NSObject
                 // Fallback on earlier versions
             }
 
+            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
             totalCacheSize += notesParagraphWords?.fileSize ?? 0
             totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
 
@@ -270,7 +271,6 @@ class MediaItem : NSObject
     @objc func freeMemory()
     {
         // What are the side effects of this?
-
         seriesImage.clearCache()
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
@@ -304,6 +304,7 @@ class MediaItem : NSObject
         guard self.hasAudio else {
             return nil
         }
+
         let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self.audioURL,fileSystemURL:self.audioFileSystemURL)
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.audio] = download
@@ -316,6 +317,7 @@ class MediaItem : NSObject
         guard self.hasVideo else {
             return nil
         }
+
         let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self.videoURL,fileSystemURL:self.videoFileSystemURL)
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.video] = download
@@ -328,6 +330,7 @@ class MediaItem : NSObject
         guard self.hasSlides else {
             return nil
         }
+        
         let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self.slidesURL,fileSystemURL:self.slidesFileSystemURL)
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.slides] = download
@@ -340,6 +343,7 @@ class MediaItem : NSObject
         guard self.hasNotes else {
             return nil
         }
+        
         let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self.notesURL,fileSystemURL:self.notesFileSystemURL)
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.notes] = download
@@ -352,6 +356,7 @@ class MediaItem : NSObject
         guard self.hasOutline else {
             return nil
         }
+        
         let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self.outlineURL,fileSystemURL:self.outlineFileSystemURL)
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.outline] = download
@@ -1997,7 +2002,7 @@ class MediaItem : NSObject
         }
     }
 
-    lazy var posterImage = {
+    lazy var posterImage:FetchImage = {
         return FetchImage(url: self.posterImageURL)
     }()
 
@@ -2022,7 +2027,7 @@ class MediaItem : NSObject
         return urlString.url
     }
 
-    lazy var seriesImage = {
+    lazy var seriesImage:FetchCachedImage = {
        return FetchCachedImage(url: seriesImageURL)
     }()
 
