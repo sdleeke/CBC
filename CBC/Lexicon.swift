@@ -229,7 +229,7 @@ class Lexicon : NSObject
                 return
             }
 
-//            var firstUpdate = true
+            var firstUpdate = true
             
             guard var list = self?.eligible else {
                 print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")
@@ -240,7 +240,7 @@ class Lexicon : NSObject
                 self?.words = Words(name: UUID().uuidString + Constants.Strings.Words)
             }
             
-//            var date = Date()
+            var date = Date()
             
             Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
@@ -312,15 +312,15 @@ class Lexicon : NSObject
                 // even as the lexicon is continuing to change, which means if the LIVC queue
                 // has a backlog the pending updates will all be the same, which is waste of update time.
 
-                self?.update()
+//                self?.update()
 
-//                if firstUpdate || (date.timeIntervalSinceNow <= -10) {
-//                    self?.update()
-//
-//                    date = Date()
-//
-//                    firstUpdate = false
-//                }
+                if firstUpdate || (date.timeIntervalSinceNow <= -5) {
+                    self?.update()
+
+                    date = Date()
+
+                    firstUpdate = false
+                }
                 
                 if let test = test, test() {
                     return

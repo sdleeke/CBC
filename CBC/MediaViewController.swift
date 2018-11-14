@@ -43,7 +43,7 @@ extension MediaViewController : UIActivityItemSource
 
             }
 
-            activityViewController = UIActivityViewController(activityItems: [self.document?.data,self.selectedMediaItem?.text,self], applicationActivities: nil)
+            activityViewController = UIActivityViewController(activityItems: [self.document?.fetchData.result,self.selectedMediaItem?.text,self], applicationActivities: nil)
 
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
@@ -1217,29 +1217,46 @@ class MediaViewController: UIViewController
         }
         
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
-        
-        guard let fileSystemURL = download.fileSystemURL else {
-            return
-        }
-        
-        Thread.onMainThread {
-            self.activityIndicator.isHidden = false
-            self.activityIndicator.startAnimating()
-            
-            self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
-        }
-        
+
+        loadWeb(download:download)
+    }
+    
+    func loadWeb(download:Download?)
+    {
         operationQueue.addOperation { [weak self] in
             Thread.onMainThread {
+                self?.activityIndicator.isHidden = false
+                self?.activityIndicator.startAnimating()
+                
+                if let activityIndicator = self?.activityIndicator {
+                    self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+                }
+                
                 self?.wkWebView?.isHidden = true
             }
             
-            if let data = self?.document?.data {
-                if download.mediaItem == self?.selectedMediaItem, download.purpose == self?.selectedMediaItem?.showing { //  self?.stvControl.selectedSegmentIndex.description
-                    Thread.onMainThread {
-                        self?.wkWebView?.isHidden = true
-                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: fileSystemURL)
+            guard let data = self?.document?.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+                Thread.onMainThread {
+                    self?.activityIndicator.stopAnimating()
+                    self?.activityIndicator.isHidden = true
+                    
+                    if let wkWebView = self?.wkWebView {
+                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
                     }
+                    
+                    self?.wkWebView?.isHidden = false
+                }
+                return
+            }
+            
+            self?.webData = data
+            
+            if  let fileSystemURL = download?.fileSystemURL,
+                download?.mediaItem == self?.selectedMediaItem,
+                download?.purpose == self?.selectedMediaItem?.showing { //  self?.stvControl.selectedSegmentIndex.description
+                Thread.onMainThread {
+                    self?.wkWebView?.isHidden = true
+                    self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
                 }
             }
         }
@@ -1281,6 +1298,8 @@ class MediaViewController: UIViewController
                     }
                 }
             }
+            
+            webData = nil
             
             operationQueue.cancelAllOperations()
 
@@ -1745,12 +1764,12 @@ class MediaViewController: UIViewController
             break
         }
         
-        minConstraintConstant = tableView.rowHeight * minRows + controlView.frame.height
+        minConstraintConstant = (tableView.rowHeight * minRows) + controlView.frame.height
 
         let navHeight = navigationController?.navigationBar.frame.height ?? 0
         
         // This assumes the view goes under top bars, incl. opaque.
-        maxConstraintConstant = height - navHeight - UIApplication.shared.statusBarFrame.height
+        maxConstraintConstant = height // - navHeight - UIApplication.shared.statusBarFrame.height
 
         return (minConstraintConstant,maxConstraintConstant)
     }
@@ -1761,7 +1780,15 @@ class MediaViewController: UIViewController
             return false
         }
         
-        return mediaItemNotesAndSlidesConstraint.constant > (self.view.bounds.height - slider.bounds.height - navigationController.navigationBar.bounds.height - logo.bounds.height)
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        return mediaItemNotesAndSlidesConstraint.constant > (bounds.height - slider.bounds.height - navigationController.navigationBar.bounds.height - logo.bounds.height)
     }
     
     fileprivate func shouldShowLogo() -> Bool
@@ -1795,7 +1822,15 @@ class MediaViewController: UIViewController
     {
         let newConstraintConstant = mediaItemNotesAndSlidesConstraint.constant + change
         
-        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
+        var bounds = self.view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, self.view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(bounds.height)
 
         if (newConstraintConstant >= minConstraintConstant) && (newConstraintConstant <= maxConstraintConstant) {
             self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
@@ -2940,6 +2975,8 @@ class MediaViewController: UIViewController
         }
     }
     
+    var webData : Data?
+    
     fileprivate func loadDocument(_ document:Document?)
     {
         guard Thread.isMainThread else {
@@ -2980,75 +3017,124 @@ class MediaViewController: UIViewController
                         }
                     }
                 } else {
-                    if let fileSystemURL = download.fileSystemURL {
-                        Thread.onMainThread {
-                            self.activityIndicator.isHidden = false
-                            self.activityIndicator.startAnimating()
-                            
-                            self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
-                        }
-                        
-                        operationQueue.addOperation { [weak self] in
-                            Thread.onMainThread {
-                                self?.wkWebView?.isHidden = true
-                            }
-                            
-                            if let data = document.data {
-                                if document.mediaItem == self?.selectedMediaItem, document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-                                    Thread.onMainThread {
-                                        self?.wkWebView?.isHidden = true
-                                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: fileSystemURL)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    self.loadWeb(download:document.download)
+//                    operationQueue.addOperation { [weak self] in
+//                        Thread.onMainThread {
+//                            self?.activityIndicator.isHidden = false
+//                            self?.activityIndicator.startAnimating()
+//
+//                            if let activityIndicator = self?.activityIndicator {
+//                                self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+//                            }
+//
+//                            self?.wkWebView?.isHidden = true
+//                        }
+//
+//                        guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+//                            Thread.onMainThread {
+//                                self?.activityIndicator.stopAnimating()
+//                                self?.activityIndicator.isHidden = true
+//
+//                                if let wkWebView = self?.wkWebView {
+//                                    self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+//                                }
+//
+//                                self?.wkWebView?.isHidden = false
+//                            }
+//                            return
+//                        }
+//
+//                        self?.webData = data
+//
+//                        if  let fileSystemURL = download.fileSystemURL,
+//                            document.mediaItem == self?.selectedMediaItem,
+//                            document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+//
+//                            Thread.onMainThread {
+//                                self?.wkWebView?.isHidden = true
+////                                    self?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+//                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
+//                            }
+//                        }
+//                    }
                 }
             } else {
-                if document.showing(self.selectedMediaItem) {
-                    self.activityIndicator.isHidden = false
-                    self.activityIndicator.startAnimating()
-                }
-                
-                operationQueue.addOperation { [weak self] in
-                    Thread.onMainThread {
-                        self?.wkWebView?.isHidden = true
-                    }
-                    
-                    if let data = document.data, let url = document.download?.downloadURL  {
-                        if document.mediaItem == self?.selectedMediaItem, document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-                            Thread.onMainThread {
-                                self?.wkWebView?.isHidden = true
-                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-                            }
-                        }
-                    }
-                }
+                self.loadWeb(download:document.download)
+//                operationQueue.addOperation { [weak self] in
+//                    Thread.onMainThread {
+//                        if document.showing(self?.selectedMediaItem) {
+//                            self?.activityIndicator.isHidden = false
+//                            self?.activityIndicator.startAnimating()
+//                        }
+//
+//                        self?.wkWebView?.isHidden = true
+//                    }
+//
+//                    guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+//                        Thread.onMainThread {
+//                            self?.activityIndicator.stopAnimating()
+//                            self?.activityIndicator.isHidden = true
+//
+//                            if let wkWebView = self?.wkWebView {
+//                                self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+//                            }
+//
+//                            self?.wkWebView?.isHidden = false
+//                        }
+//                        return
+//                    }
+//
+//                    self?.webData = data
+//
+//                    if  let url = document.download?.downloadURL,
+//                        document.mediaItem == self?.selectedMediaItem,
+//                        document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+//                        Thread.onMainThread {
+//                            self?.wkWebView?.isHidden = true
+//                            self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+//                        }
+//                    }
+//                }
             }
         } else {
-            if document.showing(self.selectedMediaItem) {
-                self.activityIndicator.isHidden = false
-                self.activityIndicator.startAnimating()
-                
-                self.progressIndicator.isHidden = false
-            }
-            
-            if let url = document.download?.downloadURL {
-                operationQueue.addOperation { [weak self] in
-                    Thread.onMainThread {
-                        self?.wkWebView?.isHidden = true
-                    }
-                    
-                    if let data = try? Data(contentsOf: url) {
-                        if document.mediaItem == self?.selectedMediaItem, document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-                            Thread.onMainThread {
-                                self?.wkWebView?.isHidden = true
-                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "", baseURL: url)
-                            }
-                        }
-                    }
-                }
-            }
+            self.loadWeb(download:document.download)
+//            operationQueue.addOperation { [weak self] in
+//                Thread.onMainThread {
+//                    if document.showing(self?.selectedMediaItem) {
+//                        self?.activityIndicator.isHidden = false
+//                        self?.activityIndicator.startAnimating()
+//
+//                        self?.progressIndicator.isHidden = false
+//                    }
+//
+//                    self?.wkWebView?.isHidden = true
+//                }
+//
+//                guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+//                    Thread.onMainThread {
+//                        self?.activityIndicator.stopAnimating()
+//                        self?.activityIndicator.isHidden = true
+//
+//                        if let wkWebView = self?.wkWebView {
+//                            self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+//                        }
+//
+//                        self?.wkWebView?.isHidden = false
+//                    }
+//                    return
+//                }
+//
+//                self?.webData = data
+//
+//                if  let url = document.download?.downloadURL,
+//                    document.mediaItem == self?.selectedMediaItem,
+//                    document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+//                    Thread.onMainThread {
+//                        self?.wkWebView?.isHidden = true
+//                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+//                    }
+//                }
+//            }
         }
     }
     
@@ -3470,48 +3556,54 @@ class MediaViewController: UIViewController
             return
         }
     
-        if let wkWebView = wkWebView {
-            var contentOffsetX:Float = 0.0
-            var contentOffsetY:Float = 0.0
-            
-            if let purpose = document.purpose, let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
-                if let num = Float(x) {
-                    contentOffsetX = num
-                }
+        guard let wkWebView = wkWebView else {
+            return
+        }
+        
+        var contentOffsetX:Float = 0.0
+        var contentOffsetY:Float = 0.0
+        
+        if let purpose = document.purpose, let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
+            if let num = Float(x) {
+                contentOffsetX = num
             }
-            
-            if let purpose = document.purpose, let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
-                if let num = Float(y) {
-                    contentOffsetY = num
-                }
+        }
+        
+        if let purpose = document.purpose, let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
+            if let num = Float(y) {
+                contentOffsetY = num
             }
-            
-            let contentOffset = CGPoint(
-                x: CGFloat(contentOffsetX),
-                y: CGFloat(contentOffsetY))
-            
-            Thread.onMainThread {
-                wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
-            }
+        }
+        
+        let contentOffset = CGPoint(
+            x: CGFloat(contentOffsetX),
+            y: CGFloat(contentOffsetY))
+        
+        Thread.onMainThread {
+            wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
         }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         super.viewWillTransition(to: size, with: coordinator)
-        
+  
+//        self.wkWebView?.isHidden = true
+
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if self.videoLocation == .withTableView {
-                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
-            } else {
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-            }
-            
-            self.setupWKContentOffsets()
+//            self.setupWKContentOffsets()
 
-            self.updateUI()
+//            if self.videoLocation == .withTableView {
+//                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+//            } else {
+//                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+//            }
+//
+//            self.updateUI()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-
+//            self.setupWKContentOffsets()
+//            self.wkWebView?.isHidden = false
+            self.updateUI()
         }
     }
     
@@ -3582,10 +3674,19 @@ class MediaViewController: UIViewController
         
         var newConstraintConstant:CGFloat
         
-        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
+        var bounds = view.bounds
+        var height = bounds.height
         
-        // This assumes the view goes under top bars, incl. opaque.
-        let height = self.view.bounds.height - navigationController!.navigationBar.frame.height - UIApplication.shared.statusBarFrame.height
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            height = bounds.height
+        } else {
+            // Fallback on earlier versions
+            // This assumes the view goes under top bars, incl. opaque.
+            height -= navigationController!.navigationBar.frame.height + UIApplication.shared.statusBarFrame.height
+        }
+        
+        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(bounds.height)
         
         newConstraintConstant = height / 2 + controlView.bounds.height / 2
         
@@ -3630,12 +3731,24 @@ class MediaViewController: UIViewController
             return
         }
         
+        var bounds = view.bounds
+//        var height = bounds.height
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+//            height = bounds.height
+        } else {
+            // Fallback on earlier versions
+            // This assumes the view goes under top bars, incl. opaque.
+//            height -= navigationController!.navigationBar.frame.height + UIApplication.shared.statusBarFrame.height
+        }
+        
         var newConstraintConstant:CGFloat = 0
         
-        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
+        let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(bounds.height)
         
         if let ratio = ratioForSplitView(verticalSplit) {
-            newConstraintConstant = self.view.bounds.height * ratio
+            newConstraintConstant = bounds.height * ratio
         } else {
             if let count = mediaItems?.count {
                 let numberOfAdditionalRows = CGFloat(count)
@@ -3722,6 +3835,10 @@ class MediaViewController: UIViewController
     {
         guard self.isViewLoaded else {
             return
+        }
+        
+        if navigationController?.visibleViewController == self {
+            navigationController?.isToolbarHidden = true
         }
         
         if (selectedMediaItem != nil) && (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
@@ -4049,8 +4166,6 @@ class MediaViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
-        navigationController?.isToolbarHidden = true
-        
         orientation = UIDevice.current.orientation
         
         addNotifications()
@@ -4139,7 +4254,15 @@ class MediaViewController: UIViewController
             return
         }
         
-        let ratio = self.mediaItemNotesAndSlidesConstraint.constant / self.view.bounds.height
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        let ratio = self.mediaItemNotesAndSlidesConstraint.constant / bounds.height
         
         selectedMediaItem?.verticalSplit = "\(ratio)"
     }
@@ -4804,7 +4927,7 @@ class MediaViewController: UIViewController
                 
                 if #available(iOS 11.0, *) {
                     if zoomScale == nil {
-                        if let data = document?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                        if let data = document?.fetchData.result, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
                             // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
                             // I have no idea why these magic numbers are required.
                             // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width

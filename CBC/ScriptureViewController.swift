@@ -815,6 +815,10 @@ class ScriptureViewController : UIViewController
     
     @objc func setPreferredContentSize()
     {
+        guard navigationController?.modalPresentationStyle == .popover else {
+            return
+        }
+        
         if let widthView = presentingViewController?.view ?? view, let wkWebView = webViewController?.wkWebView {
             preferredContentSize = CGSize(  width:  widthView.frame.width,
                                             height: wkWebView.scrollView.contentSize.height + scripturePicker.frame.height + 60)
@@ -1235,8 +1239,12 @@ class ScriptureViewController : UIViewController
         
         navigationController?.isToolbarHidden = true
 
-        preferredContentSize = CGSize(width:  view.frame.width,
-                                      height: scripturePicker.frame.height + 60)
+        if navigationController?.modalPresentationStyle == .popover {
+            preferredContentSize = CGSize(width:  view.frame.width,
+                                          height: scripturePicker.frame.height + 60)
+        } else {
+            
+        }
         
         setupBarButtons()
         

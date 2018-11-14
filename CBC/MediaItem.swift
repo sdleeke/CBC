@@ -172,7 +172,7 @@ class MediaItem : NSObject
         }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            _ = document.data
+            _ = document.fetchData.result
         }
 
         Thread.onMainThread {
@@ -223,7 +223,7 @@ class MediaItem : NSObject
         }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            _ = document.data
+            _ = document.fetchData.result
         }
     }
 

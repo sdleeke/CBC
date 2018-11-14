@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
-    <device id="ipad9_7" orientation="landscape">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
+    <device id="retina4_0" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="Stack View standard spacing" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -33,12 +34,8 @@
         <scene sceneID="cS0-Qf-R7k">
             <objects>
                 <viewController storyboardIdentifier="Media Table View" automaticallyAdjustsScrollViewInsets="NO" hidesBottomBarWhenPushed="YES" id="aFI-YW-IUs" customClass="MediaTableViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="TA6-b3-HPP"/>
-                        <viewControllerLayoutGuide type="bottom" id="KAY-ks-SIC"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="NpF-M6-DhB">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="698"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VOM-jg-qMI" userLabel="Category Button">
@@ -62,10 +59,10 @@
                                 </connections>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
-                                <rect key="frame" x="0.0" y="95" width="320" height="603"/>
+                                <rect key="frame" x="0.0" y="95" width="320" height="409"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="22" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
@@ -73,7 +70,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
-                                                    <rect key="frame" x="20" y="4" width="0.0" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="296" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="YuD-lX-SbJ"/>
                                                     </constraints>
@@ -87,19 +84,19 @@
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zia-hB-2Dv" userLabel="DetailText">
-                                                    <rect key="frame" x="16" y="65.5" width="10" height="30"/>
+                                                    <rect key="frame" x="16" y="65.5" width="300" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
-                                                    <rect key="frame" x="20" y="67.5" width="6" height="26"/>
+                                                    <rect key="frame" x="20" y="67.5" width="296" height="26"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
-                                                    <rect key="frame" x="28" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="318" y="97.5" width="0.0" height="0.0"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="Y74-HO-YFP"/>
@@ -114,7 +111,7 @@
                                                     </variation>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s">
-                                                    <rect key="frame" x="20" y="97.5" width="10" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="300" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -158,11 +155,11 @@
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
-                                <rect key="frame" x="141.5" y="330.5" width="37" height="37"/>
+                                <rect key="frame" x="141.5" y="233.5" width="37" height="37"/>
                                 <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
                             <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JeO-c3-71m">
-                                <rect key="frame" x="40" y="348" width="240" height="2"/>
+                                <rect key="frame" x="40" y="251" width="240" height="2"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="Hlp-uI-WvN"/>
                                 </constraints>
@@ -173,7 +170,7 @@
                                 </variation>
                             </progressView>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="MDC-ic-UtL">
-                                <rect key="frame" x="20.5" y="393" width="279" height="72"/>
+                                <rect key="frame" x="20.5" y="296" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -186,31 +183,32 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="VIx-eq-98g" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="1zm-Sq-101"/>
+                            <constraint firstItem="VIx-eq-98g" firstAttribute="leading" secondItem="ZcZ-0N-siW" secondAttribute="leading" id="1zm-Sq-101"/>
                             <constraint firstItem="Hkg-p6-JKj" firstAttribute="top" secondItem="UID-2k-GxM" secondAttribute="bottom" constant="6" id="8Jw-4N-0GH"/>
                             <constraint firstItem="UID-2k-GxM" firstAttribute="top" secondItem="VOM-jg-qMI" secondAttribute="bottom" id="99W-0A-Nm4"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerY" id="B0L-fN-aZT"/>
-                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="CFP-TF-RXD"/>
-                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="Ff0-rb-dvR"/>
-                            <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="Gmd-mz-JWI"/>
+                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="centerX" secondItem="ZcZ-0N-siW" secondAttribute="centerX" id="CFP-TF-RXD"/>
+                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="leading" secondItem="ZcZ-0N-siW" secondAttribute="leading" id="Ff0-rb-dvR"/>
+                            <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="ZcZ-0N-siW" secondAttribute="top" id="Gmd-mz-JWI"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerX" secondItem="UJe-f8-3w6" secondAttribute="centerX" id="KbV-gK-5LN"/>
-                            <constraint firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
-                            <constraint firstAttribute="trailing" secondItem="UID-2k-GxM" secondAttribute="trailing" constant="6" id="NcP-hd-U7i"/>
-                            <constraint firstItem="UID-2k-GxM" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" constant="6" id="PTe-nu-DSe"/>
-                            <constraint firstItem="KAY-ks-SIC" firstAttribute="top" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
+                            <constraint firstItem="ZcZ-0N-siW" firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
+                            <constraint firstItem="ZcZ-0N-siW" firstAttribute="trailing" secondItem="UID-2k-GxM" secondAttribute="trailing" constant="6" id="NcP-hd-U7i"/>
+                            <constraint firstItem="UID-2k-GxM" firstAttribute="leading" secondItem="ZcZ-0N-siW" secondAttribute="leading" constant="6" id="PTe-nu-DSe"/>
+                            <constraint firstItem="ZcZ-0N-siW" firstAttribute="bottom" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
                             <constraint firstItem="MDC-ic-UtL" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerY" constant="80" id="aFZ-pM-iBx"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerY" secondItem="UJe-f8-3w6" secondAttribute="centerY" id="aa8-gz-0cf"/>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="Hkg-p6-JKj" secondAttribute="bottom" constant="-1" id="bJR-j0-5RM"/>
-                            <constraint firstItem="VOM-jg-qMI" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="iWt-ph-VH8"/>
-                            <constraint firstItem="MDC-ic-UtL" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="l1I-Cd-fDF"/>
-                            <constraint firstItem="UJe-f8-3w6" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="mbj-e0-qKg"/>
+                            <constraint firstItem="VOM-jg-qMI" firstAttribute="top" secondItem="ZcZ-0N-siW" secondAttribute="top" id="iWt-ph-VH8"/>
+                            <constraint firstItem="MDC-ic-UtL" firstAttribute="centerX" secondItem="ZcZ-0N-siW" secondAttribute="centerX" id="l1I-Cd-fDF"/>
+                            <constraint firstItem="UJe-f8-3w6" firstAttribute="centerX" secondItem="ZcZ-0N-siW" secondAttribute="centerX" id="mbj-e0-qKg"/>
                             <constraint firstItem="MDC-ic-UtL" firstAttribute="width" secondItem="MDC-ic-UtL" secondAttribute="height" multiplier="31:8" id="nOR-0n-pKz"/>
-                            <constraint firstAttribute="trailing" secondItem="Hkg-p6-JKj" secondAttribute="trailing" id="oWE-FM-apC"/>
+                            <constraint firstItem="ZcZ-0N-siW" firstAttribute="trailing" secondItem="Hkg-p6-JKj" secondAttribute="trailing" id="oWE-FM-apC"/>
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerYWithinMargins" id="p5n-Wy-tV7"/>
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerXWithinMargins" id="pEK-5w-slC"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="width" secondItem="NpF-M6-DhB" secondAttribute="width" multiplier="0.75" id="q24-xA-Fsh"/>
                             <constraint firstItem="UID-2k-GxM" firstAttribute="centerX" secondItem="VOM-jg-qMI" secondAttribute="centerX" id="twV-tu-0e5"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="ZcZ-0N-siW"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="Gmd-mz-JWI"/>
@@ -248,20 +246,16 @@
         <!--Series-->
         <scene sceneID="oXZ-O0-0eL">
             <objects>
-                <viewController storyboardIdentifier="Show MediaItem" title="Series" extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="H2E-ZS-FbW" customClass="MediaViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="q7U-Fv-YgR"/>
-                        <viewControllerLayoutGuide type="bottom" id="hyM-uV-ueX"/>
-                    </layoutGuides>
+                <viewController storyboardIdentifier="Show MediaItem" title="Series" automaticallyAdjustsScrollViewInsets="NO" id="H2E-ZS-FbW" customClass="MediaViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="ev9-lG-hyo">
-                        <rect key="frame" x="0.0" y="0.0" width="703.5" height="768"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
-                                <rect key="frame" x="0.0" y="70" width="703.5" height="498"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="304"/>
                                 <subviews>
                                     <imageView hidden="YES" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="212.5" y="213" width="279" height="72"/>
+                                        <rect key="frame" x="20.5" y="116" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -271,11 +265,11 @@
                                         </constraints>
                                     </imageView>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="NEp-ku-QG6">
-                                        <rect key="frame" x="333.5" y="230.5" width="37" height="37"/>
+                                        <rect key="frame" x="141.5" y="133.5" width="37" height="37"/>
                                         <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="CSL-J3-OFX">
-                                        <rect key="frame" x="277" y="248" width="150" height="2"/>
+                                        <rect key="frame" x="85" y="151" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="eJT-tl-zGY"/>
                                         </constraints>
@@ -302,7 +296,7 @@
                                 </variation>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="i5a-B7-7oc" userLabel="ViewSplit">
-                                <rect key="frame" x="0.0" y="568" width="703.5" height="44"/>
+                                <rect key="frame" x="0.0" y="304" width="320" height="44"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <gestureRecognizers/>
                                 <connections>
@@ -310,7 +304,7 @@
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bq5-HS-Wzs" userLabel="Control View" customClass="ControlView" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="568" width="703.5" height="44"/>
+                                <rect key="frame" x="0.0" y="304" width="320" height="44"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oDn-Ci-DOw">
                                         <rect key="frame" x="4" y="4" width="50" height="37"/>
@@ -327,7 +321,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IOJ-ni-wmp" userLabel="Play Pause">
-                                        <rect key="frame" x="62" y="0.0" width="30" height="44"/>
+                                        <rect key="frame" x="62" y="-3" width="30" height="50"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="30" id="fRb-bR-VJr"/>
                                         </constraints>
@@ -354,7 +348,7 @@
                                         </connections>
                                     </label>
                                     <slider opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="749" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pkj-Y2-Qqf" customClass="OBSlider" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="137" y="7" width="442.5" height="31"/>
+                                        <rect key="frame" x="137" y="7" width="59" height="31"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="40" id="3Ko-1C-1yT"/>
@@ -367,11 +361,11 @@
                                         </connections>
                                     </slider>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="B3S-Ru-eDq">
-                                        <rect key="frame" x="348.5" y="12" width="20" height="20"/>
+                                        <rect key="frame" x="156.5" y="12" width="20" height="20"/>
                                         <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" contentMode="left" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
-                                        <rect key="frame" x="581.5" y="0.0" width="39" height="44"/>
+                                        <rect key="frame" x="198" y="0.0" width="39" height="44"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" staticText="YES" notEnabled="YES"/>
@@ -388,7 +382,7 @@
                                         </connections>
                                     </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="3yY-29-aOM">
-                                        <rect key="frame" x="624.5" y="4" width="75" height="37"/>
+                                        <rect key="frame" x="241" y="4" width="75" height="37"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="36" id="7X1-tM-B2S"/>
                                             <constraint firstAttribute="width" constant="75" id="fQF-aT-Yg1"/>
@@ -440,7 +434,7 @@
                                 </variation>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jXS-hY-gto">
-                                <rect key="frame" x="0.0" y="612" width="703.5" height="156"/>
+                                <rect key="frame" x="0.0" y="348" width="320" height="156"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="94Q-2f-NGa" userLabel="V Slide View">
@@ -486,21 +480,21 @@
                                 </connections>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="91J-fh-SJo">
-                                <rect key="frame" x="0.0" y="612" width="703.5" height="156"/>
+                                <rect key="frame" x="0.0" y="348" width="320" height="156"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="284" id="uAg-i8-kWW"/>
                                 </constraints>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="703.5" height="100"/>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="1" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="pos-sk-GNz" id="fzr-9D-Qsi">
-                                            <rect key="frame" x="0.0" y="0.0" width="703.5" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spt-3A-E9i">
-                                                    <rect key="frame" x="20" y="4" width="359" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="296" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="n46-8i-ALt"/>
                                                     </constraints>
@@ -514,19 +508,19 @@
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i7O-sS-l83" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="359" height="30"/>
+                                                    <rect key="frame" x="20" y="65.5" width="296" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
-                                                    <rect key="frame" x="20" y="67.5" width="359" height="26"/>
+                                                    <rect key="frame" x="20" y="67.5" width="296" height="26"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="381" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="318" y="97.5" width="0.0" height="0.0"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="dUn-mj-LYh"/>
                                                     </constraints>
@@ -540,7 +534,7 @@
                                                     </variation>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nxS-ta-D6R">
-                                                    <rect key="frame" x="20" y="97.5" width="363" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="300" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -595,41 +589,42 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="Bq5-HS-Wzs" firstAttribute="top" secondItem="q7U-Fv-YgR" secondAttribute="bottom" id="0Jv-l5-4Tu"/>
-                            <constraint firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="5BB-Ay-qNn"/>
-                            <constraint firstAttribute="trailing" secondItem="Ut8-lg-8ab" secondAttribute="trailing" id="9RS-p5-gJG"/>
+                            <constraint firstItem="Bq5-HS-Wzs" firstAttribute="top" secondItem="BGJ-fo-iXQ" secondAttribute="top" id="0Jv-l5-4Tu"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="5BB-Ay-qNn"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="trailing" secondItem="Ut8-lg-8ab" secondAttribute="trailing" id="9RS-p5-gJG"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="Bnz-L0-ebT"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="centerX" secondItem="91J-fh-SJo" secondAttribute="centerX" id="DPh-KZ-brQ"/>
-                            <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="Ut8-lg-8ab" secondAttribute="bottom" id="EC7-xr-i5p"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="bottom" secondItem="Ut8-lg-8ab" secondAttribute="bottom" id="EC7-xr-i5p"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="leading" secondItem="sSN-Ac-J4R" secondAttribute="trailing" constant="-10" id="Gee-mK-zaj"/>
-                            <constraint firstAttribute="trailing" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="HEd-vY-teK"/>
-                            <constraint firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" constant="200" id="HOe-Ks-3kR"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="trailing" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="HEd-vY-teK"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" constant="200" id="HOe-Ks-3kR"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="bottom" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="KCd-mo-EHx"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="bottom" secondItem="91J-fh-SJo" secondAttribute="bottom" id="LBK-5R-Xmi"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="OsV-IC-JLv"/>
-                            <constraint firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Otl-8U-ke8"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Otl-8U-ke8"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="leading" secondItem="91J-fh-SJo" secondAttribute="leading" id="RYf-Yc-Naw"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="top" secondItem="91J-fh-SJo" secondAttribute="top" id="RoO-wR-KX0"/>
-                            <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="94Q-2f-NGa" secondAttribute="bottom" id="UIA-aB-fuC"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="bottom" secondItem="94Q-2f-NGa" secondAttribute="bottom" id="UIA-aB-fuC"/>
                             <constraint firstItem="91J-fh-SJo" firstAttribute="leading" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="UTu-1b-fA3"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Ujg-Dd-jZe"/>
-                            <constraint firstItem="sSN-Ac-J4R" firstAttribute="top" secondItem="q7U-Fv-YgR" secondAttribute="bottom" id="VmD-wu-0aL"/>
-                            <constraint firstItem="Ut8-lg-8ab" firstAttribute="leading" secondItem="ev9-lG-hyo" secondAttribute="leading" id="XcF-SL-vQ7"/>
+                            <constraint firstItem="sSN-Ac-J4R" firstAttribute="top" secondItem="BGJ-fo-iXQ" secondAttribute="top" id="VmD-wu-0aL"/>
+                            <constraint firstItem="Ut8-lg-8ab" firstAttribute="leading" secondItem="BGJ-fo-iXQ" secondAttribute="leading" id="XcF-SL-vQ7"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="Bq5-HS-Wzs" secondAttribute="leading" id="ahL-wp-zfw"/>
                             <constraint firstItem="91J-fh-SJo" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="d7L-W7-98W"/>
                             <constraint firstItem="91J-fh-SJo" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="dAk-pk-tVX"/>
-                            <constraint firstItem="Bq5-HS-Wzs" firstAttribute="leading" secondItem="ev9-lG-hyo" secondAttribute="leading" id="dh4-Bt-LaJ"/>
+                            <constraint firstItem="Bq5-HS-Wzs" firstAttribute="leading" secondItem="BGJ-fo-iXQ" secondAttribute="leading" id="dh4-Bt-LaJ"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="91J-fh-SJo" secondAttribute="trailing" id="f9R-Gt-YvP"/>
-                            <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="91J-fh-SJo" secondAttribute="bottom" id="gfQ-TI-2tU"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="bottom" secondItem="91J-fh-SJo" secondAttribute="bottom" id="gfQ-TI-2tU"/>
                             <constraint firstItem="sSN-Ac-J4R" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="hHn-qT-3ih"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="k2v-2A-6OY"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="top" id="nmy-u3-oU6"/>
                             <constraint firstItem="jXS-hY-gto" firstAttribute="centerY" secondItem="91J-fh-SJo" secondAttribute="centerY" id="on5-fm-jii"/>
                             <constraint firstItem="Bq5-HS-Wzs" firstAttribute="top" secondItem="sSN-Ac-J4R" secondAttribute="bottom" id="qUY-iM-EXz"/>
-                            <constraint firstItem="sSN-Ac-J4R" firstAttribute="leading" secondItem="ev9-lG-hyo" secondAttribute="leading" id="uFh-jI-O3r"/>
-                            <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="sSN-Ac-J4R" secondAttribute="bottom" id="wWa-1o-oXk"/>
-                            <constraint firstItem="91J-fh-SJo" firstAttribute="leading" secondItem="ev9-lG-hyo" secondAttribute="leading" id="wn1-va-00m"/>
+                            <constraint firstItem="sSN-Ac-J4R" firstAttribute="leading" secondItem="BGJ-fo-iXQ" secondAttribute="leading" id="uFh-jI-O3r"/>
+                            <constraint firstItem="BGJ-fo-iXQ" firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" id="wWa-1o-oXk"/>
+                            <constraint firstItem="91J-fh-SJo" firstAttribute="leading" secondItem="BGJ-fo-iXQ" secondAttribute="leading" id="wn1-va-00m"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="BGJ-fo-iXQ"/>
                         <variation key="default">
                             <mask key="subviews">
                                 <exclude reference="94Q-2f-NGa"/>
@@ -637,18 +632,18 @@
                             </mask>
                             <mask key="constraints">
                                 <exclude reference="9RS-p5-gJG"/>
-                                <exclude reference="XcF-SL-vQ7"/>
-                                <exclude reference="Bnz-L0-ebT"/>
-                                <exclude reference="Gee-mK-zaj"/>
+                                <exclude reference="EC7-xr-i5p"/>
+                                <exclude reference="UIA-aB-fuC"/>
+                                <exclude reference="wWa-1o-oXk"/>
                                 <exclude reference="hHn-qT-3ih"/>
                                 <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="OsV-IC-JLv"/>
                                 <exclude reference="f9R-Gt-YvP"/>
                                 <exclude reference="UTu-1b-fA3"/>
                                 <exclude reference="d7L-W7-98W"/>
-                                <exclude reference="EC7-xr-i5p"/>
-                                <exclude reference="UIA-aB-fuC"/>
-                                <exclude reference="wWa-1o-oXk"/>
+                                <exclude reference="XcF-SL-vQ7"/>
+                                <exclude reference="Bnz-L0-ebT"/>
+                                <exclude reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact-widthClass=compact">
@@ -659,11 +654,11 @@
                             </mask>
                             <mask key="constraints">
                                 <include reference="9RS-p5-gJG"/>
-                                <include reference="XcF-SL-vQ7"/>
-                                <include reference="Bnz-L0-ebT"/>
-                                <include reference="Gee-mK-zaj"/>
+                                <include reference="EC7-xr-i5p"/>
                                 <exclude reference="HEd-vY-teK"/>
                                 <exclude reference="HOe-Ks-3kR"/>
+                                <include reference="UIA-aB-fuC"/>
+                                <include reference="wWa-1o-oXk"/>
                                 <exclude reference="VmD-wu-0aL"/>
                                 <include reference="hHn-qT-3ih"/>
                                 <include reference="0Jv-l5-4Tu"/>
@@ -676,13 +671,13 @@
                                 <include reference="d7L-W7-98W"/>
                                 <exclude reference="dAk-pk-tVX"/>
                                 <exclude reference="wn1-va-00m"/>
-                                <include reference="EC7-xr-i5p"/>
-                                <include reference="UIA-aB-fuC"/>
-                                <include reference="wWa-1o-oXk"/>
+                                <include reference="XcF-SL-vQ7"/>
+                                <include reference="Bnz-L0-ebT"/>
+                                <include reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="Xmf-oM-CgA"/>
                     <connections>
                         <outlet property="activityIndicator" destination="NEp-ku-QG6" id="B7f-EX-bQ5"/>
@@ -754,12 +749,8 @@
         <scene sceneID="D6k-ij-4Sg">
             <objects>
                 <viewController title="About" automaticallyAdjustsScrollViewInsets="NO" id="lBu-Wa-0uM" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="WUT-T2-LDF"/>
-                        <viewControllerLayoutGuide type="bottom" id="td5-7c-QWi"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="oQh-5Y-6Pd">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="680"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="692"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tom Pennington" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aaG-AL-gpM">
@@ -841,8 +832,8 @@ Email: cbcstaff@countrysidebible.org</string>
                             <constraint firstItem="JJ6-2U-DAt" firstAttribute="top" secondItem="aCa-aF-Otc" secondAttribute="bottom" constant="12" id="0sg-Fg-6WJ"/>
                             <constraint firstItem="jfr-SI-XtV" firstAttribute="top" secondItem="x5z-m5-Ig7" secondAttribute="top" id="Bi4-4v-ysW"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="trailing" secondItem="oQh-5Y-6Pd" secondAttribute="trailingMargin" id="GRs-1N-n0o"/>
-                            <constraint firstItem="aaG-AL-gpM" firstAttribute="top" secondItem="WUT-T2-LDF" secondAttribute="bottom" constant="12" id="ITC-SC-bGi"/>
-                            <constraint firstAttribute="trailing" secondItem="S9H-8C-dY8" secondAttribute="trailing" constant="4" id="LuG-ra-rNv"/>
+                            <constraint firstItem="aaG-AL-gpM" firstAttribute="top" secondItem="SUB-Av-KH5" secondAttribute="top" constant="12" id="ITC-SC-bGi"/>
+                            <constraint firstItem="SUB-Av-KH5" firstAttribute="trailing" secondItem="S9H-8C-dY8" secondAttribute="trailing" constant="4" id="LuG-ra-rNv"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="top" secondItem="JJ6-2U-DAt" secondAttribute="bottom" constant="-4" id="OS1-ZZ-cmn"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="leadingMargin" constant="-6" id="TkB-FG-1IA"/>
                             <constraint firstItem="2vS-ZB-L7s" firstAttribute="leading" secondItem="aCa-aF-Otc" secondAttribute="trailing" constant="8" id="UoS-xd-8yc"/>
@@ -853,16 +844,17 @@ Email: cbcstaff@countrysidebible.org</string>
                             <constraint firstItem="2vS-ZB-L7s" firstAttribute="bottom" secondItem="aCa-aF-Otc" secondAttribute="bottom" id="cN9-J7-DxZ"/>
                             <constraint firstItem="2vS-ZB-L7s" firstAttribute="width" secondItem="aCa-aF-Otc" secondAttribute="width" id="eqc-RJ-pFP"/>
                             <constraint firstItem="JJ6-2U-DAt" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="leadingMargin" id="frT-h3-nJ0"/>
-                            <constraint firstItem="jfr-SI-XtV" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="centerX" id="hUe-uM-yUs"/>
-                            <constraint firstAttribute="centerX" secondItem="x5z-m5-Ig7" secondAttribute="trailing" id="jlV-0r-SK5"/>
+                            <constraint firstItem="jfr-SI-XtV" firstAttribute="leading" secondItem="SUB-Av-KH5" secondAttribute="centerX" id="hUe-uM-yUs"/>
+                            <constraint firstItem="SUB-Av-KH5" firstAttribute="centerX" secondItem="x5z-m5-Ig7" secondAttribute="trailing" id="jlV-0r-SK5"/>
                             <constraint firstItem="jfr-SI-XtV" firstAttribute="trailing" secondItem="oQh-5Y-6Pd" secondAttribute="trailingMargin" id="kLs-1A-Vyy"/>
-                            <constraint firstItem="S9H-8C-dY8" firstAttribute="top" secondItem="WUT-T2-LDF" secondAttribute="bottom" id="qdb-Nq-fvz"/>
+                            <constraint firstItem="S9H-8C-dY8" firstAttribute="top" secondItem="SUB-Av-KH5" secondAttribute="top" id="qdb-Nq-fvz"/>
                             <constraint firstItem="x5z-m5-Ig7" firstAttribute="top" secondItem="OOw-K7-N5K" secondAttribute="bottom" id="tNF-fN-h4A"/>
                             <constraint firstAttribute="trailingMargin" secondItem="2vS-ZB-L7s" secondAttribute="trailing" id="tei-rv-ICW"/>
                             <constraint firstItem="aCa-aF-Otc" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="leadingMargin" id="wWe-pI-Cj0"/>
                             <constraint firstItem="JJ6-2U-DAt" firstAttribute="trailing" secondItem="oQh-5Y-6Pd" secondAttribute="trailingMargin" id="xgE-bz-rF2"/>
                             <constraint firstItem="aaG-AL-gpM" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="leadingMargin" id="zhR-xj-fhj"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="SUB-Av-KH5"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
@@ -893,17 +885,13 @@ Email: cbcstaff@countrysidebible.org</string>
         <!--About 2-->
         <scene sceneID="oj2-gh-MLi">
             <objects>
-                <viewController title="About 2" extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="c87-tQ-6Ls" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="JlN-uu-tst"/>
-                        <viewControllerLayoutGuide type="bottom" id="gFB-fu-LKW"/>
-                    </layoutGuides>
+                <viewController title="About 2" automaticallyAdjustsScrollViewInsets="NO" id="c87-tQ-6Ls" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="t0B-Id-nSB">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="1200"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="1136"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ndK-6H-sCB">
-                                <rect key="frame" x="0.0" y="70" width="600" height="1130"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="1136"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="tom_pennington" translatesAutoresizingMaskIntoConstraints="NO" id="GJp-uH-K13">
                                         <rect key="frame" x="172" y="20" width="256" height="256"/>
@@ -1076,18 +1064,19 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="ndK-6H-sCB" firstAttribute="top" secondItem="JlN-uu-tst" secondAttribute="bottom" id="5hq-2y-CTo"/>
-                            <constraint firstItem="ndK-6H-sCB" firstAttribute="top" secondItem="JlN-uu-tst" secondAttribute="bottom" id="Azq-eF-FYc"/>
-                            <constraint firstItem="ndK-6H-sCB" firstAttribute="leading" secondItem="t0B-Id-nSB" secondAttribute="leading" id="MBq-BJ-jgF"/>
+                            <constraint firstItem="ndK-6H-sCB" firstAttribute="top" secondItem="IX8-yi-ErB" secondAttribute="top" id="5hq-2y-CTo"/>
+                            <constraint firstItem="ndK-6H-sCB" firstAttribute="top" secondItem="IX8-yi-ErB" secondAttribute="top" id="Azq-eF-FYc"/>
+                            <constraint firstItem="ndK-6H-sCB" firstAttribute="leading" secondItem="IX8-yi-ErB" secondAttribute="leading" id="MBq-BJ-jgF"/>
                             <constraint firstItem="ndK-6H-sCB" firstAttribute="height" secondItem="t0B-Id-nSB" secondAttribute="height" id="REB-jb-sBJ"/>
-                            <constraint firstItem="gFB-fu-LKW" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="bottom" id="VX4-KA-xBR"/>
-                            <constraint firstAttribute="trailing" secondItem="ndK-6H-sCB" secondAttribute="trailing" id="cEq-sx-ny1"/>
+                            <constraint firstItem="IX8-yi-ErB" firstAttribute="bottom" secondItem="ndK-6H-sCB" secondAttribute="bottom" id="VX4-KA-xBR"/>
+                            <constraint firstItem="IX8-yi-ErB" firstAttribute="trailing" secondItem="ndK-6H-sCB" secondAttribute="trailing" id="cEq-sx-ny1"/>
                             <constraint firstItem="ndK-6H-sCB" firstAttribute="top" secondItem="t0B-Id-nSB" secondAttribute="top" id="crf-19-O3G"/>
-                            <constraint firstItem="GJp-uH-K13" firstAttribute="top" secondItem="JlN-uu-tst" secondAttribute="bottom" constant="8" id="fzc-vH-ZXB"/>
+                            <constraint firstItem="GJp-uH-K13" firstAttribute="top" secondItem="IX8-yi-ErB" secondAttribute="top" constant="8" id="fzc-vH-ZXB"/>
                             <constraint firstItem="ndK-6H-sCB" firstAttribute="centerY" secondItem="t0B-Id-nSB" secondAttribute="centerY" id="qvn-YP-Wlh"/>
                             <constraint firstItem="ndK-6H-sCB" firstAttribute="width" secondItem="t0B-Id-nSB" secondAttribute="width" id="xfW-g7-YEf"/>
-                            <constraint firstItem="ndK-6H-sCB" firstAttribute="centerX" secondItem="t0B-Id-nSB" secondAttribute="centerX" id="z8f-mm-udy"/>
+                            <constraint firstItem="ndK-6H-sCB" firstAttribute="centerX" secondItem="IX8-yi-ErB" secondAttribute="centerX" id="z8f-mm-udy"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="IX8-yi-ErB"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="5hq-2y-CTo"/>
@@ -1100,7 +1089,7 @@ Web site: www.countrysidebible.org</string>
                             </mask>
                         </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Countryside Bible Church" id="qQP-cd-dPh"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="600" height="1200"/>
@@ -1118,16 +1107,12 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="uXh-bu-1UA">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="JJo-MV-zfU" customClass="TextViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="lGv-Nz-8i6"/>
-                        <viewControllerLayoutGuide type="bottom" id="iDq-d7-86t"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="8IQ-jf-Skv">
-                        <rect key="frame" x="0.0" y="0.0" width="1024" height="698"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="VOk-yJ-wJW">
-                                <rect key="frame" x="0.0" y="0.0" width="1024" height="44"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="44" id="wOK-qL-axv"/>
                                 </constraints>
@@ -1142,7 +1127,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </searchBar>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="z3X-xR-CG6">
-                                <rect key="frame" x="20" y="58" width="984" height="632"/>
+                                <rect key="frame" x="16" y="58" width="288" height="446"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
@@ -1154,15 +1139,16 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="VOk-yJ-wJW" secondAttribute="trailing" id="0EO-7U-F1r"/>
-                            <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="lGv-Nz-8i6" secondAttribute="bottom" constant="58" id="1bs-rJ-y7S"/>
-                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="top" secondItem="lGv-Nz-8i6" secondAttribute="bottom" id="9c2-Dm-o9p"/>
-                            <constraint firstItem="iDq-d7-86t" firstAttribute="top" secondItem="z3X-xR-CG6" secondAttribute="bottom" constant="8" symbolic="YES" id="Kac-4X-Bdb"/>
+                            <constraint firstItem="JKm-zc-fyd" firstAttribute="trailing" secondItem="VOk-yJ-wJW" secondAttribute="trailing" id="0EO-7U-F1r"/>
+                            <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="JKm-zc-fyd" secondAttribute="top" constant="58" id="1bs-rJ-y7S"/>
+                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="top" secondItem="JKm-zc-fyd" secondAttribute="top" id="9c2-Dm-o9p"/>
+                            <constraint firstItem="JKm-zc-fyd" firstAttribute="bottom" secondItem="z3X-xR-CG6" secondAttribute="bottom" constant="8" symbolic="YES" id="Kac-4X-Bdb"/>
                             <constraint firstItem="z3X-xR-CG6" firstAttribute="trailing" secondItem="8IQ-jf-Skv" secondAttribute="trailingMargin" id="cta-wg-gmY"/>
                             <constraint firstItem="z3X-xR-CG6" firstAttribute="leading" secondItem="8IQ-jf-Skv" secondAttribute="leadingMargin" id="pwt-3b-o8y"/>
-                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="leading" secondItem="8IQ-jf-Skv" secondAttribute="leading" id="u6K-K5-gil"/>
+                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="leading" secondItem="JKm-zc-fyd" secondAttribute="leading" id="u6K-K5-gil"/>
                             <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="VOk-yJ-wJW" secondAttribute="bottom" constant="14" id="xS7-ZF-7Rs"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="JKm-zc-fyd"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="uqP-qA-C0U"/>
@@ -1180,21 +1166,17 @@ Web site: www.countrysidebible.org</string>
         <!--Live Stream-->
         <scene sceneID="ee0-py-eBo">
             <objects>
-                <viewController title="Live Stream" extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="NJo-7f-uFD" customClass="LiveViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="Neb-rI-lkq"/>
-                        <viewControllerLayoutGuide type="bottom" id="BnS-sI-BZ8"/>
-                    </layoutGuides>
+                <viewController title="Live Stream" automaticallyAdjustsScrollViewInsets="NO" id="NJo-7f-uFD" customClass="LiveViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="gRo-VW-4dm">
-                        <rect key="frame" x="0.0" y="0.0" width="703.5" height="768"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="70" width="703.5" height="698"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="vLD-jU-3Sf">
-                                <rect key="frame" x="212.5" y="348" width="279" height="72"/>
+                                <rect key="frame" x="20.5" y="216" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -1206,22 +1188,23 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="z2d-eT-0hV" firstAttribute="leading" secondItem="gRo-VW-4dm" secondAttribute="leading" id="5Ba-ik-iBG"/>
+                            <constraint firstItem="z2d-eT-0hV" firstAttribute="leading" secondItem="dyZ-6d-Las" secondAttribute="leading" id="5Ba-ik-iBG"/>
                             <constraint firstItem="vLD-jU-3Sf" firstAttribute="centerY" secondItem="gRo-VW-4dm" secondAttribute="centerY" id="Ajv-ii-rtQ"/>
-                            <constraint firstAttribute="trailing" secondItem="z2d-eT-0hV" secondAttribute="trailing" id="VhC-Zr-s2e"/>
+                            <constraint firstItem="dyZ-6d-Las" firstAttribute="trailing" secondItem="z2d-eT-0hV" secondAttribute="trailing" id="VhC-Zr-s2e"/>
                             <constraint firstAttribute="topMargin" secondItem="z2d-eT-0hV" secondAttribute="top" id="Yj0-e5-aVh"/>
-                            <constraint firstItem="BnS-sI-BZ8" firstAttribute="top" secondItem="z2d-eT-0hV" secondAttribute="bottom" id="bvy-28-4EC"/>
+                            <constraint firstItem="dyZ-6d-Las" firstAttribute="bottom" secondItem="z2d-eT-0hV" secondAttribute="bottom" id="bvy-28-4EC"/>
                             <constraint firstItem="vLD-jU-3Sf" firstAttribute="width" secondItem="vLD-jU-3Sf" secondAttribute="height" multiplier="31:8" id="cfP-4E-hgR"/>
                             <constraint firstItem="z2d-eT-0hV" firstAttribute="width" secondItem="gRo-VW-4dm" secondAttribute="width" id="gGY-Na-qi2"/>
-                            <constraint firstItem="vLD-jU-3Sf" firstAttribute="centerX" secondItem="gRo-VW-4dm" secondAttribute="centerX" id="pKJ-NS-qjh"/>
+                            <constraint firstItem="vLD-jU-3Sf" firstAttribute="centerX" secondItem="dyZ-6d-Las" secondAttribute="centerX" id="pKJ-NS-qjh"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="dyZ-6d-Las"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="gGY-Na-qi2"/>
                             </mask>
                         </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Countryside Bible Church Live" id="S8U-Cv-Cw0"/>
                     <connections>
                         <outlet property="logo" destination="vLD-jU-3Sf" id="SR7-0O-xwj"/>
@@ -1239,12 +1222,11 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Q0j-il-YcR">
-                        <rect key="frame" x="0.0" y="20" width="703.5" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="x3j-vH-uqK">
-                        <rect key="frame" x="-320.5" y="0.0" width="0.0" height="0.0"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </toolbar>
                     <connections>
@@ -1262,7 +1244,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="RNv-hO-i4N">
-                        <rect key="frame" x="0.0" y="20" width="703.5" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -1281,7 +1263,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="QMJ-T8-Buh">
-                        <rect key="frame" x="0.0" y="20" width="320" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -1297,28 +1279,24 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="xNv-hd-wx2">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="Vh6-O7-Ta2" customClass="WebViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="6Ta-4J-UpW"/>
-                        <viewControllerLayoutGuide type="bottom" id="rGZ-be-gAy"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="4bC-YP-8EI">
-                        <rect key="frame" x="0.0" y="0.0" width="703.5" height="698"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ps-Wb-dVz" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="703.5" height="698"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
-                                        <rect key="frame" x="342" y="339" width="20" height="20"/>
+                                        <rect key="frame" x="150" y="242" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Vr4-5d-HKg">
-                                        <rect key="frame" x="277" y="348" width="150" height="2"/>
+                                        <rect key="frame" x="85" y="251" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="CAL-gT-V8z"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="fEx-M0-kF0">
-                                        <rect key="frame" x="212.5" y="313" width="279" height="72"/>
+                                        <rect key="frame" x="20.5" y="216" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -1342,11 +1320,12 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="1ps-Wb-dVz" secondAttribute="trailing" id="ZCI-i8-AE1"/>
-                            <constraint firstItem="1ps-Wb-dVz" firstAttribute="leading" secondItem="4bC-YP-8EI" secondAttribute="leading" id="gYK-8k-RJf"/>
-                            <constraint firstItem="rGZ-be-gAy" firstAttribute="top" secondItem="1ps-Wb-dVz" secondAttribute="bottom" id="hZh-lS-3yo"/>
-                            <constraint firstItem="1ps-Wb-dVz" firstAttribute="top" secondItem="6Ta-4J-UpW" secondAttribute="bottom" id="sFz-sb-Kqw"/>
+                            <constraint firstItem="lP1-23-dKq" firstAttribute="trailing" secondItem="1ps-Wb-dVz" secondAttribute="trailing" id="ZCI-i8-AE1"/>
+                            <constraint firstItem="1ps-Wb-dVz" firstAttribute="leading" secondItem="lP1-23-dKq" secondAttribute="leading" id="gYK-8k-RJf"/>
+                            <constraint firstItem="lP1-23-dKq" firstAttribute="bottom" secondItem="1ps-Wb-dVz" secondAttribute="bottom" id="hZh-lS-3yo"/>
+                            <constraint firstItem="1ps-Wb-dVz" firstAttribute="top" secondItem="lP1-23-dKq" secondAttribute="top" id="sFz-sb-Kqw"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="lP1-23-dKq"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <connections>
@@ -1367,7 +1346,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="gez-mL-Sw6">
-                        <rect key="frame" x="0.0" y="20" width="703.5" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -1383,16 +1362,12 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="pcT-qw-l6p">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="2PY-rw-Zwl" customClass="SettingsViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="vkl-tM-Mix"/>
-                        <viewControllerLayoutGuide type="bottom" id="ESs-wH-PUl"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="Ota-ja-wJK">
-                        <rect key="frame" x="0.0" y="0.0" width="250" height="405"/>
+                        <rect key="frame" x="0.0" y="0.0" width="250" height="431"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bqv-74-88o">
-                                <rect key="frame" x="0.0" y="0.0" width="250" height="405"/>
+                                <rect key="frame" x="0.0" y="0.0" width="250" height="431"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Search Transcripts" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="886-lR-yL1">
                                         <rect key="frame" x="20" y="26" width="136" height="19.5"/>
@@ -1510,12 +1485,13 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="bqv-74-88o" firstAttribute="top" secondItem="vkl-tM-Mix" secondAttribute="bottom" id="7TK-wG-kAe"/>
-                            <constraint firstAttribute="trailing" secondItem="bqv-74-88o" secondAttribute="trailing" id="HAw-IZ-O1T"/>
-                            <constraint firstItem="bqv-74-88o" firstAttribute="bottom" secondItem="ESs-wH-PUl" secondAttribute="top" id="MHf-1x-9HV"/>
-                            <constraint firstItem="bqv-74-88o" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leading" id="dQu-CW-3Jr"/>
-                            <constraint firstItem="ESs-wH-PUl" firstAttribute="top" secondItem="bqv-74-88o" secondAttribute="bottom" id="ncY-tN-zHv"/>
+                            <constraint firstItem="bqv-74-88o" firstAttribute="top" secondItem="qeO-Hf-m8L" secondAttribute="top" id="7TK-wG-kAe"/>
+                            <constraint firstItem="qeO-Hf-m8L" firstAttribute="trailing" secondItem="bqv-74-88o" secondAttribute="trailing" id="HAw-IZ-O1T"/>
+                            <constraint firstItem="bqv-74-88o" firstAttribute="bottom" secondItem="qeO-Hf-m8L" secondAttribute="bottom" id="MHf-1x-9HV"/>
+                            <constraint firstItem="bqv-74-88o" firstAttribute="leading" secondItem="qeO-Hf-m8L" secondAttribute="leading" id="dQu-CW-3Jr"/>
+                            <constraint firstItem="qeO-Hf-m8L" firstAttribute="bottom" secondItem="bqv-74-88o" secondAttribute="bottom" id="ncY-tN-zHv"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="qeO-Hf-m8L"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="MHf-1x-9HV"/>
@@ -1540,16 +1516,12 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="gLT-Vw-hWT">
             <objects>
                 <viewController storyboardIdentifier="Loading View Controller" automaticallyAdjustsScrollViewInsets="NO" id="mbj-mV-sVV" userLabel="Loading View Controller" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="RAJ-ZJ-KdE"/>
-                        <viewControllerLayoutGuide type="bottom" id="oyd-Rh-9co"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="pxO-Fn-UGW">
-                        <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Iqz-bU-Q1W" userLabel="Loading View">
-                                <rect key="frame" x="472" y="344" width="80" height="80"/>
+                                <rect key="frame" x="120" y="244" width="80" height="80"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jVC-0A-IH5">
                                         <rect key="frame" x="21.5" y="21.5" width="37" height="37"/>
@@ -1571,9 +1543,10 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="Iqz-bU-Q1W" firstAttribute="centerX" secondItem="pxO-Fn-UGW" secondAttribute="centerX" id="1vs-Oo-6Ie"/>
+                            <constraint firstItem="Iqz-bU-Q1W" firstAttribute="centerX" secondItem="fI5-eM-gEg" secondAttribute="centerX" id="1vs-Oo-6Ie"/>
                             <constraint firstItem="Iqz-bU-Q1W" firstAttribute="centerY" secondItem="pxO-Fn-UGW" secondAttribute="centerY" id="FrF-em-ZUl"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="fI5-eM-gEg"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                 </viewController>
@@ -1584,23 +1557,19 @@ Web site: www.countrysidebible.org</string>
         <!--Scripture Index-->
         <scene sceneID="y0V-EV-yvC">
             <objects>
-                <viewController storyboardIdentifier="Scripture Index" title="Scripture Index" automaticallyAdjustsScrollViewInsets="NO" id="T9C-w1-1Bd" customClass="ScriptureIndexViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="Oe4-3K-Zwm"/>
-                        <viewControllerLayoutGuide type="bottom" id="oNQ-Q9-xO5"/>
-                    </layoutGuides>
+                <viewController storyboardIdentifier="Scripture Index" title="Scripture Index" automaticallyAdjustsScrollViewInsets="NO" hidesBottomBarWhenPushed="YES" id="T9C-w1-1Bd" customClass="ScriptureIndexViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Eqo-b3-vFu">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="530"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Select to find related media." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8CQ-SP-Ud4">
-                                <rect key="frame" x="20" y="20" width="215" height="21"/>
+                                <rect key="frame" x="16" y="20" width="215" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fnt-vm-NPU" userLabel="Chapter Book View">
-                                <rect key="frame" x="20" y="49" width="574" height="35"/>
+                                <rect key="frame" x="16" y="49" width="298" height="35"/>
                                 <subviews>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="751" verticalHuggingPriority="750" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="oMP-QK-NZ6" userLabel="Book Switch">
                                         <rect key="frame" x="0.0" y="2" width="51" height="31"/>
@@ -1642,7 +1611,7 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </view>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="C40-Dl-VBz">
-                                <rect key="frame" x="0.0" y="84" width="600" height="125"/>
+                                <rect key="frame" x="0.0" y="84" width="320" height="125"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="125" id="46s-hq-kiu"/>
                                 </constraints>
@@ -1652,7 +1621,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </pickerView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Found:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MgN-hu-Pfm">
-                                <rect key="frame" x="20" y="209" width="53" height="21"/>
+                                <rect key="frame" x="16" y="209" width="53" height="21"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="53" id="Zz2-pt-Usd"/>
                                 </constraints>
@@ -1661,13 +1630,13 @@ Web site: www.countrysidebible.org</string>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="NN" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="ha9-Vz-Uh2">
-                                <rect key="frame" x="81" y="209" width="24.5" height="20.5"/>
+                                <rect key="frame" x="77" y="209" width="24.5" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="P8F-bf-sDj">
-                                <rect key="frame" x="160.5" y="229" width="279" height="72"/>
+                                <rect key="frame" x="20.5" y="216" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -1678,18 +1647,18 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </imageView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="Jd8-2E-Az8">
-                                <rect key="frame" x="0.0" y="237.5" width="600" height="292.5"/>
+                                <rect key="frame" x="0.0" y="237.5" width="320" height="266.5"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="O5D-zW-cLl" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="600" height="100"/>
+                                        <rect key="frame" x="0.0" y="1" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="O5D-zW-cLl" id="t9J-qH-ixG">
-                                            <rect key="frame" x="0.0" y="0.0" width="600" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyy-zD-jgt">
-                                                    <rect key="frame" x="20" y="4" width="152" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="856" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="RNJ-QR-xJ9"/>
                                                     </constraints>
@@ -1703,25 +1672,25 @@ Web site: www.countrysidebible.org</string>
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CW5-2J-de4" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="152" height="30"/>
+                                                    <rect key="frame" x="20" y="65.5" width="856" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="e1j-7E-JH8">
-                                                    <rect key="frame" x="20" y="67.5" width="152" height="30"/>
+                                                    <rect key="frame" x="20" y="67.5" width="856" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xii-Pk-dwa">
-                                                    <rect key="frame" x="174" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="878" y="97.5" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="a84-WN-2lC">
-                                                    <rect key="frame" x="20" y="97.5" width="156" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="860" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -1765,10 +1734,10 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="sni-g1-BL1">
-                                <rect key="frame" x="290" y="136.5" width="20" height="20"/>
+                                <rect key="frame" x="150" y="136.5" width="20" height="20"/>
                             </activityIndicatorView>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="erd-sN-Jz3">
-                                <rect key="frame" x="225" y="145.5" width="150" height="2"/>
+                                <rect key="frame" x="85" y="145.5" width="150" height="2"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="4ed-g8-Hoq"/>
                                 </constraints>
@@ -1777,7 +1746,7 @@ Web site: www.countrysidebible.org</string>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="MgN-hu-Pfm" firstAttribute="leading" secondItem="8CQ-SP-Ud4" secondAttribute="leading" id="0s0-wE-NHg"/>
-                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="bottom" secondItem="oNQ-Q9-xO5" secondAttribute="top" id="3f2-bk-t2l"/>
+                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="bottom" secondItem="hco-Wz-Oyp" secondAttribute="bottom" id="3f2-bk-t2l"/>
                             <constraint firstItem="fnt-vm-NPU" firstAttribute="top" secondItem="8CQ-SP-Ud4" secondAttribute="bottom" constant="8" symbolic="YES" id="568-UG-yNH"/>
                             <constraint firstItem="sni-g1-BL1" firstAttribute="centerX" secondItem="C40-Dl-VBz" secondAttribute="centerX" id="62t-m9-GYl"/>
                             <constraint firstItem="P8F-bf-sDj" firstAttribute="centerY" secondItem="Eqo-b3-vFu" secondAttribute="centerY" id="B2W-ST-x6c"/>
@@ -1788,25 +1757,26 @@ Web site: www.countrysidebible.org</string>
                             <constraint firstItem="sni-g1-BL1" firstAttribute="centerY" secondItem="C40-Dl-VBz" secondAttribute="centerY" id="OA9-he-k23"/>
                             <constraint firstItem="Jd8-2E-Az8" firstAttribute="leading" secondItem="C40-Dl-VBz" secondAttribute="trailing" id="Rsi-95-VDj"/>
                             <constraint firstItem="Jd8-2E-Az8" firstAttribute="top" secondItem="ha9-Vz-Uh2" secondAttribute="bottom" constant="8" symbolic="YES" id="Vov-WC-Ve0"/>
-                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="top" secondItem="Oe4-3K-Zwm" secondAttribute="bottom" id="WvF-Wr-eGb"/>
+                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="top" secondItem="hco-Wz-Oyp" secondAttribute="top" id="WvF-Wr-eGb"/>
                             <constraint firstItem="MgN-hu-Pfm" firstAttribute="top" secondItem="C40-Dl-VBz" secondAttribute="bottom" id="Wve-7i-HDZ"/>
                             <constraint firstItem="Jd8-2E-Az8" firstAttribute="leading" secondItem="ha9-Vz-Uh2" secondAttribute="trailing" constant="8" id="Z7E-sd-DaQ"/>
                             <constraint firstItem="Jd8-2E-Az8" firstAttribute="leading" secondItem="fnt-vm-NPU" secondAttribute="trailing" constant="6" id="bE4-3P-9rV"/>
-                            <constraint firstItem="P8F-bf-sDj" firstAttribute="centerX" secondItem="Eqo-b3-vFu" secondAttribute="centerX" id="cam-Z9-vXF"/>
+                            <constraint firstItem="P8F-bf-sDj" firstAttribute="centerX" secondItem="hco-Wz-Oyp" secondAttribute="centerX" id="cam-Z9-vXF"/>
                             <constraint firstItem="8CQ-SP-Ud4" firstAttribute="leading" secondItem="Eqo-b3-vFu" secondAttribute="leadingMargin" id="eQY-pD-Y5I"/>
                             <constraint firstItem="erd-sN-Jz3" firstAttribute="centerY" secondItem="sni-g1-BL1" secondAttribute="centerY" id="ebF-Ro-A4l"/>
                             <constraint firstItem="C40-Dl-VBz" firstAttribute="width" secondItem="Jd8-2E-Az8" secondAttribute="width" id="kpF-tZ-HJc"/>
                             <constraint firstItem="fnt-vm-NPU" firstAttribute="leading" secondItem="8CQ-SP-Ud4" secondAttribute="leading" id="qfU-N9-Rva"/>
-                            <constraint firstItem="C40-Dl-VBz" firstAttribute="leading" secondItem="Eqo-b3-vFu" secondAttribute="leading" id="rOI-Bd-paa"/>
+                            <constraint firstItem="C40-Dl-VBz" firstAttribute="leading" secondItem="hco-Wz-Oyp" secondAttribute="leading" id="rOI-Bd-paa"/>
                             <constraint firstItem="Jd8-2E-Az8" firstAttribute="top" secondItem="ha9-Vz-Uh2" secondAttribute="bottom" constant="8" symbolic="YES" id="roo-2p-A0b"/>
                             <constraint firstAttribute="trailingMargin" relation="greaterThanOrEqual" secondItem="ha9-Vz-Uh2" secondAttribute="trailing" id="sUC-re-87U"/>
-                            <constraint firstAttribute="trailing" secondItem="C40-Dl-VBz" secondAttribute="trailing" id="t5G-DU-2pm"/>
-                            <constraint firstAttribute="trailing" secondItem="fnt-vm-NPU" secondAttribute="trailing" constant="6" id="tqL-FL-d6l"/>
+                            <constraint firstItem="hco-Wz-Oyp" firstAttribute="trailing" secondItem="C40-Dl-VBz" secondAttribute="trailing" id="t5G-DU-2pm"/>
+                            <constraint firstItem="hco-Wz-Oyp" firstAttribute="trailing" secondItem="fnt-vm-NPU" secondAttribute="trailing" constant="6" id="tqL-FL-d6l"/>
                             <constraint firstItem="ha9-Vz-Uh2" firstAttribute="leading" secondItem="MgN-hu-Pfm" secondAttribute="trailing" constant="8" symbolic="YES" id="ukf-IV-GCY"/>
-                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="leading" secondItem="Eqo-b3-vFu" secondAttribute="leading" id="wWG-em-KA1"/>
+                            <constraint firstItem="Jd8-2E-Az8" firstAttribute="leading" secondItem="hco-Wz-Oyp" secondAttribute="leading" id="wWG-em-KA1"/>
                             <constraint firstItem="C40-Dl-VBz" firstAttribute="top" secondItem="fnt-vm-NPU" secondAttribute="bottom" id="wn4-fj-aBb"/>
-                            <constraint firstAttribute="trailing" secondItem="Jd8-2E-Az8" secondAttribute="trailing" id="zsw-x9-spJ"/>
+                            <constraint firstItem="hco-Wz-Oyp" firstAttribute="trailing" secondItem="Jd8-2E-Az8" secondAttribute="trailing" id="zsw-x9-spJ"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="hco-Wz-Oyp"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="kpF-tZ-HJc"/>
@@ -1819,9 +1789,9 @@ Web site: www.countrysidebible.org</string>
                         </variation>
                         <variation key="heightClass=compact-widthClass=compact">
                             <mask key="constraints">
+                                <exclude reference="t5G-DU-2pm"/>
                                 <exclude reference="tqL-FL-d6l"/>
                                 <include reference="kpF-tZ-HJc"/>
-                                <exclude reference="t5G-DU-2pm"/>
                                 <exclude reference="sUC-re-87U"/>
                                 <include reference="Rsi-95-VDj"/>
                                 <exclude reference="Vov-WC-Ve0"/>
@@ -1834,8 +1804,6 @@ Web site: www.countrysidebible.org</string>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Scripture Index" id="Ux0-Un-1xb"/>
-                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="600" height="600"/>
                     <connections>
                         <outlet property="bookLabel" destination="wM2-4O-gHQ" id="vIc-Ti-oge"/>
                         <outlet property="bookSwitch" destination="oMP-QK-NZ6" id="mP2-VU-8T9"/>
@@ -1858,17 +1826,13 @@ Web site: www.countrysidebible.org</string>
         <!--Cloud View Controller-->
         <scene sceneID="NNW-e0-lJl">
             <objects>
-                <viewController id="fzH-sY-OuY" customClass="CloudViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="VWN-oh-l4Q"/>
-                        <viewControllerLayoutGuide type="bottom" id="CUA-Xi-y7k"/>
-                    </layoutGuides>
+                <viewController automaticallyAdjustsScrollViewInsets="NO" id="fzH-sY-OuY" customClass="CloudViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="CnY-CQ-LVB">
-                        <rect key="frame" x="0.0" y="0.0" width="1024" height="698"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="Rwc-mZ-Mu0">
-                                <rect key="frame" x="0.0" y="0.0" width="270" height="698"/>
+                                <rect key="frame" x="0.0" y="0.0" width="270" height="504"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="emR-hb-0tM">
                                         <rect key="frame" x="0.0" y="0.0" width="270" height="30"/>
@@ -1916,7 +1880,7 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </view>
                                     <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f2R-wz-Uiq">
-                                        <rect key="frame" x="0.0" y="82" width="270" height="616"/>
+                                        <rect key="frame" x="0.0" y="82" width="270" height="422"/>
                                         <connections>
                                             <segue destination="XK5-KT-b8P" kind="embed" identifier="Show Word List" id="qdL-rt-Y5i"/>
                                         </connections>
@@ -1927,10 +1891,10 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </stackView>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" contentInsetAdjustmentBehavior="always" maximumZoomScale="10" translatesAutoresizingMaskIntoConstraints="NO" id="wZm-xF-1QB">
-                                <rect key="frame" x="290" y="20" width="714" height="658"/>
+                                <rect key="frame" x="290" y="20" width="10" height="464"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cDd-Qq-04k" userLabel="Word Cloud View">
-                                        <rect key="frame" x="0.0" y="0.0" width="714" height="658"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="10" height="464"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </view>
                                 </subviews>
@@ -1947,22 +1911,23 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </scrollView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="BZh-Y1-nq6">
-                                <rect key="frame" x="628.5" y="330.5" width="37" height="37"/>
+                                <rect key="frame" x="276.5" y="233.5" width="37" height="37"/>
                                 <color key="color" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="CUA-Xi-y7k" firstAttribute="top" secondItem="wZm-xF-1QB" secondAttribute="bottom" constant="20" id="K5n-ay-Ge5"/>
-                            <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="top" secondItem="VWN-oh-l4Q" secondAttribute="bottom" id="T9P-N4-9DJ"/>
+                            <constraint firstItem="V43-qA-nlY" firstAttribute="bottom" secondItem="wZm-xF-1QB" secondAttribute="bottom" constant="20" id="K5n-ay-Ge5"/>
+                            <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="top" secondItem="V43-qA-nlY" secondAttribute="top" id="T9P-N4-9DJ"/>
                             <constraint firstItem="BZh-Y1-nq6" firstAttribute="centerY" secondItem="wZm-xF-1QB" secondAttribute="centerY" id="TUO-Xe-xJy"/>
-                            <constraint firstItem="wZm-xF-1QB" firstAttribute="top" secondItem="VWN-oh-l4Q" secondAttribute="bottom" constant="20" id="hRW-Jg-Ue3"/>
+                            <constraint firstItem="wZm-xF-1QB" firstAttribute="top" secondItem="V43-qA-nlY" secondAttribute="top" constant="20" id="hRW-Jg-Ue3"/>
                             <constraint firstItem="wZm-xF-1QB" firstAttribute="leading" secondItem="Rwc-mZ-Mu0" secondAttribute="trailing" constant="20" id="nRE-Ko-QD7"/>
-                            <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="leading" secondItem="CnY-CQ-LVB" secondAttribute="leading" id="qJG-Gj-Qa6"/>
-                            <constraint firstItem="CUA-Xi-y7k" firstAttribute="top" secondItem="Rwc-mZ-Mu0" secondAttribute="bottom" id="vej-Oe-zgp"/>
+                            <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="leading" secondItem="V43-qA-nlY" secondAttribute="leading" id="qJG-Gj-Qa6"/>
+                            <constraint firstItem="V43-qA-nlY" firstAttribute="bottom" secondItem="Rwc-mZ-Mu0" secondAttribute="bottom" id="vej-Oe-zgp"/>
                             <constraint firstItem="BZh-Y1-nq6" firstAttribute="centerX" secondItem="wZm-xF-1QB" secondAttribute="centerX" id="vgD-dA-M0f"/>
-                            <constraint firstAttribute="trailing" secondItem="wZm-xF-1QB" secondAttribute="trailing" constant="20" id="wJA-Iu-zbZ"/>
+                            <constraint firstItem="V43-qA-nlY" firstAttribute="trailing" secondItem="wZm-xF-1QB" secondAttribute="trailing" constant="20" id="wJA-Iu-zbZ"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="V43-qA-nlY"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="SRZ-Pw-mc9"/>
@@ -1982,16 +1947,12 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="STr-Sq-PLR">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="XK5-KT-b8P" customClass="PopoverTableViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="9rE-on-dbC"/>
-                        <viewControllerLayoutGuide type="bottom" id="dfF-Sk-vFP"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vtO-3p-c8v">
-                        <rect key="frame" x="0.0" y="0.0" width="270" height="616"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="362.5"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" verticalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="iFe-Ke-XMe">
-                                <rect key="frame" x="0.0" y="20" width="270" height="56"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="44" id="6cd-1S-roS"/>
                                 </constraints>
@@ -2006,7 +1967,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </searchBar>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="749" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oEH-nM-WQf">
-                                <rect key="frame" x="20" y="84" width="230" height="29"/>
+                                <rect key="frame" x="0.0" y="64" width="320" height="29"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="26" id="xgj-MP-DUA"/>
                                 </constraints>
@@ -2024,18 +1985,18 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </segmentedControl>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="g8w-6P-vre">
-                                <rect key="frame" x="0.0" y="120" width="270" height="496"/>
+                                <rect key="frame" x="0.0" y="100" width="320" height="262.5"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="270" height="35"/>
+                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="22" width="320" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
-                                            <rect key="frame" x="0.0" y="0.0" width="231" height="35"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="281" height="35"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="8" y="8" width="222" height="18.5"/>
+                                                    <rect key="frame" x="15" y="11" width="818" height="13"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2059,27 +2020,28 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="69l-jj-b4O">
-                                <rect key="frame" x="116.5" y="349.5" width="37" height="37"/>
+                                <rect key="frame" x="141.5" y="213" width="37" height="37"/>
                                 <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="oEH-nM-WQf" secondAttribute="trailing" constant="20" symbolic="YES" id="8D0-8X-Vxm"/>
-                            <constraint firstItem="iFe-Ke-XMe" firstAttribute="top" secondItem="9rE-on-dbC" secondAttribute="bottom" id="CDv-Ub-t20"/>
-                            <constraint firstItem="69l-jj-b4O" firstAttribute="centerX" secondItem="vtO-3p-c8v" secondAttribute="centerX" id="IUf-1k-oSg"/>
-                            <constraint firstItem="iFe-Ke-XMe" firstAttribute="leading" secondItem="vtO-3p-c8v" secondAttribute="leading" id="IrC-oU-hvJ"/>
+                            <constraint firstItem="2Lk-4P-Yse" firstAttribute="trailing" secondItem="oEH-nM-WQf" secondAttribute="trailing" constant="20" symbolic="YES" id="8D0-8X-Vxm"/>
+                            <constraint firstItem="iFe-Ke-XMe" firstAttribute="top" secondItem="2Lk-4P-Yse" secondAttribute="top" id="CDv-Ub-t20"/>
+                            <constraint firstItem="69l-jj-b4O" firstAttribute="centerX" secondItem="2Lk-4P-Yse" secondAttribute="centerX" id="IUf-1k-oSg"/>
+                            <constraint firstItem="iFe-Ke-XMe" firstAttribute="leading" secondItem="2Lk-4P-Yse" secondAttribute="leading" id="IrC-oU-hvJ"/>
                             <constraint firstItem="g8w-6P-vre" firstAttribute="top" secondItem="oEH-nM-WQf" secondAttribute="bottom" constant="8" id="KGP-wH-2dI"/>
-                            <constraint firstItem="g8w-6P-vre" firstAttribute="top" secondItem="9rE-on-dbC" secondAttribute="bottom" constant="94" id="LCX-Dv-vmr"/>
-                            <constraint firstItem="g8w-6P-vre" firstAttribute="leading" secondItem="vtO-3p-c8v" secondAttribute="leading" id="Pqt-Nr-A6B"/>
-                            <constraint firstItem="oEH-nM-WQf" firstAttribute="leading" secondItem="vtO-3p-c8v" secondAttribute="leading" constant="20" symbolic="YES" id="Sea-ET-u01"/>
+                            <constraint firstItem="g8w-6P-vre" firstAttribute="top" secondItem="2Lk-4P-Yse" secondAttribute="top" constant="94" id="LCX-Dv-vmr"/>
+                            <constraint firstItem="g8w-6P-vre" firstAttribute="leading" secondItem="2Lk-4P-Yse" secondAttribute="leading" id="Pqt-Nr-A6B"/>
+                            <constraint firstItem="oEH-nM-WQf" firstAttribute="leading" secondItem="2Lk-4P-Yse" secondAttribute="leading" constant="20" symbolic="YES" id="Sea-ET-u01"/>
                             <constraint firstItem="oEH-nM-WQf" firstAttribute="top" secondItem="iFe-Ke-XMe" secondAttribute="bottom" constant="8" id="byX-T8-Jtz"/>
-                            <constraint firstAttribute="trailing" secondItem="iFe-Ke-XMe" secondAttribute="trailing" id="dKl-dr-Sp6"/>
-                            <constraint firstItem="g8w-6P-vre" firstAttribute="top" secondItem="9rE-on-dbC" secondAttribute="bottom" constant="98" id="tzH-EL-0Cq"/>
-                            <constraint firstAttribute="trailing" secondItem="g8w-6P-vre" secondAttribute="trailing" id="uEe-0I-cjJ"/>
-                            <constraint firstItem="dfF-Sk-vFP" firstAttribute="top" secondItem="g8w-6P-vre" secondAttribute="bottom" id="y8W-3J-Lgz"/>
+                            <constraint firstItem="2Lk-4P-Yse" firstAttribute="trailing" secondItem="iFe-Ke-XMe" secondAttribute="trailing" id="dKl-dr-Sp6"/>
+                            <constraint firstItem="g8w-6P-vre" firstAttribute="top" secondItem="2Lk-4P-Yse" secondAttribute="top" constant="98" id="tzH-EL-0Cq"/>
+                            <constraint firstItem="2Lk-4P-Yse" firstAttribute="trailing" secondItem="g8w-6P-vre" secondAttribute="trailing" id="uEe-0I-cjJ"/>
+                            <constraint firstItem="2Lk-4P-Yse" firstAttribute="bottom" secondItem="g8w-6P-vre" secondAttribute="bottom" id="y8W-3J-Lgz"/>
                             <constraint firstItem="69l-jj-b4O" firstAttribute="centerY" secondItem="g8w-6P-vre" secondAttribute="centerY" id="zsM-uV-C4L"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="2Lk-4P-Yse"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="LCX-Dv-vmr"/>
@@ -2108,7 +2070,7 @@ Web site: www.countrysidebible.org</string>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="4uc-8a-zXE"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Gvh-Gc-vL7">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2127,7 +2089,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="OfT-c7-OZU">
-                        <rect key="frame" x="0.0" y="20" width="703.5" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2142,37 +2104,34 @@ Web site: www.countrysidebible.org</string>
         <!--Popover Picker View Controller-->
         <scene sceneID="sEA-lJ-0Ch">
             <objects>
-                <viewController id="aqP-Ze-2L2" customClass="PopoverPickerViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="0N2-ff-vRm"/>
-                        <viewControllerLayoutGuide type="bottom" id="wdT-XU-ePq"/>
-                    </layoutGuides>
+                <viewController automaticallyAdjustsScrollViewInsets="NO" id="aqP-Ze-2L2" customClass="PopoverPickerViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="t4v-6f-9FS">
-                        <rect key="frame" x="0.0" y="0.0" width="1024" height="698"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VVz-bi-PtG">
-                                <rect key="frame" x="0.0" y="0.0" width="1024" height="698"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <connections>
                                     <outlet property="dataSource" destination="aqP-Ze-2L2" id="THR-Kq-ok9"/>
                                     <outlet property="delegate" destination="aqP-Ze-2L2" id="ujg-Fu-fEM"/>
                                 </connections>
                             </pickerView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="XYS-iT-MXI">
-                                <rect key="frame" x="493.5" y="330.5" width="37" height="37"/>
+                                <rect key="frame" x="141.5" y="233.5" width="37" height="37"/>
                                 <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="XYS-iT-MXI" firstAttribute="centerY" secondItem="t4v-6f-9FS" secondAttribute="centerY" id="4Dr-Rf-pwJ"/>
-                            <constraint firstItem="XYS-iT-MXI" firstAttribute="centerX" secondItem="t4v-6f-9FS" secondAttribute="centerX" id="5n6-6j-e8c"/>
-                            <constraint firstItem="wdT-XU-ePq" firstAttribute="top" secondItem="VVz-bi-PtG" secondAttribute="bottom" id="FbD-Zm-DJR"/>
-                            <constraint firstItem="VVz-bi-PtG" firstAttribute="top" secondItem="0N2-ff-vRm" secondAttribute="bottom" id="IBW-nQ-SC5"/>
-                            <constraint firstItem="VVz-bi-PtG" firstAttribute="centerX" secondItem="t4v-6f-9FS" secondAttribute="centerX" id="RzB-pS-qzd"/>
-                            <constraint firstItem="VVz-bi-PtG" firstAttribute="leading" secondItem="t4v-6f-9FS" secondAttribute="leading" id="d2P-ih-O9j"/>
-                            <constraint firstAttribute="trailing" secondItem="VVz-bi-PtG" secondAttribute="trailing" id="d4c-Fa-os0"/>
+                            <constraint firstItem="XYS-iT-MXI" firstAttribute="centerX" secondItem="c4P-JG-STO" secondAttribute="centerX" id="5n6-6j-e8c"/>
+                            <constraint firstItem="c4P-JG-STO" firstAttribute="bottom" secondItem="VVz-bi-PtG" secondAttribute="bottom" id="FbD-Zm-DJR"/>
+                            <constraint firstItem="VVz-bi-PtG" firstAttribute="top" secondItem="c4P-JG-STO" secondAttribute="top" id="IBW-nQ-SC5"/>
+                            <constraint firstItem="VVz-bi-PtG" firstAttribute="centerX" secondItem="c4P-JG-STO" secondAttribute="centerX" id="RzB-pS-qzd"/>
+                            <constraint firstItem="VVz-bi-PtG" firstAttribute="leading" secondItem="c4P-JG-STO" secondAttribute="leading" id="d2P-ih-O9j"/>
+                            <constraint firstItem="c4P-JG-STO" firstAttribute="trailing" secondItem="VVz-bi-PtG" secondAttribute="trailing" id="d4c-Fa-os0"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="c4P-JG-STO"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="tEU-kY-gEg"/>
@@ -2192,7 +2151,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="5DQ-Us-xdI">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2211,7 +2170,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="aCW-cS-M3H">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2227,29 +2186,25 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="PAK-N0-vs8">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="aaa-Ll-LYa" customClass="WebViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="i9Y-RI-mM4"/>
-                        <viewControllerLayoutGuide type="bottom" id="sSl-Kf-RVh"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="zgz-12-4k5">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="364.5"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="318"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zOR-Bo-b5Q" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="20" width="600" height="324.5"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="318"/>
                                 <subviews>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="yDC-gB-XdD">
-                                        <rect key="frame" x="281.5" y="144" width="37" height="37"/>
+                                        <rect key="frame" x="141.5" y="140.5" width="37" height="37"/>
                                         <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="qrD-FV-X2j">
-                                        <rect key="frame" x="225" y="161.5" width="150" height="2"/>
+                                        <rect key="frame" x="85" y="158" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="0LC-Px-yJa"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="2ws-5f-m41">
-                                        <rect key="frame" x="160.5" y="126.5" width="279" height="72"/>
+                                        <rect key="frame" x="20.5" y="123" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -2268,11 +2223,12 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="zOR-Bo-b5Q" secondAttribute="trailing" id="TlM-hV-Ipj"/>
+                            <constraint firstItem="1tc-WR-SXx" firstAttribute="trailing" secondItem="zOR-Bo-b5Q" secondAttribute="trailing" id="TlM-hV-Ipj"/>
                             <constraint firstItem="zOR-Bo-b5Q" firstAttribute="centerY" secondItem="zgz-12-4k5" secondAttribute="centerY" id="cH9-pg-KUb"/>
-                            <constraint firstItem="zOR-Bo-b5Q" firstAttribute="leading" secondItem="zgz-12-4k5" secondAttribute="leading" id="yvg-QP-sAQ"/>
-                            <constraint firstItem="zOR-Bo-b5Q" firstAttribute="top" secondItem="i9Y-RI-mM4" secondAttribute="bottom" id="zIQ-2W-uf9"/>
+                            <constraint firstItem="zOR-Bo-b5Q" firstAttribute="leading" secondItem="1tc-WR-SXx" secondAttribute="leading" id="yvg-QP-sAQ"/>
+                            <constraint firstItem="zOR-Bo-b5Q" firstAttribute="top" secondItem="1tc-WR-SXx" secondAttribute="top" id="zIQ-2W-uf9"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="1tc-WR-SXx"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" id="lR0-Wh-QJH"/>
@@ -2285,7 +2241,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pLR-iq-BTO" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1817" y="-259"/>
+            <point key="canvasLocation" x="1652" y="-204"/>
         </scene>
         <!--WebView NavBar-->
         <scene sceneID="VhB-bd-2P2">
@@ -2294,7 +2250,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Fw4-67-qAB">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2304,7 +2260,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SlQ-fk-vmo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="896" y="-259"/>
+            <point key="canvasLocation" x="602" y="-190"/>
         </scene>
         <!--Settings Navigation Controller-->
         <scene sceneID="P0e-f4-mkI">
@@ -2316,7 +2272,7 @@ Web site: www.countrysidebible.org</string>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="250" height="475"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="4zB-LF-JlQ">
-                        <rect key="frame" x="0.0" y="20" width="250" height="50"/>
+                        <rect key="frame" x="0.0" y="0.0" width="250" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2332,22 +2288,18 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="l6c-mP-mmA">
             <objects>
                 <viewController title="Scripture Index" automaticallyAdjustsScrollViewInsets="NO" id="Aee-xE-ARq" userLabel="Scripture" customClass="ScriptureViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="bw7-Gk-GL1"/>
-                        <viewControllerLayoutGuide type="bottom" id="giL-Us-1VS"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="Fsl-H1-JuA">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="530"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select the New or Old Testament, then a book, then chapter." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qcl-au-baW" userLabel="Scripture Directions">
-                                <rect key="frame" x="20" y="20" width="560" height="20.5"/>
+                                <rect key="frame" x="16" y="20" width="288" height="41"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="X57-KO-3fC">
-                                <rect key="frame" x="0.0" y="40.5" width="600" height="125"/>
+                                <rect key="frame" x="0.0" y="61" width="320" height="125"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="125" id="GXP-Z2-amM"/>
                                 </constraints>
@@ -2357,7 +2309,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </pickerView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2Or-rs-f6C">
-                                <rect key="frame" x="0.0" y="165.5" width="600" height="364.5"/>
+                                <rect key="frame" x="0.0" y="186" width="320" height="318"/>
                                 <connections>
                                     <segue destination="aaa-Ll-LYa" kind="embed" identifier="Show Web View" id="aB1-TK-hgY"/>
                                 </connections>
@@ -2365,18 +2317,19 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="2Or-rs-f6C" firstAttribute="bottom" secondItem="giL-Us-1VS" secondAttribute="top" id="0o1-4l-9v3"/>
-                            <constraint firstItem="X57-KO-3fC" firstAttribute="leading" secondItem="Fsl-H1-JuA" secondAttribute="leading" id="3MN-QZ-BFk"/>
+                            <constraint firstItem="2Or-rs-f6C" firstAttribute="bottom" secondItem="0ZK-DQ-KkA" secondAttribute="bottom" id="0o1-4l-9v3"/>
+                            <constraint firstItem="X57-KO-3fC" firstAttribute="leading" secondItem="0ZK-DQ-KkA" secondAttribute="leading" id="3MN-QZ-BFk"/>
                             <constraint firstItem="X57-KO-3fC" firstAttribute="top" secondItem="qcl-au-baW" secondAttribute="bottom" constant="8" symbolic="YES" id="4q3-i4-lh6"/>
                             <constraint firstAttribute="trailingMargin" secondItem="qcl-au-baW" secondAttribute="trailing" id="93R-4P-bjq"/>
                             <constraint firstItem="X57-KO-3fC" firstAttribute="top" secondItem="qcl-au-baW" secondAttribute="bottom" id="QIB-Uj-ewh"/>
-                            <constraint firstAttribute="trailing" secondItem="X57-KO-3fC" secondAttribute="trailing" id="cbO-Qo-keL"/>
+                            <constraint firstItem="0ZK-DQ-KkA" firstAttribute="trailing" secondItem="X57-KO-3fC" secondAttribute="trailing" id="cbO-Qo-keL"/>
                             <constraint firstItem="2Or-rs-f6C" firstAttribute="top" secondItem="X57-KO-3fC" secondAttribute="bottom" id="l2t-ph-xen"/>
                             <constraint firstItem="qcl-au-baW" firstAttribute="leading" secondItem="Fsl-H1-JuA" secondAttribute="leadingMargin" id="poE-2I-YAp"/>
                             <constraint firstItem="qcl-au-baW" firstAttribute="top" secondItem="Fsl-H1-JuA" secondAttribute="top" constant="20" symbolic="YES" id="qmC-b9-CDt"/>
-                            <constraint firstAttribute="trailing" secondItem="2Or-rs-f6C" secondAttribute="trailing" id="rfd-8J-SYE"/>
-                            <constraint firstItem="2Or-rs-f6C" firstAttribute="leading" secondItem="Fsl-H1-JuA" secondAttribute="leading" id="zcN-pN-CwV"/>
+                            <constraint firstItem="0ZK-DQ-KkA" firstAttribute="trailing" secondItem="2Or-rs-f6C" secondAttribute="trailing" id="rfd-8J-SYE"/>
+                            <constraint firstItem="2Or-rs-f6C" firstAttribute="leading" secondItem="0ZK-DQ-KkA" secondAttribute="leading" id="zcN-pN-CwV"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="0ZK-DQ-KkA"/>
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="4q3-i4-lh6"/>
@@ -2385,8 +2338,6 @@ Web site: www.countrysidebible.org</string>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Scripture" id="auo-WY-z4J"/>
-                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="600" height="600"/>
                     <connections>
                         <outlet property="directionLabel" destination="qcl-au-baW" id="Gs1-uA-oAd"/>
                         <outlet property="scripturePicker" destination="X57-KO-3fC" id="CV9-JV-WNX"/>
@@ -2394,7 +2345,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Rkh-vM-RF9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1817" y="923"/>
+            <point key="canvasLocation" x="1819" y="495"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="YAt-yj-IPk">
@@ -2403,7 +2354,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="DTQ-fe-ZBa">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2418,13 +2369,9 @@ Web site: www.countrysidebible.org</string>
         <!--Lexicon Index-->
         <scene sceneID="YHj-Wl-3ip">
             <objects>
-                <viewController storyboardIdentifier="Lexicon Index" title="Lexicon Index Old" id="3Dc-QY-O2e" userLabel="Lexicon Index" customClass="LexiconIndexViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="CUU-sY-hy7"/>
-                        <viewControllerLayoutGuide type="bottom" id="Va6-mQ-aBq"/>
-                    </layoutGuides>
+                <viewController storyboardIdentifier="Lexicon Index" title="Lexicon Index" automaticallyAdjustsScrollViewInsets="NO" hidesBottomBarWhenPushed="YES" id="3Dc-QY-O2e" userLabel="Lexicon Index" customClass="LexiconIndexViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="vlo-ne-tIt">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="530"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Select a word to find related media." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wFg-Do-qyZ">
@@ -2434,7 +2381,7 @@ Web site: www.countrysidebible.org</string>
                                 <nil key="highlightedColor"/>
                             </label>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0i9-DK-n2A">
-                                <rect key="frame" x="0.0" y="36.5" width="600" height="362.5"/>
+                                <rect key="frame" x="0.0" y="36.5" width="320" height="362.5"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="362.66666666666669" id="Ylg-kh-VNF"/>
                                 </constraints>
@@ -2448,7 +2395,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </containerView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jMg-Og-maX" userLabel="Locate View">
-                                <rect key="frame" x="0.0" y="344" width="600" height="40"/>
+                                <rect key="frame" x="0.0" y="318" width="320" height="40"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="ycZ-zi-bn1" userLabel="Selected Label">
                                         <rect key="frame" x="8" y="8" width="0.0" height="24"/>
@@ -2491,24 +2438,24 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </view>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="G5M-pO-tba">
-                                <rect key="frame" x="290" y="208" width="20" height="20"/>
+                                <rect key="frame" x="150" y="208" width="20" height="20"/>
                             </activityIndicatorView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="87d-zJ-TEW">
-                                <rect key="frame" x="0.0" y="384" width="600" height="146"/>
+                                <rect key="frame" x="0.0" y="358" width="320" height="146"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="146" id="WEj-cT-VmX"/>
                                 </constraints>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="600" height="100"/>
+                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="1" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Lb7-Td-pZZ" id="GgB-Ff-LPp">
-                                            <rect key="frame" x="0.0" y="0.0" width="600" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q0U-i7-ChV">
-                                                    <rect key="frame" x="20" y="4" width="576" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="856" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="Js2-n8-Mgq"/>
                                                     </constraints>
@@ -2522,25 +2469,25 @@ Web site: www.countrysidebible.org</string>
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OXz-ER-jY2" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="576" height="30"/>
+                                                    <rect key="frame" x="20" y="65.5" width="856" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mqs-L6-uck">
-                                                    <rect key="frame" x="20" y="67.5" width="576" height="30"/>
+                                                    <rect key="frame" x="20" y="67.5" width="856" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a6p-xn-ies">
-                                                    <rect key="frame" x="598" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="878" y="97.5" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="R0F-oJ-ptu">
-                                                    <rect key="frame" x="20" y="97.5" width="580" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="860" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
                                                     <rect key="frame" x="20" y="97.5" width="0.0" height="0.0"/>
@@ -2584,7 +2531,7 @@ Web site: www.countrysidebible.org</string>
                                             <outlet property="downloadProgressBar" destination="R0F-oJ-ptu" id="ErP-BA-uFf"/>
                                             <outlet property="icons" destination="a6p-xn-ies" id="a84-DM-d2B"/>
                                             <outlet property="title" destination="Q0U-i7-ChV" id="hav-Ic-cAK"/>
-                                            <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show Index MediaItem" id="NuF-4c-qdF"/>
+                                            <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show Index MediaItem" id="IN6-El-hW4"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -2602,31 +2549,33 @@ Web site: www.countrysidebible.org</string>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <gestureRecognizers/>
                         <constraints>
-                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" constant="8" id="1Mi-aV-rbC"/>
+                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="leading" secondItem="E8b-gH-64z" secondAttribute="leading" constant="8" id="1Mi-aV-rbC"/>
                             <constraint firstItem="G5M-pO-tba" firstAttribute="centerY" secondItem="0i9-DK-n2A" secondAttribute="centerY" id="35v-vO-M1u"/>
-                            <constraint firstItem="87d-zJ-TEW" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" id="4H9-Dl-ALr"/>
-                            <constraint firstItem="jMg-Og-maX" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" id="5c9-9z-ZI0"/>
-                            <constraint firstItem="0i9-DK-n2A" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" id="7h1-yg-FsQ"/>
+                            <constraint firstItem="87d-zJ-TEW" firstAttribute="leading" secondItem="E8b-gH-64z" secondAttribute="leading" id="4H9-Dl-ALr"/>
+                            <constraint firstItem="jMg-Og-maX" firstAttribute="leading" secondItem="E8b-gH-64z" secondAttribute="leading" id="5c9-9z-ZI0"/>
+                            <constraint firstItem="0i9-DK-n2A" firstAttribute="leading" secondItem="E8b-gH-64z" secondAttribute="leading" id="7h1-yg-FsQ"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="top" secondItem="jMg-Og-maX" secondAttribute="bottom" id="9Zg-3B-5SV"/>
                             <constraint firstItem="wFg-Do-qyZ" firstAttribute="top" secondItem="vlo-ne-tIt" secondAttribute="top" constant="8" id="AKv-WE-7Qu"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="trailing" secondItem="87d-zJ-TEW" secondAttribute="leading" id="Fqj-wf-aMp"/>
-                            <constraint firstAttribute="trailing" secondItem="87d-zJ-TEW" secondAttribute="trailing" id="HoC-1I-jPY"/>
-                            <constraint firstItem="87d-zJ-TEW" firstAttribute="bottom" secondItem="Va6-mQ-aBq" secondAttribute="top" id="IY0-Gj-1gB"/>
+                            <constraint firstItem="E8b-gH-64z" firstAttribute="trailing" secondItem="87d-zJ-TEW" secondAttribute="trailing" id="HoC-1I-jPY"/>
+                            <constraint firstItem="87d-zJ-TEW" firstAttribute="bottom" secondItem="E8b-gH-64z" secondAttribute="bottom" id="IY0-Gj-1gB"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="width" secondItem="87d-zJ-TEW" secondAttribute="width" id="SZ7-Cv-aby"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="top" secondItem="wFg-Do-qyZ" secondAttribute="bottom" constant="8" id="Yvf-cE-kMe"/>
-                            <constraint firstItem="jMg-Og-maX" firstAttribute="top" secondItem="CUU-sY-hy7" secondAttribute="bottom" id="aAo-qp-RUy"/>
+                            <constraint firstItem="jMg-Og-maX" firstAttribute="top" secondItem="E8b-gH-64z" secondAttribute="top" id="aAo-qp-RUy"/>
                             <constraint firstItem="G5M-pO-tba" firstAttribute="centerX" secondItem="0i9-DK-n2A" secondAttribute="centerX" id="b5r-Jx-GD2"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="top" secondItem="jMg-Og-maX" secondAttribute="bottom" id="ela-Es-RzQ"/>
-                            <constraint firstItem="Va6-mQ-aBq" firstAttribute="top" secondItem="0i9-DK-n2A" secondAttribute="bottom" id="f4l-NH-H0I"/>
+                            <constraint firstItem="E8b-gH-64z" firstAttribute="bottom" secondItem="0i9-DK-n2A" secondAttribute="bottom" id="f4l-NH-H0I"/>
                             <constraint firstItem="jMg-Og-maX" firstAttribute="leading" secondItem="0i9-DK-n2A" secondAttribute="trailing" id="jed-4m-NM7"/>
-                            <constraint firstItem="0i9-DK-n2A" firstAttribute="top" secondItem="CUU-sY-hy7" secondAttribute="bottom" constant="36.5" id="leC-PP-Qht"/>
-                            <constraint firstAttribute="trailing" secondItem="0i9-DK-n2A" secondAttribute="trailing" id="lhh-lr-Fhq"/>
-                            <constraint firstAttribute="trailing" secondItem="jMg-Og-maX" secondAttribute="trailing" id="sdl-nE-TFF"/>
+                            <constraint firstItem="0i9-DK-n2A" firstAttribute="top" secondItem="E8b-gH-64z" secondAttribute="top" constant="36.5" id="leC-PP-Qht"/>
+                            <constraint firstItem="E8b-gH-64z" firstAttribute="trailing" secondItem="0i9-DK-n2A" secondAttribute="trailing" id="lhh-lr-Fhq"/>
+                            <constraint firstItem="E8b-gH-64z" firstAttribute="trailing" secondItem="jMg-Og-maX" secondAttribute="trailing" id="sdl-nE-TFF"/>
                             <constraint firstItem="jMg-Og-maX" firstAttribute="top" secondItem="0i9-DK-n2A" secondAttribute="bottom" id="wLX-xL-swV"/>
-                            <constraint firstItem="87d-zJ-TEW" firstAttribute="top" secondItem="CUU-sY-hy7" secondAttribute="bottom" constant="390" id="xDq-Q9-4W3"/>
+                            <constraint firstItem="87d-zJ-TEW" firstAttribute="top" secondItem="E8b-gH-64z" secondAttribute="top" constant="390" id="xDq-Q9-4W3"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="E8b-gH-64z"/>
                         <variation key="default">
                             <mask key="constraints">
+                                <exclude reference="f4l-NH-H0I"/>
                                 <exclude reference="Fqj-wf-aMp"/>
                                 <exclude reference="SZ7-Cv-aby"/>
                                 <exclude reference="aAo-qp-RUy"/>
@@ -2634,7 +2583,6 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="wLX-xL-swV"/>
                                 <exclude reference="9Zg-3B-5SV"/>
                                 <exclude reference="xDq-Q9-4W3"/>
-                                <exclude reference="f4l-NH-H0I"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact">
@@ -2644,9 +2592,10 @@ Web site: www.countrysidebible.org</string>
                         </variation>
                         <variation key="heightClass=compact-widthClass=compact">
                             <mask key="constraints">
+                                <include reference="f4l-NH-H0I"/>
+                                <exclude reference="lhh-lr-Fhq"/>
                                 <include reference="Fqj-wf-aMp"/>
                                 <include reference="SZ7-Cv-aby"/>
-                                <exclude reference="lhh-lr-Fhq"/>
                                 <exclude reference="5c9-9z-ZI0"/>
                                 <include reference="aAo-qp-RUy"/>
                                 <include reference="jed-4m-NM7"/>
@@ -2654,14 +2603,11 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="4H9-Dl-ALr"/>
                                 <include reference="9Zg-3B-5SV"/>
                                 <exclude reference="ela-Es-RzQ"/>
-                                <include reference="f4l-NH-H0I"/>
                             </mask>
                         </variation>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Lexicon Index" id="FjK-pW-5Zu"/>
-                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="600" height="600"/>
                     <connections>
                         <outlet property="container" destination="0i9-DK-n2A" id="afe-3m-1Jp"/>
                         <outlet property="directionLabel" destination="wFg-Do-qyZ" id="WcX-kx-AUl"/>
@@ -2692,7 +2638,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Xi2-CU-xWv">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2711,7 +2657,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="ghH-gd-ksd">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2730,7 +2676,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translucent="NO" id="Iy5-Ed-dTl">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2748,7 +2694,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController storyboardIdentifier="Word Cloud 1" automaticallyAdjustsScrollViewInsets="NO" id="CIf-Ni-xV7" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translucent="NO" id="nH9-TS-q6I">
-                        <rect key="frame" x="0.0" y="20" width="1024" height="50"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -2765,7 +2711,7 @@ Web site: www.countrysidebible.org</string>
     <inferredMetricsTieBreakers>
         <segue reference="Ssd-jc-3ar"/>
         <segue reference="aB1-TK-hgY"/>
-        <segue reference="qdL-rt-Y5i"/>
+        <segue reference="h1S-N1-N0w"/>
         <segue reference="viU-Ce-4kR"/>
         <segue reference="lht-fN-efO"/>
     </inferredMetricsTieBreakers>

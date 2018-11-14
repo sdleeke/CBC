@@ -399,8 +399,16 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 self.tableView.setEditing(false, animated: true)
             }
             
-            if tableViewHeightConstraint.constant == view.bounds.height {
-                tableViewHeightConstraint.constant = view.bounds.height - tableView.rowHeight
+            var bounds = view.bounds
+            
+            if #available(iOS 11.0, *) {
+                bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            } else {
+                // Fallback on earlier versions
+            }
+            
+            if tableViewHeightConstraint.constant == bounds.height {
+                tableViewHeightConstraint.constant = bounds.height - tableView.rowHeight
             }
             break
             
@@ -575,7 +583,8 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewDidLayoutSubviews()
         
-        setTableViewHeightConstraint(change:0)
+        // This wrecks havoc on push.  Not sure why it was put here.
+//        setTableViewHeightConstraint(change:0)
     }
     
     func setTableViewHeightConstraint(change:CGFloat)
@@ -594,7 +603,15 @@ class LexiconIndexViewController : UIViewController
 
         var maxHeight:CGFloat = 200
         
-        let wordsTableViewControllerSpace = self.view.bounds.height - container.frame.origin.y
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        let wordsTableViewControllerSpace = bounds.height - container.frame.origin.y
         
         if searchText == nil {
             maxHeight = wordsTableViewControllerSpace
@@ -606,7 +623,7 @@ class LexiconIndexViewController : UIViewController
         
         let resultsMinimum = searchText != nil ? tableView.rowHeight : 0
         
-        let resultsTableViewSpace = self.view.bounds.height - resultsOverhead
+        let resultsTableViewSpace = bounds.height - resultsOverhead
         
         if (newConstraintConstant >= resultsMinimum) && (newConstraintConstant <= resultsTableViewSpace) {
             constant = newConstraintConstant
@@ -641,7 +658,16 @@ class LexiconIndexViewController : UIViewController
     
     func resetConstraint()
     {
-        tableViewHeightConstraint.constant = view.bounds.height / 2
+        
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        tableViewHeightConstraint.constant = bounds.height / 2
         setTableViewHeightConstraint(change: 0)
     }
     
@@ -1569,7 +1595,9 @@ class LexiconIndexViewController : UIViewController
     func updateToolbar()
     {
         guard tableView.numberOfSections > 1  else {
-            self.navigationController?.isToolbarHidden = true //, animated: true)
+            if self.navigationController?.visibleViewController == self {
+                self.navigationController?.isToolbarHidden = true //, animated: true)
+            }
             return
         }
 
@@ -1577,7 +1605,10 @@ class LexiconIndexViewController : UIViewController
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)
-        self.navigationController?.isToolbarHidden = false
+        
+        if self.navigationController?.visibleViewController == self {
+            self.navigationController?.isToolbarHidden = false
+        }
         
 //        if let isToolbarHidden = navigationController?.isToolbarHidden, let height = navigationController?.toolbar.frame.height {
 //            let height = self.view.bounds.height + (!isToolbarHidden ? height : 0)
@@ -1831,9 +1862,17 @@ extension LexiconIndexViewController : UITableViewDataSource
             label.translatesAutoresizingMaskIntoConstraints = false
             
             view?.addSubview(label)
+
+            if let superview = label.superview {
+                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+                label.superview?.addConstraint(centerY)
+                
+                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+                label.superview?.addConstraint(leftMargin)
+            }
             
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
             view?.label = label
         }

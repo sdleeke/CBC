@@ -91,12 +91,12 @@ class Document : NSObject
         return fetchData
     }()
 
-    var data : Data?
-    {
-        get {
-            return fetchData.result
-        }
-    }
+//    var data : Data?
+//    {
+//        get {
+//            return fetchData.result
+//        }
+//    }
     
     var download:Download?
     {

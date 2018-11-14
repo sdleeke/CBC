@@ -269,8 +269,6 @@ class AboutViewController: UIViewController
     {
         super.viewDidLoad()
         
-        navigationController?.isToolbarHidden = true
-
         setupActionButton()
     }
     
@@ -330,9 +328,7 @@ class AboutViewController: UIViewController
         
         setVersion()
         
-        if self.navigationController?.visibleViewController == self {
-            self.navigationController?.isToolbarHidden = true
-        }
+        self.navigationController?.isToolbarHidden = true
         
         setDVCLeftBarButton()
         

@@ -1466,18 +1466,8 @@ class WebViewController: UIViewController
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        
-        navigationController?.isToolbarHidden = true
-
-        logo.isHidden = true
-        
         setupActionButton()
-        
         setupWKWebView()
-        
-        webView.bringSubview(toFront: activityIndicator)
-        
-        progressIndicator.isHidden = content == .html
     }
     
     var download : Download?
@@ -1609,6 +1599,10 @@ class WebViewController: UIViewController
     
     @objc func setPreferredContentSize()
     {
+        guard navigationController?.modalPresentationStyle == .popover else {
+            return
+        }
+        
         guard let title = navigationItem.title?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE),
                 let size = wkWebView?.scrollView.contentSize else {
             return
@@ -1870,6 +1864,14 @@ class WebViewController: UIViewController
 //            activityButtonIndicator.startAnimating()
 //        }
         
+        navigationController?.isToolbarHidden = true
+        
+        logo.isHidden = true
+        
+        webView.bringSubview(toFront: activityIndicator)
+        
+        progressIndicator.isHidden = content == .html
+
         orientation = UIDevice.current.orientation
 
         if let title = mediaItem?.title {
