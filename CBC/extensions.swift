@@ -710,6 +710,29 @@ extension URL
             }
         }
     }
+
+    var copy : URL?
+    {
+        guard let fileSystemURL = self.fileSystemURL else {
+            return nil
+        }
+        
+        if FileManager.default.fileExists(atPath: fileSystemURL.path) {
+            do {
+                try FileManager.default.removeItem(at: fileSystemURL)
+            } catch let error as NSError {
+                print("failed to remove download: \(error.localizedDescription)")
+            }
+        }
+        
+        do {
+            try FileManager.default.copyItem(at: self, to: fileSystemURL)
+            return fileSystemURL
+        } catch let error as NSError {
+            print("failed to copy download: \(error.localizedDescription)") // remove
+            return nil
+        }
+    }
     
     var data : Data?
     {

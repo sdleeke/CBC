@@ -1766,10 +1766,13 @@ class MediaViewController: UIViewController
         
         minConstraintConstant = (tableView.rowHeight * minRows) + controlView.frame.height
 
-        let navHeight = navigationController?.navigationBar.frame.height ?? 0
+//        let navHeight = navigationController?.navigationBar.frame.height ?? 0
         
         // This assumes the view goes under top bars, incl. opaque.
-        maxConstraintConstant = height // - navHeight - UIApplication.shared.statusBarFrame.height
+        
+//        maxConstraintConstant = min(CGFloat(mediaItems?.count ?? 0) * tableView.rowHeight,height - controlView.frame.height)
+
+        maxConstraintConstant = height // - controlView.frame.height // - UIApplication.shared.statusBarFrame.height // - navHeight
 
         return (minConstraintConstant,maxConstraintConstant)
     }
@@ -1783,7 +1786,7 @@ class MediaViewController: UIViewController
         var bounds = view.bounds
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
         } else {
             // Fallback on earlier versions
         }
@@ -1897,8 +1900,18 @@ class MediaViewController: UIViewController
             return
         }
         
-        setTableViewWidth(width: self.view.bounds.size.width / 2)
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        setTableViewWidth(width: bounds.size.width / 2)
+        
         captureHorizontalSplit()
+        
         self.view.setNeedsLayout()
     }
     @IBAction func hSlidePan(_ pan: UIPanGestureRecognizer)
@@ -3551,71 +3564,88 @@ class MediaViewController: UIViewController
         guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
             return
         }
-        
+
         guard let document = document else {
             return
         }
-    
-        guard let wkWebView = wkWebView else {
+
+        guard let purpose = document.purpose else {
             return
         }
         
-        var contentOffsetX:Float = 0.0
-        var contentOffsetY:Float = 0.0
-        
-        if let purpose = document.purpose, let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
-            if let num = Float(x) {
-                contentOffsetX = num
+        guard let wkWebView = wkWebView else {
+            return
+        }
+
+        var contentOffsetX:Double? // = 0.0
+        var contentOffsetY:Double? // = 0.0
+
+        var zoomScale:Double?
+
+        if  let zoomScaleStr = selectedMediaItem.mediaItemSettings?[purpose + Constants.ZOOM_SCALE] {
+            if let num = Double(zoomScaleStr) {
+                zoomScale = num
             }
         }
         
-        if let purpose = document.purpose, let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
-            if let num = Float(y) {
-                contentOffsetY = num
-            }
+        if let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
+            if let num = Double(x) {
+                contentOffsetX = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
+            }//  != 0 ? zoomScale : 1
+        }
+
+        if let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
+            if let num = Double(y) {
+                contentOffsetY = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
+            } //  != 0 ? zoomScale : 1
         }
         
-        let contentOffset = CGPoint(
-            x: CGFloat(contentOffsetX),
-            y: CGFloat(contentOffsetY))
-        
-        Thread.onMainThread {
-            wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
+        if let contentOffsetX = contentOffsetX, let contentOffsetY = contentOffsetY {
+            let contentOffset = CGPoint(
+                x: CGFloat(contentOffsetX),
+                y: CGFloat(contentOffsetY))
+            
+            Thread.onMainThread {
+                wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
+            }
         }
     }
     
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
-    {
-        super.viewWillTransition(to: size, with: coordinator)
-  
-//        self.wkWebView?.isHidden = true
-
-        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+//    {
+//        super.viewWillTransition(to: size, with: coordinator)
+//
+////        self.wkWebView?.isHidden = true
+//
+//        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            self.setupWKContentOffsets()
-
-//            if self.videoLocation == .withTableView {
-//                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
-//            } else {
-//                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-//            }
+//
+////            if self.videoLocation == .withTableView {
+////                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+////            } else {
+////                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+////            }
+////
 //
 //            self.updateUI()
-        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            self.setupWKContentOffsets()
-//            self.wkWebView?.isHidden = false
-            self.updateUI()
-        }
-    }
+//
+////            self.wkWebView?.isHidden = false
+//
+//            self.updateUI()
+//        }
+//    }
     
-    func ratioForSplitView(_ sender: UIView) -> CGFloat?
+    func constantForSplitView(_ sender: UIView) -> CGFloat?
     {
-        var ratio:CGFloat?
+        var constant:CGFloat?
         
         if let verticalSplit = selectedMediaItem?.verticalSplit, let num = Float(verticalSplit) {
-            ratio = CGFloat(num)
+            constant = CGFloat(num)
         }
 
-        return ratio
+        return constant
     }
     
     func ratioForSlideView() -> CGFloat?
@@ -3635,9 +3665,15 @@ class MediaViewController: UIViewController
             return
         }
         
-        if let view = self.view {
-            tableViewWidth.constant = view.bounds.size.width / 2
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
         }
+        
+        tableViewWidth.constant = bounds.size.width / 2
     }
     
     func setTableViewWidth(width:CGFloat)
@@ -3648,8 +3684,16 @@ class MediaViewController: UIViewController
         
         let min:CGFloat = 0.0
         
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
         // if max is allowed to be self.view.bounds.size.width the app will crash because the tableViewWidth constraint will force the slides to be zero width and somewhere between a value like 60 and zero the crash occurs.  If the video is swapped with the slides by a long press when the video is full width there is no crash, so something about the value goint to zero causes a crash so 60 is an arbitrary deduction to keep the min width of the left to be more than zero while the pan is occuring either in the video on the RHS or the view along the bottom.
-        let max:CGFloat = self.view.bounds.size.width - 60.0
+        let max:CGFloat = bounds.size.width - 60.0
         
         if (width >= min) && (width < max) {
             tableViewWidth.constant = width
@@ -3678,7 +3722,7 @@ class MediaViewController: UIViewController
         var height = bounds.height
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
             height = bounds.height
         } else {
             // Fallback on earlier versions
@@ -3712,10 +3756,18 @@ class MediaViewController: UIViewController
             return
         }
         
-        if let ratio = ratioForSlideView() {
-            setTableViewWidth(width: self.view.bounds.width * ratio)
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
         } else {
-            setTableViewWidth(width: self.view.bounds.width / 2)
+            // Fallback on earlier versions
+        }
+        
+        if let ratio = ratioForSlideView() {
+            setTableViewWidth(width: bounds.width * ratio)
+        } else {
+            setTableViewWidth(width: bounds.width / 2)
         }
         
         self.view.setNeedsLayout()
@@ -3732,23 +3784,19 @@ class MediaViewController: UIViewController
         }
         
         var bounds = view.bounds
-//        var height = bounds.height
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
-//            height = bounds.height
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
         } else {
             // Fallback on earlier versions
-            // This assumes the view goes under top bars, incl. opaque.
-//            height -= navigationController!.navigationBar.frame.height + UIApplication.shared.statusBarFrame.height
         }
         
         var newConstraintConstant:CGFloat = 0
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(bounds.height)
         
-        if let ratio = ratioForSplitView(verticalSplit) {
-            newConstraintConstant = bounds.height * ratio
+        if let constant = constantForSplitView(verticalSplit) {
+            newConstraintConstant = constant // * bounds.height
         } else {
             if let count = mediaItems?.count {
                 let numberOfAdditionalRows = CGFloat(count)
@@ -3763,8 +3811,13 @@ class MediaViewController: UIViewController
         if (newConstraintConstant >= minConstraintConstant) && (newConstraintConstant <= maxConstraintConstant) {
             self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
         } else {
-            if newConstraintConstant < minConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = minConstraintConstant }
-            if newConstraintConstant > maxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = maxConstraintConstant }
+            if newConstraintConstant < minConstraintConstant {
+                self.mediaItemNotesAndSlidesConstraint.constant = minConstraintConstant
+            }
+            
+            if newConstraintConstant > maxConstraintConstant {
+                self.mediaItemNotesAndSlidesConstraint.constant = maxConstraintConstant
+            }
         }
         
         self.view.setNeedsLayout()
@@ -4238,10 +4291,6 @@ class MediaViewController: UIViewController
     
     fileprivate func captureVerticalSplit()
     {
-        guard view.bounds.height > 0 else {
-            return
-        }
-        
         guard view.subviews.contains(verticalSplit) else {
             return
         }
@@ -4257,14 +4306,18 @@ class MediaViewController: UIViewController
         var bounds = view.bounds
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
         } else {
             // Fallback on earlier versions
         }
         
-        let ratio = self.mediaItemNotesAndSlidesConstraint.constant / bounds.height
+        guard bounds.height > 0 else {
+            return
+        }
         
-        selectedMediaItem?.verticalSplit = "\(ratio)"
+        let constant = self.mediaItemNotesAndSlidesConstraint.constant // / bounds.height
+        
+        selectedMediaItem?.verticalSplit = "\(constant)"
     }
     
     fileprivate func captureHorizontalSplit()
@@ -4281,8 +4334,16 @@ class MediaViewController: UIViewController
             return
         }
         
+        var bounds = view.bounds
+        
+        if #available(iOS 11.0, *) {
+            bounds = UIEdgeInsetsInsetRect(bounds, view.safeAreaInsets)
+        } else {
+            // Fallback on earlier versions
+        }
+        
         if (selectedMediaItem != nil) {
-            let ratio = self.tableViewWidth.constant / self.view.bounds.width
+            let ratio = self.tableViewWidth.constant / bounds.width
             
             selectedMediaItem?.horizontalSplit = "\(ratio)"
         }
@@ -4422,7 +4483,9 @@ class MediaViewController: UIViewController
         if let wvc = destination as? WebViewController, let identifier = segue.identifier {
             switch identifier {
             case Constants.SEGUE.SHOW_FULL_SCREEN:
-                setupWKContentOffsets()
+                // WHY?
+                setDocumentContentOffsetAndZoomScale(document)
+//                setupWKContentOffsets()
                 wvc.mediaItem = sender as? MediaItem
                 break
             default:

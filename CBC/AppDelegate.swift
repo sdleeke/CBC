@@ -30,7 +30,7 @@ extension AppDelegate : UISplitViewControllerDelegate
             return true
         }
 
-        return false
+        return true
     }
     
     func primaryViewController(forExpanding splitViewController: UISplitViewController) -> UIViewController?
