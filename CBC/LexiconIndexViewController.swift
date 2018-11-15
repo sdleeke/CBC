@@ -572,9 +572,10 @@ class LexiconIndexViewController : UIViewController
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if self.tableViewHeightConstraint.isActive {
-                self.tableViewHeightConstraint.constant = CGFloat(UserDefaults.standard.double(forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT"))
-            }
+            self.setTableViewHeightConstraint(change:0)
+//            if self.tableViewHeightConstraint.isActive {
+//                self.tableViewHeightConstraint.constant = CGFloat(UserDefaults.standard.double(forKey: "LEXICON INDEX RESULTS TABLE VIEW HEIGHT"))
+//            }
             self.updateLocateButton()
         }
     }

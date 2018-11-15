@@ -3559,83 +3559,86 @@ class MediaViewController: UIViewController
         }
     }
 
-    func setupWKContentOffsets()
-    {
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
-            return
-        }
-
-        guard let document = document else {
-            return
-        }
-
-        guard let purpose = document.purpose else {
-            return
-        }
-        
-        guard let wkWebView = wkWebView else {
-            return
-        }
-
-        var contentOffsetX:Double? // = 0.0
-        var contentOffsetY:Double? // = 0.0
-
-        var zoomScale:Double?
-
-        if  let zoomScaleStr = selectedMediaItem.mediaItemSettings?[purpose + Constants.ZOOM_SCALE] {
-            if let num = Double(zoomScaleStr) {
-                zoomScale = num
-            }
-        }
-        
-        if let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
-            if let num = Double(x) {
-                contentOffsetX = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
-            }//  != 0 ? zoomScale : 1
-        }
-
-        if let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
-            if let num = Double(y) {
-                contentOffsetY = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
-            } //  != 0 ? zoomScale : 1
-        }
-        
-        if let contentOffsetX = contentOffsetX, let contentOffsetY = contentOffsetY {
-            let contentOffset = CGPoint(
-                x: CGFloat(contentOffsetX),
-                y: CGFloat(contentOffsetY))
-            
-            Thread.onMainThread {
-                wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
-            }
-        }
-    }
-    
-//    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    // This was intended to set the proper content offset for rotation only, which largely only affects iPad when both view controllers are visible because
+    // the MVC area changes so much upon rotation.  BUT it doesn't work very well so it has been removed and we rely simply on whatever Apple does as the
+    // default behavior in rotation a PDF in a WKWebView.
+//    func setupWKContentOffsets()
 //    {
-//        super.viewWillTransition(to: size, with: coordinator)
+//        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
+//            return
+//        }
 //
-////        self.wkWebView?.isHidden = true
+//        guard let document = document else {
+//            return
+//        }
 //
-//        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//            self.setupWKContentOffsets()
+//        guard let purpose = document.purpose else {
+//            return
+//        }
 //
-////            if self.videoLocation == .withTableView {
-////                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
-////            } else {
-////                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-////            }
-////
+//        guard let wkWebView = wkWebView else {
+//            return
+//        }
 //
-//            self.updateUI()
-//        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//            self.setupWKContentOffsets()
+//        var contentOffsetX:Double? // = 0.0
+//        var contentOffsetY:Double? // = 0.0
 //
-////            self.wkWebView?.isHidden = false
+//        var zoomScale:Double?
 //
-//            self.updateUI()
+//        if  let zoomScaleStr = selectedMediaItem.mediaItemSettings?[purpose + Constants.ZOOM_SCALE] {
+//            if let num = Double(zoomScaleStr) {
+//                zoomScale = num
+//            }
+//        }
+//
+//        if let x = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_X] {
+//            if let num = Double(x) {
+//                contentOffsetX = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
+//            }//  != 0 ? zoomScale : 1
+//        }
+//
+//        if let y = selectedMediaItem.mediaItemSettings?[purpose + Constants.CONTENT_OFFSET_Y] {
+//            if let num = Double(y) {
+//                contentOffsetY = num / (zoomScale ?? Double(wkWebView.scrollView.zoomScale)) * Double(wkWebView.scrollView.zoomScale)
+//            } //  != 0 ? zoomScale : 1
+//        }
+//
+//        if let contentOffsetX = contentOffsetX, let contentOffsetY = contentOffsetY {
+//            let contentOffset = CGPoint(
+//                x: CGFloat(contentOffsetX),
+//                y: CGFloat(contentOffsetY))
+//
+//            Thread.onMainThread {
+//                wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
+//            }
 //        }
 //    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+
+//        self.wkWebView?.isHidden = true
+
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//            self.setupWKContentOffsets()
+
+//            if self.videoLocation == .withTableView {
+//                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+//            } else {
+//                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+//            }
+//
+
+            self.updateUI()
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//            self.setupWKContentOffsets()
+
+//            self.wkWebView?.isHidden = false
+
+            self.updateUI()
+        }
+    }
     
     func constantForSplitView(_ sender: UIView) -> CGFloat?
     {
@@ -3645,6 +3648,10 @@ class MediaViewController: UIViewController
             constant = CGFloat(num)
         }
 
+        if constant < 1 {
+            return nil
+        }
+        
         return constant
     }
     

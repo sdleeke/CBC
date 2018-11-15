@@ -46,7 +46,7 @@ extension AppDelegate : UISplitViewControllerDelegate
             // if it is on an iPad, return its navCon,
             // but if it is on a phone, i.e. a plus size phone, then pop to the root VC, i.e. the MTVC, and return the MTVC's navCon.
             if master.viewControllers.count > 1, let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
-                if master.topViewController == sivc {
+                if master.visibleViewController == sivc { // why topViewController?  Wouldn't MTVC always be top?  Shouldn't it be visbileViewController?
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         return sivc.navigationController
                     } else {
@@ -58,7 +58,7 @@ extension AppDelegate : UISplitViewControllerDelegate
 
             // Same for LIVC
             if master.viewControllers.count > 1, let livc = master.viewControllers[1] as? LexiconIndexViewController {
-                if master.topViewController == livc {
+                if master.visibleViewController == livc { // why topViewController?  Wouldn't MTVC always be top?  Shouldn't it be visbileViewController?
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         return livc.navigationController
                     } else {
@@ -87,9 +87,11 @@ extension AppDelegate : UISplitViewControllerDelegate
                 // If the detail view is showing an MVC as the visible view controller then return the mtvc's navCon
                 // But if on a phone, make sure to pop to the root vc before doing so.  No SIVC or LIVC can be left in the VC hierarchy.
                 if let mvc = nvc?.viewControllers[0] as? MediaViewController {
-                    if master.topViewController == mvc {
+                    if master.visibleViewController == mvc { // not topViewController
                         if UIDevice.current.userInterfaceIdiom == .phone {
                             mtvc.navigationController?.popToRootViewController(animated: false)
+                        } else {
+                            mtvc.navigationController?.popViewController(animated: false)
                         }
                         return mtvc.navigationController
                     }
@@ -98,13 +100,13 @@ extension AppDelegate : UISplitViewControllerDelegate
                 // If the SIVC or LIVC is in the NVC and it is the master's visible vc, return its navCon.
                 // Apparently this only occurs on iPad's and not iPhone Pluses.
                 if let sivc = nvc?.viewControllers[0] as? ScriptureIndexViewController {
-                    if master.topViewController == sivc {
+                    if master.visibleViewController == sivc { // not topViewController
                         return sivc.navigationController
                     }
                 }
                 
                 if let livc = nvc?.viewControllers[0] as? LexiconIndexViewController {
-                    if master.topViewController == livc {
+                    if master.visibleViewController == livc { // not topViewController
                         return livc.navigationController
                     }
                 }
@@ -192,13 +194,23 @@ extension AppDelegate : UISplitViewControllerDelegate
                 if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
                     // We're assuming the third is always a navCon and represents the detail vc
                     if let mvc = nvc?.viewControllers[0] as? MediaViewController {
-                        return mvc.navigationController
+                        if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+                            let mvc = navigationController.viewControllers[0] as? MediaViewController {
+                            // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
+                            return navigationController
+                        }
+//                        return mvc.navigationController
                     }
                 }
                 if let livc = master.viewControllers[1] as? LexiconIndexViewController {
                     // We're assuming the third is always a navCon and represents the detail vc
                     if let mvc = nvc?.viewControllers[0] as? MediaViewController {
-                        return mvc.navigationController
+                        if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+                            let mvc = navigationController.viewControllers[0] as? MediaViewController {
+                            // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
+                            return navigationController
+                        }
+//                        return mvc.navigationController
                     }
                 }
                 break
@@ -227,13 +239,16 @@ extension AppDelegate : UISplitViewControllerDelegate
         
         // If the SVC has a navCon in first position, i.e. master
         if let master = splitViewController.viewControllers[0] as? UINavigationController {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                // On an iPad hand back whatever is the visible vc in the master, could be an SIVC or LIVC
-                return master.topViewController?.navigationController
-            } else {
-                // On an iPhone hand back only the MTVC
-                return (master.viewControllers[0] as? MediaTableViewController)?.navigationController
-            }
+            return master.visibleViewController?.navigationController
+            
+            // Can we really do the above instead of this?
+//            if UIDevice.current.userInterfaceIdiom == .pad {
+//                // On an iPad hand back whatever is the visible vc in the master, could be an SIVC or LIVC
+//                return master.visibleViewController?.navigationController // not topViewController
+//            } else {
+//                // On an iPhone hand back only the MTVC
+//                return (master.viewControllers[0] as? MediaTableViewController)?.navigationController
+//            }
         }
         
         // If the SVC has an MTVC in first position, i.e. master
