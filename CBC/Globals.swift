@@ -159,7 +159,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func playerViewController(_ playerViewController: AVPlayerViewController, failedToStartPictureInPictureWithError error: Error)
     {
-        print("failedToStartPictureInPictureWithError \(error.localizedDescription)")
+        NSLog("failedToStartPictureInPictureWithError \(error.localizedDescription)")
         mediaPlayer.pip = .stopped
     }
     

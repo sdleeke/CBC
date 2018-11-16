@@ -28,22 +28,26 @@ class Document : NSObject
             
             if Globals.shared.cacheDownloads {
                 if let url = self.download?.fileSystemURL {
-                    data = try? Data(contentsOf: url)
+                    data = url.data
                 } else {
                     if let url = self.download?.downloadURL {
-                        data = try? Data(contentsOf: url)
+                        data = url.data
                         do {
                             if let fileSystemURL = self.download?.fileSystemURL {
                                 try data?.write(to: fileSystemURL, options: [.atomic])
                             }
-                        } catch let error as NSError {
+                        } catch let error {
                             NSLog(error.localizedDescription)
                         }
                     }
                 }
             } else {
                 if let url = self.download?.downloadURL {
-                    data = try? Data(contentsOf: url)
+                    do {
+                        data = try Data(contentsOf: url)
+                    } catch let error {
+                        NSLog(error.localizedDescription)
+                    }
                 }
             }
             

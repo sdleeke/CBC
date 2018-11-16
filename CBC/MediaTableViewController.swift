@@ -1639,12 +1639,12 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 let fileManager = FileManager.default
                 
                 //Get documents directory URL
-                if let destinationURL = cachesURL()?.appendingPathComponent(filename) {
+                if let destinationURL = filename.fileSystemURL {
                     // Check if file exist
                     if (fileManager.fileExists(atPath: destinationURL.path)){
                         do {
                             try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to remove old json file: \(error.localizedDescription)")
                         }
                     }
@@ -1652,7 +1652,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                     do {
                         try fileManager.copyItem(at: location, to: destinationURL)
                         try fileManager.removeItem(at: location)
-                    } catch let error as NSError {
+                    } catch let error {
                         print("failed to copy new json file to Documents: \(error.localizedDescription)")
                     }
                 } else {
@@ -2313,7 +2313,7 @@ class MediaTableViewController : UIViewController
     {
         var mediaItemDicts = [[String:String]]()
         
-        if let json = jsonFromFileSystem(filename:filename) as? [String:Any] {
+        if let json = filename?.fileSystemURL?.data?.json as? [String:Any] {
             if let mediaItems = json[key] as? [[String:String]] {
                 for i in 0..<mediaItems.count {
                     
@@ -2339,7 +2339,7 @@ class MediaTableViewController : UIViewController
     {
         var mediaItemDicts = [[String:String]]()
         
-        if let json = jsonFromURL(url: url,filename: filename) as? [String:Any] {
+        if let json = jsonFromURL(urlString: url,filename: filename) as? [String:Any] {
             if let mediaItems = json[key] as? [[String:String]] {
                 for i in 0..<mediaItems.count {
                     
@@ -2368,20 +2368,20 @@ class MediaTableViewController : UIViewController
         })
     }
     
-    func loadLive() -> [String:Any]?
+    var liveEvents:[String:Any]?
     {
-        return jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any]
+        get {
+            return Constants.URL.LIVE_EVENTS.url?.data?.json as? [String:Any]
+        }
     }
     
     func loadLive(completion:(()->(Void))?)
     {
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {
-                Globals.shared.mediaStream.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
-                
-                Thread.onMainThread {
-                    completion?()
-                }
+            Globals.shared.mediaStream.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
+            
+            Thread.onMainThread {
+                completion?()
             }
         }
     }

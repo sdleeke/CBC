@@ -194,6 +194,8 @@ extension AppDelegate : UISplitViewControllerDelegate
                 if let sivc = master.viewControllers[1] as? ScriptureIndexViewController {
                     // We're assuming the third is always a navCon and represents the detail vc
                     if let mvc = nvc?.viewControllers[0] as? MediaViewController {
+                        // So I'm not sure why we can't pass back mvc.navigationController, but it doesn't work.
+                        // Instead passing back a new one does - it's just slower.
                         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                             let mvc = navigationController.viewControllers[0] as? MediaViewController {
                             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
@@ -205,6 +207,8 @@ extension AppDelegate : UISplitViewControllerDelegate
                 if let livc = master.viewControllers[1] as? LexiconIndexViewController {
                     // We're assuming the third is always a navCon and represents the detail vc
                     if let mvc = nvc?.viewControllers[0] as? MediaViewController {
+                        // So I'm not sure why we can't pass back mvc.navigationController, but it doesn't work.
+                        // Instead passing back a new one does - it's just slower.
                         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                             let mvc = navigationController.viewControllers[0] as? MediaViewController {
                             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.

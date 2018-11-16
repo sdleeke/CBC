@@ -25,10 +25,10 @@ class FetchImage
         }
     }
     
-    var downloaded:Bool
+    var exists:Bool
     {
         get {
-            return fileSystemURL?.downloaded ?? false
+            return fileSystemURL?.exists ?? false
         }
     }
     
@@ -67,11 +67,13 @@ class FetchImage
             return nil
         }
         
+//        return fileSystemURL?.data?.image
+        
         guard let fileSystemURL = self.fileSystemURL else {
             return nil
         }
         
-        guard fileSystemURL.downloaded else {
+        guard fileSystemURL.exists else {
             return nil
         }
         
@@ -96,14 +98,14 @@ class FetchImage
             return
         }
         
-        guard !fileSystemURL.downloaded else {
+        guard !fileSystemURL.exists else {
             return
         }
         
         do {
             try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
             print("Image \(fileSystemURL.lastPathComponent) saved to file system")
-        } catch let error as NSError {
+        } catch let error {
             NSLog(error.localizedDescription)
             print("Image \(fileSystemURL.lastPathComponent) not saved to file system")
         }

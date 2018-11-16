@@ -961,20 +961,22 @@ class MediaItem : NSObject
             return nil
         }
         
-        do {
-            let data = try Data(contentsOf: url)
-            
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                return (json as? [String:Any])?["singleEntry"] as? [[String:String]]
-            } catch let error as NSError {
-                NSLog(error.localizedDescription)
-            }
-        } catch let error as NSError {
-            NSLog(error.localizedDescription)
-        }
+        return (url.data?.json as? [String:Any])?["singleEntry"] as? [[String:String]]
         
-        return nil
+//        do {
+//            let data = try Data(contentsOf: url)
+//
+//            do {
+//                let json = try JSONSerialization.jsonObject(with: data, options: [])
+//                return (json as? [String:Any])?["singleEntry"] as? [[String:String]]
+//            } catch let error {
+//                NSLog(error.localizedDescription)
+//            }
+//        } catch let error {
+//            NSLog(error.localizedDescription)
+//        }
+//
+//        return nil
     }
     
     var headerHTML:String {
@@ -2429,7 +2431,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.MP3)
+                return (id + Constants.FILENAME_EXTENSION.MP3).fileSystemURL
             } else {
                 return nil
             }
@@ -2440,7 +2442,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.MP4)
+                return (id + Constants.FILENAME_EXTENSION.MP4).fileSystemURL
             } else {
                 return nil
             }
@@ -2451,7 +2453,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + Constants.FILENAME_EXTENSION.M3U8)
+                return (id + Constants.FILENAME_EXTENSION.M3U8).fileSystemURL
             } else {
                 return nil
             }
@@ -2469,7 +2471,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + "." + Field.slides + Constants.FILENAME_EXTENSION.PDF)
+                return (id + "." + Field.slides + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
             } else {
                 return nil
             }
@@ -2480,7 +2482,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + "." + Field.notes + Constants.FILENAME_EXTENSION.PDF)
+                return (id + "." + Field.notes + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
             } else {
                 return nil
             }
@@ -2491,7 +2493,7 @@ class MediaItem : NSObject
     {
         get {
             if let id = id {
-                return cachesURL()?.appendingPathComponent(id + "." + Field.outline + Constants.FILENAME_EXTENSION.PDF)
+                return (id + "." + Field.outline + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
             } else {
                 return nil
             }

@@ -364,7 +364,7 @@ class Scripture : NSObject
         let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(reference)&include-audio-link=false&include-headings=false&include-footnotes=false".replacingOccurrences(of: " ", with: "%20")
 
         if let url = URL(string: urlString) {
-            if let data = try? Data(contentsOf: url) {
+            if let data = url.data {
                 if let string = String(data: data, encoding: .utf8) {
                     var bodyString = "<!DOCTYPE html><html><body>"
 
@@ -393,7 +393,7 @@ class Scripture : NSObject
         //
         let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
-        return jsonFromURL(url: urlString) as? [String:Any]
+        return urlString.url?.data?.json as? [String:Any]
     }
     
     func load()

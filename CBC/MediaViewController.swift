@@ -3559,9 +3559,21 @@ class MediaViewController: UIViewController
         }
     }
 
-    // This was intended to set the proper content offset for rotation only, which largely only affects iPad when both view controllers are visible because
-    // the MVC area changes so much upon rotation.  BUT it doesn't work very well so it has been removed and we rely simply on whatever Apple does as the
+    // This was intended to set the proper content offset for rotation only,
+    // which largely only affects iPad when both view controllers are visible because
+    // the MVC area changes so much upon rotation.
+    //
+    // BUT it doesn't work very well so it has been removed and we rely simply on whatever Apple does as the
     // default behavior in rotation a PDF in a WKWebView.
+    //
+    // I think the problem is that we're trying to preserve the upper left, which may NOT be what we want.
+    // Do we want that or do we want the center to be preserved?  Either one could be right or wrong.
+    // Bottom line, I'm not sure anything is better than the hit or miss of the default behavior that
+    // occurs when rotation a PDF in a WKWebView.
+    //
+    // In the end the user just has to zoom and position the PDF the way they want it and
+    // no, they can't just keep rotating and expect it to be exactly as they want it.
+    //
 //    func setupWKContentOffsets()
 //    {
 //        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {

@@ -72,7 +72,7 @@ class HTML {
                     if (fileManager.fileExists(atPath: url.path)){
                         do {
                             try fileManager.removeItem(at: url)
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to remove htmlString: \(error.localizedDescription)")
                         }
                     }
@@ -80,7 +80,7 @@ class HTML {
                     if let isEmpty = string?.isEmpty, !isEmpty {
                         do {
                             try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to write htmlString to cache directory: \(error.localizedDescription)")
                         }
                     }
@@ -124,7 +124,7 @@ class HTML {
     {
         get {
             if let isEmpty = string?.isEmpty, !isEmpty {
-                return cachesURL()?.appendingPathComponent("string.html")
+                return "string.html".fileSystemURL
             } else {
                 return nil
             }

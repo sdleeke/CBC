@@ -19,8 +19,8 @@ func startAudio()
     
     do {
         try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-    } catch let error as NSError {
-        print("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
+    } catch let error {
+        NSLog("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
     }
     
     UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -32,8 +32,8 @@ func stopAudio()
     
     do {
         try audioSession.setActive(false)
-    } catch let error as NSError {
-        print("failed to audioSession.setActive(false): \(error.localizedDescription)")
+    } catch let error {
+        NSLog("failed to audioSession.setActive(false): \(error.localizedDescription)")
     }
 }
 
@@ -64,30 +64,30 @@ func open(scheme: String?,cannotOpen:(()->(Void))?)
     }
 }
 
-func documentsURL() -> URL?
+var documentsURL : URL?
 {
-    let fileManager = FileManager.default
-    return fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+    get {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    }
 }
 
-func cachesURL() -> URL?
+var cachesURL : URL?
 {
-    let fileManager = FileManager.default
-    return fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
+    get {
+        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+    }
 }
 
 func filesOfTypeInCache(_ fileType:String) -> [String]?
 {
-    guard let path = cachesURL()?.path else {
+    guard let path = cachesURL?.path else {
         return nil
     }
     
     var files = [String]()
     
-    let fileManager = FileManager.default
-
     do {
-        let array = try fileManager.contentsOfDirectory(atPath: path)
+        let array = try FileManager.default.contentsOfDirectory(atPath: path)
         
         for string in array {
             if let range = string.range(of: fileType) {
@@ -96,127 +96,129 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
                 }
             }
         }
-    } catch let error as NSError {
-        print("failed to get files in caches directory: \(error.localizedDescription)")
+    } catch let error {
+        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
     }
     
     return files.count > 0 ? files : nil
 }
 
-func jsonToFileSystemDirectory(key:String)
-{
-    guard let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE) else {
-        return
-    }
-    
-    let fileManager = FileManager.default
-    
-    if let filename = Globals.shared.mediaCategory.filename, let jsonFileURL = cachesURL()?.appendingPathComponent(filename) {
-        // Check if file exist
-        if (!fileManager.fileExists(atPath: jsonFileURL.path)){
-            do {
-                // Copy File From Bundle To Documents Directory
-                try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
-            } catch let error as NSError {
-                print("failed to copy mediaItems.json: \(error.localizedDescription)")
-            }
-        } else {
-            // Which is newer, the bundle file or the file in the Documents folder?
-            do {
-                let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath)
-                
-                let jsonDocumentsAttributes = try fileManager.attributesOfItem(atPath: jsonFileURL.path)
-                
-                if  let jsonBundleModDate = jsonBundleAttributes[FileAttributeKey.modificationDate] as? Date,
-                    let jsonDocumentsModDate = jsonDocumentsAttributes[FileAttributeKey.modificationDate] as? Date {
-                    if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
-                        //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
-                        print("JSON in Documents is newer than JSON in bundle")
-                    }
-                    
-                    if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
-                        print("JSON in Documents is the same date as JSON in bundle")
-                        if  let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as? Int,
-                            let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as? Int {
-                            if (jsonBundleFileSize != jsonDocumentsFileSize) {
-                                print("Same dates different file sizes")
-                                //We have a problem.
-                            } else {
-                                print("Same dates same file sizes")
-                                //Do nothing, they are the same.
-                            }
-                        }
-                    }
-                    
-                    if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
-                        print("JSON in bundle is newer than JSON in Documents")
-                        //copy the bundle into Documents directory
-                        do {
-                            // Copy File From Bundle To Documents Directory
-                            try fileManager.removeItem(atPath: jsonFileURL.path)
-                            try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
-                        } catch let error as NSError {
-                            print("failed to copy mediaItems.json: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            } catch let error as NSError {
-                print("failed to get json file attributes: \(error.localizedDescription)")
-            }
-        }
-    }
-}
+//func jsonToFileSystemDirectory(key:String)
+//{
+//    guard let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE) else {
+//        return
+//    }
+//    
+//    let fileManager = FileManager.default
+//    
+//    if let filename = Globals.shared.mediaCategory.filename, let jsonFileURL = filename.fileSystemURL {
+//        // Check if file exist
+//        if (!fileManager.fileExists(atPath: jsonFileURL.path)){
+//            do {
+//                // Copy File From Bundle To Documents Directory
+//                try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
+//            } catch let error {
+//                NSLog("failed to copy mediaItems.json: \(error.localizedDescription)")
+//            }
+//        } else {
+//            // Which is newer, the bundle file or the file in the Documents folder?
+//            do {
+//                let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath)
+//                
+//                let jsonDocumentsAttributes = try fileManager.attributesOfItem(atPath: jsonFileURL.path)
+//                
+//                if  let jsonBundleModDate = jsonBundleAttributes[FileAttributeKey.modificationDate] as? Date,
+//                    let jsonDocumentsModDate = jsonDocumentsAttributes[FileAttributeKey.modificationDate] as? Date {
+//                    if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
+//                        //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
+//                        print("JSON in Documents is newer than JSON in bundle")
+//                    }
+//                    
+//                    if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
+//                        print("JSON in Documents is the same date as JSON in bundle")
+//                        if  let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as? Int,
+//                            let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as? Int {
+//                            if (jsonBundleFileSize != jsonDocumentsFileSize) {
+//                                print("Same dates different file sizes")
+//                                //We have a problem.
+//                            } else {
+//                                print("Same dates same file sizes")
+//                                //Do nothing, they are the same.
+//                            }
+//                        }
+//                    }
+//                    
+//                    if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
+//                        print("JSON in bundle is newer than JSON in Documents")
+//                        //copy the bundle into Documents directory
+//                        do {
+//                            // Copy File From Bundle To Documents Directory
+//                            try fileManager.removeItem(atPath: jsonFileURL.path)
+//                            try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
+//                        } catch let error {
+//                            NSLog("failed to copy mediaItems.json: \(error.localizedDescription)")
+//                        }
+//                    }
+//                }
+//            } catch let error {
+//                NSLog("failed to get json file attributes: \(error.localizedDescription)")
+//            }
+//        }
+//    }
+//}
 
-func jsonFromURL(url:String) -> Any?
-{
-    guard Globals.shared.reachability.isReachable, let url = URL(string: url) else {
-        return nil
-    }
-    
-    do {
-        let data = try Data(contentsOf: url)
-        print("able to read json from the URL.")
-        
-        do {
-            let json = try JSONSerialization.jsonObject(with: data, options: [])
-            return json
-        } catch let error as NSError {
-            NSLog(error.localizedDescription)
-        }
-    } catch let error as NSError {
-        NSLog(error.localizedDescription)
-    }
+//func jsonFromURL(url:String) -> Any?
+//{
+//    guard Globals.shared.reachability.isReachable, let url = URL(string: url) else {
+//        return nil
+//    }
+//
+//    guard let data = url.data else {
+//        return nil
+//    }
+//
+//    print("able to read json from the URL.")
+//
+//    return data.json
+////    do {
+////        let json = try JSONSerialization.jsonObject(with: data, options: [])
+////        return json
+////    } catch let error {
+////        NSLog("JSONSerialization error", error.localizedDescription)
+////        return nil
+////    }
+//}
 
-    return nil
-}
-
-func jsonFromFileSystem(filename:String?) -> Any?
-{
-    guard let filename = filename else {
-        return nil
-    }
-    
-    guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
-        return nil
-    }
-    
-    do {
-        let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
-        print("able to read json from the URL.")
-        
-        do {
-            let json = try JSONSerialization.jsonObject(with: data, options: [])
-            return json
-        } catch let error as NSError {
-            NSLog(error.localizedDescription)
-            return nil
-        }
-    } catch let error as NSError {
-        print("Network unavailable: json could not be read from the file system.")
-        NSLog(error.localizedDescription)
-        return nil
-    }
-}
+//func jsonFromFileSystem(filename:String?) -> Any?
+//{
+//    guard let filename = filename else {
+//        return nil
+//    }
+//
+//    guard let jsonFileSystemURL = filename.fileSystemURL else {
+//        return nil
+//    }
+//
+//    return jsonFileSystemURL.data?.json
+//
+////    do {
+////        let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+////        print("able to read json from the URL.")
+////
+////        return data.json
+//////        do {
+//////            let json = try JSONSerialization.jsonObject(with: data, options: [])
+//////            return json
+//////        } catch let error {
+//////            NSLog("JSONSerialization error", error.localizedDescription)
+//////            return nil
+//////        }
+////    } catch let error {
+////        print("Network unavailable: json could not be read from the file system.")
+////        NSLog("Unable to read json from \(jsonFileSystemURL.absoluteString).", error.localizedDescription)
+////        return nil
+////    }
+//}
 
 var jsonQueue : OperationQueue! = {
     let operationQueue = OperationQueue()
@@ -226,65 +228,94 @@ var jsonQueue : OperationQueue! = {
     return operationQueue
 }()
 
-func jsonFromURL(url:String,filename:String) -> Any?
+func jsonFromURL(urlString:String?,filename:String?) -> Any?
 {
-    guard Globals.shared.reachability.isReachable, let url = URL(string: url) else {
-        return jsonFromFileSystem(filename: filename)
+    guard Globals.shared.reachability.isReachable else {
+        return nil
     }
-
-    if let json = jsonFromFileSystem(filename: filename) {
-        // waitUntilAllOperationsAreFinished causes deadlock in refresh
+    
+    guard let json = filename?.fileSystemURL?.data?.json else {
+        // BLOCKS
+        let data = urlString?.url?.data
+        
         jsonQueue.addOperation {
-            do {
-                let data = try Data(contentsOf: url)
-                print("able to read json from the URL.")
-                
-                do {
-                    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-                        try data.write(to: jsonFileSystemURL)
-                    }
-                    
-                    print("able to write json to the file system")
-                } catch let error as NSError {
-                    print("unable to write json to the file system.")
-                    NSLog(error.localizedDescription)
-                }
-            } catch let error {
-                NSLog(error.localizedDescription)
-            }
+            data?.save(to: filename?.fileSystemURL)
         }
-
-        return json
-    } else {
-        do {
-            let data = try Data(contentsOf: url)
-            print("able to read json from the URL.")
-            
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                
-                do {
-                    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-                        try data.write(to: jsonFileSystemURL)
-                    }
-                    
-                    print("able to write json to the file system")
-                } catch let error as NSError {
-                    print("unable to write json to the file system.")
-                    
-                    NSLog(error.localizedDescription)
-                }
-
-                return json
-            } catch let error as NSError {
-                NSLog(error.localizedDescription)
-                return jsonFromFileSystem(filename: filename)
-            }
-        } catch let error as NSError {
-            NSLog(error.localizedDescription)
-            return jsonFromFileSystem(filename: filename)
-        }
+        
+        return data?.json
     }
+
+    jsonQueue.addOperation {
+        urlString?.url?.data?.save(to: filename?.fileSystemURL)
+    }
+    
+    return json
+    
+//    if let json = filename?.fileSystemURL?.data?.json {
+//        // waitUntilAllOperationsAreFinished causes deadlock in refresh
+//        jsonQueue.addOperation {
+//            urlString?.url?.data?.save(filename?.fileSystemURL)
+//
+////            print("able to read json from the URL.")
+////
+////            guard let jsonFileSystemURL = filename.fileSystemURL else {
+////                NSLog("jsonFileSystemURL failure: \(filename)")
+////                return
+////            }
+////
+////            do {
+////                try data.write(to: jsonFileSystemURL)
+////                print("able to write json to the file system")
+////            } catch let error {
+////                print("unable to write json to the file system.")
+////                NSLog("unable to write json to \(jsonFileSystemURL)", error.localizedDescription)
+////            }
+//        }
+//
+//        return json
+//    } else {
+//        guard let data = url.data else {
+//            return nil
+//        }
+//
+//        guard let json = data.json else {
+//            return nil
+//        }
+//
+//        // Don't save until we know we can get JSON.
+//        data.save(to: filename.fileSystemURL)
+//
+//        return json
+//
+////        do {
+////            let data = try Data(contentsOf: url)
+////            print("able to read json from the URL.")
+////
+////            do {
+////                let json = try JSONSerialization.jsonObject(with: data, options: [])
+////
+////                do {
+////                    if let jsonFileSystemURL = cachesURL?.appendingPathComponent(filename) {
+////                        try data.write(to: jsonFileSystemURL)
+////                    }
+////
+////                    print("able to write json to the file system")
+////                } catch let error {
+////                    print("unable to write json to the file system.")
+////
+////                    NSLog(error.localizedDescription)
+////                }
+////
+////                return json
+////            } catch let error {
+////                NSLog(error.localizedDescription)
+////                return jsonFromFileSystem(filename: filename)
+////            }
+////        } catch let error {
+////            NSLog(error.localizedDescription)
+////            return jsonFromFileSystem(filename: filename)
+////        }
+//    }
 }
 
 func stringWithoutPrefixes(_ fromString:String?) -> String?

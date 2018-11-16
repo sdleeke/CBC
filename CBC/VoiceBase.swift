@@ -260,17 +260,24 @@ extension VoiceBase // Class Methods
                 if let acceptText = accept?.contains("text"), acceptText {
                     json = ["text":string as Any]
                 } else {
-                    do {
-                        json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                        
-                        if let errors = json?["errors"] {
-                            print(errors)
-                            errorOccured = true
-                        }
-                    } catch let error as NSError {
-                        // JSONSerialization failed
-                        print("JSONSerialization error: ",error.localizedDescription)
+                    json = data.json as? [String:Any]
+                    
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
                     }
+
+//                    do {
+//                        json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//
+//                        if let errors = json?["errors"] {
+//                            print(errors)
+//                            errorOccured = true
+//                        }
+//                    } catch let error {
+//                        // JSONSerialization failed
+//                        print("JSONSerialization error: ",error.localizedDescription)
+//                    }
                 }
             } else {
                 // no data
@@ -368,19 +375,26 @@ extension VoiceBase // Class Methods
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                do {
-                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                    print(json as Any)
-                    
-                    if let errors = json?["errors"] {
-                        print(errors)
-                        errorOccured = true
-                    }
-                } catch let error as NSError {
-                    // JSONSerialization failed
-                    print("JSONSerialization error: ",error.localizedDescription)
-                    
+                json = data.json as? [String:Any]
+                print(json as Any)
+
+                if let errors = json?["errors"] {
+                    print(errors)
+                    errorOccured = true
                 }
+                
+//                do {
+//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//                    print(json as Any)
+//
+//                    if let errors = json?["errors"] {
+//                        print(errors)
+//                        errorOccured = true
+//                    }
+//                } catch let error {
+//                    // JSONSerialization failed
+//                    print("JSONSerialization error: ",error.localizedDescription)
+//                }
             } else {
                 // no data
                 
@@ -741,7 +755,7 @@ class VoiceBase {
             }
             
             if completed {
-                if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
+                if let destinationURL = (id+".\(purpose)").fileSystemURL {
                     do {
                         try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
                         // This will cause an error.  The tag is created in the constantTags getter while loading.
@@ -749,7 +763,7 @@ class VoiceBase {
                         
                         // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
                         // called during init()'s which is fortunate.
-                    } catch let error as NSError {
+                    } catch let error {
                         print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
                         completed = false
                         // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
@@ -814,19 +828,19 @@ class VoiceBase {
             
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
+                    if let destinationURL = (id+".\(purpose)").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript: \(error.localizedDescription)")
                             }
                         }
                         
                         do {
                             try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8)
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to write transcript to cache directory: \(error.localizedDescription)")
                         }
                     } else {
@@ -835,12 +849,12 @@ class VoiceBase {
                 }
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
+                    if let destinationURL = (id+".\(purpose)").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript: \(error.localizedDescription)")
                             }
                         } else {
@@ -965,10 +979,10 @@ class VoiceBase {
                 return nil
             }
             
-            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).media"), let data = try? Data(contentsOf: url) {
+            if let url = ("\(id).\(purpose).media").fileSystemURL, let data = url.data {
                 do {
                     _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                } catch let error as NSError {
+                } catch let error {
                     print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
                     
                     // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
@@ -1005,29 +1019,29 @@ class VoiceBase {
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
                     
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(id).\(purpose).media") {
+                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript media: \(error.localizedDescription)")
                             }
                         }
                         
                         do {
                             try mediaPropertyList?.write(to: destinationURL)
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
                         }
                     } else {
                         print("destinationURL nil!")
                     }
                 } else {
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(id).\(purpose).media") {
+                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript media: \(error.localizedDescription)")
                             }
                         } else {
@@ -1412,19 +1426,26 @@ class VoiceBase {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                do {
-                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                    print(json as Any)
-
-                    if let errors = json?["errors"] {
-                        print(errors)
-                        errorOccured = true
-                    }
-                } catch let error as NSError {
-                    // JSONSerialization failed
-                    print("JSONSerialization error: ",error.localizedDescription)
-                    
+                json = data.json as? [String:Any]
+                print(json as Any)
+                
+                if let errors = json?["errors"] {
+                    print(errors)
+                    errorOccured = true
                 }
+
+//                do {
+//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//                    print(json as Any)
+//
+//                    if let errors = json?["errors"] {
+//                        print(errors)
+//                        errorOccured = true
+//                    }
+//                } catch let error {
+//                    // JSONSerialization failed
+//                    print("JSONSerialization error: ",error.localizedDescription)
+//                }
             } else {
                 // no data
                 
@@ -1776,20 +1797,27 @@ class VoiceBase {
             if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
+
+                json = data.json as? [String:Any]
+                print(json as Any)
                 
-                do {
-                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                    print(json as Any)
-                    
-                    if let errors = json?["errors"] {
-                        print(errors)
-                        errorOccured = true
-                    }
-                } catch let error as NSError {
-                    // JSONSerialization failed
-                    print("JSONSerialization error: ",error.localizedDescription)
-                    
+                if let errors = json?["errors"] {
+                    print(errors)
+                    errorOccured = true
                 }
+
+//                do {
+//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//                    print(json as Any)
+//
+//                    if let errors = json?["errors"] {
+//                        print(errors)
+//                        errorOccured = true
+//                    }
+//                } catch let error {
+//                    // JSONSerialization failed
+//                    print("JSONSerialization error: ",error.localizedDescription)
+//                }
             } else {
                 // no data
                 
@@ -2711,10 +2739,10 @@ class VoiceBase {
             }
             
             //Legacy
-            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).srt") {
+            if let url = "\(id).\(purpose).srt".fileSystemURL {
                 do {
                     try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
-                } catch let error as NSError {
+                } catch let error {
                     print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
                     
                     // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
@@ -2724,10 +2752,10 @@ class VoiceBase {
                 }
             }
             
-            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).segments") {
+            if let url = "\(id).\(purpose).segments".fileSystemURL {
                 do {
                     try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
-                } catch let error as NSError {
+                } catch let error {
                     print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
                     
                     // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
@@ -2794,19 +2822,19 @@ class VoiceBase {
                 let fileManager = FileManager.default
                 
                 if self?._transcriptSegments != nil {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).segments") {
+                    if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
                             }
                         }
                         
                         do {
                             try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                        } catch let error as NSError {
+                        } catch let error {
                             print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
                         }
                     } else {
@@ -2814,12 +2842,12 @@ class VoiceBase {
                     }
                     
                     //Legacy clean-up
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
+                    if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
                             }
                         }
@@ -2827,12 +2855,12 @@ class VoiceBase {
                         print("failed to get destinationURL")
                     }
                 } else {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).segments") {
+                    if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript: \(error.localizedDescription)")
                             }
                         } else {
@@ -2843,12 +2871,12 @@ class VoiceBase {
                     }
                     
                     //Legacy clean-up
-                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
+                    if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
-                            } catch let error as NSError {
+                            } catch let error {
                                 print("failed to remove machine generated transcript: \(error.localizedDescription)")
                             }
                         } else {
@@ -3029,19 +3057,26 @@ class VoiceBase {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                do {
-                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                    print(json as Any)
-                    
-                    if let errors = json?["errors"] {
-                        print(errors)
-                        errorOccured = true
-                    }
-                } catch let error as NSError {
-                    // JSONSerialization failed
-                    print("JSONSerialization error: ",error.localizedDescription)
-                    
+                json = data.json as? [String:Any]
+                print(json as Any)
+                
+                if let errors = json?["errors"] {
+                    print(errors)
+                    errorOccured = true
                 }
+
+//                do {
+//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//                    print(json as Any)
+//
+//                    if let errors = json?["errors"] {
+//                        print(errors)
+//                        errorOccured = true
+//                    }
+//                } catch let error {
+//                    // JSONSerialization failed
+//                    print("JSONSerialization error: ",error.localizedDescription)
+//                }
             } else {
                 // no data
                 

@@ -422,6 +422,10 @@ extension String
     var fileSystemURL : URL?
     {
         get {
+            guard self != url?.lastPathComponent else {
+                return cachesURL?.appendingPathComponent(self.replacingOccurrences(of: " ", with: ""))
+            }
+            
             return url?.fileSystemURL
         }
     }
@@ -432,14 +436,14 @@ extension String
             return
         }
 
-        guard let fileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+        guard let fileSystemURL = filename.fileSystemURL else {
             return
         }
         
         do {
             try self.data(using: String.Encoding.utf16)?.write(to: fileSystemURL)
             print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
-        } catch let error as NSError {
+        } catch let error {
             print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
             NSLog(error.localizedDescription)
         }
@@ -451,7 +455,7 @@ extension String
             return nil
         }
         
-        guard let fileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+        guard let fileSystemURL = filename.fileSystemURL else {
             return nil
         }
         
@@ -459,7 +463,7 @@ extension String
             let data = try Data(contentsOf: fileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
             print("able to read string from the file system: \(fileSystemURL.lastPathComponent)")
             return String(data: data, encoding: String.Encoding.utf16)
-        } catch let error as NSError {
+        } catch let error {
             print("unable to read string from the file system: \(fileSystemURL.lastPathComponent)")
             NSLog(error.localizedDescription)
             return nil
@@ -672,7 +676,7 @@ extension URL
 {
     var fileSystemURL : URL?
     {
-        return cachesURL()?.appendingPathComponent(self.lastPathComponent)
+        return self.lastPathComponent.fileSystemURL
     }
 
     var fileSize:Int
@@ -683,7 +687,7 @@ extension URL
             return size
         }
         
-        guard fileSystemURL.downloaded else {
+        guard fileSystemURL.exists else {
             return size
         }
         
@@ -693,14 +697,14 @@ extension URL
             if let num = fileAttributes[FileAttributeKey.size] as? Int {
                 size = num
             }
-        } catch let error as NSError {
+        } catch let error {
             print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
         }
         
         return size
     }
     
-    var downloaded : Bool
+    var exists : Bool
     {
         get {
             if let fileSystemURL = fileSystemURL {
@@ -720,7 +724,7 @@ extension URL
         if FileManager.default.fileExists(atPath: fileSystemURL.path) {
             do {
                 try FileManager.default.removeItem(at: fileSystemURL)
-            } catch let error as NSError {
+            } catch let error {
                 print("failed to remove download: \(error.localizedDescription)")
             }
         }
@@ -728,7 +732,7 @@ extension URL
         do {
             try FileManager.default.copyItem(at: self, to: fileSystemURL)
             return fileSystemURL
-        } catch let error as NSError {
+        } catch let error {
             print("failed to copy download: \(error.localizedDescription)") // remove
             return nil
         }
@@ -737,7 +741,16 @@ extension URL
     var data : Data?
     {
         get {
-            return try? Data(contentsOf: self)
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
+            do {
+                return try Data(contentsOf: self)
+            } catch let error {
+                NSLog("Failed to get Data from URL: \(self.absoluteString)", error.localizedDescription)
+                return nil
+            }
         }
     }
     
@@ -757,7 +770,7 @@ extension URL
     {
         // Check if file exists and if so, delete it.
         
-        guard downloaded else {
+        guard exists else {
             return
         }
         
@@ -767,7 +780,7 @@ extension URL
         
         do {
             try FileManager.default.removeItem(at: fileSystemURL)
-        } catch let error as NSError {
+        } catch let error {
             print("failed to delete download: \(error.localizedDescription)")
         }
     }
@@ -813,7 +826,7 @@ extension URL
 //                            do {
 //                                try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
 //                                print("Image \(self.lastPathComponent) saved to file system")
-//                            } catch let error as NSError {
+//                            } catch let error {
 //                                NSLog(error.localizedDescription)
 //                                print("Image \(self.lastPathComponent) not saved to file system")
 //                            }
@@ -829,19 +842,56 @@ extension URL
 
 extension Data
 {
+    func save(to url: URL?)
+    {
+        guard let url = url else {
+            return
+        }
+        
+        do {
+            try self.write(to: url)
+        } catch let error {
+            NSLog("Data write error: \(url.absoluteString)",error.localizedDescription)
+        }
+    }
+    
+    var json : Any?
+    {
+        get {
+            do {
+                let json = try JSONSerialization.jsonObject(with: self, options: [])
+                return json
+            } catch let error {
+                NSLog("JSONSerialization error", error.localizedDescription)
+                return nil
+            }
+        }
+    }
+    
     var html2AttributedString: NSAttributedString?
     {
-        do {
-            return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
-        } catch {
-            print("error:", error)
-            return  nil
+        get {
+            do {
+                return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
+            } catch {
+                print("error:", error)
+                return  nil
+            }
         }
     }
     
     var html2String: String?
     {
-        return html2AttributedString?.string
+        get {
+            return html2AttributedString?.string
+        }
+    }
+    
+    var image : UIImage?
+    {
+        get {
+            return UIImage(data: self)
+        }
     }
 }
 

@@ -169,7 +169,7 @@ extension Download : URLSessionDownloadDelegate
                 if (fileManager.fileExists(atPath: fileSystemURL.path)){
                     do {
                         try fileManager.removeItem(at: fileSystemURL)
-                    } catch let error as NSError {
+                    } catch let error {
                         print("failed to remove duplicate download: \(error.localizedDescription)")
                     }
                 }
@@ -188,7 +188,7 @@ extension Download : URLSessionDownloadDelegate
                 
                 state = .none
             }
-        } catch let error as NSError {
+        } catch let error {
             print("failed to copy temp download file: \(error.localizedDescription)")
             state = .none
         }
@@ -579,7 +579,7 @@ class Download : NSObject
 //            if let num = fileAttributes[FileAttributeKey.size] as? Int {
 //                size = num
 //            }
-//        } catch let error as NSError {
+//        } catch let error {
 //            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
 //        }
 //
@@ -605,7 +605,7 @@ class Download : NSObject
 //        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
 //            do {
 //                try FileManager.default.removeItem(at: fileSystemURL)
-//            } catch let error as NSError {
+//            } catch let error {
 //                print("failed to delete download: \(error.localizedDescription)")
 //            }
 //        }

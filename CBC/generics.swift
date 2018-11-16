@@ -549,11 +549,7 @@ class FetchCodable<T:Codable> : Fetch<T>
     var fileSystemURL : URL?
     {
         get {
-            guard let name = name?.replacingOccurrences(of: " ", with: "") else {
-                return nil
-            }
-
-            return cachesURL()?.appendingPathComponent(name)
+            return name?.fileSystemURL
         }
     }
     
@@ -598,11 +594,11 @@ class FetchCodable<T:Codable> : Fetch<T>
 //                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
                 } catch let error {
 //                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
-                    NSLog(error.localizedDescription)
+                    NSLog("unable to write T to the file system: \(fileSystemURL.lastPathComponent)", error.localizedDescription)
                 }
             } catch let error {
 //                print("unable to encode T: \(fileSystemURL.lastPathComponent)")
-                NSLog(error.localizedDescription)
+                NSLog("unable to encode T: \(fileSystemURL.lastPathComponent)", error.localizedDescription)
             }
         }
 
@@ -625,11 +621,11 @@ class FetchCodable<T:Codable> : Fetch<T>
                     return dict["value"]
                 } catch let error {
 //                    print("unable to decode T from storage: \(fileSystemURL.lastPathComponent)")
-                    NSLog(error.localizedDescription)
+                    NSLog("unable to decode T from storage: \(fileSystemURL.lastPathComponent)", error.localizedDescription)
                 }
             } catch let error {
 //                print("unable to read T from storage: \(fileSystemURL.lastPathComponent)")
-                NSLog(error.localizedDescription)
+                NSLog("unable to read T from storage: \(fileSystemURL.lastPathComponent)", error.localizedDescription)
             }
 
             return nil
