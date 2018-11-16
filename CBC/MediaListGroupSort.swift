@@ -80,7 +80,7 @@ class MediaListGroupSort
         let operationQueue = OperationQueue()
         operationQueue.name = "MLGS:" + UUID().uuidString
         operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.maxConcurrentOperationCount = 3
         return operationQueue
     }()
 
@@ -88,6 +88,42 @@ class MediaListGroupSort
         operationQueue.cancelAllOperations()
     }
     
+    var audioDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var videoDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var slidesDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var notesDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
+            }).count
+        }
+    }
+
     func cancelAllDownloads()
     {
         operationQueue.addOperation {
@@ -122,11 +158,25 @@ class MediaListGroupSort
                     break
                 }
                 
-                if mediaItem.audioDownload?.exists == true  {
+                let download = mediaItem.audioDownload
+                
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.audioDownload?.downloadURL?.data?.save(to: mediaItem.audioDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
+            }
+            if self?.audioDownloads == 0 {
+                Alerts.shared.alert(title: "All Audio Downloads Complete")
             }
         }
         
@@ -145,11 +195,25 @@ class MediaListGroupSort
                     break
                 }
                 
-                if mediaItem.videoDownload?.exists == true  {
+                let download = mediaItem.videoDownload
+
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.videoDownload?.downloadURL?.data?.save(to: mediaItem.videoDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
+            }
+            if self?.videoDownloads == 0 {
+                Alerts.shared.alert(title: "All Video Downloads Complete")
             }
         }
         
@@ -168,11 +232,25 @@ class MediaListGroupSort
                     break
                 }
                 
-                if mediaItem.notesDownload?.exists == true {
+                let download = mediaItem.notesDownload
+                
+                if download?.exists == true {
                     continue
                 }
                 
-                _ = mediaItem.notesDownload?.downloadURL?.data?.save(to: mediaItem.notesDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
+            }
+            if self?.notesDownloads == 0 {
+                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
             }
         }
         
@@ -191,11 +269,25 @@ class MediaListGroupSort
                     break
                 }
                 
-                if mediaItem.slidesDownload?.exists == true {
+                let download = mediaItem.slidesDownload
+                
+                if download?.exists == true {
                     continue
                 }
                 
-                _ = mediaItem.slidesDownload?.downloadURL?.data?.save(to: mediaItem.slidesDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
+            }
+            if self?.slidesDownloads == 0 {
+                Alerts.shared.alert(title: "All Slide Downloads Complete")
             }
         }
         

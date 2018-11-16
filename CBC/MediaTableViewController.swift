@@ -1487,6 +1487,21 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             
             switch string {
+            case "Download All Slides":
+                Alerts.shared.alert(title: "Downloading All Slides", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+                Globals.shared.media.active?.downloadAllSlides()
+                break
+                
+            case "Download All " + notes:
+                Alerts.shared.alert(title: "Downloading All " + notes, message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+                Globals.shared.media.active?.downloadAllNotes()
+                break
+                
+            case "Download All Audio":
+                Alerts.shared.alert(title: "Downloading All Audio", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+                Globals.shared.media.active?.downloadAllAudio()
+                break
+                
             case Constants.Strings.View_List:
                 if let string = Globals.shared.media.active?.html?.string {
                     presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: string)
@@ -1761,6 +1776,8 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class MediaTableViewController : UIViewController
 {
+    var notes = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
+    
     var display = Display()
 
     var popover : PopoverTableViewController?
@@ -2922,6 +2939,27 @@ class MediaTableViewController : UIViewController
 //        tableView?.estimatedRowHeight = tableView?.rowHeight
 //        tableView?.rowHeight = UITableViewAutomaticDimension
     }
+
+    var audioDownloads : Int?
+    {
+        get {
+            return Globals.shared.media.active?.audioDownloads
+        }
+    }
+    
+    var slidesDownloads : Int?
+    {
+        get {
+            return Globals.shared.media.active?.slidesDownloads
+        }
+    }
+    
+    var notesDownloads : Int?
+    {
+        get {
+            return Globals.shared.media.active?.notesDownloads
+        }
+    }
     
     func actionMenu() -> [String]?
     {
@@ -2929,6 +2967,19 @@ class MediaTableViewController : UIViewController
         
         if Globals.shared.media.active?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
+           
+            if Globals.shared.cacheDownloads {
+                if slidesDownloads > 0 {
+                    actionMenu.append("Download All Slides")
+                }
+                if notesDownloads > 0 {
+                    actionMenu.append("Download All " + notes)
+                }
+            }
+            
+            if audioDownloads > 0 {
+                actionMenu.append("Download All Audio")
+            }
         }
         
         return actionMenu.count > 0 ? actionMenu : nil

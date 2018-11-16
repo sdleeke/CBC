@@ -1747,7 +1747,7 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Slides
             }
             
-            if hasNotes, let notesName = notesName {
+            if hasNotes, let notesName = Globals.shared.mediaCategory.notesName {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + notesName
             }
             
@@ -2104,25 +2104,25 @@ class MediaItem : NSObject
         }
     }
     
-    var notesName:String?
-    {
-        get {
-            guard hasNotes else {
-                return nil
-            }
-            
-            guard let category = category else {
-                return nil
-            }
-            
-            if Globals.shared.mediaCategory.dicts?[category] == 1.description {
-                return Constants.Strings.Transcript
-            } else {
-                return Constants.Strings.Notes
-            }
-        }
-    }
-    
+//    var notesName:String?
+//    {
+//        get {
+//            guard hasNotes else {
+//                return nil
+//            }
+//            
+//            guard let category = category else {
+//                return nil
+//            }
+//            
+//            if Globals.shared.mediaCategory.dicts?[category] == 1.description {
+//                return Constants.Strings.Transcript
+//            } else {
+//                return Constants.Strings.Notes
+//            }
+//        }
+//    }
+//    
     @available(iOS 11.0, *)
     lazy var notesPDFTokens:FetchCodable<[String:Int]>? = {
         guard let mediaCode = self.mediaCode else {
@@ -2355,9 +2355,9 @@ class MediaItem : NSObject
     {
         get {
             if #available(iOS 11.0, *) {
-                return hasNotes && (notesName == Constants.Strings.Transcript)
+                return hasNotes && (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript)
             } else {
-                return hasNotesHTML && (notesName == Constants.Strings.Transcript)
+                return hasNotesHTML && (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript)
             }
         }
     }
@@ -3733,7 +3733,7 @@ class MediaItem : NSObject
             })
         }
 
-        if hasNotes, notesName == Constants.Strings.Transcript {
+        if hasNotes, Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript {
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in

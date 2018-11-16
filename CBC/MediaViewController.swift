@@ -112,7 +112,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Share_Slides:
             fallthrough
-        case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
+        case Constants.Strings.Share + " " + (Globals.shared.mediaCategory.notesName ?? "") :
             share()
             break
 
@@ -277,7 +277,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Refresh_Document:
             fallthrough
-        case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
+        case Constants.Strings.Refresh + " " + (Globals.shared.mediaCategory.notesName ?? ""):
             fallthrough
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
@@ -2230,7 +2230,7 @@ class MediaViewController: UIViewController
         if let purpose = document?.purpose { // UIPrintInteractionController.isPrintingAvailable
             switch purpose {
             case Purpose.notes:
-                if let notesName = selectedMediaItem.notesName {
+                if let notesName = Globals.shared.mediaCategory.notesName {
                     actionMenu.append(Constants.Strings.Share + " " + notesName)
                 }
                 break
@@ -2247,7 +2247,7 @@ class MediaViewController: UIViewController
         if document != nil, let purpose = document?.purpose { // Globals.shared.cacheDownloads,
             switch purpose {
             case Purpose.notes:
-                if let notesName = selectedMediaItem.notesName {
+                if let notesName = Globals.shared.mediaCategory.notesName {
                     actionMenu.append(Constants.Strings.Refresh + " " + notesName)
                 }
                 break

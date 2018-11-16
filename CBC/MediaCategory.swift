@@ -13,6 +13,21 @@ class MediaCategory
     // Make thread safe?
     var dicts:[String:String]?
     
+    var notesName:String?
+    {
+        get {
+            guard let selectedID = selectedID else {
+                return nil
+            }
+            
+            if dicts?[selectedID] == 1.description {
+                return Constants.Strings.Transcript
+            } else {
+                return Constants.Strings.Notes
+            }
+        }
+    }
+    
     var filename:String?
     {
         get {

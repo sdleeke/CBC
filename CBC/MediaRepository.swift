@@ -37,12 +37,48 @@ class MediaRepository
         let operationQueue = OperationQueue()
         operationQueue.name = "MLGS:" + UUID().uuidString
         operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.maxConcurrentOperationCount = 3
         return operationQueue
     }()
     
     deinit {
         operationQueue.cancelAllOperations()
+    }
+    
+    var audioDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var videoDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var slidesDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var notesDownloads : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
+            }).count
+        }
     }
     
     func cancelAllDownloads()
@@ -78,14 +114,21 @@ class MediaRepository
                 if test?() == true {
                     break
                 }
-                
-                if mediaItem.audioDownload?.exists == true  {
+
+                let download = mediaItem.audioDownload
+
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.audioDownload?.download()
+                _ = download?.download()
                 
-                while mediaItem.audioDownload?.state == .downloading {
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
@@ -106,13 +149,20 @@ class MediaRepository
                     break
                 }
                 
-                if mediaItem.videoDownload?.exists == true  {
+                let download = mediaItem.videoDownload
+
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.audioDownload?.download()
+                _ = download?.download()
                 
-                while mediaItem.audioDownload?.state == .downloading {
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
@@ -133,11 +183,22 @@ class MediaRepository
                     break
                 }
                 
-                if mediaItem.notesDownload?.exists == true {
+                let download = mediaItem.notesDownload
+                
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.notesDownload?.downloadURL?.data?.save(to: mediaItem.notesDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
             }
         }
         
@@ -156,11 +217,22 @@ class MediaRepository
                     break
                 }
                 
-                if mediaItem.slidesDownload?.exists == true {
+                let download = mediaItem.slidesDownload
+                                
+                if download?.exists == true  {
                     continue
                 }
                 
-                _ = mediaItem.slidesDownload?.downloadURL?.data?.save(to: mediaItem.slidesDownload?.fileSystemURL)
+                _ = download?.download()
+                
+                while download?.state == .downloading {
+                    if test?() == true {
+                        download?.cancel()
+                        break
+                    }
+                    
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
             }
         }
         
