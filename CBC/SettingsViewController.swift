@@ -39,7 +39,8 @@ class SettingsViewController: UIViewController
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
             
-            operationQueue.cancelAllOperations()
+            // Let it finish
+//            operationQueue.cancelAllOperations()
             
             operationQueue.addOperation { [weak self] in
                 Thread.onMainThread {
@@ -49,11 +50,13 @@ class SettingsViewController: UIViewController
                 // This really should be looking at what is in the directory as well.
                 // E.g. what if a sermon is no longer in the list but its slides or notes
                 // were downloaded previously?
-                if let mediaItems = Globals.shared.mediaRepository.list {
-                    for mediaItem in mediaItems {
-                        mediaItem.clearCache()
-                    }
-                }
+                Globals.shared.mediaRepository.clearCache()
+                
+//                if let mediaItems = Globals.shared.mediaRepository.list {
+//                    for mediaItem in mediaItems {
+//                        mediaItem.clearCache()
+//                    }
+//                }
                 
                 self?.updateCacheSize()
             }

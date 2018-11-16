@@ -166,18 +166,21 @@ extension Download : URLSessionDownloadDelegate
         
         do {
             if (state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
-                if (fileManager.fileExists(atPath: fileSystemURL.path)){
-                    do {
-                        try fileManager.removeItem(at: fileSystemURL)
-                    } catch let error {
-                        print("failed to remove duplicate download: \(error.localizedDescription)")
-                    }
-                }
+                fileSystemURL.delete()
+//                if (fileManager.fileExists(atPath: fileSystemURL.path)){
+//                    do {
+//                        try fileManager.removeItem(at: fileSystemURL)
+//                    } catch let error {
+//                        print("failed to remove duplicate download: \(error.localizedDescription)")
+//                    }
+//                }
                 
                 debug("\(location)")
                 
                 try fileManager.copyItem(at: location, to: fileSystemURL)
-                try fileManager.removeItem(at: location)
+                
+                location.delete()
+//                try fileManager.removeItem(at: location)
                 
                 state = .downloaded
             } else {
@@ -399,7 +402,7 @@ class Download : NSObject
             
         }
         didSet {
-            state = isDownloaded ? .downloaded : .none
+            state = exists ? .downloaded : .none
         }
     }
     
@@ -440,6 +443,8 @@ class Download : NSObject
                 break
                 
             case .downloaded:
+                _fileSize = fileSystemURL?.fileSize
+                
                 Thread.onMainThread {
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self)
@@ -508,7 +513,7 @@ class Download : NSObject
     
     var completionHandler: (() -> (Void))?
     
-    var isDownloaded : Bool
+    var exists : Bool
     {
         get {
             if let fileSystemURL = fileSystemURL {
@@ -522,6 +527,10 @@ class Download : NSObject
     func download()
     {
         guard state != .downloading else {
+            return
+        }
+        
+        guard fileSystemURL?.exists == false else {
             return
         }
         
@@ -561,6 +570,20 @@ class Download : NSObject
         }
     }
     
+    private var _fileSize : Int?
+    
+    var fileSize : Int
+    {
+        get {
+            guard let fileSize = _fileSize else {
+                _fileSize = fileSystemURL?.fileSize
+                return _fileSize ?? 0
+            }
+            
+            return fileSize
+        }
+    }
+    
 //    var fileSize:Int
 //    {
 //        var size = 0
@@ -586,12 +609,12 @@ class Download : NSObject
 //        return size
 //    }
     
-    var fileSize : Int?
-    {
-        get {
-            return fileSystemURL?.fileSize
-        }
-    }
+//    var fileSize : Int?
+//    {
+//        get {
+//            return fileSystemURL?.fileSize
+//        }
+//    }
     
     func delete()
     {
@@ -599,6 +622,7 @@ class Download : NSObject
             return
         }
         
+        _fileSize = nil
         fileSystemURL?.delete()
         
 //        // Check if file exists and if so, delete it.

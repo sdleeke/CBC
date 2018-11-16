@@ -10,8 +10,11 @@ import Foundation
 import UIKit
 import Speech
 
-extension NSMutableData {
-    func appendString(_ string: String) {
+extension NSMutableData
+{
+    func appendString(_ string: String)
+    {
+        // why not utf16?
         if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) {
             append(data)
         }
@@ -255,7 +258,7 @@ extension VoiceBase // Class Methods
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
 
                 if let acceptText = accept?.contains("text"), acceptText {
                     json = ["text":string as Any]
@@ -372,7 +375,7 @@ extension VoiceBase // Class Methods
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]
@@ -757,7 +760,7 @@ class VoiceBase {
             if completed {
                 if let destinationURL = (id+".\(purpose)").fileSystemURL {
                     do {
-                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
+                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
                         // This will cause an error.  The tag is created in the constantTags getter while loading.
                         //                    mediaItem.addTag("Machine Generated Transcript")
                         
@@ -829,17 +832,10 @@ class VoiceBase {
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     if let destinationURL = (id+".\(purpose)").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                            }
-                        }
+                        destinationURL.delete()
                         
                         do {
-                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8)
+                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
                         } catch let error {
                             print("failed to write transcript to cache directory: \(error.localizedDescription)")
                         }
@@ -850,16 +846,7 @@ class VoiceBase {
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     if let destinationURL = (id+".\(purpose)").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                            }
-                        } else {
-                            print("machine generated transcript file doesn't exist")
-                        }
+                        destinationURL.delete()
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -1020,13 +1007,14 @@ class VoiceBase {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
                     
                     if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
-                            }
-                        }
+                        destinationURL.delete()
+//                        if destinationURL.exists {
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+//                            }
+//                        }
                         
                         do {
                             try mediaPropertyList?.write(to: destinationURL)
@@ -1038,15 +1026,16 @@ class VoiceBase {
                     }
                 } else {
                     if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
-                            }
-                        } else {
-                            print("machine generated transcript media file doesn't exist")
-                        }
+                        destinationURL.delete()
+//                        if destinationURL.exists {
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+//                            }
+//                        } else {
+//                            print("machine generated transcript media file doesn't exist")
+//                        }
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -1309,7 +1298,7 @@ class VoiceBase {
             switch key {
                 // This works? But isn't necessary?
 //            case "transcript":
-//                if let id = mediaItem?.id { // , let data = value.data(using: String.Encoding.utf8)
+//                if let id = mediaItem?.id { // , let data = value.data(using: String.Encoding.utf8) // why not utf16?
 //                    let mimeType = "text/plain"
 //                    body.appendString(boundaryPrefix)
 //                    body.appendString("Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(id)\"\r\n")
@@ -1423,7 +1412,7 @@ class VoiceBase {
             var json : [String:Any]?
 
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]
@@ -1795,7 +1784,7 @@ class VoiceBase {
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
 
                 json = data.json as? [String:Any]
@@ -2741,7 +2730,7 @@ class VoiceBase {
             //Legacy
             if let url = "\(id).\(purpose).srt".fileSystemURL {
                 do {
-                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
+                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
                 } catch let error {
                     print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
                     
@@ -2754,7 +2743,7 @@ class VoiceBase {
             
             if let url = "\(id).\(purpose).segments".fileSystemURL {
                 do {
-                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
+                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
                 } catch let error {
                     print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
                     
@@ -2823,17 +2812,18 @@ class VoiceBase {
                 
                 if self?._transcriptSegments != nil {
                     if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
-                            }
-                        }
+                        destinationURL.delete()
+//                        // Check if file exist
+//                        if (fileManager.fileExists(atPath: destinationURL.path)){
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
+//                            }
+//                        }
                         
                         do {
-                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
                         } catch let error {
                             print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
                         }
@@ -2843,45 +2833,48 @@ class VoiceBase {
                     
                     //Legacy clean-up
                     if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
-                            }
-                        }
+                        destinationURL.delete()
+//                        // Check if file exist
+//                        if (fileManager.fileExists(atPath: destinationURL.path)){
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated segment transcript: \(error.localizedDescription)")
+//                            }
+//                        }
                     } else {
                         print("failed to get destinationURL")
                     }
                 } else {
                     if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                            }
-                        } else {
-                            print("machine generated transcript file doesn't exist")
-                        }
+                        destinationURL.delete()
+//                        // Check if file exist
+//                        if (fileManager.fileExists(atPath: destinationURL.path)){
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+//                            }
+//                        } else {
+//                            print("machine generated transcript file doesn't exist")
+//                        }
                     } else {
                         print("failed to get destinationURL")
                     }
                     
                     //Legacy clean-up
                     if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
-                        // Check if file exist
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch let error {
-                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                            }
-                        } else {
-                            print("machine generated transcript file doesn't exist")
-                        }
+                        destinationURL.delete()
+//                        // Check if file exist
+//                        if (fileManager.fileExists(atPath: destinationURL.path)){
+//                            do {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            } catch let error {
+//                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+//                            }
+//                        } else {
+//                            print("machine generated transcript file doesn't exist")
+//                        }
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -3054,7 +3047,7 @@ class VoiceBase {
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]

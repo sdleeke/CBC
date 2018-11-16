@@ -69,13 +69,14 @@ class HTML {
                 if let url = fileURL {
                     let fileManager = FileManager.default
 
-                    if (fileManager.fileExists(atPath: url.path)){
-                        do {
-                            try fileManager.removeItem(at: url)
-                        } catch let error {
-                            print("failed to remove htmlString: \(error.localizedDescription)")
-                        }
-                    }
+                    url.delete()
+//                    if (fileManager.fileExists(atPath: url.path)){
+//                        do {
+//                            try fileManager.removeItem(at: url)
+//                        } catch let error {
+//                            print("failed to remove htmlString: \(error.localizedDescription)")
+//                        }
+//                    }
 
                     if let isEmpty = string?.isEmpty, !isEmpty {
                         do {

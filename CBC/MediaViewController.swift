@@ -2882,7 +2882,7 @@ class MediaViewController: UIViewController
                         self.activityIndicator.startAnimating()
                     }
                 
-                    if let posterImage = selectedMediaItem.posterImage.image {
+                    if let posterImage = selectedMediaItem.posterImage?.image {
                         guard self.selectedMediaItem == selectedMediaItem else {
                             return
                         }
@@ -3264,7 +3264,7 @@ class MediaViewController: UIViewController
         
         if var showing = selectedMediaItem.showing {            
             if !Globals.shared.reachability.isReachable {
-                if !Globals.shared.cacheDownloads || (download?.isDownloaded == false) {
+                if !Globals.shared.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
                         alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
@@ -4854,7 +4854,7 @@ class MediaViewController: UIViewController
             var doNotPlay = true
             
             if (mediaItem.playing == Playing.audio) {
-                if let audioDownload = mediaItem.audioDownload, audioDownload.isDownloaded {
+                if let audioDownload = mediaItem.audioDownload, audioDownload.exists {
                     doNotPlay = false
                 }
             }

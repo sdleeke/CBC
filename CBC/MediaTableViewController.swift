@@ -1640,18 +1640,20 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 
                 //Get documents directory URL
                 if let destinationURL = filename.fileSystemURL {
-                    // Check if file exist
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error {
-                            print("failed to remove old json file: \(error.localizedDescription)")
-                        }
-                    }
+                    destinationURL.delete()
+//                    // Check if file exist
+//                    if (fileManager.fileExists(atPath: destinationURL.path)){
+//                        do {
+//                            try fileManager.removeItem(at: destinationURL)
+//                        } catch let error {
+//                            print("failed to remove old json file: \(error.localizedDescription)")
+//                        }
+//                    }
                     
                     do {
                         try fileManager.copyItem(at: location, to: destinationURL)
-                        try fileManager.removeItem(at: location)
+                        location.delete()
+//                        try fileManager.removeItem(at: location)
                     } catch let error {
                         print("failed to copy new json file to Documents: \(error.localizedDescription)")
                     }

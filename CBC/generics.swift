@@ -553,15 +553,30 @@ class FetchCodable<T:Codable> : Fetch<T>
         }
     }
     
-    var fileSize : Int?
+    private var _fileSize : Int?
+    
+    var fileSize : Int
     {
         get {
-            return fileSystemURL?.fileSize
+            guard let fileSize = _fileSize else {
+                _fileSize = fileSystemURL?.fileSize
+                return _fileSize ?? 0
+            }
+            
+            return fileSize
         }
     }
     
+//    var fileSize : Int?
+//    {
+//        get {
+//            return fileSystemURL?.fileSize
+//        }
+//    }
+    
     func delete()
     {
+        _fileSize = nil
         fileSystemURL?.delete()
     }
     
@@ -592,6 +607,7 @@ class FetchCodable<T:Codable> : Fetch<T>
                 do {
                     try data.write(to: fileSystemURL)
 //                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
+                    self._fileSize = fileSystemURL.fileSize
                 } catch let error {
 //                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
                     NSLog("unable to write T to the file system: \(fileSystemURL.lastPathComponent)", error.localizedDescription)

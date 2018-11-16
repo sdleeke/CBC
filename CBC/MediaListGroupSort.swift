@@ -23,17 +23,6 @@ typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
-    func loadTokenCountMarkCountMismatches()
-    {
-        guard let list = list else {
-            return
-        }
-        
-        list.forEach { (mediaItem) in
-            mediaItem.loadTokenCountMarkCountMismatches()
-        }
-    }
-    
     @objc func freeMemory()
     {
         lexicon = Lexicon(self) // Side effects?
@@ -63,6 +52,166 @@ class MediaListGroupSort
     lazy var html:CachedString? = {
         return CachedString(index: Globals.shared.contextOrder)
     }()
+    
+    func clearCache()
+    {
+        list?.forEach({ (mediaItem) in
+            mediaItem.clearCache()
+        })
+    }
+    
+    var cacheSize : Int?
+    {
+        get {
+            return list?.reduce(0, { (result, mediaItem) -> Int in
+                return result + mediaItem.cacheSize
+            })
+        }
+    }
+    
+    func cacheSize(_ purpose:String) -> Int?
+    {
+        return list?.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.cacheSize(purpose)
+        })
+    }
+
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MLGS:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
+    func cancelAllDownloads()
+    {
+        operationQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.downloads.values.forEach({ (download) in
+                    download.cancel()
+                })
+            })
+        }
+    }
+    
+    func deleteAllDownloads()
+    {
+        operationQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.downloads.values.forEach({ (download) in
+                    download.delete()
+                })
+            })
+        }
+    }
+    
+    func downloadAllAudio()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.audioDownload?.exists == true  {
+                    continue
+                }
+                
+                _ = mediaItem.audioDownload?.downloadURL?.data?.save(to: mediaItem.audioDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllVideo()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.videoDownload?.exists == true  {
+                    continue
+                }
+                
+                _ = mediaItem.videoDownload?.downloadURL?.data?.save(to: mediaItem.videoDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllNotes()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.notesDownload?.exists == true {
+                    continue
+                }
+                
+                _ = mediaItem.notesDownload?.downloadURL?.data?.save(to: mediaItem.notesDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllSlides()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.slidesDownload?.exists == true {
+                    continue
+                }
+                
+                _ = mediaItem.slidesDownload?.downloadURL?.data?.save(to: mediaItem.slidesDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func loadTokenCountMarkCountMismatches()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        list.forEach { (mediaItem) in
+            mediaItem.loadTokenCountMarkCountMismatches()
+        }
+    }
     
     var list:[MediaItem]?
     { //Not in any specific order
@@ -571,10 +720,6 @@ class MediaListGroupSort
             
             return prior
         })
-    }
-    
-    deinit {
-        
     }
     
     init(mediaItems:[MediaItem]?)

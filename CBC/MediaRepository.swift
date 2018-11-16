@@ -10,6 +10,13 @@ import Foundation
 
 class MediaRepository
 {
+    func clearCache()
+    {
+        list?.forEach({ (mediaItem) in
+            mediaItem.clearCache()
+        })
+    }
+    
     var cacheSize : Int?
     {
         get {
@@ -25,26 +32,139 @@ class MediaRepository
             return result + mediaItem.cacheSize(purpose)
         })
     }
+
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MLGS:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
     
     func cancelAllDownloads()
+    {
+        operationQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.downloads.values.forEach({ (download) in
+                    download.cancel()
+                })
+            })
+        }
+    }
+    
+    func deleteAllDownloads()
+    {
+        operationQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.downloads.values.forEach({ (download) in
+                    download.delete()
+                })
+            })
+        }
+    }
+    
+    func downloadAllAudio()
     {
         guard let list = list else {
             return
         }
         
-        for mediaItem in list {
-            for download in mediaItem.downloads.values {
-                if download.active {
-                    download.task?.cancel()
-                    download.task = nil
-                    
-                    download.totalBytesWritten = 0
-                    download.totalBytesExpectedToWrite = 0
-                    
-                    download.state = .none
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.audioDownload?.exists == true  {
+                    continue
+                }
+                
+                _ = mediaItem.audioDownload?.download()
+                
+                while mediaItem.audioDownload?.state == .downloading {
+                    Thread.sleep(forTimeInterval: 1.0)
                 }
             }
         }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllVideo()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.videoDownload?.exists == true  {
+                    continue
+                }
+                
+                _ = mediaItem.audioDownload?.download()
+                
+                while mediaItem.audioDownload?.state == .downloading {
+                    Thread.sleep(forTimeInterval: 1.0)
+                }
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllNotes()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.notesDownload?.exists == true {
+                    continue
+                }
+                
+                _ = mediaItem.notesDownload?.downloadURL?.data?.save(to: mediaItem.notesDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
+    }
+    
+    func downloadAllSlides()
+    {
+        guard let list = list else {
+            return
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            for mediaItem in list {
+                if test?() == true {
+                    break
+                }
+                
+                if mediaItem.slidesDownload?.exists == true {
+                    continue
+                }
+                
+                _ = mediaItem.slidesDownload?.downloadURL?.data?.save(to: mediaItem.slidesDownload?.fileSystemURL)
+            }
+        }
+        
+        operationQueue.addOperation(operation)
     }
     
     func loadTokenCountMarkCountMismatches()

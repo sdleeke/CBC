@@ -361,7 +361,7 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        if mediaItem.hasAudio, mediaItem.audioDownload?.isDownloaded == true {
+        if mediaItem.hasAudio, mediaItem.audioDownload?.exists == true {
         }
         
         self.icons.attributedText = attrString

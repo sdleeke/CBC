@@ -13,8 +13,12 @@ class FetchImage
 {
     var url : URL?
     
-    init(url:URL?)
+    init?(url:URL?)
     {
+        guard let url = url else {
+            return nil
+        }
+        
         self.url = url
     }
     
@@ -52,13 +56,33 @@ class FetchImage
     var image : UIImage?
     {
         get {
-            return fetch.result
+            return fetch?.result
         }
     }
     
     func load()
     {
-        fetch.load()
+        fetch?.load()
+    }
+    
+    private var _fileSize : Int?
+    
+    var fileSize : Int
+    {
+        get {
+            guard let fileSize = _fileSize else {
+                _fileSize = fileSystemURL?.fileSize
+                return _fileSize ?? 0
+            }
+            
+            return fileSize
+        }
+    }
+    
+    func delete()
+    {
+        _fileSize = nil
+        fileSystemURL?.delete()
     }
     
     func retrieveIt() -> UIImage?
@@ -105,13 +129,18 @@ class FetchImage
         do {
             try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
             print("Image \(fileSystemURL.lastPathComponent) saved to file system")
+            _fileSize = fileSystemURL.fileSize
         } catch let error {
             NSLog(error.localizedDescription)
             print("Image \(fileSystemURL.lastPathComponent) not saved to file system")
         }
     }
     
-    lazy var fetch:Fetch<UIImage> = {
+    lazy var fetch:Fetch<UIImage>? = {
+        guard let imageName = imageName else {
+            return nil
+        }
+        
         let fetch = Fetch<UIImage>(name:imageName)
         
         fetch.store = { (image:UIImage?) in

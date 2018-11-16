@@ -100,8 +100,8 @@ class MediaItem : NSObject
             
             totalCacheSize += cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
             
-            totalCacheSize += posterImageURL?.fileSize ?? 0
-            totalCacheSize += seriesImageURL?.fileSize ?? 0
+            totalCacheSize += posterImage?.fileSize ?? 0
+            totalCacheSize += seriesImage?.fileSize ?? 0
 
             totalCacheSize += notesHTML?.fileSize ?? 0
             totalCacheSize += notesTokens?.fileSize ?? 0
@@ -124,7 +124,7 @@ class MediaItem : NSObject
     {
         var totalFileSize = 0
         
-        if let download = downloads[purpose], download.isDownloaded {
+        if let download = downloads[purpose], download.exists {
             totalFileSize += download.fileSize ?? 0
         }
 
@@ -136,8 +136,8 @@ class MediaItem : NSObject
         notesDownload?.delete()
         slidesDownload?.delete()
         
-        posterImageURL?.delete()
-        seriesImageURL?.delete()
+        posterImage?.delete()
+        seriesImage?.delete()
         
         notesHTML?.delete()
         notesTokens?.delete()
@@ -205,11 +205,7 @@ class MediaItem : NSObject
         }
         
         if Globals.shared.cacheDownloads {
-            guard let isDownloaded = document.download?.isDownloaded else {
-                return
-            }
-            
-            guard isDownloaded else {
+            guard document.download?.exists == true else {
                 if document.download?.state != .downloading {
                     document.download?.download()
                 }
@@ -271,7 +267,7 @@ class MediaItem : NSObject
     @objc func freeMemory()
     {
         // What are the side effects of this?
-        seriesImage.clearCache()
+        seriesImage?.clearCache()
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
@@ -2004,7 +2000,11 @@ class MediaItem : NSObject
         }
     }
 
-    lazy var posterImage:FetchImage = {
+    lazy var posterImage:FetchImage? = {
+        guard let posterImageURL = posterImageURL else {
+            return nil
+        }
+        
         return FetchImage(url: self.posterImageURL)
     }()
 
@@ -2029,7 +2029,11 @@ class MediaItem : NSObject
         return urlString.url
     }
 
-    lazy var seriesImage:FetchCachedImage = {
+    lazy var seriesImage:FetchCachedImage? = {
+        guard let seriesImageURL = seriesImageURL else {
+            return nil
+        }
+        
        return FetchCachedImage(url: seriesImageURL)
     }()
 

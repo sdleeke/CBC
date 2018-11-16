@@ -679,29 +679,27 @@ extension URL
         return self.lastPathComponent.fileSystemURL
     }
 
-    var fileSize:Int
+    var fileSize:Int?
     {
-        var size = 0
-        
         guard let fileSystemURL = fileSystemURL else {
-            return size
+            return nil
         }
         
         guard fileSystemURL.exists else {
-            return size
+            return nil
         }
         
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
             
             if let num = fileAttributes[FileAttributeKey.size] as? Int {
-                size = num
+                return num
             }
         } catch let error {
             print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
         }
         
-        return size
+        return nil
     }
     
     var exists : Bool
@@ -721,19 +719,13 @@ extension URL
             return nil
         }
         
-        if FileManager.default.fileExists(atPath: fileSystemURL.path) {
-            do {
-                try FileManager.default.removeItem(at: fileSystemURL)
-            } catch let error {
-                print("failed to remove download: \(error.localizedDescription)")
-            }
-        }
+        fileSystemURL.delete()
         
         do {
             try FileManager.default.copyItem(at: self, to: fileSystemURL)
             return fileSystemURL
         } catch let error {
-            print("failed to copy download: \(error.localizedDescription)") // remove
+            print("failed to copy \(self.absoluteString): \(error.localizedDescription)") // remove
             return nil
         }
     }
@@ -771,17 +763,19 @@ extension URL
         // Check if file exists and if so, delete it.
         
         guard exists else {
+            print("item doesn't exist: \(self.absoluteString)")
             return
         }
         
         guard let fileSystemURL = fileSystemURL else {
+            print("fileSystemURL doesn't exist for: \(self.absoluteString)")
             return
         }
         
         do {
             try FileManager.default.removeItem(at: fileSystemURL)
         } catch let error {
-            print("failed to delete download: \(error.localizedDescription)")
+            print("failed to delete \(self.absoluteString): \(error.localizedDescription)")
         }
     }
     
@@ -842,16 +836,18 @@ extension URL
 
 extension Data
 {
-    func save(to url: URL?)
+    func save(to url: URL?) -> Data?
     {
         guard let url = url else {
-            return
+            return nil
         }
         
         do {
             try self.write(to: url)
+            return self
         } catch let error {
             NSLog("Data write error: \(url.absoluteString)",error.localizedDescription)
+            return nil
         }
     }
     
