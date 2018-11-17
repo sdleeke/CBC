@@ -220,37 +220,6 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 ////    }
 //}
 
-var jsonQueue : OperationQueue! = {
-    let operationQueue = OperationQueue()
-    operationQueue.name = "JSON"
-    operationQueue.qualityOfService = .background
-    operationQueue.maxConcurrentOperationCount = 1
-    return operationQueue
-}()
-
-func jsonFromURL(urlString:String?,filename:String?) -> Any?
-{
-    guard Globals.shared.reachability.isReachable else {
-        return nil
-    }
-    
-    guard let json = filename?.fileSystemURL?.data?.json else {
-        // BLOCKS
-        let data = urlString?.url?.data
-        
-        jsonQueue.addOperation {
-            data?.save(to: filename?.fileSystemURL)
-        }
-        
-        return data?.json
-    }
-
-    jsonQueue.addOperation {
-        urlString?.url?.data?.save(to: filename?.fileSystemURL)
-    }
-    
-    return json
-    
 //    if let json = filename?.fileSystemURL?.data?.json {
 //        // waitUntilAllOperationsAreFinished causes deadlock in refresh
 //        jsonQueue.addOperation {
@@ -316,7 +285,7 @@ func jsonFromURL(urlString:String?,filename:String?) -> Any?
 ////            return jsonFromFileSystem(filename: filename)
 ////        }
 //    }
-}
+//}
 
 func stringWithoutPrefixes(_ fromString:String?) -> String?
 {
@@ -1310,9 +1279,9 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
         return nil
     }
     
-    guard (reference?.range(of: "&") == nil) else {
-        return nil
-    }
+//    guard (reference?.range(of: "&") == nil) else {
+//        return nil
+//    }
     
     var chaptersAndVerses = [Int:[Int]]()
     
@@ -1336,7 +1305,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
     
     if let chars = string {
         for char in chars {
-            if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: ":,-").contains(unicodeScalar) {
+            if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "&:,-").contains(unicodeScalar) {
                 tokens.append(token)
                 token = Constants.EMPTY_STRING
                 
@@ -1380,6 +1349,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                     debug(": Verses follow")
                     
                     startVerses = true
+                    break
+                    
+                case "&":
+                    if !startVerses {
+                        if let first = tokens.first, let number = Int(first) {
+                            tokens.remove(at: 0)                            
+                            currentChapter = number
+                            chaptersAndVerses[currentChapter] = versesForBookChapter(book,currentChapter)
+                        }
+                    }
                     break
                     
                 case ",":
@@ -2191,13 +2170,13 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     
     var books = [String]()
     
-    var string = scriptureReference
+    var string = scriptureReference.lowercased()
 //        print(string)
     
     var otBooks = [String]()
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        if let range = string.range(of: book) {
+        if let range = string.range(of: book.lowercased()) {
             otBooks.append(book)
             
             let before = String(string[..<range.lowerBound])
@@ -2208,7 +2187,7 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-        if let range = string.range(of: book) {
+        if let range = string.range(of: book.lowercased()) {
             books.append(book)
             
             let before = String(string[..<range.lowerBound])

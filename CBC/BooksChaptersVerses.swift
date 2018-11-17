@@ -12,6 +12,11 @@ class BooksChaptersVerses : Swift.Comparable
 {
     // Make thread safe?
     var data:[String:[Int:[Int]]]?
+    {
+        didSet {
+            
+        }
+    }
     
     func bookChaptersVerses(book:String?) -> BooksChaptersVerses?
     {

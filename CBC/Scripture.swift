@@ -269,6 +269,7 @@ class Scripture : NSObject
         super.init()
         
         self.reference = reference
+        
         setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
     }
     
@@ -288,23 +289,24 @@ class Scripture : NSObject
         
         let booksAndChaptersAndVerses = BooksChaptersVerses()
         
-        var scriptures = [String]()
+//        var scriptures = [String]()
         
-        var string = scriptureReference
+//        var string = scriptureReference
         
         let separator = ";"
 
-        while (string.range(of: separator) != nil) {
-            if let lowerBound = string.range(of: separator)?.lowerBound {
-                scriptures.append(String(string[..<lowerBound]))
-            }
-            
-            if let range = string.range(of: separator) {
-                string = String(string[range.upperBound...])
-            }
-        }
-        
-        scriptures.append(string)
+        let scriptures = scriptureReference.components(separatedBy: separator)
+//        while (string.range(of: separator) != nil) {
+//            if let lowerBound = string.range(of: separator)?.lowerBound {
+//                scriptures.append(String(string[..<lowerBound]))
+//            }
+//
+//            if let range = string.range(of: separator) {
+//                string = String(string[range.upperBound...])
+//            }
+//        }
+//
+//        scriptures.append(string)
         
         var lastBook:String?
         

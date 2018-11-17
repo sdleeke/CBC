@@ -1149,11 +1149,27 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 return nil
             }) { (data:Any?) in
                 self.updateUI()
+
                 Thread.onMainThread {
-                    self.tableView?.reloadData()
-                    
-                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
-                    
+                    if Globals.shared.search.active { //  && !Globals.shared.search.complete
+                        self.updateSearchResults(Globals.shared.search.text,completion: {
+                            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                                Thread.onMainThread {
+                                    self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                }
+                            }
+                        })
+                    } else {
+                        // Reload the table
+                        self.tableView?.reloadData()
+                        
+                        if self.selectedMediaItem != nil {
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+                        } else {
+                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+                        }
+                    }
+
                     // Need to update the MVC cells.
                     if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
@@ -2354,6 +2370,38 @@ class MediaTableViewController : UIViewController
         return nil
     }
     
+    var jsonQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "JSON"
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    func jsonFromURL(urlString:String?,filename:String?) -> Any?
+    {
+        guard Globals.shared.reachability.isReachable else {
+            return nil
+        }
+        
+        guard let json = filename?.fileSystemURL?.data?.json else {
+            // BLOCKS
+            let data = urlString?.url?.data
+            
+            jsonQueue.addOperation {
+                data?.save(to: filename?.fileSystemURL)
+            }
+            
+            return data?.json
+        }
+        
+        jsonQueue.addOperation {
+            urlString?.url?.data?.save(to: filename?.fileSystemURL)
+        }
+        
+        return json
+    }
+
     func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:String]]?
     {
         var mediaItemDicts = [[String:String]]()
@@ -2435,11 +2483,24 @@ class MediaTableViewController : UIViewController
         }
     }
     
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MTVC:" + UUID().uuidString
+        operationQueue.qualityOfService = .userInitiated
+        operationQueue.maxConcurrentOperationCount = 1 // Slides and Notes
+        return operationQueue
+    }()
+    
     func loadMediaItems(completion: (() -> Void)?)
     {
         Globals.shared.isLoading = true
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        operationQueue.cancelAllOperations()
+        
+        operationQueue.waitUntilAllOperationsAreFinished()
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+//        DispatchQueue.global(qos: .).async { [weak self] in
             self?.setupSearchBar()
             self?.setupCategoryButton()
             self?.setupActionAndTagsButton()
@@ -2549,6 +2610,8 @@ class MediaTableViewController : UIViewController
                 self?.updateUI()
             }
         }
+        
+        operationQueue.addOperation(operation)
     }
     
     func setupCategoryButton()

@@ -3756,26 +3756,28 @@ class MediaItem : NSObject
         }
 
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
-            if let reference = self.scriptureReference {
-                if self.scripture?.html?[reference] != nil {
-                    popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference], search:false)
-                } else {
-                    guard Globals.shared.reachability.isReachable else {
-                        networkUnavailable(viewController,"Scripture text unavailable.")
-                        return
-                    }
-
-                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                        self?.scripture?.load()
-                        return self?.scripture?.html?[reference]
+            guard let reference = self.scriptureReference else {
+                return
+            }
+            
+            if self.scripture?.html?[reference] != nil {
+                popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference], search:false)
+            } else {
+                guard Globals.shared.reachability.isReachable else {
+                    networkUnavailable(viewController,"Scripture text unavailable.")
+                    return
+                }
+                
+                process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                    self?.scripture?.load()
+                    return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
                             popoverHTML(viewController, title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
                         } else {
-                            networkUnavailable(viewController,"Scripture text unavailable.")
+                            Alerts.shared.alert(title:"Scripture Unavailable")
                         }
-                    })
-                }
+                })
             }
         }
         

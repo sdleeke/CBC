@@ -80,12 +80,13 @@ class MediaListGroupSort
         let operationQueue = OperationQueue()
         operationQueue.name = "MLGS:" + UUID().uuidString
         operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 3
+        operationQueue.maxConcurrentOperationCount = 2 // Slides and Notes
         return operationQueue
     }()
 
     deinit {
         operationQueue.cancelAllOperations()
+        mediaQueue.cancelAllOperations()
     }
     
     var audioDownloads : Int?
@@ -146,24 +147,28 @@ class MediaListGroupSort
         }
     }
     
+    lazy var mediaQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MLGS-MEDIA:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
+        return operationQueue
+    }()
+    
     func downloadAllAudio()
     {
         guard let list = list else {
             return
         }
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
-                
-                let download = mediaItem.audioDownload
-                
-                if download?.exists == true  {
-                    continue
-                }
-                
+        for mediaItem in list {
+            let download = mediaItem.audioDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -175,12 +180,9 @@ class MediaListGroupSort
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
-            if self?.audioDownloads == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Complete")
-            }
+            
+            mediaQueue.addOperation(operation)
         }
-        
-        operationQueue.addOperation(operation)
     }
     
     func downloadAllVideo()
@@ -189,18 +191,14 @@ class MediaListGroupSort
             return
         }
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
-                
-                let download = mediaItem.videoDownload
-
-                if download?.exists == true  {
-                    continue
-                }
-                
+        for mediaItem in list {
+            let download = mediaItem.videoDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -212,14 +210,11 @@ class MediaListGroupSort
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
-            if self?.videoDownloads == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Complete")
-            }
+            
+            mediaQueue.addOperation(operation)
         }
-        
-        operationQueue.addOperation(operation)
     }
-    
+
     func downloadAllNotes()
     {
         guard let list = list else {

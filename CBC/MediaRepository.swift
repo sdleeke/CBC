@@ -33,18 +33,6 @@ class MediaRepository
         })
     }
 
-    lazy var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "MLGS:" + UUID().uuidString
-        operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 3
-        return operationQueue
-    }()
-    
-    deinit {
-        operationQueue.cancelAllOperations()
-    }
-    
     var audioDownloads : Int?
     {
         get {
@@ -81,6 +69,19 @@ class MediaRepository
         }
     }
     
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MLGS:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 2 // Slides and Notes
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+        mediaQueue.cancelAllOperations()
+    }
+    
     func cancelAllDownloads()
     {
         operationQueue.addOperation {
@@ -103,24 +104,28 @@ class MediaRepository
         }
     }
     
+    lazy var mediaQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MLGS-MEDIA:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
+        return operationQueue
+    }()
+
     func downloadAllAudio()
     {
         guard let list = list else {
             return
         }
-        
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
 
-                let download = mediaItem.audioDownload
-
-                if download?.exists == true  {
-                    continue
-                }
-                
+        for mediaItem in list {
+            let download = mediaItem.audioDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -132,9 +137,9 @@ class MediaRepository
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
+            
+            mediaQueue.addOperation(operation)
         }
-        
-        operationQueue.addOperation(operation)
     }
     
     func downloadAllVideo()
@@ -143,18 +148,14 @@ class MediaRepository
             return
         }
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
-                
-                let download = mediaItem.videoDownload
-
-                if download?.exists == true  {
-                    continue
-                }
-                
+        for mediaItem in list {
+            let download = mediaItem.videoDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -166,9 +167,9 @@ class MediaRepository
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
+            
+            mediaQueue.addOperation(operation)
         }
-        
-        operationQueue.addOperation(operation)
     }
     
     func downloadAllNotes()
