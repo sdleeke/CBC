@@ -2042,7 +2042,7 @@ class MediaTableViewController : UIViewController
                 //Nothing to show
             }
             
-
+            // SHOULD THESE BE ON THE ACTION MENU?
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {

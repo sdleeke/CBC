@@ -24,6 +24,12 @@ class Media
     
     //All mediaItems
     var all:MediaListGroupSort?
+    {
+        didSet {
+            _ = all?.lexicon?.eligible
+            _ = all?.scriptureIndex?.eligible
+        }
+    }
     
     //The mediaItems with the selected tags, although now we only support one tag being selected
     var tagged = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]()

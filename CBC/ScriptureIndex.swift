@@ -133,16 +133,22 @@ class ScriptureIndex
     
     var selectedVerse:Int = 0
     
+    var _eligible:[MediaItem]?
     var eligible:[MediaItem]?
     {
         get {
+            guard _eligible == nil else {
+                return _eligible
+            }
             if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.books != nil
             }), list.count > 0 {
-                return list
+                _eligible = list
             } else {
-                return nil
+                _eligible = nil
             }
+            
+            return _eligible
         }
     }
     

@@ -2714,10 +2714,18 @@ class MediaItem : NSObject
         return chaptersForBook
     }
     
+    var _books:[String]?
+    
     var books:[String]?
     {
         get {
-            return booksFromScriptureReference(scriptureReference)
+            guard _books == nil else {
+                return _books
+            }
+            
+            _books = booksFromScriptureReference(scriptureReference)
+            
+            return _books
         }
     }
     

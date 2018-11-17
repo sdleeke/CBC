@@ -260,7 +260,7 @@ class MediaRepository
             guard let list = list else {
                 return
             }
-            
+
             index = nil
             for mediaItem in list {
                 if let id = mediaItem.id {

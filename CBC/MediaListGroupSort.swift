@@ -98,6 +98,15 @@ class MediaListGroupSort
         }
     }
     
+    var audioDownloading : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.audioDownload?.active == true)
+            }).count
+        }
+    }
+    
     var audioDownloaded : Int?
     {
         get {
@@ -116,11 +125,47 @@ class MediaListGroupSort
         }
     }
     
+    var videoDownloading : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.videoDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var videoDownloaded : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return mediaItem.videoDownload?.exists == true
+            }).count
+        }
+    }
+    
     var slidesDownloads : Int?
     {
         get {
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var slidesDownloading : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var slidesDownloaded : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.exists == true)
             }).count
         }
     }
@@ -133,7 +178,25 @@ class MediaListGroupSort
             }).count
         }
     }
-
+    
+    var notesDownloading : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var notesDownloaded : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.exists == true)
+            }).count
+        }
+    }
+    
     func cancelAllDownloads()
     {
         operationQueue.addOperation {
@@ -194,7 +257,7 @@ class MediaListGroupSort
         }
 
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.audioDownloads > 0 {
+            while self?.audioDownloading > 0 {
                 if test?() == true {
                     break
                 }
@@ -202,7 +265,7 @@ class MediaListGroupSort
                 Thread.sleep(forTimeInterval: 1.0)
             }
             
-            if self?.audioDownloads == 0 {
+            if self?.audioDownloading == 0 {
                 Alerts.shared.alert(title: "All Audio Downloads Complete")
             }
         }
@@ -266,7 +329,7 @@ class MediaListGroupSort
         }
 
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.audioDownloads > 0 {
+            while self?.videoDownloading > 0 {
                 if test?() == true {
                     break
                 }
@@ -274,7 +337,7 @@ class MediaListGroupSort
                 Thread.sleep(forTimeInterval: 1.0)
             }
             
-            if self?.audioDownloads == 0 {
+            if self?.videoDownloading == 0 {
                 Alerts.shared.alert(title: "All Video Downloads Complete")
             }
         }
@@ -342,7 +405,7 @@ class MediaListGroupSort
         }
         
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.notesDownloads > 0 {
+            while self?.notesDownloading > 0 {
                 if test?() == true {
                     break
                 }
@@ -350,7 +413,7 @@ class MediaListGroupSort
                 Thread.sleep(forTimeInterval: 1.0)
             }
             
-            if self?.notesDownloads == 0, let notesName = Globals.shared.mediaCategory.notesName {
+            if self?.notesDownloading == 0, let notesName = Globals.shared.mediaCategory.notesName {
                 Alerts.shared.alert(title: "All " + notesName + " Downloads Complete")
             }
         }
@@ -418,7 +481,7 @@ class MediaListGroupSort
         }
         
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.slidesDownloads > 0 {
+            while self?.slidesDownloading > 0 {
                 if test?() == true {
                     break
                 }
@@ -426,7 +489,7 @@ class MediaListGroupSort
                 Thread.sleep(forTimeInterval: 1.0)
             }
             
-            if self?.slidesDownloads == 0 {
+            if self?.slidesDownloading == 0 {
                 Alerts.shared.alert(title: "All Slide Downloads Complete")
             }
         }
@@ -454,7 +517,10 @@ class MediaListGroupSort
             guard let list = list else {
                 return
             }
-            
+
+            _ = self.lexicon?.eligible
+            _ = self.scriptureIndex?.eligible
+
             index = [String:MediaItem]()
             
             for mediaItem in list {

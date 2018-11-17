@@ -2176,51 +2176,82 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     var otBooks = [String]()
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        var bk = book
-        
-        repeat {
-            if let range = string.range(of: bk.lowercased()) {
-                otBooks.append(book)
-                
-                let before = String(string[..<range.lowerBound])
-                let after = String(string[range.upperBound...])
-                
-                string = before + Constants.SINGLE_SPACE + after
-                break
-            } else {
-                bk.removeLast()
-                if bk.last == " " {
-                    break
-                }
-            }
-        } while bk.count > 2
+        if let range = string.range(of: book.lowercased()) {
+            otBooks.append(book)
+            
+            let before = String(string[..<range.lowerBound])
+            let after = String(string[range.upperBound...])
+            
+            string = before + Constants.SINGLE_SPACE + after
+            break
+        }
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-        var bk = book
-        
-        repeat {
-            if let range = string.range(of: bk.lowercased()) {
-                books.append(book)
-                
-                let before = String(string[..<range.lowerBound])
-                let after = String(string[range.upperBound...])
-                
-                string = before + Constants.SINGLE_SPACE + after
-                break
-            } else {
-                bk.removeLast()
-                if bk.last == " " {
-                    break
-                }
-            }
-        } while bk.count > 2
+        if let range = string.range(of: book.lowercased()) {
+            books.append(book)
+            
+            let before = String(string[..<range.lowerBound])
+            let after = String(string[range.upperBound...])
+            
+            string = before + Constants.SINGLE_SPACE + after
+            break
+        }
     }
     
     let ntBooks = books.reversed()
 
     books = otBooks
     books.append(contentsOf: ntBooks)
+    
+    if books.count == 0 {
+        for book in Constants.OLD_TESTAMENT_BOOKS {
+            var bk = book
+            
+            repeat {
+                if let range = string.range(of: bk.lowercased()) {
+                    otBooks.append(book)
+                    
+                    let before = String(string[..<range.lowerBound])
+                    let after = String(string[range.upperBound...])
+                    
+                    string = before + Constants.SINGLE_SPACE + after
+                    break
+                } else {
+                    bk.removeLast()
+                    if bk.last == " " {
+                        break
+                    }
+                }
+            } while bk.count > 2
+        }
+        
+        for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
+            var bk = book
+            
+            repeat {
+                if let range = string.range(of: bk.lowercased()) {
+                    books.append(book)
+                    
+                    let before = String(string[..<range.lowerBound])
+                    let after = String(string[range.upperBound...])
+                    
+                    string = before + Constants.SINGLE_SPACE + after
+                    break
+                } else {
+                    bk.removeLast()
+                    if bk.last == " " {
+                        break
+                    }
+                }
+            } while bk.count > 2
+        }
+        
+        let ntBooks = books.reversed()
+        
+        books = otBooks
+        books.append(contentsOf: ntBooks)
+    }
     
     string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
     
