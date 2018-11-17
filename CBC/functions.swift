@@ -1733,37 +1733,39 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             debug("Now add the verses from the endChapter")
                             
-                            startVerse = 1
-                            
-                            switch testament(book) {
-                            case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
-                                    index < Constants.OLD_TESTAMENT_VERSES.count,
-                                    endChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
-                                    endVerse = Constants.OLD_TESTAMENT_VERSES[index][endChapter - 1]
+                            if endChapter > startChapter {
+                                startVerse = 1
+                                
+                                switch testament(book) {
+                                case Constants.Old_Testament:
+                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                        index < Constants.OLD_TESTAMENT_VERSES.count,
+                                        endChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
+                                        endVerse = Constants.OLD_TESTAMENT_VERSES[index][endChapter - 1]
+                                    }
+                                    break
+                                case Constants.New_Testament:
+                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                        index < Constants.NEW_TESTAMENT_VERSES.count,
+                                        endChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
+                                        endVerse = Constants.NEW_TESTAMENT_VERSES[index][endChapter - 1]
+                                    }
+                                    break
+                                default:
+                                    break
                                 }
-                                break
-                            case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
-                                    index < Constants.NEW_TESTAMENT_VERSES.count,
-                                    endChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
-                                    endVerse = Constants.NEW_TESTAMENT_VERSES[index][endChapter - 1]
-                                }
-                                break
-                            default:
-                                break
-                            }
-                            
-                            if endVerse >= startVerse {
-                                if chaptersAndVerses[endChapter] == nil {
-                                    chaptersAndVerses[endChapter] = [Int]()
-                                }
-                                if startVerse == endVerse {
-                                    chaptersAndVerses[endChapter]?.append(startVerse)
-                                } else {
-                                    if endVerse >= startVerse {
-                                        for verse in startVerse...endVerse {
-                                            chaptersAndVerses[endChapter]?.append(verse)
+                                
+                                if endVerse >= startVerse {
+                                    if chaptersAndVerses[endChapter] == nil {
+                                        chaptersAndVerses[endChapter] = [Int]()
+                                    }
+                                    if startVerse == endVerse {
+                                        chaptersAndVerses[endChapter]?.append(startVerse)
+                                    } else {
+                                        if endVerse >= startVerse {
+                                            for verse in startVerse...endVerse {
+                                                chaptersAndVerses[endChapter]?.append(verse)
+                                            }
                                         }
                                     }
                                 }
@@ -2168,6 +2170,10 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
         return nil
     }
     
+    guard scriptureReference.lowercased() != Constants.Strings.Selected_Scriptures.lowercased() else {
+        return nil
+    }
+    
     var books = [String]()
     
     var string = scriptureReference.lowercased()
@@ -2176,27 +2182,29 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     var otBooks = [String]()
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        if let range = string.range(of: book.lowercased()) {
-            otBooks.append(book)
-            
-            let before = String(string[..<range.lowerBound])
-            let after = String(string[range.upperBound...])
-            
-            string = before + Constants.SINGLE_SPACE + after
-            break
-        }
+        repeat {
+            if let range = string.range(of: book.lowercased()) {
+                otBooks.append(book)
+                
+                let before = String(string[..<range.lowerBound])
+                let after = String(string[range.upperBound...])
+                
+                string = before + Constants.SINGLE_SPACE + after
+            }
+        } while string.range(of: book.lowercased()) != nil
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-        if let range = string.range(of: book.lowercased()) {
-            books.append(book)
-            
-            let before = String(string[..<range.lowerBound])
-            let after = String(string[range.upperBound...])
-            
-            string = before + Constants.SINGLE_SPACE + after
-            break
-        }
+        repeat {
+            if let range = string.range(of: book.lowercased()) {
+                books.append(book)
+                
+                let before = String(string[..<range.lowerBound])
+                let after = String(string[range.upperBound...])
+                
+                string = before + Constants.SINGLE_SPACE + after
+            }
+        } while string.range(of: book.lowercased()) != nil
     }
     
     let ntBooks = books.reversed()
@@ -2206,45 +2214,67 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     
     if books.count == 0 {
         for book in Constants.OLD_TESTAMENT_BOOKS {
-            var bk = book
-            
             repeat {
-                if let range = string.range(of: bk.lowercased()) {
+                if let range = string.range(book) {
                     otBooks.append(book)
                     
                     let before = String(string[..<range.lowerBound])
                     let after = String(string[range.upperBound...])
                     
                     string = before + Constants.SINGLE_SPACE + after
-                    break
-                } else {
-                    bk.removeLast()
-                    if bk.last == " " {
-                        break
-                    }
                 }
-            } while bk.count > 2
+            } while string.range(of: book.lowercased()) != nil
+
+//            var bk = book
+//
+//            repeat {
+//                if let range = string.range(of: bk.lowercased()) {
+//                    otBooks.append(book)
+//
+//                    let before = String(string[..<range.lowerBound])
+//                    let after = String(string[range.upperBound...])
+//
+//                    string = before + Constants.SINGLE_SPACE + after
+//                    break
+//                } else {
+//                    bk.removeLast()
+//                    if bk.last == " " {
+//                        break
+//                    }
+//                }
+//            } while bk.count > 2
         }
         
         for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-            var bk = book
-            
             repeat {
-                if let range = string.range(of: bk.lowercased()) {
+                if let range = string.range(book) {
                     books.append(book)
-                    
+
                     let before = String(string[..<range.lowerBound])
                     let after = String(string[range.upperBound...])
                     
                     string = before + Constants.SINGLE_SPACE + after
-                    break
-                } else {
-                    bk.removeLast()
-                    if bk.last == " " {
-                        break
-                    }
                 }
-            } while bk.count > 2
+            } while string.range(of: book.lowercased()) != nil
+
+//            var bk = book
+//            
+//            repeat {
+//                if let range = string.range(of: bk.lowercased()) {
+//                    books.append(book)
+//                    
+//                    let before = String(string[..<range.lowerBound])
+//                    let after = String(string[range.upperBound...])
+//                    
+//                    string = before + Constants.SINGLE_SPACE + after
+//                    break
+//                } else {
+//                    bk.removeLast()
+//                    if bk.last == " " {
+//                        break
+//                    }
+//                }
+//            } while bk.count > 2
         }
         
         let ntBooks = books.reversed()
@@ -4445,7 +4475,7 @@ func stripHTML(_ string:String?) -> String?
 
 func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 {
-    guard (Globals.shared.media.active?.list != nil) else {
+    guard (Globals.shared.media.active?.mediaList?.list != nil) else {
         return nil
     }
     
@@ -4461,7 +4491,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     
     bodyString = bodyString + "The following media "
     
-    if Globals.shared.media.active?.list?.count > 1 {
+    if Globals.shared.media.active?.mediaList?.list?.count > 1 {
         bodyString = bodyString + "are"
     } else {
         bodyString = bodyString + "is"

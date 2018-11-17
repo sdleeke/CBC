@@ -501,7 +501,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var relevantHistory:[String]?
     {
         get {
-            guard let index = media.all?.index else {
+            guard let index = media.all?.mediaList?.index else {
                 return nil
             }
             
@@ -536,7 +536,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var relevantHistoryList:[String]?
     {
         get {
-            guard let index = media.all?.index else {
+            guard let index = media.all?.mediaList?.index else {
                 return nil
             }
             
@@ -572,7 +572,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         defaults.synchronize()
     }
 
-    var mediaRepository = MediaRepository()
+    var mediaRepository = MediaList(nil)
 
     var media = Media()
     

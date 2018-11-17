@@ -402,6 +402,34 @@ extension String
 
 extension String
 {
+    var books : [String]?
+    {
+        get {
+            return booksFromScriptureReference(self)
+        }
+    }
+    
+    func range(_ book:String) -> Range<String.Index>?
+    {
+        var bookRange : Range<String.Index>?
+        
+        var bk = book
+        
+        repeat {
+            if let range = self.lowercased().range(of: bk.lowercased()) {
+                bookRange = range
+                break
+            } else {
+                bk.removeLast()
+                if bk.last == " " {
+                    break
+                }
+            }
+        } while bk.count > 2
+
+        return bookRange
+    }
+    
     var tokensAndCounts : [String:Int]?
     {
         get {

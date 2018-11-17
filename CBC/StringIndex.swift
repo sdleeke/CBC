@@ -140,7 +140,7 @@ class StringIndex : NSObject
                     }
                     title += "\nMedia ID: \(mediaID)"
                     
-                    if let mediaList = Globals.shared.media.all?.list {
+                    if let mediaList = Globals.shared.media.all?.mediaList?.list {
                         if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
                             let mediaItems = mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                                 return transcript.mediaID == mediaID

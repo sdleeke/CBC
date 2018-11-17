@@ -140,7 +140,7 @@ class ScriptureIndex
             guard _eligible == nil else {
                 return _eligible
             }
-            if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.books != nil
             }), list.count > 0 {
                 _eligible = list
@@ -168,12 +168,12 @@ class ScriptureIndex
         DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
             self?.creating = true
             
-            if let list = self?.mediaListGroupSort?.list {
+            if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
                 Globals.shared.queue.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
                 }
                 
-                for mediaItem in list {
+                for mediaItem in mediaList {
                     if Globals.shared.isRefreshing || Globals.shared.isLoading {
                         break
                     }

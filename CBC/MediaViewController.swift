@@ -117,7 +117,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
 
         case Constants.Strings.Add_All_to_Favorites:
-            guard let mediaItems = mediaItems else {
+            guard let mediaItems = mediaItems?.list else {
                 break
             }
             
@@ -130,7 +130,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
-            guard let mediaItems = mediaItems else {
+            guard let mediaItems = mediaItems?.list else {
                 break
             }
             
@@ -164,53 +164,55 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Download_All_Audio:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                mediaItem.audioDownload?.download()
-            }
+            mediaItems?.downloadAllAudio()
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                mediaItem.audioDownload?.download()
+//            }
             break
             
         case Constants.Strings.Cancel_All_Audio_Downloads:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                if let state = selectedMediaItem?.audioDownload?.state {
-                    switch state {
-                    case .downloading:
-                        mediaItem.audioDownload?.cancel()
-                        break
-                        
-                    case .downloaded:
-                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                        message: nil,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
-                        
-                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            mediaItem.audioDownload?.delete()
-                        })
-                        alert.addAction(yesAction)
-                        
-                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            
-                        })
-                        alert.addAction(noAction)
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        break
-                        
-                    default:
-                        break
-                    }
-                }
-            }
+            mediaItems?.cancelAllAudioDownloads()
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                if let state = selectedMediaItem?.audioDownload?.state {
+//                    switch state {
+//                    case .downloading:
+//                        mediaItem.audioDownload?.cancel()
+//                        break
+//
+//                    case .downloaded:
+//                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                        message: nil,
+//                                                        preferredStyle: .alert)
+//                        alert.makeOpaque()
+//
+//                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+//                            (action : UIAlertAction!) -> Void in
+//                            mediaItem.audioDownload?.delete()
+//                        })
+//                        alert.addAction(yesAction)
+//
+//                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+//                            (action : UIAlertAction!) -> Void in
+//
+//                        })
+//                        alert.addAction(noAction)
+//
+//                        self.present(alert, animated: true, completion: nil)
+//                        break
+//
+//                    default:
+//                        break
+//                    }
+//                }
+//            }
             break
             
         case Constants.Strings.Delete_Audio_Download:
@@ -248,11 +250,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                 (action : UIAlertAction) -> Void in
-                if let mediaItems = self.mediaItems {
-                    for mediaItem in mediaItems {
-                        mediaItem.audioDownload?.delete()
-                    }
-                }
+                self.mediaItems?.deleteAllAudioDownloads()
+//                if let mediaItems = self.mediaItems?.list {
+//                    for mediaItem in mediaItems {
+//                        mediaItem.audioDownload?.delete()
+//                    }
+//                }
             })
             alert.addAction(yesAction)
             
@@ -267,7 +270,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             process(viewController: self, work: { [weak self] in
-                return setupMediaItemsHTML(self?.mediaItems, includeURLs:false, includeColumns:true)
+                return setupMediaItemsHTML(self?.mediaItems?.list, includeURLs:false, includeColumns:true)
             }, completion: { [weak self] (data:Any?) in
                 if let vc = self {
                     printHTML(viewController: vc, htmlString: data as? String)
@@ -287,78 +290,82 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             
         case Constants.Strings.Transcribe_All_Audio:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                guard mediaItem.audioTranscript?.transcribing == false else {
-                    continue
-                }
-                
-                guard mediaItem.audioTranscript?.completed == false else {
-                    continue
-                }
-                
-                mediaItem.audioTranscript?.getTranscript(alert: true, atEnd: nil)
-                mediaItem.audioTranscript?.alert(viewController: self)
-            }
+            mediaItems?.transcribeAllAudio(viewController: self)
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                guard mediaItem.audioTranscript?.transcribing == false else {
+//                    continue
+//                }
+//
+//                guard mediaItem.audioTranscript?.completed == false else {
+//                    continue
+//                }
+//
+//                mediaItem.audioTranscript?.getTranscript(alert: true)
+//                mediaItem.audioTranscript?.alert(viewController: self)
+//            }
             break
             
         case Constants.Strings.Transcribe_All_Video:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                guard mediaItem.videoTranscript?.transcribing == false else {
-                    continue
-                }
-                
-                guard mediaItem.videoTranscript?.completed == false else {
-                    continue
-                }
-                
-                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
-                mediaItem.videoTranscript?.alert(viewController: self)
-            }
+            mediaItems?.transcribeAllVideo(viewController: self)
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                guard mediaItem.videoTranscript?.transcribing == false else {
+//                    continue
+//                }
+//
+//                guard mediaItem.videoTranscript?.completed == false else {
+//                    continue
+//                }
+//
+//                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
+//                mediaItem.videoTranscript?.alert(viewController: self)
+//            }
             break
             
             
         case Constants.Strings.Align_All_Audio:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                guard mediaItem.audioTranscript?.transcribing == false else {
-                    continue
-                }
-                
-                guard mediaItem.audioTranscript?.completed == true else {
-                    continue
-                }
-                
-                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
-            }
+            mediaItems?.alignAllAudio(viewController: self)
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                guard mediaItem.audioTranscript?.transcribing == false else {
+//                    continue
+//                }
+//
+//                guard mediaItem.audioTranscript?.completed == true else {
+//                    continue
+//                }
+//
+//                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
+//            }
             break
             
         case Constants.Strings.Align_All_Video:
-            guard let mediaItems = mediaItems else {
-                break
-            }
-            
-            for mediaItem in mediaItems {
-                guard mediaItem.videoTranscript?.transcribing == false else {
-                    continue
-                }
-                
-                guard mediaItem.videoTranscript?.completed == true else {
-                    continue
-                }
-                
-                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
-            }
+            mediaItems?.alignAllVideo(viewController: self)
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            for mediaItem in mediaItems {
+//                guard mediaItem.videoTranscript?.transcribing == false else {
+//                    continue
+//                }
+//
+//                guard mediaItem.videoTranscript?.completed == true else {
+//                    continue
+//                }
+//
+//                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
+//            }
             break
             
 
@@ -1223,7 +1230,7 @@ class MediaViewController: UIViewController
     
     func loadWeb(download:Download?)
     {
-        operationQueue.addOperation { [weak self] in
+        webQueue.addOperation { [weak self] in
             Thread.onMainThread {
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
@@ -1262,16 +1269,25 @@ class MediaViewController: UIViewController
         }
     }
     
-    var operationQueue : OperationQueue! = {
+    lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "WKWEBVIEW"
+        operationQueue.name = "MVC-MEDIA:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
+        return operationQueue
+    }()
+    
+    var webQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MVC-WEB"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
 
     deinit {
-        operationQueue.cancelAllOperations()
+        webQueue.cancelAllOperations()
+        mediaQueue.cancelAllOperations()
     }
     
     var selectedMediaItem:MediaItem?
@@ -1301,9 +1317,9 @@ class MediaViewController: UIViewController
             
             webData = nil
             
-            operationQueue.cancelAllOperations()
+            webQueue.cancelAllOperations()
 
-            mediaItems = selectedMediaItem?.multiPartMediaItems
+            mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
             
             if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
@@ -1328,13 +1344,13 @@ class MediaViewController: UIViewController
         }
     }
     
-    var mediaItems:[MediaItem]?
+    var mediaItems:MediaList? // [MediaItem]?
     {
         didSet {
-            mediaItems?.forEach({ (mediaItem:MediaItem) in
+            mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
                 mediaItem.loadDocuments()
             })
-            if mediaItems != oldValue {
+            if mediaItems?.list != oldValue?.list {
                 tableView?.reloadData()
             }
         }
@@ -2179,7 +2195,7 @@ class MediaViewController: UIViewController
             return nil
         }
         
-        guard let mediaItems = mediaItems else {
+        guard let mediaItems = mediaItems?.list else {
             return nil
         }
         
@@ -2261,101 +2277,101 @@ class MediaViewController: UIViewController
             }
         }
         
-        var mediaItemsToDownload = 0
-        var mediaItemsDownloading = 0
-        var mediaItemsDownloaded = 0
+//        var mediaItemsToDownload = 0
+//        var mediaItemsDownloading = 0
+//        var mediaItemsDownloaded = 0
         
-        var mediaItemsToTranscribeAudio = 0
-        var mediaItemsToTranscribeVideo = 0
+//        var mediaItemsToTranscribeAudio = 0
+//        var mediaItemsToTranscribeVideo = 0
+//
+//        var mediaItemsToAlignAudio = 0
+//        var mediaItemsToAlignVideo = 0
         
-        var mediaItemsToAlignAudio = 0
-        var mediaItemsToAlignVideo = 0
-        
-        for mediaItem in mediaItems {
-            if let download = mediaItem.audioDownload {
-                switch download.state {
-                case .none:
-                    mediaItemsToDownload += 1
-                    break
-                case .downloading:
-                    mediaItemsDownloading += 1
-                    break
-                case .downloaded:
-                    mediaItemsDownloaded += 1
-                    break
-                }
-            }
-            
-            if mediaItem.hasAudio, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == false {
-                mediaItemsToTranscribeAudio += 1
-            }
-            
-            if mediaItem.hasVideo, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == false {
-                mediaItemsToTranscribeVideo += 1
-            }
-            
-            if mediaItem.hasAudio, mediaItem.hasNotesText, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == true {
-                mediaItemsToAlignAudio += 1
-            }
-            
-            if mediaItem.hasVideo, mediaItem.hasNotesText, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == true {
-                mediaItemsToAlignVideo += 1
-            }
-        }
+//        for mediaItem in mediaItems {
+//            if let download = mediaItem.audioDownload {
+//                switch download.state {
+//                case .none:
+//                    mediaItemsToDownload += 1
+//                    break
+//                case .downloading:
+//                    mediaItemsDownloading += 1
+//                    break
+//                case .downloaded:
+//                    mediaItemsDownloaded += 1
+//                    break
+//                }
+//            }
+//
+//            if mediaItem.hasAudio, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == false {
+//                mediaItemsToTranscribeAudio += 1
+//            }
+//
+//            if mediaItem.hasVideo, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == false {
+//                mediaItemsToTranscribeVideo += 1
+//            }
+//
+//            if mediaItem.hasAudio, mediaItem.hasNotesText, mediaItem.audioTranscript?.transcribing == false, mediaItem.audioTranscript?.completed == true {
+//                mediaItemsToAlignAudio += 1
+//            }
+//
+//            if mediaItem.hasVideo, mediaItem.hasNotesText, mediaItem.videoTranscript?.transcribing == false, mediaItem.videoTranscript?.completed == true {
+//                mediaItemsToAlignVideo += 1
+//            }
+//        }
         
         if let state = selectedMediaItem.audioDownload?.state {
             switch state {
             case .none:
-                if (mediaItemsToDownload > 1) {
+                if (self.mediaItems?.audioDownloads > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (mediaItemsDownloading > 0) {
+                if (self.mediaItems?.audioDownloading > 0) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (mediaItemsDownloaded > 0) {
+                if (self.mediaItems?.audioDownloaded > 0) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
                 
             case .downloading:
-                if (mediaItemsToDownload > 0) {
+                if (self.mediaItems?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (mediaItemsDownloading > 1) {
+                if (self.mediaItems?.audioDownloading > 1) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (mediaItemsDownloaded > 0) {
+                if (self.mediaItems?.audioDownloaded > 0) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
                 
             case .downloaded:
-                if (mediaItemsToDownload > 0) {
+                if (self.mediaItems?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (mediaItemsDownloading > 0) {
+                if (self.mediaItems?.audioDownloading > 0) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (mediaItemsDownloaded > 1) {
+                if (self.mediaItems?.audioDownloaded > 1) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, mediaItemsToAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video)
         }
         
@@ -3387,7 +3403,7 @@ class MediaViewController: UIViewController
 
         var indexPath = IndexPath(row: 0, section: 0)
         
-        if mediaItems?.count > 0, let mediaItemIndex = mediaItems?.index(of: mediaItem) {
+        if mediaItems?.list?.count > 0, let mediaItemIndex = mediaItems?.list?.index(of: mediaItem) {
             indexPath = IndexPath(row: mediaItemIndex, section: 0)
         }
         
@@ -3817,7 +3833,7 @@ class MediaViewController: UIViewController
         if let constant = constantForSplitView(verticalSplit) {
             newConstraintConstant = constant // * bounds.height
         } else {
-            if let count = mediaItems?.count {
+            if let count = mediaItems?.list?.count {
                 let numberOfAdditionalRows = CGFloat(count)
                 newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
                 
@@ -5048,7 +5064,7 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        guard let mediaItems = mediaItems else {
+        guard let mediaItems = mediaItems?.list else {
             return 0
         }
 

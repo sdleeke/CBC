@@ -1155,7 +1155,7 @@ class LexiconIndexViewController : UIViewController
         
         bodyString = bodyString + "The following media "
         
-        if results?.list?.count > 1 {
+        if results?.mediaList?.list?.count > 1 {
             bodyString = bodyString + "are"
         } else {
             bodyString = bodyString + "is"
@@ -1375,7 +1375,7 @@ class LexiconIndexViewController : UIViewController
             actionMenu.append(Constants.Strings.View_Words)
         }
 
-        if results?.list?.count > 0 {
+        if results?.mediaList?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
         }
 

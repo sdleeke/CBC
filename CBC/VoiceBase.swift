@@ -2410,7 +2410,7 @@ class VoiceBase {
         })
     }
     
-    func getTranscript(alert:Bool, atEnd:(()->())?)
+    func getTranscript(alert:Bool, atEnd:(()->())? = nil)
     {
         guard let mediaID = mediaID else {
             upload()
@@ -3112,6 +3112,10 @@ class VoiceBase {
     
     func alert(viewController:UIViewController)
     {
+        guard !completed else {
+            return
+        }
+        
         let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(percentComplete!)% complete)" : "")
         
         var title = "Machine Generated Transcript "
@@ -3163,18 +3167,30 @@ class VoiceBase {
         }
     }
 
-    func confirmAlignment(viewController:UIViewController, action:(()->())?)
+    func confirmAlignment(action:(()->())?) // viewController:UIViewController, 
     {
         guard let text = self.mediaItem?.text else {
             return
         }
         
-        yesOrNo(viewController: viewController, title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
-            yesAction: { () -> (Void) in
-                action?()
-        },
-            yesStyle: .destructive,
-            noAction: nil, noStyle: .default)
+        var alertActions = [AlertAction]()
+
+        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+            action?()
+        }))
+
+        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
+
+        }))
+
+        Alerts.shared.alert(title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.", actions: alertActions)
+
+//        yesOrNo(viewController: viewController, title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
+//            yesAction: { () -> (Void) in
+//                action?()
+//        },
+//            yesStyle: .destructive,
+//            noAction: nil, noStyle: .default)
     }
     
     func selectAlignmentSource(viewController:UIViewController)
@@ -3187,7 +3203,7 @@ class VoiceBase {
         
         if (self.mediaItem?.hasNotesText == true) {
             alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
-                self.confirmAlignment(viewController:viewController) {
+                self.confirmAlignment() { // viewController:viewController
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in
                         return self?.mediaItem?.notesText // self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
                     }, completion: { [weak self] (data:Any?) in
@@ -3204,22 +3220,27 @@ class VoiceBase {
 //        }))
         
         alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .destructive, handler: {
-            self.confirmAlignment(viewController:viewController) {
+            self.confirmAlignment() { // viewController:viewController
                 self.align(self.transcriptFromTranscriptSegments)
             }
         }))
         
         alertActions.append(AlertAction(title: Constants.Strings.Words, style: .destructive, handler: {
-            self.confirmAlignment(viewController:viewController) {
+            self.confirmAlignment() { // viewController:viewController
                 self.align(self.transcriptFromWords)
             }
         }))
         
-        alertActionsCancel( viewController: viewController,
-                            title: "Select Source for Alignment",
-                            message: text,
-                            alertActions: alertActions,
-                            cancelAction: nil)
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+
+        }))
+        
+        Alerts.shared.alert(title: "Select Source for Alignment", message: text, actions: alertActions)
+//        alertActionsCancel( viewController: viewController,
+//                            title: "Select Source for Alignment",
+//                            message: text,
+//                            alertActions: alertActions,
+//                            cancelAction: nil)
         
         //                            alertActionsCancel( viewController: viewController,
         //                                                title: "Confirm Alignment of Machine Generated Transcript",
@@ -3289,7 +3310,7 @@ class VoiceBase {
                                                     title: "Begin Creating\nMachine Generated Transcript?",
                                                     message: "\(text) (\(self.transcriptPurpose))",
                                                     yesAction: { () -> (Void) in
-                                                        self.getTranscript(alert: true) {}
+                                                        self.getTranscript(alert: true)
                                                         self.alert(viewController:viewController)
                                                     },
                                                     yesStyle: .default,
@@ -3344,7 +3365,7 @@ class VoiceBase {
                                 title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.getTranscript(alert: true) {}
+                                self.getTranscript(alert: true)
                                 self.alert(viewController:viewController)
                             },
                             yesStyle: .default,

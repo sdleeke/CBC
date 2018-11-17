@@ -137,18 +137,36 @@ class Lexicon : NSObject
         }
     }
     
+    var _eligible:[MediaItem]?
     var eligible:[MediaItem]?
     {
         get {
-            if let list = mediaListGroupSort?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+            guard _eligible == nil else {
+                return _eligible
+            }
+            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.hasNotesText
             }), list.count > 0 {
-                return list
+                _eligible = list
             } else {
-                return nil
+                _eligible = nil
             }
+            
+            return _eligible
         }
     }
+//    var eligible:[MediaItem]?
+//    {
+//        get {
+//            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                return mediaItem.hasNotesText
+//            }), list.count > 0 {
+//                return list
+//            } else {
+//                return nil
+//            }
+//        }
+//    }
     
     func documents(_ word:String?) -> Int? // nil => not found
     {

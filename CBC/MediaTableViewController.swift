@@ -484,7 +484,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
 
         if let mediaID = value["mediaId"] as? String {
-            if let mediaList = Globals.shared.media.all?.list {
+            if let mediaList = Globals.shared.media.all?.mediaList?.list {
                 let mediaItems = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
                     return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                         return transcript.mediaID == mediaID
@@ -541,7 +541,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         return false
                     }
                     
-                    if Globals.shared.media.all?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                    if Globals.shared.media.all?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                         return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                             return transcript.mediaID == mediaID
                         }).count > 0
@@ -1506,23 +1506,36 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             switch string {
             case "Download All Slides":
-                Alerts.shared.alert(title: "Downloading All Slides", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-                Globals.shared.media.active?.downloadAllSlides()
+                Globals.shared.media.active?.mediaList?.downloadAllSlides()
                 break
                 
             case "Download All " + (notesName ?? ""):
-                Alerts.shared.alert(title: "Downloading All " + (notesName ?? ""), message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-                Globals.shared.media.active?.downloadAllNotes()
+                Globals.shared.media.active?.mediaList?.downloadAllNotes()
                 break
                 
             case "Download All Audio":
-                Alerts.shared.alert(title: "Downloading All Audio", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-                Globals.shared.media.active?.downloadAllAudio()
+                Globals.shared.media.active?.mediaList?.downloadAllAudio()
                 break
                 
             case "Delete All Audio Downloads":
-                Alerts.shared.alert(title: "Deleting All Audio Downloads", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-                Globals.shared.media.active?.deleteAllAudio()
+                let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                    (action : UIAlertAction) -> Void in
+                    Globals.shared.media.active?.mediaList?.deleteAllAudioDownloads()
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(noAction)
+                
+                self.present(alert, animated: true, completion: nil)
                 break
                 
             case Constants.Strings.View_List:
@@ -3015,28 +3028,28 @@ class MediaTableViewController : UIViewController
     var audioDownloads : Int?
     {
         get {
-            return Globals.shared.media.active?.audioDownloads
+            return Globals.shared.media.active?.mediaList?.audioDownloads
         }
     }
     
     var audioDownloaded : Int?
     {
         get {
-            return Globals.shared.media.active?.audioDownloaded
+            return Globals.shared.media.active?.mediaList?.audioDownloaded
         }
     }
     
     var slidesDownloads : Int?
     {
         get {
-            return Globals.shared.media.active?.slidesDownloads
+            return Globals.shared.media.active?.mediaList?.slidesDownloads
         }
     }
     
     var notesDownloads : Int?
     {
         get {
-            return Globals.shared.media.active?.notesDownloads
+            return Globals.shared.media.active?.mediaList?.notesDownloads
         }
     }
     
@@ -3044,7 +3057,7 @@ class MediaTableViewController : UIViewController
     {
         var actionMenu = [String]()
         
-        if Globals.shared.media.active?.list?.count > 0 {
+        if Globals.shared.media.active?.mediaList?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
            
             if Globals.shared.cacheDownloads {
@@ -3307,7 +3320,7 @@ class MediaTableViewController : UIViewController
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var searchMediaItems:[MediaItem]?
             
-            if let mediaItems = Globals.shared.media.toSearch?.list {
+            if let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
                 for mediaItem in mediaItems {
                     Globals.shared.search.complete = false
                     
@@ -3345,7 +3358,7 @@ class MediaTableViewController : UIViewController
                     Globals.shared.media.toSearch?.searches?[searchText] = nil
                 }
                 
-                if !abort && Globals.shared.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.list {
+                if !abort, Globals.shared.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
                     for mediaItem in mediaItems {
                         Globals.shared.search.complete = false
                         

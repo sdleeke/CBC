@@ -207,6 +207,20 @@ class Scripture : NSObject
         }
     }
     
+    var _books:[String]?
+    var books:[String]?
+    {
+        get {
+            guard _books == nil else {
+                return _books
+            }
+            
+            _books = booksFromScriptureReference(reference)
+            
+            return _books
+        }
+    }
+    
 //    var htmlString : String?
 //    {
 //        guard let reference = reference else {
@@ -287,15 +301,65 @@ class Scripture : NSObject
             return
         }
         
+        guard let books = books else {
+            return
+        }
+        
         let booksAndChaptersAndVerses = BooksChaptersVerses()
         
 //        var scriptures = [String]()
         
 //        var string = scriptureReference
         
-        let separator = ";"
+//        let separator = ";"
+//
+//        let scriptures = scriptureReference.components(separatedBy: separator)
 
-        let scriptures = scriptureReference.components(separatedBy: separator)
+        var ranges = [Range<String.Index>]()
+        var scriptures = [String]()
+        
+        for book in books {
+            if let range = scriptureReference.range(book) {
+                ranges.append(range)
+            }
+            
+//            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
+//                ranges.append(range)
+//            } else {
+//                var bk = book
+//
+//                repeat {
+//                    if let range = scriptureReference.range(of: bk.lowercased()) {
+//                        ranges.append(range)
+//                        break
+//                    } else {
+//                        bk.removeLast()
+//                        if bk.last == " " {
+//                            break
+//                        }
+//                    }
+//                } while bk.count > 2
+//            }
+        }
+        
+        if books.count == ranges.count {
+            var lastRange : Range<String.Index>?
+            
+            for range in ranges {
+                if let lastRange = lastRange {
+                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
+                }
+
+                lastRange = range
+            }
+            
+            if let lastRange = lastRange {
+                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
+            }
+        } else {
+            // BUMMER
+        }
+        
 //        while (string.range(of: separator) != nil) {
 //            if let lowerBound = string.range(of: separator)?.lowerBound {
 //                scriptures.append(String(string[..<lowerBound]))
@@ -308,36 +372,32 @@ class Scripture : NSObject
 //
 //        scriptures.append(string)
         
-        var lastBook:String?
+//        var lastBook:String?
         
         for scripture in scriptures {
-            var book = booksFromScriptureReference(scripture)?.first
-            
-            if book == nil {
-                book = lastBook
-            } else {
-                lastBook = book
-            }
-            
-            if let book = book {
-                var reference = scripture
+            if let book = scripture.books?.first {
+                var reference : String?
                 
-                var bk = book
+                if let range = scripture.range(book) {
+                    reference = String(scripture[range.upperBound...])
+                }
                 
-                repeat {
-                    if let range = scripture.range(of: bk) {
-                        reference = String(scripture[range.upperBound...])
-                        break
-                    } else {
-                        bk.removeLast()
-                        if bk.last == " " {
-                            break
-                        }
-                    }
-                } while bk.count > 2
-                
+//                var bk = book
+//
+//                repeat {
+//                    if let range = scripture.range(of: bk) {
+//                        reference = String(scripture[range.upperBound...])
+//                        break
+//                    } else {
+//                        bk.removeLast()
+//                        if bk.last == " " {
+//                            break
+//                        }
+//                    }
+//                } while bk.count > 2
+
                 // What if a reference includes the book more than once?
-                
+
                 if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
                     if let _ = booksAndChaptersAndVerses[book] {
                         for key in chaptersAndVerses.keys {
@@ -665,7 +725,7 @@ class Scripture : NSObject
         
         bodyString = "<!DOCTYPE html><html><body>"
         
-        guard let books = booksFromScriptureReference(reference) else {
+        guard let books = books else { // FromScriptureReference(reference)
             return
         }
         

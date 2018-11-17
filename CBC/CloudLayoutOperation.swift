@@ -136,7 +136,7 @@ class CloudLayoutOperation : Operation
         
         let deltaWordCount:CGFloat = CGFloat(maxWordCount) - CGFloat(minWordCount)
         
-        let ratioCap:CGFloat = 20.0 // parameter to vary
+        let ratioCap:CGFloat = 10.0 // Parameter to vary.  Used to be 20.  That was too drastic.
         
         let maxMinRatio:CGFloat = CGFloat(min((CGFloat(maxWordCount) / CGFloat(minWordCount)), ratioCap))
         
@@ -151,6 +151,23 @@ class CloudLayoutOperation : Operation
         let containerArea:CGFloat = CGFloat(containerSize.width * containerSize.height) * whitespaceFactor
 
         var wordAreaExceedsContainerSize = false
+
+        // Looking at word volumes
+        // If word volumes were in proportion to their relative frequency
+        // it seems intuitive that the image would be more meaningful
+        // but how do we do that?
+        //
+//        if let first = cloudWords.first, let last = cloudWords.last {
+//            first.pointSize = fontMax
+//            first.sizeWord(isVertical: false, scale:containerScale, fontName:cloudFont.fontName)
+//            let firstArea = first.boundsArea
+//
+//            last.pointSize = fontMin
+//            last.sizeWord(isVertical: false, scale:containerScale, fontName:cloudFont.fontName)
+//            let lastArea = last.boundsArea
+//
+//            print(firstArea,lastArea,firstArea/lastArea)
+//        }
         
         repeat {
             var wordArea:CGFloat = 0.0;

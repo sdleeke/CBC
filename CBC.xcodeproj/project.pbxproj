@@ -68,7 +68,7 @@
 		17FF98872030DA5A002AD442 /* SelectedMediaItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */; };
 		17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98882030DA75002AD442 /* MediaCategory.swift */; };
 		17FF988B2030DB01002AD442 /* MediaStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988A2030DB01002AD442 /* MediaStream.swift */; };
-		17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988C2030DB8C002AD442 /* MediaRepository.swift */; };
+		17FF988D2030DB8C002AD442 /* MediaList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988C2030DB8C002AD442 /* MediaList.swift */; };
 		17FF988F2030DBC9002AD442 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF988E2030DBC9002AD442 /* Media.swift */; };
 		17FF98912030DC84002AD442 /* Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FF98902030DC84002AD442 /* Tags.swift */; };
 /* End PBXBuildFile section */
@@ -178,7 +178,7 @@
 		17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedMediaItem.swift; sourceTree = "<group>"; };
 		17FF98882030DA75002AD442 /* MediaCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCategory.swift; sourceTree = "<group>"; };
 		17FF988A2030DB01002AD442 /* MediaStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaStream.swift; sourceTree = "<group>"; };
-		17FF988C2030DB8C002AD442 /* MediaRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaRepository.swift; sourceTree = "<group>"; };
+		17FF988C2030DB8C002AD442 /* MediaList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaList.swift; sourceTree = "<group>"; };
 		17FF988E2030DBC9002AD442 /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
 		17FF98902030DC84002AD442 /* Tags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tags.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -243,7 +243,7 @@
 				17174D01216268AC00D9DE5B /* Alerts.swift */,
 				17FF988E2030DBC9002AD442 /* Media.swift */,
 				17FF98902030DC84002AD442 /* Tags.swift */,
-				17FF988C2030DB8C002AD442 /* MediaRepository.swift */,
+				17FF988C2030DB8C002AD442 /* MediaList.swift */,
 				17FF988A2030DB01002AD442 /* MediaStream.swift */,
 				17FF98882030DA75002AD442 /* MediaCategory.swift */,
 				17FF98862030DA5A002AD442 /* SelectedMediaItem.swift */,
@@ -548,7 +548,7 @@
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
 				1736F2E0217522FF00F2D8EC /* Display.swift in Sources */,
 				17FF98892030DA75002AD442 /* MediaCategory.swift in Sources */,
-				17FF988D2030DB8C002AD442 /* MediaRepository.swift in Sources */,
+				17FF988D2030DB8C002AD442 /* MediaList.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				1736F2DE21750D3B00F2D8EC /* StringIndex.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
