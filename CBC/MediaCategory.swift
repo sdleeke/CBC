@@ -20,7 +20,7 @@ class MediaCategory
                 return nil
             }
             
-            if dicts?[selectedID] == 1.description {
+            if selectedID == 1.description {
                 return Constants.Strings.Transcript
             } else {
                 return Constants.Strings.Notes

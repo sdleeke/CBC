@@ -1150,6 +1150,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }) { (data:Any?) in
                 self.updateUI()
 
+                self.notesName = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
+
                 Thread.onMainThread {
                     if Globals.shared.search.active { //  && !Globals.shared.search.complete
                         self.updateSearchResults(Globals.shared.search.text,completion: {
@@ -1508,14 +1510,19 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 Globals.shared.media.active?.downloadAllSlides()
                 break
                 
-            case "Download All " + notes:
-                Alerts.shared.alert(title: "Downloading All " + notes, message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+            case "Download All " + (notesName ?? ""):
+                Alerts.shared.alert(title: "Downloading All " + (notesName ?? ""), message: "This may take a considerable amount of time.  You will be notified when it is complete.")
                 Globals.shared.media.active?.downloadAllNotes()
                 break
                 
             case "Download All Audio":
                 Alerts.shared.alert(title: "Downloading All Audio", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
                 Globals.shared.media.active?.downloadAllAudio()
+                break
+                
+            case "Delete All Audio Downloads":
+                Alerts.shared.alert(title: "Deleting All Audio Downloads", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+                Globals.shared.media.active?.deleteAllAudio()
                 break
                 
             case Constants.Strings.View_List:
@@ -1792,7 +1799,7 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class MediaTableViewController : UIViewController
 {
-    var notes = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
+    var notesName : String?
     
     var display = Display()
 
@@ -2552,6 +2559,8 @@ class MediaTableViewController : UIViewController
                 case .direct:
                     self?.loadTeachers()
                     self?.loadCategories()
+                    
+                    self?.notesName = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
 
                     if  let url = Globals.shared.mediaCategory.url,
                         let filename = Globals.shared.mediaCategory.filename,
@@ -3010,6 +3019,13 @@ class MediaTableViewController : UIViewController
         }
     }
     
+    var audioDownloaded : Int?
+    {
+        get {
+            return Globals.shared.media.active?.audioDownloaded
+        }
+    }
+    
     var slidesDownloads : Int?
     {
         get {
@@ -3035,13 +3051,17 @@ class MediaTableViewController : UIViewController
                 if slidesDownloads > 0 {
                     actionMenu.append("Download All Slides")
                 }
-                if notesDownloads > 0 {
-                    actionMenu.append("Download All " + notes)
+                if notesDownloads > 0, let notesName = notesName {
+                    actionMenu.append("Download All " + notesName)
                 }
             }
             
             if audioDownloads > 0 {
                 actionMenu.append("Download All Audio")
+            }
+            
+            if audioDownloaded > 0 {
+                actionMenu.append("Delete All Audio Downloads")
             }
         }
         

@@ -80,7 +80,7 @@ class MediaListGroupSort
         let operationQueue = OperationQueue()
         operationQueue.name = "MLGS:" + UUID().uuidString
         operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 2 // Slides and Notes
+        operationQueue.maxConcurrentOperationCount = 3
         return operationQueue
     }()
 
@@ -94,6 +94,15 @@ class MediaListGroupSort
         get {
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var audioDownloaded : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return mediaItem.audioDownload?.exists == true
             }).count
         }
     }
@@ -183,6 +192,48 @@ class MediaListGroupSort
             
             mediaQueue.addOperation(operation)
         }
+
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            while self?.audioDownloads > 0 {
+                if test?() == true {
+                    break
+                }
+                
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
+            if self?.audioDownloads == 0 {
+                Alerts.shared.alert(title: "All Audio Downloads Complete")
+            }
+        }
+        
+        mediaQueue.addOperation(operation)
+    }
+    
+    func deleteAllAudio()
+    {
+        mediaQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.audioDownload?.delete()
+            })
+            
+            if self.audioDownloaded == 0 {
+                Alerts.shared.alert(title: "All Audio Downloads Deleted")
+            }
+        }
+    }
+    
+    func deleteAllVideo()
+    {
+        mediaQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                mediaItem.videoDownload?.delete()
+            })
+            
+            if self.videoDownloaded == 0 {
+                Alerts.shared.alert(title: "All Video Downloads Deleted")
+            }
+        }
     }
     
     func downloadAllVideo()
@@ -213,6 +264,22 @@ class MediaListGroupSort
             
             mediaQueue.addOperation(operation)
         }
+
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            while self?.audioDownloads > 0 {
+                if test?() == true {
+                    break
+                }
+                
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
+            if self?.audioDownloads == 0 {
+                Alerts.shared.alert(title: "All Video Downloads Complete")
+            }
+        }
+        
+        mediaQueue.addOperation(operation)
     }
 
     func downloadAllNotes()
@@ -221,18 +288,44 @@ class MediaListGroupSort
             return
         }
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
-                
-                let download = mediaItem.notesDownload
-                
-                if download?.exists == true {
-                    continue
-                }
-                
+//        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+//            for mediaItem in list {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                let download = mediaItem.notesDownload
+//
+//                if download?.exists == true {
+//                    continue
+//                }
+//
+//                _ = download?.download()
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//            if self?.notesDownloads == 0 {
+//                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
+//            }
+//        }
+//
+//        operationQueue.addOperation(operation)
+        
+        for mediaItem in list {
+            let download = mediaItem.notesDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -244,8 +337,21 @@ class MediaListGroupSort
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
-            if self?.notesDownloads == 0 {
-                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
+            
+            operationQueue.addOperation(operation)
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            while self?.notesDownloads > 0 {
+                if test?() == true {
+                    break
+                }
+                
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
+            if self?.notesDownloads == 0, let notesName = Globals.shared.mediaCategory.notesName {
+                Alerts.shared.alert(title: "All " + notesName + " Downloads Complete")
             }
         }
         
@@ -258,18 +364,44 @@ class MediaListGroupSort
             return
         }
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            for mediaItem in list {
-                if test?() == true {
-                    break
-                }
-                
-                let download = mediaItem.slidesDownload
-                
-                if download?.exists == true {
-                    continue
-                }
-                
+//        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+//            for mediaItem in list {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                let download = mediaItem.slidesDownload
+//
+//                if download?.exists == true {
+//                    continue
+//                }
+//
+//                _ = download?.download()
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//            if self?.slidesDownloads == 0 {
+//                Alerts.shared.alert(title: "All Slide Downloads Complete")
+//            }
+//        }
+//
+//        operationQueue.addOperation(operation)
+        
+        for mediaItem in list {
+            let download = mediaItem.slidesDownload
+            
+            if download?.exists == true  {
+                continue
+            }
+            
+            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download()
                 
                 while download?.state == .downloading {
@@ -281,6 +413,19 @@ class MediaListGroupSort
                     Thread.sleep(forTimeInterval: 1.0)
                 }
             }
+            
+            operationQueue.addOperation(operation)
+        }
+        
+        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+            while self?.slidesDownloads > 0 {
+                if test?() == true {
+                    break
+                }
+                
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
             if self?.slidesDownloads == 0 {
                 Alerts.shared.alert(title: "All Slide Downloads Complete")
             }

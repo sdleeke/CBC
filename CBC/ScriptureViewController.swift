@@ -880,7 +880,7 @@ class ScriptureViewController : UIViewController
                         
                         bodyString = bodyString + "Network error.  Scripture text unavailable."
                         
-                        bodyString = bodyString + "</html></body>"
+                        bodyString = bodyString + "</body></html>"
                         
                         if let string = insertHead(bodyString,fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
                             self?.webViewController?.html.string = string

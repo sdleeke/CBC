@@ -2176,25 +2176,45 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     var otBooks = [String]()
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        if let range = string.range(of: book.lowercased()) {
-            otBooks.append(book)
-            
-            let before = String(string[..<range.lowerBound])
-            let after = String(string[range.upperBound...])
-            
-            string = before + Constants.SINGLE_SPACE + after
-        }
+        var bk = book
+        
+        repeat {
+            if let range = string.range(of: bk.lowercased()) {
+                otBooks.append(book)
+                
+                let before = String(string[..<range.lowerBound])
+                let after = String(string[range.upperBound...])
+                
+                string = before + Constants.SINGLE_SPACE + after
+                break
+            } else {
+                bk.removeLast()
+                if bk.last == " " {
+                    break
+                }
+            }
+        } while bk.count > 2
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-        if let range = string.range(of: book.lowercased()) {
-            books.append(book)
-            
-            let before = String(string[..<range.lowerBound])
-            let after = String(string[range.upperBound...])
-            
-            string = before + Constants.SINGLE_SPACE + after
-        }
+        var bk = book
+        
+        repeat {
+            if let range = string.range(of: bk.lowercased()) {
+                books.append(book)
+                
+                let before = String(string[..<range.lowerBound])
+                let after = String(string[range.upperBound...])
+                
+                string = before + Constants.SINGLE_SPACE + after
+                break
+            } else {
+                bk.removeLast()
+                if bk.last == " " {
+                    break
+                }
+            }
+        } while bk.count > 2
     }
     
     let ntBooks = books.reversed()

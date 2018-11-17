@@ -322,9 +322,19 @@ class Scripture : NSObject
             if let book = book {
                 var reference = scripture
                 
-                if let range = scripture.range(of: book) {
-                    reference = String(scripture[range.upperBound...])
-                }
+                var bk = book
+                
+                repeat {
+                    if let range = scripture.range(of: bk) {
+                        reference = String(scripture[range.upperBound...])
+                        break
+                    } else {
+                        bk.removeLast()
+                        if bk.last == " " {
+                            break
+                        }
+                    }
+                } while bk.count > 2
                 
                 // What if a reference includes the book more than once?
                 
@@ -372,7 +382,7 @@ class Scripture : NSObject
 
                     bodyString = bodyString + string
 
-                    bodyString = bodyString + "</html></body>"
+                    bodyString = bodyString + "</body></html>"
                     
                     return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
                 }
@@ -467,7 +477,7 @@ class Scripture : NSObject
                     }
                 }
                 
-                bodyString = bodyString + "</html></body>"
+                bodyString = bodyString + "</body></html>"
                 
                 html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
             }
@@ -644,7 +654,7 @@ class Scripture : NSObject
         
         bodyString = bodyString + "<br/>"
         
-        bodyString = bodyString + "</html></body>"
+        bodyString = bodyString + "</body></html>"
         
         html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
@@ -813,7 +823,7 @@ class Scripture : NSObject
             bodyString = bodyString + fums
         }
         
-        bodyString = bodyString + "</html></body>"
+        bodyString = bodyString + "</body></html>"
         
         if let reference = reference {
             html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
