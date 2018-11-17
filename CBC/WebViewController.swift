@@ -469,23 +469,23 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
-                if let mediaItem = mediaItem {
-                    popover.cloudTitle = mediaItem.title
-
-                    popover.cloudString = self.bodyHTML?.html2String
-                    
-                    popover.cloudWordsFunction = {
-                        let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
-                            return ["word":key,"count":value,"selected":true]
-                        })
-                        
-                        return words
-                    }
-                }
-                
                 popover.cloudTitle = navigationItem.title
                 
-                popover.cloudWordsFunction = {
+                if let mediaItem = mediaItem {
+                    popover.cloudTitle = mediaItem.title
+                }
+                
+                popover.cloudString = self.bodyHTML?.html2String
+                
+//                popover.cloudWordDictsFunction = {
+//                    let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
+//                        return ["word":key,"count":value,"selected":true]
+//                    })
+//                    
+//                    return words
+//                }
+
+                popover.cloudWordDictsFunction = {
                     let words = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
                         return ["word":word,"count":count,"selected":true]
                     })

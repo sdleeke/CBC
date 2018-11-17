@@ -12,8 +12,9 @@ import UIKit
 protocol CloudLayoutOperationDelegate
 {
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
-    func insertBoundingRect(boundingRect:CGRect)
-    func finished()
+    func insertBoundingRect(boundingRect:CGRect) -> CALayer
+    func finished(cloudWords:[CloudWord]?)
+    func update(cloudWords:[CloudWord]?)
 }
 
 class CloudLayoutOperation : Operation
@@ -27,6 +28,8 @@ class CloudLayoutOperation : Operation
     var delegate:CloudLayoutOperationDelegate?
     var boundingRects : QuadTree?
     
+    var placedCloudWords : [CloudWord]?
+    
     override var description: String
     {
         get {
@@ -34,7 +37,7 @@ class CloudLayoutOperation : Operation
         }
     }
     
-    init(cloudWords:[[String:Any]]?, title:String?, containerSize:CGSize, containerScale:CGFloat, cloudFont: UIFont?, orientation:Int, delegate:CloudLayoutOperationDelegate)
+    init(cloudWordDicts:[[String:Any]]?, title:String?, containerSize:CGSize, containerScale:CGFloat, cloudFont: UIFont?, orientation:Int, delegate:CloudLayoutOperationDelegate)
     {
         super.init()
         
@@ -42,9 +45,9 @@ class CloudLayoutOperation : Operation
     
         var words = [CloudWord]()
 
-        if let cloudWords = cloudWords {
-            for cloudWord in cloudWords {
-                if let word = cloudWord["word"] as? String, let count = cloudWord["count"] as? Int {
+        if let cloudWordDicts = cloudWordDicts {
+            for cloudWordDict in cloudWordDicts {
+                if let word = cloudWordDict["word"] as? String, let count = cloudWordDict["count"] as? Int {
                     words.append(CloudWord(word: word, wordCount: count))
                 } else {
                     
@@ -168,6 +171,9 @@ class CloudLayoutOperation : Operation
 //
 //            print(firstArea,lastArea,firstArea/lastArea)
 //        }
+        
+        // It would be very cool to be able to map the word locations to the surface of a sphere and use a pan gesture
+        // to rotate the sphere around a fixed center.
         
         repeat {
             var wordArea:CGFloat = 0.0;
@@ -295,13 +301,20 @@ class CloudLayoutOperation : Operation
 
             // Can the word can be placed at its preferred location?
             if (hasPlacedWord(word: cloudWord)) {
+                if placedCloudWords == nil {
+                    placedCloudWords = [CloudWord]()
+                }
+                placedCloudWords?.append(cloudWord)
                 // Yes. Move on to the next word
+                delegate?.update(cloudWords: placedCloudWords)
                 continue
             }
             
             var index = 0
+
+            var placed = hasFoundConcentricPlacementForWord(word: cloudWord)
             
-            while !hasFoundConcentricPlacementForWord(word: cloudWord) {
+            while !placed {
                 print("\(String(format: "%0.1f",Float(cloudWords.count)/Float(wordCount)*100))%")
 
                 // No placement found centered on preferred location. Pick a new location at random
@@ -318,10 +331,17 @@ class CloudLayoutOperation : Operation
                     cloudWords.append(cloudWord)
                     break
                 }
+                
+                placed = hasFoundConcentricPlacementForWord(word: cloudWord)
+            }
+            
+            if placed {
+                placedCloudWords?.append(cloudWord)
+                delegate?.update(cloudWords: placedCloudWords)
             }
         } while cloudWords.count > 0
         
-        delegate?.finished()
+        delegate?.finished(cloudWords: placedCloudWords)
     }
     
     func hasFoundConcentricPlacementForWord(word:CloudWord) -> Bool
@@ -522,6 +542,8 @@ class CloudLayoutOperation : Operation
         }
         
         if overallGlyphRect != CGRect.zero {
+            word.overallGlyphBoundingRect = overallGlyphRect
+                
             _ = boundingRects?.insertBoundingRect(boundingRect: overallGlyphRect)
             
             if let debug = (delegate as? CloudViewController)?.debug, debug {

@@ -564,7 +564,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
 
                     popover.cloudString = string
                     
-                    popover.cloudWordsFunction = {
+                    popover.cloudWordDictsFunction = {
                         let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                             return ["word":key,"count":value,"selected":true]
                         })

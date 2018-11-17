@@ -113,7 +113,7 @@ extension CloudViewController : PopoverTableViewControllerDelegate
 {
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
-        guard let cloudWords = cloudWords else {
+        guard let cloudWordDicts = cloudWordDicts else {
             return
         }
         
@@ -136,12 +136,12 @@ extension CloudViewController : PopoverTableViewControllerDelegate
         
         var index = 0
         
-        for cloudWord in cloudWords {
-            if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
-                if let selected = self.cloudWords?[index]["selected"] as? Bool, selected {
-                    self.cloudWords?[index]["selected"] = false
+        for cloudWordDict in cloudWordDicts {
+            if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
+                if let selected = self.cloudWordDicts?[index]["selected"] as? Bool, selected {
+                    self.cloudWordDicts?[index]["selected"] = false
                 } else {
-                    self.cloudWords?[index]["selected"] = true
+                    self.cloudWordDicts?[index]["selected"] = true
                 }
                 break
             }
@@ -157,8 +157,15 @@ extension CloudViewController : PopoverTableViewControllerDelegate
 
 extension CloudViewController : CloudLayoutOperationDelegate
 {
-    func finished()
+    func update(cloudWords:[CloudWord]?)
     {
+        self.cloudWords = cloudWords
+    }
+    
+    func finished(cloudWords:[CloudWord]?)
+    {
+        self.cloudWords = cloudWords
+        
         Thread.onMainThread { () -> (Void) in
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
@@ -205,7 +212,7 @@ extension CloudViewController : CloudLayoutOperationDelegate
         }
     }
     
-    func insertBoundingRect(boundingRect:CGRect)
+    func insertBoundingRect(boundingRect:CGRect) -> CALayer
     {
         let layer = CALayer()
         
@@ -216,6 +223,8 @@ extension CloudViewController : CloudLayoutOperationDelegate
         layer.borderWidth = 1;
         
         cloudView.layer.addSublayer(layer)
+        
+        return layer
     }
 }
 
@@ -280,6 +289,17 @@ extension CloudViewController : UIActivityItemSource
 
 class CloudViewController: UIViewController
 {
+    var cloudWords : [CloudWord]?
+    {
+        didSet {
+            if #available(iOS 12.0, *) {
+//                animate()
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+    }
+    
     var popover : PopoverTableViewController?
     
     var wordsTableViewController:PopoverTableViewController!
@@ -310,15 +330,15 @@ class CloudViewController: UIViewController
     @IBOutlet weak var selectAllButton: UIButton!
     @IBAction func selectAllAction(_ sender: UIButton)
     {
-        guard var cloudWords = cloudWords else {
+        guard var cloudWordDicts = cloudWordDicts else {
             return
         }
 
-        for index in 0..<cloudWords.count {
-            cloudWords[index]["selected"] = true
+        for index in 0..<cloudWordDicts.count {
+            cloudWordDicts[index]["selected"] = true
         }
         
-        self.cloudWords = cloudWords
+        self.cloudWordDicts = cloudWordDicts
 
         self.wordsTableViewController.tableView.reloadData()
         
@@ -328,15 +348,15 @@ class CloudViewController: UIViewController
     @IBOutlet weak var selectNoneButton: UIButton!
     @IBAction func selectNoneAction(_ sender: UIButton)
     {
-        guard var cloudWords = cloudWords else {
+        guard var cloudWordDicts = cloudWordDicts else {
             return
         }
         
-        for index in 0..<cloudWords.count {
-            cloudWords[index]["selected"] = false
+        for index in 0..<cloudWordDicts.count {
+            cloudWordDicts[index]["selected"] = false
         }
         
-        self.cloudWords = cloudWords
+        self.cloudWordDicts = cloudWordDicts
 
         self.wordsTableViewController.tableView.reloadData()
 
@@ -366,8 +386,57 @@ class CloudViewController: UIViewController
     var cloudFont : UIFont?
     
     // Make thread safe?
-    var cloudWords : [[String:Any]]?
-    var cloudWordsFunction:(()->[[String:Any]]?)?
+    var cloudWordDicts : [[String:Any]]?
+    var cloudWordDictsFunction:(()->[[String:Any]]?)?
+    
+    lazy var animateQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "CLOUD-ANIMATE:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
+    @available(iOS 12.0, *)
+    func animate()
+    {
+        guard let cloudWords = cloudWords else {
+            return
+        }
+
+        animateQueue.cancelAllOperations()
+        
+        animateQueue.addOperation {
+            var cloudDict = [String:CloudWord]()
+            
+            for cloudWord in cloudWords {
+                if let wordText = cloudWord.wordText {
+                    cloudDict[wordText.uppercased()] = cloudWord
+                }
+            }
+            
+            if let words = self.cloudString?.nlTokenTypes {
+                for word in words {
+                    if let cloudWord = cloudDict[word.0.uppercased()] {
+                        print(cloudWord.wordText)
+                        Thread.onMainThread {
+                            if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect {
+                                let layer = self.insertBoundingRect(boundingRect: overallGlyphBoundingRect)
+                                DispatchQueue.global(qos: .background).async {
+                                    Thread.sleep(forTimeInterval: 0.1)
+                                    Thread.onMainThread {
+                                        layer.removeFromSuperlayer()
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        
+                    }
+                }
+            }
+        }
+    }
     
     var image : UIImage?
     {
@@ -467,11 +536,11 @@ class CloudViewController: UIViewController
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
         navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
 
-        if cloudWordsFunction != nil {
+        if cloudWordDictsFunction != nil {
             process(viewController: self, work: { [weak self] () -> (Any?) in
-                self?.cloudWords = self?.cloudWordsFunction?()
+                self?.cloudWordDicts = self?.cloudWordDictsFunction?()
 
-                self?.wordsTableViewController.section.strings = self?.cloudWords?.map({ (dict:[String:Any]) -> String in
+                self?.wordsTableViewController.section.strings = self?.cloudWordDicts?.map({ (dict:[String:Any]) -> String in
                     let word = dict["word"] as? String ?? "ERROR"
                     let count = dict["count"] as? Int ?? -1
                     return "\(word) (\(count))"
@@ -568,13 +637,13 @@ class CloudViewController: UIViewController
         
         cloudView.backgroundColor = UIColor.white
         
-        if let cloudWords = cloudWords?.filter({ (dict:[String:Any]) -> Bool in
+        if let cloudWordDicts = cloudWordDicts?.filter({ (dict:[String:Any]) -> Bool in
             return (dict["selected"] as? Bool) ?? false
-        }), cloudWords.count > 0 {
+        }), cloudWordDicts.count > 0 {
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-            let newCloudLayoutOperation = CloudLayoutOperation(cloudWords:cloudWords,
+            let newCloudLayoutOperation = CloudLayoutOperation(cloudWordDicts:cloudWordDicts,
                                                                title:cloudTitle,
                                                                containerSize:cloudView.bounds.size,
                                                                containerScale:UIScreen.main.scale,
@@ -605,7 +674,7 @@ class CloudViewController: UIViewController
                     
                     wordsTableViewController.allowsMultipleSelection = true
                     wordsTableViewController.selection = { (index:Int) -> Bool in
-                        guard let cloudWords = self.cloudWords else {
+                        guard let cloudWordDicts = self.cloudWordDicts else {
                             return false
                         }
                         
@@ -628,9 +697,9 @@ class CloudViewController: UIViewController
                         
                         var index = 0
                         
-                        for cloudWord in cloudWords {
-                            if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
-                                return (cloudWords[index]["selected"] as? Bool) ?? false
+                        for cloudWordDict in cloudWordDicts {
+                            if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
+                                return (cloudWordDicts[index]["selected"] as? Bool) ?? false
                             }
                             
                             index += 1
@@ -650,7 +719,7 @@ class CloudViewController: UIViewController
                         self.wordsTableViewController.segmentedControl.isEnabled = false
 
                         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                            self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            self?.cloudWordDicts = self?.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String
                                 
@@ -687,7 +756,7 @@ class CloudViewController: UIViewController
                         self.wordsTableViewController.segmentedControl.isEnabled = false
 
                         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                            self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            self?.cloudWordDicts = self?.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String
                                 
@@ -729,7 +798,7 @@ class CloudViewController: UIViewController
 
                     wordsTableViewController.sort.method = Constants.Sort.Frequency
 
-                    wordsTableViewController.section.strings = self.cloudWords?.map({ (dict:[String:Any]) -> String in
+                    wordsTableViewController.section.strings = self.cloudWordDicts?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"
                         let count = dict["count"] as? Int ?? -1
                         return "\(word) (\(count))"
@@ -740,7 +809,7 @@ class CloudViewController: UIViewController
                     if let method = wordsTableViewController.sort.method {
                         switch method {
                         case Constants.Sort.Alphabetical:
-                            self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            self.cloudWordDicts = self.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String
                                 
@@ -755,7 +824,7 @@ class CloudViewController: UIViewController
                             })
                             
                         case Constants.Sort.Frequency:
-                            self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            self.cloudWordDicts = self.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String
                                 

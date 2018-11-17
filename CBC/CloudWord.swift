@@ -31,6 +31,8 @@ class CloudWord : NSObject
         }
     }
     
+    var overallGlyphBoundingRect : CGRect?
+    
     var frame : CGRect
     {
         get {

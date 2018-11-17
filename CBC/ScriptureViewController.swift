@@ -252,7 +252,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         
                         popover.cloudString = self.webViewController?.bodyHTML?.html2String
                         
-                        popover.cloudWordsFunction = {
+                        popover.cloudWordDictsFunction = {
                             let words:[[String:Any]]? = self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                                 return ["word":key,"count":value,"selected":true]
                             })
@@ -263,7 +263,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.cloudTitle = navigationItem.title
                     
-                    popover.cloudWordsFunction = {
+                    popover.cloudWordDictsFunction = {
                         let words = self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
                             return ["word":word,"count":count,"selected":true]
                         })
