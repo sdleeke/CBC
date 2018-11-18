@@ -139,9 +139,9 @@ class CloudLayoutOperation : Operation
         
         let deltaWordCount:CGFloat = CGFloat(maxWordCount) - CGFloat(minWordCount)
         
-//        let ratioCap:CGFloat = 10.0 // Parameter to vary.  Used to be 20.  That was too drastic.
+        let ratioCap:CGFloat = 20.0 // Parameter to vary.  Used to be 20.  That was too drastic.
         
-        let maxMinRatio:CGFloat = CGFloat(CGFloat(maxWordCount) / CGFloat(minWordCount)) // min(, ratioCap)
+        let maxMinRatio:CGFloat = CGFloat(min(CGFloat(maxWordCount) / CGFloat(minWordCount),ratioCap))
         
         // Start with these values, which will be decreased as needed that all the words may fit the container
         let minFontMin:CGFloat = 4.0
@@ -203,7 +203,7 @@ class CloudLayoutOperation : Operation
 
                     oldFontMin = fontMin
 
-                    fontMin = fontMin == minFontMin ? minFontMin : fontMin - 1
+                    fontMin = fontMin == minFontMin ? minFontMin : fontMin - fontStep
                     
                     fontMax = fontMin * maxMinRatio
                     fontRange = fontMax - fontMin

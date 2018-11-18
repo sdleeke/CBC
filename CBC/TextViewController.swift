@@ -1429,14 +1429,15 @@ class TextViewController : UIViewController
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
                     let text = self?.textView.attributedText.string
-                    
+
+                    // USE PROCESS TO SHOW SPINNER UNTIL FIRST CHANGE FOUND!
                     process(viewController: vc, work: { [weak self] () -> (Any?) in
                         self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                         })
-                        
+
                         return nil
                     }) { [weak self] (data:Any?) in
                         self?.updateBarButtons()
@@ -1448,14 +1449,15 @@ class TextViewController : UIViewController
                 alert(viewController:vc,title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
             } else {
                 let text = self?.textView.attributedText.string
-                
+
+                // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
                 process(viewController: vc, work: { [weak self] () -> (Any?) in
                     self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
                         self?.updateBarButtons()
                         self?.changedText = string
                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                     })
-                    
+
                     return nil
                 }) { [weak self] (data:Any?) in
                     self?.updateBarButtons()
@@ -1699,6 +1701,7 @@ class TextViewController : UIViewController
                     {
                         let text = self?.textView.attributedText.string
                         
+                        // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
                         process(viewController: vc, work: { [weak self] () -> (Any?) in
                             self?.changeText(interactive: false, makeVisible:makeVisible, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
@@ -1737,6 +1740,7 @@ class TextViewController : UIViewController
                 {
                     let text = self?.textView.attributedText.string
                     
+                    // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
                     process(viewController: vc, work: { [weak self] () -> (Any?) in
                         self?.changeText(interactive: false, makeVisible:makeVisible, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
@@ -2292,17 +2296,18 @@ class TextViewController : UIViewController
             ]
         }
         
-        let millenia = [
-            "one thousand"     :"1000",
-            "two thousand"     :"2000",
-            "three thousand"   :"3000",
-            "four thousand"    :"4000",
-            "five thousand"    :"5000",
-            "six thousand"     :"6000",
-            "seven thousand"   :"7000",
-            "eight thousand"   :"8000",
-            "nine thousand"    :"9000",
-        ]
+//        let millenia = [
+//            "one thousand"     :"1000",
+//            "two thousand"     :"2000"
+////            ,
+////            "three thousand"   :"3000",
+////            "four thousand"    :"4000",
+////            "five thousand"    :"5000",
+////            "six thousand"     :"6000",
+////            "seven thousand"   :"7000",
+////            "eight thousand"   :"8000",
+////            "nine thousand"    :"9000",
+//        ]
         
         // Could add teenNumbers (>10) and "hundred" to get things like "fourteen hundred(s)..." but the plural and following numbers, if any, i.e. dates, could be complicated.
         
@@ -2325,6 +2330,44 @@ class TextViewController : UIViewController
 //        for key in millenia.keys {
 //            textToNumbers[key] = millenia[key]
 //        }
+        
+        // Consdier "one thousand" and instead of "<teen> hundred" generate from 11 not 10
+        // These should be done automatically?
+        let ages = ["two thousand":"2000","ninteen hundred":"1900"]
+        
+        for agesKey in ages.keys {
+            for singleNumbersKey in singleNumbers.keys {
+                if let num = singleNumbers[singleNumbersKey] {
+                    if let age = ages[agesKey] {
+                        let value = (Int(age)! + Int(num)!).description
+
+                        var key:String!
+                        
+                        key = agesKey + " and " + singleNumbersKey
+                        textToNumbers[key] = value
+
+                        key = agesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                    }
+                }
+            }
+            
+            for teenNumbersKey in teenNumbers.keys {
+                if let num = teenNumbers[teenNumbersKey] {
+                    if let age = ages[agesKey] {
+                        let value = (Int(age)! + Int(num)!).description
+                        
+                        var key:String!
+                        
+                        key = agesKey + " and " + teenNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = agesKey + " " + teenNumbersKey
+                        textToNumbers[key] = value
+                    }
+                }
+            }
+        }
         
         // twelve ten, etc.
         for hundred in teenNumbers.keys {
@@ -2380,105 +2423,115 @@ class TextViewController : UIViewController
         for decade in decades.keys {
             for singleNumber in singleNumbers.keys {
                 let key = (decade + " " + singleNumber)
-                if  let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
-                    let singleNumber = singleNumbers[singleNumber] {
-                    let value = decade + singleNumber
-                    textToNumbers[key] = value
-                }
+                let value = (Int(decades[decade]!)! + Int(singleNumbers[singleNumber]!)!).description
+                textToNumbers[key] = value
+//                if  let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+//                    let singleNumber = singleNumbers[singleNumber] {
+//                    let value = decade + singleNumber
+//                    textToNumbers[key] = value
+//                }
             }
         }
         
         for century in centuries.keys {
             for singleNumber in singleNumbers.keys {
                 let key = (century + " " + singleNumber)
-                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
-                    let singleNumber = singleNumbers[singleNumber] {
-                    let value = century + singleNumber
-                    textToNumbers[key] = value
-                }
+                let value = (Int(centuries[century]!)! + Int(singleNumbers[singleNumber]!)!).description
+                textToNumbers[key] = value
+//                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+//                    let singleNumber = singleNumbers[singleNumber] {
+//                    let value = century + singleNumber
+//                    textToNumbers[key] = value
+//                }
             }
             
             for teenNumber in teenNumbers.keys {
                 let key = (century + " " + teenNumber)
-                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                    let teenNumber = teenNumbers[teenNumber] {
-                    let value = century + teenNumber
-                    textToNumbers[key] = value
-                }
+                let value = (Int(centuries[century]!)! + Int(teenNumbers[teenNumber]!)!).description
+                textToNumbers[key] = value
+//                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                    let teenNumber = teenNumbers[teenNumber] {
+//                    let value = century + teenNumber
+//                    textToNumbers[key] = value
+//                }
             }
             
             for decade in decades.keys {
                 let key = (century + " " + decade)
-                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                    let decade = decades[decade] {
-                    let value = century + decade
-                    textToNumbers[key] = value
-                }
+                let value = (Int(centuries[century]!)! + Int(decades[decade]!)!).description
+                textToNumbers[key] = value
+//                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                    let decade = decades[decade] {
+//                    let value = century + decade
+//                    textToNumbers[key] = value
+//                }
             }
             
             for decade in decades.keys {
                 for singleNumber in singleNumbers.keys {
                     let key = (century + " " + decade + " " + singleNumber)
-                    if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
-                        let singleNumber = singleNumbers[singleNumber]
-                    {
-                        let value = (century + decade + singleNumber)
-                        textToNumbers[key] = value
-                    }
+                    let value = (Int(centuries[century]!)! + Int(decades[decade]!)! + Int(singleNumbers[singleNumber]!)!).description
+                    textToNumbers[key] = value
+//                    if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+//                        let singleNumber = singleNumbers[singleNumber]
+//                    {
+//                        let value = (century + decade + singleNumber)
+//                        textToNumbers[key] = value
+//                    }
                 }
             }
         }
 
-        if longFormat {
-            for millenium in millenia.keys {
-                for century in centuries.keys {
-                    for singleNumber in singleNumbers.keys {
-                        let key = (millenium + " " + century + " " + singleNumber)
-                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-                            let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
-                            let singleNumber = singleNumbers[singleNumber] {
-                            let value = millenium + century + singleNumber
-                            textToNumbers[key] = value
-                        }
-                    }
-                    
-                    for teenNumber in teenNumbers.keys {
-                        let key = (millenium + " " + century + " " + teenNumber)
-                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                            let teenNumber = teenNumbers[teenNumber] {
-                            let value = millenium + century + teenNumber
-                            textToNumbers[key] = value
-                        }
-                    }
-                    
-                    for decade in decades.keys {
-                        let key = (millenium + " " + century + " " + decade)
-                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                            let decade = decades[decade] {
-                            let value = millenium + century + decade
-                            textToNumbers[key] = value
-                        }
-                    }
-                    
-                    for decade in decades.keys {
-                        for singleNumber in singleNumbers.keys {
-                            let key = (millenium + " " + century + " " + decade + " " + singleNumber)
-                            if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-                                let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                                let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
-                                let singleNumber = singleNumbers[singleNumber]
-                            {
-                                let value = (millenium + century + decade + singleNumber)
-                                textToNumbers[key] = value
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        if longFormat {
+//            for millenium in millenia.keys {
+//                for century in centuries.keys {
+//                    for singleNumber in singleNumbers.keys {
+//                        let key = (millenium + " " + century + " " + singleNumber)
+//                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                            let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+//                            let singleNumber = singleNumbers[singleNumber] {
+//                            let value = millenium + century + singleNumber
+//                            textToNumbers[key] = value
+//                        }
+//                    }
+//
+//                    for teenNumber in teenNumbers.keys {
+//                        let key = (millenium + " " + century + " " + teenNumber)
+//                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                            let teenNumber = teenNumbers[teenNumber] {
+//                            let value = millenium + century + teenNumber
+//                            textToNumbers[key] = value
+//                        }
+//                    }
+//
+//                    for decade in decades.keys {
+//                        let key = (millenium + " " + century + " " + decade)
+//                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                            let decade = decades[decade] {
+//                            let value = millenium + century + decade
+//                            textToNumbers[key] = value
+//                        }
+//                    }
+//
+//                    for decade in decades.keys {
+//                        for singleNumber in singleNumbers.keys {
+//                            let key = (millenium + " " + century + " " + decade + " " + singleNumber)
+//                            if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+//                                let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+//                                let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+//                                let singleNumber = singleNumbers[singleNumber]
+//                            {
+//                                let value = (millenium + century + decade + singleNumber)
+//                                textToNumbers[key] = value
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         return textToNumbers.count > 0 ? textToNumbers : nil
     }
@@ -2945,7 +2998,6 @@ class TextViewController : UIViewController
             }
         }
     }
-
     
     func changeText(interactive:Bool,makeVisible:Bool,text:String?,startingRange : Range<String.Index>?,masterChanges:[String:[String:String]]?,completion:((String)->(Void))?)
     {
@@ -2970,7 +3022,7 @@ class TextViewController : UIViewController
             return
         }
         
-        let keyOrder = ["words","textToNumbers","books","verse","verses","chapter","chapters"]
+        let keyOrder = ["words","books","verse","verses","chapter","chapters","textToNumbers"]
         
         let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
             let firstIndex = keyOrder.index(of: first)
@@ -3130,9 +3182,11 @@ class TextViewController : UIViewController
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
+                        let vc = self
                         
                         text.replaceSubrange(range, with: value)
+                        
+                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
                         
                         completion?(text)
                         
@@ -3140,16 +3194,31 @@ class TextViewController : UIViewController
                         
                         if let completedRange = text.range(of: before + value) {
                             let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
-                            self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, masterChanges:masterChanges, completion:completion)
+                            
+                            // THIS ALLOWS THE TEXT TO CHANGE
+                            // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
+                            process(viewController: vc, work: { [weak self] () -> (Any?) in
+                                self?.changeText(interactive:interactive, makeVisible:makeVisible, text: text, startingRange: startingRange, masterChanges: masterChanges, completion:completion)
+                                return nil
+                            }) { [weak self] (data:Any?) in
+                            }
                         } else {
                             // ERROR
                         }
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
+                        let vc = self
                         self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                        self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, masterChanges:masterChanges, completion:completion)
+                        
+                        // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
+                        process(viewController: vc, work: { [weak self] () -> (Any?) in
+                            self?.changeText(interactive:interactive, makeVisible:makeVisible, text: text, startingRange: startingRange, masterChanges: masterChanges, completion:completion)
+                            return nil
+                        }) { [weak self] (data:Any?) in
+                        }
+//                        self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, masterChanges:masterChanges, completion:completion)
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
@@ -3244,6 +3313,7 @@ class TextViewController : UIViewController
         if automatic {
             let text = self.textView.attributedText.string
             
+            // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE - MAYBE, depends on automaticInteractive
             process(viewController: self, work: { [weak self] () -> (Any?) in
                 self?.changeText(interactive: self?.automaticInteractive == true, makeVisible:self?.automaticVisible == true, text: text, startingRange: nil, masterChanges: self?.masterChanges(interactive: self?.automaticInteractive == true), completion: { (string:String) -> (Void) in
                     self?.changedText = string
