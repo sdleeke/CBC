@@ -202,6 +202,7 @@ class Scripture : NSObject
         didSet {
             if reference != oldValue {
                 // MUST update the data structure.
+                _books = nil
                 setupBooksChaptersVerses()
             }
         }

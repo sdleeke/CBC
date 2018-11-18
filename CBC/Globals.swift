@@ -42,6 +42,34 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var allowMGTs = true
     
+    var checkVoiceBaseTimer : Timer?
+    
+    private var _isVoiceBaseAvailable : Bool? // = false
+    {
+        didSet {
+            guard _isVoiceBaseAvailable != oldValue else {
+                return
+            }
+            
+            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
+                return
+            }
+            
+            if !_isVoiceBaseAvailable {
+                if checkVoiceBaseTimer != nil {
+                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
+                }
+            } else {
+                checkVoiceBaseTimer?.invalidate()
+                checkVoiceBaseTimer = nil
+            }
+            
+            // Why?
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+            }
+        }
+    }
     var isVoiceBaseAvailable : Bool // = false
     {
         get {
@@ -53,34 +81,16 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return false
             }
             
-            return _isVoiceBaseAvailable ?? checkingAvailability
+            return _isVoiceBaseAvailable ?? checkingVoiceBaseAvailability
         }
         set {
             _isVoiceBaseAvailable = newValue
         }
     }
-    private var _isVoiceBaseAvailable : Bool? // = false
-    {
-        didSet {
-            guard _isVoiceBaseAvailable != oldValue else {
-                return
-            }
-            
-            // Why?
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-            }
-        }
-    }
 
-    var checkingAvailability = false
+    var checkingVoiceBaseAvailability = false
     
-    func checkVoiceBaseAvailability()
-    {
-        checkVoiceBaseAvailability(completion:nil)
-    }
-    
-    func checkVoiceBaseAvailability(completion:(()->(Void))?)
+    @objc func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
     {
         _isVoiceBaseAvailable = nil
 
@@ -90,7 +100,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        checkingAvailability = true
+        checkingVoiceBaseAvailability = true
         
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
             self.isVoiceBaseAvailable = true
@@ -100,9 +110,15 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             completion?()
         })
         
-        checkingAvailability = false
+        checkingVoiceBaseAvailability = false
     }
     
+    var _voiceBaseAPIKey : String?
+    {
+        didSet {
+            checkVoiceBaseAvailability()
+        }
+    }
     var voiceBaseAPIKey : String?
     {
         get {
@@ -138,12 +154,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             UserDefaults.standard.synchronize()
             
             _voiceBaseAPIKey = newValue
-        }
-    }
-    var _voiceBaseAPIKey : String?
-    {
-        didSet {
-            checkVoiceBaseAvailability()
         }
     }
     

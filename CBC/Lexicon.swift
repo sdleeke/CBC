@@ -138,6 +138,13 @@ class Lexicon : NSObject
     }
     
     var _eligible:[MediaItem]?
+    {
+        didSet {
+            if _eligible == nil {
+                _ = eligible
+            }
+        }
+    }
     var eligible:[MediaItem]?
     {
         get {

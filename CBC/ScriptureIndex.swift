@@ -134,6 +134,13 @@ class ScriptureIndex
     var selectedVerse:Int = 0
     
     var _eligible:[MediaItem]?
+    {
+        didSet {
+            if _eligible == nil {
+                _ = eligible
+            }
+        }
+    }
     var eligible:[MediaItem]?
     {
         get {

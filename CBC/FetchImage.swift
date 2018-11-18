@@ -66,7 +66,6 @@ class FetchImage
     }
     
     private var _fileSize : Int?
-    
     var fileSize : Int
     {
         get {

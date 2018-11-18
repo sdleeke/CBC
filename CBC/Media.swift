@@ -26,8 +26,8 @@ class Media
     var all:MediaListGroupSort?
     {
         didSet {
-            _ = all?.lexicon?.eligible
-            _ = all?.scriptureIndex?.eligible
+            all?.lexicon?._eligible = nil
+            all?.scriptureIndex?._eligible = nil
         }
     }
     

@@ -450,8 +450,16 @@ extension String
     var fileSystemURL : URL?
     {
         get {
+            guard url != nil else {
+                if !self.isEmpty {
+                    return self.replacingOccurrences(of: " ", with: "").fileSystemURL
+                } else {
+                    return nil
+                }
+            }
+            
             guard self != url?.lastPathComponent else {
-                return cachesURL?.appendingPathComponent(self.replacingOccurrences(of: " ", with: ""))
+                return cachesURL?.appendingPathComponent(self) // .replacingOccurrences(of: " ", with: "")
             }
             
             return url?.fileSystemURL

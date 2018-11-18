@@ -49,9 +49,14 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 class Shadowed<T>
 {
-    var _backingStore : T?
+    private var _backingStore : T?
     
-    var get : (()->(T))?
+    private var get : (()->(T?))?
+    
+    init(get:(()->(T?))?)
+    {
+        self.get = get
+    }
     
     var value : T?
     {
@@ -62,6 +67,11 @@ class Shadowed<T>
         _backingStore = get?()
         
         return _backingStore
+    }
+    
+    func clear()
+    {
+        _backingStore = nil
     }
 }
 
@@ -553,8 +563,15 @@ class FetchCodable<T:Codable> : Fetch<T>
         }
     }
     
-    private var _fileSize : Int?
+//    lazy var fileSize:Shadowed<Int> = {
+//      let shadowed = Shadowed<Int>(get:{
+//            return self.fileSystemURL?.fileSize
+//      })
+//
+//      return shadowed
+//    }()
     
+    private var _fileSize : Int?
     var fileSize : Int
     {
         get {
@@ -562,7 +579,7 @@ class FetchCodable<T:Codable> : Fetch<T>
                 _fileSize = fileSystemURL?.fileSize
                 return _fileSize ?? 0
             }
-            
+
             return fileSize
         }
     }

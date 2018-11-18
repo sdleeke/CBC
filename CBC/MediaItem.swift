@@ -1115,14 +1115,13 @@ class MediaItem : NSObject
         }
     }
     
-    var _speakerNotesParagraphWords:[String:Int]?
-    
+//    var _speakerNotesParagraphWords:[String:Int]?
     var speakerNotesParagraphWords:[String:Int]?
     {
         get {
-            guard _speakerNotesParagraphWords == nil else {
-                return _speakerNotesParagraphWords
-            }
+//            guard _speakerNotesParagraphWords == nil else {
+//                return _speakerNotesParagraphWords
+//            }
             
             guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
@@ -1143,9 +1142,9 @@ class MediaItem : NSObject
                 }
             }
             
-            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
-            
-            return _speakerNotesParagraphWords
+            return  allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
+            // _speakerNotesParagraphWords =
+//            return _speakerNotesParagraphWords
         }
     }
 
@@ -1171,14 +1170,13 @@ class MediaItem : NSObject
         }
     }
     
-    var _speakerNotesParagraphLengths : [String:[Int]]?
-    
+//    var _speakerNotesParagraphLengths : [String:[Int]]?
     var speakerNotesParagraphLengths : [String:[Int]]?
     {
         get {
-            guard _speakerNotesParagraphLengths == nil else {
-                return _speakerNotesParagraphLengths
-            }
+//            guard _speakerNotesParagraphLengths == nil else {
+//                return _speakerNotesParagraphLengths
+//            }
             
             guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
@@ -1194,9 +1192,9 @@ class MediaItem : NSObject
                 }
             }
             
-            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
-            
-            return _speakerNotesParagraphLengths
+            return allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
+            // _speakerNotesParagraphLengths =
+//            return _speakerNotesParagraphLengths
         }
     }
     

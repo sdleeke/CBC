@@ -292,6 +292,8 @@ extension TextViewController : PopoverPickerControllerDelegate
             
             let text = self.textView.attributedText.string
             
+            let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+
             if let words = self.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                     return first > second
@@ -299,13 +301,13 @@ extension TextViewController : PopoverPickerControllerDelegate
                 
                 return first["gap"] != nil
             }) {
-                func makeVisible(showGapTimes:Bool)
+                func makeVisible(tooClose:Int, showGapTimes:Bool)
                 {
                     var actions = [AlertAction]()
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
+                            self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -321,7 +323,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
+                            self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -343,11 +345,11 @@ extension TextViewController : PopoverPickerControllerDelegate
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
-                    makeVisible(showGapTimes:true)
+                    makeVisible(tooClose:tooClose, showGapTimes:true)
                 }))
                 
                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
-                    makeVisible(showGapTimes:false)
+                    makeVisible(tooClose:tooClose, showGapTimes:false)
                 }))
                 
                 actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
@@ -1318,6 +1320,8 @@ class TextViewController : UIViewController
             return
         }
         
+        let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+
         var actions = [AlertAction]()
         
         actions.append(AlertAction(title: "Interactive", style: .default, handler: { [weak self] in
@@ -1354,7 +1358,7 @@ class TextViewController : UIViewController
                             
                             actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                 process(viewController: vc, work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:true, words:words, text:text, completion: { (string:String) -> (Void) in
+                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:true, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                         self?.updateBarButtons()
                                         self?.changedText = string
                                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -1368,7 +1372,7 @@ class TextViewController : UIViewController
                             
                             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                 process(viewController: vc, work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:false, words:words, text:text, completion: { (string:String) -> (Void) in
+                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:false, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                         self?.updateBarButtons()
                                         self?.changedText = string
                                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -1600,7 +1604,7 @@ class TextViewController : UIViewController
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                     process(viewController: self, work: { [weak self] () -> (Any?) in
-                                        self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:nil, words:words, text:text, completion: { (string:String) -> (Void) in
+                                        self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:nil, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                             self?.updateBarButtons()
                                             self?.changedText = string
                                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -1616,7 +1620,7 @@ class TextViewController : UIViewController
                                 
                                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                     process(viewController: self, work: { [weak self] () -> (Any?) in
-                                        self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:nil, words:words, text:text, completion: { (string:String) -> (Void) in
+                                        self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:nil, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
                                             self?.updateBarButtons()
                                             self?.changedText = string
                                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -2223,7 +2227,7 @@ class TextViewController : UIViewController
     }
 
     // This is a function rather than a var because we might include parameters some day to vary what is returned.
-    func textToNumbers() -> [String:String]?
+    func textToNumbers(longFormat:Bool) -> [String:String]?
     {
         // Need to have varying degrees of this since editing the entire text at once makes a more exhaustive set reasonable, but for segments it isn't.
         
@@ -2268,30 +2272,37 @@ class TextViewController : UIViewController
         // If we make the translation table too big searching for replacements can take a long time,
         // possibly too long for the user.
         
-        let centuries = [
-            "one hundred"     :"100"
-//            ,
-//            "two hundred"     :"200",
-//            "three hundred"   :"300",
-//            "four hundred"    :"400",
-//            "five hundred"    :"500",
-//            "six hundred"     :"600",
-//            "seven hundred"   :"700",
-//            "eight hundred"   :"800",
-//            "nine hundred"    :"900"
-        ]
+        var centuries = [String:String]()
         
-//        let millenia = [
-//            "one thousand"     :"1000",
-//            "two thousand"     :"2000",
-//            "three thousand"   :"3000",
-//            "four thousand"    :"4000",
-//            "five thousand"    :"5000",
-//            "six thousand"     :"6000",
-//            "seven thousand"   :"7000",
-//            "eight thousand"   :"8000",
-//            "nine thousand"    :"9000",
-//        ]
+        if longFormat {
+            centuries = [
+                "one hundred"     :"100",
+                "two hundred"     :"200",
+                "three hundred"   :"300",
+                "four hundred"    :"400",
+                "five hundred"    :"500",
+                "six hundred"     :"600",
+                "seven hundred"   :"700",
+                "eight hundred"   :"800",
+                "nine hundred"    :"900"
+            ]
+        } else {
+            centuries = [
+                "one hundred"     :"100"
+            ]
+        }
+        
+        let millenia = [
+            "one thousand"     :"1000",
+            "two thousand"     :"2000",
+            "three thousand"   :"3000",
+            "four thousand"    :"4000",
+            "five thousand"    :"5000",
+            "six thousand"     :"6000",
+            "seven thousand"   :"7000",
+            "eight thousand"   :"8000",
+            "nine thousand"    :"9000",
+        ]
         
         // Could add teenNumbers (>10) and "hundred" to get things like "fourteen hundred(s)..." but the plural and following numbers, if any, i.e. dates, could be complicated.
         
@@ -2315,36 +2326,55 @@ class TextViewController : UIViewController
 //            textToNumbers[key] = millenia[key]
 //        }
         
-        for hundred in ["one"] {
-            for teenNumbersKey in teenNumbers.keys {
-                if let num = teenNumbers[teenNumbersKey] {
-                    let key = hundred + " " + teenNumbersKey
-                    
-                    let value = "1" + num
-                    
-                    textToNumbers[key] = value
+        // twelve ten, etc.
+        for hundred in teenNumbers.keys {
+            if let prefix = teenNumbers[hundred] {
+                for teenNumbersKey in teenNumbers.keys {
+                    if let num = teenNumbers[teenNumbersKey] {
+                        let key = hundred + " " + teenNumbersKey
+                        
+                        let value = prefix + num
+                        
+                        textToNumbers[key] = value
+                    }
                 }
             }
-            
-            for decadesKey in decades.keys {
-                if let num = decades[decadesKey] {
-                    let key = hundred + " " + decadesKey
-                    let value = "1" + num
-                    
-                    textToNumbers[key] = value
-                    
-                    if decadesKey != "ten" {
-                        for singleNumbersKey in singleNumbers.keys {
-                            let key = hundred + " " + decadesKey + " " + singleNumbersKey
-                            
-                            if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
-                                let value = "1" + decade + singleNumber
-                                textToNumbers[key] = value
+        }
+        
+        // one twelve, one twenty one, etc.
+        for hundred in singleNumbers.keys { // ["one"]
+            if let prefix = singleNumbers[hundred] { // not needed if ["one"] is used
+                for teenNumbersKey in teenNumbers.keys {
+                    if let num = teenNumbers[teenNumbersKey] {
+                        let key = hundred + " " + teenNumbersKey
+                        
+                        let value = prefix + num // "1"
+                        
+                        textToNumbers[key] = value
+                    }
+                }
+                
+                for decadesKey in decades.keys {
+                    if let num = decades[decadesKey] {
+                        let key = hundred + " " + decadesKey
+                        let value = prefix + num // "1"
+                        
+                        textToNumbers[key] = value
+                        
+                        // WHY? Because ten one is eleven, etc.
+                        if decadesKey != "ten" {
+                            for singleNumbersKey in singleNumbers.keys {
+                                let key = hundred + " " + decadesKey + " " + singleNumbersKey
+                                
+                                if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
+                                    let value = prefix + decade + singleNumber // "1"
+                                    textToNumbers[key] = value
+                                }
                             }
                         }
                     }
                 }
-            }
+            } // not needed if ["one"] is used
         }
         
         for decade in decades.keys {
@@ -2400,60 +2430,62 @@ class TextViewController : UIViewController
             }
         }
 
-//        for millenium in millenia.keys {
-//            for century in centuries.keys {
-//                for singleNumber in singleNumbers.keys {
-//                    let key = (millenium + " " + century + " " + singleNumber)
-//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
-//                        let singleNumber = singleNumbers[singleNumber] {
-//                        let value = millenium + century + singleNumber
-//                        textToNumbers[key] = value
-//                    }
-//                }
-//
-//                for teenNumber in teenNumbers.keys {
-//                    let key = (millenium + " " + century + " " + teenNumber)
-//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-//                        let teenNumber = teenNumbers[teenNumber] {
-//                        let value = millenium + century + teenNumber
-//                        textToNumbers[key] = value
-//                    }
-//                }
-//
-//                for decade in decades.keys {
-//                    let key = (millenium + " " + century + " " + decade)
-//                    if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-//                        let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-//                        let decade = decades[decade] {
-//                        let value = millenium + century + decade
-//                        textToNumbers[key] = value
-//                    }
-//                }
-//
-//                for decade in decades.keys {
-//                    for singleNumber in singleNumbers.keys {
-//                        let key = (millenium + " " + century + " " + decade + " " + singleNumber)
-//                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
-//                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-//                            let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
-//                            let singleNumber = singleNumbers[singleNumber]
-//                        {
-//                            let value = (millenium + century + decade + singleNumber)
-//                            textToNumbers[key] = value
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        if longFormat {
+            for millenium in millenia.keys {
+                for century in centuries.keys {
+                    for singleNumber in singleNumbers.keys {
+                        let key = (millenium + " " + century + " " + singleNumber)
+                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+                            let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+                            let singleNumber = singleNumbers[singleNumber] {
+                            let value = millenium + century + singleNumber
+                            textToNumbers[key] = value
+                        }
+                    }
+                    
+                    for teenNumber in teenNumbers.keys {
+                        let key = (millenium + " " + century + " " + teenNumber)
+                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                            let teenNumber = teenNumbers[teenNumber] {
+                            let value = millenium + century + teenNumber
+                            textToNumbers[key] = value
+                        }
+                    }
+                    
+                    for decade in decades.keys {
+                        let key = (millenium + " " + century + " " + decade)
+                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                            let decade = decades[decade] {
+                            let value = millenium + century + decade
+                            textToNumbers[key] = value
+                        }
+                    }
+                    
+                    for decade in decades.keys {
+                        for singleNumber in singleNumbers.keys {
+                            let key = (millenium + " " + century + " " + decade + " " + singleNumber)
+                            if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+                                let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                                let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+                                let singleNumber = singleNumbers[singleNumber]
+                            {
+                                let value = (millenium + century + decade + singleNumber)
+                                textToNumbers[key] = value
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return textToNumbers.count > 0 ? textToNumbers : nil
     }
     
     func masterChanges(interactive: Bool) -> [String:[String:String]]?
     {
-        guard let textToNumbers = textToNumbers() else {
+        guard let textToNumbers = textToNumbers(longFormat:interactive) else {
             return nil
         }
         
@@ -2473,7 +2505,14 @@ class TextViewController : UIViewController
         // These should really be hierarchical.
         for key in textToNumbers.keys {
             if let value = textToNumbers[key] {
-                for context in ["verse","verses","chapter","chapters"] {
+                var preambles = ["verse","verses","chapter","chapters"]
+                
+                if interactive {
+                    preambles.append("through")
+                    preambles.append("to")
+                }
+                
+                for context in preambles {
                     if changes[context] == nil {
                         changes[context] = ["\(context) " + key:"\(context) " + value]
                     } else {
@@ -2537,7 +2576,7 @@ class TextViewController : UIViewController
         return changes.count > 0 ? changes : nil
     }
     
-    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, words:[[String:Any]]?,text:String?, completion:((String)->(Void))?)
+    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int?, words:[[String:Any]]?,text:String?, completion:((String)->(Void))?)
     {
         guard var words = words else {
             return
@@ -2584,10 +2623,7 @@ class TextViewController : UIViewController
         // and move on to the next word.
         //////////////////////////////////////////////////////////////////////////////
         
-        if gapThreshold == nil {
-            // Should tooClose be passed in as a parameters?  Yes.
-            let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 320 // default value is arbitrary - at best based on trial and error
-            
+        if let tooClose = tooClose {
             var lowerRange : Range<String.Index>?
             var upperRange : Range<String.Index>?
             
@@ -2610,56 +2646,116 @@ class TextViewController : UIViewController
                 // NONE FOUND BEFORE
             }
             
-            if let lowerRange = lowerRange, lowerRange.upperBound.encodedOffset + tooClose > range.lowerBound.encodedOffset {
-                if interactive {
-                    self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, words:words, text:text, completion:completion)
-                } else {
-                    guard gap >= gapThreshold else {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+            // Too close to the previous?
+            if let lowerRange = lowerRange {
+                if (lowerRange.upperBound.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                    if interactive {
+                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    } else {
+                        guard gap >= gapThreshold else {
+                            if !automatic {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                    self.updateBarButtons()
+                                }))
+                                
+                                Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                            }
+                            return
                         }
-                        return
+                        
+                        operationQueue.addOperation { [weak self] in
+                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                        }
                     }
-                    
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
-                    }
+                    return
                 }
-                return
+            } else {
+                // There is no previous.
+                
+                // Too close to the start?
+                if (text.startIndex.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                    if interactive {
+                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    } else {
+                        guard gap >= gapThreshold else {
+                            if !automatic {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                    self.updateBarButtons()
+                                }))
+                                
+                                Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                            }
+                            return
+                        }
+                        
+                        operationQueue.addOperation { [weak self] in
+                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                        }
+                    }
+                    return
+                }
             }
             
             searchRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
             
             upperRange = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
             
-            if let upperRange = upperRange, range.upperBound.encodedOffset + tooClose > upperRange.lowerBound.encodedOffset {
-                if interactive {
-                    self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
-                } else {
-                    guard gap >= gapThreshold else {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+            // Too close to the next?
+            if let upperRange = upperRange {
+                if (range.upperBound.encodedOffset + tooClose) > upperRange.lowerBound.encodedOffset {
+                    if interactive {
+                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    } else {
+                        guard gap >= gapThreshold else {
+                            if !automatic {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                    self.updateBarButtons()
+                                }))
+                                
+                                Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                            }
+                            return
                         }
-                        return
+                        
+                        operationQueue.addOperation { [weak self] in
+                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                        }
                     }
-                    
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
-                    }
+                    return
                 }
-                return
+            } else {
+                // There is no next.
+                
+                // Too close to end?
+                if (range.lowerBound.encodedOffset + tooClose) > text.endIndex.encodedOffset {
+                    if interactive {
+                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    } else {
+                        guard gap >= gapThreshold else {
+                            if !automatic {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                    self.updateBarButtons()
+                                }))
+                                
+                                Alerts.shared.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+                            }
+                            return
+                        }
+                        
+                        operationQueue.addOperation { [weak self] in
+                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                        }
+                    }
+                    return
+                }
             }
         }
 
@@ -2702,7 +2798,7 @@ class TextViewController : UIViewController
 
                     textView.onDone = { (string:String) in
                         words.insert(first, at:0)
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:text, completion:completion)
+                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
                     Thread.onMainThread {
@@ -2746,11 +2842,11 @@ class TextViewController : UIViewController
                 // Calling completion when we change something makes sense?
                 completion?(newText)
                 
-                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:newText, completion:completion)
+                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
             }))
             
             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
-                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, words:words, text:text, completion:completion)
+                self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
             }))
             
             actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
@@ -2845,7 +2941,7 @@ class TextViewController : UIViewController
                     Thread.sleep(forTimeInterval: 1.0)
                     ////////////////////////////////////////////////////////////////////////////////
                 }
-                self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, words:words, text:newText, completion:completion)
+                self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
             }
         }
     }

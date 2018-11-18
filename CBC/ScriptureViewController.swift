@@ -844,55 +844,58 @@ class ScriptureViewController : UIViewController
     
     func showScripture()
     {
-        if let reference = self.scripture?.selected.reference {
-            scripture?.reference = reference
-            if self.scripture?.html?[reference] != nil {
-                if let string = self.scripture?.html?[reference] {
-                    self.webViewController?.html.string = insertHead(stripHead(string), fontSize:webViewController?.html.fontSize ?? Constants.FONT_SIZE)
-                    
-                    if let url = self.webViewController?.html.fileURL {
-                        self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                    }
-
-                    self.webViewController?.view.isHidden = false
+        guard let reference = self.scripture?.selected.reference else {
+            return
+        }
+        
+        scripture?.reference = reference
+        
+        if self.scripture?.html?[reference] != nil {
+            if let string = self.scripture?.html?[reference] {
+                self.webViewController?.html.string = insertHead(stripHead(string), fontSize:webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                
+                if let url = self.webViewController?.html.fileURL {
+                    self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
-            } else {
-                process(viewController: self, work: { [weak self] () -> (Any?) in
-                    self?.scripture?.load() // reference
-                    return self?.scripture?.html?[reference]
-                }) { [weak self] (data:Any?) in
-                    if let string = data as? String {
+
+                self.webViewController?.view.isHidden = false
+            }
+        } else {
+            process(viewController: self, work: { [weak self] () -> (Any?) in
+                self?.scripture?.load() // reference
+                return self?.scripture?.html?[reference]
+            }) { [weak self] (data:Any?) in
+                if let string = data as? String {
 //                        self?.webViewController?.html.string = string
 
-                        if let string = insertHead(stripHead(string),fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
-                            self?.webViewController?.html.string = string
-                            
-                            if let url = self?.webViewController?.html.fileURL {
-                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                            }
-                        } else {
-                            if let url = self?.webViewController?.html.fileURL {
-                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                            }
+                    if let string = insertHead(stripHead(string),fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
+                        self?.webViewController?.html.string = string
+                        
+                        if let url = self?.webViewController?.html.fileURL {
+                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                         }
                     } else {
-                        var bodyString = "<!DOCTYPE html><html><body>"
-                        
-                        bodyString = bodyString + "Network error.  Scripture text unavailable."
-                        
-                        bodyString = bodyString + "</body></html>"
-                        
-                        if let string = insertHead(bodyString,fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
-                            self?.webViewController?.html.string = string
-                            
-                            if let url = self?.webViewController?.html.fileURL {
-                                self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                            }
+                        if let url = self?.webViewController?.html.fileURL {
+                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                         }
                     }
-
-                    self?.webViewController?.view.isHidden = false
+                } else {
+                    var bodyString = "<!DOCTYPE html><html><body>"
+                    
+                    bodyString = bodyString + "Network error.  Scripture text unavailable."
+                    
+                    bodyString = bodyString + "</body></html>"
+                    
+                    if let string = insertHead(bodyString,fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
+                        self?.webViewController?.html.string = string
+                        
+                        if let url = self?.webViewController?.html.fileURL {
+                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    }
                 }
+
+                self?.webViewController?.view.isHidden = false
             }
         }
     }

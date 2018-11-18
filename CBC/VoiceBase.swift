@@ -202,7 +202,7 @@ extension VoiceBase // Class Methods
     
     static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        if !Globals.shared.checkingAvailability {
+        if !Globals.shared.checkingVoiceBaseAvailability {
             if !Globals.shared.isVoiceBaseAvailable {
                 return
             }
@@ -734,6 +734,17 @@ class VoiceBase {
     // by accessing transcript before the timer creation on the main thread is complete.
     var settingTimer = false
     
+    var filename : String?
+    {
+        get {
+            if let id = mediaItem?.id, let purpose = purpose {
+                return id + ".\(purpose).transcript"
+            } else {
+                return nil
+            }
+        }
+    }
+    
     var transcript:String?
     {
         get {
@@ -758,7 +769,7 @@ class VoiceBase {
             }
             
             if completed {
-                if let destinationURL = (id+".\(purpose)").fileSystemURL {
+                if let destinationURL = filename?.fileSystemURL {
                     do {
                         try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
                         // This will cause an error.  The tag is created in the constantTags getter while loading.
@@ -831,7 +842,7 @@ class VoiceBase {
             
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    if let destinationURL = (id+".\(purpose)").fileSystemURL {
+                    if let destinationURL = self?.filename?.fileSystemURL {
                         destinationURL.delete()
                         
                         do {
@@ -845,7 +856,7 @@ class VoiceBase {
                 }
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    if let destinationURL = (id+".\(purpose)").fileSystemURL {
+                    if let destinationURL = self?.filename?.fileSystemURL {
                         destinationURL.delete()
                     } else {
                         print("failed to get destinationURL")
@@ -2811,7 +2822,7 @@ class VoiceBase {
                 let fileManager = FileManager.default
                 
                 if self?._transcriptSegments != nil {
-                    if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
+                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
                         destinationURL.delete()
 //                        // Check if file exist
 //                        if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -2832,7 +2843,7 @@ class VoiceBase {
                     }
                     
                     //Legacy clean-up
-                    if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
+                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
                         destinationURL.delete()
 //                        // Check if file exist
 //                        if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -2846,7 +2857,7 @@ class VoiceBase {
                         print("failed to get destinationURL")
                     }
                 } else {
-                    if let destinationURL = (id+".\(purpose).segments").fileSystemURL {
+                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
                         destinationURL.delete()
 //                        // Check if file exist
 //                        if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -2863,7 +2874,7 @@ class VoiceBase {
                     }
                     
                     //Legacy clean-up
-                    if let destinationURL = (id+".\(purpose).srt").fileSystemURL {
+                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
                         destinationURL.delete()
 //                        // Check if file exist
 //                        if (fileManager.fileExists(atPath: destinationURL.path)){
