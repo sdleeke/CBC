@@ -3575,6 +3575,7 @@ class MediaItem : NSObject
         
         clearCache = AlertAction(title: "Clear Cache", style: .default) {
             self.clearCache()
+            Alerts.shared.alert(title:"Cache Cleared", message: self.text)
         }
         
         if hasAudio, let audioDownload = audioDownload {
@@ -3667,7 +3668,7 @@ class MediaItem : NSObject
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
                     self.addTag(Constants.Strings.Favorites)
-                    Alerts.shared.alert(title: "Added to Favorites",message: self.title)
+                    Alerts.shared.alert(title: "Added to Favorites",message: self.text)
                 }
                 break
                 
@@ -3675,7 +3676,7 @@ class MediaItem : NSObject
                 // This blocks this thread until it finishes.
                 Globals.shared.queue.sync {
                     self.removeTag(Constants.Strings.Favorites)
-                    Alerts.shared.alert(title: "Removed From Favorites",message: self.title)
+                    Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
                 }
                 break
                 

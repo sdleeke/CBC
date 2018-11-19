@@ -292,8 +292,6 @@ extension TextViewController : PopoverPickerControllerDelegate
             
             let text = self.textView.attributedText.string
             
-            let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
-
             if let words = self.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                     return first > second
@@ -301,13 +299,13 @@ extension TextViewController : PopoverPickerControllerDelegate
                 
                 return first["gap"] != nil
             }) {
-                func makeVisible(tooClose:Int, showGapTimes:Bool)
+                func makeVisible(showGapTimes:Bool)
                 {
                     var actions = [AlertAction]()
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
+                            self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -323,7 +321,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
+                            self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
@@ -345,11 +343,11 @@ extension TextViewController : PopoverPickerControllerDelegate
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
-                    makeVisible(tooClose:tooClose, showGapTimes:true)
+                    makeVisible(showGapTimes:true)
                 }))
                 
                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
-                    makeVisible(tooClose:tooClose, showGapTimes:false)
+                    makeVisible(showGapTimes:false)
                 }))
                 
                 actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
@@ -1320,8 +1318,6 @@ class TextViewController : UIViewController
             return
         }
         
-        let tooClose = transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
-
         var actions = [AlertAction]()
         
         actions.append(AlertAction(title: "Interactive", style: .default, handler: { [weak self] in
@@ -1338,7 +1334,13 @@ class TextViewController : UIViewController
                     //                    print(wordRangeTiming)
                     
                     var speakerNotesParagraphWords : [String:Int]?
+
+                    var tooClose : Int?
                     
+                    func showGapTimes(tooClose:Int?)
+                    {
+                        
+                    }
                     let block = {
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
@@ -1390,12 +1392,15 @@ class TextViewController : UIViewController
                         }
                     }
 
-                    guard let vc = self else {
-                        return
-                    }
+                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
+                                                  message: "Please note that this may take a considerable amount of time.",
+                                                  preferredStyle: .alert)
+                    alert.makeOpaque()
                     
-                    yesOrNo(viewController: vc, title: "Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", yesAction: { () -> (Void) in
+                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
                         process(viewController: self!, work: { [weak self] () -> (Any?) in
+                            tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            
                             speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
@@ -1414,7 +1419,10 @@ class TextViewController : UIViewController
                             self?.updateBarButtons()
                             block()
                         })
-                    }, yesStyle: .default, noAction: { () -> (Void) in
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
                         process(viewController: self!, work: { [weak self] () -> (Any?) in
                             self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
@@ -1424,7 +1432,12 @@ class TextViewController : UIViewController
                             self?.updateBarButtons()
                             block()
                         })
-                    }, noStyle: .default)
+                    })
+                    alert.addAction(noAction)
+                    
+                    Thread.onMainThread {
+                        self?.present(alert, animated: true, completion: nil)
+                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -1477,6 +1490,8 @@ class TextViewController : UIViewController
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
                     var speakerNotesParagraphWords : [String:Int]?
+                    
+                    var tooClose : Int?
                     
                     let block = {
                         // Multiply the gap time by the frequency of the word that appears after it and sort
@@ -1657,43 +1672,52 @@ class TextViewController : UIViewController
                         }
                     }
                     
-                    guard let vc = self else {
-                        return
-                    }
+                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
+                                                  message: "Please note that this may take a considerable amount of time.",
+                                                  preferredStyle: .alert)
+                    alert.makeOpaque()
                     
-                    yesOrNo(viewController: vc, title: "Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.",
-                            yesAction: { () -> (Void) in
-                                process(viewController: self!, work: { [weak self] () -> (Any?) in
-                                    speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
-                                    
-                                    print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-                                        if first.value == second.value {
-                                            return first.key < second.key
-                                        } else {
-                                            return first.value > second.value
-                                        }
-                                    }))
-                                    
-                                    self?.creatingWordRangeTiming = true
-                                    return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
-                                }, completion: { (data:Any?) in
-                                    self?.wordRangeTiming = data as? [[String:Any]]
-                                    self?.creatingWordRangeTiming = false
-                                    self?.updateBarButtons()
-                                    block()
-                                })
-                            }, yesStyle: .default,
-                            noAction: { () -> (Void) in
-                                process(viewController: self!, work: { [weak self] () -> (Any?) in
-                                    self?.creatingWordRangeTiming = true
-                                    return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
-                                }, completion: { (data:Any?) in
-                                    self?.wordRangeTiming = data as? [[String:Any]]
-                                    self?.creatingWordRangeTiming = false
-                                    self?.updateBarButtons()
-                                    block()
-                                })
-                            }, noStyle: .default)
+                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
+                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                            tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
+                            
+                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+                                if first.value == second.value {
+                                    return first.key < second.key
+                                } else {
+                                    return first.value > second.value
+                                }
+                            }))
+                            
+                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+                        }, completion: { (data:Any?) in
+                            self?.wordRangeTiming = data as? [[String:Any]]
+                            self?.creatingWordRangeTiming = false
+                            self?.updateBarButtons()
+                            block()
+                        })
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
+                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+                        }, completion: { (data:Any?) in
+                            self?.wordRangeTiming = data as? [[String:Any]]
+                            self?.creatingWordRangeTiming = false
+                            self?.updateBarButtons()
+                            block()
+                        })
+                    })
+                    alert.addAction(noAction)
+                    
+                    Thread.onMainThread {
+                        self?.present(alert, animated: true, completion: nil)
+                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -2804,7 +2828,7 @@ class TextViewController : UIViewController
         return changes.count > 0 ? changes : nil
     }
     
-    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int?, words:[[String:Any]]?,text:String?, completion:((String)->(Void))?)
+    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?,text:String?, completion:((String)->(Void))?)
     {
         guard var words = words else {
             return

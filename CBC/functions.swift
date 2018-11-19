@@ -3724,6 +3724,7 @@ func process(viewController:UIViewController?,disableEnable:Bool = true,hideSubv
         
         view.addSubview(container)
         
+        // Should be an OperationQueue and work should be a CancellableOperation
         DispatchQueue.global(qos: .background).async {
             let data = work?()
             
