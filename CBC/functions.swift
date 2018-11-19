@@ -2374,7 +2374,7 @@ func mediaItemsInBook(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
     }
     
     return mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
-        if let books = mediaItem.books.value {
+        if let books = mediaItem.books {
             return books.contains(book)
         } else {
             return false
@@ -2401,7 +2401,7 @@ func booksFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     var bookSet = Set<String>()
     
     for mediaItem in mediaItems {
-        if let books = mediaItem.books.value {
+        if let books = mediaItem.books {
             for book in books {
                 bookSet.insert(book)
             }
@@ -3500,26 +3500,26 @@ func mediaItemsWithTag(_ mediaItems:[MediaItem]?,tag:String?) -> [MediaItem]?
         })
 }
 
-func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
-{
-    guard let mediaItems = mediaItems else {
-        return nil
-    }
-
-    var tagsSet = Set<String>()
-    
-    for mediaItem in mediaItems {
-        if let tags = mediaItem.tagsSet {
-            tagsSet.formUnion(tags)
-        }
-    }
-    
-    var tagsArray = Array(tagsSet).sorted(by: { $0.withoutPrefixes < $1.withoutPrefixes })
-    
-    tagsArray.append(Constants.Strings.All)
-    
-    return tagsArray.count > 0 ? tagsArray : nil
-}
+//func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
+//{
+//    guard let mediaItems = mediaItems else {
+//        return nil
+//    }
+//
+//    var tagsSet = Set<String>()
+//    
+//    for mediaItem in mediaItems {
+//        if let tags = mediaItem.tagsSet {
+//            tagsSet.formUnion(tags)
+//        }
+//    }
+//    
+//    var tagsArray = Array(tagsSet).sorted(by: { $0.withoutPrefixes < $1.withoutPrefixes })
+//    
+//    tagsArray.append(Constants.Strings.All)
+//    
+//    return tagsArray.count > 0 ? tagsArray : nil
+//}
 
 func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?)
 {

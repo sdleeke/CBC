@@ -963,12 +963,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             alert.makeOpaque()
             
             alert.addTextField(configurationHandler: { (textField:UITextField) in
-                textField.text = Globals.shared.voiceBaseAPIKey.value
+                textField.text = Globals.shared.voiceBaseAPIKey
             })
             
             let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
                 (action : UIAlertAction) -> Void in
-                Globals.shared.voiceBaseAPIKey.value = alert.textFields?[0].text
+                Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
             })
             alert.addAction(okayAction)
 
@@ -1121,7 +1121,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 return
             }
             
-            Globals.shared.mediaCategory.selected = string
+            Globals.shared.mediaCategory.selected = string // != Constants.Strings.All ? string : nil
             
             self.display.clear()
             
@@ -1134,9 +1134,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
                 self.selectedMediaItem = Globals.shared.selectedMediaItem.master
                 
-                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                    mediaItem.category == Globals.shared.mediaCategory.selected
-                }))
+                if Globals.shared.mediaCategory.selected != Constants.Strings.All {
+                    Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                        mediaItem.category == Globals.shared.mediaCategory.selected
+                    }))
+                } else {
+                    Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+                }
 
                 Globals.shared.media.tagged.clear()
 
@@ -1149,8 +1153,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 return nil
             }) { (data:Any?) in
                 self.updateUI()
-
-                self.notesName = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
 
                 Thread.onMainThread {
                     if Globals.shared.search.active { //  && !Globals.shared.search.complete
@@ -1505,38 +1507,38 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             
             switch string {
-            case "Download All Slides":
-                Globals.shared.media.active?.mediaList?.downloadAllSlides()
-                break
-                
-            case "Download All " + (notesName ?? ""):
-                Globals.shared.media.active?.mediaList?.downloadAllNotes()
-                break
-                
-            case "Download All Audio":
-                Globals.shared.media.active?.mediaList?.downloadAllAudio()
-                break
-                
-            case "Delete All Audio Downloads":
-                let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
-                                                message: nil,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
-                    (action : UIAlertAction) -> Void in
-                    Globals.shared.media.active?.mediaList?.deleteAllAudioDownloads()
-                })
-                alert.addAction(yesAction)
-                
-                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(noAction)
-                
-                self.present(alert, animated: true, completion: nil)
-                break
+//            case "Download All Slides":
+//                Globals.shared.media.active?.mediaList?.downloadAllSlides()
+//                break
+//                
+//            case "Download All " + (notesName ?? ""):
+//                Globals.shared.media.active?.mediaList?.downloadAllNotes()
+//                break
+//                
+//            case "Download All Audio":
+//                Globals.shared.media.active?.mediaList?.downloadAllAudio()
+//                break
+//                
+//            case "Delete All Audio Downloads":
+//                let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+//                                                message: nil,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//                
+//                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                    Globals.shared.media.active?.mediaList?.deleteAllAudioDownloads()
+//                })
+//                alert.addAction(yesAction)
+//                
+//                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                    
+//                })
+//                alert.addAction(noAction)
+//                
+//                self.present(alert, animated: true, completion: nil)
+//                break
                 
             case Constants.Strings.View_List:
                 if let string = Globals.shared.media.active?.html?.string {
@@ -1812,8 +1814,6 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class MediaTableViewController : UIViewController
 {
-    var notesName : String?
-    
     var display = Display()
 
     var popover : PopoverTableViewController?
@@ -1921,9 +1921,13 @@ class MediaTableViewController : UIViewController
             popover.delegate = self
             popover.purpose = .selectingCategory
             
-            popover.stringSelected = Globals.shared.mediaCategory.selected
+            popover.stringSelected = Globals.shared.mediaCategory.selected ?? Constants.Strings.All
             
-            popover.section.strings = Globals.shared.mediaCategory.names
+            popover.section.strings = [Constants.Strings.All]
+            
+            if let categories = Globals.shared.mediaCategory.names {
+                popover.section.strings?.append(contentsOf: categories)
+            }
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2080,7 +2084,7 @@ class MediaTableViewController : UIViewController
             
             showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
-            if Globals.shared.isVoiceBaseAvailable.value ?? false {
+            if Globals.shared.isVoiceBaseAvailable ?? false {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
             }
             
@@ -2409,14 +2413,14 @@ class MediaTableViewController : UIViewController
             let data = urlString?.url?.data
             
             jsonQueue.addOperation {
-                data?.save(to: filename?.fileSystemURL)
+                _ = data?.save(to: filename?.fileSystemURL)
             }
             
             return data?.json
         }
         
         jsonQueue.addOperation {
-            urlString?.url?.data?.save(to: filename?.fileSystemURL)
+            _ = urlString?.url?.data?.save(to: filename?.fileSystemURL)
         }
         
         return json
@@ -2573,7 +2577,7 @@ class MediaTableViewController : UIViewController
                     self?.loadTeachers()
                     self?.loadCategories()
                     
-                    self?.notesName = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
+//                    self?.notesName = (Globals.shared.mediaCategory.notesName ?? "") + (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript ? "s" : "")
 
                     if  let url = Globals.shared.mediaCategory.url,
                         let filename = Globals.shared.mediaCategory.filename,
@@ -2596,9 +2600,13 @@ class MediaTableViewController : UIViewController
                 self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
             }
             
-            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                mediaItem.category == Globals.shared.mediaCategory.selected
-            }))
+            if Globals.shared.mediaCategory.selected == Constants.Strings.All {
+                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+            } else {
+                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                    mediaItem.category == Globals.shared.mediaCategory.selected
+                }))
+            }
             
             if Globals.shared.search.valid {
                 Thread.onMainThread {
@@ -3060,22 +3068,22 @@ class MediaTableViewController : UIViewController
         if Globals.shared.media.active?.mediaList?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
            
-            if Globals.shared.cacheDownloads {
-                if slidesDownloads > 0 {
-                    actionMenu.append("Download All Slides")
-                }
-                if notesDownloads > 0, let notesName = notesName {
-                    actionMenu.append("Download All " + notesName)
-                }
-            }
-            
-            if audioDownloads > 0 {
-                actionMenu.append("Download All Audio")
-            }
-            
-            if audioDownloaded > 0 {
-                actionMenu.append("Delete All Audio Downloads")
-            }
+//            if Globals.shared.cacheDownloads {
+//                if slidesDownloads > 0 {
+//                    actionMenu.append("Download All Slides")
+//                }
+//                if notesDownloads > 0, let notesName = notesName {
+//                    actionMenu.append("Download All " + notesName)
+//                }
+//            }
+//
+//            if audioDownloads > 0 {
+//                actionMenu.append("Download All Audio")
+//            }
+//
+//            if audioDownloaded > 0 {
+//                actionMenu.append("Delete All Audio Downloads")
+//            }
         }
         
         return actionMenu.count > 0 ? actionMenu : nil
@@ -3986,16 +3994,16 @@ extension MediaTableViewController : UITableViewDataSource
             
             view?.addSubview(label)
 
-            if let superview = label.superview {
-                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-                label.superview?.addConstraint(centerY)
-
-                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-                label.superview?.addConstraint(leftMargin)
-            }
+//            if let superview = label.superview {
+//                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//                label.superview?.addConstraint(centerY)
+//
+//                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+//                label.superview?.addConstraint(leftMargin)
+//            }
             
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
             view?.label = label
         }

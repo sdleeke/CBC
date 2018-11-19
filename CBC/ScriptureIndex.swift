@@ -133,36 +133,46 @@ class ScriptureIndex
     
     var selectedVerse:Int = 0
 
-    lazy var eligible:Shadowed<[MediaItem]> = {
-        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
-            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.books.value != nil
-            }), list.count > 0 {
-                return list
-            } else {
-                return nil
-            }
-        })
-    }()
-    
-//    var _eligible:[MediaItem]?
-//    var eligible:[MediaItem]?
-//    {
-//        get {
-//            guard _eligible == nil else {
-//                return _eligible
-//            }
-//            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//    lazy var eligible:Shadowed<[MediaItem]> = {
+//        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
+//            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
 //                return mediaItem.books != nil
 //            }), list.count > 0 {
-//                _eligible = list
+//                return list
 //            } else {
-//                _eligible = nil
+//                return nil
 //            }
-//            
-//            return _eligible
-//        }
-//    }
+//        })
+//    }()
+    
+    private var _eligible:[MediaItem]?
+    {
+        didSet {
+            if _eligible == nil, oldValue != nil {
+                _ = eligible
+            }
+        }
+    }
+    var eligible:[MediaItem]?
+    {
+        get {
+            guard _eligible == nil else {
+                return _eligible
+            }
+            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.books != nil
+            }), list.count > 0 {
+                _eligible = list
+            } else {
+                _eligible = nil
+            }
+            
+            return _eligible
+        }
+        set {
+            _eligible = newValue
+        }
+    }
     
     func build()
     {

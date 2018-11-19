@@ -1012,17 +1012,29 @@ class WebViewController: UIViewController
         
         webView.addSubview(wkWebView)
         
-        let centerX = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-        wkWebView.superview?.addConstraint(centerX)
+//        let centerX = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+//        wkWebView.superview?.addConstraint(centerX)
+//
+//        let centerY = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//        wkWebView.superview?.addConstraint(centerY)
+//
+//        let width = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+//        wkWebView.superview?.addConstraint(width)
+//
+//        let height = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+//        wkWebView.superview?.addConstraint(height)
         
-        let centerY = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-        wkWebView.superview?.addConstraint(centerY)
+        let top = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.topMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.topMargin, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(top)
         
-        let width = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-        wkWebView.superview?.addConstraint(width)
+        let bottom = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.bottomMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.bottomMargin, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(bottom)
         
-        let height = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-        wkWebView.superview?.addConstraint(height)
+        let leading = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.leadingMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.leadingMargin, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(leading)
+        
+        let trailing = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.trailingMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.trailingMargin, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(trailing)
         
         wkWebView.superview?.setNeedsLayout()
     }

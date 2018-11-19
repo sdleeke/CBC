@@ -44,84 +44,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var checkVoiceBaseTimer : Timer?
     
-    lazy var isVoiceBaseAvailable:Shadowed<Bool> = {
-        return Shadowed<Bool>(get:{
-            guard self.allowMGTs else {
-                return false
-            }
-            
-            guard Globals.shared.reachability.isReachable else {
-                return false
-            }
-            
-            return self.checkingVoiceBaseAvailability
-        },
-//          pre:{
-//            if !self.allowMGTs {
-//                return false
-//            }
-//
-//            if !Globals.shared.reachability.isReachable {
-//                return false
-//            }
-//
-//            return true
-//        },
-          didSet:{ (backingStore:Bool?,oldValue:Bool?) in
-            guard backingStore != oldValue else {
-                return
-            }
-            
-            guard let backingStore = backingStore else {
-                return
-            }
-            
-            if !backingStore {
-                if self.checkVoiceBaseTimer != nil {
-                    self.checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
-                }
-            } else {
-                self.checkVoiceBaseTimer?.invalidate()
-                self.checkVoiceBaseTimer = nil
-            }
-            
-            // Why?
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-            }
-        })
-    }()
-    
-//    private var _isVoiceBaseAvailable : Bool? // = false
-//    {
-//        didSet {
-//            guard _isVoiceBaseAvailable != oldValue else {
-//                return
-//            }
-//
-//            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
-//                return
-//            }
-//
-//            if !_isVoiceBaseAvailable {
-//                if checkVoiceBaseTimer != nil {
-//                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
-//                }
-//            } else {
-//                checkVoiceBaseTimer?.invalidate()
-//                checkVoiceBaseTimer = nil
-//            }
-//
-//            // Why?
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-//            }
-//        }
-//    }
-//    var isVoiceBaseAvailable : Bool // = false
-//    {
-//        get {
-//            guard allowMGTs else {
+//    lazy var isVoiceBaseAvailable:Shadowed<Bool> = {
+//        return Shadowed<Bool>(get:{
+//            guard self.allowMGTs else {
 //                return false
 //            }
 //
@@ -129,21 +54,96 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //                return false
 //            }
 //
-//            return _isVoiceBaseAvailable ?? checkingVoiceBaseAvailability
-//        }
-//        set {
-//            _isVoiceBaseAvailable = newValue
-//        }
-//    }
+//            return self.checkingVoiceBaseAvailability
+//        },
+////          pre:{
+////            if !self.allowMGTs {
+////                return false
+////            }
+////
+////            if !Globals.shared.reachability.isReachable {
+////                return false
+////            }
+////
+////            return true
+////        },
+//          didSet:{ (backingStore:Bool?,oldValue:Bool?) in
+//            guard backingStore != oldValue else {
+//                return
+//            }
+//
+//            guard let backingStore = backingStore else {
+//                return
+//            }
+//
+//            if !backingStore {
+//                if self.checkVoiceBaseTimer != nil {
+//                    self.checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
+//                }
+//            } else {
+//                self.checkVoiceBaseTimer?.invalidate()
+//                self.checkVoiceBaseTimer = nil
+//            }
+//
+//            // Why?
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+//            }
+//        })
+//    }()
+    
+    private var _isVoiceBaseAvailable : Bool? // = false
+    {
+        didSet {
+            guard _isVoiceBaseAvailable != oldValue else {
+                return
+            }
+
+            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
+                return
+            }
+
+            if !_isVoiceBaseAvailable {
+                if checkVoiceBaseTimer != nil {
+                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
+                }
+            } else {
+                checkVoiceBaseTimer?.invalidate()
+                checkVoiceBaseTimer = nil
+            }
+
+            // Why?
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+            }
+        }
+    }
+    var isVoiceBaseAvailable : Bool? // = false
+    {
+        get {
+            guard allowMGTs else {
+                return false
+            }
+
+            guard Globals.shared.reachability.isReachable else {
+                return false
+            }
+
+            return _isVoiceBaseAvailable ?? checkingVoiceBaseAvailability
+        }
+        set {
+            _isVoiceBaseAvailable = newValue
+        }
+    }
 
     var checkingVoiceBaseAvailability = false
     
     @objc func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
     {
-        isVoiceBaseAvailable.value = nil
+        isVoiceBaseAvailable = nil
 
         guard reachability.isReachable else {
-            isVoiceBaseAvailable.value = false
+            isVoiceBaseAvailable = false
             completion?()
             return
         }
@@ -151,60 +151,18 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         checkingVoiceBaseAvailability = true
         
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
-            self.isVoiceBaseAvailable.value = true
+            self.isVoiceBaseAvailable = true
             completion?()
         }, onError: { (json:[String : Any]?) -> (Void) in
-            self.isVoiceBaseAvailable.value = false
+            self.isVoiceBaseAvailable = false
             completion?()
         })
         
         checkingVoiceBaseAvailability = false
     }
 
-    lazy var voiceBaseAPIKey:Shadowed<String> = {
-        return Shadowed<String>(get: { () -> (String?) in
-            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
-                if key.isEmpty {
-                    return nil
-                }
-                
-                return key
-            } else {
-                return nil
-            }
-        }, didSet: { (apiKey, oldValue) in
-            guard let apiKey = apiKey else {
-                self.isVoiceBaseAvailable.value = false
-                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-                return
-            }
-            
-            if !apiKey.isEmpty {
-                UserDefaults.standard.set(apiKey, forKey: Constants.Strings.VoiceBase_API_Key)
-            } else {
-                self.isVoiceBaseAvailable.value = false
-                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-            }
-            
-            // Do we need to notify VoiceBase objects?
-            // No, because if it was nil before there shouldn't be anything on VB.com
-            // No, because if it was not nil before then they either the new KEY is good or bad.
-            // If bad, then it will fail.  If good, then they will finish.
-            // So, nothing needs to be done.
-
-            UserDefaults.standard.synchronize()
-        })
-    }()
-
-//    var _voiceBaseAPIKey : String?
-//    {
-//        didSet {
-//            checkVoiceBaseAvailability()
-//        }
-//    }
-//    var voiceBaseAPIKey : String?
-//    {
-//        get {
+//    lazy var voiceBaseAPIKey:Shadowed<String> = {
+//        return Shadowed<String>(get: { () -> (String?) in
 //            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
 //                if key.isEmpty {
 //                    return nil
@@ -214,31 +172,73 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //            } else {
 //                return nil
 //            }
-//        }
-//        set {
-//            if let key = newValue {
-//                if !key.isEmpty {
-//                    UserDefaults.standard.set(newValue, forKey: Constants.Strings.VoiceBase_API_Key)
-//                } else {
-//                    isVoiceBaseAvailable.value = false
-//                    UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-//                }
+//        }, didSet: { (apiKey, oldValue) in
+//            guard let apiKey = apiKey else {
+//                self.isVoiceBaseAvailable = false
+//                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+//                return
+//            }
 //
-//                // Do we need to notify VoiceBase objects?
-//                // No, because if it was nil before there shouldn't be anything on VB.com
-//                // No, because if it was not nil before then they either the new KEY is good or bad.
-//                // If bad, then it will fail.  If good, then they will finish.
-//                // So, nothing needs to be done.
+//            if !apiKey.isEmpty {
+//                UserDefaults.standard.set(apiKey, forKey: Constants.Strings.VoiceBase_API_Key)
 //            } else {
-//                isVoiceBaseAvailable.value = false
+//                self.isVoiceBaseAvailable = false
 //                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
 //            }
 //
-//            UserDefaults.standard.synchronize()
+//            // Do we need to notify VoiceBase objects?
+//            // No, because if it was nil before there shouldn't be anything on VB.com
+//            // No, because if it was not nil before then they either the new KEY is good or bad.
+//            // If bad, then it will fail.  If good, then they will finish.
+//            // So, nothing needs to be done.
 //
-//            _voiceBaseAPIKey = newValue
-//        }
-//    }
+//            UserDefaults.standard.synchronize()
+//        })
+//    }()
+
+    private var _voiceBaseAPIKey : String?
+    {
+        didSet {
+            checkVoiceBaseAvailability()
+        }
+    }
+    var voiceBaseAPIKey : String?
+    {
+        get {
+            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
+                if key.isEmpty {
+                    return nil
+                }
+
+                return key
+            } else {
+                return nil
+            }
+        }
+        set {
+            if let key = newValue {
+                if !key.isEmpty {
+                    UserDefaults.standard.set(newValue, forKey: Constants.Strings.VoiceBase_API_Key)
+                } else {
+                    isVoiceBaseAvailable = false
+                    UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+                }
+
+                // Do we need to notify VoiceBase objects?
+                // No, because if it was nil before there shouldn't be anything on VB.com
+                // No, because if it was not nil before then they either the new KEY is good or bad.
+                // If bad, then it will fail.  If good, then they will finish.
+                // So, nothing needs to be done.
+            } else {
+                isVoiceBaseAvailable = false
+                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+            }
+
+            UserDefaults.standard.synchronize()
+
+            _voiceBaseAPIKey = newValue
+        }
+    }
     
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
     {
@@ -365,7 +365,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         if priorReachabilityStatus != .notReachable, !reachability.isReachable, mediaRepository.list != nil {
             Alerts.shared.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
             
-            isVoiceBaseAvailable.value = false
+            isVoiceBaseAvailable = false
         }
         
         priorReachabilityStatus = reachability.currentReachabilityStatus

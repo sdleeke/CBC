@@ -203,12 +203,12 @@ extension VoiceBase // Class Methods
     static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         if !Globals.shared.checkingVoiceBaseAvailability {
-            if !(Globals.shared.isVoiceBaseAvailable.value ?? false){
+            if !(Globals.shared.isVoiceBaseAvailable ?? false){
                 return
             }
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey.value else {
+        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
             return
         }
         
@@ -321,11 +321,11 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
-        guard Globals.shared.isVoiceBaseAvailable.value ?? false else {
+        guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey.value else {
+        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
             return
         }
         
@@ -722,7 +722,7 @@ class VoiceBase {
         get {
             var htmlString = String()
             
-            if  let transcript = self.transcript.value {
+            if  let transcript = self.transcript {
                 htmlString = transcript.replacingOccurrences(of: "\n", with: "<br/>")
             }
 
@@ -745,155 +745,15 @@ class VoiceBase {
         }
     }
     
-    lazy var transcript:Shadowed<String> = {
-        return Shadowed<String>(get: { () -> (String?) in
-            var value:String? = nil
-            
-            guard self.mediaID != nil else {
-                return nil
-            }
-            
-            guard let mediaItem = self.mediaItem else {
-                return nil
-            }
-            
-            guard let id = mediaItem.id else {
-                return nil
-            }
-            
-            guard let purpose = self.purpose else {
-                return nil
-            }
-            
-            if self.completed {
-                if let destinationURL = self.filename?.fileSystemURL {
-                    do {
-                        try value = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
-                        // This will cause an error.  The tag is created in the constantTags getter while loading.
-                        //                    mediaItem.addTag("Machine Generated Transcript")
-                        
-                        // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
-                        // called during init()'s which is fortunate.
-                    } catch let error {
-                        print("failed to load machine generated transcript for \(self.mediaItem?.description): \(error.localizedDescription)")
-                        self.completed = false
-                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-                        //                        if !aligning {
-                        //                            remove()
-                        //                        }
-                    }
-                } else {
-                    self.completed = false
-                }
-            }
-            
-            if !self.completed && self.transcribing && !self.aligning && (self.resultsTimer == nil) && !self.settingTimer {
-                self.settingTimer = true
-                Thread.onMainThread {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                    self.settingTimer = false
-                }
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-                //                mediaItem.voicebase?.delete()
-                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                if self.resultsTimer != nil {
-                    print("TIMER NOT NIL!")
-                }
-            }
-            
-            if self.completed && !self.transcribing && self.aligning && (self.resultsTimer == nil) && !self.settingTimer {
-                self.settingTimer = true
-                Thread.onMainThread {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                    self.settingTimer = false
-                }
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-                //                mediaItem.voicebase?.delete()
-                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                if self.resultsTimer != nil {
-                    print("TIMER NOT NIL!")
-                }
-            }
-            
-            return value
-        },
-                                
-//        pre: { () -> (Bool) in
-//            if self.mediaID == nil {
-//                return false
-//            }
+//    lazy var transcript:Shadowed<String> = {
+//        return Shadowed<String>(get: { () -> (String?) in
+//            var value:String? = nil
 //
-//            if self.mediaItem == nil {
-//                return false
-//            }
-//
-//            if self.mediaItem?.id == nil {
-//                return false
-//            }
-//
-//            if self.purpose == nil {
-//                return false
-//            }
-//
-//            return true
-//        },
-        
-        didSet: { (transcript, oldValue) in
-            guard let mediaItem = self.mediaItem else {
-                return
-            }
-            
-            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                return transcript.transcript.value != nil // self._
-            }).count == 0 {
-                // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + self.transcriptPurpose)
-                }
-            } else {
-                // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + self.transcriptPurpose)
-                }
-            }
-        })
-    }()
-//    var _transcript:String?
-//    {
-//        didSet {
-//            guard let mediaItem = mediaItem else {
-//                return
-//            }
-//
-//            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-//                return transcript._transcript != nil // self._
-//            }).count == 0 {
-//                // This blocks this thread until it finishes.
-//                Globals.shared.queue.sync {
-//                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-//                }
-//            } else {
-//                // This blocks this thread until it finishes.
-//                Globals.shared.queue.sync {
-//                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-//                }
-//            }
-//        }
-//    }
-//    var transcript:String?
-//    {
-//        get {
-//            guard (_transcript == nil) else {
-//                return _transcript
-//            }
-//
-//            guard mediaID != nil else {
+//            guard self.mediaID != nil else {
 //                return nil
 //            }
 //
-//            guard let mediaItem = mediaItem else {
+//            guard let mediaItem = self.mediaItem else {
 //                return nil
 //            }
 //
@@ -901,34 +761,34 @@ class VoiceBase {
 //                return nil
 //            }
 //
-//            guard let purpose = purpose else {
+//            guard let purpose = self.purpose else {
 //                return nil
 //            }
 //
-//            if completed {
-//                if let destinationURL = filename?.fileSystemURL {
+//            if self.completed {
+//                if let destinationURL = self.filename?.fileSystemURL {
 //                    do {
-//                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
+//                        try value = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
 //                        // This will cause an error.  The tag is created in the constantTags getter while loading.
 //                        //                    mediaItem.addTag("Machine Generated Transcript")
 //
 //                        // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
 //                        // called during init()'s which is fortunate.
 //                    } catch let error {
-//                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
-//                        completed = false
+//                        print("failed to load machine generated transcript for \(self.mediaItem?.description): \(error.localizedDescription)")
+//                        self.completed = false
 //                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
 //                        //                        if !aligning {
 //                        //                            remove()
 //                        //                        }
 //                    }
 //                } else {
-//                    completed = false
+//                    self.completed = false
 //                }
 //            }
 //
-//            if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
-//                settingTimer = true
+//            if !self.completed && self.transcribing && !self.aligning && (self.resultsTimer == nil) && !self.settingTimer {
+//                self.settingTimer = true
 //                Thread.onMainThread {
 //                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                    self.settingTimer = false
@@ -942,8 +802,8 @@ class VoiceBase {
 //                }
 //            }
 //
-//            if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
-//                settingTimer = true
+//            if self.completed && !self.transcribing && self.aligning && (self.resultsTimer == nil) && !self.settingTimer {
+//                self.settingTimer = true
 //                Thread.onMainThread {
 //                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                    self.settingTimer = false
@@ -957,56 +817,196 @@ class VoiceBase {
 //                }
 //            }
 //
-//            return _transcript
-//        }
+//            return value
+//        },
 //
-//        set {
-//            _transcript = newValue
+////        pre: { () -> (Bool) in
+////            if self.mediaID == nil {
+////                return false
+////            }
+////
+////            if self.mediaItem == nil {
+////                return false
+////            }
+////
+////            if self.mediaItem?.id == nil {
+////                return false
+////            }
+////
+////            if self.purpose == nil {
+////                return false
+////            }
+////
+////            return true
+////        },
 //
-//            let fileManager = FileManager.default
-//
-//            guard let mediaItem = mediaItem else {
+//        didSet: { (transcript, oldValue) in
+//            guard let mediaItem = self.mediaItem else {
 //                return
 //            }
 //
-//            guard let id = mediaItem.id else {
-//                return
-//            }
-//
-//            guard let purpose = purpose else {
-//                return
-//            }
-//
-//            if _transcript != nil {
-//                DispatchQueue.global(qos: .background).async { [weak self] in
-//                    if let destinationURL = self?.filename?.fileSystemURL {
-//                        destinationURL.delete()
-//
-//                        do {
-//                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
-//                        } catch let error {
-//                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
+//            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//                return transcript.transcript != nil // self._
+//            }).count == 0 {
+//                // This blocks this thread until it finishes.
+//                Globals.shared.queue.sync {
+//                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + self.transcriptPurpose)
 //                }
 //            } else {
-//                DispatchQueue.global(qos: .background).async { [weak self] in
-//                    if let destinationURL = self?.filename?.fileSystemURL {
-//                        destinationURL.delete()
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
+//                // This blocks this thread until it finishes.
+//                Globals.shared.queue.sync {
+//                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + self.transcriptPurpose)
 //                }
 //            }
-//        }
-//    }
+//        })
+//    }()
+    
+    private var _transcript:String?
+    {
+        didSet {
+            guard let mediaItem = mediaItem else {
+                return
+            }
+
+            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                return transcript._transcript != nil // self._
+            }).count == 0 {
+                // This blocks this thread until it finishes.
+                Globals.shared.queue.sync {
+                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+                }
+            } else {
+                // This blocks this thread until it finishes.
+                Globals.shared.queue.sync {
+                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+                }
+            }
+        }
+    }
+    var transcript:String?
+    {
+        get {
+            guard (_transcript == nil) else {
+                return _transcript
+            }
+
+            guard mediaID != nil else {
+                return nil
+            }
+
+            guard let mediaItem = mediaItem else {
+                return nil
+            }
+
+            guard let id = mediaItem.id else {
+                return nil
+            }
+
+            guard let purpose = purpose else {
+                return nil
+            }
+
+            if completed {
+                if let destinationURL = filename?.fileSystemURL {
+                    do {
+                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
+                        // This will cause an error.  The tag is created in the constantTags getter while loading.
+                        //                    mediaItem.addTag("Machine Generated Transcript")
+
+                        // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
+                        // called during init()'s which is fortunate.
+                    } catch let error {
+                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
+                        completed = false
+                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+                        //                        if !aligning {
+                        //                            remove()
+                        //                        }
+                    }
+                } else {
+                    completed = false
+                }
+            }
+
+            if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
+                settingTimer = true
+                Thread.onMainThread {
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                    self.settingTimer = false
+                }
+            } else {
+                // Overkill to make sure the cloud storage is cleaned-up?
+                //                mediaItem.voicebase?.delete()
+                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                if self.resultsTimer != nil {
+                    print("TIMER NOT NIL!")
+                }
+            }
+
+            if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
+                settingTimer = true
+                Thread.onMainThread {
+                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                    self.settingTimer = false
+                }
+            } else {
+                // Overkill to make sure the cloud storage is cleaned-up?
+                //                mediaItem.voicebase?.delete()
+                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                if self.resultsTimer != nil {
+                    print("TIMER NOT NIL!")
+                }
+            }
+
+            return _transcript
+        }
+        set {
+            _transcript = newValue
+
+            let fileManager = FileManager.default
+
+            guard let mediaItem = mediaItem else {
+                return
+            }
+
+            guard let id = mediaItem.id else {
+                return
+            }
+
+            guard let purpose = purpose else {
+                return
+            }
+
+            if _transcript != nil {
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    if let destinationURL = self?.filename?.fileSystemURL {
+                        destinationURL.delete()
+
+                        do {
+                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
+                        } catch let error {
+                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
+                    }
+                }
+            } else {
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    if let destinationURL = self?.filename?.fileSystemURL {
+                        destinationURL.delete()
+                    } else {
+                        print("failed to get destinationURL")
+                    }
+                }
+            }
+        }
+    }
     
     var wordRangeTiming : [[String:Any]]?
     {
         get {
-            guard let transcript = transcript.value?.lowercased() else {
+            guard let transcript = transcript?.lowercased() else {
                 return nil
             }
             
@@ -1172,7 +1172,7 @@ class VoiceBase {
 //        })
 //    }()
     
-    var _mediaJSON : [String:Any]?
+    private var _mediaJSON : [String:Any]?
     {
         didSet {
 
@@ -1563,11 +1563,11 @@ class VoiceBase {
     
     func post(path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard Globals.shared.isVoiceBaseAvailable.value ?? false else {
+        guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey.value else {
+        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
             return
         }
         
@@ -1934,11 +1934,11 @@ class VoiceBase {
     
     func delete()
     {
-        guard Globals.shared.isVoiceBaseAvailable.value ?? false else {
+        guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey.value else {
+        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
             return
         }
         
@@ -2054,7 +2054,7 @@ class VoiceBase {
         resultsTimer?.invalidate()
         resultsTimer = nil
         
-        transcript.value = nil
+        transcript = nil
         transcriptSegments = nil
     }
     
@@ -2645,7 +2645,7 @@ class VoiceBase {
             }
             
             if let text = json?["text"] as? String {
-                self.transcript.value = text
+                self.transcript = text
 
                 if alert, let text = self.mediaItem?.text {
                     Alerts.shared.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
@@ -2736,8 +2736,7 @@ class VoiceBase {
 //        })
 //    }()
     
-    // Make thread safe?
-    var _transcriptSegmentArrays:[[String]]?
+    private var _transcriptSegmentArrays:[[String]]? // Make thread safe?
     {
         didSet {
             guard let transcriptSegmentArrays = _transcriptSegmentArrays else {
@@ -2768,8 +2767,7 @@ class VoiceBase {
             transcriptSegmentTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
         }
     }
-    // Make thread safe?
-    var transcriptSegmentArrays:[[String]]?
+    var transcriptSegmentArrays:[[String]]? // Make thread safe?
     {
         get {
             guard _transcriptSegmentArrays == nil else {
@@ -2797,15 +2795,13 @@ class VoiceBase {
         return transcriptSegmentTokensTimes?[token]
     }
     
-    // Make thread safe?
-    var _transcriptSegmentTokensTimes : [String:[String]]?
+    private var _transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
     {
         didSet {
             
         }
     }
-    // Make thread safe?
-    var transcriptSegmentTokensTimes : [String:[String]]?
+    var transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
     {
         get {
             guard _transcriptSegmentTokensTimes == nil else {
@@ -2915,8 +2911,7 @@ class VoiceBase {
         return results.count > 0 ? results : nil
     }
     
-    // Make thread safe?
-    var _transcriptSegmentComponents:[String]?
+    private var _transcriptSegmentComponents:[String]? // Make thread safe?
     {
         didSet {
             guard let transcriptSegmentComponents = _transcriptSegmentComponents else {
@@ -2932,8 +2927,7 @@ class VoiceBase {
             self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
         }
     }
-    // Make thread safe?
-    var transcriptSegmentComponents:[String]?
+    var transcriptSegmentComponents:[String]? // Make thread safe?
     {
         get {
             guard _transcriptSegmentComponents == nil else {
@@ -3098,7 +3092,7 @@ class VoiceBase {
 //        })
 //    }()
     
-    var _transcriptSegments:String?
+    private var _transcriptSegments:String?
     {
         didSet {
             transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator)
@@ -3156,7 +3150,6 @@ class VoiceBase {
 
             return _transcriptSegments
         }
-
         set {
             guard let mediaItem = mediaItem else {
                 return
@@ -3347,11 +3340,11 @@ class VoiceBase {
     
     func search(string:String?)
     {
-        guard Globals.shared.isVoiceBaseAvailable.value ?? false else {
+        guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey.value else {
+        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
             return
         }
         
@@ -3633,24 +3626,24 @@ class VoiceBase {
         var action : AlertAction!
 
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
-            if self.transcript.value == nil {
-                guard Globals.shared.isVoiceBaseAvailable.value ?? false else {
-                    if Globals.shared.voiceBaseAPIKey.value == nil {
+            if self.transcript == nil {
+                guard Globals.shared.isVoiceBaseAvailable ?? false else {
+                    if Globals.shared.voiceBaseAPIKey == nil {
                         let alert = UIAlertController(  title: "Please add an API Key to use VoiceBase",
                                                         message: nil,
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
-                            textField.text = Globals.shared.voiceBaseAPIKey.value
+                            textField.text = Globals.shared.voiceBaseAPIKey
                         })
                         
                         let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
                             (action : UIAlertAction) -> Void in
-                            Globals.shared.voiceBaseAPIKey.value = alert.textFields?[0].text
+                            Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
                             
                             // If this is a valid API key then should pass a completion block to start the transcript!
-                            if Globals.shared.voiceBaseAPIKey.value != nil {
+                            if Globals.shared.voiceBaseAPIKey != nil {
                                 Globals.shared.checkVoiceBaseAvailability {
                                     if !self.transcribing {
                                         if Globals.shared.reachability.isReachable {
@@ -3747,7 +3740,7 @@ class VoiceBase {
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Transcript", style: .default, handler: {
-                        if self.transcript.value == self.transcriptFromWords {
+                        if self.transcript == self.transcriptFromWords {
                             print("THEY ARE THE SAME!")
                         }
 
@@ -3853,7 +3846,7 @@ class VoiceBase {
                         
                         textPopover.navigationItem.title = (self.mediaItem?.title ?? "") + " (\(self.transcriptPurpose))"
                         
-                        let text = self.transcript.value
+                        let text = self.transcript
                         
                         textPopover.transcript = self // Must come before track
                         textPopover.track = true
@@ -3868,7 +3861,7 @@ class VoiceBase {
                                 return
                             }
                             
-                            self.transcript.value = text
+                            self.transcript = text
                         }
                         
                         viewController.present(navigationController, animated: true, completion: nil)
@@ -3895,7 +3888,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                if Globals.shared.isVoiceBaseAvailable.value ?? false {
+                if Globals.shared.isVoiceBaseAvailable ?? false {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, handler: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let mediaID = self.mediaID {
@@ -4057,7 +4050,7 @@ class VoiceBase {
                                 title: "Confirm Regeneration of Transcript",
                                 message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
                                 yesAction: { () -> (Void) in
-                                    self.transcript.value = self.transcriptFromWords
+                                    self.transcript = self.transcriptFromWords
                                 }, yesStyle: .destructive,
                                 noAction: nil, noStyle: .default)
                         
@@ -4078,7 +4071,7 @@ class VoiceBase {
 //                        }
                     }))
                     
-                    if Globals.shared.isVoiceBaseAvailable.value ?? false {
+                    if Globals.shared.isVoiceBaseAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 var alertActions = [AlertAction]()

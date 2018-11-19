@@ -112,7 +112,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Share_Slides:
             fallthrough
-        case Constants.Strings.Share + " " + (Globals.shared.mediaCategory.notesName ?? "") :
+        case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
             share()
             break
 
@@ -280,7 +280,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Refresh_Document:
             fallthrough
-        case Constants.Strings.Refresh + " " + (Globals.shared.mediaCategory.notesName ?? ""):
+        case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
             fallthrough
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
@@ -2246,7 +2246,7 @@ class MediaViewController: UIViewController
         if let purpose = document?.purpose { // UIPrintInteractionController.isPrintingAvailable
             switch purpose {
             case Purpose.notes:
-                if let notesName = Globals.shared.mediaCategory.notesName {
+                if let notesName = selectedMediaItem.notesName {
                     actionMenu.append(Constants.Strings.Share + " " + notesName)
                 }
                 break
@@ -2263,7 +2263,7 @@ class MediaViewController: UIViewController
         if document != nil, let purpose = document?.purpose { // Globals.shared.cacheDownloads,
             switch purpose {
             case Purpose.notes:
-                if let notesName = Globals.shared.mediaCategory.notesName {
+                if let notesName = selectedMediaItem.notesName {
                     actionMenu.append(Constants.Strings.Refresh + " " + notesName)
                 }
                 break
@@ -2359,19 +2359,19 @@ class MediaViewController: UIViewController
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video)
         }
         
@@ -3326,11 +3326,14 @@ class MediaViewController: UIViewController
 
                             logo.isHidden = Globals.shared.mediaPlayer.loaded
                             Globals.shared.mediaPlayer.view?.isHidden = !Globals.shared.mediaPlayer.loaded
-                            
+
+                            // Why are we doing this?  This is how we got here.
                             selectedMediaItem.showing = Showing.video
                             
                             if (Globals.shared.mediaPlayer.player != nil) {
-
+                                if let view = Globals.shared.mediaPlayer.view {
+                                    mediaItemNotesAndSlides.bringSubview(toFront: view)
+                                }
                             } else {
                                 setupDefaultDocuments()
                             }
@@ -3658,13 +3661,15 @@ class MediaViewController: UIViewController
 //            }
 //
 
-            self.updateUI()
+            // This really messes up plus size phones - probably, the one below was enough!
+//            self.updateUI()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            self.setupWKContentOffsets()
 
 //            self.wkWebView?.isHidden = false
 
-            self.updateUI()
+            // This really messes up plus size phones
+//            self.updateUI()
         }
     }
     

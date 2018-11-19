@@ -665,7 +665,7 @@ class ScriptureIndexViewController : UIViewController
             
             if let mediaItems = mediaItems {
                 for mediaItem in mediaItems {
-                    if let books = mediaItem.books.value {
+                    if let books = mediaItem.books {
                         for book in books {
                             if let selectedTestament = scriptureIndex?.selectedTestament {
                                 if translateTestament(selectedTestament) == testament(book) {
@@ -1018,7 +1018,7 @@ class ScriptureIndexViewController : UIViewController
         var bodyItems = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {
-            if let books = mediaItem.books.value {
+            if let books = mediaItem.books {
                 for book in books {
                     if let okay = sectionTitles?.contains(book) {
                         if okay {
@@ -1776,16 +1776,16 @@ extension ScriptureIndexViewController : UITableViewDelegate
             
             view?.addSubview(label)
 
-            if let superview = label.superview {
-                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-                label.superview?.addConstraint(centerY)
-                
-                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-                label.superview?.addConstraint(leftMargin)
-            }
+//            if let superview = label.superview {
+//                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//                label.superview?.addConstraint(centerY)
+//
+//                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+//                label.superview?.addConstraint(leftMargin)
+//            }
             
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
             view?.label = label
         }

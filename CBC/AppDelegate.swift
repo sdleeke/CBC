@@ -243,7 +243,12 @@ extension AppDelegate : UISplitViewControllerDelegate
         
         // If the SVC has a navCon in first position, i.e. master
         if let master = splitViewController.viewControllers[0] as? UINavigationController {
-            return master.visibleViewController?.navigationController
+            return master
+//            if UIDevice.current.userInterfaceIdiom == .phone {
+//                return master.visibleViewController?.navigationController
+//            } else {
+//                return master.visibleViewController?.navigationController
+//            }
             
             // Can we really do the above instead of this?
 //            if UIDevice.current.userInterfaceIdiom == .pad {

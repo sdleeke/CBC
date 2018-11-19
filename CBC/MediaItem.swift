@@ -87,6 +87,36 @@ extension MediaItem : UIActivityItemSource
 
 class MediaItem : NSObject
 {
+    var notesName:String?
+    {
+        get {
+            guard let category = category else {
+                return nil
+            }
+            
+            if category == "Sermons" {
+                return Constants.Strings.Transcript
+            } else {
+                return Constants.Strings.Notes
+            }
+        }
+    }
+    
+    var notesNames : String?
+    {
+        get {
+            guard let category = category else {
+                return nil
+            }
+            
+            if category == "Sermons" {
+                return Constants.Strings.Transcript + "s"
+            } else {
+                return Constants.Strings.Notes
+            }
+        }
+    }
+    
     lazy var documents : ThreadSafeDictionaryOfDictionaries<Document>! = {
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
@@ -98,23 +128,27 @@ class MediaItem : NSObject
             
             // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
             
-            totalCacheSize += cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
-            
-            totalCacheSize += posterImage?.fileSize.value ?? 0
-            totalCacheSize += seriesImage?.fileSize.value ?? 0
+            totalCacheSize += cacheSize(Purpose.notes)
+            totalCacheSize += cacheSize(Purpose.slides)
 
-            totalCacheSize += notesHTML?.fileSize.value ?? 0
-            totalCacheSize += notesTokens?.fileSize.value ?? 0
+//            totalCacheSize += downloads[Purpose.notes]?.fileSize ?? 0
+//            totalCacheSize += downloads[Purpose.slides]?.fileSize ?? 0
+
+            totalCacheSize += posterImage?.fileSize ?? 0
+            totalCacheSize += seriesImage?.fileSize ?? 0
+
+            totalCacheSize += notesHTML?.fileSize ?? 0
+            totalCacheSize += notesTokens?.fileSize ?? 0
             
             if #available(iOS 11.0, *) {
-                totalCacheSize += notesPDFText?.fileSize.value ?? 0
+                totalCacheSize += notesPDFText?.fileSize ?? 0
             } else {
                 // Fallback on earlier versions
             }
 
-            totalCacheSize += notesParagraphLengths?.fileSize.value ?? 0
-            totalCacheSize += notesParagraphWords?.fileSize.value ?? 0
-            totalCacheSize += notesTokensMarkMismatches?.fileSize.value ?? 0
+            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
+            totalCacheSize += notesParagraphWords?.fileSize ?? 0
+            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
 
             return totalCacheSize
         }
@@ -122,13 +156,7 @@ class MediaItem : NSObject
 
     func cacheSize(_ purpose:String) -> Int
     {
-        var totalFileSize = 0
-        
-        if let download = downloads[purpose], download.exists {
-            totalFileSize += download.fileSize.value ?? 0
-        }
-
-        return totalFileSize
+        return downloads[purpose]?.fileSize ?? 0
     }
     
     func clearCache()
@@ -542,7 +570,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books.value {
+        if let books = books {
             array.append(contentsOf: books)
         }
         
@@ -575,7 +603,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books.value {
+        if let books = books {
             set = set.union(Set(books))
         }
         
@@ -1115,13 +1143,19 @@ class MediaItem : NSObject
         }
     }
     
-//    var _speakerNotesParagraphWords:[String:Int]?
+    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
+    private var _speakerNotesParagraphWords:[String:Int]?
+    {
+        didSet {
+            
+        }
+    }
     var speakerNotesParagraphWords:[String:Int]?
     {
         get {
-//            guard _speakerNotesParagraphWords == nil else {
-//                return _speakerNotesParagraphWords
-//            }
+            guard _speakerNotesParagraphWords == nil else {
+                return _speakerNotesParagraphWords
+            }
             
             guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
@@ -1142,9 +1176,12 @@ class MediaItem : NSObject
                 }
             }
             
-            return  allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
-            // _speakerNotesParagraphWords =
-//            return _speakerNotesParagraphWords
+            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
+            
+            return _speakerNotesParagraphWords
+        }
+        set {
+            _speakerNotesParagraphWords = newValue
         }
     }
 
@@ -1170,13 +1207,19 @@ class MediaItem : NSObject
         }
     }
     
-//    var _speakerNotesParagraphLengths : [String:[Int]]?
+    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
+    private var _speakerNotesParagraphLengths : [String:[Int]]?
+    {
+        didSet {
+            
+        }
+    }
     var speakerNotesParagraphLengths : [String:[Int]]?
     {
         get {
-//            guard _speakerNotesParagraphLengths == nil else {
-//                return _speakerNotesParagraphLengths
-//            }
+            guard _speakerNotesParagraphLengths == nil else {
+                return _speakerNotesParagraphLengths
+            }
             
             guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
@@ -1192,9 +1235,12 @@ class MediaItem : NSObject
                 }
             }
             
-            return allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
-            // _speakerNotesParagraphLengths =
-//            return _speakerNotesParagraphLengths
+            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
+
+            return _speakerNotesParagraphLengths
+        }
+        set {
+            _speakerNotesParagraphLengths = newValue
         }
     }
     
@@ -1745,7 +1791,7 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Slides
             }
             
-            if hasNotes, let notesName = Globals.shared.mediaCategory.notesName {
+            if hasNotes, let notesName = notesName {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + notesName
             }
             
@@ -2353,9 +2399,9 @@ class MediaItem : NSObject
     {
         get {
             if #available(iOS 11.0, *) {
-                return hasNotes && (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript)
+                return hasNotes && (notesName == Constants.Strings.Transcript)
             } else {
-                return hasNotesHTML && (Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript)
+                return hasNotesHTML && (notesName == Constants.Strings.Transcript)
             }
         }
     }
@@ -2505,7 +2551,7 @@ class MediaItem : NSObject
     var bookSections:[String]
     {
         get {
-            if let books = books.value {
+            if let books = books {
                 return books
             }
             
@@ -2554,7 +2600,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        guard let books = books.value else { // booksFromScriptureReference(scriptureReference)
+        guard let books = books else { // booksFromScriptureReference(scriptureReference)
             return nil
         }
         
@@ -2759,25 +2805,33 @@ class MediaItem : NSObject
         return chaptersForBook
     }
 
-    lazy var books:Shadowed<[String]> = {
-        return Shadowed<[String]>(get: { () -> ([String]?) in
-            return booksFromScriptureReference(self.scriptureReference)
-        })
-    }()
+//    lazy var books:Shadowed<[String]> = {
+//        return Shadowed<[String]>(get: { () -> ([String]?) in
+//            return booksFromScriptureReference(self.scriptureReference)
+//        })
+//    }()
     
-//    var _books:[String]?
-//    var books:[String]?
-//    {
-//        get {
-//            guard _books == nil else {
-//                return _books
-//            }
-//            
-//            _books = booksFromScriptureReference(scriptureReference)
-//            
-//            return _books
-//        }
-//    }
+    private var _books:[String]?
+    {
+        didSet {
+            
+        }
+    }
+    var books:[String]?
+    {
+        get {
+            guard _books == nil else {
+                return _books
+            }
+            
+            _books = booksFromScriptureReference(scriptureReference)
+            
+            return _books
+        }
+        set {
+            _books = newValue
+        }
+    }
     
     var fullDate:Date?
     {
@@ -3309,7 +3363,7 @@ class MediaItem : NSObject
     var hasBook:Bool
     {
         get {
-            return (self.books.value != nil)
+            return (self.books != nil)
         }
     }
     
@@ -3801,7 +3855,7 @@ class MediaItem : NSObject
             })
         }
 
-        if hasNotes, Globals.shared.mediaCategory.notesName == Constants.Strings.Transcript {
+        if hasNotes, notesName == Constants.Strings.Transcript {
             if #available(iOS 11.0, *) {
                 transcript = AlertAction(title: "HTML Transcript", style: .default) {
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in

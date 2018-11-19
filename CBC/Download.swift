@@ -443,7 +443,7 @@ class Download : NSObject
                 break
                 
             case .downloaded:
-                fileSize.value = fileSystemURL?.fileSize
+                fileSize = fileSystemURL?.fileSize
                 
                 Thread.onMainThread {
                     // The following must appear AFTER we change the state
@@ -570,24 +570,36 @@ class Download : NSObject
         }
     }
     
-    lazy var fileSize:Shadowed<Int> = {
-        return Shadowed<Int>(get:{
-            return self.fileSystemURL?.fileSize
-        })
-    }()
+//    lazy var fileSize:Shadowed<Int> = {
+//        return Shadowed<Int>(get:{
+//            return self.fileSystemURL?.fileSize
+//        })
+//    }()
 
-//    private var _fileSize : Int?
-//    var fileSize : Int
-//    {
-//        get {
-//            guard let fileSize = _fileSize else {
-//                _fileSize = fileSystemURL?.fileSize
-//                return _fileSize ?? 0
-//            }
-//
-//            return fileSize
-//        }
-//    }
+    private var _fileSize : Int?
+    {
+        didSet {
+            
+        }
+    }
+    var fileSize : Int?
+    {
+        get {
+            guard state == .downloaded else {
+                return 0
+            }
+            
+            guard let fileSize = _fileSize else {
+                _fileSize = fileSystemURL?.fileSize
+                return _fileSize
+            }
+
+            return fileSize
+        }
+        set {
+            _fileSize = newValue
+        }
+    }
     
 //    var fileSize:Int
 //    {
@@ -627,7 +639,7 @@ class Download : NSObject
             return
         }
         
-        fileSize.value = nil
+        fileSize = nil
         fileSystemURL?.delete()
         
 //        // Check if file exists and if so, delete it.

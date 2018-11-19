@@ -13,27 +13,12 @@ class MediaCategory
     // Make thread safe?
     var dicts:[String:String]?
     
-    var notesName:String?
-    {
-        get {
-            guard let selectedID = selectedID else {
-                return nil
-            }
-            
-            if selectedID == 1.description {
-                return Constants.Strings.Transcript
-            } else {
-                return Constants.Strings.Notes
-            }
-        }
-    }
-    
     var filename:String?
     {
         get {
-            guard let selectedID = selectedID else {
-                return nil
-            }
+//            guard let selectedID = selectedID else {
+//                return nil
+//            }
             
             return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + Constants.JSON.FILENAME_EXTENSION //  + selectedID <- after entries.
         }
@@ -42,9 +27,9 @@ class MediaCategory
     var url:String?
     {
         get {
-            guard let selectedID = selectedID else {
-                return nil
-            }
+//            guard let selectedID = selectedID else {
+//                return nil
+//            }
             
             return Constants.JSON.URL.MEDIA // CATEGORY + selectedID
         }
@@ -88,7 +73,7 @@ class MediaCategory
     {
         get {
             if let selected = selected {
-                return dicts?[selected] ?? "1" // Sermons are category 1
+                return dicts?[selected] // ?? "1" // Sermons are category 1
             } else {
                 return nil
             }

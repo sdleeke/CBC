@@ -28,10 +28,10 @@ class Media
         didSet {
 //            all?.lexicon?._eligible = nil
 //            _ = all?.lexicon?.eligible
-            all?.lexicon?.eligible.value = nil
+            all?.lexicon?.eligible = nil
 //            all?.scriptureIndex?._eligible = nil
 //            _ = all?.scriptureIndex?.eligible
-            all?.scriptureIndex?.eligible.value = nil
+            all?.scriptureIndex?.eligible = nil
         }
     }
     
