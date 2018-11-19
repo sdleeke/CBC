@@ -176,13 +176,38 @@ class CloudLayoutOperation : Operation
         // to rotate the sphere around a fixed center.
         
         repeat {
-            var wordArea:CGFloat = 0.0;
+            var wordArea:CGFloat
+            
             wordAreaExceedsContainerSize = false
             
             var fontRange:CGFloat = fontMax - fontMin
             let fontStep:CGFloat = 0.1 // 1.0 // 3.0 // parameter to vary
             
             // Normalize word weights
+            
+            let scaleFactor:CGFloat = 0.85
+            
+            repeat {
+                wordArea = 0.0
+                
+                for cloudWord in cloudWords {
+                    let scale:CGFloat = CGFloat(cloudWord.wordCount - minWordCount) / (deltaWordCount != 0 ? deltaWordCount : 1)
+                    cloudWord.pointSize = fontMin + (fontStep * floor(scale * (fontRange / fontStep))) // + dynamicTypeDelta
+                    cloudWord.determineWordOrientation(orientation: orientation, containerSize: containerSize, scale:containerScale, fontName:cloudFont.fontName)
+                    wordArea += cloudWord.boundsArea // * 1.1 // Another way to account for whitespace between words - parameter to vary
+                }
+                
+                if wordArea < (containerArea * scaleFactor) {
+//                    oldFontMin = fontMin
+                    
+                    fontMin += fontStep
+                    
+                    fontMax = fontMin * maxMinRatio
+                    fontRange = fontMax - fontMin
+                }
+            } while wordArea < (containerArea * scaleFactor)
+            
+            wordArea = 0.0
             
             for cloudWord in cloudWords {
                 if (isCancelled) {
@@ -204,18 +229,6 @@ class CloudLayoutOperation : Operation
                     oldFontMin = fontMin
 
                     fontMin = fontMin == minFontMin ? minFontMin : fontMin - fontStep
-                    
-                    fontMax = fontMin * maxMinRatio
-                    fontRange = fontMax - fontMin
-                    break
-                }
-                
-                let scaleFactor:CGFloat = 0.9
-                
-                if (wordArea < (containerArea * scaleFactor)) || (cloudWord.boundsSize.width < (containerSize.width * scaleFactor)) || (cloudWord.boundsSize.height < (containerSize.height * scaleFactor)) {
-                    oldFontMin = fontMin
-                    
-                    fontMin += fontStep
                     
                     fontMax = fontMin * maxMinRatio
                     fontRange = fontMax - fontMin

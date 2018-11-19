@@ -2237,41 +2237,41 @@ class TextViewController : UIViewController
         
         var textToNumbers = [String:String]()
         
-        let singleNumbers = [
-           "one"        :"1",
-           "two"        :"2",
-           "three"      :"3",
-           "four"       :"4",
-           "five"       :"5",
-           "six"        :"6",
-           "seven"      :"7",
-           "eight"      :"8",
-           "nine"       :"9"
-        ]
-        
-        let teenNumbers = [
-           "ten"        :"10",
-           "eleven"     :"11",
-           "twelve"     :"12",
-           "thirteen"   :"13",
-           "fourteen"   :"14",
-           "fifteen"    :"15",
-           "sixteen"    :"16",
-           "seventeen"  :"17",
-           "eighteen"   :"18",
-           "nineteen"   :"19"
-        ]
-            
-        let decades = [
-           "twenty"     :"20",
-           "thirty"     :"30",
-           "forty"      :"40",
-           "fifty"      :"50",
-           "sixty"      :"60",
-           "seventy"    :"70",
-           "eighty"     :"80",
-           "ninety"     :"90"
-        ]
+//        let singleNumbers = [
+//           "one"        :"1",
+//           "two"        :"2",
+//           "three"      :"3",
+//           "four"       :"4",
+//           "five"       :"5",
+//           "six"        :"6",
+//           "seven"      :"7",
+//           "eight"      :"8",
+//           "nine"       :"9"
+//        ]
+//
+//        let teenNumbers = [
+//           "ten"        :"10",
+//           "eleven"     :"11",
+//           "twelve"     :"12",
+//           "thirteen"   :"13",
+//           "fourteen"   :"14",
+//           "fifteen"    :"15",
+//           "sixteen"    :"16",
+//           "seventeen"  :"17",
+//           "eighteen"   :"18",
+//           "nineteen"   :"19"
+//        ]
+//
+//        let decades = [
+//           "twenty"     :"20",
+//           "thirty"     :"30",
+//           "forty"      :"40",
+//           "fifty"      :"50",
+//           "sixty"      :"60",
+//           "seventy"    :"70",
+//           "eighty"     :"80",
+//           "ninety"     :"90"
+//        ]
         
         // If we make the translation table too big searching for replacements can take a long time,
         // possibly too long for the user.
@@ -2311,16 +2311,16 @@ class TextViewController : UIViewController
         
         // Could add teenNumbers (>10) and "hundred" to get things like "fourteen hundred(s)..." but the plural and following numbers, if any, i.e. dates, could be complicated.
         
-        for key in singleNumbers.keys {
-            textToNumbers[key] = singleNumbers[key]
+        for key in Constants.singleNumbers.keys {
+            textToNumbers[key] = Constants.singleNumbers[key]
         }
         
-        for key in teenNumbers.keys {
-            textToNumbers[key] = teenNumbers[key]
+        for key in Constants.teenNumbers.keys {
+            textToNumbers[key] = Constants.teenNumbers[key]
         }
         
-        for key in decades.keys {
-            textToNumbers[key] = decades[key]
+        for key in Constants.decades.keys {
+            textToNumbers[key] = Constants.decades[key]
         }
         
         for key in centuries.keys {
@@ -2331,88 +2331,205 @@ class TextViewController : UIViewController
 //            textToNumbers[key] = millenia[key]
 //        }
         
+        var age = ["one thousand":"1000"]
+        for ageKey in age.keys {
+            if let age = age[ageKey] {
+                var key:String = ageKey
+                var value:String = age
+
+                textToNumbers[key] = value
+
+                for centuriesKey in centuries.keys {
+                    if let century = centuries[centuriesKey] {
+                        value = (Int(age)! + Int(century)!).description
+                        
+                        key = ageKey + " " + centuriesKey
+                        textToNumbers[key] = value
+                        
+                        for teenNumbersKey in Constants.teenNumbers.keys {
+                            if let teenNumber = Constants.teenNumbers[teenNumbersKey] {
+                                value = (Int(age)! + Int(century)! + Int(teenNumber)!).description
+                                
+                                key = ageKey + " " + centuriesKey + " " + teenNumbersKey
+                                textToNumbers[key] = value
+                                
+                                key = ageKey + " " + centuriesKey + " and " + teenNumbersKey
+                                textToNumbers[key] = value
+                            }
+                        }
+                        
+                        for decadesKey in Constants.decades.keys {
+                            if let decade = Constants.decades[decadesKey] {
+                                value = (Int(age)! + Int(century)! + Int(decade)!).description
+                                
+                                key = ageKey + " " + centuriesKey + " " + decadesKey
+                                textToNumbers[key] = value
+                                
+                                key = ageKey + " " + centuriesKey + " and " + decadesKey
+                                textToNumbers[key] = value
+                                
+                                for singleNumbersKey in Constants.singleNumbers.keys {
+                                    if let singleNumber = Constants.singleNumbers[singleNumbersKey] {
+                                        value = (Int(age)! + Int(century)! + Int(decade)! + Int(singleNumber)!).description
+                                        
+                                        key = ageKey + " " + centuriesKey + " " + decadesKey + " " + singleNumbersKey
+                                        textToNumbers[key] = value
+                                        
+                                        key = ageKey + " " + centuriesKey + " and " + decadesKey + " " + singleNumbersKey
+                                        textToNumbers[key] = value
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         // Consdier "one thousand" and instead of "<teen> hundred" generate from 11 not 10
         // These should be done automatically?
-        let ages = ["two thousand":"2000","ninteen hundred":"1900"]
+        var ages = ["two thousand":"2000"] // ,"ninteen hundred":"1900"
+        
+        for teenNumberKey in Constants.teenNumbers.keys {
+            guard teenNumberKey != "ten" else {
+                continue
+            }
+            ages[teenNumberKey + " hundred"] = (Int(Constants.teenNumbers[teenNumberKey]!)! * 100).description
+        }
         
         for agesKey in ages.keys {
-            for singleNumbersKey in singleNumbers.keys {
-                if let num = singleNumbers[singleNumbersKey] {
+            for singleNumbersKey in Constants.singleNumbers.keys {
+                if let num = Constants.singleNumbers[singleNumbersKey] {
                     if let age = ages[agesKey] {
                         let value = (Int(age)! + Int(num)!).description
 
                         var key:String!
-                        
-                        key = agesKey + " and " + singleNumbersKey
-                        textToNumbers[key] = value
 
                         key = agesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = agesKey + " and " + singleNumbersKey
                         textToNumbers[key] = value
                     }
                 }
             }
             
-            for teenNumbersKey in teenNumbers.keys {
-                if let num = teenNumbers[teenNumbersKey] {
+            for teenNumbersKey in Constants.teenNumbers.keys {
+                if let num = Constants.teenNumbers[teenNumbersKey] {
                     if let age = ages[agesKey] {
                         let value = (Int(age)! + Int(num)!).description
                         
                         var key:String!
                         
-                        key = agesKey + " and " + teenNumbersKey
-                        textToNumbers[key] = value
-                        
                         key = agesKey + " " + teenNumbersKey
                         textToNumbers[key] = value
+                        
+                        key = agesKey + " and " + teenNumbersKey
+                        textToNumbers[key] = value
+                    }
+                }
+            }
+            
+            for decadesKey in Constants.decades.keys {
+                if let num = Constants.decades[decadesKey] {
+                    if let age = ages[agesKey] {
+                        let value = (Int(age)! + Int(num)!).description
+                        
+                        var key:String!
+                        
+                        key = agesKey + " " + decadesKey
+                        textToNumbers[key] = value
+                        
+                        key = agesKey + " and " + decadesKey
+                        textToNumbers[key] = value
+                    }
+                }
+            }
+            
+            for decadesKey in Constants.decades.keys {
+                if let decade = Constants.decades[decadesKey] {
+                    for singleNumbersKey in Constants.singleNumbers.keys {
+                        if let singleNumber = Constants.singleNumbers[singleNumbersKey] {
+                            if let age = ages[agesKey] {
+                                let value = (Int(age)! + Int(decade)! + Int(singleNumber)!).description
+                                
+                                var key:String!
+                                
+                                key = agesKey + " " + decadesKey + " " + singleNumbersKey
+                                textToNumbers[key] = value
+                                
+                                key = agesKey + " and " + decadesKey + " " + singleNumbersKey
+                                textToNumbers[key] = value
+                            }
+                        }
                     }
                 }
             }
         }
         
         // twelve ten, etc.
-        for hundred in teenNumbers.keys {
-            if let prefix = teenNumbers[hundred] {
-                for teenNumbersKey in teenNumbers.keys {
-                    if let num = teenNumbers[teenNumbersKey] {
-                        let key = hundred + " " + teenNumbersKey
+        for hundred in Constants.teenNumbers.keys {
+            if let prefix = Constants.teenNumbers[hundred] {
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    if let num = Constants.teenNumbers[teenNumbersKey] {
+                        var key:String
                         
                         let value = prefix + num
                         
+                        key = hundred + " " + teenNumbersKey
                         textToNumbers[key] = value
+
+                        // Not applicable
+//                        key = hundred + " and " + teenNumbersKey
+//                        textToNumbers[key] = value
                     }
                 }
             }
         }
         
         // one twelve, one twenty one, etc.
-        for hundred in singleNumbers.keys { // ["one"]
-            if let prefix = singleNumbers[hundred] { // not needed if ["one"] is used
-                for teenNumbersKey in teenNumbers.keys {
-                    if let num = teenNumbers[teenNumbersKey] {
-                        let key = hundred + " " + teenNumbersKey
-                        
+        for hundred in Constants.singleNumbers.keys { // ["one"]
+            if let prefix = Constants.singleNumbers[hundred] { // not needed if ["one"] is used
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    if let num = Constants.teenNumbers[teenNumbersKey] {
+                        var key:String
                         let value = prefix + num // "1"
-                        
+
+                        key = hundred + " " + teenNumbersKey
                         textToNumbers[key] = value
+
+                        // not applicable
+//                        key = hundred + " and " + teenNumbersKey
+//                        textToNumbers[key] = value
                     }
                 }
                 
-                for decadesKey in decades.keys {
-                    if let num = decades[decadesKey] {
+                for decadesKey in Constants.decades.keys {
+                    if let decade = Constants.decades[decadesKey] {
                         let key = hundred + " " + decadesKey
-                        let value = prefix + num // "1"
+                        let value = prefix + decade // "1"
                         
                         textToNumbers[key] = value
                         
                         // WHY? Because ten one is eleven, etc.
                         if decadesKey != "ten" {
-                            for singleNumbersKey in singleNumbers.keys {
-                                let key = hundred + " " + decadesKey + " " + singleNumbersKey
+                            for singleNumbersKey in Constants.singleNumbers.keys {
+                                var key:String
                                 
-                                if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
-                                    let value = prefix + decade + singleNumber // "1"
-                                    textToNumbers[key] = value
-                                }
+                                let singleNumber = Constants.singleNumbers[singleNumbersKey]
+                                let value = (Int(prefix)!*100 + Int(decade)! + Int(singleNumber!)!).description
+                                
+                                key = hundred + " " + decadesKey + " " + singleNumbersKey
+                                textToNumbers[key] = value
+                                
+                                // not applicable
+//                                key = hundred + " and " + decadesKey + " " + singleNumbersKey
+//                                textToNumbers[key] = value
+                                
+//                                if let decade = Constants.decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = Constants.singleNumbers[singleNumbersKey] {
+//                                    let value = prefix + decade + singleNumber // "1"
+//                                    textToNumbers[key] = value
+//                                }
                             }
                         }
                     }
@@ -2420,11 +2537,12 @@ class TextViewController : UIViewController
             } // not needed if ["one"] is used
         }
         
-        for decade in decades.keys {
-            for singleNumber in singleNumbers.keys {
+        for decade in Constants.decades.keys {
+            for singleNumber in Constants.singleNumbers.keys {
                 let key = (decade + " " + singleNumber)
-                let value = (Int(decades[decade]!)! + Int(singleNumbers[singleNumber]!)!).description
+                let value = (Int(Constants.decades[decade]!)! + Int(Constants.singleNumbers[singleNumber]!)!).description
                 textToNumbers[key] = value
+                
 //                if  let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
 //                    let singleNumber = singleNumbers[singleNumber] {
 //                    let value = decade + singleNumber
@@ -2434,10 +2552,17 @@ class TextViewController : UIViewController
         }
         
         for century in centuries.keys {
-            for singleNumber in singleNumbers.keys {
-                let key = (century + " " + singleNumber)
-                let value = (Int(centuries[century]!)! + Int(singleNumbers[singleNumber]!)!).description
+            for singleNumber in Constants.singleNumbers.keys {
+                let value = (Int(centuries[century]!)! + Int(Constants.singleNumbers[singleNumber]!)!).description
+
+                var key:String
+                
+                key = (century + " " + singleNumber)
                 textToNumbers[key] = value
+                
+                key = (century + " and " + singleNumber)
+                textToNumbers[key] = value
+
 //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
 //                    let singleNumber = singleNumbers[singleNumber] {
 //                    let value = century + singleNumber
@@ -2445,10 +2570,17 @@ class TextViewController : UIViewController
 //                }
             }
             
-            for teenNumber in teenNumbers.keys {
-                let key = (century + " " + teenNumber)
-                let value = (Int(centuries[century]!)! + Int(teenNumbers[teenNumber]!)!).description
+            for teenNumber in Constants.teenNumbers.keys {
+                let value = (Int(centuries[century]!)! + Int(Constants.teenNumbers[teenNumber]!)!).description
+
+                var key:String
+                
+                key = (century + " " + teenNumber)
                 textToNumbers[key] = value
+                
+                key = (century + " and " + teenNumber)
+                textToNumbers[key] = value
+                
 //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
 //                    let teenNumber = teenNumbers[teenNumber] {
 //                    let value = century + teenNumber
@@ -2456,10 +2588,17 @@ class TextViewController : UIViewController
 //                }
             }
             
-            for decade in decades.keys {
-                let key = (century + " " + decade)
-                let value = (Int(centuries[century]!)! + Int(decades[decade]!)!).description
+            for decade in Constants.decades.keys {
+                let value = (Int(centuries[century]!)! + Int(Constants.decades[decade]!)!).description
+
+                var key:String
+                
+                key = (century + " " + decade)
                 textToNumbers[key] = value
+                
+                key = (century + " and " + decade)
+                textToNumbers[key] = value
+                
 //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
 //                    let decade = decades[decade] {
 //                    let value = century + decade
@@ -2467,11 +2606,17 @@ class TextViewController : UIViewController
 //                }
             }
             
-            for decade in decades.keys {
-                for singleNumber in singleNumbers.keys {
-                    let key = (century + " " + decade + " " + singleNumber)
-                    let value = (Int(centuries[century]!)! + Int(decades[decade]!)! + Int(singleNumbers[singleNumber]!)!).description
+            for decade in Constants.decades.keys {
+                for singleNumber in Constants.singleNumbers.keys {
+                    let value = (Int(centuries[century]!)! + Int(Constants.decades[decade]!)! + Int(Constants.singleNumbers[singleNumber]!)!).description
+                    var key:String
+                    
+                    key = (century + " " + decade + " " + singleNumber)
                     textToNumbers[key] = value
+                    
+                    key = (century + " and " + decade + " " + singleNumber)
+                    textToNumbers[key] = value
+
 //                    if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
 //                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
 //                        let singleNumber = singleNumbers[singleNumber]
@@ -2538,7 +2683,7 @@ class TextViewController : UIViewController
     
     func masterChanges(interactive: Bool) -> [String:[String:String]]?
     {
-        guard let textToNumbers = textToNumbers(longFormat:interactive) else {
+        guard var textToNumbers = textToNumbers(longFormat:interactive) else {
             return nil
         }
         
@@ -2550,19 +2695,50 @@ class TextViewController : UIViewController
         
         changes["words"] = words()
         changes["books"] = books
-        
+
         if interactive {
             changes["textToNumbers"] = textToNumbers
         }
+
+        let maxChapters = max(Constants.OLD_TESTAMENT_CHAPTERS.max() ?? 0,Constants.NEW_TESTAMENT_CHAPTERS.max() ?? 0)
+        
+        var maxVerses = 0
+        for book in Constants.OLD_TESTAMENT_VERSES {
+            if book.max() > maxVerses {
+                maxVerses = book.max() ?? 0
+            }
+        }
+        for book in Constants.NEW_TESTAMENT_VERSES {
+            if book.max() > maxVerses {
+                maxVerses = book.max() ?? 0
+            }
+        }
+
+        let maxNumber = max(maxChapters,maxVerses)
+        
+        var numbersToText = [String:[String]]()
+        
+        for (key,value) in textToNumbers {
+            if numbersToText[value] == nil {
+                numbersToText[value] = [key]
+            } else {
+                numbersToText[value]?.append(key)
+            }
+        }
         
         // These should really be hierarchical.
-        for key in textToNumbers.keys {
-            if let value = textToNumbers[key] {
+        for number in 1...maxNumber {
+            let value = number.description
+            guard let keys = numbersToText[value] else {
+                continue
+            }
+            for key in keys {
                 var preambles = ["verse","verses","chapter","chapters"]
                 
                 if interactive {
                     preambles.append("through")
                     preambles.append("to")
+                    preambles.append("and")
                 }
                 
                 for context in preambles {
@@ -2606,7 +2782,7 @@ class TextViewController : UIViewController
                             }
                         }
                     } else {
-                    
+                        
                     }
                 }
                 
@@ -2620,10 +2796,9 @@ class TextViewController : UIViewController
                             }
                         }
                     } else {
-
+                        
                     }
-                }
-            }
+                }            }
         }
         
         return changes.count > 0 ? changes : nil

@@ -1528,13 +1528,21 @@ Web site: www.countrysidebible.org</string>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jVC-0A-IH5">
                                         <rect key="frame" x="21.5" y="21.5" width="37" height="37"/>
                                     </activityIndicatorView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wWE-s7-fgY">
+                                        <rect key="frame" x="40" y="40" width="0.0" height="0.0"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
+                                    <constraint firstItem="wWE-s7-fgY" firstAttribute="centerY" secondItem="Iqz-bU-Q1W" secondAttribute="centerY" id="D92-ny-Uae"/>
                                     <constraint firstAttribute="width" constant="80" id="OIb-ka-TwN"/>
                                     <constraint firstAttribute="height" constant="80" id="QlL-8B-0cf"/>
                                     <constraint firstItem="jVC-0A-IH5" firstAttribute="centerX" secondItem="Iqz-bU-Q1W" secondAttribute="centerX" id="Zu6-Ve-20N"/>
                                     <constraint firstItem="jVC-0A-IH5" firstAttribute="centerY" secondItem="Iqz-bU-Q1W" secondAttribute="centerY" id="qkl-Ok-2ef"/>
+                                    <constraint firstItem="wWE-s7-fgY" firstAttribute="centerX" secondItem="Iqz-bU-Q1W" secondAttribute="centerX" id="zYB-3r-WaJ"/>
                                 </constraints>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">

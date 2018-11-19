@@ -2,4 +2,174 @@
 <Bucket
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "Yes"
+            filePath = "CBC/CloudLayoutOperation.swift"
+            timestampString = "564356537.368444"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "231"
+            endingLineNumber = "231"
+            landmarkName = "normalizeWordWeights()"
+            landmarkType = "7">
+            <Actions>
+               <BreakpointActionProxy
+                  ActionExtensionID = "Xcode.BreakpointAction.DebuggerCommand">
+                  <ActionContent
+                     consoleCommand = "po fontMin">
+                  </ActionContent>
+               </BreakpointActionProxy>
+            </Actions>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.368855"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2681"
+            endingLineNumber = "2681"
+            landmarkName = "textToNumbers(longFormat:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/functions.swift"
+            timestampString = "564356537.369699"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "3693"
+            endingLineNumber = "3693"
+            landmarkName = "process(viewController:disableEnable:hideSubviews:work:completion:)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.process(viewController: Swift.Optional&lt;__C.UIViewController&gt;, disableEnable: Swift.Bool, hideSubviews: Swift.Bool, work: Swift.Optional&lt;() -&gt; Swift.Optional&lt;Any&gt;&gt;, completion: Swift.Optional&lt;(Swift.Optional&lt;Any&gt;) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/functions.swift"
+                  timestampString = "564351287.656252"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "3693"
+                  endingLineNumber = "3693"
+                  offsetFromSymbolStart = "1436">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in CBC.process(viewController: Swift.Optional&lt;__C.UIViewController&gt;, disableEnable: Swift.Bool, hideSubviews: Swift.Bool, work: Swift.Optional&lt;() -&gt; Swift.Optional&lt;Any&gt;&gt;, completion: Swift.Optional&lt;(Swift.Optional&lt;Any&gt;) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/functions.swift"
+                  timestampString = "564351287.6589431"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "3694"
+                  endingLineNumber = "3694"
+                  offsetFromSymbolStart = "231">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.369952"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2804"
+            endingLineNumber = "2804"
+            landmarkName = "masterChanges(interactive:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.370333"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2730"
+            endingLineNumber = "2730"
+            landmarkName = "masterChanges(interactive:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.370877"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2731"
+            endingLineNumber = "2731"
+            landmarkName = "masterChanges(interactive:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.371282"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2733"
+            endingLineNumber = "2733"
+            landmarkName = "masterChanges(interactive:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/TextViewController.swift"
+            timestampString = "564356537.371657"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2725"
+            endingLineNumber = "2725"
+            landmarkName = "masterChanges(interactive:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>
