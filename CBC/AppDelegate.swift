@@ -30,6 +30,7 @@ extension AppDelegate : UISplitViewControllerDelegate
             return true
         }
 
+        // THIS MUST BE TRUE OR EVERYTHING BREAKS ON PLUS SIZE PHONES
         return true
     }
     

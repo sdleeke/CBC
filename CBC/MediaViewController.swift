@@ -3669,6 +3669,10 @@ class MediaViewController: UIViewController
 //            self.wkWebView?.isHidden = false
 
             // This really messes up plus size phones
+            // Specifically it has to do with expanding detail/secondary view controller and if the
+            // app delegate hands back a blank one this was creating a mess because this method
+            // was being called rather than letting view will appear handle it!
+            
 //            self.updateUI()
         }
     }

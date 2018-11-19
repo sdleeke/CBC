@@ -148,11 +148,13 @@ class Lexicon : NSObject
 //            }
 //        })
 //    }()
-    
+
+    var startingUp = true
     private var _eligible:[MediaItem]?
     {
         didSet {
-            if _eligible == nil, oldValue != nil {
+            if _eligible == nil, startingUp || (oldValue != nil)  { // , oldValue != nil
+                startingUp = false
                 _ = eligible
             }
         }
