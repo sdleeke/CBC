@@ -100,21 +100,21 @@ class MediaItem : NSObject
             
             totalCacheSize += cacheSize(Purpose.notes) + cacheSize(Purpose.slides)
             
-            totalCacheSize += posterImage?.fileSize ?? 0
-            totalCacheSize += seriesImage?.fileSize ?? 0
+            totalCacheSize += posterImage?.fileSize.value ?? 0
+            totalCacheSize += seriesImage?.fileSize.value ?? 0
 
-            totalCacheSize += notesHTML?.fileSize ?? 0
-            totalCacheSize += notesTokens?.fileSize ?? 0
+            totalCacheSize += notesHTML?.fileSize.value ?? 0
+            totalCacheSize += notesTokens?.fileSize.value ?? 0
             
             if #available(iOS 11.0, *) {
-                totalCacheSize += notesPDFText?.fileSize ?? 0
+                totalCacheSize += notesPDFText?.fileSize.value ?? 0
             } else {
                 // Fallback on earlier versions
             }
 
-            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
-            totalCacheSize += notesParagraphWords?.fileSize ?? 0
-            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
+            totalCacheSize += notesParagraphLengths?.fileSize.value ?? 0
+            totalCacheSize += notesParagraphWords?.fileSize.value ?? 0
+            totalCacheSize += notesTokensMarkMismatches?.fileSize.value ?? 0
 
             return totalCacheSize
         }
@@ -125,7 +125,7 @@ class MediaItem : NSObject
         var totalFileSize = 0
         
         if let download = downloads[purpose], download.exists {
-            totalFileSize += download.fileSize ?? 0
+            totalFileSize += download.fileSize.value ?? 0
         }
 
         return totalFileSize
@@ -542,7 +542,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books {
+        if let books = books.value {
             array.append(contentsOf: books)
         }
         
@@ -575,7 +575,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books {
+        if let books = books.value {
             set = set.union(Set(books))
         }
         
@@ -2505,7 +2505,7 @@ class MediaItem : NSObject
     var bookSections:[String]
     {
         get {
-            if let books = books {
+            if let books = books.value {
                 return books
             }
             
@@ -2554,7 +2554,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        guard let books = books else { // booksFromScriptureReference(scriptureReference)
+        guard let books = books.value else { // booksFromScriptureReference(scriptureReference)
             return nil
         }
         
@@ -2758,20 +2758,26 @@ class MediaItem : NSObject
         
         return chaptersForBook
     }
+
+    lazy var books:Shadowed<[String]> = {
+        return Shadowed<[String]>(get: { () -> ([String]?) in
+            return booksFromScriptureReference(self.scriptureReference)
+        })
+    }()
     
-    var _books:[String]?
-    var books:[String]?
-    {
-        get {
-            guard _books == nil else {
-                return _books
-            }
-            
-            _books = booksFromScriptureReference(scriptureReference)
-            
-            return _books
-        }
-    }
+//    var _books:[String]?
+//    var books:[String]?
+//    {
+//        get {
+//            guard _books == nil else {
+//                return _books
+//            }
+//            
+//            _books = booksFromScriptureReference(scriptureReference)
+//            
+//            return _books
+//        }
+//    }
     
     var fullDate:Date?
     {
@@ -3303,7 +3309,7 @@ class MediaItem : NSObject
     var hasBook:Bool
     {
         get {
-            return (self.books != nil)
+            return (self.books.value != nil)
         }
     }
     

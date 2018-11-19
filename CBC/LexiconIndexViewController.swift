@@ -1095,7 +1095,7 @@ class LexiconIndexViewController : UIViewController
         navigationItem.hidesBackButton = false
         
         if  let count = lexicon?.entries?.count,
-            let total = lexicon?.eligible?.count {
+            let total = lexicon?.eligible.value?.count {
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
 
@@ -1425,7 +1425,7 @@ class LexiconIndexViewController : UIViewController
     {
         Thread.onMainThread {
             if  let count = self.lexicon?.entries?.count,
-                let total = self.lexicon?.eligible?.count {
+                let total = self.lexicon?.eligible.value?.count {
                 self.navigationItem.title = "Lexicon Index \(count) of \(total)"
             }
         }
@@ -1677,9 +1677,10 @@ extension LexiconIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return
-        }
+        // WHY IS ALL THIS COMMNTED OUT?  Because segue to MVC adds to history.
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return
+//        }
         
 //        var mediaItem:MediaItem?
 //        

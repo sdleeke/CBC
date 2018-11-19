@@ -67,7 +67,7 @@ class HTML {
             
             if string != previousString {
                 if let url = fileURL {
-                    let fileManager = FileManager.default
+//                    let fileManager = FileManager.default
 
                     url.delete()
 //                    if (fileManager.fileExists(atPath: url.path)){

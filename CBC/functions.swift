@@ -2374,7 +2374,7 @@ func mediaItemsInBook(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
     }
     
     return mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
-        if let books = mediaItem.books {
+        if let books = mediaItem.books.value {
             return books.contains(book)
         } else {
             return false
@@ -2401,7 +2401,7 @@ func booksFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     var bookSet = Set<String>()
     
     for mediaItem in mediaItems {
-        if let books = mediaItem.books {
+        if let books = mediaItem.books.value {
             for book in books {
                 bookSet.insert(book)
             }

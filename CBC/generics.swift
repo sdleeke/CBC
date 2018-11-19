@@ -50,29 +50,68 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 class Shadowed<T>
 {
     private var _backingStore : T?
-    
+    {
+        didSet {
+            if let didSet = didSet {
+                didSet(_backingStore,oldValue)
+            } else {
+                if _backingStore == nil, oldValue != nil {
+                    load()
+                }
+            }
+        }
+    }
+
     private var get : (()->(T?))?
-    
-    init(get:(()->(T?))?)
+//    private var pre : (()->(Bool))?
+//    private var toSet : ((T?)->(T?))?
+    private var didSet : ((T?,T?)->())?
+
+    init(get:(()->(T?))?,
+//         toSet:((T?)->(T?))? = nil,
+         didSet:((T?,T?)->())? = nil) // pre:(()->(Bool))? = nil,
     {
         self.get = get
+//        self.toSet = toSet
+//        self.pre = pre
+        self.didSet = didSet
     }
-    
+
     var value : T?
     {
-        guard _backingStore == nil else {
+        get {
+            guard _backingStore == nil else {
+                return _backingStore
+            }
+
+            // If didSet is nil this prevents recursion
+//            if let pre = pre, pre() {
+//                return nil
+//            }
+
+            load()
+
             return _backingStore
         }
-        
-        _backingStore = get?()
-        
-        return _backingStore
+        set {
+//            if let toSet = toSet {
+//                _backingStore = toSet(newValue)
+//            } else {
+//                _backingStore = newValue
+//            }
+            _backingStore = newValue
+        }
     }
-    
-    func clear()
+
+    func load()
     {
-        _backingStore = nil
+        _backingStore = get?()
     }
+
+//    func clear()
+//    {
+//        _backingStore = nil
+//    }
 }
 
 class BoundsCheckedArray<T>
@@ -563,26 +602,28 @@ class FetchCodable<T:Codable> : Fetch<T>
         }
     }
     
-//    lazy var fileSize:Shadowed<Int> = {
-//      let shadowed = Shadowed<Int>(get:{
-//            return self.fileSystemURL?.fileSize
-//      })
-//
-//      return shadowed
-//    }()
+//    var fileSize = Shadowed<Int>()
     
-    private var _fileSize : Int?
-    var fileSize : Int
-    {
-        get {
-            guard let fileSize = _fileSize else {
-                _fileSize = fileSystemURL?.fileSize
-                return _fileSize ?? 0
-            }
+    lazy var fileSize:Shadowed<Int> = {
+        let shadowed = Shadowed<Int>(get:{
+            return self.fileSystemURL?.fileSize
+        })
 
-            return fileSize
-        }
-    }
+        return shadowed
+    }()
+    
+//    private var _fileSize : Int?
+//    var fileSize : Int
+//    {
+//        get {
+//            guard let fileSize = _fileSize else {
+//                _fileSize = fileSystemURL?.fileSize
+//                return _fileSize ?? 0
+//            }
+//
+//            return fileSize
+//        }
+//    }
     
 //    var fileSize : Int?
 //    {
@@ -593,7 +634,8 @@ class FetchCodable<T:Codable> : Fetch<T>
     
     func delete()
     {
-        _fileSize = nil
+//        _fileSize = nil
+        fileSize.value = nil
         fileSystemURL?.delete()
     }
     
@@ -624,7 +666,7 @@ class FetchCodable<T:Codable> : Fetch<T>
                 do {
                     try data.write(to: fileSystemURL)
 //                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
-                    self._fileSize = fileSystemURL.fileSize
+                    self.fileSize.value = fileSystemURL.fileSize
                 } catch let error {
 //                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
                     NSLog("unable to write T to the file system: \(fileSystemURL.lastPathComponent)", error.localizedDescription)

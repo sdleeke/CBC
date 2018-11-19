@@ -137,31 +137,37 @@ class Lexicon : NSObject
         }
     }
     
-    var _eligible:[MediaItem]?
-    {
-        didSet {
-            if _eligible == nil {
-                _ = eligible
-            }
-        }
-    }
-    var eligible:[MediaItem]?
-    {
-        get {
-            guard _eligible == nil else {
-                return _eligible
-            }
-            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+    lazy var eligible = {
+        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
+            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.hasNotesText
             }), list.count > 0 {
-                _eligible = list
+                return list
             } else {
-                _eligible = nil
+                return nil
             }
-            
-            return _eligible
-        }
-    }
+        })
+    }()
+    
+//    var _eligible:[MediaItem]?
+//    var eligible:[MediaItem]?
+//    {
+//        get {
+//            guard _eligible == nil else {
+//                return _eligible
+//            }
+//            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                return mediaItem.hasNotesText
+//            }), list.count > 0 {
+//                _eligible = list
+//            } else {
+//                _eligible = nil
+//            }
+//
+//            return _eligible
+//        }
+//    }
+
 //    var eligible:[MediaItem]?
 //    {
 //        get {
@@ -256,7 +262,7 @@ class Lexicon : NSObject
 
             var firstUpdate = true
             
-            guard var list = self?.eligible else {
+            guard var list = self?.eligible.value else {
                 print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")
                 return
             }
@@ -388,7 +394,7 @@ class Lexicon : NSObject
         
         let dict = Words(name: UUID().uuidString + Constants.Strings.Words)
         
-        if let list = eligible {
+        if let list = eligible.value {
             for mediaItem in list {
                 if let notesTokens = mediaItem.notesTokens?.result {
                     for token in notesTokens {

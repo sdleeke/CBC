@@ -132,32 +132,37 @@ class ScriptureIndex
     }
     
     var selectedVerse:Int = 0
-    
-    var _eligible:[MediaItem]?
-    {
-        didSet {
-            if _eligible == nil {
-                _ = eligible
-            }
-        }
-    }
-    var eligible:[MediaItem]?
-    {
-        get {
-            guard _eligible == nil else {
-                return _eligible
-            }
-            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.books != nil
+
+    lazy var eligible:Shadowed<[MediaItem]> = {
+        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
+            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.books.value != nil
             }), list.count > 0 {
-                _eligible = list
+                return list
             } else {
-                _eligible = nil
+                return nil
             }
-            
-            return _eligible
-        }
-    }
+        })
+    }()
+    
+//    var _eligible:[MediaItem]?
+//    var eligible:[MediaItem]?
+//    {
+//        get {
+//            guard _eligible == nil else {
+//                return _eligible
+//            }
+//            if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                return mediaItem.books != nil
+//            }), list.count > 0 {
+//                _eligible = list
+//            } else {
+//                _eligible = nil
+//            }
+//            
+//            return _eligible
+//        }
+//    }
     
     func build()
     {

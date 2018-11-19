@@ -665,7 +665,7 @@ class ScriptureIndexViewController : UIViewController
             
             if let mediaItems = mediaItems {
                 for mediaItem in mediaItems {
-                    if let books = mediaItem.books {
+                    if let books = mediaItem.books.value {
                         for book in books {
                             if let selectedTestament = scriptureIndex?.selectedTestament {
                                 if translateTestament(selectedTestament) == testament(book) {
@@ -1018,7 +1018,7 @@ class ScriptureIndexViewController : UIViewController
         var bodyItems = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {
-            if let books = mediaItem.books {
+            if let books = mediaItem.books.value {
                 for book in books {
                     if let okay = sectionTitles?.contains(book) {
                         if okay {

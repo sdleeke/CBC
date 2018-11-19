@@ -202,25 +202,32 @@ class Scripture : NSObject
         didSet {
             if reference != oldValue {
                 // MUST update the data structure.
-                _books = nil
+//                _books = nil
+                books.value = nil
                 setupBooksChaptersVerses()
             }
         }
     }
     
-    var _books:[String]?
-    var books:[String]?
-    {
-        get {
-            guard _books == nil else {
-                return _books
-            }
-            
-            _books = booksFromScriptureReference(reference)
-            
-            return _books
-        }
-    }
+    lazy var books:Shadowed<[String]> = {
+        return Shadowed<[String]>(get: { () -> ([String]?) in
+            return booksFromScriptureReference(self.reference)
+        })
+    }()
+    
+//    var _books:[String]?
+//    var books:[String]?
+//    {
+//        get {
+//            guard _books == nil else {
+//                return _books
+//            }
+//            
+//            _books = booksFromScriptureReference(reference)
+//            
+//            return _books
+//        }
+//    }
     
 //    var htmlString : String?
 //    {
@@ -302,7 +309,7 @@ class Scripture : NSObject
             return
         }
         
-        guard let books = books else {
+        guard let books = books.value else {
             return
         }
         
@@ -726,7 +733,7 @@ class Scripture : NSObject
         
         bodyString = "<!DOCTYPE html><html><body>"
         
-        guard let books = books else { // FromScriptureReference(reference)
+        guard let books = books.value else { // FromScriptureReference(reference)
             return
         }
         

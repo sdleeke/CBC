@@ -65,22 +65,31 @@ class FetchImage
         fetch?.load()
     }
     
-    private var _fileSize : Int?
-    var fileSize : Int
-    {
-        get {
-            guard let fileSize = _fileSize else {
-                _fileSize = fileSystemURL?.fileSize
-                return _fileSize ?? 0
-            }
-            
-            return fileSize
-        }
-    }
+//    var fileSize = Shadowed<Int>()
+    
+    lazy var fileSize:Shadowed<Int> = {
+        return Shadowed<Int>(get:{
+            return self.fileSystemURL?.fileSize
+        })
+    }()
+
+//    private var _fileSize : Int?
+//    var fileSize : Int
+//    {
+//        get {
+//            guard let fileSize = _fileSize else {
+//                _fileSize = fileSystemURL?.fileSize
+//                return _fileSize ?? 0
+//            }
+//
+//            return fileSize
+//        }
+//    }
     
     func delete()
     {
-        _fileSize = nil
+//        _fileSize = nil
+        fileSize.value = nil
         fileSystemURL?.delete()
     }
     
@@ -128,7 +137,7 @@ class FetchImage
         do {
             try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
             print("Image \(fileSystemURL.lastPathComponent) saved to file system")
-            _fileSize = fileSystemURL.fileSize
+            fileSize.value = fileSystemURL.fileSize
         } catch let error {
             NSLog(error.localizedDescription)
             print("Image \(fileSystemURL.lastPathComponent) not saved to file system")

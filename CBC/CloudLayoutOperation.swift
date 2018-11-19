@@ -209,6 +209,18 @@ class CloudLayoutOperation : Operation
                     fontRange = fontMax - fontMin
                     break
                 }
+                
+                let scaleFactor:CGFloat = 0.9
+                
+                if (wordArea < (containerArea * scaleFactor)) || (cloudWord.boundsSize.width < (containerSize.width * scaleFactor)) || (cloudWord.boundsSize.height < (containerSize.height * scaleFactor)) {
+                    oldFontMin = fontMin
+                    
+                    fontMin += fontStep
+                    
+                    fontMax = fontMin * maxMinRatio
+                    fontRange = fontMax - fontMin
+                    break
+                }
             }
         } while wordAreaExceedsContainerSize && (oldFontMin != minFontMin)
     }
@@ -548,7 +560,7 @@ class CloudLayoutOperation : Operation
             
             if let debug = (delegate as? CloudViewController)?.debug, debug {
                 Thread.onMainThread {
-                    self.delegate?.insertBoundingRect(boundingRect: overallGlyphRect)
+                    _ = self.delegate?.insertBoundingRect(boundingRect: overallGlyphRect)
                 }
             }
         }
@@ -562,7 +574,7 @@ class CloudLayoutOperation : Operation
         
         if let debug = (delegate as? CloudViewController)?.debug, debug {
             Thread.onMainThread {
-                self.delegate?.insertBoundingRect(boundingRect: wordRect)
+                _ = self.delegate?.insertBoundingRect(boundingRect: wordRect)
             }
         }
     }

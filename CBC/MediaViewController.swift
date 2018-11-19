@@ -2359,19 +2359,19 @@ class MediaViewController: UIViewController
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable.value ?? false, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video)
         }
         

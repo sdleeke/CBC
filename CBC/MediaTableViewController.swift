@@ -963,12 +963,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             alert.makeOpaque()
             
             alert.addTextField(configurationHandler: { (textField:UITextField) in
-                textField.text = Globals.shared.voiceBaseAPIKey
+                textField.text = Globals.shared.voiceBaseAPIKey.value
             })
             
             let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
                 (action : UIAlertAction) -> Void in
-                Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
+                Globals.shared.voiceBaseAPIKey.value = alert.textFields?[0].text
             })
             alert.addAction(okayAction)
 
@@ -2080,7 +2080,7 @@ class MediaTableViewController : UIViewController
             
             showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
-            if Globals.shared.isVoiceBaseAvailable {
+            if Globals.shared.isVoiceBaseAvailable.value ?? false {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
             }
             
