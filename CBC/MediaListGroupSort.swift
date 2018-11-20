@@ -53,504 +53,12 @@ class MediaListGroupSort
         return CachedString(index: Globals.shared.contextOrder)
     }()
     
-    func clearCache()
+    var mediaList:MediaList?
     {
-        list?.forEach({ (mediaItem) in
-            mediaItem.clearCache()
-        })
-    }
-    
-    var cacheSize : Int?
-    {
-        get {
-            return list?.reduce(0, { (result, mediaItem) -> Int in
-                return result + mediaItem.cacheSize
-            })
-        }
-    }
-    
-    func cacheSize(_ purpose:String) -> Int?
-    {
-        return list?.reduce(0, { (result, mediaItem) -> Int in
-            return result + mediaItem.cacheSize(purpose)
-        })
-    }
-
-    lazy var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "MLGS:" + UUID().uuidString
-        operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 3
-        return operationQueue
-    }()
-
-    deinit {
-        operationQueue.cancelAllOperations()
-        mediaQueue.cancelAllOperations()
-    }
-    
-    var audioDownloads : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
-            }).count
-        }
-    }
-    
-    var audioDownloading : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.audioDownload?.active == true)
-            }).count
-        }
-    }
-    
-    var audioDownloaded : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return mediaItem.audioDownload?.exists == true
-            }).count
-        }
-    }
-    
-    var videoDownloads : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
-            }).count
-        }
-    }
-    
-    var videoDownloading : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.videoDownload?.active == true)
-            }).count
-        }
-    }
-    
-    var videoDownloaded : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return mediaItem.videoDownload?.exists == true
-            }).count
-        }
-    }
-    
-    var slidesDownloads : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
-            }).count
-        }
-    }
-    
-    var slidesDownloading : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.active == true)
-            }).count
-        }
-    }
-    
-    var slidesDownloaded : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.exists == true)
-            }).count
-        }
-    }
-    
-    var notesDownloads : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
-            }).count
-        }
-    }
-    
-    var notesDownloading : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.active == true)
-            }).count
-        }
-    }
-    
-    var notesDownloaded : Int?
-    {
-        get {
-            return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.exists == true)
-            }).count
-        }
-    }
-    
-    func cancelAllDownloads()
-    {
-        operationQueue.addOperation {
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.downloads.values.forEach({ (download) in
-                    download.cancel()
-                })
-            })
-        }
-    }
-    
-    func deleteAllDownloads()
-    {
-        operationQueue.addOperation {
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.downloads.values.forEach({ (download) in
-                    download.delete()
-                })
-            })
-        }
-    }
-    
-    lazy var mediaQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "MLGS-MEDIA:" + UUID().uuidString
-        operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
-        return operationQueue
-    }()
-    
-    func downloadAllAudio()
-    {
-        guard let list = list else {
-            return
-        }
-        
-        for mediaItem in list {
-            let download = mediaItem.audioDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            mediaQueue.addOperation(operation)
-        }
-
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.audioDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.audioDownloading == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Complete")
-            }
-        }
-        
-        mediaQueue.addOperation(operation)
-    }
-    
-    func deleteAllAudio()
-    {
-        mediaQueue.addOperation {
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.audioDownload?.delete()
-            })
-            
-            if self.audioDownloaded == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Deleted")
-            }
-        }
-    }
-    
-    func deleteAllVideo()
-    {
-        mediaQueue.addOperation {
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.videoDownload?.delete()
-            })
-            
-            if self.videoDownloaded == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Deleted")
-            }
-        }
-    }
-    
-    func downloadAllVideo()
-    {
-        guard let list = list else {
-            return
-        }
-        
-        for mediaItem in list {
-            let download = mediaItem.videoDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            mediaQueue.addOperation(operation)
-        }
-
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.videoDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.videoDownloading == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Complete")
-            }
-        }
-        
-        mediaQueue.addOperation(operation)
-    }
-
-    func downloadAllNotes()
-    {
-        guard let list = list else {
-            return
-        }
-        
-//        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-//            for mediaItem in list {
-//                if test?() == true {
-//                    break
-//                }
-//
-//                let download = mediaItem.notesDownload
-//
-//                if download?.exists == true {
-//                    continue
-//                }
-//
-//                _ = download?.download()
-//
-//                while download?.state == .downloading {
-//                    if test?() == true {
-//                        download?.cancel()
-//                        break
-//                    }
-//
-//                    Thread.sleep(forTimeInterval: 1.0)
-//                }
-//            }
-//            if self?.notesDownloads == 0 {
-//                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
-//            }
-//        }
-//
-//        operationQueue.addOperation(operation)
-        
-        for mediaItem in list {
-            let download = mediaItem.notesDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            operationQueue.addOperation(operation)
-        }
-        
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.notesDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.notesDownloading == 0, let notesName = Globals.shared.mediaCategory.notesName {
-                Alerts.shared.alert(title: "All " + notesName + " Downloads Complete")
-            }
-        }
-        
-        operationQueue.addOperation(operation)
-    }
-    
-    func downloadAllSlides()
-    {
-        guard let list = list else {
-            return
-        }
-        
-//        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-//            for mediaItem in list {
-//                if test?() == true {
-//                    break
-//                }
-//
-//                let download = mediaItem.slidesDownload
-//
-//                if download?.exists == true {
-//                    continue
-//                }
-//
-//                _ = download?.download()
-//
-//                while download?.state == .downloading {
-//                    if test?() == true {
-//                        download?.cancel()
-//                        break
-//                    }
-//
-//                    Thread.sleep(forTimeInterval: 1.0)
-//                }
-//            }
-//            if self?.slidesDownloads == 0 {
-//                Alerts.shared.alert(title: "All Slide Downloads Complete")
-//            }
-//        }
-//
-//        operationQueue.addOperation(operation)
-        
-        for mediaItem in list {
-            let download = mediaItem.slidesDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            operationQueue.addOperation(operation)
-        }
-        
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-            while self?.slidesDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.slidesDownloading == 0 {
-                Alerts.shared.alert(title: "All Slide Downloads Complete")
-            }
-        }
-        
-        operationQueue.addOperation(operation)
-    }
-    
-    func loadTokenCountMarkCountMismatches()
-    {
-        guard let list = list else {
-            return
-        }
-        
-        list.forEach { (mediaItem) in
-            mediaItem.loadTokenCountMarkCountMismatches()
-        }
-    }
-    
-    var list:[MediaItem]?
-    { //Not in any specific order
-        willSet {
-            
-        }
         didSet {
-            guard let list = list else {
-                return
-            }
-
-            _ = self.lexicon?.eligible
-            _ = self.scriptureIndex?.eligible
-
-            index = [String:MediaItem]()
             
-            for mediaItem in list {
-                if let id = mediaItem.id {
-                    index?[id] = mediaItem
-                }
-                
-                if mediaItem.hasClassName, let className = mediaItem.className {
-                    if classes == nil {
-                        classes = [className]
-                    } else {
-                        classes?.append(className)
-                    }
-                }
-                
-                if mediaItem.hasEventName, let eventName = mediaItem.eventName {
-                    if events == nil {
-                        events = [eventName]
-                    } else {
-                        events?.append(eventName)
-                    }
-                }
-            }
         }
     }
-
-    // Make thread safe?
-    var index:[String:MediaItem]? //MediaItems indexed by ID.
-    var classes:[String]?
-    var events:[String]?
     
     lazy var lexicon:Lexicon? = {
         return Lexicon(self) // lexicon
@@ -666,14 +174,14 @@ class MediaListGroupSort
             return
         }
         
-        guard let list = list else {
+        guard let mediaList = mediaList?.list else {
             return
         }
         
         // Make thread safe?
         var groupedMediaItems = [String:[String:[MediaItem]]]()
         
-        for mediaItem in list {
+        for mediaItem in mediaList {
             var entries:[(string:String,name:String)]?
             
             switch grouping {
@@ -1026,35 +534,36 @@ class MediaListGroupSort
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         
-        guard let mediaItems = mediaItems else {
-            return
-        }
+        mediaList = MediaList(mediaItems)
         
-        list = mediaItems
+        mediaList?.didSet = {
+            self.lexicon?.eligible = nil
+            self.scriptureIndex?.eligible = nil
+        }
 
-        index = [String:MediaItem]()
-        
-        for mediaItem in mediaItems {
-            if let id = mediaItem.id {
-                index?[id] = mediaItem
-            }
-            
-            if mediaItem.hasClassName, let className = mediaItem.className {
-                if classes == nil {
-                    classes = [className]
-                } else {
-                    classes?.append(className)
-                }
-            }
-            
-            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
-                if events == nil {
-                    events = [eventName]
-                } else {
-                    events?.append(eventName)
-                }
-            }
-        }
+//        index = [String:MediaItem]()
+//
+//        for mediaItem in mediaItems {
+//            if let id = mediaItem.id {
+//                index?[id] = mediaItem
+//            }
+//
+//            if mediaItem.hasClassName, let className = mediaItem.className {
+//                if classes == nil {
+//                    classes = [className]
+//                } else {
+//                    classes?.append(className)
+//                }
+//            }
+//
+//            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
+//                if events == nil {
+//                    events = [eventName]
+//                } else {
+//                    events?.append(eventName)
+//                }
+//            }
+//        }
 
         groupNames = MediaGroupNames(name: "MediaGroupNames")
         groupSort = MediaGroupSort(name: "MediaGroupSort")
@@ -1069,6 +578,10 @@ class MediaListGroupSort
         tagMediaItems = [String:[MediaItem]]()
         tagNames = [String:String]()
 
+        guard let mediaItems = mediaItems else {
+            return
+        }
+        
         for mediaItem in mediaItems {
             if let tags =  mediaItem.tagsSet {
                 for tag in tags {
