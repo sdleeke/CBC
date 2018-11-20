@@ -80,7 +80,8 @@ class HTML {
 
                     if let isEmpty = string?.isEmpty, !isEmpty {
                         do {
-                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
+                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
+//                                .write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
                         } catch let error {
                             print("failed to write htmlString to cache directory: \(error.localizedDescription)")
                         }

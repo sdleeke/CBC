@@ -14,8 +14,7 @@ extension NSMutableData
 {
     func appendString(_ string: String)
     {
-        // why not utf16?
-        if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) {
+        if let data = string.data8 { // (using: String.Encoding.utf8, allowLossyConversion: false)
             append(data)
         }
     }
@@ -258,7 +257,7 @@ extension VoiceBase // Class Methods
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
 
                 if let acceptText = accept?.contains("text"), acceptText {
                     json = ["text":string as Any]
@@ -375,7 +374,7 @@ extension VoiceBase // Class Methods
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]
@@ -918,25 +917,31 @@ class VoiceBase {
             }
 
             if completed {
-                if let destinationURL = filename?.fileSystemURL {
-                    do {
-                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
-                        // This will cause an error.  The tag is created in the constantTags getter while loading.
-                        //                    mediaItem.addTag("Machine Generated Transcript")
+                _transcript = filename?.fileSystemURL?.string16
 
-                        // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
-                        // called during init()'s which is fortunate.
-                    } catch let error {
-                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
-                        completed = false
-                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-                        //                        if !aligning {
-                        //                            remove()
-                        //                        }
-                    }
-                } else {
+                if transcript == nil {
                     completed = false
                 }
+//
+//                if let destinationURL = filename?.fileSystemURL {
+//                    do {
+//                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8) // why not utf16?
+//                        // This will cause an error.  The tag is created in the constantTags getter while loading.
+//                        //                    mediaItem.addTag("Machine Generated Transcript")
+//
+//                        // Also, the tag would normally be added or removed in the didSet for transcript but didSet's are not
+//                        // called during init()'s which is fortunate.
+//                    } catch let error {
+//                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
+//                        completed = false
+//                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                        //                        if !aligning {
+//                        //                            remove()
+//                        //                        }
+//                    }
+//                } else {
+//                    completed = false
+//                }
             }
 
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
@@ -990,17 +995,20 @@ class VoiceBase {
 
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    if let destinationURL = self?.filename?.fileSystemURL {
-                        destinationURL.delete()
-
-                        do {
-                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
-                        } catch let error {
-                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
-                        }
-                    } else {
-                        print("failed to get destinationURL")
-                    }
+                    self?.filename?.fileSystemURL?.delete()
+                    self?._transcript?.save16(filename: self?.filename)
+                    
+//                    if let destinationURL = self?.filename?.fileSystemURL {
+//                        destinationURL.delete()
+//
+//                        do {
+//                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
+//                        } catch let error {
+//                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
+//                        }
+//                    } else {
+//                        print("failed to get destinationURL")
+//                    }
                 }
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
@@ -1648,7 +1656,7 @@ class VoiceBase {
             var json : [String:Any]?
 
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]
@@ -2020,7 +2028,7 @@ class VoiceBase {
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
 
                 json = data.json as? [String:Any]
@@ -3151,31 +3159,35 @@ class VoiceBase {
             }
 
             //Legacy
-            if let url = "\(filename).srt".fileSystemURL {
-                do {
-                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
-                } catch let error {
-                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+            _transcriptSegments = "\(filename).srt".fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
+            
+//            if let url = "\(filename).srt".fileSystemURL {
+//                do {
+//                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
+//                } catch let error {
+//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+//
+//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                    //                    if completed && !aligning {
+//                    //                        remove()
+//                    //                    }
+//                }
+//            }
 
-                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-                    //                    if completed && !aligning {
-                    //                        remove()
-                    //                    }
-                }
-            }
-
-            if let url = "\(filename).segments".fileSystemURL {
-                do {
-                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
-                } catch let error {
-                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-
-                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-                    //                    if completed && !aligning {
-                    //                        remove()
-                    //                    }
-                }
-            }
+            _transcriptSegments = "\(filename).segments".fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
+            
+//            if let url = "\(filename).segments".fileSystemURL {
+//                do {
+//                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
+//                } catch let error {
+//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+//
+//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                    //                    if completed && !aligning {
+//                    //                        remove()
+//                    //                    }
+//                }
+//            }
 
             return _transcriptSegments
         }
@@ -3230,17 +3242,18 @@ class VoiceBase {
             _transcriptSegments = value
 
             DispatchQueue.global(qos: .background).async { [weak self] in
-                let fileManager = FileManager.default
+//                let fileManager = FileManager.default
 
                 if self?._transcriptSegments != nil {
-                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-                        destinationURL.delete()
-
-                        do {
-                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
-                        } catch let error {
-                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
-                        }
+                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
+                        let filename = filename + ".segments"
+                        filename.fileSystemURL?.delete()
+                        self?._transcriptSegments?.save16(filename:filename)
+//                        do {
+//                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
+//                        } catch let error {
+//                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
+//                        }
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -3426,7 +3439,7 @@ class VoiceBase {
             var json : [String:Any]?
             
             if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 print(string as Any)
                 
                 json = data.json as? [String:Any]
@@ -4103,27 +4116,27 @@ class VoiceBase {
                     if Globals.shared.isVoiceBaseAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                                var alertActions = [AlertAction]()
-                                
-                                alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                                    Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
-                                    
-                                    if self.resultsTimer != nil {
-                                        print("TIMER NOT NIL!")
-                                        
-                                        var actions = [AlertAction]()
-                                        
-                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
-                                        
-                                        Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
-                                    } else {
-                                        Thread.onMainThread {
-                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                                        }
-                                    }
-                                }))
-                                
-                                alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
+//                                var alertActions = [AlertAction]()
+//
+//                                alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+//                                    Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
+//
+//                                    if self.resultsTimer != nil {
+//                                        print("TIMER NOT NIL!")
+//
+//                                        var actions = [AlertAction]()
+//
+//                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
+//
+//                                        Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
+//                                    } else {
+//                                        Thread.onMainThread {
+//                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                                        }
+//                                    }
+//                                }))
+//
+//                                alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                 
                                 yesOrNo(viewController: viewController,
                                         title: "Confirm Reloading",

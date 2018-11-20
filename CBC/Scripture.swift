@@ -453,7 +453,7 @@ class Scripture : NSObject
 
         if let url = URL(string: urlString) {
             if let data = url.data {
-                if let string = String(data: data, encoding: .utf8) {
+                if let string = data.string16 { // String(data: data, encoding: .utf8)
                     var bodyString = "<!DOCTYPE html><html><body>"
 
                     bodyString = bodyString + string

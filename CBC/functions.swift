@@ -4215,24 +4215,24 @@ func stripHead(_ string:String?) -> String?
     return bodyString
 }
 
-func insertMenuHead(_ string:String?,fontSize:Int) -> String?
-{
-    guard let filePath = Bundle.main.resourcePath else {
-        return nil
-    }
-
-    guard let headContent = try? String(contentsOfFile: filePath + "/head.txt", encoding: String.Encoding.utf8) else {
-        return nil
-    }
-
-    guard let styleContent = try? String(contentsOfFile: filePath + "/style.txt", encoding: String.Encoding.utf8) else {
-        return nil
-    }
-
-    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}\(styleContent)</style>\(headContent)</head>"
-    
-    return string?.replacingOccurrences(of: "<html>", with: head)
-}
+//func insertMenuHead(_ string:String?,fontSize:Int) -> String?
+//{
+//    guard let filePath = Bundle.main.resourcePath else {
+//        return nil
+//    }
+//
+//    guard let headContent = (filePath + "/head.txt").url?.string16 else { // try? String(contentsOfFile: filePath + "/head.txt", encoding: String.Encoding.utf8)
+//        return nil
+//    }
+//
+//    guard let styleContent = (filePath + "/style.txt").url?.string16 else { // try? String(contentsOfFile: filePath + "/style.txt", encoding: String.Encoding.utf8)
+//        return nil
+//    }
+//
+//    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}\(styleContent)</style>\(headContent)</head>"
+//    
+//    return string?.replacingOccurrences(of: "<html>", with: head)
+//}
 
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {

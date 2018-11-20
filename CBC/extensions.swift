@@ -475,7 +475,7 @@ extension String
         }
     }
 
-    func save(filename:String?)
+    func save8(filename:String?)
     {
         guard let filename = filename else {
             return
@@ -486,7 +486,7 @@ extension String
         }
         
         do {
-            try self.data(using: String.Encoding.utf16)?.write(to: fileSystemURL)
+            try self.data8?.write(to: fileSystemURL) // (using: String.Encoding.utf16)
             print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
         } catch let error {
             print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
@@ -494,7 +494,26 @@ extension String
         }
     }
     
-    static func load(filename:String?) -> String?
+    func save16(filename:String?)
+    {
+        guard let filename = filename else {
+            return
+        }
+        
+        guard let fileSystemURL = filename.fileSystemURL else {
+            return
+        }
+        
+        do {
+            try self.data16?.write(to: fileSystemURL) // (using: String.Encoding.utf16)
+            print("able to write string to the file system: \(fileSystemURL.lastPathComponent)")
+        } catch let error {
+            print("unable to write string to the file system: \(fileSystemURL.lastPathComponent)")
+            NSLog(error.localizedDescription)
+        }
+    }
+    
+    static func load16(filename:String?) -> String?
     {
         guard let filename = filename else {
             return nil
@@ -507,11 +526,46 @@ extension String
         do {
             let data = try Data(contentsOf: fileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
             print("able to read string from the file system: \(fileSystemURL.lastPathComponent)")
-            return String(data: data, encoding: String.Encoding.utf16)
+            return data.string16 // String(data: data, encoding: String.Encoding.utf16)
         } catch let error {
             print("unable to read string from the file system: \(fileSystemURL.lastPathComponent)")
             NSLog(error.localizedDescription)
             return nil
+        }
+    }
+    
+    static func load8(filename:String?) -> String?
+    {
+        guard let filename = filename else {
+            return nil
+        }
+        
+        guard let fileSystemURL = filename.fileSystemURL else {
+            return nil
+        }
+        
+        do {
+            let data = try Data(contentsOf: fileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+            print("able to read string from the file system: \(fileSystemURL.lastPathComponent)")
+            return data.string8 // String(data: data, encoding: String.Encoding.utf16)
+        } catch let error {
+            print("unable to read string from the file system: \(fileSystemURL.lastPathComponent)")
+            NSLog(error.localizedDescription)
+            return nil
+        }
+    }
+    
+    var data16 : Data?
+    {
+        get {
+            return self.data(using: String.Encoding.utf16, allowLossyConversion: false)
+        }
+    }
+    
+    var data8 : Data?
+    {
+        get {
+            return self.data(using: String.Encoding.utf8, allowLossyConversion: false)
         }
     }
 }
@@ -520,7 +574,7 @@ extension String
 {
     var html2AttributedString: NSAttributedString?
     {
-        return self.data(using: String.Encoding.utf16)?.html2AttributedString
+        return self.data16?.html2AttributedString // (using: String.Encoding.utf16)
     }
     
     var html2String: String?
@@ -773,6 +827,28 @@ extension URL
         }
     }
     
+    var string16 : String?
+    {
+        do {
+            let string = try String(contentsOfFile: self.path, encoding: String.Encoding.utf16)
+            return string
+        } catch let error {
+            print("failed to load string from \(self.absoluteString): \(error.localizedDescription)") // remove
+            return nil
+        }
+    }
+    
+    var string8 : String?
+    {
+        do {
+            let string = try String(contentsOfFile: self.path, encoding: String.Encoding.utf8)
+            return string
+        } catch let error {
+            print("failed to load string from \(self.absoluteString): \(error.localizedDescription)") // remove
+            return nil
+        }
+    }
+    
     var data : Data?
     {
         get {
@@ -907,6 +983,20 @@ extension Data
     {
         get {
             return html2AttributedString?.string
+        }
+    }
+    
+    var string16 : String?
+    {
+        get {
+            return String.init(data: self, encoding: String.Encoding.utf16)
+        }
+    }
+    
+    var string8 : String?
+    {
+        get {
+            return String.init(data: self, encoding: String.Encoding.utf8)
         }
     }
     
