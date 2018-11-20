@@ -633,9 +633,9 @@ func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool
                 foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
             }
             
-            newString = newString + stringBefore + foundString
+            newString += stringBefore + foundString
             
-            stringBefore = stringBefore + foundString
+            stringBefore += foundString
             
             string = stringAfter
         }
@@ -683,7 +683,7 @@ func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool
     var indexString:String!
     
     if markCounter > 0 {
-        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)" // <br/>
+        indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)" //
     } else {
         indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>" // <br/> needed since markCounter == 0 so the below div isn't added.
     }
@@ -691,26 +691,26 @@ func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool
     // If we want an index of links to the occurrences of the searchText.
     if index {
         if markCounter > 0 {
-            indexString = indexString + "<div>Locations: "
+            indexString += "<div>Locations: "
             
             for counter in 1...markCounter {
                 if counter > 1 {
-                    indexString = indexString + ", "
+                    indexString += ", "
                 }
-                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+                indexString += "<a href=\"#\(counter)\">\(counter)</a>"
             }
             
-            indexString = indexString + "<br/></div>" // <br/>
+            indexString += "</div><br/>" // <br/>
         }
     }
     
     var htmlString = "<!DOCTYPE html><html><body>"
     
     if index {
-        htmlString = htmlString + indexString
+        htmlString += indexString
     }
     
-    htmlString = htmlString + string + "</body></html>"
+    htmlString += string + "</body></html>"
     
     return (insertHead(htmlString,fontSize: Constants.FONT_SIZE),markCounter)
 }
