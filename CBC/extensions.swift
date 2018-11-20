@@ -450,28 +450,37 @@ extension String
     var fileSystemURL : URL?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+                
+            }
+            
             guard url != nil else {
-                if !self.isEmpty {
-                    return self.replacingOccurrences(of: " ", with: "").fileSystemURL
+                if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
+                    return cachesURL?.appendingPathComponent(lastPathComponent)
                 } else {
                     return nil
                 }
             }
             
             guard self != url?.lastPathComponent else {
-                return cachesURL?.appendingPathComponent(self) // .replacingOccurrences(of: " ", with: "")
+                if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
+                    return cachesURL?.appendingPathComponent(lastPathComponent)
+                } else {
+                    return nil
+                }
             }
             
             return url?.fileSystemURL
         }
     }
-    
+
     func save(filename:String?)
     {
         guard let filename = filename else {
             return
         }
-
+        
         guard let fileSystemURL = filename.fileSystemURL else {
             return
         }
@@ -706,8 +715,6 @@ extension String
     }
 }
 
-//fileprivate var queue = DispatchQueue(label: UUID().uuidString)
-
 extension URL
 {
     var fileSystemURL : URL?
@@ -830,43 +837,27 @@ extension URL
             }
             
             return UIImage(data: data)
-            
-//            guard let imageURL = fileSystemURL else {
-//                return nil
-//            }
-//
-//            if Globals.shared.cacheDownloads, imageURL.downloaded, let image = UIImage(contentsOfFile: imageURL.path) {
-//                return image
-//            } else {
-//                guard let data = data else {
-//                    return nil
-//                }
-//
-//                guard let image = UIImage(data: data) else {
-//                    return nil
-//                }
-//
-//                if Globals.shared.cacheDownloads {
-//                    DispatchQueue.global(qos: .background).async {
-//                        queue.sync {
-//                            guard !imageURL.downloaded else {
-//                                return
-//                            }
-//
-//                            do {
-//                                try UIImageJPEGRepresentation(image, 1.0)?.write(to: imageURL, options: [.atomic])
-//                                print("Image \(self.lastPathComponent) saved to file system")
-//                            } catch let error {
-//                                NSLog(error.localizedDescription)
-//                                print("Image \(self.lastPathComponent) not saved to file system")
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                return image
-//            }
         }
+    }
+}
+
+extension UIImage
+{
+    func save(to url: URL?) -> UIImage?
+    {
+        guard let url = url else {
+            return nil
+        }
+        
+        do {
+            try UIImageJPEGRepresentation(self, 1.0)?.write(to: url, options: [.atomic])
+            print("Image saved to \(url.absoluteString)")
+        } catch let error {
+            NSLog(error.localizedDescription)
+            print("Image not saved to \(url.absoluteString)")
+        }
+        
+        return self
     }
 }
 

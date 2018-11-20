@@ -745,6 +745,17 @@ class VoiceBase {
         }
     }
     
+    var oldFilename : String?
+    {
+        get {
+            if let id = mediaItem?.id, let purpose = purpose {
+                return id + ".\(purpose)"
+            } else {
+                return nil
+            }
+        }
+    }
+    
 //    lazy var transcript:Shadowed<String> = {
 //        return Shadowed<String>(get: { () -> (String?) in
 //            var value:String? = nil
@@ -1200,20 +1211,33 @@ class VoiceBase {
             guard let purpose = purpose else {
                 return nil
             }
-
-            if let url = ("\(id).\(purpose).media").fileSystemURL, let data = url.data {
+            
+            guard let filename = filename else {
+                return nil
+            }
+            
+            if let url = ("\(filename).media").fileSystemURL, let data = url.data {
                 do {
                     _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
                 } catch let error {
                     print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
-
                     // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
 //                    if completed && !aligning {
 //                        remove()
 //                    }
                 }
             } else {
-                print("failed to open machine generated media for \(mediaItem.description)")
+                print("failed to get data for \(mediaItem.description)")
+                
+                // Legacy
+                if let oldFilename = oldFilename, let url = ("\(oldFilename).media").fileSystemURL, let data = url.data {
+                    do {
+                        _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+                    } catch let error {
+                        print("failed to open machine generated media (again) for \(mediaItem.description)")
+                    }
+                }
+                
                 // Not sure I want to do this since it only removes keywords
 //                remove()
             }
@@ -1227,37 +1251,37 @@ class VoiceBase {
                 return
             }
 
-            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.id else {
+//                return
+//            }
+//
+//            guard let purpose = purpose else {
+//                return
+//            }
+
+            guard let filename = filename else {
+                print("failed to get filename")
                 return
             }
 
-            guard let purpose = purpose else {
+            guard let destinationURL = "\(filename).media".fileSystemURL else {
+                print("failed to get destinationURL")
                 return
             }
-
+            
             DispatchQueue.global(qos: .background).async { [weak self] in
-                let fileManager = FileManager.default
-
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
 
-                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-                        destinationURL.delete()
-
-                        do {
-                            try mediaPropertyList?.write(to: destinationURL)
-                        } catch let error {
-                            print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
-                        }
-                    } else {
-                        print("destinationURL nil!")
+                    destinationURL.delete()
+                    
+                    do {
+                        try mediaPropertyList?.write(to: destinationURL)
+                    } catch let error {
+                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
                     }
                 } else {
-                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-                        destinationURL.delete()
-                    } else {
-                        print("failed to get destinationURL")
-                    }
+                    destinationURL.delete()
                 }
             }
         }
@@ -3121,8 +3145,13 @@ class VoiceBase {
                 return nil
             }
 
+            guard let filename = filename else {
+                print("failed to get filename")
+                return nil
+            }
+
             //Legacy
-            if let url = "\(id).\(purpose).srt".fileSystemURL {
+            if let url = "\(filename).srt".fileSystemURL {
                 do {
                     try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
                 } catch let error {
@@ -3135,7 +3164,7 @@ class VoiceBase {
                 }
             }
 
-            if let url = "\(id).\(purpose).segments".fileSystemURL {
+            if let url = "\(filename).segments".fileSystemURL {
                 do {
                     try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
                 } catch let error {
