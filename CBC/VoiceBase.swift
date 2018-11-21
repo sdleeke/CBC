@@ -14,6 +14,8 @@ extension NSMutableData
 {
     func appendString(_ string: String)
     {
+        // ABSOLUTELY essential that this stay data8 (i.e. utf8 encoding) because it is used in setting up
+        // VB http headers - utf16 will break it.
         if let data = string.data8 { // (using: String.Encoding.utf8, allowLossyConversion: false)
             append(data)
         }

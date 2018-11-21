@@ -881,6 +881,30 @@ enum Constants {
         "ninety"     :"90"
     ]
     
+    static let centuries = [
+        "one hundred"     :"100",
+        "two hundred"     :"200",
+        "three hundred"   :"300",
+        "four hundred"    :"400",
+        "five hundred"    :"500",
+        "six hundred"     :"600",
+        "seven hundred"   :"700",
+        "eight hundred"   :"800",
+        "nine hundred"    :"900"
+    ]
+    
+    static let millenia = [
+        "one thousand"     :"1000",
+        "two thousand"     :"2000",
+        "three thousand"   :"3000",
+        "four thousand"    :"4000",
+        "five thousand"    :"5000",
+        "six thousand"     :"6000",
+        "seven thousand"   :"7000",
+        "eight thousand"   :"8000",
+        "nine thousand"    :"9000"
+    ]
+
     static let Old_Testament = "Old Testament"
     static let New_Testament = "New Testament"
     
