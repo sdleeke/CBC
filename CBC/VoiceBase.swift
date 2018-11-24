@@ -3643,6 +3643,1225 @@ class VoiceBase {
         //                                cancelAction: nil)
     }
     
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "VB:" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
+    func textToNumbers(longFormat:Bool) -> [String:String]?
+    {
+        // Need to have varying degrees of this since editing the entire text at once makes a more exhaustive set reasonable, but for segments it isn't.
+        
+        var textToNumbers = [String:String]()
+        
+        //        let singleNumbers = [
+        //           "one"        :"1",
+        //           "two"        :"2",
+        //           "three"      :"3",
+        //           "four"       :"4",
+        //           "five"       :"5",
+        //           "six"        :"6",
+        //           "seven"      :"7",
+        //           "eight"      :"8",
+        //           "nine"       :"9"
+        //        ]
+        //
+        //        let teenNumbers = [
+        //           "ten"        :"10",
+        //           "eleven"     :"11",
+        //           "twelve"     :"12",
+        //           "thirteen"   :"13",
+        //           "fourteen"   :"14",
+        //           "fifteen"    :"15",
+        //           "sixteen"    :"16",
+        //           "seventeen"  :"17",
+        //           "eighteen"   :"18",
+        //           "nineteen"   :"19"
+        //        ]
+        //
+        //        let decades = [
+        //           "twenty"     :"20",
+        //           "thirty"     :"30",
+        //           "forty"      :"40",
+        //           "fifty"      :"50",
+        //           "sixty"      :"60",
+        //           "seventy"    :"70",
+        //           "eighty"     :"80",
+        //           "ninety"     :"90"
+        //        ]
+        
+        // If we make the translation table too big searching for replacements can take a long time,
+        // possibly too long for the user.
+        
+        //        let centuries = [
+        //            "one hundred"     :"100",
+        //            "two hundred"     :"200",
+        //            "three hundred"   :"300",
+        //            "four hundred"    :"400",
+        //            "five hundred"    :"500",
+        //            "six hundred"     :"600",
+        //            "seven hundred"   :"700",
+        //            "eight hundred"   :"800",
+        //            "nine hundred"    :"900"
+        //        ]
+        
+        var centuries = [String:String]()
+        
+        if longFormat {
+            centuries = Constants.centuries
+        } else {
+            centuries = [
+                "one hundred"     :"100"
+            ]
+        }
+        
+        //        let millenia = [
+        //            "one thousand"     :"1000",
+        //            "two thousand"     :"2000",
+        //            "three thousand"   :"3000",
+        //            "four thousand"    :"4000",
+        //            "five thousand"    :"5000",
+        //            "six thousand"     :"6000",
+        //            "seven thousand"   :"7000",
+        //            "eight thousand"   :"8000",
+        //            "nine thousand"    :"9000",
+        //        ]
+        
+        // Could add teenNumbers (>10) and "hundred" to get things like "fourteen hundred(s)..." but the plural and following numbers, if any, i.e. dates, could be complicated.
+        
+        for key in Constants.singleNumbers.keys {
+            textToNumbers[key] = Constants.singleNumbers[key]
+        }
+        
+        for key in Constants.teenNumbers.keys {
+            textToNumbers[key] = Constants.teenNumbers[key]
+        }
+        
+        for key in Constants.decades.keys {
+            textToNumbers[key] = Constants.decades[key]
+        }
+        
+        for key in centuries.keys {
+            textToNumbers[key] = centuries[key]
+        }
+        
+        // single digit double digit, etc.
+        for hundredsKey in Constants.singleNumbers.keys { // ["one"]
+            guard let prefix = Constants.singleNumbers[hundredsKey] else { // not needed if ["one"] is used
+                continue
+            }
+            
+            for teenNumbersKey in Constants.teenNumbers.keys {
+                guard let num = Constants.teenNumbers[teenNumbersKey] else {
+                    continue
+                }
+                
+                var key:String
+                let value = prefix + num // "1"
+                
+                key = hundredsKey + " " + teenNumbersKey
+                textToNumbers[key] = value
+                
+                // not applicable
+                //                        key = hundred + " and " + teenNumbersKey
+                //                        textToNumbers[key] = value
+            }
+            
+            for decadesKey in Constants.decades.keys {
+                guard let decade = Constants.decades[decadesKey] else {
+                    continue
+                }
+                
+                let key = hundredsKey + " " + decadesKey
+                let value = prefix + decade // "1"
+                
+                textToNumbers[key] = value
+                
+                // WHY? Because ten one is eleven, etc.
+                if decadesKey != "ten" {
+                    for singleNumbersKey in Constants.singleNumbers.keys {
+                        var key:String
+                        
+                        let singleNumber = Constants.singleNumbers[singleNumbersKey]
+                        let value = (Int(prefix)!*100 + Int(decade)! + Int(singleNumber!)!).description
+                        
+                        key = hundredsKey + " " + decadesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                        
+                        // not applicable
+                        //                                key = hundred + " and " + decadesKey + " " + singleNumbersKey
+                        //                                textToNumbers[key] = value
+                        
+                        //                                if let decade = Constants.decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = Constants.singleNumbers[singleNumbersKey] {
+                        //                                    let value = prefix + decade + singleNumber // "1"
+                        //                                    textToNumbers[key] = value
+                        //                                }
+                    }
+                }
+            } // not needed if ["one"] is used
+        }
+        
+        // 20 - 99
+        for decadesKey in Constants.decades.keys {
+            guard let decade = Constants.decades[decadesKey] else {
+                continue
+            }
+            
+            for singleNumbersKey in Constants.singleNumbers.keys {
+                guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                    continue
+                }
+                
+                let key = (decadesKey + " " + singleNumbersKey)
+                let value = (Int(decade)! + Int(singleNumber)!).description
+                textToNumbers[key] = value
+                
+                //                if  let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+                //                    let singleNumber = singleNumbers[singleNumber] {
+                //                    let value = decade + singleNumber
+                //                    textToNumbers[key] = value
+                //                }
+            }
+        }
+        
+        for centuriesKey in centuries.keys {
+            guard let century = centuries[centuriesKey] else {
+                continue
+            }
+            
+            // x01 - x09
+            for singleNumbersKey in Constants.singleNumbers.keys {
+                guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                    continue
+                }
+                
+                let value = (Int(century)! + Int(singleNumber)!).description
+                
+                var key:String
+                
+                key = (centuriesKey + " " + singleNumbersKey)
+                textToNumbers[key] = value
+                
+                key = (centuriesKey + " and " + singleNumbersKey)
+                textToNumbers[key] = value
+                
+                //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+                //                    let singleNumber = singleNumbers[singleNumber] {
+                //                    let value = century + singleNumber
+                //                    textToNumbers[key] = value
+                //                }
+            }
+            
+            // x10 - x19
+            for teenNumbersKey in Constants.teenNumbers.keys {
+                guard let teenNumber = Constants.teenNumbers[teenNumbersKey] else {
+                    continue
+                }
+                
+                let value = (Int(century)! + Int(teenNumber)!).description
+                
+                var key:String
+                
+                key = (centuriesKey + " " + teenNumbersKey)
+                textToNumbers[key] = value
+                
+                key = (centuriesKey + " and " + teenNumbersKey)
+                textToNumbers[key] = value
+                
+                //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                //                    let teenNumber = teenNumbers[teenNumber] {
+                //                    let value = century + teenNumber
+                //                    textToNumbers[key] = value
+                //                }
+            }
+            
+            // x20 - x90
+            for decadesKey in Constants.decades.keys {
+                guard let decade = Constants.decades[decadesKey] else {
+                    continue
+                }
+                
+                let value = (Int(century)! + Int(decade)!).description
+                
+                var key:String
+                
+                key = (centuriesKey + " " + decadesKey)
+                textToNumbers[key] = value
+                
+                key = (centuriesKey + " and " + decadesKey)
+                textToNumbers[key] = value
+                
+                //                if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                //                    let decade = decades[decade] {
+                //                    let value = century + decade
+                //                    textToNumbers[key] = value
+                //                }
+            }
+            
+            // x21 - x91
+            for decadesKey in Constants.decades.keys {
+                guard let decade = Constants.decades[decadesKey] else {
+                    continue
+                }
+                
+                for singleNumbersKey in Constants.singleNumbers.keys {
+                    guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                        continue
+                    }
+                    
+                    let value = (Int(century)! + Int(decade)! + Int(singleNumber)!).description
+                    var key:String
+                    
+                    key = (centuriesKey + " " + decadesKey + " " + singleNumbersKey)
+                    textToNumbers[key] = value
+                    
+                    key = (centuriesKey + " and " + decadesKey + " " + singleNumbersKey)
+                    textToNumbers[key] = value
+                    
+                    //                    if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+                    //                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+                    //                        let singleNumber = singleNumbers[singleNumber]
+                    //                    {
+                    //                        let value = (century + decade + singleNumber)
+                    //                        textToNumbers[key] = value
+                    //                    }
+                }
+            }
+        }
+        
+        // JUST TAKES TOO LONG OTHERWISE
+        if longFormat {
+            // 1000 - 2999 as x thousand y hundred [and] decade/teen/single
+            //            var age = ["one thousand":"1000","two thousand":"2000"]
+            for milleniaKey in Constants.millenia.keys {
+                guard let millenia = Constants.millenia[milleniaKey] else {
+                    continue
+                }
+                
+                var key:String = milleniaKey
+                var value:String = millenia
+                
+                textToNumbers[key] = value
+                
+                // 1000 - 1009
+                for singleNumbersKey in Constants.singleNumbers.keys {
+                    guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                        continue
+                    }
+                    
+                    value = (Int(millenia)! + Int(singleNumber)!).description
+                    
+                    key = milleniaKey + " " + singleNumbersKey
+                    textToNumbers[key] = value
+                    
+                    key = milleniaKey + " and " + singleNumbersKey
+                    textToNumbers[key] = value
+                }
+                
+                // 1010 - 1019
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    guard let teenNumber = Constants.teenNumbers[teenNumbersKey] else {
+                        continue
+                    }
+                    
+                    value = (Int(millenia)! + Int(teenNumber)!).description
+                    
+                    key = milleniaKey + " " + teenNumbersKey
+                    textToNumbers[key] = value
+                    
+                    key = milleniaKey + " and " + teenNumbersKey
+                    textToNumbers[key] = value
+                }
+                
+                // 1020 - 1099
+                for decadesKey in Constants.decades.keys {
+                    guard let decade = Constants.decades[decadesKey] else {
+                        continue
+                    }
+                    
+                    value = (Int(millenia)! + Int(decade)!).description
+                    
+                    key = milleniaKey + " " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    key = milleniaKey + " and " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    for singleNumbersKey in Constants.singleNumbers.keys {
+                        guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                            continue
+                        }
+                        
+                        value = (Int(millenia)! + Int(decade)! + Int(singleNumber)!).description
+                        
+                        key = milleniaKey + " " + decadesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = milleniaKey + " and " + decadesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                    }
+                }
+                
+                // 1100 - 1999
+                for centuriesKey in centuries.keys {
+                    guard let century = centuries[centuriesKey] else {
+                        continue
+                    }
+                    
+                    value = (Int(millenia)! + Int(century)!).description
+                    
+                    key = milleniaKey + " " + centuriesKey
+                    textToNumbers[key] = value
+                    
+                    // 1x01 - 1x09
+                    for singleNumbersKey in Constants.singleNumbers.keys {
+                        guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                            continue
+                        }
+                        
+                        value = (Int(millenia)! + Int(century)! + Int(singleNumber)!).description
+                        
+                        key = milleniaKey + " " + centuriesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = milleniaKey + " " + centuriesKey + " and " + singleNumbersKey
+                        textToNumbers[key] = value
+                    }
+                    
+                    // 1x10 - 1x19
+                    for teenNumbersKey in Constants.teenNumbers.keys {
+                        guard let teenNumber = Constants.teenNumbers[teenNumbersKey] else {
+                            continue
+                        }
+                        
+                        value = (Int(millenia)! + Int(century)! + Int(teenNumber)!).description
+                        
+                        key = milleniaKey + " " + centuriesKey + " " + teenNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = milleniaKey + " " + centuriesKey + " and " + teenNumbersKey
+                        textToNumbers[key] = value
+                    }
+                    
+                    // 1x20 - 1x99
+                    for decadesKey in Constants.decades.keys {
+                        guard let decade = Constants.decades[decadesKey] else {
+                            continue
+                        }
+                        
+                        value = (Int(millenia)! + Int(century)! + Int(decade)!).description
+                        
+                        key = milleniaKey + " " + centuriesKey + " " + decadesKey
+                        textToNumbers[key] = value
+                        
+                        key = milleniaKey + " " + centuriesKey + " and " + decadesKey
+                        textToNumbers[key] = value
+                        
+                        // 1xx0 - 1xx9
+                        for singleNumbersKey in Constants.singleNumbers.keys {
+                            if let singleNumber = Constants.singleNumbers[singleNumbersKey] {
+                                value = (Int(millenia)! + Int(century)! + Int(decade)! + Int(singleNumber)!).description
+                                
+                                key = milleniaKey + " " + centuriesKey + " " + decadesKey + " " + singleNumbersKey
+                                textToNumbers[key] = value
+                                
+                                key = milleniaKey + " " + centuriesKey + " and " + decadesKey + " " + singleNumbersKey
+                                textToNumbers[key] = value
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 1100 - 1900 as "xx hundred"
+            var ages = [String:String]()
+            for teenNumberKey in Constants.teenNumbers.keys {
+                guard teenNumberKey != "ten" else {
+                    continue
+                }
+                ages[teenNumberKey + " hundred"] = (Int(Constants.teenNumbers[teenNumberKey]!)! * 100).description
+            }
+            
+            for agesKey in ages.keys {
+                guard let age = ages[agesKey] else {
+                    continue
+                }
+                
+                // xx01 - xx09
+                for singleNumbersKey in Constants.singleNumbers.keys {
+                    guard let num = Constants.singleNumbers[singleNumbersKey] else {
+                        continue
+                    }
+                    
+                    let value = (Int(age)! + Int(num)!).description
+                    
+                    var key:String!
+                    
+                    key = agesKey + " " + singleNumbersKey
+                    textToNumbers[key] = value
+                    
+                    key = agesKey + " and " + singleNumbersKey
+                    textToNumbers[key] = value
+                }
+                
+                // xx10 - xx19
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    guard let num = Constants.teenNumbers[teenNumbersKey] else {
+                        continue
+                    }
+                    
+                    let value = (Int(age)! + Int(num)!).description
+                    
+                    var key:String!
+                    
+                    key = agesKey + " " + teenNumbersKey
+                    textToNumbers[key] = value
+                    
+                    key = agesKey + " and " + teenNumbersKey
+                    textToNumbers[key] = value
+                }
+                
+                for decadesKey in Constants.decades.keys {
+                    // xx20 - xx90
+                    guard let decade = Constants.decades[decadesKey] else {
+                        continue
+                    }
+                    
+                    let value = (Int(age)! + Int(decade)!).description
+                    
+                    var key:String!
+                    
+                    key = agesKey + " " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    key = agesKey + " and " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    // xx21 - xx99
+                    for singleNumbersKey in Constants.singleNumbers.keys {
+                        guard let singleNumber = Constants.singleNumbers[singleNumbersKey] else {
+                            continue
+                        }
+                        
+                        let value = (Int(age)! + Int(decade)! + Int(singleNumber)!).description
+                        
+                        var key:String!
+                        
+                        key = agesKey + " " + decadesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                        
+                        key = agesKey + " and " + decadesKey + " " + singleNumbersKey
+                        textToNumbers[key] = value
+                    }
+                }
+            }
+            
+            // more generally s/b double digit double digit
+            // teen teen, etc.
+            for hundredsKey in Constants.teenNumbers.keys {
+                guard let prefix = Constants.teenNumbers[hundredsKey] else {
+                    continue
+                }
+                
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    guard let teenNumber = Constants.teenNumbers[teenNumbersKey] else {
+                        continue
+                    }
+                    
+                    var key:String
+                    
+                    let value = prefix + teenNumber
+                    
+                    key = hundredsKey + " " + teenNumbersKey
+                    textToNumbers[key] = value
+                    
+                    // Not applicable
+                    //                        key = hundred + " and " + teenNumbersKey
+                    //                        textToNumbers[key] = value
+                }
+                
+                for decadesKey in Constants.decades.keys {
+                    guard let decade = Constants.decades[decadesKey] else {
+                        continue
+                    }
+                    
+                    var key:String
+                    
+                    let value = prefix + decade
+                    
+                    key = hundredsKey + " " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    // Not applicable
+                    //                        key = hundred + " and " + teenNumbersKey
+                    //                        textToNumbers[key] = value
+                    
+                    if decadesKey != "ten" { // ten ... single is teens
+                        for singleNumbersKey in Constants.singleNumbers.keys {
+                            var key:String
+                            
+                            let singleNumber = Constants.singleNumbers[singleNumbersKey]
+                            let value = (Int(prefix)!*100 + Int(decade)! + Int(singleNumber!)!).description
+                            
+                            key = hundredsKey + " " + decadesKey + " " + singleNumbersKey
+                            textToNumbers[key] = value
+                        }
+                    }
+                }
+            }
+            
+            for hundredsKey in Constants.decades.keys {
+                // decade decade
+                guard let prefix = Constants.decades[hundredsKey] else {
+                    continue
+                }
+                
+                for teenNumbersKey in Constants.teenNumbers.keys {
+                    guard let teenNumber = Constants.teenNumbers[teenNumbersKey] else {
+                        continue
+                    }
+                    
+                    var key:String
+                    
+                    let value = prefix + teenNumber
+                    
+                    key = hundredsKey + " " + teenNumbersKey
+                    textToNumbers[key] = value
+                    
+                    // Not applicable
+                    //                        key = hundred + " and " + teenNumbersKey
+                    //                        textToNumbers[key] = value
+                }
+                
+                for decadesKey in Constants.decades.keys {
+                    guard let decade = Constants.decades[decadesKey] else {
+                        continue
+                    }
+                    
+                    var key:String
+                    
+                    let value = prefix + decade
+                    
+                    key = hundredsKey + " " + decadesKey
+                    textToNumbers[key] = value
+                    
+                    // Not applicable
+                    //                        key = hundred + " and " + teenNumbersKey
+                    //                        textToNumbers[key] = value
+                    
+                    if decadesKey != "ten" { // ten ... single is teens
+                        for singleNumbersKey in Constants.singleNumbers.keys {
+                            var key:String
+                            
+                            let singleNumber = Constants.singleNumbers[singleNumbersKey]
+                            let value = (Int(prefix)!*100 + Int(decade)! + Int(singleNumber!)!).description
+                            
+                            key = hundredsKey + " " + decadesKey + " " + singleNumbersKey
+                            textToNumbers[key] = value
+                        }
+                    }
+                }
+            }
+        }
+        
+//        if longFormat {
+//            for milleniumKey in Constants.millenia.keys {
+//                guard let millenium = Constants.millenia[milleniumKey] else {
+//                    continue
+//                }
+//
+//                textToNumbers[milleniumKey] = millenium
+//
+//                for centuryKey in centuries.keys {
+//                    guard let century = Constants.centuries[centuryKey] else {
+//                        continue
+//                    }
+//
+//                    let value = (Int(millenium)! + Int(century)!).description
+//
+//                    var key : String
+//
+//                    key = (milleniumKey + " " + centuryKey)
+//                    textToNumbers[key] = value
+//
+//                    for singleNumberKey in Constants.singleNumbers.keys {
+//                        guard let singleNumber = Constants.singleNumbers[singleNumberKey] else {
+//                            continue
+//                        }
+//
+//                        let value = (Int(millenium)! + Int(century)! + Int(singleNumber)!).description
+//
+//                        var key : String
+//
+//                        key = (milleniumKey + " " + centuryKey + " " + singleNumberKey)
+//                        textToNumbers[key] = value
+//
+//                        key = (milleniumKey + " " + centuryKey + " and " + singleNumberKey)
+//                        textToNumbers[key] = value
+//
+////                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+////                            let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
+////                            let singleNumber = singleNumbers[singleNumber] {
+////                            let value = millenium + century + singleNumber
+////                            textToNumbers[key] = value
+////                        }
+//                    }
+//
+//                    for teenNumberKey in Constants.teenNumbers.keys {
+//                        guard let teenNumber = Constants.teenNumbers[teenNumberKey] else {
+//                            continue
+//                        }
+//
+//                        let value = (Int(millenium)! + Int(century)! + Int(teenNumber)!).description
+//
+//                        var key : String
+//
+//                        key = (milleniumKey + " " + centuryKey + " " + teenNumberKey)
+//                        textToNumbers[key] = value
+//
+//                        key = (milleniumKey + " " + centuryKey + " and " + teenNumberKey)
+//                        textToNumbers[key] = value
+//
+////                        if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+////                            let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+////                            let teenNumber = teenNumbers[teenNumber] {
+////                            let value = millenium + century + teenNumber
+////                            textToNumbers[key] = value
+////                        }
+//                    }
+//
+//                    for decadeKey in Constants.decades.keys {
+//                        guard let decade = Constants.decades[decadeKey] else {
+//                            continue
+//                        }
+//
+//                        let value = (Int(millenium)! + Int(century)! + Int(decade)!).description
+//
+//                        var key : String
+//
+//                        key = (milleniumKey + " " + centuryKey + " " + decadeKey)
+//                        textToNumbers[key] = value
+//
+//                        key = (milleniumKey + " " + centuryKey + " and " + decadeKey)
+//                        textToNumbers[key] = value
+//
+//                        for singleNumberKey in Constants.singleNumbers.keys {
+//                            guard let singleNumber = Constants.singleNumbers[singleNumberKey] else {
+//                                continue
+//                            }
+//
+//                            let value = (Int(millenium)! + Int(century)! + Int(decade)! + Int(singleNumber)!).description
+//
+//                            var key : String
+//
+//                            key = (milleniumKey + " " + centuryKey + " " + decadeKey + " " + singleNumberKey)
+//                            textToNumbers[key] = value
+//
+//                            key = (milleniumKey + " " + centuryKey + " and " + decadeKey + " " + singleNumberKey)
+//                            textToNumbers[key] = value
+//
+////                            if  let millenium = millenia[millenium]?.replacingOccurrences(of: "000", with: "00"),
+////                                let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
+////                                let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+////                                let singleNumber = singleNumbers[singleNumber]
+////                            {
+////                                let value = (millenium + century + decade + singleNumber)
+////                                textToNumbers[key] = value
+////                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        
+        //        print(textToNumbers)
+        return textToNumbers.count > 0 ? textToNumbers : nil
+    }
+    
+    func wordsToChange() -> [String:String]?
+    {
+        return [
+            "scripture":"Scripture",
+            "Chapter":"chapter",
+            "Verse":"verse",
+            "Grace":"grace",
+            "Gospel":"gospel",
+            "vs":"verses",
+            "versus":"verses",
+            "pilot":"Pilate",
+            "OK":"okay"
+        ]
+    }
+    
+    func booksToChange() -> [String:String]?
+    {
+        return [
+            "first samuel"           :"1 Samuel",
+            "second samuel"          :"2 Samuel",
+            
+            "first kings"            :"1 Kings",
+            "second kings"           :"2 Kings",
+            
+            "first chronicles"       :"1 Chronicles",
+            "second chronicles"      :"2 Chronicles",
+            
+            "first corinthians"      :"1 Corinthians",
+            "second corinthians"     :"2 Corinthians",
+            
+            "first thessalonians"    :"1 Thessalonians",
+            "second thessalonians"   :"2 Thessalonians",
+            
+            "first timothy"          :"1 Timothy",
+            "second timothy"         :"2 Timothy",
+            
+            "first peter"             :"1 Peter",
+            "second peter"            :"2 Peter",
+            
+            "first john"      :"1 John",
+            "second john"     :"2 John",
+            "third john"      :"3 John"
+        ]
+    }
+    
+    func masterChanges(interactive: Bool) -> [String:[String:String]]?
+    {
+        guard var textToNumbers = textToNumbers(longFormat:!interactive) else {
+            return nil
+        }
+        
+        guard let books = booksToChange() else {
+            return nil
+        }
+        
+        guard let wordsToChange = wordsToChange() else {
+            return nil
+        }
+        
+        var changes = [String:[String:String]]()
+        
+        changes["words"] = wordsToChange
+        changes["books"] = books
+        
+        if !interactive {
+            for singleNumberKey in Constants.singleNumbers.keys {
+                textToNumbers[singleNumberKey] =  nil
+            }
+        }
+
+        changes["textToNumbers"] = textToNumbers
+
+        let maxChapters = max(Constants.OLD_TESTAMENT_CHAPTERS.max() ?? 0,Constants.NEW_TESTAMENT_CHAPTERS.max() ?? 0)
+        
+        var maxVerses = 0
+        for book in Constants.OLD_TESTAMENT_VERSES {
+            if book.max() > maxVerses {
+                maxVerses = book.max() ?? 0
+            }
+        }
+        for book in Constants.NEW_TESTAMENT_VERSES {
+            if book.max() > maxVerses {
+                maxVerses = book.max() ?? 0
+            }
+        }
+        
+        let maxNumber = max(maxChapters,maxVerses)
+        
+        var numbersToText = [String:[String]]()
+        
+        for (key,value) in textToNumbers {
+            if numbersToText[value] == nil {
+                numbersToText[value] = [key]
+            } else {
+                numbersToText[value]?.append(key)
+            }
+        }
+        
+        // These should really be hierarchical.
+        for number in 1...maxNumber {
+            let value = number.description
+            guard let keys = numbersToText[value] else {
+                continue
+            }
+            for key in keys {
+                var preambles = ["verse","verses","chapter","chapters"]
+                
+                if interactive {
+                    preambles.append("through")
+                    preambles.append("to")
+                    preambles.append("and")
+                }
+                
+                for context in preambles {
+                    if changes[context] == nil {
+                        changes[context] = ["\(context) " + key:"\(context) " + value]
+                    } else {
+                        changes[context]?["\(context) " + key] = "\(context) " + value
+                    }
+                }
+                
+                for book in books.keys {
+                    if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.index(of: bookName) {
+                        if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                            if changes[book] == nil {
+                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
+                            } else {
+                                changes[book]?["\(book) " + key] = "\(bookName) " + value
+                            }
+                        }
+                    }
+                    
+                    if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.index(of: bookName) {
+                        if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                            if changes[book] == nil {
+                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
+                            } else {
+                                changes[book]?["\(book) " + key] = "\(bookName) " + value
+                            }
+                        }
+                    }
+                }
+                
+                // For books that don't start w/ a number
+                for book in Constants.OLD_TESTAMENT_BOOKS {
+                    if !books.values.contains(book) {
+                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                            if changes[book.lowercased()] == nil {
+                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                            } else {
+                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                            }
+                        }
+                    } else {
+                        
+                    }
+                }
+                
+                for book in Constants.NEW_TESTAMENT_BOOKS {
+                    if !books.values.contains(book) {
+                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                            if changes[book.lowercased()] == nil {
+                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                            } else {
+                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                            }
+                        }
+                    } else {
+                        
+                    }
+                }            }
+        }
+        
+        return changes.count > 0 ? changes : nil
+    }
+    
+    func addParagraphBreaks(showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?, text:String?, completion:((String?)->(Void))?)
+    {
+        guard var words = words else {
+            return
+        }
+        
+        guard words.count > 0 else {
+            completion?(text)
+            return
+        }
+        
+        guard let text = text else {
+            return
+        }
+        
+        let first = words.removeFirst()
+        
+        guard let range = first["range"] as? Range<String.Index> else {
+            return
+        }
+        
+        let gap = first["gap"] as? Double
+        
+        var gapString = "\n\n"
+        
+        if showGapTimes, let gap = gap {
+            gapString = "<\(gap)>" + gapString
+        }
+        
+//        let beforeFull = String(text[..<range.lowerBound])
+//        let stringFull = String(text[range])
+//        let afterFull = String(text[range.upperBound...])
+        
+        //////////////////////////////////////////////////////////////////////////////
+        // If words.first["range"] (either lowerBound or upperBound) is "too close"
+        // (whatever that is defined to be) to a paragraph break then we should skip
+        // and move on to the next word.
+        //////////////////////////////////////////////////////////////////////////////
+        
+        if let tooClose = tooClose {
+            var lowerRange : Range<String.Index>?
+            var upperRange : Range<String.Index>?
+            
+            var rng : Range<String.Index>?
+            
+            var searchRange : Range<String.Index>!
+            
+            searchRange = Range(uncheckedBounds: (lower: text.startIndex, upper: range.lowerBound))
+            
+            rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            
+            // But even if there is a match we have to find the LAST match
+            if rng != nil {
+                repeat {
+                    lowerRange = rng
+                    searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: range.lowerBound))
+                    rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+                } while rng != nil
+            } else {
+                // NONE FOUND BEFORE
+            }
+            
+            // Too close to the previous?
+            if let lowerRange = lowerRange {
+                if (lowerRange.upperBound.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                    guard gap >= gapThreshold else {
+                        return
+                    }
+                    
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    return
+                }
+            } else {
+                // There is no previous.
+                
+                // Too close to the start?
+                if (text.startIndex.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                    guard gap >= gapThreshold else {
+                        return
+                    }
+                    
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    return
+                }
+            }
+            
+            searchRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+            
+            upperRange = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            
+            // Too close to the next?
+            if let upperRange = upperRange {
+                if (range.upperBound.encodedOffset + tooClose) > upperRange.lowerBound.encodedOffset {
+                    guard gap >= gapThreshold else {
+                        return
+                    }
+                    
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    return
+                }
+            } else {
+                // There is no next.
+                
+                // Too close to end?
+                if (range.lowerBound.encodedOffset + tooClose) > text.endIndex.encodedOffset {
+                    guard gap >= gapThreshold else {
+                        return
+                    }
+                    
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    return
+                }
+            }
+        }
+        
+        if let gapThreshold = gapThreshold, gap < gapThreshold {
+            return
+        }
+        
+        var newText = text
+        newText.insert(contentsOf:gapString, at: range.lowerBound)
+        
+        var lower : String.Index?
+        var upper : String.Index?
+        var newRange : Range<String.Index>? // Was used in makeVisible
+        
+        if range.lowerBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+            lower = newText.index(range.lowerBound, offsetBy: gapString.count)
+        }
+        
+        if range.upperBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+            upper = newText.index(range.upperBound, offsetBy: gapString.count)
+        }
+        
+        if let lower = lower, let upper = upper {
+            newRange = Range<String.Index>(uncheckedBounds: (lower: lower, upper: upper))
+        }
+        
+        for i in 0..<words.count {
+            if let wordRange = words[i]["range"] as? Range<String.Index> {
+                if wordRange.lowerBound > range.lowerBound {
+                    var lower : String.Index?
+                    var upper : String.Index?
+                    
+                    if wordRange.lowerBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+                        lower = newText.index(wordRange.lowerBound, offsetBy: gapString.count)
+                    }
+                    
+                    if wordRange.upperBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+                        upper = newText.index(wordRange.upperBound, offsetBy: gapString.count)
+                    }
+                    
+                    if let lower = lower, let upper = upper {
+                        let newRange = Range<String.Index>(uncheckedBounds: (lower: lower, upper: upper))
+                        words[i]["range"] = newRange
+                    }
+                }
+            }
+        }
+        
+        operationQueue.addOperation { [weak self] in
+            // Why is completion called here?
+            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
+        }
+    }
+    
+    func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, completion:((String)->(Void))?)
+    {
+        guard var text = text else {
+            return
+        }
+
+        guard var changes = changes, changes.count > 0 else {
+            completion?(text)
+            return
+        }
+        
+//        guard var masterChanges = masterChanges, masterChanges.count > 0 else {
+//            if !automatic {
+//                Alerts.shared.alert(title:"Auto Edit Complete", message:mediaItem?.text)
+//            }
+//            return
+//        }
+        
+//        guard let masterKey = masterChanges.keys.first else {
+//            return
+//        }
+        
+//        guard var key = masterChanges[masterKey]?.keys.first else {
+//            return
+//        }
+
+        let change = changes.removeFirst()
+        let oldText = change.0
+        let newText = change.1
+        
+        var range : Range<String.Index>?
+
+        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+            if startingRange == nil {
+                range = text.lowercased().range(of: oldText)
+            } else {
+                range = text.lowercased().range(of: oldText, options: [], range:  startingRange, locale: nil)
+            }
+        } else {
+            if startingRange == nil {
+                range = text.range(of: oldText)
+            } else {
+                range = text.range(of: oldText, options: [], range:  startingRange, locale: nil)
+            }
+        }
+        
+//        if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
+//            if startingRange == nil {
+//                range = text.lowercased().range(of: key)
+//            } else {
+//                range = text.lowercased().range(of: key, options: [], range:  startingRange, locale: nil)
+//            }
+//        } else {
+//            if startingRange == nil {
+//                range = text.range(of: key)
+//            } else {
+//                range = text.range(of: key, options: [], range:  startingRange, locale: nil)
+//            }
+//        }
+//
+//        while range == nil {
+//            masterChanges[masterKey]?[key] = nil
+//
+//            if let first = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
+//                key = first
+//
+//                if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
+//                    range = text.lowercased().range(of: key)
+//                } else {
+//                    range = text.range(of: key)
+//                }
+//            } else {
+//                break
+//            }
+//        }
+        
+        if let range = range { // masterChanges[masterKey]?[key]
+//            let fullAttributedString = NSMutableAttributedString()
+//
+//            let beforeFull = String(text[..<range.lowerBound])
+//            let stringFull = String(text[range])
+//            let afterFull = String(text[range.upperBound...])
+//
+//            fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.normal))
+//            fullAttributedString.append(NSAttributedString(string: stringFull,attributes: Constants.Fonts.Attributes.highlighted))
+//            fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.normal))
+//
+//            let attributedString = NSMutableAttributedString()
+//
+//            let before = "..." + String(text[..<range.lowerBound]).dropFirst(max(String(text[..<range.lowerBound]).count - 10,0))
+//            let string = String(text[range])
+//            let after = String(String(text[range.upperBound...]).dropLast(max(String(text[range.upperBound...]).count - 10,0))) + "..."
+//
+//            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+//            attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
+//            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+            
+            let prior = String(text[..<range.lowerBound]).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
+            let following = String(text[range.upperBound...]).first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
+            if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
+                operationQueue.addOperation { [weak self] in
+                    text.replaceSubrange(range, with: newText)
+                    
+                    let before = String(text[..<range.lowerBound])
+                    
+                    if let completedRange = text.range(of: before + newText) {
+                        let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                        self?.changeText(text:text, startingRange:startingRange, changes:changes, completion:completion)
+                    } else {
+                        // ERROR
+                    }
+                }
+            } else {
+                operationQueue.addOperation { [weak self] in
+                    let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                    self?.changeText(text:text, startingRange:startingRange, changes:changes, completion:completion)
+                }
+            }
+        } else {
+            operationQueue.addOperation { [weak self] in
+//                masterChanges[masterKey]?[key] = nil
+//                if masterChanges[masterKey]?.count == 0 {
+//                    masterChanges[masterKey] = nil
+//                }
+                self?.changeText(text:text, startingRange:nil, changes:changes, completion:completion)
+            }
+        }
+    }
+    
     func alertActions(viewController:UIViewController) -> AlertAction?
     {
         guard let purpose = purpose else {
@@ -3911,6 +5130,188 @@ class VoiceBase {
                         viewController.present(navigationController, animated: true, completion: nil)
                     } else {
                         print("ERROR")
+                    }
+                }))
+                
+                alertActions.append(AlertAction(title: "Auto Edit", style: .default, handler: {
+                    guard let text = self.transcript else {
+                        return
+                    }
+                    
+                    guard self.operationQueue.operationCount == 0 else {
+                        var message = String()
+                        
+                        if let text = self.mediaItem?.text {
+                            message = "for\n\n\(text)\n\n"
+                        }
+
+                        message += "You will be notified when it is complete."
+                        
+                        Alerts.shared.alert(title:"Auto Edit Already Underway",message:message)
+                        return
+                    }
+                    
+                    guard !self.aligning else {
+                        if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                        } else {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                        }
+                        return
+                    }
+
+                    Alerts.shared.alert(title: "Auto Edit Underway", message: "You will be notified when it is complete.")
+
+                    self.operationQueue.addOperation {
+                        if  let transcriptString = self.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                            let transcriptFromWordsString = self.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                            transcriptString == transcriptFromWordsString {
+                            // Can insert paragraph breaks
+                            let tooClose = self.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            
+                            let speakerNotesParagraphWords = self.mediaItem?.speakerNotesParagraphWords
+                            
+                            //                        print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+                            //                            if first.value == second.value {
+                            //                                return first.key < second.key
+                            //                            } else {
+                            //                                return first.value > second.value
+                            //                            }
+                            //                        }))
+                            
+                            // Multiply the gap time by the frequency of the word that appears after it and sort
+                            // in descending order to suggest the most likely paragraph breaks.
+                            
+                            if let words = self.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                                if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
+                                    if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
+                                        return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
+                                    }
+                                }
+                                
+                                return first["gap"] != nil
+                            }) {
+                                self.addParagraphBreaks(showGapTimes:false, tooClose:tooClose, words:words, text:text, completion: { (string:String?) -> (Void) in
+                                    guard var masterChanges = self.masterChanges(interactive: false) else {
+                                        self.transcript = string
+                                        return
+                                    }
+                                    
+                                    var changes = [(String,String)]()
+                                    
+                                    for masterKey in masterChanges.keys {
+                                        if let keys = masterChanges[masterKey]?.keys {
+                                            for key in keys {
+                                                let oldText = key
+                                                if let newText = masterChanges[masterKey]?[key] {
+                                                    changes.append((oldText,newText))
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    changes.sort(by: { (first, second) -> Bool in
+                                        first.0.endIndex > second.0.endIndex
+                                    })
+                                    
+                                    self.changeText(text: string, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
+                                        Alerts.shared.alert(title:"Auto Edit Completed", message:self.mediaItem?.text)
+                                        self.transcript = string
+                                    })
+                                })
+                            }
+                        } else {
+                            guard var masterChanges = self.masterChanges(interactive: false) else {
+                                return
+                            }
+                            
+                            var changes = [(String,String)]()
+                            
+                            for masterKey in masterChanges.keys {
+                                if let keys = masterChanges[masterKey]?.keys {
+                                    for key in keys {
+                                        let oldText = key
+                                        if let newText = masterChanges[masterKey]?[key] {
+                                            changes.append((oldText,newText))
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            changes.sort(by: { (first, second) -> Bool in
+                                first.0.endIndex > second.0.endIndex
+                            })
+                            
+                            self.changeText(text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
+                                Alerts.shared.alert(title:"Auto Edit Completed", message:self.mediaItem?.text)
+                                self.transcript = string
+                            })
+                        }
+                        
+
+//                        let keyOrder = ["words","books","verse","verses","chapter","chapters","textToNumbers"]
+//
+//                        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+//                            let firstIndex = keyOrder.index(of: first)
+//                            let secondIndex = keyOrder.index(of: second)
+//
+//                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+//                                return firstIndex > secondIndex
+//                            }
+//
+//                            if firstIndex != nil {
+//                                return false
+//                            }
+//
+//                            if secondIndex != nil {
+//                                return true
+//                            }
+//
+//                            return first.endIndex > second.endIndex
+//                        })
+                        
+//                        print(changes)
+                        
+//                        for masterKey in masterKeys {
+//                            if !["words","books","textToNumbers"].contains(masterKey) {
+//                                if !text.lowercased().contains(masterKey.lowercased()) {
+//                                    masterChanges[masterKey] = nil
+//                                }
+//                            }
+//                        }
+
+//                        guard let masterKey = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+//                            let firstIndex = keyOrder.index(of: first)
+//                            let secondIndex = keyOrder.index(of: second)
+//
+//                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+//                                return firstIndex > secondIndex
+//                            }
+//
+//                            if firstIndex != nil {
+//                                return false
+//                            }
+//
+//                            if secondIndex != nil {
+//                                return true
+//                            }
+//
+//                            return first.endIndex > second.endIndex
+//                        }).first else {
+//                            return
+//                        }
+//
+//                        guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
+//                            return
+//                        }
                     }
                 }))
                 

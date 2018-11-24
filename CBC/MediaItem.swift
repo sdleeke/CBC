@@ -3574,8 +3574,22 @@ class MediaItem : NSObject
         var clearCache:AlertAction!
         
         clearCache = AlertAction(title: "Clear Cache", style: .default) {
-            self.clearCache()
-            Alerts.shared.alert(title:"Cache Cleared", message: self.text)
+            var alertActions = [AlertAction]()
+            
+            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                () -> Void in
+                self.clearCache()
+                Alerts.shared.alert(title:"Cache Cleared", message: self.text)
+            })
+            alertActions.append(yesAction)
+            
+            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                () -> Void in
+                
+            })
+            alertActions.append(noAction)
+            
+            Alerts.shared.alert(title: "Confirm Clear Cache", message: nil, actions: alertActions)
         }
         
         if hasAudio, let audioDownload = audioDownload {

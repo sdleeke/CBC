@@ -915,7 +915,7 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-                    Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Alerts.shared.alert(title:"Assisted Editing Complete",message:nil)
                 }
             }
             
@@ -933,7 +933,7 @@ class PopoverTableViewController : UIViewController
                         })
                     }
                 } else {
-                    Alerts.shared.alert(title:"Assisted Editing Process Completed",message:nil)
+                    Alerts.shared.alert(title:"Assisted Editing Complete",message:nil)
                 }
             }
             
