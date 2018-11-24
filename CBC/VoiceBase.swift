@@ -4426,9 +4426,9 @@ class VoiceBase {
         ]
     }
     
-    func masterChanges(interactive: Bool) -> [String:[String:String]]?
+    func masterChanges(interactive:Bool, longFormat:Bool) -> [String:[String:String]]?
     {
-        guard var textToNumbers = textToNumbers(longFormat:!interactive) else {
+        guard let textToNumbers = textToNumbers(longFormat:longFormat) else {
             return nil
         }
         
@@ -4442,15 +4442,8 @@ class VoiceBase {
         
         var changes = [String:[String:String]]()
         
-        changes["words"] = wordsToChange
         changes["books"] = books
-        
-        if !interactive {
-            for singleNumberKey in Constants.singleNumbers.keys {
-                textToNumbers[singleNumberKey] =  nil
-            }
-        }
-
+        changes["words"] = wordsToChange
         changes["textToNumbers"] = textToNumbers
 
         let maxChapters = max(Constants.OLD_TESTAMENT_CHAPTERS.max() ?? 0,Constants.NEW_TESTAMENT_CHAPTERS.max() ?? 0)
@@ -4554,6 +4547,12 @@ class VoiceBase {
                 }            }
         }
         
+        if !interactive {
+            for singleNumberKey in Constants.singleNumbers.keys {
+                changes["textToNumbers"]?[singleNumberKey] =  nil
+            }
+        }
+
         return changes.count > 0 ? changes : nil
     }
     
@@ -4737,7 +4736,7 @@ class VoiceBase {
             return
         }
 
-        guard var changes = changes, changes.count > 0 else {
+        guard var changes = changes, let change = changes.first else {
             completion?(text)
             return
         }
@@ -4757,7 +4756,6 @@ class VoiceBase {
 //            return
 //        }
 
-        let change = changes.removeFirst()
         let oldText = change.0
         let newText = change.1
         
@@ -4832,6 +4830,8 @@ class VoiceBase {
             
             let following = String(text[range.upperBound...]).first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
+            // what about other surrounding characters besides newlines and whitespaces, and periods if following?
+            // what about other token delimiters?
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
                 operationQueue.addOperation { [weak self] in
                     text.replaceSubrange(range, with: newText)
@@ -4857,6 +4857,7 @@ class VoiceBase {
 //                if masterChanges[masterKey]?.count == 0 {
 //                    masterChanges[masterKey] = nil
 //                }
+                changes.removeFirst()
                 self?.changeText(text:text, startingRange:nil, changes:changes, completion:completion)
             }
         }
@@ -5168,7 +5169,15 @@ class VoiceBase {
                         return
                     }
 
-                    Alerts.shared.alert(title: "Auto Edit Underway", message: "You will be notified when it is complete.")
+                    var message = String()
+                    
+                    if let text = self.mediaItem?.text {
+                        message = "for\n\n\(text)\n\n"
+                    }
+                    
+                    message += "You will be notified when it is complete."
+                    
+                    Alerts.shared.alert(title: "Auto Edit Underway", message: message)
 
                     self.operationQueue.addOperation {
                         if  let transcriptString = self.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
@@ -5200,7 +5209,7 @@ class VoiceBase {
                                 return first["gap"] != nil
                             }) {
                                 self.addParagraphBreaks(showGapTimes:false, tooClose:tooClose, words:words, text:text, completion: { (string:String?) -> (Void) in
-                                    guard var masterChanges = self.masterChanges(interactive: false) else {
+                                    guard var masterChanges = self.masterChanges(interactive:false, longFormat:true) else {
                                         self.transcript = string
                                         return
                                     }
@@ -5212,7 +5221,17 @@ class VoiceBase {
                                             for key in keys {
                                                 let oldText = key
                                                 if let newText = masterChanges[masterKey]?[key] {
-                                                    changes.append((oldText,newText))
+                                                    if let newText = masterChanges[masterKey]?[key] {
+                                                        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                                            if text.lowercased().range(of: oldText) != nil {
+                                                                changes.append((oldText,newText))
+                                                            }
+                                                        } else {
+                                                            if text.range(of: oldText) != nil {
+                                                                changes.append((oldText,newText))
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -5229,7 +5248,7 @@ class VoiceBase {
                                 })
                             }
                         } else {
-                            guard var masterChanges = self.masterChanges(interactive: false) else {
+                            guard var masterChanges = self.masterChanges(interactive:false, longFormat:true) else {
                                 return
                             }
                             
@@ -5240,7 +5259,17 @@ class VoiceBase {
                                     for key in keys {
                                         let oldText = key
                                         if let newText = masterChanges[masterKey]?[key] {
-                                            changes.append((oldText,newText))
+                                            if let newText = masterChanges[masterKey]?[key] {
+                                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                                    if text.lowercased().range(of: oldText) != nil {
+                                                        changes.append((oldText,newText))
+                                                    }
+                                                } else {
+                                                    if text.range(of: oldText) != nil {
+                                                        changes.append((oldText,newText))
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
