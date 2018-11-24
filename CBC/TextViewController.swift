@@ -305,11 +305,14 @@ extension TextViewController : PopoverPickerControllerDelegate
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
-                                self?.updateBarButtons()
-                                self?.changedText = string
-                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                            })
+                            self?.addParagraphBreaks(   interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
+                                                        completion: { (string:String?) -> (Void) in
+                                                            self?.updateBarButtons()
+                                                            self?.changedText = string
+                                                            if let string = string {
+                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.normal)
+                                                            }
+                                                        })
                             
                             self?.operationQueue.waitUntilAllOperationsAreFinished()
                             
@@ -321,11 +324,14 @@ extension TextViewController : PopoverPickerControllerDelegate
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                         process(viewController: self, work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text, completion: { (string:String) -> (Void) in
-                                self?.updateBarButtons()
-                                self?.changedText = string
-                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                            })
+                            self?.addParagraphBreaks(   interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
+                                                        completion: { (string:String?) -> (Void) in
+                                                            self?.updateBarButtons()
+                                                            self?.changedText = string
+                                                            if let string = string {
+                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.normal)
+                                                            }
+                                                        })
                             
                             self?.operationQueue.waitUntilAllOperationsAreFinished()
                             
@@ -1360,11 +1366,14 @@ class TextViewController : UIViewController
                             
                             actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                 process(viewController: vc, work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:true, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
-                                        self?.updateBarButtons()
-                                        self?.changedText = string
-                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                                    })
+                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:true, tooClose:tooClose, words:words, text:text,
+                                                                completion: { (string:String?) -> (Void) in
+                                                                    self?.updateBarButtons()
+                                                                    self?.changedText = string
+                                                                    if let string = string {
+                                                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                                                                    }
+                                                                })
 
                                     return nil
                                 }) { [weak self] (data:Any?) in
@@ -1374,11 +1383,14 @@ class TextViewController : UIViewController
                             
                             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                 process(viewController: vc, work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(interactive:true, makeVisible:false, showGapTimes:false, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
-                                        self?.updateBarButtons()
-                                        self?.changedText = string
-                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                                    })
+                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:false, tooClose:tooClose, words:words, text:text,
+                                                                completion: { (string:String?) -> (Void) in
+                                                                    self?.updateBarButtons()
+                                                                    self?.changedText = string
+                                                                    if let string = string {
+                                                                        self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                    }
+                                                                })
 
                                     return nil
                                 }) { [weak self] (data:Any?) in
@@ -1687,11 +1699,16 @@ class TextViewController : UIViewController
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                     process(viewController: self, work: { [weak self] () -> (Any?) in
-                                        self?.addParagraphBreaks(interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:nil, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
-                                            self?.updateBarButtons()
-                                            self?.changedText = string
-                                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                                        })
+                                        self?.addParagraphBreaks(   interactive:false, makeVisible:true,
+                                                                    showGapTimes:showGapTimes, gapThreshold:nil,
+                                                                    tooClose:tooClose, words:words, text:text,
+                                                                    completion: { (string:String?) -> (Void) in
+                                                                        self?.updateBarButtons()
+                                                                        self?.changedText = string
+                                                                        if let string = string {
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                        }
+                                                                    })
                                         
                                         self?.operationQueue.waitUntilAllOperationsAreFinished()
                                         
@@ -1703,11 +1720,16 @@ class TextViewController : UIViewController
                                 
                                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                     process(viewController: self, work: { [weak self] () -> (Any?) in
-                                        self?.addParagraphBreaks(interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:nil, tooClose:tooClose, words:words, text:text, completion: { (string:String) -> (Void) in
-                                            self?.updateBarButtons()
-                                            self?.changedText = string
-                                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-                                        })
+                                        self?.addParagraphBreaks(   interactive:false, makeVisible:false,
+                                                                    showGapTimes:showGapTimes, gapThreshold:nil,
+                                                                    tooClose:tooClose, words:words, text:text,
+                                                                    completion: { (string:String?) -> (Void) in
+                                                                        self?.updateBarButtons()
+                                                                        self?.changedText = string
+                                                                        if let string = string {
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                        }
+                                                                    })
                                         
                                         self?.operationQueue.waitUntilAllOperationsAreFinished()
                                         
@@ -2341,18 +2363,20 @@ class TextViewController : UIViewController
         updateBarButtons()
     }
     
-    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?,text:String?, completion:((String)->(Void))?)
+    func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?, text:String?, completion:((String?)->(Void))?)
     {
         guard var words = words else {
             return
         }
         
         guard words.count > 0 else {
+            // This updates the text and the changedText
+            
             if !automatic {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                    self.updateBarButtons()
+                    completion?(text)
                 }))
                 
                 Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
@@ -2605,6 +2629,7 @@ class TextViewController : UIViewController
                 }
                 
                 // Calling completion when we change something makes sense?
+                // To update the text and the changedText
                 completion?(newText)
                 
                 self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
@@ -2616,6 +2641,7 @@ class TextViewController : UIViewController
             
             actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
                 // Why is completion called when we cancel?
+                // To update the text.
                 completion?(text)
             }))
             
@@ -2692,6 +2718,7 @@ class TextViewController : UIViewController
             
             operationQueue.addOperation { [weak self] in
                 // Why is completion called here?
+                // So the text is updated.
                 Thread.onMainThread {
                     completion?(newText)
                 }
@@ -2982,10 +3009,11 @@ class TextViewController : UIViewController
                         }
 
                         text.replaceSubrange(range, with: newText)
-                        
-//                        Thread.onMainThread {
-//                            completion?(text)
-//                        }
+
+                        // This makes the change visible
+                        Thread.onMainThread {
+                            completion?(text)
+                        }
 
                         if makeVisible {
                             ////////////////////////////////////////////////////////////////////////////////

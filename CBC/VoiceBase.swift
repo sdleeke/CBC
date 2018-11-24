@@ -4426,6 +4426,17 @@ class VoiceBase {
         ]
     }
     
+    func preambles() -> [String]?
+    {
+        var preambles = ["verse","verses","chapter","chapters"]
+        
+        preambles.append("through")
+        preambles.append("to")
+        preambles.append("and")
+        
+        return preambles.count > 0 ? preambles : nil
+    }
+    
     func masterChanges(interactive:Bool, longFormat:Bool) -> [String:[String:String]]?
     {
         guard let textToNumbers = textToNumbers(longFormat:longFormat) else {
@@ -4437,6 +4448,10 @@ class VoiceBase {
         }
         
         guard let wordsToChange = wordsToChange() else {
+            return nil
+        }
+        
+        guard let preambles = preambles() else {
             return nil
         }
         
@@ -4479,14 +4494,6 @@ class VoiceBase {
                 continue
             }
             for key in keys {
-                var preambles = ["verse","verses","chapter","chapters"]
-                
-                if interactive {
-                    preambles.append("through")
-                    preambles.append("to")
-                    preambles.append("and")
-                }
-                
                 for context in preambles {
                     if changes[context] == nil {
                         changes[context] = ["\(context) " + key:"\(context) " + value]
@@ -5079,6 +5086,19 @@ class VoiceBase {
                 }))
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, handler: {
+                    guard self.operationQueue.operationCount == 0 else {
+                        var message = String()
+                        
+                        if let text = self.mediaItem?.text {
+                            message = "for\n\n\(text)\n\n"
+                        }
+                        
+                        message += "You will be notified when it is complete."
+                        
+                        Alerts.shared.alert(title:"Auto Edit Underway",message:message)
+                        return
+                    }
+                    
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
                             alertActionsCancel( viewController: viewController,

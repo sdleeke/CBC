@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/VoiceBase.swift"
-            timestampString = "564774053.250839"
+            timestampString = "564791571.8510031"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "4740"
-            endingLineNumber = "4740"
+            startingLineNumber = "4747"
+            endingLineNumber = "4747"
             landmarkName = "changeText(text:startingRange:changes:completion:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/VoiceBase.swift"
-            timestampString = "564774053.251657"
+            timestampString = "564791571.851076"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "4566"
-            endingLineNumber = "4566"
+            startingLineNumber = "4573"
+            endingLineNumber = "4573"
             landmarkName = "addParagraphBreaks(showGapTimes:gapThreshold:tooClose:words:text:completion:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -42,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/VoiceBase.swift"
-            timestampString = "564774053.252121"
+            timestampString = "564791571.851137"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "4860"
-            endingLineNumber = "4860"
+            startingLineNumber = "4867"
+            endingLineNumber = "4867"
             landmarkName = "changeText(text:startingRange:changes:completion:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/VoiceBase.swift"
-            timestampString = "564774053.252593"
+            timestampString = "564791571.8511961"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "4849"
-            endingLineNumber = "4849"
+            startingLineNumber = "4856"
+            endingLineNumber = "4856"
             landmarkName = "changeText(text:startingRange:changes:completion:)"
             landmarkType = "7">
             <Locations>
@@ -106,11 +106,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "564774053.252982"
+            timestampString = "564791571.851259"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3025"
-            endingLineNumber = "3025"
+            startingLineNumber = "3053"
+            endingLineNumber = "3053"
             landmarkName = "changeText(interactive:makeVisible:text:startingRange:changes:completion:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -122,11 +122,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "564774053.253345"
+            timestampString = "564791571.851792"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1534"
-            endingLineNumber = "1534"
+            startingLineNumber = "1546"
+            endingLineNumber = "1546"
             landmarkName = "autoEdit()"
             landmarkType = "7">
             <Locations>
@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "564774053.25341"
+            timestampString = "564791571.852118"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3008"
-            endingLineNumber = "3008"
+            startingLineNumber = "3036"
+            endingLineNumber = "3036"
             landmarkName = "changeText(interactive:makeVisible:text:startingRange:changes:completion:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -186,11 +186,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/VoiceBase.swift"
-            timestampString = "564774053.253471"
+            timestampString = "564791571.852461"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "4551"
-            endingLineNumber = "4551"
+            startingLineNumber = "4558"
+            endingLineNumber = "4558"
             landmarkName = "masterChanges(interactive:longFormat:)"
             landmarkType = "7">
          </BreakpointContent>
