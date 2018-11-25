@@ -645,6 +645,7 @@ class FetchCodable<T:Codable> : Fetch<T>
     
     func delete()
     {
+        clear()
         fileSize = nil
 //        fileSize.value = nil
         fileSystemURL?.delete()

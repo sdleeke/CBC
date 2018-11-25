@@ -816,7 +816,7 @@ extension URL
             return nil
         }
         
-        fileSystemURL.delete()
+//        fileSystemURL.delete()
         
         do {
             try FileManager.default.copyItem(at: self, to: fileSystemURL)

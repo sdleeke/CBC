@@ -140,11 +140,11 @@ class MediaItem : NSObject
             totalCacheSize += notesHTML?.fileSize ?? 0
             totalCacheSize += notesTokens?.fileSize ?? 0
             
-            if #available(iOS 11.0, *) {
-                totalCacheSize += notesPDFText?.fileSize ?? 0
-            } else {
-                // Fallback on earlier versions
-            }
+//            if #available(iOS 11.0, *) {
+//                totalCacheSize += notesPDFText?.fileSize ?? 0
+//            } else {
+//                // Fallback on earlier versions
+//            }
 
             totalCacheSize += notesParagraphLengths?.fileSize ?? 0
             totalCacheSize += notesParagraphWords?.fileSize ?? 0
@@ -170,11 +170,11 @@ class MediaItem : NSObject
         notesHTML?.delete()
         notesTokens?.delete()
         
-        if #available(iOS 11.0, *) {
-            notesPDFText?.delete()
-        } else {
-            // Fallback on earlier versions
-        }
+//        if #available(iOS 11.0, *) {
+//            notesPDFText?.delete()
+//        } else {
+//            // Fallback on earlier versions
+//        }
         
         notesParagraphWords?.delete()
         notesParagraphLengths?.delete()
@@ -1135,11 +1135,11 @@ class MediaItem : NSObject
     var notesTokens:FetchCodable<[String:Int]>?
     {
         get {
-            if #available(iOS 11.0, *) {
-                return notesPDFTokens
-            } else {
+//            if #available(iOS 11.0, *) {
+//                return notesPDFTokens
+//            } else {
                 return notesHTMLTokens
-            }
+//            }
         }
     }
     
@@ -1256,7 +1256,7 @@ class MediaItem : NSObject
         let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "Notes Paragraph Lengths")
         
         fetch.fetch = {
-            guard let paragraphs = self.notesText?.components(separatedBy: "\n\n") else {
+            guard let paragraphs = self.notesParagraphs else {
                 return nil
             }
             
@@ -1284,7 +1284,7 @@ class MediaItem : NSObject
         let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes Paragraph Words")
         
         fetch.fetch = {
-            guard let paragraphs = self.notesText?.components(separatedBy: "\n\n") else {
+            guard let paragraphs = self.notesParagraphs else {
                 return nil
             }
             
@@ -1317,14 +1317,23 @@ class MediaItem : NSObject
         return fetch
     }()
     
+    var notesParagraphs:[String]?
+    {
+        get {
+            return notesText?.components(separatedBy: "\n\n").filter({ (string) -> Bool in
+                return !string.isEmpty
+            })
+        }
+    }
+    
     var notesText:String?
     {
         get {
-            if #available(iOS 11.0, *) {
-                return notesPDFText?.result
-            } else {
-                return notesHTML?.result?.html2String
-            }
+//            if #available(iOS 11.0, *) {
+//                return notesPDFText?.result
+//            } else {
+                return notesHTML?.result?.replacingOccurrences(of: "<p>", with: "").replacingOccurrences(of: "</p>", with: "\n\n").replacingOccurrences(of: "\n\n\n", with: "\n\n") // .html2String
+//            }
         }
     }
 
@@ -2167,129 +2176,149 @@ class MediaItem : NSObject
 //        }
 //    }
 //    
-    @available(iOS 11.0, *)
-    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = {
-        guard let mediaCode = self.mediaCode else {
-            return nil
-        }
-        
-        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "PDF Text Tokens")
-        
-        fetch.fetch = {
-            guard !Globals.shared.isRefreshing else {
-                return nil
-            }
-            
-            guard self.hasNotes else {
-                return nil
-            }
-
-            return self.notesPDFText?.result?.tokensAndCounts
-        }
-        
-        return fetch
-    }()
+//    @available(iOS 11.0, *)
+//    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = {
+//        guard let mediaCode = self.mediaCode else {
+//            return nil
+//        }
+//
+//        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "PDF Text Tokens")
+//
+//        fetch.fetch = {
+//            guard !Globals.shared.isRefreshing else {
+//                return nil
+//            }
+//
+//            guard self.hasNotes else {
+//                return nil
+//            }
+//
+//            return self.notesPDFText?.result?.tokensAndCounts
+//        }
+//
+//        return fetch
+//    }()
     
-    @available(iOS 11.0, *)
-    var fullNotesPDFHTML:String?
-    {
-        get {
-            guard let notesPDFHTML = notesPDFHTML else {
-                return nil
-            }
-            
-            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + "<br/>" + notesPDFHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
-        }
-    }
+//    @available(iOS 11.0, *)
+//    var fullNotesPDFHTML:String?
+//    {
+//        get {
+//            guard let notesPDFHTML = notesPDFHTML else {
+//                return nil
+//            }
+//
+//            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + "<br/>" + notesPDFHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
+//        }
+//    }
 
-    @available(iOS 11.0, *)
-    var notesPDFHTML:String?
-    {
-        get {
-            guard let body = notesPDFText?.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>") else {
-                return nil
-            }
-            return "<br/>" + body
-        }
-    }
+//    @available(iOS 11.0, *)
+//    var notesPDFHTML:String?
+//    {
+//        get {
+//            guard let body = notesPDFText?.result?.replacingOccurrences(of: "\n\n", with: "<br/><br/>") else {
+//                return nil
+//            }
+//            return "<br/>" + body
+//        }
+//    }
     
-    @available(iOS 11.0, *)
-    lazy var notesPDFText:FetchCodable<String>? = {
-        guard hasNotes else {
-            return nil
-        }
-        
-        guard let mediaCode = self.mediaCode else {
-            return nil
-        }
-        
-        let fetch = FetchCodable<String>(name: mediaCode + "." + "PDF Text")
-        
-        fetch.fetch = {
-            guard self.hasNotes else {
-                return nil
-            }
-
-            guard let pdf = self.notesURL?.pdf else {
-                return nil
-            }
-            
-            var documentText = String()
-            
-            let pageCount = pdf.pageCount
-            for i in 0 ..< pageCount {
-                var pageText = String()
-                
-                guard let page = pdf.page(at: i) else { continue }
-                guard let pageContent = page.attributedString else { continue }
-                
-                var topRange:Range<String.Index>?
-                
-                topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church, Southlake, Texas".lowercased())
-                
-                if topRange == nil {
-                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church www.countrysidebible.org".lowercased())
-                }
-                
-                if topRange == nil {
-                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church".lowercased())
-                }
-                
-                if topRange == nil {
-                    topRange = pageContent.string.lowercased().range(of: "Southlake Bible Church".lowercased())
-                }
-                
-                if let topRange = topRange {
-                    if let bottomRange = pageContent.string.lowercased().range(of: "Available online".lowercased()) {
-                        pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
-                    } else {
-                        pageText = String(pageContent.string[topRange.upperBound...])
-                    }
-                } else {
-                    pageText = pageContent.string
-                }
-                
-                var components = pageText.components(separatedBy: "\n").filter({ (string) -> Bool in
-                    return !string.isEmpty
-                })
-                
-                components.removeLast()
-                
-                var string = String()
-                
-                for component in components {
-                    string += !string.isEmpty ? "\n\n" + component : component
-                }
-                
-                documentText += !documentText.isEmpty ? " " + string : string
-            }
-
-            return documentText.count > 0 ? documentText : nil
-        }
-        
-        return fetch
-    }()
-        
+//    @available(iOS 11.0, *)
+//    lazy var notesPDFText:FetchCodable<String>? = {
+//        guard hasNotes else {
+//            return nil
+//        }
+//
+//        guard let mediaCode = self.mediaCode else {
+//            return nil
+//        }
+//
+//        let fetch = FetchCodable<String>(name: mediaCode + "." + "PDF Text")
+//
+//        fetch.fetch = {
+//            guard self.hasNotes else {
+//                return nil
+//            }
+//
+//            guard let pdf = self.notesURL?.pdf else {
+//                return nil
+//            }
+//
+//            var documentText = String()
+//
+//            let pageCount = pdf.pageCount
+//            for i in 0 ..< pageCount {
+//                var pageText = String()
+//
+//                guard let page = pdf.page(at: i) else {
+//                    continue
+//                }
+//
+//                guard let pageContent = page.attributedString else {
+//                    continue
+//                }
+//
+//                print(pageContent)
+//                print(pageContent.string)
+//
+//                var topRange:Range<String.Index>?
+//
+//                topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church, Southlake, Texas".lowercased())
+//
+//                if topRange == nil {
+//                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church www.countrysidebible.org".lowercased())
+//                }
+//
+//                if topRange == nil {
+//                    topRange = pageContent.string.lowercased().range(of: "Countryside Bible Church".lowercased())
+//                }
+//
+//                if topRange == nil {
+//                    topRange = pageContent.string.lowercased().range(of: "Southlake Bible Church".lowercased())
+//                }
+//
+//                if let topRange = topRange {
+//                    if let bottomRange = pageContent.string.lowercased().range(of: "Available online".lowercased()) {
+//                        pageText = String(pageContent.string[topRange.upperBound...bottomRange.lowerBound])
+//                    } else {
+//                        pageText = String(pageContent.string[topRange.upperBound...])
+//                    }
+//                } else {
+//                    pageText = pageContent.string
+//                }
+//
+//                print(pageText)
+//                var components = pageText.components(separatedBy: "\n").filter({ (string) -> Bool in
+//                    return !string.isEmpty
+//                })
+//
+//                print(components)
+//                components.removeLast() // Intended to get page number - but the first page may not work.
+//
+//                var string = String()
+//
+//                // YIKES - NOT ALL COMPONENTS (separated by \n) ARE A PARAGRAPH!!!
+//                for component in components {
+//                    if !string.isEmpty {
+//                        // This doesn't work as there are other terminators besides '.'
+//                        if string.last == "." {
+//                            string += "\n\n" + component
+//                        } else {
+//                            string += " " + component
+//                        }
+//                    } else {
+//                        string += component
+//                    }
+//                }
+//
+//                documentText += !documentText.isEmpty ? " " + string : string
+//            }
+//
+//            return documentText.count > 0 ? documentText : nil
+//        }
+//
+//        return fetch
+//    }()
+    
     lazy var searchMarkedFullNotesHTML:CachedString? = {
         return CachedString(index: nil)
     }()
@@ -2398,11 +2427,11 @@ class MediaItem : NSObject
     var hasNotesText:Bool
     {
         get {
-            if #available(iOS 11.0, *) {
-                return hasNotes && (notesName == Constants.Strings.Transcript)
-            } else {
+//            if #available(iOS 11.0, *) {
+//                return hasNotes && (notesName == Constants.Strings.Transcript)
+//            } else {
                 return hasNotesHTML && (notesName == Constants.Strings.Transcript)
-            }
+//            }
         }
     }
     
@@ -3871,15 +3900,15 @@ class MediaItem : NSObject
         }
 
         if hasNotes, notesName == Constants.Strings.Transcript {
-            if #available(iOS 11.0, *) {
-                transcript = AlertAction(title: "HTML Transcript", style: .default) {
-                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
-                        self?.notesPDFText?.load()
-                    }, completion: { [weak self] (data:Any?) in
-                        self?.view(viewController:viewController, bodyHTML:self?.notesPDFHTML)
-                    })
-                }
-            } else {
+//            if #available(iOS 11.0, *) {
+//                transcript = AlertAction(title: "HTML Transcript", style: .default) {
+//                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
+//                        self?.notesPDFText?.load()
+//                    }, completion: { [weak self] (data:Any?) in
+//                        self?.view(viewController:viewController, bodyHTML:self?.notesPDFHTML)
+//                    })
+//                }
+//            } else {
                 if self.hasNotesHTML {
                     transcript = AlertAction(title: "HTML Transcript", style: .default) {
                         process(viewController: viewController, work: { [weak self] () -> (Any?) in
@@ -3889,7 +3918,7 @@ class MediaItem : NSObject
                         })
                     }
                 }
-            }
+//            }
         }
 
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
@@ -4002,13 +4031,13 @@ class MediaItem : NSObject
         }
         
         if hasNotes, transcript != nil {
-            if #available(iOS 11.0, *) {
-                actions.append(transcript)
-            } else {
+//            if #available(iOS 11.0, *) {
+//                actions.append(transcript)
+//            } else {
                 if hasNotesHTML {
                     actions.append(transcript)
                 }
-            }
+//            }
         }
         
         actions.append(favorites)

@@ -700,7 +700,7 @@ func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool
                 indexString += "<a href=\"#\(counter)\">\(counter)</a>"
             }
             
-            indexString += "</div><br/>" // <br/>
+            indexString += "</div>" // <br/><br/>
         }
     }
     
@@ -3547,7 +3547,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, dismiss:Bool = true, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, dismiss:Bool = false, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
     guard let htmlString = htmlString else {
         return
@@ -3557,31 +3557,36 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool = true, medi
         return
     }
     
-    if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-        let popover = navigationController.viewControllers[0] as? WebViewController {
-        if dismiss {
-            Thread.onMainThread {
-                viewController.dismiss(animated: true, completion: nil)
-            }
-        }
-        
-        navigationController.modalPresentationStyle = style
-        
-        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-        
-        popover.navigationItem.title = title
-        
-        popover.search = true
-        popover.mediaItem = mediaItem
-        
-        popover.html.string = htmlString
-        popover.content = .html
-
-        popover.navigationController?.isNavigationBarHidden = false
-        
+    guard let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController else {
+        return
+    }
+    
+    guard let popover = navigationController.viewControllers[0] as? WebViewController else {
+            return
+    }
+    
+    if dismiss {
         Thread.onMainThread {
-            viewController.present(navigationController, animated: true, completion: nil)
+            viewController.dismiss(animated: true, completion: nil)
         }
+    }
+    
+    navigationController.modalPresentationStyle = style
+    
+    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+    
+    popover.navigationItem.title = title
+    
+    popover.search = true
+    popover.mediaItem = mediaItem
+    
+    popover.html.string = htmlString
+    popover.content = .html
+    
+    popover.navigationController?.isNavigationBarHidden = false
+    
+    Thread.onMainThread {
+        viewController.present(navigationController, animated: true, completion: nil)
     }
 }
 

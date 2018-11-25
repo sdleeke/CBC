@@ -512,6 +512,15 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.delegate = self
                     
+                    popover.actionTitle = Constants.Strings.Expanded_View
+                    popover.action = { (String) in
+                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                            return popover.stringTree?.html
+                        }, completion: { [weak self] (data:Any?) in
+                            presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                        })
+                    }
+                    
                     popover.purpose = .selectingWord
                     
                     popover.stringTree = StringTree()
@@ -534,7 +543,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         
                         popover.stringsFunction = {
                             // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                            return transcript.tokens?.map({ (word:String,count:Int) -> String in
+                            return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                                 return word
                             }).sorted()
                         }
@@ -650,7 +659,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         
                         popover.stringsFunction = {
                             // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                            return transcript.tokens?.map({ (word:String,count:Int) -> String in
+                            return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                                 return "\(word) (\(count))"
                             }).sorted()
                         }
@@ -1601,6 +1610,15 @@ class TextViewController : UIViewController
                                     
                                     popover.delegate = vc
                                     
+                                    popover.actionTitle = Constants.Strings.Expanded_View
+                                    popover.action = { (String) in
+                                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                                            return popover.stringTree?.html
+                                        }, completion: { [weak self] (data:Any?) in
+                                            presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                                        })
+                                    }
+
                                     popover.purpose = .selectingGapTime
                                     
                                     popover.stringTree = StringTree()
@@ -2438,26 +2456,45 @@ class TextViewController : UIViewController
             // Too close to the previous?
             if let lowerRange = lowerRange {
                 if (lowerRange.upperBound.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
-                    if interactive {
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                    } else {
-                        guard gap >= gapThreshold else {
-                            if !automatic {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                    self.updateBarButtons()
-                                }))
-                                
-                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                            }
-                            return
+//                    if interactive {
+//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                    } else {
+//                        guard gap >= gapThreshold else {
+//                            if !automatic {
+//                                var actions = [AlertAction]()
+//
+//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+//                                    self.updateBarButtons()
+//                                }))
+//
+//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
+//                            }
+//                            return
+//                        }
+//
+//                        operationQueue.addOperation { [weak self] in
+//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                        }
+//                    }
+                    
+                    if !interactive, gap < gapThreshold {
+                        if !automatic {
+                            var actions = [AlertAction]()
+                            
+                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                self.updateBarButtons()
+                            }))
+                            
+                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
                         }
-                        
-                        operationQueue.addOperation { [weak self] in
-                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                        }
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
+                    
+                    // This turns recursion into serial and avoids stack overflow.
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+
                     return
                 }
             } else {
@@ -2465,26 +2502,45 @@ class TextViewController : UIViewController
                 
                 // Too close to the start?
                 if (text.startIndex.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
-                    if interactive {
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                    } else {
-                        guard gap >= gapThreshold else {
-                            if !automatic {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                    self.updateBarButtons()
-                                }))
-                                
-                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                            }
-                            return
+//                    if interactive {
+//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                    } else {
+//                        guard gap >= gapThreshold else {
+//                            if !automatic {
+//                                var actions = [AlertAction]()
+//
+//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+//                                    self.updateBarButtons()
+//                                }))
+//
+//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
+//                            }
+//                            return
+//                        }
+//
+//                        operationQueue.addOperation { [weak self] in
+//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                        }
+//                    }
+                    
+                    if !interactive, gap < gapThreshold {
+                        if !automatic {
+                            var actions = [AlertAction]()
+                            
+                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                self.updateBarButtons()
+                            }))
+                            
+                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
                         }
-                        
-                        operationQueue.addOperation { [weak self] in
-                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                        }
+                        return
                     }
+                    
+                    // This turns recursion into serial and avoids stack overflow.
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    
                     return
                 }
             }
@@ -2496,26 +2552,45 @@ class TextViewController : UIViewController
             // Too close to the next?
             if let upperRange = upperRange {
                 if (range.upperBound.encodedOffset + tooClose) > upperRange.lowerBound.encodedOffset {
-                    if interactive {
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                    } else {
-                        guard gap >= gapThreshold else {
-                            if !automatic {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                    self.updateBarButtons()
-                                }))
-                                
-                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                            }
-                            return
+//                    if interactive {
+//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                    } else {
+//                        guard gap >= gapThreshold else {
+//                            if !automatic {
+//                                var actions = [AlertAction]()
+//
+//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+//                                    self.updateBarButtons()
+//                                }))
+//
+//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
+//                            }
+//                            return
+//                        }
+//
+//                        operationQueue.addOperation { [weak self] in
+//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                        }
+//                    }
+                    
+                    if !interactive, gap < gapThreshold {
+                        if !automatic {
+                            var actions = [AlertAction]()
+                            
+                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                self.updateBarButtons()
+                            }))
+                            
+                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
                         }
-                        
-                        operationQueue.addOperation { [weak self] in
-                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                        }
+                        return
                     }
+                    
+                    // This turns recursion into serial and avoids stack overflow.
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    
                     return
                 }
             } else {
@@ -2523,26 +2598,45 @@ class TextViewController : UIViewController
                 
                 // Too close to end?
                 if (range.lowerBound.encodedOffset + tooClose) > text.endIndex.encodedOffset {
-                    if interactive {
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                    } else {
-                        guard gap >= gapThreshold else {
-                            if !automatic {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                    self.updateBarButtons()
-                                }))
-                                
-                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                            }
-                            return
+//                    if interactive {
+//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                    } else {
+//                        guard gap >= gapThreshold else {
+//                            if !automatic {
+//                                var actions = [AlertAction]()
+//
+//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+//                                    self.updateBarButtons()
+//                                }))
+//
+//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
+//                            }
+//                            return
+//                        }
+//
+//                        operationQueue.addOperation { [weak self] in
+//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+//                        }
+//                    }
+                    
+                    if !interactive, gap < gapThreshold {
+                        if !automatic {
+                            var actions = [AlertAction]()
+                            
+                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                                self.updateBarButtons()
+                            }))
+                            
+                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
                         }
-                        
-                        operationQueue.addOperation { [weak self] in
-                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-                        }
+                        return
                     }
+                    
+                    // This turns recursion into serial and avoids stack overflow.
+                    operationQueue.addOperation { [weak self] in
+                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    }
+                    
                     return
                 }
             }

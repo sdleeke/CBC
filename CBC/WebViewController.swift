@@ -444,17 +444,24 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
 
+                popover.actionTitle = Constants.Strings.Expanded_View
+                popover.action = { (String) in
+                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                        return popover.stringTree?.html
+                    }, completion: { [weak self] (data:Any?) in
+                        presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    })
+                }
+                
                 popover.stringTree = StringTree()
 
-                if bodyHTML != nil {
-                    popover.navigationItem.title = title // Constants.Strings.Word_Picker
-                    
-                    popover.stringsFunction = {
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return word
-                        }).sorted()
-                    }
+                popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
+                
+                popover.stringsFunction = {
+                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                    return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return word
+                    }).sorted()
                 }
 
                 present(navigationController, animated: true, completion: nil)

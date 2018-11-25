@@ -35,6 +35,58 @@ class StringTree
         
     }
     
+    var html : String?
+    {
+        get {
+            var bodyHTML = "<!DOCTYPE html>"
+            
+            bodyHTML += "<html><body>"
+            
+            guard let roots = root?.stringNodes else {
+                bodyHTML += "</body></html>"
+                return bodyHTML
+            }
+            
+            var total = 0
+            for root in roots {
+                if let count = root.htmlWords(nil)?.count {
+                    total += count
+                }
+            }
+            bodyHTML += "<p>Index to \(total) Words</p>"
+            
+            bodyHTML += "<table><tr>"
+            
+            for root in roots {
+                if let string = root.string {
+                    bodyHTML += "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
+                }
+            }
+            
+            bodyHTML += "</tr></table>"
+            
+            bodyHTML += "<table>"
+            
+            for root in roots {
+                if let rows = root.htmlWords(nil) {
+                    if let string = root.string {
+                        bodyHTML += "<tr><td>" + "<br/>" +  "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
+                    }
+                    
+                    for row in rows {
+                        bodyHTML += "<tr>" + row + "</tr>"
+                    }
+                }
+            }
+            
+            bodyHTML += "</table>"
+
+            bodyHTML += "</body></html>"
+            
+            return insertHead(bodyHTML,fontSize: Constants.FONT_SIZE)
+        }
+    }
+    
     func build(strings:[String]?)
     {
         guard !building else {

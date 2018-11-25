@@ -1383,7 +1383,7 @@ class VoiceBase {
     }
     
     // Make thread safe?
-    var tokens : [String:Int]?
+    var tokensAndCounts : [String:Int]?
     {
         get {
             guard let words = words else {
@@ -1393,6 +1393,7 @@ class VoiceBase {
             var tokens = [String:Int]()
             
             for word in words {
+                // This isn't going to handle Greek or Hebrew letters.
                 if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty && CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:".")).isEmpty {
                     if let count = tokens[text] {
                         tokens[text] = count + 1
@@ -1531,7 +1532,7 @@ class VoiceBase {
     }
     
     deinit {
-        
+        operationQueue.cancelAllOperations()
     }
     
     func createBody(parameters: [String: String],boundary: String) -> NSData
@@ -4428,13 +4429,16 @@ class VoiceBase {
     
     func preambles() -> [String]?
     {
-        var preambles = ["verse","verses","chapter","chapters"]
-        
-        preambles.append("through")
-        preambles.append("to")
-        preambles.append("and")
+        let preambles = ["verse","verses","chapter","chapters"]
         
         return preambles.count > 0 ? preambles : nil
+    }
+
+    func continuations() -> [String]?
+    {
+        let continuations = ["through","to","and"]
+        
+        return continuations.count > 0 ? continuations : nil
     }
     
     func masterChanges(interactive:Bool, longFormat:Bool) -> [String:[String:String]]?
@@ -4452,6 +4456,10 @@ class VoiceBase {
         }
         
         guard let preambles = preambles() else {
+            return nil
+        }
+        
+        guard let continuations = continuations() else {
             return nil
         }
         
@@ -4560,6 +4568,27 @@ class VoiceBase {
             }
         }
 
+        for number in 1...maxNumber {
+            guard !Constants.singleNumbers.values.contains(number.description) else {
+                continue
+            }
+            
+            let value = number.description
+            guard let keys = numbersToText[value] else {
+                continue
+            }
+            
+            for key in keys {
+                for context in continuations {
+                    if changes[context] == nil {
+                        changes[context] = ["\(context) " + key:"\(context) " + value]
+                    } else {
+                        changes[context]?["\(context) " + key] = "\(context) " + value
+                    }
+                }
+            }
+        }
+        
         return changes.count > 0 ? changes : nil
     }
     

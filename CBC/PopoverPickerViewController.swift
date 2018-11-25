@@ -297,58 +297,58 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
         switch purpose {
         case .selectingAction:
             switch string {
-            case Constants.Strings.Expanded_View:
-                process(viewController: self, work: { [weak self] () -> (Any?) in
-                    var bodyHTML = "<!DOCTYPE html>"
-                    
-                    bodyHTML = bodyHTML + "<html><body>"
-                    
-                    if let roots = self?.stringTree?.root?.stringNodes {
-                        var total = 0
-                        for root in roots {
-                            if let count = root.htmlWords(nil)?.count {
-                                total += count
-                            }
-                        }
-                        bodyHTML = bodyHTML + "<p>Index to \(total) Words</p>"
+//            case Constants.Strings.Expanded_View:
+//                process(viewController: self, work: { [weak self] () -> (Any?) in
+//                    var bodyHTML = "<!DOCTYPE html>"
+//
+//                    bodyHTML = bodyHTML + "<html><body>"
+//
+//                    if let roots = self?.stringTree?.root?.stringNodes {
+//                        var total = 0
+//                        for root in roots {
+//                            if let count = root.htmlWords(nil)?.count {
+//                                total += count
+//                            }
+//                        }
+//                        bodyHTML = bodyHTML + "<p>Index to \(total) Words</p>"
+//
+//                        bodyHTML = bodyHTML + "<table><tr>"
+//
+//                        for root in roots {
+//                            if let string = root.string {
+//                                bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
+//                            }
+//                        }
+//
+//                        bodyHTML = bodyHTML + "</tr></table>"
+//
+//                        bodyHTML = bodyHTML + "<table>"
+//
+//                        for root in roots {
+//                            if let rows = root.htmlWords(nil) {
+//                                if let string = root.string {
+//                                    bodyHTML = bodyHTML + "<tr><td>" + "<br/>" +  "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
+//                                }
+//
+//                                for row in rows {
+//                                    bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
+//                                }
+//                            }
+//                        }
+//
+//                        bodyHTML = bodyHTML + "</table>"
+//                    }
+//
+//                    bodyHTML = bodyHTML + "</body></html>"
+//
+//                    return bodyHTML
+//                }, completion: { [weak self] (data:Any?) in
+//                    if let vc = self {
+//                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//                    }
+//                })
+//                break
 
-                        bodyHTML = bodyHTML + "<table><tr>"
-                        
-                        for root in roots {
-                            if let string = root.string {
-                                bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
-                            }
-                        }
-                        
-                        bodyHTML = bodyHTML + "</tr></table>"
-                        
-                        bodyHTML = bodyHTML + "<table>"
-                        
-                        for root in roots {
-                            if let rows = root.htmlWords(nil) {
-                                if let string = root.string {
-                                    bodyHTML = bodyHTML + "<tr><td>" + "<br/>" +  "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
-                                }
-                                
-                                for row in rows {
-                                    bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
-                                }
-                            }
-                        }
-                        
-                        bodyHTML = bodyHTML + "</table>"
-                    }
-                    
-                    bodyHTML = bodyHTML + "</body></html>"
-                    
-                    return bodyHTML
-                }, completion: { [weak self] (data:Any?) in
-                    if let vc = self {
-                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                    }
-                })
-                break
-                
             default:
                 break
             }
@@ -457,7 +457,7 @@ class PopoverPickerViewController : UIViewController
     {
         var actionMenu = [String]()
         
-        actionMenu.append(Constants.Strings.Expanded_View)
+//        actionMenu.append(Constants.Strings.Expanded_View)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -821,10 +821,10 @@ class PopoverPickerViewController : UIViewController
             } else
             
             if stringsFunction != nil {
-                var strings : [String]?
+//                var strings : [String]?
                 
                 process(viewController: self, work: { [weak self] () -> (Any?) in
-                    strings = self?.stringsFunction?()
+                    let strings = self?.stringsFunction?()
                     
                     self?.stringTree?.build(strings: strings)
 

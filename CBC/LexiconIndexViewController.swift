@@ -110,6 +110,15 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.delegate = self
                 
+                popover.actionTitle = Constants.Strings.Expanded_View
+                popover.action = { (String) in
+                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                        return popover.stringTree?.html
+                    }, completion: { [weak self] (data:Any?) in
+                        presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    })
+                }
+
                 popover.stringTree = StringTree(incremental: true)
                 popover.strings = mediaListGroupSort?.lexicon?.tokens
                 
@@ -121,147 +130,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             process(viewController: self, work: { [weak self] () -> (Any?) in
                 // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
                 // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
-                
-                var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</body></html>", with: "") //
-                
-                bodyHTML = bodyHTML + "<html><body>"
-                
-                var wordsHTML = ""
-                var indexHTML = ""
-                
-                if let words = self?.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
-                    return lhs < rhs
-                }) {
-                    var roots = [String:Int]()
-                    
-                    var keys : [String] {
-                        get {
-                            return roots.keys.sorted()
-                        }
-                    }
-                    
-                    words.forEach({ (word:String) in
-                        let key = String(word[..<String.Index(encodedOffset: 1)])
-                        if let count = roots[key] {
-                            roots[key] = count + 1
-                        } else {
-                            roots[key] = 1
-                        }
-                    })
-                    
-                    bodyHTML += "<br/>"
-                    
-//                    bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
-                    bodyHTML = bodyHTML + "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-                    
-//                    indexHTML = "<table>"
-//
-//                    indexHTML += "<tr>"
-                    
-                    var index : String?
-                    
-                    for root in roots.keys.sorted() {
-                        let link = "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=\"#words\(root)\">\(root)</a>"
-                        index = ((index != nil) ? index! + " " : "") + link
-                    }
-                    
-                    indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
-                    
-                    if let index = index {
-                        indexHTML += index + "<br/>"
-                    }
-
-//                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
-//                    for root in roots.keys.sorted() {
-//                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
-//                    }
-                    
-//                    indexHTML += "</tr>"
-//
-//                    indexHTML += "</table>"
-
-                    indexHTML += "<br/>"
-
-                    wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
-                    
-                    wordsHTML += "<div class=\"index\">"
-                    
-                    wordsHTML += "<ul class=\"words\">"
-
-//                    wordsHTML += "<tr><td></td></tr>"
-
-//                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
-
-                    var section = 0
-                    
-//                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-                    
-                    wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-                    
-                    for word in words {
-                        let first = String(word[..<String.Index(encodedOffset: 1)])
-
-                        if first != keys[section] {
-                            // New Section
-                            section += 1
-//                            wordsHTML += "<tr><td></td></tr>"
-
-//                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-
-                            wordsHTML += "</ul>"
-                            
-                            wordsHTML += "<br/>"
-                            
-                            wordsHTML += "<ul class=\"words\">"
-                            
-                            wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-                        }
-                        
-//                        wordsHTML += "<tr><td>" + word + "</td></tr>"
-                        
-//                        wordsHTML += "<li>" + word + "</li>"
-                        wordsHTML += "<li>"
-                        wordsHTML += word
-                        
-                        // Word Frequency and Links Back to Documents
-//                        if let entries = self?.lexicon?.words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
-//                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
-//                        }) {
-//                            var count = 0
-//                            for entry in entries {
-//                                count += entry.value
-//                            }
-//                            wordsHTML += " (\(count))"
-//
-//                            wordsHTML += "<ul>"
-//                            var i = 1
-//                            for entry in entries {
-//                                if let tag = entry.key.title?.asTag {
-//                                    wordsHTML += "<li class\"back\">"
-//                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
-//                                    wordsHTML += "</li>"
-//                                }
-//                                i += 1
-//                            }
-//                            wordsHTML += "</ul>"
-//                        }
-                        
-                        wordsHTML += "</li>"
-                    }
-
-                    wordsHTML += "</ul>"
-
-                    wordsHTML += "</div>"
-
-                    wordsHTML += "</div>"
-                }
-                
-                bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
-                
-                return bodyHTML
+                return self?.lexicon?.wordsHTML
             }, completion: { (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
-                presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+                presentHTMLModal(viewController: self, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
             })
             break
             
@@ -1102,6 +974,10 @@ class LexiconIndexViewController : UIViewController
         wordsTableViewController.selectedText = searchText
 
         updateSearchResults()
+
+        Thread.onMainThread {
+            self.updateUI()
+        }
     }
     
     override func viewDidAppear(_ animated: Bool)

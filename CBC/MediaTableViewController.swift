@@ -1541,20 +1541,30 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                break
                 
             case Constants.Strings.View_List:
-                if let string = Globals.shared.media.active?.html?.string {
-                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: string)
-                } else {
-                    process(viewController: self, work: { [weak self] () -> (Any?) in
-                        if Globals.shared.media.active?.html?.string == nil {
-                            Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
-                        }
-                        return Globals.shared.media.active?.html?.string
-                    }, completion: { [weak self] (data:Any?) in
-                        if let vc = self {
-                            presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
-                        }
-                    })
-                }
+                process(viewController: self, work: { [weak self] () -> (Any?) in
+                    if Globals.shared.media.active?.html?.string == nil {
+                        Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
+                    }
+                    return Globals.shared.media.active?.html?.string
+                }, completion: { [weak self] (data:Any?) in
+                    if let vc = self {
+                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+                    }
+                })
+//                if let string = Globals.shared.media.active?.html?.string {
+//                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: string)
+//                } else {
+//                    process(viewController: self, work: { [weak self] () -> (Any?) in
+//                        if Globals.shared.media.active?.html?.string == nil {
+//                            Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
+//                        }
+//                        return Globals.shared.media.active?.html?.string
+//                    }, completion: { [weak self] (data:Any?) in
+//                        if let vc = self {
+//                            presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+//                        }
+//                    })
+//                }
                 break
 
             default:
