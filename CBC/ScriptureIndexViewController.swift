@@ -130,7 +130,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
+                mediaItem?.audioDownload?.delete(block:true)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:

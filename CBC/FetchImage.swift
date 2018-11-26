@@ -94,11 +94,12 @@ class FetchImage
         }
     }
     
-    func delete()
+    func delete(block:Bool)
     {
+        fetch?.clear()
         fileSize = nil
 //        fileSize.value = nil
-        fileSystemURL?.delete()
+        fileSystemURL?.delete(block:block)
     }
     
     func retrieveIt() -> UIImage?
@@ -224,7 +225,7 @@ class FetchCachedImage : FetchImage
         }
     }
     
-    func clearCache()
+    func clearImageCache()
     {
         FetchCachedImage.cache.clear()
     }

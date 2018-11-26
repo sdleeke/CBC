@@ -65,11 +65,11 @@ class Document : NSObject
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {
-                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                                    doc.insert(page, at: 0)
+                                if let pdf = data?.pdf, let page = pageImage.pdf {
+                                    pdf.insert(page, at: 0)
                                     
-                                    if let docData = doc.dataRepresentation() {
-                                        data = docData
+                                    if let pdfData = pdf.data {
+                                        data = pdfData
                                     }
                                 }
                             }
@@ -79,11 +79,11 @@ class Document : NSObject
                             let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:seriesImageFactor) {
-                                if let docData = data, let doc = PDFDocument(data: docData), let page = PDFPage(image: pageImage) {
-                                    doc.insert(page, at: 0)
+                                if let pdf = data?.pdf, let page = pageImage.pdf {
+                                    pdf.insert(page, at: 0)
                                     
-                                    if let docData = doc.dataRepresentation() {
-                                        data = docData
+                                    if let pdfData = pdf.data {
+                                        data = pdfData
                                     }
                                 }
                             }

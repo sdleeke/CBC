@@ -643,12 +643,12 @@ class FetchCodable<T:Codable> : Fetch<T>
 //        }
 //    }
     
-    func delete()
+    func delete(block:Bool)
     {
         clear()
         fileSize = nil
 //        fileSize.value = nil
-        fileSystemURL?.delete()
+        fileSystemURL?.delete(block:block)
     }
     
     // name MUST be unique to ever INSTANCE, not just the class!

@@ -11,10 +11,10 @@ import UIKit
 
 class MediaList // : Sequence
 {
-    func clearCache()
+    func clearCache(block:Bool)
     {
         list?.forEach({ (mediaItem) in
-            mediaItem.clearCache()
+            mediaItem.clearCache(block:block)
         })
     }
     
@@ -291,7 +291,7 @@ class MediaList // : Sequence
             self.list?.forEach({ (mediaItem) in
                 // Could be audio, video, slides, or notes
                 mediaItem.downloads.values.forEach({ (download) in
-                    download.delete()
+                    download.delete(block:true)
                 })
             })
         }
@@ -303,7 +303,7 @@ class MediaList // : Sequence
             Alerts.shared.alert(title: "Deleting All Audio Downloads", message: "You will be notified when it is complete.")
             
             self.list?.forEach({ (mediaItem) in
-                mediaItem.audioDownload?.delete()
+                mediaItem.audioDownload?.delete(block:true)
             })
             
             if self.audioDownloaded == 0 {
@@ -318,7 +318,7 @@ class MediaList // : Sequence
             Alerts.shared.alert(title: "Deleting All Video Downloads", message: "You will be notified when it is complete.")
             
             self.list?.forEach({ (mediaItem) in
-                mediaItem.videoDownload?.delete()
+                mediaItem.videoDownload?.delete(block:true)
             })
             
             if self.videoDownloaded == 0 {

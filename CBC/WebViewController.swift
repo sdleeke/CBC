@@ -69,7 +69,8 @@ class HTML {
                 if let url = fileURL {
 //                    let fileManager = FileManager.default
 
-                    url.delete()
+                    // Why delete?  Not necessary.
+//                    url.delete(block:true)
 //                    if (fileManager.fileExists(atPath: url.path)){
 //                        do {
 //                            try fileManager.removeItem(at: url)
@@ -588,7 +589,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Refresh_Document:
-            mediaItem?.download?.delete()
+            mediaItem?.download?.delete(block:true)
             
             wkWebView?.isHidden = true
             wkWebView?.removeFromSuperview()

@@ -1247,7 +1247,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
+                mediaItem?.audioDownload?.delete(block:true)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:
@@ -1703,7 +1703,8 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 
                 //Get documents directory URL
                 if let destinationURL = filename.fileSystemURL {
-                    destinationURL.delete()
+                    // Why delete?  Why not just let it be overwritten?
+                    destinationURL.delete(block:true)
 //                    // Check if file exist
 //                    if (fileManager.fileExists(atPath: destinationURL.path)){
 //                        do {
@@ -1715,7 +1716,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                     
                     do {
                         try fileManager.copyItem(at: location, to: destinationURL)
-                        location.delete()
+                        location.delete(block:true)
 //                        try fileManager.removeItem(at: location)
                     } catch let error {
                         print("failed to copy new json file to Documents: \(error.localizedDescription)")

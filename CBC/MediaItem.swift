@@ -159,16 +159,16 @@ class MediaItem : NSObject
         return downloads[purpose]?.fileSize ?? 0
     }
     
-    func clearCache()
+    func clearCache(block:Bool)
     {
-        notesDownload?.delete()
-        slidesDownload?.delete()
+        notesDownload?.delete(block:block)
+        slidesDownload?.delete(block:block)
         
-        posterImage?.delete()
-        seriesImage?.delete()
+        posterImage?.delete(block:block)
+        seriesImage?.delete(block:block)
         
-        notesHTML?.delete()
-        notesTokens?.delete()
+        notesHTML?.delete(block:block)
+        notesTokens?.delete(block:block)
         
 //        if #available(iOS 11.0, *) {
 //            notesPDFText?.delete()
@@ -176,9 +176,9 @@ class MediaItem : NSObject
 //            // Fallback on earlier versions
 //        }
         
-        notesParagraphWords?.delete()
-        notesParagraphLengths?.delete()
-        notesTokensMarkMismatches?.delete()
+        notesParagraphWords?.delete(block:block)
+        notesParagraphLengths?.delete(block:block)
+        notesTokensMarkMismatches?.delete(block:block)
     }
     
     @objc func downloaded(_ notification : NSNotification)
@@ -295,7 +295,7 @@ class MediaItem : NSObject
     @objc func freeMemory()
     {
         // What are the side effects of this?
-        seriesImage?.clearCache()
+        seriesImage?.clearImageCache()
         
         documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
 
@@ -3609,7 +3609,7 @@ class MediaItem : NSObject
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                 () -> Void in
-                self.clearCache()
+                self.clearCache(block:true)
                 Alerts.shared.alert(title:"Cache Cleared", message: self.text)
             })
             alertActions.append(yesAction)
@@ -3652,7 +3652,7 @@ class MediaItem : NSObject
 
                     let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                         () -> Void in
-                        audioDownload.delete()
+                        audioDownload.delete(block:true)
                     })
                     alertActions.append(yesAction)
                     
@@ -3676,7 +3676,7 @@ class MediaItem : NSObject
                         
                         let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                             () -> Void in
-                            self.audioDownload?.delete()
+                            self.audioDownload?.delete(block:true)
                         })
                         alertActions.append(yesAction)
                         

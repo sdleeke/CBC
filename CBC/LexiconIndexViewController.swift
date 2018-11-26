@@ -299,7 +299,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
+                mediaItem?.audioDownload?.delete(block:true)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:
@@ -974,10 +974,6 @@ class LexiconIndexViewController : UIViewController
         wordsTableViewController.selectedText = searchText
 
         updateSearchResults()
-
-        Thread.onMainThread {
-            self.updateUI()
-        }
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -988,6 +984,9 @@ class LexiconIndexViewController : UIViewController
             wordsTableViewController.activityIndicator.startAnimating()
             lexicon?.build()
         }
+        
+        // Necessary to get the token word list to extend fully.
+        setTableViewHeightConstraint(change:0)
     }
     
     override func viewWillDisappear(_ animated: Bool)

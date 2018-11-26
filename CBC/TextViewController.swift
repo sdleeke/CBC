@@ -1407,7 +1407,9 @@ class TextViewController : UIViewController
                                 }
                             }))
                             
-                            actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+                            actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                                self?.updateBarButtons()
+                            }))
 
                             Alerts.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
                         }
@@ -1455,6 +1457,11 @@ class TextViewController : UIViewController
                         })
                     })
                     alert.addAction(noAction)
+                    
+                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+                        self?.updateBarButtons()
+                    })
+                    alert.addAction(cancelAction)
                     
                     Thread.onMainThread {
                         self?.present(alert, animated: true, completion: nil)
@@ -1511,7 +1518,9 @@ class TextViewController : UIViewController
                     }
                 }))
                 
-                actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+                actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                    self?.updateBarButtons()
+                }))
                 
                 alert(viewController:vc,title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
             } else {
@@ -1757,7 +1766,9 @@ class TextViewController : UIViewController
                                     }
                                 }))
                                 
-                                actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+                                actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                                    self?.updateBarButtons()
+                                }))
                                 
                                 Alerts.shared.alert(title:"Make Changes Visible?", message:nil, actions:actions)
                             }
@@ -1772,7 +1783,9 @@ class TextViewController : UIViewController
                                 makeVisible(showGapTimes: false)
                             }))
                             
-                            actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+                            actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
+                                self?.updateBarButtons()
+                            }))
                             
                             Alerts.shared.alert(title:"Show Gap Times?", message:nil, actions:actions)
                         }
@@ -1821,6 +1834,11 @@ class TextViewController : UIViewController
                     })
                     alert.addAction(noAction)
                     
+                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+                        self?.updateBarButtons()
+                    })
+                    alert.addAction(cancelAction)
+
                     Thread.onMainThread {
                         self?.present(alert, animated: true, completion: nil)
                     }

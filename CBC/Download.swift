@@ -166,7 +166,7 @@ extension Download : URLSessionDownloadDelegate
         
         do {
             if (state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
-                fileSystemURL.delete()
+                fileSystemURL.delete(block:true)
 //                if (fileManager.fileExists(atPath: fileSystemURL.path)){
 //                    do {
 //                        try fileManager.removeItem(at: fileSystemURL)
@@ -179,7 +179,7 @@ extension Download : URLSessionDownloadDelegate
                 
                 try fileManager.copyItem(at: location, to: fileSystemURL)
                 
-                location.delete()
+                location.delete(block:true)
 //                try fileManager.removeItem(at: location)
                 
                 state = .downloaded
@@ -633,14 +633,14 @@ class Download : NSObject
 //        }
 //    }
     
-    func delete()
+    func delete(block:Bool)
     {
         guard state == .downloaded else {
             return
         }
         
         fileSize = nil
-        fileSystemURL?.delete()
+        fileSystemURL?.delete(block:block)
         
 //        // Check if file exists and if so, delete it.
 //        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
@@ -664,7 +664,7 @@ class Download : NSObject
             break
             
         case .downloaded:
-            delete()
+            delete(block:true)
             break
             
         default:

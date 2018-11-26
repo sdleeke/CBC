@@ -222,24 +222,6 @@ extension UIApplication
     }
 }
 
-extension UIImage
-{
-    func resize(scale:CGFloat) -> UIImage?
-    {
-        let toScaleSize = CGSize(width: scale * self.size.width, height: scale * self.size.height)
-        
-        UIGraphicsBeginImageContextWithOptions(toScaleSize, true, self.scale)
-        
-        self.draw(in: CGRect(x: 0, y: 0, width: scale * self.size.width, height: scale * self.size.height))
-        
-        let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
-        
-        UIGraphicsEndImageContext()
-        
-        return scaledImage
-    }
-}
-
 extension UIBarButtonItem
 {
     func setTitleTextAttributes(_ attributes:[NSAttributedStringKey:UIFont])
@@ -877,24 +859,34 @@ extension URL
         }
     }
     
-    func delete()
+    func delete(block:Bool)
     {
-        // Check if file exists and if so, delete it.
-        
-        guard exists else {
-            print("item doesn't exist: \(self.absoluteString)")
-            return
+        let op = {
+            // Check if file exists and if so, delete it.
+            
+            guard let fileSystemURL = self.fileSystemURL else {
+                print("fileSystemURL doesn't exist for: \(self.absoluteString)")
+                return
+            }
+            
+            guard fileSystemURL.exists else {
+                print("item doesn't exist: \(self.absoluteString)")
+                return
+            }
+            
+            do {
+                try FileManager.default.removeItem(at: fileSystemURL)
+            } catch let error {
+                print("failed to delete \(self.absoluteString): \(error.localizedDescription)")
+            }
         }
         
-        guard let fileSystemURL = fileSystemURL else {
-            print("fileSystemURL doesn't exist for: \(self.absoluteString)")
-            return
-        }
-        
-        do {
-            try FileManager.default.removeItem(at: fileSystemURL)
-        } catch let error {
-            print("failed to delete \(self.absoluteString): \(error.localizedDescription)")
+        if block {
+            op()
+        } else {
+            DispatchQueue.global(qos: .background).async {
+                op()
+            }
         }
     }
     
@@ -934,6 +926,29 @@ extension UIImage
         }
         
         return self
+    }
+    
+    func resize(scale:CGFloat) -> UIImage?
+    {
+        let toScaleSize = CGSize(width: scale * self.size.width, height: scale * self.size.height)
+        
+        UIGraphicsBeginImageContextWithOptions(toScaleSize, true, self.scale)
+        
+        self.draw(in: CGRect(x: 0, y: 0, width: scale * self.size.width, height: scale * self.size.height))
+        
+        let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
+        
+        UIGraphicsEndImageContext()
+        
+        return scaledImage
+    }
+    
+    @available(iOS 11.0, *)
+    var pdf : PDFPage?
+    {
+        get {
+            return PDFPage(image: self)
+        }
     }
 }
 
@@ -1004,6 +1019,25 @@ extension Data
     {
         get {
             return UIImage(data: self)
+        }
+    }
+    
+    @available(iOS 11.0, *)
+    var pdf : PDFDocument?
+    {
+        get {
+            return !self.isEmpty ? PDFDocument(data: self) : nil
+        }
+    }
+}
+
+@available(iOS 11.0, *)
+extension PDFDocument
+{
+    var data : Data?
+    {
+        get {
+            return self.dataRepresentation()
         }
     }
 }

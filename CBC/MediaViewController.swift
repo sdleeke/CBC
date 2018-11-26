@@ -223,7 +223,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
                 (action : UIAlertAction!) -> Void in
-                self.selectedMediaItem?.audioDownload?.delete()
+                self.selectedMediaItem?.audioDownload?.delete(block:true)
             })
             alert.addAction(yesAction)
             
@@ -398,7 +398,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
+                mediaItem?.audioDownload?.delete(block:true)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:

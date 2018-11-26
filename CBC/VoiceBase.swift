@@ -997,7 +997,7 @@ class VoiceBase {
 
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    self?.filename?.fileSystemURL?.delete()
+                    self?.filename?.fileSystemURL?.delete(block:true)
                     self?._transcript?.save16(filename: self?.filename)
                     
 //                    if let destinationURL = self?.filename?.fileSystemURL {
@@ -1015,7 +1015,7 @@ class VoiceBase {
             } else {
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     if let destinationURL = self?.filename?.fileSystemURL {
-                        destinationURL.delete()
+                        destinationURL.delete(block:true)
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -1283,7 +1283,7 @@ class VoiceBase {
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
 
-                    destinationURL.delete()
+                    destinationURL.delete(block:true)
                     
                     do {
                         try mediaPropertyList?.write(to: destinationURL)
@@ -1291,7 +1291,7 @@ class VoiceBase {
                         print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
                     }
                 } else {
-                    destinationURL.delete()
+                    destinationURL.delete(block:true)
                 }
             }
         }
@@ -3250,7 +3250,7 @@ class VoiceBase {
                 if self?._transcriptSegments != nil {
                     if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
                         let filename = filename + ".segments"
-                        filename.fileSystemURL?.delete()
+                        filename.fileSystemURL?.delete(block:true)
                         self?._transcriptSegments?.save16(filename:filename)
 //                        do {
 //                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
@@ -3263,20 +3263,20 @@ class VoiceBase {
 
                     //Legacy clean-up
                     if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-                        destinationURL.delete()
+                        destinationURL.delete(block:true)
                     } else {
                         print("failed to get destinationURL")
                     }
                 } else {
                     if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-                        destinationURL.delete()
+                        destinationURL.delete(block:true)
                     } else {
                         print("failed to get destinationURL")
                     }
 
                     //Legacy clean-up
                     if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-                        destinationURL.delete()
+                        destinationURL.delete(block:true)
                     } else {
                         print("failed to get destinationURL")
                     }
@@ -4559,7 +4559,8 @@ class VoiceBase {
                     } else {
                         
                     }
-                }            }
+                }
+            }
         }
         
         if !interactive {
@@ -4569,7 +4570,7 @@ class VoiceBase {
         }
 
         for number in 1...maxNumber {
-            guard !Constants.singleNumbers.values.contains(number.description) else {
+            if !interactive, Constants.singleNumbers.values.contains(number.description) {
                 continue
             }
             
@@ -4588,7 +4589,7 @@ class VoiceBase {
                 }
             }
         }
-        
+//        print(changes)
         return changes.count > 0 ? changes : nil
     }
     
