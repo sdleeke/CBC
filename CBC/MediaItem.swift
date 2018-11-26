@@ -1320,9 +1320,11 @@ class MediaItem : NSObject
     var notesParagraphs:[String]?
     {
         get {
-            return notesText?.components(separatedBy: "\n\n").filter({ (string) -> Bool in
+            let paragraphs = notesText?.components(separatedBy: "\n\n").filter({ (string) -> Bool in
                 return !string.isEmpty
             })
+            
+            return paragraphs
         }
     }
     
