@@ -996,7 +996,8 @@ class VoiceBase {
             }
 
             if _transcript != nil {
-                DispatchQueue.global(qos: .background).async { [weak self] in
+//                DispatchQueue.global(qos: .background).async { [weak self] in
+                fileQueue.addOperation { [weak self] in
                     self?.filename?.fileSystemURL?.delete(block:true)
                     self?._transcript?.save16(filename: self?.filename)
                     
@@ -1013,7 +1014,8 @@ class VoiceBase {
 //                    }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async { [weak self] in
+//                DispatchQueue.global(qos: .background).async { [weak self] in
+                fileQueue.addOperation { [weak self] in
                     if let destinationURL = self?.filename?.fileSystemURL {
                         destinationURL.delete(block:true)
                     } else {
@@ -1279,7 +1281,8 @@ class VoiceBase {
                 return
             }
             
-            DispatchQueue.global(qos: .background).async { [weak self] in
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+            fileQueue.addOperation { [weak self] in
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
 
@@ -1530,6 +1533,14 @@ class VoiceBase {
             }
         }
     }
+    
+    lazy var fileQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "VoiceBase:Files" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
     
     deinit {
         operationQueue.cancelAllOperations()
@@ -2771,6 +2782,7 @@ class VoiceBase {
 //        })
 //    }()
     
+    // Replace with Fetch?
     private var _transcriptSegmentArrays:[[String]]? // Make thread safe?
     {
         didSet {
@@ -2830,6 +2842,7 @@ class VoiceBase {
         return transcriptSegmentTokensTimes?[token]
     }
     
+    // Replace with Fetch?
     private var _transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
     {
         didSet {
@@ -2946,6 +2959,7 @@ class VoiceBase {
         return results.count > 0 ? results : nil
     }
     
+    // Replace with Fetch?
     private var _transcriptSegmentComponents:[String]? // Make thread safe?
     {
         didSet {
@@ -3127,6 +3141,7 @@ class VoiceBase {
 //        })
 //    }()
     
+    // Replace with Fetch?
     private var _transcriptSegments:String?
     {
         didSet {
@@ -3244,9 +3259,9 @@ class VoiceBase {
 
             _transcriptSegments = value
 
-            DispatchQueue.global(qos: .background).async { [weak self] in
+//            DispatchQueue.global(qos: .background).async { [weak self] in
 //                let fileManager = FileManager.default
-
+            fileQueue.addOperation { [weak self] in
                 if self?._transcriptSegments != nil {
                     if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
                         let filename = filename + ".segments"
@@ -3646,7 +3661,7 @@ class VoiceBase {
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "VB:" + UUID().uuidString
+        operationQueue.name = "VoiceBase:Operations" + UUID().uuidString
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -5797,10 +5812,14 @@ class VoiceBase {
 //                    popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
 //                }
 //                popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
-                
-                DispatchQueue.global(qos: .background).async { [weak self] in
+
+                // Not sure about this.
+                self.fileQueue.addOperation { [weak self] in
                     self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
                 }
+//                DispatchQueue.global(qos: .background).async { [weak self] in
+//                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
+//                }
                 
                 Thread.onMainThread {
                     popover.tableView.isEditing = false

@@ -266,7 +266,10 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         spinner.startAnimating()
         
         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
-        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+        
+        // Needs to be in an opQueue so we don't get multiple conflicting
+        operationQueue.addOperation { [weak self] in
             self?.updatePickerSelections()
             self?.updatePicker()
         }
@@ -362,6 +365,18 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
 class PopoverPickerViewController : UIViewController
 {
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "PopoverPickerViewController" // Assumes there is only ever one at a time globally
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     var popover : PopoverTableViewController?
     
     var delegate : PopoverPickerControllerDelegate?

@@ -267,7 +267,7 @@ class MediaList // : Sequence
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "MLGS:" + UUID().uuidString
+        operationQueue.name = "MediaList" + UUID().uuidString
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 3
         return operationQueue
@@ -535,7 +535,7 @@ class MediaList // : Sequence
     
     lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "MLGS-MEDIA:" + UUID().uuidString
+        operationQueue.name = "MediaList:Media" + UUID().uuidString
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
         return operationQueue

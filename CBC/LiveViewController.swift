@@ -191,6 +191,7 @@ class LiveViewController: UIViewController
 
         view.isHidden = false
 
+        // So UI operates as expected
         DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.sleep(forTimeInterval: 0.1) // apparently a delay is needed to get it to play correctly?
             Globals.shared.mediaPlayer.play()

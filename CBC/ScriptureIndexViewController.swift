@@ -784,6 +784,18 @@ class ScriptureIndexViewController : UIViewController
         mediaItems = nil
     }
     
+    var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "SIVC:Operations"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func updateSearchResults()
     {
         guard let scriptureIndex = scriptureIndex else {
@@ -810,7 +822,10 @@ class ScriptureIndexViewController : UIViewController
         let testament = translateTestament(selectedTestament)
 
         guard let selectedBook = scriptureIndex.selectedBook else {
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            operationQueue.cancelAllOperations()
+            
+            operationQueue.addOperation { [weak self] in
                 Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
@@ -842,7 +857,10 @@ class ScriptureIndexViewController : UIViewController
         guard scriptureIndex.selectedChapter > 0 else {
             let index = testament + selectedBook
 
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            operationQueue.cancelAllOperations()
+            
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
@@ -873,8 +891,11 @@ class ScriptureIndexViewController : UIViewController
 
         guard scriptureIndex.selectedVerse > 0 else {
             let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)"
+
+            operationQueue.cancelAllOperations()
             
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 Thread.onMainThread {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
@@ -905,7 +926,10 @@ class ScriptureIndexViewController : UIViewController
 
         let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)" + "\(scriptureIndex.selectedVerse)"
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        operationQueue.cancelAllOperations()
+        
+//        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        operationQueue.addOperation { [weak self] in
             Thread.onMainThread {
                 self?.disableBarButtons()
                 self?.spinner.isHidden = false
@@ -1278,6 +1302,7 @@ class ScriptureIndexViewController : UIViewController
             let indexPath = IndexPath(row: index, section: 0)
             
             if (select) {
+                // So UI operates as desired.
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     Thread.onMainThread {
                         self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
@@ -1286,7 +1311,8 @@ class ScriptureIndexViewController : UIViewController
             }
             
             if (scroll) {
-                //Scrolling when the user isn't expecting it can be jarring.
+                // Scrolling when the user isn't expecting it can be jarring.
+                // So UI operates as desired.
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     Thread.onMainThread {
                         self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)

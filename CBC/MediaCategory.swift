@@ -84,6 +84,18 @@ class MediaCategory
     
     var allowSaveSettings = true
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MediaCategorySettings" // Assumes there is only one globally
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func saveSettingsBackground()
     {
         guard allowSaveSettings else {
@@ -92,7 +104,7 @@ class MediaCategory
         
         print("saveSettingsBackground")
         
-        DispatchQueue.global(qos: .background).async { // [weak self] in
+        operationQueue.addOperation {
             self.saveSettings()
         }
     }

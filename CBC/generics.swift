@@ -528,6 +528,14 @@ class ThreadSafeDictionaryOfDictionaries<T>
 
 class Fetch<T>
 {
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "Fetch" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
     init(name:String?,fetch:(()->(T?))? = nil)
     {
         self.name = name
@@ -576,6 +584,13 @@ class Fetch<T>
             self.cache = self.fetch?()
             
             store?(self.cache)
+        }
+    }
+    
+    func fill()
+    {
+        operationQueue.addOperation {
+            self.load()
         }
     }
     

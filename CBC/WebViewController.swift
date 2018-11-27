@@ -674,7 +674,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            // This serializes the webView loading
+            operationQueue.addOperation { [weak self] in
                 if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
                     self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
                 }
@@ -874,6 +876,18 @@ extension WebViewController: UIPopoverPresentationControllerDelegate
 
 class WebViewController: UIViewController
 {
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "WebViewController" // Assumes there is only ever one at a time globally
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     var popover : PopoverTableViewController?
 
     var search = false
@@ -1540,7 +1554,7 @@ class WebViewController: UIViewController
             return
         }
         
-        if #available(iOS 9.0, *) {
+//        if #available(iOS 9.0, *) {
             if Globals.shared.cacheDownloads {
                 if let destinationURL = urlString.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
                     _ = wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
@@ -1570,53 +1584,72 @@ class WebViewController: UIViewController
                     }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread {
-                        if let activityIndicator = self?.activityIndicator {
-                            self?.webView.bringSubview(toFront: activityIndicator)
-                        }
-
-                        self?.activityIndicator.isHidden = false
-                        self?.activityIndicator.startAnimating()
-
-                        self?.progressIndicator.progress = 0.0
-                        self?.progressIndicator.isHidden = false
-
-                        if self?.loadTimer == nil, let target = self {
-                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-                        }
-                    }
-
-                    if let url = urlString.url {
-                        let request = URLRequest(url: url)
-                        _ = self?.wkWebView?.load(request)
-                    }
+                if let activityIndicator = activityIndicator {
+                    webView.bringSubview(toFront: activityIndicator)
                 }
-            }
-        } else {
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMainThread {
-                    if let activityIndicator = self?.activityIndicator {
-                        self?.webView.bringSubview(toFront: activityIndicator)
-                    }
-
-                    self?.activityIndicator.isHidden = false
-                    self?.activityIndicator.startAnimating()
-
-                    self?.progressIndicator.progress = 0.0
-                    self?.progressIndicator.isHidden = false
-
-                    if self?.loadTimer == nil {
-                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-                    }
+                
+                activityIndicator.isHidden = false
+                activityIndicator.startAnimating()
+                
+                progressIndicator.progress = 0.0
+                progressIndicator.isHidden = false
+                
+                if loadTimer == nil {
+                    loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(loading), userInfo: nil, repeats: true)
                 }
 
                 if let url = urlString.url {
                     let request = URLRequest(url: url)
-                    _ = self?.wkWebView?.load(request)
+                    _ = wkWebView?.load(request)
                 }
+
+//                DispatchQueue.global(qos: .background).async { [weak self] in
+//                    Thread.onMainThread {
+//                        if let activityIndicator = self?.activityIndicator {
+//                            self?.webView.bringSubview(toFront: activityIndicator)
+//                        }
+//
+//                        self?.activityIndicator.isHidden = false
+//                        self?.activityIndicator.startAnimating()
+//
+//                        self?.progressIndicator.progress = 0.0
+//                        self?.progressIndicator.isHidden = false
+//
+//                        if self?.loadTimer == nil, let target = self {
+//                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
+//                        }
+//                    }
+//
+//                    if let url = urlString.url {
+//                        let request = URLRequest(url: url)
+//                        _ = self?.wkWebView?.load(request)
+//                    }
+//                }
             }
-        }
+//        } else {
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+//                Thread.onMainThread {
+//                    if let activityIndicator = self?.activityIndicator {
+//                        self?.webView.bringSubview(toFront: activityIndicator)
+//                    }
+//
+//                    self?.activityIndicator.isHidden = false
+//                    self?.activityIndicator.startAnimating()
+//
+//                    self?.progressIndicator.progress = 0.0
+//                    self?.progressIndicator.isHidden = false
+//
+//                    if self?.loadTimer == nil {
+//                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
+//                    }
+//                }
+//
+//                if let url = urlString.url {
+//                    let request = URLRequest(url: url)
+//                    _ = self?.wkWebView?.load(request)
+//                }
+//            }
+//        }
     }
     
     @objc func setPreferredContentSize()

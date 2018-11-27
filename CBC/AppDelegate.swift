@@ -453,6 +453,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 mtvc.selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
                 
                 // Delay required for iPhone
+                // Delay so UI works correctly.
                 DispatchQueue.global(qos: .background).async {
                     Thread.onMainThread {
                         mtvc.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)

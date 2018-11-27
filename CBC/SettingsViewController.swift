@@ -148,6 +148,7 @@ class SettingsViewController: UIViewController
     func updateAudioSize()
     {
         // Does this REALLY need to be .user* ?
+        // Should this be in an opQueue?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let sizeOfAudio = Globals.shared.mediaRepository.cacheSize(Purpose.audio)
             
@@ -205,7 +206,7 @@ class SettingsViewController: UIViewController
 
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "SETTINGS"
+        operationQueue.name = "SettingsViewController" // Assumes there is only ever one at a time globally 
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue

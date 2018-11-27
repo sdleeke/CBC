@@ -23,16 +23,17 @@ class StringTree
     
     var incremental = false
     var building = false
+//    {
+//        get {
+//            return operationQueue.operationCount > 0
+//        }
+//    }
     var completed = false
     
     convenience init(incremental: Bool)
     {
         self.init()
         self.incremental = incremental
-    }
-    
-    deinit {
-        
     }
     
     var html : String?
@@ -87,6 +88,18 @@ class StringTree
         }
     }
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "StringTree" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func build(strings:[String]?)
     {
         guard !building else {
@@ -100,7 +113,8 @@ class StringTree
         building = true
 
         if incremental {
-            DispatchQueue.global(qos: .background).async { [weak self] in
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 self?.root = StringNode(nil)
 
                 var date : Date?
@@ -125,7 +139,9 @@ class StringTree
                 }
             }
         } else {
+            // This blocks
             self.root = StringNode(nil)
+            
             self.root.addStrings(strings)
             
             self.building = false

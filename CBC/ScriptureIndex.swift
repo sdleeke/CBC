@@ -10,7 +10,12 @@ import Foundation
 
 class ScriptureIndex
 {
-    var creating = false
+    var creating : Bool // = false
+    {
+        get {
+            return operationQueue.operationCount > 0
+        }
+    }
     var completed = false
     
     weak var mediaListGroupSort:MediaListGroupSort?
@@ -18,10 +23,6 @@ class ScriptureIndex
     init(_ mediaListGroupSort:MediaListGroupSort?)
     {
         self.mediaListGroupSort = mediaListGroupSort
-    }
-    
-    deinit {
-        
     }
     
     // Make thread safe?
@@ -145,6 +146,7 @@ class ScriptureIndex
 //        })
 //    }()
     
+    // Replace with Fetch?
     var startingUp = true
     private var _eligible:[MediaItem]?
     {
@@ -176,6 +178,18 @@ class ScriptureIndex
         }
     }
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "ScriptureIndex" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func build()
     {
         guard !completed else {
@@ -189,8 +203,9 @@ class ScriptureIndex
             return
         }
         
-        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-            self?.creating = true
+//        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
+        operationQueue.addOperation {  [weak self] in
+//            self?.creating = true
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
                 Globals.shared.queue.async {
@@ -279,7 +294,7 @@ class ScriptureIndex
                 }
             }
             
-            self?.creating = false
+//            self?.creating = false
             self?.completed = true
             
             if let selectedTestament = self?.selectedTestament {

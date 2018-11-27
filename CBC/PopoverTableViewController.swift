@@ -1490,6 +1490,18 @@ class PopoverTableViewController : UIViewController
     
     var topConstraint : NSLayoutConstraint!
     
+    var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "PTVC:Operations"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1594,7 +1606,7 @@ class PopoverTableViewController : UIViewController
             }
         } else
             
-        if stringsFunction != nil, self.section.strings == nil {
+        if stringsFunction != nil, self.section.strings == nil, operationQueue.operationCount == 0 {
             if self.navigationController?.topViewController == self {
                 Thread.onMainThread {
                     self.activityIndicator.startAnimating()
@@ -1602,7 +1614,9 @@ class PopoverTableViewController : UIViewController
                 }
             }
 
-            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            // Should this be in an opQueue?  Seems like it should so we don't start this more than once.
+//            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
                 Thread.onMainThread {
@@ -1613,6 +1627,7 @@ class PopoverTableViewController : UIViewController
                     if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
                         // If we can find the string, select it!
                         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
+                        // Delay so UI works as desired.
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                             Thread.onMainThread {
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)

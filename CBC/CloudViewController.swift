@@ -183,9 +183,10 @@ extension CloudViewController : CloudLayoutOperationDelegate
         }
 
         labelQueue.addOperation {
-            Thread.onMainThread {
-                let wordLabel = UILabel(frame: CGRect.zero)
+//            Thread.onMainThread {
+                let wordLabel = UILabel()
                 
+                wordLabel.frame = CGRect.zero
                 wordLabel.text = word
                 wordLabel.textAlignment = .center
                 wordLabel.font = self.cloudFont?.withSize(pointSize)
@@ -208,7 +209,7 @@ extension CloudViewController : CloudLayoutOperationDelegate
                 }
                 
                 self.cloudView.addSubview(wordLabel)
-            }
+  //          }
         }
     }
     
@@ -306,7 +307,15 @@ class CloudViewController: UIViewController
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "CLOUD"
+        operationQueue.name = "CloudViewController:Operations" // Assumes there is only ever one at a time globally
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    lazy var layoutQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "CloudViewController:Operations" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -314,15 +323,18 @@ class CloudViewController: UIViewController
     
     lazy var labelQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "LABELS"
+        operationQueue.name = "CloudViewController:Labels" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
+        operationQueue.underlyingQueue = DispatchQueue.main
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
     
     deinit {
-        operationQueue.cancelAllOperations()
         labelQueue.cancelAllOperations()
+        layoutQueue.cancelAllOperations()
+        animateQueue.cancelAllOperations()
+        operationQueue.cancelAllOperations()
     }
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -391,7 +403,7 @@ class CloudViewController: UIViewController
     
     lazy var animateQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "CLOUD-ANIMATE:" + UUID().uuidString
+        operationQueue.name = "CloudViewController:Animation" // Assumes there is only one globally // + UUID().uuidString
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -422,6 +434,7 @@ class CloudViewController: UIViewController
                         Thread.onMainThread {
                             if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect {
                                 let layer = self.insertBoundingRect(boundingRect: overallGlyphBoundingRect)
+                                // So UI operates as expected
                                 DispatchQueue.global(qos: .background).async {
                                     Thread.sleep(forTimeInterval: 0.1)
                                     Thread.onMainThread {
@@ -568,7 +581,7 @@ class CloudViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
-        operationQueue?.cancelAllOperations()
+//        layoutQueue?.cancelAllOperations()
         
         if Alerts.shared.topViewController.last == navigationController {
             Alerts.shared.topViewController.removeLast()
@@ -613,21 +626,21 @@ class CloudViewController: UIViewController
     @objc func cancelAndRelayoutCloudWords()
     {
         // Cancel any in-progress layout
-        operationQueue?.cancelAllOperations()
-        operationQueue?.waitUntilAllOperationsAreFinished()
+        layoutQueue.cancelAllOperations()
+//        layoutQueue.waitUntilAllOperationsAreFinished()
         
-        labelQueue?.cancelAllOperations()
-        labelQueue?.waitUntilAllOperationsAreFinished()
+        labelQueue.cancelAllOperations()
+//        labelQueue.waitUntilAllOperationsAreFinished()
         
         relayoutCloudWords()
     }
     
     func relayoutCloudWords()
     {
-        Thread.onMainThread {
+        labelQueue.addOperation {
             self.removeCloudWords()
         }
-
+        
         self.layoutCloudWords()
     }
     
@@ -651,7 +664,10 @@ class CloudViewController: UIViewController
                                                                orientation: wordOrientation.selectedSegmentIndex,
                                                                delegate:self)
             
-            operationQueue?.addOperation(newCloudLayoutOperation)
+            layoutQueue.addOperation(newCloudLayoutOperation)
+        } else {
+            activityIndicator.stopAnimating()
+            activityIndicator.isHidden = true
         }
     }
     
@@ -714,11 +730,17 @@ class CloudViewController: UIViewController
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        self.wordsTableViewController.tableView.isHidden = true
-                        self.wordsTableViewController.activityIndicator.startAnimating()
-                        self.wordsTableViewController.segmentedControl.isEnabled = false
-
-                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        // Cancel or wait?
+                        self.operationQueue.cancelAllOperations()
+                        
+//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        self.operationQueue.addOperation { [weak self] in
+                            Thread.onMainThread {
+                                self?.wordsTableViewController.tableView.isHidden = true
+                                self?.wordsTableViewController.activityIndicator.startAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                            }
+                            
                             self?.cloudWordDicts = self?.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String
@@ -751,11 +773,17 @@ class CloudViewController: UIViewController
                     }))
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        self.wordsTableViewController.tableView.isHidden = true
-                        self.wordsTableViewController.activityIndicator.startAnimating()
-                        self.wordsTableViewController.segmentedControl.isEnabled = false
-
-                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        // Cancel or wait?
+                        self.operationQueue.cancelAllOperations()
+                        
+//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        self.operationQueue.addOperation { [weak self] in
+                            Thread.onMainThread {
+                                self?.wordsTableViewController.tableView.isHidden = true
+                                self?.wordsTableViewController.activityIndicator.startAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                            }
+                            
                             self?.cloudWordDicts = self?.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
                                 let firstWord = first["word"] as? String
                                 let secondWord = second["word"] as? String

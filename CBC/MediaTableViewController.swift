@@ -775,6 +775,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 if let contains = Globals.shared.media.active?.mediaItems?.contains(mediaItem), contains {
                     if tableView.isEditing {
                         tableView.setEditing(false, animated: true)
+                        
+                        // Delay so UI works correctly.
                         DispatchQueue.global(qos: .background).async { [weak self] in
                             Thread.sleep(forTimeInterval: 0.1)
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -1157,6 +1159,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 Thread.onMainThread {
                     if Globals.shared.search.active { //  && !Globals.shared.search.complete
                         self.updateSearchResults(Globals.shared.search.text,completion: {
+                            // Delay so UI works correctly.
                             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                                 Thread.onMainThread {
                                     self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -1443,7 +1446,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 disableBarButtons()
                 
-                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                operationQueue.addOperation { [weak self] in
                     self?.display.setup(Globals.shared.media.active)
                     
                     Thread.onMainThread {
@@ -1476,7 +1480,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     self.disableBarButtons()
                     
-                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    self.operationQueue.addOperation { [weak self] in
                         self?.display.setup(Globals.shared.media.active)
                         
                         Thread.onMainThread {
@@ -2407,7 +2412,7 @@ class MediaTableViewController : UIViewController
     
     var jsonQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "JSON"
+        operationQueue.name = "MTVC:JSON"
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -2479,7 +2484,8 @@ class MediaTableViewController : UIViewController
     
     func loadLive(completion:(()->(Void))?)
     {
-        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+        operationQueue.addOperation { [weak self] in
             Globals.shared.mediaStream.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
             
             Thread.onMainThread {
@@ -2520,7 +2526,7 @@ class MediaTableViewController : UIViewController
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "MTVC:" + UUID().uuidString
+        operationQueue.name = "MTVC:Operations" + UUID().uuidString
         operationQueue.qualityOfService = .userInitiated
         operationQueue.maxConcurrentOperationCount = 1 // Slides and Notes
         return operationQueue
@@ -2532,7 +2538,7 @@ class MediaTableViewController : UIViewController
         
         operationQueue.cancelAllOperations()
         
-        operationQueue.waitUntilAllOperationsAreFinished()
+//        operationQueue.waitUntilAllOperationsAreFinished()
         
         let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
 //        DispatchQueue.global(qos: .).async { [weak self] in
@@ -2919,6 +2925,7 @@ class MediaTableViewController : UIViewController
             
             if Globals.shared.search.active && !Globals.shared.search.complete {
                 self.updateSearchResults(Globals.shared.search.text,completion: {
+                    // Delay so UI works correctly.
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         Thread.onMainThread {
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -2949,6 +2956,7 @@ class MediaTableViewController : UIViewController
                 selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
                
                 // Delay required for iPhone
+                // Delay so UI works correctly.
                 DispatchQueue.global(qos: .background).async {
                     Thread.onMainThread {
                         self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
@@ -3336,7 +3344,8 @@ class MediaTableViewController : UIViewController
         self.setupBarButtons()
         self.setupCategoryButton()
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        operationQueue.addOperation { [weak self] in
             var searchMediaItems:[MediaItem]?
             
             if let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {

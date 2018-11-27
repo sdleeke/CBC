@@ -884,6 +884,7 @@ extension URL
         if block {
             op()
         } else {
+            // As an extension, no way to put this in an OpQueue
             DispatchQueue.global(qos: .background).async {
                 op()
             }

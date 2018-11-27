@@ -215,6 +215,7 @@ class Scripture : NSObject
 //        })
 //    }()
     
+    // Replace with Fetch?
     private var _books:[String]?
     {
         didSet {

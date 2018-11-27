@@ -26,7 +26,7 @@ extension TextViewController: UISearchBarDelegate
             searchBar.text = nil
         }
         
-        operationQueue.cancelAllOperations()
+        searchQueue.cancelAllOperations()
         
         let attributedText = self.textView.attributedText
         
@@ -38,7 +38,7 @@ extension TextViewController: UISearchBarDelegate
             }
         }
         
-        operationQueue.addOperation(searchOp)
+        searchQueue.addOperation(searchOp)
         
         return true
     }
@@ -87,7 +87,7 @@ extension TextViewController: UISearchBarDelegate
         
         searchText = searchBar.text
         
-        operationQueue.cancelAllOperations()
+        searchQueue.cancelAllOperations()
 
         let attributedText = self.textView.attributedText
         
@@ -119,7 +119,7 @@ extension TextViewController: UISearchBarDelegate
             }
         }
         
-        operationQueue.addOperation(searchOp)
+        searchQueue.addOperation(searchOp)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
@@ -133,11 +133,11 @@ extension TextViewController: UISearchBarDelegate
         searchActive = false
         
         if let changedText = changedText {
-            operationQueue.cancelAllOperations()
+            searchQueue.cancelAllOperations()
             
             let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
             
-            operationQueue.addOperation {
+            searchQueue.addOperation {
                 Thread.onMainThread {
                     self.textView.attributedText = text
                 }
@@ -292,7 +292,7 @@ extension TextViewController : PopoverPickerControllerDelegate
             
             let text = self.textView.attributedText.string
             
-            if let words = self.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+            if let words = self.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                     return first > second
                 }
@@ -314,7 +314,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             }
                                                         })
                             
-                            self?.operationQueue.waitUntilAllOperationsAreFinished()
+                            self?.editingQueue.waitUntilAllOperationsAreFinished()
                             
                             return nil
                         }) { [weak self] (data:Any?) in
@@ -333,7 +333,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             }
                                                         })
                             
-                            self?.operationQueue.waitUntilAllOperationsAreFinished()
+                            self?.editingQueue.waitUntilAllOperationsAreFinished()
                             
                             return nil
                         }) { [weak self] (data:Any?) in
@@ -945,7 +945,7 @@ class TextViewController : UIViewController
         
         let tapPos = textView.closestPosition(to: pos)
         
-        if isTracking, let wordRangeTiming = wordRangeTiming, let tapPos = tapPos {
+        if isTracking, let wordRangeTiming = wordRangeTiming?.cache, let tapPos = tapPos {
             let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: tapPos), upper: textView.offset(from: textView.beginningOfDocument, to: tapPos)))
             
             var closest : [String:Any]?
@@ -1011,18 +1011,50 @@ class TextViewController : UIViewController
     var transcript:VoiceBase?
     
     // Make thread safe?
-    var wordRangeTiming : [[String:Any]]?
+//    var _wordRangeTiming : [[String:Any]]?
+//    {
+//        didSet {
+//            if wordRangeTiming != nil {
+//                checkSync()
+//            }
+//            Thread.onMainThread {
+//                self.syncButton?.isEnabled = self.wordRangeTiming != nil
+//                self.activityIndicator?.stopAnimating()
+//            }
+//        }
+//    }
+    lazy var wordRangeTiming : Fetch<[[String:Any]]>? =
     {
-        didSet {
-            if wordRangeTiming != nil {
-                checkSync()
+        let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming") // Assumes there is only one at a time globally.
+        
+        fetch.fetch = {
+            return self.transcript?.wordRangeTiming
+        }
+        
+        fetch.didSet = { (array:[[String:Any]]?) in
+            if fetch.cache != nil {
+                self.checkSync()
             }
             Thread.onMainThread {
                 self.syncButton?.isEnabled = self.wordRangeTiming != nil
                 self.activityIndicator?.stopAnimating()
             }
         }
-    }
+
+        return fetch
+//        get {
+//            guard _wordRangeTiming == nil else {
+//                return _wordRangeTiming
+//            }
+//
+//            _wordRangeTiming = transcript?.wordRangeTiming
+//
+//            return _wordRangeTiming
+//        }
+//        set {
+//            _wordRangeTiming = newValue
+//        }
+    }()
     
     var oldRange : Range<String.Index>?
 
@@ -1129,7 +1161,7 @@ class TextViewController : UIViewController
             return
         }
         
-        guard let wordRangeTiming = wordRangeTiming else {
+        guard let wordRangeTiming = wordRangeTiming?.cache else {
             return
         }
         
@@ -1281,16 +1313,34 @@ class TextViewController : UIViewController
         }
     }
     
-    lazy var operationQueue : OperationQueue! = {
+//    lazy var operationQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = "TEVC:Operations" // Implies there is only ever one at a time globally
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
+    
+    lazy var editingQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "TEXT EDIT"
+        operationQueue.name = "TEVC:Editing" // Implies there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
-
+    
+    lazy var searchQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "TEVC:Search" // Implies there is only ever one at a time globally
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
     deinit {
-        operationQueue.cancelAllOperations()
+        searchQueue.cancelAllOperations()
+        editingQueue.cancelAllOperations()
+//        operationQueue.cancelAllOperations()
     }
     
     func startSearch(_ searchText:String?)
@@ -1299,7 +1349,7 @@ class TextViewController : UIViewController
             return
         }
         
-        operationQueue.cancelAllOperations()
+        searchQueue.cancelAllOperations()
         
         let attributedText = self.textView.attributedText
         
@@ -1320,7 +1370,7 @@ class TextViewController : UIViewController
             }
         }
         
-        operationQueue.addOperation(searchOp)
+        searchQueue.addOperation(searchOp)
     }
     
     @objc func autoEdit()
@@ -1360,7 +1410,7 @@ class TextViewController : UIViewController
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
-                        if let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                        if let words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
                             if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
                                 if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
                                     return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
@@ -1434,11 +1484,11 @@ class TextViewController : UIViewController
                                 }
                             }))
                             
-                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+//                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            self?.wordRangeTiming = data as? [[String:Any]]
-                            self?.creatingWordRangeTiming = false
+//                            self?.wordRangeTiming = data as? [[String:Any]]
+//                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
@@ -1447,11 +1497,11 @@ class TextViewController : UIViewController
                     
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
                         process(viewController: self!, work: { [weak self] () -> (Any?) in
-                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+//                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            self?.wordRangeTiming = data as? [[String:Any]]
-                            self?.creatingWordRangeTiming = false
+//                            self?.wordRangeTiming = data as? [[String:Any]]
+//                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
@@ -1593,7 +1643,7 @@ class TextViewController : UIViewController
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
-                        if let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                        if let words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
                             if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
                                 if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
                                     return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
@@ -1638,7 +1688,7 @@ class TextViewController : UIViewController
                                             return
                                         }
                                         
-                                        if var words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                                        if var words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
                                             if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                                                 return first > second
                                             }
@@ -1737,7 +1787,7 @@ class TextViewController : UIViewController
                                                                         }
                                                                     })
                                         
-                                        self?.operationQueue.waitUntilAllOperationsAreFinished()
+                                        self?.editingQueue.waitUntilAllOperationsAreFinished()
                                         
                                         return nil
                                     }) { [weak self] (data:Any?) in
@@ -1758,7 +1808,7 @@ class TextViewController : UIViewController
                                                                         }
                                                                     })
                                         
-                                        self?.operationQueue.waitUntilAllOperationsAreFinished()
+                                        self?.editingQueue.waitUntilAllOperationsAreFinished()
                                         
                                         return nil
                                     }) { [weak self] (data:Any?) in
@@ -1810,11 +1860,11 @@ class TextViewController : UIViewController
                                 }
                             }))
                             
-                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+//                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            self?.wordRangeTiming = data as? [[String:Any]]
-                            self?.creatingWordRangeTiming = false
+//                            self?.wordRangeTiming = data as? [[String:Any]]
+//                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
@@ -1823,11 +1873,11 @@ class TextViewController : UIViewController
                     
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
                         process(viewController: self!, work: { [weak self] () -> (Any?) in
-                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming ?? self?.transcript?.wordRangeTiming
+//                            self?.creatingWordRangeTiming = true
+                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            self?.wordRangeTiming = data as? [[String:Any]]
-                            self?.creatingWordRangeTiming = false
+//                            self?.wordRangeTiming = data as? [[String:Any]]
+//                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
@@ -1890,7 +1940,7 @@ class TextViewController : UIViewController
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                             })
                             
-                            self?.operationQueue.waitUntilAllOperationsAreFinished()
+                            self?.editingQueue.waitUntilAllOperationsAreFinished()
                             
                             return nil
                         }) { [weak self] (data:Any?) in
@@ -1962,7 +2012,7 @@ class TextViewController : UIViewController
                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                         })
                         
-                        self?.operationQueue.waitUntilAllOperationsAreFinished()
+                        self?.editingQueue.waitUntilAllOperationsAreFinished()
                         
                         return nil
                     }) { [weak self] (data:Any?) in
@@ -2099,7 +2149,7 @@ class TextViewController : UIViewController
 
             popover.lastRange = self.lastRange
 
-            popover.operationQueue = self.operationQueue
+//            popover.operationQueue = self.operationQueue
             
             popover.oldRange = self.oldRange
             
@@ -2305,7 +2355,12 @@ class TextViewController : UIViewController
         navigationController?.toolbar.isTranslucent = false
     }
     
-    var creatingWordRangeTiming = false
+//    var creatingWordRangeTiming : Bool // = false
+//    {
+//        get {
+//            return operationQueue.operationCount > 0
+//        }
+//    }
     
     func checkSync()
     {
@@ -2313,7 +2368,7 @@ class TextViewController : UIViewController
             return
         }
         
-        guard let wordRangeTiming = self.wordRangeTiming else {
+        guard let wordRangeTiming = self.wordRangeTiming?.cache else {
             return
         }
         
@@ -2387,14 +2442,19 @@ class TextViewController : UIViewController
             self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
         }
         
-        if track, wordRangeTiming == nil, !creatingWordRangeTiming {
-            self.creatingWordRangeTiming = true
-
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.wordRangeTiming = self?.transcript?.wordRangeTiming
-                self?.creatingWordRangeTiming = false
-            }
+        if track {
+            wordRangeTiming?.fill()
         }
+        
+//        if track, wordRangeTiming == nil, !creatingWordRangeTiming {
+////            self.creatingWordRangeTiming = true
+//
+////            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//            operationQueue.addOperation { [weak self] in
+//                _ = self?.wordRangeTiming // = self?.transcript?.wordRangeTiming
+////                self?.creatingWordRangeTiming = false
+//            }
+//        }
         
         updateBarButtons()
     }
@@ -2490,7 +2550,7 @@ class TextViewController : UIViewController
 //                            return
 //                        }
 //
-//                        operationQueue.addOperation { [weak self] in
+//                        editingQueue.addOperation { [weak self] in
 //                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                        }
 //                    }
@@ -2509,7 +2569,7 @@ class TextViewController : UIViewController
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
 
@@ -2536,7 +2596,7 @@ class TextViewController : UIViewController
 //                            return
 //                        }
 //
-//                        operationQueue.addOperation { [weak self] in
+//                        editingQueue.addOperation { [weak self] in
 //                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                        }
 //                    }
@@ -2555,7 +2615,7 @@ class TextViewController : UIViewController
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
@@ -2586,7 +2646,7 @@ class TextViewController : UIViewController
 //                            return
 //                        }
 //
-//                        operationQueue.addOperation { [weak self] in
+//                        editingQueue.addOperation { [weak self] in
 //                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                        }
 //                    }
@@ -2605,7 +2665,7 @@ class TextViewController : UIViewController
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
@@ -2632,7 +2692,7 @@ class TextViewController : UIViewController
 //                            return
 //                        }
 //
-//                        operationQueue.addOperation { [weak self] in
+//                        editingQueue.addOperation { [weak self] in
 //                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                        }
 //                    }
@@ -2651,7 +2711,7 @@ class TextViewController : UIViewController
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
@@ -2828,7 +2888,7 @@ class TextViewController : UIViewController
                 }
             }
             
-            operationQueue.addOperation { [weak self] in
+            editingQueue.addOperation { [weak self] in
                 // Why is completion called here?
                 // So the text is updated.
                 Thread.onMainThread {
@@ -2871,7 +2931,7 @@ class TextViewController : UIViewController
                 
                 Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
             } else {
-                operationQueue.addOperation {
+                editingQueue.addOperation {
                     Thread.onMainThread {
                         self.dismiss(animated: true, completion: nil)
                         self.onDone?(self.textView.attributedText.string)
@@ -3108,7 +3168,7 @@ class TextViewController : UIViewController
                     
                     Alerts.shared.alert(category:nil,title:"Change \"\(string)\" to \"\(newText)\"?",message:nil,attributedText:attributedString,actions:actions)
                 } else {
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         if makeVisible {
                             // Should this be optional?  It makes it possible to see the changes happening.
                             Thread.onMainThread { () -> (Void) in
@@ -3148,7 +3208,7 @@ class TextViewController : UIViewController
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                 } else {
-                    operationQueue.addOperation { [weak self] in
+                    editingQueue.addOperation { [weak self] in
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                     }
@@ -3165,7 +3225,7 @@ class TextViewController : UIViewController
                 changes.removeFirst()
                 self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
             } else {
-                operationQueue.addOperation { [weak self] in
+                editingQueue.addOperation { [weak self] in
 //                    masterChanges[masterKey]?[key] = nil
 //                    if masterChanges[masterKey]?.count == 0 {
 //                        masterChanges[masterKey] = nil
@@ -3233,7 +3293,7 @@ class TextViewController : UIViewController
                     self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
-                self?.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.editingQueue.waitUntilAllOperationsAreFinished()
 
                 return nil
             }) { [weak self] (data:Any?) in

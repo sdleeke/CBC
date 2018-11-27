@@ -134,7 +134,7 @@ class MediaPlayer : NSObject {
     
     var seekingCompletion : (()->(Void))?
     
-    var sliderTimerReturn:Any? = nil
+//    var sliderTimerReturn:Any? = nil
     var playerTimerReturn:Any? = nil
     
     var observerActive = false
@@ -545,9 +545,12 @@ class MediaPlayer : NSObject {
         }
     }
     
-    func updateCurrentTimeForPlaying()
+    func updateCurrentTimeForPlaying(time:CMTime)
     {
-        assert(player != nil,"player should not be nil if we're trying to update the currentTime in userDefaults")
+        guard player != nil else {
+            return
+        }
+//        assert(player != nil,"player should not be nil if we're trying to update the currentTime in userDefaults")
         
         guard loaded else {
             return
@@ -557,25 +560,28 @@ class MediaPlayer : NSObject {
             return
         }
         
-        guard let currentTime = currentTime else {
-            return
-        }
+//        guard let currentTime = currentTime else {
+//            return
+//        }
         
         var timeNow = 0.0
         
-        if (currentTime.seconds > 0) && (currentTime.seconds <= duration.seconds) {
-            timeNow = currentTime.seconds
+        if (time.seconds > 0) && (time.seconds <= duration.seconds) {
+            timeNow = time.seconds
         }
         
         if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
-            if  let string = mediaItem?.currentTime, let num = Float(string),
-                Int(num) != Int(currentTime.seconds) {
-                mediaItem?.currentTime = currentTime.seconds.description
+            if mediaItem?.currentTime != timeNow.description {
+                mediaItem?.currentTime = timeNow.description
             }
+//            if  let string = mediaItem?.currentTime, let num = Float(string),
+//                Int(num) != Int(timeNow) {
+//                mediaItem?.currentTime = timeNow.description
+//            }
         }
     }
     
-    func playerTimer()
+    func playerTimer(time:CMTime)
     {
         guard state != nil else {
             return
@@ -586,7 +592,7 @@ class MediaPlayer : NSObject {
         }
         
         if (rate > 0) {
-            updateCurrentTimeForPlaying()
+            updateCurrentTimeForPlaying(time:time)
         }
     }
 
@@ -777,8 +783,8 @@ class MediaPlayer : NSObject {
         observerActive = true
         observedItem = currentItem
         
-        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in //
-            self?.playerTimer()
+        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.global(qos: .background), using: { [weak self] (time:CMTime) in //
+            self?.playerTimer(time:time)
         })
         
         NotificationCenter.default.addObserver(self, selector: #selector(didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
@@ -926,7 +932,7 @@ class MediaPlayer : NSObject {
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "SEEK"
+        operationQueue.name = "SEEK" // Assumes there is only one globally
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -1020,10 +1026,10 @@ class MediaPlayer : NSObject {
         set {
             unobserve()
             
-            if let sliderTimerReturn = sliderTimerReturn {
-                self.player?.removeTimeObserver(sliderTimerReturn)
-                self.sliderTimerReturn = nil
-            }
+//            if let sliderTimerReturn = sliderTimerReturn {
+//                self.player?.removeTimeObserver(sliderTimerReturn)
+//                self.sliderTimerReturn = nil
+//            }
             
             // This seems to be lethal if newValue is nil
             self.controller?.player = newValue

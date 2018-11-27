@@ -745,6 +745,12 @@ class LexiconIndexViewController : UIViewController
                             return nil
                         }
                             
+                        var occurrences = [String:Int]()
+                        
+                        strings.forEach({ (string:String) in
+                            occurrences[string] = self.lexicon?.occurrences(string)
+                        })
+                        
                         var sortedStrings:[String]? = nil
                         
                         switch method {
@@ -752,27 +758,28 @@ class LexiconIndexViewController : UIViewController
                             sortedStrings = strings.sorted()
                             
                         case Constants.Sort.Frequency:
-                            var occurrences = [String:Int]()
-                            
-                            strings.forEach({ (string:String) in
-                                occurrences[string] = self.lexicon?.occurrences(string)
-                            })
-                            
                             sortedStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
                                 return occurrences[first] > occurrences[second]
-                            }).map({ (string:String) -> String in
-                                if let count = occurrences[string] {
-                                    return string + " (\(count))"
-                                } else {
-                                    return string
-                                }
                             })
+//                            .map({ (string:String) -> String in
+//                                if let count = occurrences[string] {
+//                                    return string + " (\(count))"
+//                                } else {
+//                                    return string
+//                                }
+//                            })
                             
                         default:
                             break
                         }
                     
-                        return sortedStrings
+                        return sortedStrings?.map({ (string:String) -> String in
+                            if let count = occurrences[string] {
+                                return string + " (\(count))"
+                            } else {
+                                return string
+                            }
+                        })
                     }
                         
                     wordsTableViewController.sort.method = Constants.Sort.Alphabetical
@@ -780,16 +787,22 @@ class LexiconIndexViewController : UIViewController
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        self.wordsTableViewController.tableView.isHidden = true
-                        self.wordsTableViewController.activityIndicator.startAnimating()
-                        self.wordsTableViewController.segmentedControl.isEnabled = false
+                        // Cancel or wait?
+                        self.operationQueue.cancelAllOperations()
                         
-                        self.updateLocateButton()
-                        
-                        DispatchQueue.global(qos: .background).async { [weak self] in
+//                        DispatchQueue.global(qos: .background).async { [weak self] in
+                        self.operationQueue.addOperation { [weak self] in
+                            Thread.onMainThread {
+                                self?.wordsTableViewController.tableView.isHidden = true
+                                self?.wordsTableViewController.activityIndicator.startAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                                
+                                self?.updateLocateButton()
+                            }
+                            
                             self?.wordsTableViewController.sort.sorting = true
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.lexicon?.words?.keys) // self?.wordsTableViewController.section.strings
 
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
@@ -814,16 +827,22 @@ class LexiconIndexViewController : UIViewController
                     }))
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        self.wordsTableViewController.tableView.isHidden = true
-                        self.wordsTableViewController.activityIndicator.startAnimating()
-                        self.wordsTableViewController.segmentedControl.isEnabled = false
-
-                        self.updateLocateButton()
+                        // Cancel or wait?
+                        self.operationQueue.cancelAllOperations()
                         
-                        DispatchQueue.global(qos: .background).async { [weak self] in
+//                        DispatchQueue.global(qos: .background).async { [weak self] in
+                        self.operationQueue.addOperation { [weak self] in
+                            Thread.onMainThread {
+                                self?.wordsTableViewController.tableView.isHidden = true
+                                self?.wordsTableViewController.activityIndicator.startAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                                
+                                self?.updateLocateButton()
+                            }
+                            
                             self?.wordsTableViewController.sort.sorting = true
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys) // self?.wordsTableViewController.section.strings
                             
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
@@ -1308,7 +1327,7 @@ class LexiconIndexViewController : UIViewController
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "LEXICON UPDATE"
+        operationQueue.name = "LIVC" // Asumes there is only ever one at a time globally.
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -1358,7 +1377,7 @@ class LexiconIndexViewController : UIViewController
     {
         if self.operationQueue.operationCount > 0 {
             operationQueue.cancelAllOperations()
-            operationQueue.waitUntilAllOperationsAreFinished()
+//            operationQueue.waitUntilAllOperationsAreFinished()
         }
         
         updated()

@@ -371,10 +371,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         priorReachabilityStatus = reachability.currentReachabilityStatus
     }
     
-    deinit {
-        
-    }
-    
     override init()
     {
         super.init()
@@ -679,6 +675,18 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         URLCache.shared.removeAllCachedResponses()
     }
     
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "GlobalSettings" // Assumes there is only one globally
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     func saveSettingsBackground()
     {
         guard allowSaveSettings else {
@@ -687,7 +695,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         print("saveSettingsBackground")
         
-        DispatchQueue.global(qos: .background).async { // [weak self] in
+        operationQueue.addOperation {
             self.saveSettings()
         }
     }

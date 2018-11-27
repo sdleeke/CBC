@@ -292,6 +292,7 @@ class Lexicon : NSObject
 //        })
 //    }()
 
+    // Replace with Fetch?
     var startingUp = true
     private var _eligible:[MediaItem]?
     {
@@ -371,7 +372,7 @@ class Lexicon : NSObject
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "LEXICON" + UUID().uuidString
+        operationQueue.name = "Lexicon" + UUID().uuidString
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue

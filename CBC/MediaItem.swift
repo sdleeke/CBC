@@ -199,10 +199,9 @@ class MediaItem : NSObject
             return
         }
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            _ = document.fetchData.result
-        }
-
+        // fill cache
+        document.fetchData.fill()
+        
         Thread.onMainThread {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
@@ -246,9 +245,8 @@ class MediaItem : NSObject
             }
         }
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            _ = document.fetchData.result
-        }
+        // fill cache
+        document.fetchData.fill()
     }
 
     func loadDocuments()
@@ -1143,6 +1141,7 @@ class MediaItem : NSObject
         }
     }
     
+    // Replace with Fetch?
     // How will we know when new transcripts are added?  On refresh when this is reset to nil.
     private var _speakerNotesParagraphWords:[String:Int]?
     {
@@ -1207,6 +1206,7 @@ class MediaItem : NSObject
         }
     }
     
+    // Replace with Fetch?
     // How will we know when new transcripts are added?  On refresh when this is reset to nil.
     private var _speakerNotesParagraphLengths : [String:[Int]]?
     {
@@ -1348,7 +1348,7 @@ class MediaItem : NSObject
     
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = id
+        operationQueue.name = id // Assumed to be globally unique, i.e. that there is only one mediaItem instance w/ this id
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
@@ -2842,6 +2842,7 @@ class MediaItem : NSObject
 //        })
 //    }()
     
+    // Replace with Fetch?
     private var _books:[String]?
     {
         didSet {

@@ -34,7 +34,8 @@ extension MediaViewController : UIActivityItemSource
 {
     func share()
     {
-        DispatchQueue.global(qos: .userInteractive).async {
+//        DispatchQueue.global(qos: .userInteractive).async {
+        operationQueue.addOperation {
             var activityViewController : UIActivityViewController!
 
             if self.document != nil {
@@ -791,7 +792,8 @@ extension MediaViewController : WKNavigationDelegate
         loadTimer = nil
 
         // This dispatch and delay is essential to getting the scroll view to accept the offset and zoom.
-        DispatchQueue.global(qos: .background).async {
+        webQueue.addOperation {
+//        DispatchQueue.global(qos: .background).async {
             // Delay has to be longest to deal with cold start delays
             Thread.sleep(forTimeInterval: 0.4)
 
@@ -1008,7 +1010,7 @@ class MediaViewController: UIViewController
     
     var panning = false
     
-    var sliderObserver:Timer?
+    var sliderTimer:Timer?
 
     var documents : ThreadSafeDictionaryOfDictionaries<Document>!
     {
@@ -1271,7 +1273,7 @@ class MediaViewController: UIViewController
     
     lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "MVC-MEDIA:" + UUID().uuidString
+        operationQueue.name = "MVC:Media" //  + UUID().uuidString // Why?
         operationQueue.qualityOfService = .background
         operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
         return operationQueue
@@ -1279,15 +1281,24 @@ class MediaViewController: UIViewController
     
     var webQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
-        operationQueue.name = "MVC-WEB"
+        operationQueue.name = "MVC:Web"
         operationQueue.qualityOfService = .userInteractive
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
-
+    
+    var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MVC:Operations"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
     deinit {
         webQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
+        operationQueue.cancelAllOperations()
     }
     
     var selectedMediaItem:MediaItem?
@@ -1414,7 +1425,7 @@ class MediaViewController: UIViewController
 
                         setupSpinner()
                         
-                        removeSliderObserver()
+                        removeSliderTimer()
                         
                         setupPlayPauseButton()
                         setupSliderAndTimes()
@@ -1445,7 +1456,7 @@ class MediaViewController: UIViewController
                         tableView.isEditing = false
                         setupSpinner()
                         
-                        removeSliderObserver()
+                        removeSliderTimer()
                         
                         setupPlayPauseButton()
                         setupSliderAndTimes()
@@ -2119,13 +2130,13 @@ class MediaViewController: UIViewController
         
         setupSpinner()
         setupPlayPauseButton()
-        addSliderObserver()
+        addSliderTimer()
     }
     
     @IBAction func sliderTouchDown(_ sender: UISlider)
     {
         controlView.sliding = true
-        removeSliderObserver()
+        removeSliderTimer()
     }
     
     @IBAction func sliderTouchUpOutside(_ sender: UISlider)
@@ -2739,6 +2750,7 @@ class MediaViewController: UIViewController
             Globals.shared.mediaPlayer.playOnLoad = false
             
             // Purely for the delay?
+            // Delay so UI works as desired.
             DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.onMainThread {
                     Globals.shared.mediaPlayer.play()
@@ -2802,7 +2814,7 @@ class MediaViewController: UIViewController
         guard (Globals.shared.mediaPlayer.mediaItem != nil) else {
             Globals.shared.mediaPlayer.view?.isHidden = true
             videoLocation = .withDocuments
-            removeSliderObserver()
+            removeSliderTimer()
             playerURL(url: selectedMediaItem?.playingURL)
             updateUI()
             return
@@ -2816,7 +2828,7 @@ class MediaViewController: UIViewController
         selectedMediaItem = Globals.shared.mediaPlayer.mediaItem
         
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        
+        // Delay so UI works as desired.
         DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
@@ -2833,7 +2845,7 @@ class MediaViewController: UIViewController
         tableView.reloadData()
         
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        
+        // Delay so UI works as desired.
         DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
@@ -2887,7 +2899,8 @@ class MediaViewController: UIViewController
             logo.isHidden = false
 
             if selectedMediaItem.hasPosterImage {
-                DispatchQueue.global(qos: .userInitiated).async {
+//                DispatchQueue.global(qos: .userInitiated).async {
+                operationQueue.addOperation {
                     Thread.onMainThread {
                         guard self.selectedMediaItem == selectedMediaItem else {
                             return
@@ -3959,7 +3972,7 @@ class MediaViewController: UIViewController
         setupHorizontalSplit()
         
         //These are being added here for the case when this view is opened and the mediaItem selected is playing already
-        addSliderObserver()
+        addSliderTimer()
         
         setupTitle()
         setupPlayPauseButton()
@@ -4274,6 +4287,7 @@ class MediaViewController: UIViewController
         updateUI()
 
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+        // Delay so UI works as desired.
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             Thread.onMainThread {
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
@@ -4317,6 +4331,7 @@ class MediaViewController: UIViewController
             tableView.reloadData()
             
             //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+            // Delay so UI works as desired.
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 Thread.onMainThread {
                     self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
@@ -4481,12 +4496,12 @@ class MediaViewController: UIViewController
             self.wkWebView = nil
         }
 
-        removeSliderObserver()
+        removeSliderTimer()
         removePlayerObserver()
         
         NotificationCenter.default.removeObserver(self) // Catch-all.
         
-        sliderObserver?.invalidate()
+        sliderTimer?.invalidate()
     }
     
     override func viewDidDisappear(_ animated: Bool)
@@ -4725,7 +4740,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    @objc func sliderTimer()
+    @objc func updateSlider()
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
@@ -4795,26 +4810,28 @@ class MediaViewController: UIViewController
         }
     }
     
-    func removeSliderObserver()
+    func removeSliderTimer()
     {
-        sliderObserver?.invalidate()
-        sliderObserver = nil
+        sliderTimer?.invalidate()
+        sliderTimer = nil
 
-        if let sliderTimerReturn = Globals.shared.mediaPlayer.sliderTimerReturn {
-            Globals.shared.mediaPlayer.player?.removeTimeObserver(sliderTimerReturn)
-            Globals.shared.mediaPlayer.sliderTimerReturn = nil
-        }
+//        if let sliderTimerReturn = Globals.shared.mediaPlayer.sliderTimerReturn {
+//            Globals.shared.mediaPlayer.player?.removeTimeObserver(sliderTimerReturn)
+//            Globals.shared.mediaPlayer.sliderTimerReturn = nil
+//        }
     }
     
-    func addSliderObserver()
+    func addSliderTimer()
     {
-        guard Thread.isMainThread else {
-            return
+//        guard Thread.isMainThread else {
+//            return
+//        }
+        
+        removeSliderTimer()
+
+        Thread.onMainThread {
+            self.sliderTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(self.updateSlider), userInfo: nil, repeats: true)
         }
-        
-        removeSliderObserver()
-        
-        self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(sliderTimer), userInfo: nil, repeats: true)
     }
 
     func playCurrentMediaItem(_ mediaItem:MediaItem?)
@@ -4898,7 +4915,7 @@ class MediaViewController: UIViewController
         
         setupSpinner()
         
-        removeSliderObserver()
+        removeSliderTimer()
         
         //This guarantees a fresh start.
         Globals.shared.mediaPlayer.setup(mediaItem, playOnLoad: true)
@@ -4907,7 +4924,7 @@ class MediaViewController: UIViewController
             setupPlayerView(Globals.shared.mediaPlayer.view)
         }
         
-        addSliderObserver()
+        addSliderTimer()
         
         setupSliderAndTimes()
         setupPlayPauseButton()

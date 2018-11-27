@@ -319,9 +319,11 @@ class MediaTableViewCell: UITableViewCell
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
                     }
                     
+                    // Add the count
                     DispatchQueue.global(qos: .userInteractive).async {
                         if let count = mediaItem.notesTokens?.result?[searchText] {
                             Thread.onMainThread {
+                                // Make sure we're still in the right place.
                                 if self.mediaItem == mediaItem {
                                     self.countLabel.text = count.description
                                 }

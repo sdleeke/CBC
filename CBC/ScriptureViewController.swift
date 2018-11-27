@@ -171,7 +171,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }) { (data:Any?) in
                     if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? WebViewController {
-                        popover.navigationItem.title = self.scripture?.reference // "Lexical Analysis"
+                        popover.navigationItem.title = (self.scripture?.reference ?? "") +  " Lexical Analysis"
                         navigationController.isNavigationBarHidden = false
                         
                         navigationController.modalPresentationStyle = .overCurrentContext
@@ -1235,6 +1235,18 @@ class ScriptureViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
     
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "SVC" // Asumes there is only ever one at a time globally.
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1261,7 +1273,8 @@ class ScriptureViewController : UIViewController
         if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
             webViewController?.view.isHidden = true
             
-            DispatchQueue.global(qos: .background).async { [weak self] in
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
                 self?.scripture?.reference = reference
                 self?.scripture?.load()
                 

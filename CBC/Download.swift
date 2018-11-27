@@ -576,6 +576,7 @@ class Download : NSObject
 //        })
 //    }()
 
+    // Replace with Fetch?
     private var _fileSize : Int?
     {
         didSet {

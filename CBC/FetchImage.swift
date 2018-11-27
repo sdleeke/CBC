@@ -73,6 +73,7 @@ class FetchImage
 //        })
 //    }()
 
+    // Replace with Fetch?
     private var _fileSize : Int?
     {
         didSet {
