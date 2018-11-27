@@ -834,9 +834,10 @@ extension URL
     var data : Data?
     {
         get {
-            guard Globals.shared.reachability.isReachable else {
-                return nil
-            }
+            // DO NOT DO THIS AS THE URL MAY POINT TO LOCAL STORAGE
+//            guard Globals.shared.reachability.isReachable else {
+//                return nil
+//            }
             
             do {
                 return try Data(contentsOf: self)

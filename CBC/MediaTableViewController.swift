@@ -2420,10 +2420,6 @@ class MediaTableViewController : UIViewController
     
     func jsonFromURL(urlString:String?,filename:String?) -> Any?
     {
-        guard Globals.shared.reachability.isReachable else {
-            return nil
-        }
-        
         guard let json = filename?.fileSystemURL?.data?.json else {
             // BLOCKS
             let data = urlString?.url?.data
@@ -3300,7 +3296,7 @@ class MediaTableViewController : UIViewController
         }
         
         if Globals.shared.media.toSearch?.searches == nil {
-            Globals.shared.media.toSearch?.searches = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]()
+            Globals.shared.media.toSearch?.searches = ThreadSafeDictionary<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]()
         }
         
         Globals.shared.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)

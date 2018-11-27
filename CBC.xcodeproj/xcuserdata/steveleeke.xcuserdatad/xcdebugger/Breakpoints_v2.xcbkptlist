@@ -58,12 +58,12 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/SettingsViewController.swift"
-                  timestampString = "565027695.949502"
+                  timestampString = "565051061.8935061"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "143"
                   endingLineNumber = "143"
-                  offsetFromSymbolStart = "632">
+                  offsetFromSymbolStart = "636">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -73,12 +73,12 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/SettingsViewController.swift"
-                  timestampString = "565027695.953015"
+                  timestampString = "565051061.8959939"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "144"
                   endingLineNumber = "144"
-                  offsetFromSymbolStart = "45">
+                  offsetFromSymbolStart = "48">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -138,12 +138,12 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/LexiconIndexViewController.swift"
-                  timestampString = "565027695.9722019"
+                  timestampString = "565051061.914523"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "847"
                   endingLineNumber = "847"
-                  offsetFromSymbolStart = "1765">
+                  offsetFromSymbolStart = "1604">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -153,12 +153,12 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/LexiconIndexViewController.swift"
-                  timestampString = "565027695.9750071"
+                  timestampString = "565051061.917189"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "834"
                   endingLineNumber = "834"
-                  offsetFromSymbolStart = "42">
+                  offsetFromSymbolStart = "40">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -218,12 +218,12 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/LexiconIndexViewController.swift"
-                  timestampString = "565027695.993295"
+                  timestampString = "565051061.933782"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "776"
                   endingLineNumber = "776"
-                  offsetFromSymbolStart = "1448">
+                  offsetFromSymbolStart = "1104">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -233,7 +233,7 @@
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v31/CBC/LexiconIndexViewController.swift"
-                  timestampString = "565027695.995912"
+                  timestampString = "565051061.936251"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "777"
@@ -288,6 +288,86 @@
             startingLineNumber = "187"
             endingLineNumber = "187"
             landmarkName = "insertWord(word:pointSize:color:center:isVertical:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "565051234.159086"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2912"
+            endingLineNumber = "2912"
+            landmarkName = "loadCompletion()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "565051234.159179"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2590"
+            endingLineNumber = "2590"
+            landmarkName = "loadMediaItems(completion:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "565051234.159243"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2445"
+            endingLineNumber = "2445"
+            landmarkName = "loadJSONDictsFromURL(url:key:filename:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "565051234.159312"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2431"
+            endingLineNumber = "2431"
+            landmarkName = "jsonFromURL(urlString:filename:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "565051234.159377"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2438"
+            endingLineNumber = "2438"
+            landmarkName = "jsonFromURL(urlString:filename:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
