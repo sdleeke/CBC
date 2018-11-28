@@ -355,14 +355,16 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 break
             }
         }
-        
+
+        // Do include the list because we don't want to be warned at the start that there is a network connection
         if priorReachabilityStatus == .notReachable, reachability.isReachable, mediaRepository.list != nil {
             Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
             checkVoiceBaseAvailability()
         }
         
-        if priorReachabilityStatus != .notReachable, !reachability.isReachable, mediaRepository.list != nil {
+        // Don't include the list because we want to be warned at th start that there is no network connection
+        if priorReachabilityStatus != .notReachable, !reachability.isReachable { // , mediaRepository.list != nil
             Alerts.shared.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
             
             isVoiceBaseAvailable = false
