@@ -3687,6 +3687,10 @@ class MediaViewController: UIViewController
             // was being called rather than letting view will appear handle it!
             
 //            self.updateUI()
+            
+            // Unlike updateUI() this works.  It just sets the widths of the segmented controls for audio/video (AV) and slides/transcript/video (STV)
+            // which is essential for the SE and smaller phones in general, or just for compact widths in general.
+            self.setSegmentWidths()
         }
     }
     
