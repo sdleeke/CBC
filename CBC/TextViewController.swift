@@ -1914,15 +1914,13 @@ class TextViewController : UIViewController
                                     for key in keys {
                                         let oldText = key
                                         if let newText = masterChanges[masterKey]?[key] {
-                                            if let newText = masterChanges[masterKey]?[key] {
-                                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                    if text.lowercased().range(of: oldText) != nil {
-                                                        changes.append((oldText,newText))
-                                                    }
-                                                } else {
-                                                    if text.range(of: oldText) != nil {
-                                                        changes.append((oldText,newText))
-                                                    }
+                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                                if text.lowercased().range(of: oldText) != nil {
+                                                    changes.append((oldText,newText))
+                                                }
+                                            } else {
+                                                if text.range(of: oldText) != nil {
+                                                    changes.append((oldText,newText))
                                                 }
                                             }
                                         }
@@ -1986,15 +1984,13 @@ class TextViewController : UIViewController
                                 for key in keys {
                                     let oldText = key
                                     if let newText = masterChanges[masterKey]?[key] {
-                                        if let newText = masterChanges[masterKey]?[key] {
-                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                if text.lowercased().range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            } else {
-                                                if text.range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
+                                        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                            if text.lowercased().range(of: oldText) != nil {
+                                                changes.append((oldText,newText))
+                                            }
+                                        } else {
+                                            if text.range(of: oldText) != nil {
+                                                changes.append((oldText,newText))
                                             }
                                         }
                                     }

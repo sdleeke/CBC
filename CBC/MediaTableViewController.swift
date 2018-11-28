@@ -1748,7 +1748,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 switch filename {
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Couldn't get categories from network, try to get media, use last downloaded
-                    if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
+                    if let mediaFileName = Globals.shared.mediaCategory.filename { // , let selectedID = Globals.shared.mediaCategory.selectedID
                         downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
                     }
                     break
@@ -1770,7 +1770,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 switch filename {
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Load media
-                    if let mediaFileName = Globals.shared.mediaCategory.filename, let selectedID = Globals.shared.mediaCategory.selectedID {
+                    if let mediaFileName = Globals.shared.mediaCategory.filename { // , let selectedID = Globals.shared.mediaCategory.selectedID
                         downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
                     }
                     break

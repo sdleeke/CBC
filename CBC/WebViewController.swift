@@ -65,8 +65,13 @@ class HTML {
                 }
             }
             
-            if string != previousString {
-                if let url = fileURL {
+            if string != previousString, let isEmpty = string?.isEmpty, !isEmpty {
+                string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
+            }
+        }
+    }
+
+//                if let url = fileURL {
 //                    let fileManager = FileManager.default
 
                     // Why delete?  Not necessary.
@@ -79,15 +84,16 @@ class HTML {
 //                        }
 //                    }
 
-                    if let isEmpty = string?.isEmpty, !isEmpty {
-                        do {
-                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
-//                                .write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
-                        } catch let error {
-                            print("failed to write htmlString to cache directory: \(error.localizedDescription)")
-                        }
-                    }
-                }
+//                    if let isEmpty = string?.isEmpty, !isEmpty {
+//                        string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
+////                        do {
+////                            try
+//////                                .write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
+////                        } catch let error {
+////                            print("failed to write htmlString to cache directory: \(error.localizedDescription)")
+////                        }
+//                    }
+//                }
 
 //                Thread.onMainThread {
 //                    self.webViewController?.activityButtonIndicator?.startAnimating()
@@ -118,10 +124,6 @@ class HTML {
 //                    Thread.onMainThread {
 //                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
 //                    }
-//                }
-            }
-        }
-    }
     
     var fileURL : URL?
     {

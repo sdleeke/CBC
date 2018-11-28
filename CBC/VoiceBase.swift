@@ -906,22 +906,22 @@ class VoiceBase {
                 return nil
             }
 
-            guard let mediaItem = mediaItem else {
-                return nil
-            }
+//            guard let mediaItem = mediaItem else {
+//                return nil
+//            }
 
-            guard let id = mediaItem.id else {
-                return nil
-            }
-
-            guard let purpose = purpose else {
-                return nil
-            }
+//            guard let id = mediaItem.id else {
+//                return nil
+//            }
+//
+//            guard let purpose = purpose else {
+//                return nil
+//            }
 
             if completed {
                 _transcript = filename?.fileSystemURL?.string16
 
-                if transcript == nil {
+                if _transcript == nil {
                     completed = false
                 }
 //
@@ -981,19 +981,19 @@ class VoiceBase {
         set {
             _transcript = newValue
 
-            let fileManager = FileManager.default
-
-            guard let mediaItem = mediaItem else {
-                return
-            }
-
-            guard let id = mediaItem.id else {
-                return
-            }
-
-            guard let purpose = purpose else {
-                return
-            }
+//            let fileManager = FileManager.default
+//
+//            guard let mediaItem = mediaItem else {
+//                return
+//            }
+//
+//            guard let id = mediaItem.id else {
+//                return
+//            }
+//
+//            guard let purpose = purpose else {
+//                return
+//            }
 
             if _transcript != nil {
 //                DispatchQueue.global(qos: .background).async { [weak self] in
@@ -1216,13 +1216,13 @@ class VoiceBase {
                 return nil
             }
 
-            guard let id = mediaItem.id else {
-                return nil
-            }
-
-            guard let purpose = purpose else {
-                return nil
-            }
+//            guard let id = mediaItem.id else {
+//                return nil
+//            }
+//
+//            guard let purpose = purpose else {
+//                return nil
+//            }
             
             guard let filename = filename else {
                 return nil
@@ -1246,7 +1246,7 @@ class VoiceBase {
                     do {
                         _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
                     } catch let error {
-                        print("failed to open machine generated media (again) for \(mediaItem.description)")
+                        print("failed to open machine generated media (again) for \(mediaItem.description)",error.localizedDescription)
                     }
                 }
                 
@@ -1259,9 +1259,9 @@ class VoiceBase {
         set {
             _mediaJSON = newValue
 
-            guard let mediaItem = mediaItem else {
-                return
-            }
+//            guard let mediaItem = mediaItem else {
+//                return
+//            }
 
 //            guard let id = mediaItem.id else {
 //                return
@@ -3159,17 +3159,17 @@ class VoiceBase {
                 return _transcriptSegments
             }
 
-            guard let mediaItem = mediaItem else {
-                return nil
-            }
-
-            guard let id = mediaItem.id else {
-                return nil
-            }
-
-            guard let purpose = purpose else {
-                return nil
-            }
+//            guard let mediaItem = mediaItem else {
+//                return nil
+//            }
+//
+//            guard let id = mediaItem.id else {
+//                return nil
+//            }
+//
+//            guard let purpose = purpose else {
+//                return nil
+//            }
 
             guard let filename = filename else {
                 print("failed to get filename")
@@ -3210,17 +3210,17 @@ class VoiceBase {
             return _transcriptSegments
         }
         set {
-            guard let mediaItem = mediaItem else {
-                return
-            }
+//            guard let mediaItem = mediaItem else {
+//                return
+//            }
 
-            guard let id = mediaItem.id else {
-                return
-            }
-
-            guard let purpose = purpose else {
-                return
-            }
+//            guard let id = mediaItem.id else {
+//                return
+//            }
+//
+//            guard let purpose = purpose else {
+//                return
+//            }
 
             var changed = false
 
@@ -4738,21 +4738,21 @@ class VoiceBase {
         var newText = text
         newText.insert(contentsOf:gapString, at: range.lowerBound)
         
-        var lower : String.Index?
-        var upper : String.Index?
-        var newRange : Range<String.Index>? // Was used in makeVisible
+//        var lower : String.Index?
+//        var upper : String.Index?
+//        var newRange : Range<String.Index>? // Was used in makeVisible
         
-        if range.lowerBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
-            lower = newText.index(range.lowerBound, offsetBy: gapString.count)
-        }
-        
-        if range.upperBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
-            upper = newText.index(range.upperBound, offsetBy: gapString.count)
-        }
-        
-        if let lower = lower, let upper = upper {
-            newRange = Range<String.Index>(uncheckedBounds: (lower: lower, upper: upper))
-        }
+//        if range.lowerBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+//            lower = newText.index(range.lowerBound, offsetBy: gapString.count)
+//        }
+//
+//        if range.upperBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
+//            upper = newText.index(range.upperBound, offsetBy: gapString.count)
+//        }
+//
+//        if let lower = lower, let upper = upper {
+//            newRange = Range<String.Index>(uncheckedBounds: (lower: lower, upper: upper))
+//        }
         
         for i in 0..<words.count {
             if let wordRange = words[i]["range"] as? Range<String.Index> {
@@ -5286,15 +5286,13 @@ class VoiceBase {
                                             for key in keys {
                                                 let oldText = key
                                                 if let newText = masterChanges[masterKey]?[key] {
-                                                    if let newText = masterChanges[masterKey]?[key] {
-                                                        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                            if text.lowercased().range(of: oldText) != nil {
-                                                                changes.append((oldText,newText))
-                                                            }
-                                                        } else {
-                                                            if text.range(of: oldText) != nil {
-                                                                changes.append((oldText,newText))
-                                                            }
+                                                    if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                                        if text.lowercased().range(of: oldText) != nil {
+                                                            changes.append((oldText,newText))
+                                                        }
+                                                    } else {
+                                                        if text.range(of: oldText) != nil {
+                                                            changes.append((oldText,newText))
                                                         }
                                                     }
                                                 }
@@ -5324,15 +5322,13 @@ class VoiceBase {
                                     for key in keys {
                                         let oldText = key
                                         if let newText = masterChanges[masterKey]?[key] {
-                                            if let newText = masterChanges[masterKey]?[key] {
-                                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                    if text.lowercased().range(of: oldText) != nil {
-                                                        changes.append((oldText,newText))
-                                                    }
-                                                } else {
-                                                    if text.range(of: oldText) != nil {
-                                                        changes.append((oldText,newText))
-                                                    }
+                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                                if text.lowercased().range(of: oldText) != nil {
+                                                    changes.append((oldText,newText))
+                                                }
+                                            } else {
+                                                if text.range(of: oldText) != nil {
+                                                    changes.append((oldText,newText))
                                                 }
                                             }
                                         }
