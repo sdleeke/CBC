@@ -700,7 +700,7 @@ func markHTML(html:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool
                 indexString += "<a href=\"#\(counter)\">\(counter)</a>"
             }
             
-            indexString += "</div>" // <br/><br/>
+            indexString += "</div><br/>" // <br/>
         }
     }
     
