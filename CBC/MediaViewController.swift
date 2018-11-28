@@ -3676,6 +3676,10 @@ class MediaViewController: UIViewController
 
             // This really messes up plus size phones - probably, the one below was enough!
 //            self.updateUI()
+            
+            // Unlike updateUI() this works.  It just sets the widths of the segmented controls for audio/video (AV) and slides/transcript/video (STV)
+            // which is essential for the SE and smaller phones in general, or just for compact widths in general.
+            self.setSegmentWidths()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            self.setupWKContentOffsets()
 
