@@ -736,6 +736,5 @@ class FetchCodable<T:Codable> : Fetch<T>
 
             return nil
         }
-
     }
 }
