@@ -2947,17 +2947,17 @@ class MediaViewController: UIViewController
         if (hasSlides && !hasNotes) {
             selectedMediaItem.showing = Showing.slides
 
-            logo.isHidden = wkWebView != nil
+            logo.isHidden = !(wkWebView?.isHidden ?? true)
         } else
         if (!hasSlides && hasNotes) {
             selectedMediaItem.showing = Showing.notes
             
-            logo.isHidden = wkWebView != nil
+            logo.isHidden = !(wkWebView?.isHidden ?? true)
         } else
         if (hasSlides && hasNotes) {
             selectedMediaItem.showing = selectedMediaItem.wasShowing
             
-            logo.isHidden = wkWebView != nil
+            logo.isHidden = !(wkWebView?.isHidden ?? true)
         }
     }
     
@@ -4999,7 +4999,11 @@ class MediaViewController: UIViewController
             }
             if (!offset.x.isNaN && !offset.y.isNaN) {
                 self.document?.setOffset = true
-                wkWebView.scrollView.setContentOffset(offset,animated: false)
+                if (offset.x > wkWebView.scrollView.contentSize.width) || (offset.y > wkWebView.scrollView.contentSize.height)  {
+                    wkWebView.scrollView.setContentOffset(CGPoint.zero,animated: false)
+                } else {
+                    wkWebView.scrollView.setContentOffset(offset,animated: false)
+                }
             }
         }
     }

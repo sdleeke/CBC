@@ -2440,28 +2440,30 @@ class MediaTableViewController : UIViewController
 
     func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:String]]?
     {
-        var mediaItemDicts = [[String:String]]()
-        
-        if let json = jsonFromURL(urlString: url,filename: filename) as? [String:Any] {
-            if let mediaItems = json[key] as? [[String:String]] {
-                for i in 0..<mediaItems.count {
-                    
-                    var dict = [String:String]()
-                    
-                    for (key,value) in mediaItems[i] {
-                        dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                    }
-                    
-                    mediaItemDicts.append(dict)
-                }
-                
-                return mediaItemDicts.count > 0 ? mediaItemDicts : nil
-            }
-        } else {
+        guard let json = jsonFromURL(urlString: url,filename: filename) as? [String:Any] else {
             print("could not get json from URL, make sure that URL contains valid json.")
+            return nil
         }
         
-        return nil
+        guard let mediaItems = json[key] as? [[String:String]] else {
+            print("could not get mediaItems from json[\(key)].")
+            return nil
+        }
+        
+        var mediaItemDicts = [[String:String]]()
+        
+        for i in 0..<mediaItems.count {
+            
+            var dict = [String:String]()
+            
+            for (key,value) in mediaItems[i] {
+                dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            }
+            
+            mediaItemDicts.append(dict)
+        }
+
+        return mediaItemDicts.count > 0 ? mediaItemDicts : nil
     }
     
     func mediaItemsFromMediaItemDicts(_ mediaItemDicts:[[String:String]]?) -> [MediaItem]?

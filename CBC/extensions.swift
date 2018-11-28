@@ -840,9 +840,12 @@ extension URL
 //            }
             
             do {
-                return try Data(contentsOf: self)
+                let data = try Data(contentsOf: self)
+                print("Data read from \(self.absoluteString)")
+                return data
             } catch let error {
-                NSLog("Failed to get Data from URL: \(self.absoluteString)", error.localizedDescription)
+                NSLog(error.localizedDescription)
+                print("Data not read from \(self.absoluteString)")
                 return nil
             }
         }
