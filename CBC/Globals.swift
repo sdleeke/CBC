@@ -361,6 +361,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
             checkVoiceBaseAvailability()
+            mediaStream.loadLive(completion: nil)
         }
         
         // Don't include the list because we want to be warned at th start that there is no network connection
@@ -515,42 +516,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         return search.text
     }
     
-    var contextString:String?
-    {
-        get {
-            var string:String?
-            
-            if let mediaCategory = mediaCategory.selected {
-                string = mediaCategory
-                
-                if let tag = media.tags.selected {
-                    string = ((string != nil) ? string! + ":" : "") + tag
-                }
-                
-                if self.search.valid, let search = self.search.text {
-                    string = ((string != nil) ? string! + ":" : "") + search
-                }
-            }
-            
-            return string
-        }
-    }
-
-    func contextOrder() -> String?
-    {
-        var string:String?
-        
-        if let context = contextString {
-            string = ((string != nil) ? string! + ":" : "") + context
-        }
-        
-        if let order = orderString {
-            string = ((string != nil) ? string! + ":" : "") + order
-        }
-        
-        return string
-    }
-
     var orderString:String?
     {
         get {
@@ -566,6 +531,42 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             
             return string
         }
+    }
+    
+    var contextString:String?
+    {
+        get {
+            guard let mediaCategory = mediaCategory.selected else {
+                return nil
+            }
+            
+            var string = mediaCategory
+            
+            if let tag = media.tags.selected {
+                string = (!string.isEmpty ? string + ":" : "") + tag
+            }
+            
+            if self.search.valid, let search = self.search.text {
+                string = (!string.isEmpty ? string + ":" : "") + search
+            }
+
+            return !string.isEmpty ? string : nil
+        }
+    }
+    
+    func contextOrder() -> String?
+    {
+        var string:String?
+        
+        if let context = contextString {
+            string = ((string != nil) ? string! + ":" : "") + context
+        }
+        
+        if let order = orderString {
+            string = ((string != nil) ? string! + ":" : "") + order
+        }
+        
+        return string
     }
 
     var mediaPlayer = MediaPlayer()

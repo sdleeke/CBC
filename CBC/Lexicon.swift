@@ -10,7 +10,7 @@ import Foundation
 
 class Lexicon : NSObject
 {
-    weak var mediaListGroupSort:MediaListGroupSort?
+    private weak var mediaListGroupSort:MediaListGroupSort?
     
     var selected:String?
     

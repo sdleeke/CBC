@@ -3235,7 +3235,7 @@ class MediaViewController: UIViewController
         switch (selectedMediaItem.hasNotes,selectedMediaItem.hasSlides) {
         case (true,true):
             if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = selectedMediaItem.wasShowing
+                selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
             }
             break
             

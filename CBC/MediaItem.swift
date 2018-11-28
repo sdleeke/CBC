@@ -10,6 +10,98 @@ import Foundation
 import UIKit
 import AVKit
 
+class MultiPartSettings
+{
+    private weak var mediaItem:MediaItem?
+    
+    init(mediaItem:MediaItem?) {
+        if (mediaItem == nil) {
+            print("nil mediaItem in Settings init!")
+        }
+        self.mediaItem = mediaItem
+    }
+    
+    deinit {
+        
+    }
+    
+    subscript(key:String) -> String?
+    {
+        get {
+            guard let mediaItem = mediaItem else {
+                print("mediaItem == nil in SeriesSettings!")
+                return nil
+            }
+            
+            return Globals.shared.multiPartSettings[mediaItem.seriesID,key]
+        }
+        set {
+            guard let mediaItem = mediaItem else {
+                print("mediaItem == nil in SeriesSettings!")
+                return
+            }
+            
+            if (Globals.shared.multiPartSettings[mediaItem.seriesID,key] != newValue) {
+                //                        print("\(mediaItem)")
+                Globals.shared.multiPartSettings[mediaItem.seriesID,key] = newValue
+                
+                // For a high volume of activity this can be very expensive.
+                Globals.shared.saveSettingsBackground()
+            }
+        }
+    }
+}
+
+class MediaItemSettings
+{
+    private weak var mediaItem:MediaItem?
+    
+    init(mediaItem:MediaItem?) {
+        if (mediaItem == nil) {
+            print("nil mediaItem in Settings init!")
+        }
+        self.mediaItem = mediaItem
+    }
+    
+    deinit {
+        
+    }
+    
+    subscript(key:String) -> String?
+    {
+        get {
+            guard let mediaItem = mediaItem else {
+                return nil
+            }
+            
+            guard mediaItem.id != nil else {
+                return nil
+            }
+            
+            return Globals.shared.mediaItemSettings[mediaItem.id,key]
+        }
+        set {
+            guard let mediaItem = mediaItem else {
+                print("mediaItem == nil in Settings!")
+                return
+            }
+            
+            guard mediaItem.id != nil else {
+                print("mediaItem.id == nil in Settings!")
+                return
+            }
+            
+            if (Globals.shared.mediaItemSettings[mediaItem.id,key] != newValue) {
+                //                        print("\(mediaItem)")
+                Globals.shared.mediaItemSettings[mediaItem.id,key] = newValue
+                
+                // For a high volume of activity this can be very expensive.
+                Globals.shared.saveSettingsBackground()
+            }
+        }
+    }
+}
+
 extension MediaItem : UIActivityItemSource
 {
     func share(viewController:UIViewController)
@@ -1806,10 +1898,10 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + notesName
             }
             
-//            if hasNotesText {
-//                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Lexicon
-//                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.HTML
-//            }
+            if hasNotesText {
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Lexicon
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.HTML
+            }
 
             if hasVideo {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Video
@@ -3178,101 +3270,11 @@ class MediaItem : NSObject
         return json
     }
     
-    class MediaItemSettings {
-        weak var mediaItem:MediaItem?
-        
-        init(mediaItem:MediaItem?) {
-            if (mediaItem == nil) {
-                print("nil mediaItem in Settings init!")
-            }
-            self.mediaItem = mediaItem
-        }
-        
-        deinit {
-            
-        }
-        
-        subscript(key:String) -> String?
-        {
-            get {
-                guard let mediaItem = mediaItem else {
-                    return nil
-                }
-                
-                guard mediaItem.id != nil else {
-                    return nil
-                }
-                
-                return Globals.shared.mediaItemSettings[mediaItem.id,key]
-            }
-            set {
-                guard let mediaItem = mediaItem else {
-                    print("mediaItem == nil in Settings!")
-                    return
-                }
-                
-                guard mediaItem.id != nil else {
-                    print("mediaItem.id == nil in Settings!")
-                    return
-                }
-
-                if (Globals.shared.mediaItemSettings[mediaItem.id,key] != newValue) {
-                    //                        print("\(mediaItem)")
-                    Globals.shared.mediaItemSettings[mediaItem.id,key] = newValue
-                    
-                    // For a high volume of activity this can be very expensive.
-                    Globals.shared.saveSettingsBackground()
-                }
-            }
-        }
-    }
-    
     lazy var mediaItemSettings:MediaItemSettings? = {
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return MediaItemSettings(mediaItem:self)
     }()
-    
-    class MultiPartSettings {
-        weak var mediaItem:MediaItem?
-        
-        init(mediaItem:MediaItem?) {
-            if (mediaItem == nil) {
-                print("nil mediaItem in Settings init!")
-            }
-            self.mediaItem = mediaItem
-        }
-        
-        deinit {
-            
-        }
-        
-        subscript(key:String) -> String?
-        {
-            get {
-                guard let mediaItem = mediaItem else {
-                    print("mediaItem == nil in SeriesSettings!")
-                    return nil
-                }
-                
-                return Globals.shared.multiPartSettings[mediaItem.seriesID,key]
-            }
-            set {
-                guard let mediaItem = mediaItem else {
-                    print("mediaItem == nil in SeriesSettings!")
-                    return
-                }
-                
-                if (Globals.shared.multiPartSettings[mediaItem.seriesID,key] != newValue) {
-                    //                        print("\(mediaItem)")
-                    Globals.shared.multiPartSettings[mediaItem.seriesID,key] = newValue
-                    
-                    // For a high volume of activity this can be very expensive.
-                    Globals.shared.saveSettingsBackground()
-                }
-            }
-        }
-    }
     
     lazy var multiPartSettings:MultiPartSettings? = {
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.

@@ -903,7 +903,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 popover.tableView?.reloadData()
                 
-                self.loadLive() {
+                Globals.shared.mediaStream.loadLive() {
                     if #available(iOS 10.0, *) {
                         if let isRefreshing = popover.tableView?.refreshControl?.isRefreshing, isRefreshing {
                             popover.refreshControl?.endRefreshing()
@@ -930,7 +930,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.activityIndicator.isHidden = false
                 popover.activityIndicator.startAnimating()
                 
-                self.loadLive() {
+                Globals.shared.mediaStream.loadLive() {
                     popover.section.stringIndex = Globals.shared.mediaStream.streamStringIndex
                     popover.tableView.reloadData()
                     
@@ -2473,24 +2473,17 @@ class MediaTableViewController : UIViewController
         })
     }
     
-    var liveEvents:[String:Any]?
-    {
-        get {
-            return Constants.URL.LIVE_EVENTS.url?.data?.json as? [String:Any]
-        }
-    }
-    
-    func loadLive(completion:(()->(Void))?)
-    {
-//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-        operationQueue.addOperation { [weak self] in
-            Globals.shared.mediaStream.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
-            
-            Thread.onMainThread {
-                completion?()
-            }
-        }
-    }
+//    func loadLive(completion:(()->(Void))?)
+//    {
+////        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//        operationQueue.addOperation { [weak self] in
+//            Globals.shared.mediaStream.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
+//
+//            Thread.onMainThread {
+//                completion?()
+//            }
+//        }
+//    }
     
     func loadCategories()
     {
@@ -2550,7 +2543,7 @@ class MediaTableViewController : UIViewController
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
 
-            self?.loadLive(completion: nil)
+            Globals.shared.mediaStream.loadLive(completion: nil)
             
             if let jsonSource = self?.jsonSource {
                 switch jsonSource {

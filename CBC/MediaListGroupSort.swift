@@ -23,6 +23,147 @@ typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
+    var _sorting : String?
+    {
+        didSet {
+            
+        }
+    }
+    var sorting : String?
+    {
+        get {
+            return _sorting ?? Globals.shared.sorting
+        }
+        set {
+            _sorting = newValue
+        }
+    }
+    
+    var _grouping : String?
+    {
+        didSet {
+            
+        }
+    }
+    var grouping : String?
+    {
+        get {
+            return _grouping ?? Globals.shared.grouping
+        }
+        set {
+            _grouping = newValue
+        }
+    }
+    
+    var _search : Search!
+    {
+        didSet {
+            // Will this happen when it is a property of Search that is being set?
+        }
+    }
+    var search : Search!
+    {
+        get {
+            return _search ?? Globals.shared.search
+        }
+        set {
+            if _search == nil {
+                _search = Search()
+            }
+            
+            _search = newValue
+        }
+    }
+    
+    var orderString:String?
+    {
+        get {
+            var string:String?
+            
+            if let sorting = sorting {
+                string = ((string != nil) ? string! + ":" : "") + sorting
+            }
+            
+            if let grouping = grouping {
+                string = ((string != nil) ? string! + ":" : "") + grouping
+            }
+            
+            return string
+        }
+    }
+    
+    var _category : String?
+    {
+        didSet {
+            
+        }
+    }
+    var category : String?
+    {
+        get {
+            return _category ?? Globals.shared.mediaCategory.selected
+        }
+        set {
+            _category = newValue
+        }
+    }
+    
+    var _tagSelected : String?
+    {
+        didSet {
+            
+        }
+    }
+    var tagSelected : String?
+    {
+        get {
+            return _tagSelected ?? Globals.shared.media.tags.selected
+        }
+        set {
+            _tagSelected = newValue
+        }
+    }
+    
+    var contextString:String?
+    {
+        get {
+            guard let category = category else {
+                return nil
+            }
+            
+            var string = category
+            
+            if let tag = tagSelected {
+                string = (!string.isEmpty ? string + ":" : "") + tag
+            }
+            
+            if search.valid, let search = search.text {
+                string = (!string.isEmpty ? string + ":" : "") + search
+            }
+            
+            return !string.isEmpty ? string : nil
+        }
+    }
+    
+    func contextOrder() -> String?
+    {
+        var string:String?
+        
+        if let context = contextString {
+            string = ((string != nil) ? string! + ":" : "") + context
+        }
+        
+        if let order = orderString {
+            string = ((string != nil) ? string! + ":" : "") + order
+        }
+        
+        return string
+    }
+    
+    lazy var html:CachedString? = {
+        return CachedString(index: contextOrder)
+    }()
+    
     @objc func freeMemory()
     {
         lexicon = Lexicon(self) // Side effects?
@@ -33,13 +174,13 @@ class MediaListGroupSort
             return
         }
         
-        if !Globals.shared.search.active {
+        if !search.active {
             searches = nil
         } else {
-            // Is this risky, to try and delete all but the current search?
+            // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
             if let keys = searches?.keys {
                 for key in keys {
-                    if key != Globals.shared.search.text {
+                    if key != search.text {
                         searches?[key] = nil
                     } else {
 
@@ -48,10 +189,6 @@ class MediaListGroupSort
             }
         }
     }
-    
-    lazy var html:CachedString? = {
-        return CachedString(index: Globals.shared.contextOrder)
-    }()
     
     var mediaList:MediaList?
     {
@@ -164,7 +301,7 @@ class MediaListGroupSort
     var mediaItems:[MediaItem]?
     {
         get {
-            return mediaItems(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+            return mediaItems(grouping: grouping,sorting: sorting)
         }
     }
     
@@ -339,7 +476,21 @@ class MediaListGroupSort
     
     class Section
     {
-        weak var mediaListGroupSort:MediaListGroupSort?
+        private weak var mediaListGroupSort:MediaListGroupSort?
+        
+        var sorting : String?
+        {
+            get {
+                return mediaListGroupSort?.sorting
+            }
+        }
+        
+        var grouping : String?
+        {
+            get {
+                return mediaListGroupSort?.grouping
+            }
+        }
         
         init(_ mediaListGroupSort:MediaListGroupSort?)
         {
@@ -353,28 +504,28 @@ class MediaListGroupSort
         var headerStrings:[String]?
         {
             get {
-                return mediaListGroupSort?.sectionTitles(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+                return mediaListGroupSort?.sectionTitles(grouping: grouping,sorting: sorting)
             }
         }
         
         var counts:[Int]?
         {
             get {
-                return mediaListGroupSort?.sectionCounts(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+                return mediaListGroupSort?.sectionCounts(grouping: grouping,sorting: sorting)
             }
         }
         
         var indexes:[Int]?
         {
             get {
-                return mediaListGroupSort?.sectionIndexes(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+                return mediaListGroupSort?.sectionIndexes(grouping: grouping,sorting: sorting)
             }
         }
         
         var indexStrings:[String]?
         {
             get {
-                return mediaListGroupSort?.sectionIndexTitles(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+                return mediaListGroupSort?.sectionIndexTitles(grouping: grouping,sorting: sorting)
             }
         }
     }
@@ -476,7 +627,7 @@ class MediaListGroupSort
     var sectionIndexes:[Int]?
     {
         get {
-            return sectionIndexes(grouping: Globals.shared.grouping,sorting: Globals.shared.sorting)
+            return sectionIndexes(grouping: grouping,sorting: sorting)
         }
     }
     
@@ -568,7 +719,7 @@ class MediaListGroupSort
         groupNames = MediaGroupNames(name: "MediaGroupNames")
         groupSort = MediaGroupSort(name: "MediaGroupSort")
         
-        sortGroup(Globals.shared.grouping)
+        sortGroup(grouping)
 
         // Why isn't this done on demand?
         //

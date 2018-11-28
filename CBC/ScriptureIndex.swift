@@ -18,7 +18,7 @@ class ScriptureIndex
     }
     var completed = false
     
-    weak var mediaListGroupSort:MediaListGroupSort?
+    private weak var mediaListGroupSort:MediaListGroupSort?
     
     init(_ mediaListGroupSort:MediaListGroupSort?)
     {

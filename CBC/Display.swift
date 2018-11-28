@@ -15,8 +15,6 @@ class Display
     
     func setup(_ active:MediaListGroupSort? = nil)
     {
-        mediaItems = active?.mediaItems
-        
         Globals.shared.groupings = Constants.groupings
         Globals.shared.groupingTitles = Constants.GroupingTitles
         
@@ -33,6 +31,8 @@ class Display
         if let grouping = Globals.shared.grouping, !Globals.shared.groupings.contains(grouping) {
             Globals.shared.grouping = GROUPING.YEAR
         }
+
+        mediaItems = active?.mediaItems
 
         section.showHeaders = true
         

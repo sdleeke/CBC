@@ -10,6 +10,37 @@ import Foundation
 
 class MediaStream
 {
+    lazy var operationQueue:OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "MediaStream" // Assumes there is only one globally
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    deinit {
+        operationQueue.cancelAllOperations()
+    }
+    
+    var liveEvents:[String:Any]?
+    {
+        get {
+            return Constants.URL.LIVE_EVENTS.url?.data?.json as? [String:Any]
+        }
+    }
+    
+    func loadLive(completion:(()->(Void))?)
+    {
+        //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+        operationQueue.addOperation { [weak self] in
+            self?.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
+            
+            Thread.onMainThread {
+                completion?()
+            }
+        }
+    }
+    
     // Make thread safe?
     var streamEntries:[[String:Any]]?
     

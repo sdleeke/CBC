@@ -12,7 +12,7 @@ import PDFKit
 
 class Document : NSObject
 {
-    weak var mediaItem:MediaItem?
+    private weak var mediaItem:MediaItem?
     
     var purpose:String?
     
@@ -75,19 +75,19 @@ class Document : NSObject
                             }
                         }
                         
-                        if let pageImage = self.mediaItem?.seriesImage?.image {
-                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
-                            
-                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
-                                if let pdf = data?.pdf, let page = pageImage.pdf {
-                                    pdf.insert(page, at: 0)
-                                    
-                                    if let pdfData = pdf.data {
-                                        data = pdfData
-                                    }
-                                }
-                            }
-                        }
+//                        if let pageImage = self.mediaItem?.seriesImage?.image {
+//                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+//                            
+//                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
+//                                if let pdf = data?.pdf, let page = pageImage.pdf {
+//                                    pdf.insert(page, at: 0)
+//                                    
+//                                    if let pdfData = pdf.data {
+//                                        data = pdfData
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             } else {

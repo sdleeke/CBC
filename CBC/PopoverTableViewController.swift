@@ -274,7 +274,7 @@ class Sort
         self.ptvc = ptvc
     }
     
-    weak var ptvc : PopoverTableViewController!
+    private weak var ptvc : PopoverTableViewController!
     
     var sorting = false
     {
