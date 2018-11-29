@@ -2955,7 +2955,7 @@ class MediaViewController: UIViewController
             logo.isHidden = !(wkWebView?.isHidden ?? true)
         } else
         if (hasSlides && hasNotes) {
-            selectedMediaItem.showing = selectedMediaItem.wasShowing
+            selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
             
             logo.isHidden = !(wkWebView?.isHidden ?? true)
         }
@@ -3210,27 +3210,27 @@ class MediaViewController: UIViewController
 
         verticalSplit.isHidden = false
 
-        if selectedMediaItem.hasNotes, selectedMediaItem.showing == Showing.notes {
-            if document == nil {
-                document = Document(purpose: Purpose.notes, mediaItem: selectedMediaItem)
-            }
-            
-            loadDocument(document)
-        } else {
+//        if selectedMediaItem.hasNotes, selectedMediaItem.showing == Showing.notes {
+//            if document == nil {
+//                document = Document(purpose: Purpose.notes, mediaItem: selectedMediaItem)
+//            }
+//
+//            loadDocument(document)
+//        } else {
+//
+//        }
+//
+//        if selectedMediaItem.hasSlides, selectedMediaItem.showing == Showing.slides {
+//            if document == nil {
+//                document = Document(purpose: Purpose.slides, mediaItem: selectedMediaItem)
+//            }
+//
+//            loadDocument(document)
+//        } else {
+//
+//        }
 
-        }
-
-        if selectedMediaItem.hasSlides, selectedMediaItem.showing == Showing.slides {
-            if document == nil {
-                document = Document(purpose: Purpose.slides, mediaItem: selectedMediaItem)
-            }
-            
-            loadDocument(document)
-        } else {
-
-        }
-
-        // Check whether they show what they should!
+        // Check whether they show what they should
         
         switch (selectedMediaItem.hasNotes,selectedMediaItem.hasSlides) {
         case (true,true):
@@ -3264,7 +3264,7 @@ class MediaViewController: UIViewController
             break
         }
         
-        // Check whether they can or should show what they claim to show!
+        // Check whether they can or should show what they claim to show
         
         if let showing = selectedMediaItem.showing {
             switch showing {
@@ -3315,6 +3315,12 @@ class MediaViewController: UIViewController
             case Showing.notes:
                 fallthrough
             case Showing.slides:
+                if document == nil {
+                    document = Document(purpose: showing, mediaItem: selectedMediaItem)
+                }
+                
+                loadDocument(document)
+
                 Globals.shared.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
                 logo.isHidden = true
     

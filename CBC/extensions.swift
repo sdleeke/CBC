@@ -437,7 +437,7 @@ extension String
                 
             }
             
-            guard url != nil else {
+            guard url != nil, self != url?.lastPathComponent else {
                 if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
                     return cachesURL?.appendingPathComponent(lastPathComponent)
                 } else {
@@ -445,13 +445,13 @@ extension String
                 }
             }
             
-            guard self != url?.lastPathComponent else {
-                if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
-                    return cachesURL?.appendingPathComponent(lastPathComponent)
-                } else {
-                    return nil
-                }
-            }
+//            guard  else {
+//                if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
+//                    return cachesURL?.appendingPathComponent(lastPathComponent)
+//                } else {
+//                    return nil
+//                }
+//            }
             
             return url?.fileSystemURL
         }
@@ -765,7 +765,8 @@ extension URL
         }
         
         guard fileSystemURL.exists else {
-            return nil
+            print("File does not exist at \(fileSystemURL.absoluteString)")
+            return 0
         }
         
         do {

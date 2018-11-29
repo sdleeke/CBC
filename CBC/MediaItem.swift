@@ -419,7 +419,7 @@ class MediaItem : NSObject
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self.audioURL,fileSystemURL:self.audioFileSystemURL)
+        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self.audioURL) // ,fileSystemURL:self.audioFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.audio] = download
         return download
@@ -432,7 +432,7 @@ class MediaItem : NSObject
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self.videoURL,fileSystemURL:self.videoFileSystemURL)
+        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self.videoURL) // ,fileSystemURL:self.videoFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.video] = download
         return download
@@ -445,7 +445,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self.slidesURL,fileSystemURL:self.slidesFileSystemURL)
+        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self.slidesURL) // ,fileSystemURL:self.slidesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.slides] = download
         return download
@@ -458,7 +458,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self.notesURL,fileSystemURL:self.notesFileSystemURL)
+        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self.notesURL) // ,fileSystemURL:self.notesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.notes] = download
         return download
@@ -471,7 +471,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self.outlineURL,fileSystemURL:self.outlineFileSystemURL)
+        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self.outlineURL) // ,fileSystemURL:self.outlineFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self.downloads[Purpose.outline] = download
         return download
@@ -2543,22 +2543,24 @@ class MediaItem : NSObject
     var audioURL:URL?
     {
         get {
-            if let audio = audio {
-                return URL(string: audio)
-            } else {
-                return nil
-            }
+//            if let audio = audio {
+//                return URL(string: audio)
+//            } else {
+//                return nil
+//            }
+            return audio?.url
         }
     }
     
     var videoURL:URL?
     {
         get {
-            if let video = video {
-                return URL(string: video)
-            } else {
-                return nil
-            }
+//            if let video = video {
+//                return URL(string: video)
+//            } else {
+//                return nil
+//            }
+            return video?.url
         }
     }
     

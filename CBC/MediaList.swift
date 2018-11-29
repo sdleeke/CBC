@@ -35,6 +35,15 @@ class MediaList // : Sequence
         })
     }
     
+    func updateCacheSize()
+    {
+        operationQueue.addOperation {
+            _ = self.list?.reduce(0, { (result, mediaItem) -> Int in
+                return result + mediaItem.cacheSize
+            })
+        }
+    }
+    
     func alignAllAudio(viewController:UIViewController)
     {
         guard let mediaItems = list else {
@@ -160,6 +169,10 @@ class MediaList // : Sequence
     var audioDownloads : Int?
     {
         get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
             }).count
@@ -187,6 +200,10 @@ class MediaList // : Sequence
     var videoDownloads : Int?
     {
         get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
             }).count
@@ -214,6 +231,10 @@ class MediaList // : Sequence
     var slidesDownloads : Int?
     {
         get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
             }).count
@@ -241,6 +262,10 @@ class MediaList // : Sequence
     var notesDownloads : Int?
     {
         get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+
             return list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
             }).count
@@ -761,6 +786,7 @@ class MediaList // : Sequence
         didSet {
             didSet?()
             updateIndex()
+            updateCacheSize()
         }
     }
     

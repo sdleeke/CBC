@@ -339,12 +339,14 @@ extension Download : URLSessionDownloadDelegate
 
 class Download : NSObject
 {
-    init(mediaItem:MediaItem?,purpose:String?,downloadURL:URL?,fileSystemURL:URL?)
+    init(mediaItem:MediaItem?,purpose:String?,downloadURL:URL?) // ,fileSystemURL:URL?
     {
+        super.init()
+        
         self.mediaItem = mediaItem
         self.purpose = purpose
         self.downloadURL = downloadURL
-        self.fileSystemURL = fileSystemURL
+//        self.fileSystemURL = fileSystemURL
         
         if let fileSystemURL = fileSystemURL {
             if FileManager.default.fileExists(atPath: fileSystemURL.path) {
@@ -398,12 +400,15 @@ class Download : NSObject
     
     var fileSystemURL:URL?
     {
-        willSet {
-            
+        get {
+            return downloadURL?.fileSystemURL
         }
-        didSet {
-            state = exists ? .downloaded : .none
-        }
+//        willSet {
+//
+//        }
+//        didSet {
+//            state = exists ? .downloaded : .none
+//        }
     }
     
     var totalBytesWritten:Int64 = 0

@@ -1570,7 +1570,7 @@ class WebViewController: UIViewController
                     loadTimer?.invalidate()
                     loadTimer = nil
                 } else {
-                    download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url, fileSystemURL: urlString.fileSystemURL)
+                    download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url) // , fileSystemURL: urlString.fileSystemURL
                     
                     if let download = download {
                         activityIndicator.isHidden = false

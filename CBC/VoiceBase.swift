@@ -447,7 +447,8 @@ extension VoiceBase // Class Methods
     }
 }
 
-class VoiceBase {
+class VoiceBase
+{
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// VoiceBase API for Speech Recognition
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -999,7 +1000,7 @@ class VoiceBase {
 //                DispatchQueue.global(qos: .background).async { [weak self] in
                 fileQueue.addOperation { [weak self] in
                     self?.filename?.fileSystemURL?.delete(block:true)
-                    self?._transcript?.save16(filename: self?.filename)
+                    self?._transcript?.save16(filename: self?.filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
                     
 //                    if let destinationURL = self?.filename?.fileSystemURL {
 //                        destinationURL.delete()
@@ -3266,7 +3267,7 @@ class VoiceBase {
                     if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
                         let filename = filename + ".segments"
                         filename.fileSystemURL?.delete(block:true)
-                        self?._transcriptSegments?.save16(filename:filename)
+                        self?._transcriptSegments?.save16(filename:filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
 //                        do {
 //                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
 //                        } catch let error {
