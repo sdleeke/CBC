@@ -35,7 +35,7 @@ class Alerts
     @objc func viewer()
     {
         for alert in queue {
-            print(alert)
+            debug(alert)
         }
         
         guard UIApplication.shared.applicationState == UIApplicationState.active else {

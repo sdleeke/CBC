@@ -1227,45 +1227,66 @@ class MediaViewController: UIViewController
         
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
 
-        loadWeb(download:download)
+        loadWeb()
     }
     
-    func loadWeb(download:Download?)
+    func loadWeb()
     {
         webQueue.addOperation { [weak self] in
-            Thread.onMainThread {
-                self?.activityIndicator.isHidden = false
-                self?.activityIndicator.startAnimating()
-                
-                if let activityIndicator = self?.activityIndicator {
-                    self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-                }
-                
-                self?.wkWebView?.isHidden = true
-            }
-            
-            guard let data = self?.document?.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+            if self?.document?.showing(self?.selectedMediaItem) == true {
                 Thread.onMainThread {
-                    self?.activityIndicator.stopAnimating()
-                    self?.activityIndicator.isHidden = true
-                    
-                    if let wkWebView = self?.wkWebView {
-                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+                    if let activityIndicator = self?.activityIndicator {
+                        self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
                     }
                     
-                    self?.wkWebView?.isHidden = false
+                    self?.logo.isHidden = true
+                    
+                    self?.activityIndicator.isHidden = false
+                    self?.activityIndicator.startAnimating()
                 }
+            }
+            
+            guard let data = self?.document?.fetchData.result else { // , (data != self?.webData) || (self?.webData == nil)
+                if self?.document?.showing(self?.selectedMediaItem) == true {
+                    Thread.onMainThread {
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
+                        self?.logo.isHidden = false
+                    }
+                }
+//                Thread.onMainThread {
+//                    self?.activityIndicator.stopAnimating()
+//                    self?.activityIndicator.isHidden = true
+//
+//                    if let wkWebView = self?.wkWebView {
+//                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+//                    }
+//
+//                    self?.wkWebView?.isHidden = false
+//                }
                 return
             }
             
-            self?.webData = data
+//            self?.webData = data
             
-            if  let fileSystemURL = download?.fileSystemURL,
-                download?.mediaItem == self?.selectedMediaItem,
-                download?.purpose == self?.selectedMediaItem?.showing { //  self?.stvControl.selectedSegmentIndex.description
+            if self?.document?.showing(self?.selectedMediaItem) == true { // let url = Globals.shared.cacheDownloads ? self?.download?.fileSystemURL : self?.download?.downloadURL
                 Thread.onMainThread {
+//                    if let wkWebView = self?.wkWebView {
+//                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+//                    }
+//
                     self?.wkWebView?.isHidden = true
-                    self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
+                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
+
+                    if let url = self?.download?.downloadURL {
+                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+//
+//                        if let activityIndicator = self?.activityIndicator {
+//                            // Don't want to show it just because it is already (down)loaded!
+//                            // The scale and offset have not yet been set!
+//                            self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+//                        }
+                    }
                 }
             }
         }
@@ -1326,7 +1347,7 @@ class MediaViewController: UIViewController
                 }
             }
             
-            webData = nil
+//            webData = nil
             
             webQueue.cancelAllOperations()
 
@@ -3017,7 +3038,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    var webData : Data?
+//    var webData : Data?
     
     fileprivate func loadDocument(_ document:Document?)
     {
@@ -3030,154 +3051,209 @@ class MediaViewController: UIViewController
             return
         }
 
-        guard Globals.shared.cacheDownloads || Globals.shared.reachability.isReachable else {
+//        if document.fetchData.cache == nil {
+//            if Globals.shared.cacheDownloads, document.download?.exists == false {
+//                loadWeb()
+//                return
+//            } else {
+//                if !Globals.shared.reachability.isReachable {
+//                    return
+//                }
+//            }
+//        }
+        
+//        wkWebView?.isHidden = true
+        
+//        if #available(iOS 9.0, *) {
+        
+        guard document.fetchData?.cache == nil else {
+            loadWeb()
             return
         }
         
-        wkWebView?.isHidden = true
-        
-        if #available(iOS 9.0, *) {
-            if Globals.shared.cacheDownloads, let download = document.download {
-                if download.state != .downloaded {
-                    if Globals.shared.reachability.isReachable {
-                        self.activityIndicator.isHidden = false
-                        self.activityIndicator.startAnimating()
-                        
-                        self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                        self.progressIndicator.isHidden = false
-
-                        Thread.onMainThread {
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
-                            
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
-                        }
-                        
-                        if download.state != .downloading {
-                            download.download()
-                        }
-                    }
-                } else {
-                    self.loadWeb(download:document.download)
-//                    operationQueue.addOperation { [weak self] in
-//                        Thread.onMainThread {
-//                            self?.activityIndicator.isHidden = false
-//                            self?.activityIndicator.startAnimating()
-//
-//                            if let activityIndicator = self?.activityIndicator {
-//                                self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-//                            }
-//
-//                            self?.wkWebView?.isHidden = true
-//                        }
-//
-//                        guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-//                            Thread.onMainThread {
-//                                self?.activityIndicator.stopAnimating()
-//                                self?.activityIndicator.isHidden = true
-//
-//                                if let wkWebView = self?.wkWebView {
-//                                    self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
-//                                }
-//
-//                                self?.wkWebView?.isHidden = false
-//                            }
-//                            return
-//                        }
-//
-//                        self?.webData = data
-//
-//                        if  let fileSystemURL = download.fileSystemURL,
-//                            document.mediaItem == self?.selectedMediaItem,
-//                            document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-//
-//                            Thread.onMainThread {
-//                                self?.wkWebView?.isHidden = true
-////                                    self?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
-//                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
-//                            }
-//                        }
-//                    }
-                }
-            } else {
-                self.loadWeb(download:document.download)
-//                operationQueue.addOperation { [weak self] in
-//                    Thread.onMainThread {
-//                        if document.showing(self?.selectedMediaItem) {
-//                            self?.activityIndicator.isHidden = false
-//                            self?.activityIndicator.startAnimating()
-//                        }
-//
-//                        self?.wkWebView?.isHidden = true
-//                    }
-//
-//                    guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-//                        Thread.onMainThread {
-//                            self?.activityIndicator.stopAnimating()
-//                            self?.activityIndicator.isHidden = true
-//
-//                            if let wkWebView = self?.wkWebView {
-//                                self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
-//                            }
-//
-//                            self?.wkWebView?.isHidden = false
-//                        }
-//                        return
-//                    }
-//
-//                    self?.webData = data
-//
-//                    if  let url = document.download?.downloadURL,
-//                        document.mediaItem == self?.selectedMediaItem,
-//                        document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-//                        Thread.onMainThread {
-//                            self?.wkWebView?.isHidden = true
-//                            self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
-//                        }
-//                    }
-//                }
-            }
-        } else {
-            self.loadWeb(download:document.download)
-//            operationQueue.addOperation { [weak self] in
-//                Thread.onMainThread {
-//                    if document.showing(self?.selectedMediaItem) {
-//                        self?.activityIndicator.isHidden = false
-//                        self?.activityIndicator.startAnimating()
-//
-//                        self?.progressIndicator.isHidden = false
-//                    }
-//
-//                    self?.wkWebView?.isHidden = true
-//                }
-//
-//                guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-//                    Thread.onMainThread {
-//                        self?.activityIndicator.stopAnimating()
-//                        self?.activityIndicator.isHidden = true
-//
-//                        if let wkWebView = self?.wkWebView {
-//                            self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
-//                        }
-//
-//                        self?.wkWebView?.isHidden = false
-//                    }
-//                    return
-//                }
-//
-//                self?.webData = data
-//
-//                if  let url = document.download?.downloadURL,
-//                    document.mediaItem == self?.selectedMediaItem,
-//                    document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-//                    Thread.onMainThread {
-//                        self?.wkWebView?.isHidden = true
-//                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
-//                    }
-//                }
-//            }
+        guard Globals.shared.cacheDownloads else {
+            loadWeb()
+            return
         }
+        
+        guard let download = document.download else {
+            loadWeb()
+            return
+        }
+        
+        guard download.state != .downloaded else {
+            loadWeb()
+            return
+        }
+        
+        guard Globals.shared.reachability.isReachable else {
+            // Show logo?
+            return
+        }
+        
+        // Download
+        
+        self.logo.isHidden = true
+        
+        self.activityIndicator.isHidden = false
+        self.activityIndicator.startAnimating()
+        
+        self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+        self.progressIndicator.isHidden = false
+        
+        Thread.onMainThread {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+        }
+        
+        if download.state != .downloading {
+            download.download()
+        }
+
+//        if Globals.shared.cacheDownloads, let download = document.download {
+//            if download.state != .downloaded {
+//                if Globals.shared.reachability.isReachable {
+//                    self.activityIndicator.isHidden = false
+//                    self.activityIndicator.startAnimating()
+//
+//                    self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+//                    self.progressIndicator.isHidden = false
+//
+//                    Thread.onMainThread {
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+//
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+//                    }
+//
+//                    if download.state != .downloading {
+//                        download.download()
+//                    }
+//                }
+//            } else {
+//                self.loadWeb()
+////                    operationQueue.addOperation { [weak self] in
+////                        Thread.onMainThread {
+////                            self?.activityIndicator.isHidden = false
+////                            self?.activityIndicator.startAnimating()
+////
+////                            if let activityIndicator = self?.activityIndicator {
+////                                self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+////                            }
+////
+////                            self?.wkWebView?.isHidden = true
+////                        }
+////
+////                        guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+////                            Thread.onMainThread {
+////                                self?.activityIndicator.stopAnimating()
+////                                self?.activityIndicator.isHidden = true
+////
+////                                if let wkWebView = self?.wkWebView {
+////                                    self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+////                                }
+////
+////                                self?.wkWebView?.isHidden = false
+////                            }
+////                            return
+////                        }
+////
+////                        self?.webData = data
+////
+////                        if  let fileSystemURL = download.fileSystemURL,
+////                            document.mediaItem == self?.selectedMediaItem,
+////                            document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+////
+////                            Thread.onMainThread {
+////                                self?.wkWebView?.isHidden = true
+//////                                    self?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+////                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
+////                            }
+////                        }
+////                    }
+//            }
+//        } else {
+//            self.loadWeb()
+////                operationQueue.addOperation { [weak self] in
+////                    Thread.onMainThread {
+////                        if document.showing(self?.selectedMediaItem) {
+////                            self?.activityIndicator.isHidden = false
+////                            self?.activityIndicator.startAnimating()
+////                        }
+////
+////                        self?.wkWebView?.isHidden = true
+////                    }
+////
+////                    guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+////                        Thread.onMainThread {
+////                            self?.activityIndicator.stopAnimating()
+////                            self?.activityIndicator.isHidden = true
+////
+////                            if let wkWebView = self?.wkWebView {
+////                                self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+////                            }
+////
+////                            self?.wkWebView?.isHidden = false
+////                        }
+////                        return
+////                    }
+////
+////                    self?.webData = data
+////
+////                    if  let url = document.download?.downloadURL,
+////                        document.mediaItem == self?.selectedMediaItem,
+////                        document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+////                        Thread.onMainThread {
+////                            self?.wkWebView?.isHidden = true
+////                            self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+////                        }
+////                    }
+////                }
+//        }
+////        } else {
+////            self.loadWeb()
+////            operationQueue.addOperation { [weak self] in
+////                Thread.onMainThread {
+////                    if document.showing(self?.selectedMediaItem) {
+////                        self?.activityIndicator.isHidden = false
+////                        self?.activityIndicator.startAnimating()
+////
+////                        self?.progressIndicator.isHidden = false
+////                    }
+////
+////                    self?.wkWebView?.isHidden = true
+////                }
+////
+////                guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
+////                    Thread.onMainThread {
+////                        self?.activityIndicator.stopAnimating()
+////                        self?.activityIndicator.isHidden = true
+////
+////                        if let wkWebView = self?.wkWebView {
+////                            self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+////                        }
+////
+////                        self?.wkWebView?.isHidden = false
+////                    }
+////                    return
+////                }
+////
+////                self?.webData = data
+////
+////                if  let url = document.download?.downloadURL,
+////                    document.mediaItem == self?.selectedMediaItem,
+////                    document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
+////                    Thread.onMainThread {
+////                        self?.wkWebView?.isHidden = true
+////                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+////                    }
+////                }
+////            }
+////        }
     }
     
     fileprivate func setupDocumentsAndVideo()
@@ -3293,7 +3369,7 @@ class MediaViewController: UIViewController
         
         if var showing = selectedMediaItem.showing {            
             if !Globals.shared.reachability.isReachable {
-                if !Globals.shared.cacheDownloads || (download?.exists == false) {
+                if document?.fetchData.cache == nil, !Globals.shared.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
                         alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
@@ -3320,15 +3396,6 @@ class MediaViewController: UIViewController
                 }
                 
                 loadDocument(document)
-
-                Globals.shared.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
-                logo.isHidden = true
-    
-                if wkWebView != nil {
-                    // Don't want to show it just because it is already (down)loaded!
-                    // The scale and offset have not yet been set!
-                    mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-                }
                 break
                 
             case Showing.video:

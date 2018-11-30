@@ -3625,7 +3625,7 @@ class MediaItem : NSObject
             })
             alertActions.append(noAction)
             
-            Alerts.shared.alert(title: "Confirm Clear Cache", message: nil, actions: alertActions)
+            Alerts.shared.alert(title: "Confirm Clear Cache", message: self.text, actions: alertActions)
         }
         
         if hasAudio, let audioDownload = audioDownload {

@@ -24,12 +24,26 @@ extension NSMutableData
 
 extension VoiceBase // Class Methods
 {
-    static func url(mediaID:String?,path:String?,query:String?) -> String
+    static func url(path:String?, query:String? = nil) -> String // mediaID:String?,
     {
-        if mediaID == nil, path == nil, query == nil {
+        if path == nil, query == nil { // mediaID == nil,
             return Constants.URL.VOICE_BASE_ROOT + "?limit=1000"
         } else {
-            return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "") + (query != nil ? "?" + query! : "")
+            var url = Constants.URL.VOICE_BASE_ROOT
+            
+            if let path = path {
+                url += path
+            }
+            
+//            if let mediaID = mediaID {
+//                url += "/" + mediaID
+//            }
+            
+            if let query = query {
+                url += "?" + query
+            }
+            
+            return url // Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "") + (query != nil ? "?" + query! : "")
         }
     }
     
@@ -201,7 +215,7 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-    static func get(accept:String?,mediaID:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    static func get(accept:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?) // mediaID:String?,
     {
         if !Globals.shared.checkingVoiceBaseAvailability {
             if !(Globals.shared.isVoiceBaseAvailable ?? false){
@@ -213,7 +227,7 @@ extension VoiceBase // Class Methods
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path, query:query)) else {
+        guard let url = URL(string:VoiceBase.url(path:path, query:query)) else { // mediaID:mediaID,
             return
         }
 
@@ -300,22 +314,37 @@ extension VoiceBase // Class Methods
     
     static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept: nil, mediaID: mediaID, path: "metadata", query: nil, completion: completion, onError: onError)
+        guard let mediaID = mediaID else {
+            return
+        }
+        // mediaID:mediaID,
+        get(accept:nil, path:"media/\(mediaID)/metadata", query:nil, completion:completion, onError:onError)
     }
 
     static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: mediaID, path: "progress", query: nil, completion: completion, onError: onError)
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        // mediaID:mediaID,
+        get(accept:nil, path:"media/\(mediaID)/progress", query:nil, completion:completion, onError:onError)
     }
     
     static func details(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: mediaID, path: nil, query: nil, completion: completion, onError: onError)
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        // mediaID:mediaID,
+        get(accept:nil, path:"media/\(mediaID)", query:nil, completion:completion, onError:onError)
     }
 
     static func all(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        get(accept:nil, mediaID: nil, path: nil, query: nil, completion: completion, onError: onError)
+        // mediaID:nil,
+        get(accept:nil, path:"media", query:nil, completion:completion, onError:onError)
     }
     
     static func delete(mediaID:String?)
@@ -334,7 +363,8 @@ extension VoiceBase // Class Methods
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:nil, query:nil)) else {
+        // mediaID:mediaID, 
+        guard let url = URL(string:VoiceBase.url(path:"media/\(mediaID)")) else {
             return
         }
         
@@ -422,7 +452,8 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.deleteAllMedia")
         
-        get(accept: nil, mediaID: nil, path: nil, query: nil, completion: { (json:[String : Any]?) -> (Void) in
+        // mediaID:nil,
+        get(accept:nil,  path:"media", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let mediaItems = json?["media"] as? [[String:Any]] {
                 if mediaItems.count > 0 {
                     if mediaItems.count > 1 {
@@ -449,6 +480,162 @@ extension VoiceBase // Class Methods
 
 class VoiceBase
 {
+//    static let customVocab : String? // [String:Vocab]?
+//    {
+//        get {
+//            return "{\"vocabulary\": {\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"],\"name\":\"CBC\"}}"
+    
+//            var customVocab = [String:Vocab]()
+//
+//            customVocab["name"] = Vocab.name(value: "CBC")
+//
+//            var books = [String]()
+//
+//            books.append(contentsOf: Constants.OLD_TESTAMENT_BOOKS)
+//            books.append(contentsOf: Constants.NEW_TESTAMENT_BOOKS)
+//
+////            customVocab.append(Vocab.terms(value: books))
+//
+//            customVocab["terms"] = Vocab.terms(value: books)
+//
+//            return customVocab.count > 0 ? customVocab : nil
+//        }
+//    }
+    
+//    enum Vocab : Codable {
+//        var json: Data?
+//        {
+//            return try? JSONEncoder().encode(self)
+//        }
+//
+//        private enum CodingKeys: CodingKey // String,
+//        {
+//            case name
+//            case terms
+//        }
+//
+//        enum PostTypeCodingError: Error
+//        {
+//            case decoding(String)
+//        }
+//
+//        init(from decoder: Decoder) throws
+//        {
+//            let values = try decoder.container(keyedBy: CodingKeys.self)
+//
+//            if let value = try? values.decode(String.self, forKey: .name) {
+//                self = .name(value: value)
+//                return
+//            }
+//
+//            if let value = try? values.decode([String].self, forKey: .terms) {
+//                self = .terms(value: value)
+//                return
+//            }
+//
+//            throw PostTypeCodingError.decoding("Whoops! \(dump(values))")
+//        }
+//
+//        func encode(to encoder: Encoder) throws
+//        {
+//            var container = encoder.container(keyedBy: CodingKeys.self)
+//
+//            switch self {
+//            case .name(let value):
+//                try container.encode(value, forKey: .name)
+//
+//            case .terms(let id):
+//                try container.encode(id, forKey: .terms)
+//            }
+//        }
+//
+//        case name(value:String)
+//
+//        init?(name:String?)
+//        {
+//            guard let name = name else {
+//                return nil
+//            }
+//
+//            guard !name.isEmpty else {
+//                return nil
+//            }
+//
+//            self = Vocab.name(value:name)
+//        }
+//
+//        var name : String?
+//        {
+//            get {
+//                switch self {
+//                case .name(let value):
+//                    return value
+//
+//                default:
+//                    return nil
+//                }
+//            }
+//        }
+//
+//        case terms(value:[String])
+//
+//        init?(terms:[String]?)
+//        {
+//            guard let terms = terms else {
+//                return nil
+//            }
+//
+//            guard !terms.isEmpty else {
+//                return nil
+//            }
+//
+//            self = Vocab.terms(value:terms)
+//        }
+//
+//        var terms : [String]?
+//        {
+//            get {
+//                switch self {
+//                case .terms(let value):
+//                    return value
+//
+//                default:
+//                    return nil
+//                }
+//            }
+//        }
+//    }
+    
+//    func uploadVocab()
+//    {
+//        guard let customVocab = VoiceBase.customVocab else {
+//            return
+//        }
+//
+////        guard let data = try? JSONEncoder().encode(customVocab) else {
+////            return
+////        }
+//
+////        guard let json = try? PropertyListSerialization.data(fromPropertyList: customVocab as Any, format: .xml, options: 0) else {
+////            return
+////        }
+//
+////        let json = try? JSONEncoder().encode(customVocab)
+//
+//        var parameters = [String:String]()
+//
+//        parameters["configuration"] = VoiceBase.configuration
+//
+//        parameters["vocabulary"] = customVocab // String(data: data, encoding: .utf8)
+//
+//        //
+//        self.post(mediaID:nil, path:"definitions/transcripts/vocabularies/CBC", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+//            print(json)
+//        }, onError: { (json:[String : Any]?) -> (Void) in
+//            print(json)
+//        })
+//    }
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// VoiceBase API for Speech Recognition
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -456,7 +643,7 @@ class VoiceBase
     
     static let separator = "------------"
     
-    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\"}}"
+    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\",\"transcripts\":{\"vocabularies\": [{\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"]}]}}}"
     
     var purpose:String?
     
@@ -1555,7 +1742,15 @@ class VoiceBase
         
         for (key, value) in parameters {
             switch key {
-                // This works? But isn't necessary?
+//            case "vocabulary":
+//                let mimeType = "application/json"
+//                body.appendString(boundaryPrefix)
+//                body.appendString("Content-Disposition: form-data; name=\"\(key)\"; filename=\"CBC\"\r\n")
+//                body.appendString("Content-Type: \(mimeType)\r\n\r\n")
+//                body.appendString(value)
+//                body.appendString("\r\n")
+//                break
+
 //            case "transcript":
 //                if let id = mediaItem?.id { // , let data = value.data(using: String.Encoding.utf8) // why not utf16?
 //                    let mimeType = "text/plain"
@@ -1566,7 +1761,7 @@ class VoiceBase
 //                    body.appendString("\r\n")
 //                }
 //                break
-                
+
                 // This works, but uploading the file takes A LOT longer than the URL!
 //            case "media":
 //                if let purpose = purpose, let id = mediaItem?.id {
@@ -1608,7 +1803,8 @@ class VoiceBase
         return body //as Data
     }
     
-    func post(path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    // mediaID:String?,
+    func post(path:String?, parameters:[String:String]?, completion:(([String:Any]?)->(Void))?, onError:(([String:Any]?)->(Void))?)
     {
         guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
@@ -1622,7 +1818,8 @@ class VoiceBase
             return
         }
         
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path, query:nil)) else {
+        // mediaID:mediaID,
+        guard let url = URL(string:VoiceBase.url(path:path)) else {
             return
         }
         
@@ -1902,11 +2099,13 @@ class VoiceBase
 
         var parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata] //
         
-        if let configuration = VoiceBase.configuration {
-            parameters["configuration"] = configuration
-        }
+        parameters["configuration"] = VoiceBase.configuration
         
-        post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+        let path = "media" + (mediaID != nil ? "/\(mediaID!)" : "")
+        
+        // mediaID:mediaID,
+        
+        post(path:path, parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
             self.uploadJSON = json
             
             guard let status = json?["status"] as? String else {
@@ -1964,7 +2163,12 @@ class VoiceBase
     
     func progress(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        VoiceBase.get(accept:nil, mediaID: mediaID, path: "progress", query: nil, completion: completion, onError: onError)
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        // mediaID: nil,
+        VoiceBase.get(accept:nil, path: "media/\(mediaID)/progress", query: nil, completion: completion, onError: onError)
     }
     
     @objc func monitor(_ timer:Timer?)
@@ -1993,7 +2197,8 @@ class VoiceBase
             return
         }
 
-        guard let url = URL(string: VoiceBase.url(mediaID:mediaID, path:nil, query: nil)) else {
+        // mediaID:mediaID,
+        guard let url = URL(string: VoiceBase.url(path:"media/\(mediaID)", query: nil)) else {
             return
         }
         
@@ -2277,18 +2482,25 @@ class VoiceBase
     
     func metadata(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        VoiceBase.get(accept: nil, mediaID: mediaID, path: "metadata", query: nil, completion: completion, onError: onError)
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        VoiceBase.get(accept:nil, path:"media/\(mediaID)/metadata", query:nil, completion:completion, onError:onError)
     }
     
     func addMetaData()
     {
+        guard let mediaID = mediaID else {
+            return
+        }
+        
         var parameters:[String:String] = ["metadata":metadata]
         
-        if let configuration = VoiceBase.configuration {
-            parameters["configuration"] = configuration
-        }
+        parameters["configuration"] = VoiceBase.configuration
 
-        post(path: "metadata", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+        // mediaID:mediaID,
+        post(path:"media/\(mediaID)/metadata", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
             
         }, onError: { (json:[String : Any]?) -> (Void) in
             
@@ -2390,6 +2602,10 @@ class VoiceBase
     
     func align(_ transcript:String?)
     {
+        guard let mediaID = mediaID else {
+            return
+        }
+        
         guard let transcript = transcript else {
             return
         }
@@ -2412,11 +2628,10 @@ class VoiceBase
         progress(completion: { (json:[String : Any]?) -> (Void) in
             var parameters:[String:String] = ["transcript":transcript]
             
-            if let configuration = VoiceBase.configuration {
-                parameters["configuration"] = configuration
-            }
-            
-            self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+            parameters["configuration"] = VoiceBase.configuration
+
+            // mediaID:self.mediaID,
+            self.post(path:"media/\(mediaID)", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
 
                 guard let status = json?["status"] as? String else {
@@ -2510,11 +2725,10 @@ class VoiceBase
             
             var parameters:[String:String] = ["media":url,"metadata":self.metadata]
             
-            if let configuration = VoiceBase.configuration {
-                parameters["configuration"] = configuration
-            }
+            parameters["configuration"] = VoiceBase.configuration
 
-            self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+            // mediaID:self.mediaID,
+            self.post(path:"media", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
                 
                 guard let status = json?["status"] as? String else {
@@ -2554,11 +2768,10 @@ class VoiceBase
                                                             // Now do the relignment
                                                             var parameters:[String:String] = ["transcript":transcript]
                                                             
-                                                            if let configuration = VoiceBase.configuration {
-                                                                parameters["configuration"] = configuration
-                                                            }
-                                                            
-                                                            self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                                                            parameters["configuration"] = VoiceBase.configuration
+
+                                                            // mediaID:mediaID,
+                                                            self.post(path:"media/\(mediaID)", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                                                                 self.uploadJSON = json
 
                                                                 guard let status = json?["status"] as? String else {
@@ -2676,7 +2889,8 @@ class VoiceBase
             return
         }
         
-        VoiceBase.get(accept:"text/plain",mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
+        // mediaID:mediaID,
+        VoiceBase.get(accept:"text/plain", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             var error : String?
             
             if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
@@ -3372,7 +3586,12 @@ class VoiceBase
     
     func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
     {
-        VoiceBase.get(accept: "text/vtt", mediaID: mediaID, path: "transcripts/latest", query: nil, completion: { (json:[String : Any]?) -> (Void) in
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        // mediaID:mediaID,
+        VoiceBase.get(accept:"text/vtt", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let transcriptSegments = json?["text"] as? String {
                 self._transcriptSegments = nil // Without this the new transcript segments will not be processed correctly.
 
@@ -3413,7 +3632,8 @@ class VoiceBase
             return
         }
         
-        var service = VoiceBase.url(mediaID: nil, path: nil, query: nil)
+        // mediaID: nil,
+        var service = VoiceBase.url(path: "media", query: nil)
         service = service + "?query=" + string
         
         guard let url = URL(string:service) else {

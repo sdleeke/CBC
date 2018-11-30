@@ -765,7 +765,7 @@ extension URL
         }
         
         guard fileSystemURL.exists else {
-            print("File does not exist at \(fileSystemURL.absoluteString)")
+            debug("File does not exist at \(fileSystemURL.absoluteString)")
             return 0
         }
         
@@ -776,7 +776,7 @@ extension URL
                 return num
             }
         } catch let error {
-            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
+            debug("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
         }
         
         return nil
@@ -842,7 +842,7 @@ extension URL
             
             do {
                 let data = try Data(contentsOf: self)
-                print("Data read from \(self.absoluteString)")
+                debug("Data read from \(self.absoluteString)")
                 return data
             } catch let error {
                 NSLog(error.localizedDescription)
