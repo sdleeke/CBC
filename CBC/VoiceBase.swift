@@ -5197,7 +5197,18 @@ class VoiceBase
                                                     title: "Begin Creating\nMachine Generated Transcript?",
                                                     message: "\(text) (\(self.transcriptPurpose))",
                                                     yesAction: { () -> (Void) in
-                                                        self.getTranscript(alert: true)
+                                                        self.getTranscript(alert:true) {
+                                                            self.getTranscriptSegments(alert:true) {
+                                                                self.details(alert:true) {
+                                                                    self.transcribing = false
+                                                                    self.completed = true
+                                                                    
+                                                                    // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                                                    // sure I can predict the context in which this (i.e. that) would happen.
+                                                                }
+                                                            }
+                                                        }
+
                                                         self.alert(viewController:viewController)
                                                     },
                                                     yesStyle: .default,
@@ -5252,7 +5263,17 @@ class VoiceBase
                                 title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.getTranscript(alert: true)
+                                self.getTranscript(alert:true) {
+                                    self.getTranscriptSegments(alert:true) {
+                                        self.details(alert:true) {
+                                            self.transcribing = false
+                                            self.completed = true
+                                            
+                                            // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                            // sure I can predict the context in which this (i.e. that) would happen.
+                                        }
+                                    }
+                                }
                                 self.alert(viewController:viewController)
                             },
                             yesStyle: .default,
