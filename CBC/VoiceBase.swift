@@ -257,10 +257,10 @@ extension VoiceBase // Class Methods
                 print("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    debug("post HTTP response: ",httpResponse.description)
+                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+                    debug("post HTTP response: ",httpResponse.statusCode)
+                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     
                     if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
                         errorOccured = true
@@ -390,10 +390,10 @@ extension VoiceBase // Class Methods
                 print("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    debug("post HTTP response: ",httpResponse.description)
+                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+                    debug("post HTTP response: ",httpResponse.statusCode)
+                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     
                     if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
                         errorOccured = true
@@ -643,7 +643,11 @@ class VoiceBase
     
     static let separator = "------------"
     
-    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\",\"transcripts\":{\"vocabularies\": [{\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"]}]}}}"
+    static let customVocab = ",\"transcripts\":{\"vocabularies\": [{\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"]}]}"
+    
+    static let includeVocab = true
+    
+    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
     
     var purpose:String?
     
@@ -855,8 +859,8 @@ class VoiceBase
             case Purpose.video:
                 var mp4 = mediaItem?.mp4
                 
-                if let range = mp4?.range(of: "&profile_id="), let root = mp4?[..<range.upperBound] {
-                    mp4 = root.description + "174"
+                if let range = mp4?.range(of: "&profile_id=175"), let root = mp4?[..<range.lowerBound] { // .upperBound
+                    mp4 = root.description + "&profile_id=174"
                 }
                 
                 return mp4
@@ -1145,7 +1149,7 @@ class VoiceBase
                 //                mediaItem.voicebase?.delete()
                 // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
                 if self.resultsTimer != nil {
-                    print("TIMER NOT NIL!")
+                    debug("TIMER NOT NIL!")
                 }
             }
 
@@ -1160,7 +1164,7 @@ class VoiceBase
                 //                mediaItem.voicebase?.delete()
                 // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
                 if self.resultsTimer != nil {
-                    print("TIMER NOT NIL!")
+                    debug("TIMER NOT NIL!")
                 }
             }
 
@@ -1852,10 +1856,10 @@ class VoiceBase
                 print("post response: ",response.description)
 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    debug("post HTTP response: ",httpResponse.description)
+                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+                    debug("post HTTP response: ",httpResponse.statusCode)
+                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
 
                     if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
                         errorOccured = true
@@ -2137,7 +2141,7 @@ class VoiceBase
                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     }
                 } else {
-                    print("TIMER NOT NIL!")
+                    debug("TIMER NOT NIL!")
                 }
                 break
                 
@@ -2224,10 +2228,10 @@ class VoiceBase
                 print("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    debug("post HTTP response: ",httpResponse.description)
+                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+                    debug("post HTTP response: ",httpResponse.statusCode)
+                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     
                     if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
                         errorOccured = true
@@ -2556,6 +2560,9 @@ class VoiceBase
                                 self.getTranscriptSegments(alert:detailedAlerts) {
                                     self.details(alert:detailedAlerts) {
                                         self.aligning = false
+
+                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                        // sure I can predict the context in which this (i.e. that) would happen.
                                     }
                                 }
                             }
@@ -2691,7 +2698,7 @@ class VoiceBase
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                         }
                     } else {
-                        print("TIMER NOT NIL!")
+                        debug("TIMER NOT NIL!")
                     }
                     break
                     
@@ -2825,7 +2832,7 @@ class VoiceBase
                                                                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                                         }
                                                                     } else {
-                                                                        print("TIMER NOT NIL!")
+                                                                        debug("TIMER NOT NIL!")
                                                                     }
                                                                     break
                                                                     
@@ -2857,7 +2864,7 @@ class VoiceBase
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: newUserInfo, repeats: true)
                         }
                     } else {
-                        print("TIMER NOT NIL!")
+                        debug("TIMER NOT NIL!")
                     }
                     break
                     
@@ -2882,7 +2889,7 @@ class VoiceBase
         })
     }
     
-    func getTranscript(alert:Bool, atEnd:(()->())? = nil)
+    func getTranscript(alert:Bool, onSuccess:(()->())? = nil)
     {
         guard let mediaID = mediaID else {
             upload()
@@ -2902,32 +2909,49 @@ class VoiceBase
             }
             
             if let error = error {
-                print(error)
+                debug(error)
             }
             
-            if let text = json?["text"] as? String {
-                self.transcript = text
-
-                if alert, let text = self.mediaItem?.text {
-                    Alerts.shared.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
+            guard let text = json?["text"] as? String else {
+                if alert {
+                    var message : String?
+                    
+                    if let text = self.mediaItem?.text {
+                        message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available."
+                    }
+                    
+                    if let error = error {
+                        if message != nil {
+                            message = message! + "\n\n"
+                        }
+                        message = (message ?? "") + "Error: \(error)"
+                    }
+                    
+                    Alerts.shared.alert(title: "Transcript Not Available",message: message)
                 }
                 
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
-                }
-            } else {
-                if let error = error {
-                    if alert, let text = self.mediaItem?.text {
-                        Alerts.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.\n\nError: \(error)")
-                    }
-                } else {
-                    if alert, let text = self.mediaItem?.text {
-                        Alerts.shared.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
-                    }
-                }
+                self.remove()
+
+                return
             }
             
-            atEnd?()
+            self.transcript = text
+            
+            if alert {
+                var message : String?
+                
+                if let text = self.mediaItem?.text {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available."
+                }
+                
+                Alerts.shared.alert(title: "Transcript Available",message: message)
+            }
+            
+            onSuccess?()
+            
+            Thread.onMainThread {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
+            }
         }, onError: { (json:[String : Any]?) -> (Void) in
             var error : String?
             
@@ -2939,27 +2963,28 @@ class VoiceBase
                 error = message
             }
             
-            var message : String?
-            
-            if let text = self.mediaItem?.text {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcription of\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                } else {
-                    message = "The transcription of\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
-                }
-            } else {
-                if let error = error {
-                    message = "Error: \(error)\n\n" + "The transcription failed to start.  Please try again."
-                } else {
-                    message = "The transcription failed to start.  Please try again."
-                }
+            if let error = error {
+                debug(error)
             }
             
-            if let message = message {
+            if alert {
+                var message : String?
+                
+                if let text = self.mediaItem?.text {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                }
+                
+                if let error = error {
+                    if message != nil {
+                        message = message! + "\n\n"
+                    }
+                    message = (message ?? "") + "Error: \(error)"
+                }
+                
                 Alerts.shared.alert(title: "Transcription Failed",message: message)
             }
             
-            atEnd?()
+            self.remove()
         })
     }
     
@@ -3662,10 +3687,10 @@ class VoiceBase
                 print("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    debug("post HTTP response: ",httpResponse.description)
+                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+                    debug("post HTTP response: ",httpResponse.statusCode)
+                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     
                     if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
                         errorOccured = true
@@ -3731,6 +3756,9 @@ class VoiceBase
                             self.getTranscript(alert:detailedAlerts) {
                                 self.getTranscriptSegments(alert:detailedAlerts) {
                                     self.details(alert:detailedAlerts) {
+
+                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                        // sure I can predict the context in which this (i.e. that) would happen.
 
                                     }
                                 }
@@ -5880,7 +5908,7 @@ class VoiceBase
                                             Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
                                             
                                             if self.resultsTimer != nil {
-                                                print("TIMER NOT NIL!")
+                                                debug("TIMER NOT NIL!")
                                                 
                                                 var actions = [AlertAction]()
                                                 
