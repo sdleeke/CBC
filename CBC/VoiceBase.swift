@@ -215,7 +215,7 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-    static func get(accept:String?,path:String?,query:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?) // mediaID:String?,
+    static func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
     {
         if !Globals.shared.checkingVoiceBaseAvailability {
             if !(Globals.shared.isVoiceBaseAvailable ?? false){
@@ -254,7 +254,7 @@ extension VoiceBase // Class Methods
             }
             
             if let response = response {
-                print("post response: ",response.description)
+                debug("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
                     debug("post HTTP response: ",httpResponse.description)
@@ -281,6 +281,8 @@ extension VoiceBase // Class Methods
                     json = data.json as? [String:Any]
                     
                     if let errors = json?["errors"] {
+                        print(string as Any)
+                        print(json as Any)
                         print(errors)
                         errorOccured = true
                     }
@@ -303,9 +305,13 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
-                onError?(json)
+                Thread.onMainThread {
+                    onError?(json)
+                }
             } else {
-                completion?(json)
+                Thread.onMainThread {
+                    completion?(json)
+                }
             }
         })
         
@@ -347,7 +353,7 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media", query:nil, completion:completion, onError:onError)
     }
     
-    static func delete(mediaID:String?)
+    static func delete(mediaID:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         print("VoiceBase.delete")
 
@@ -387,7 +393,7 @@ extension VoiceBase // Class Methods
             }
             
             if let response = response {
-                print("post response: ",response.description)
+                debug("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
                     debug("post HTTP response: ",httpResponse.description)
@@ -407,12 +413,14 @@ extension VoiceBase // Class Methods
             
             if let data = data, data.count > 0 {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
-                print(string as Any)
+                debug(string as Any)
                 
                 json = data.json as? [String:Any]
-                print(json as Any)
+                debug(json as Any)
 
                 if let errors = json?["errors"] {
+                    print(string as Any)
+                    print(json as Any)
                     print(errors)
                     errorOccured = true
                 }
@@ -436,11 +444,11 @@ extension VoiceBase // Class Methods
             
             if errorOccured {
                 Thread.onMainThread {
-                    
+                    onError?(json)
                 }
             } else {
                 Thread.onMainThread {
-                    
+                    completion?(json)
                 }
             }
         })
@@ -1190,7 +1198,7 @@ class VoiceBase
             if _transcript != nil {
 //                DispatchQueue.global(qos: .background).async { [weak self] in
                 fileQueue.addOperation { [weak self] in
-                    self?.filename?.fileSystemURL?.delete(block:true)
+//                    self?.filename?.fileSystemURL?.delete(block:true)
                     self?._transcript?.save16(filename: self?.filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
                     
 //                    if let destinationURL = self?.filename?.fileSystemURL {
@@ -1208,11 +1216,12 @@ class VoiceBase
             } else {
 //                DispatchQueue.global(qos: .background).async { [weak self] in
                 fileQueue.addOperation { [weak self] in
-                    if let destinationURL = self?.filename?.fileSystemURL {
-                        destinationURL.delete(block:true)
-                    } else {
-                        print("failed to get destinationURL")
-                    }
+                    self?.filename?.fileSystemURL?.delete(block:true)
+//                    if let destinationURL = self?.filename?.fileSystemURL {
+//                        destinationURL.delete(block:true)
+//                    } else {
+//                        print("failed to get destinationURL")
+//                    }
                 }
             }
         }
@@ -1478,7 +1487,7 @@ class VoiceBase
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
 
-                    destinationURL.delete(block:true)
+//                    destinationURL.delete(block:true)
                     
                     do {
                         try mediaPropertyList?.write(to: destinationURL)
@@ -1808,7 +1817,7 @@ class VoiceBase
     }
     
     // mediaID:String?,
-    func post(path:String?, parameters:[String:String]?, completion:(([String:Any]?)->(Void))?, onError:(([String:Any]?)->(Void))?)
+    func post(path:String?, parameters:[String:String]?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
@@ -1873,12 +1882,14 @@ class VoiceBase
 
             if let data = data, data.count > 0 {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
-                print(string as Any)
+                debug(string as Any)
                 
                 json = data.json as? [String:Any]
-                print(json as Any)
+                debug(json as Any)
                 
                 if let errors = json?["errors"] {
+                    print(string as Any)
+                    print(json as Any)
                     print(errors)
                     errorOccured = true
                 }
@@ -2187,7 +2198,7 @@ class VoiceBase
         progress(completion: completion, onError: onError)
     }
     
-    func delete()
+    func delete(completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
@@ -2225,7 +2236,7 @@ class VoiceBase
             }
             
             if let response = response {
-                print("post response: ",response.description)
+                debug("post response: ",response.description)
                 
                 if let httpResponse = response as? HTTPURLResponse {
                     debug("post HTTP response: ",httpResponse.description)
@@ -2253,12 +2264,14 @@ class VoiceBase
             
             if let data = data, data.count > 0 {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
-                print(string as Any)
+                debug(string as Any)
 
                 json = data.json as? [String:Any]
-                print(json as Any)
+                debug(json as Any)
                 
                 if let errors = json?["errors"] {
+                    print(string as Any)
+                    print(json as Any)
                     print(errors)
                     errorOccured = true
                 }
@@ -2281,9 +2294,14 @@ class VoiceBase
             }
             
             if errorOccured {
-
+                // ???
+                Thread.onMainThread {
+                    onError?(json)
+                }
             } else {
-            
+                Thread.onMainThread {
+                    completion?(json)
+                }
             }
         })
         
@@ -3502,40 +3520,55 @@ class VoiceBase
 //            DispatchQueue.global(qos: .background).async { [weak self] in
 //                let fileManager = FileManager.default
             fileQueue.addOperation { [weak self] in
+                guard let filename = self?.filename else {
+                    return
+                }
+                
                 if self?._transcriptSegments != nil {
-                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
-                        let filename = filename + ".segments"
-                        filename.fileSystemURL?.delete(block:true)
-                        self?._transcriptSegments?.save16(filename:filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
+//                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
+//                        let filename = filename + ".segments"
+//                        filename.fileSystemURL?.delete(block:true)
+                    self?._transcriptSegments?.save16(filename:filename + ".segments") // Keep in mind that this is being saved in the cache folder where it could disappear.
 //                        do {
 //                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
 //                        } catch let error {
 //                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
 //                        }
-                    } else {
-                        print("failed to get destinationURL")
-                    }
-
-                    //Legacy clean-up
-                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-                        destinationURL.delete(block:true)
-                    } else {
-                        print("failed to get destinationURL")
-                    }
+//                    } else {
+//                        print("failed to get destinationURL")
+//                    }
+//
+//                    //Legacy clean-up
+//                    (filename + ".srt").fileSystemURL?.delete(block:true)
+////                    if let filename = self?.filename {
+////                        (filename + ".srt").fileSystemURL?.delete(block:true)
+////                    } else {
+////                        print("failed to get destinationURL")
+////                    }
                 } else {
-                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-                        destinationURL.delete(block:true)
-                    } else {
-                        print("failed to get destinationURL")
-                    }
-
-                    //Legacy clean-up
-                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-                        destinationURL.delete(block:true)
-                    } else {
-                        print("failed to get destinationURL")
-                    }
+                    (filename + ".segments").fileSystemURL?.delete(block:true)
+//                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
+//                        destinationURL.delete(block:true)
+//                    } else {
+//                        print("failed to get destinationURL")
+//                    }
+//
+//                    //Legacy clean-up
+//                    (filename + ".srt").fileSystemURL?.delete(block:true)
+////                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
+////                        destinationURL.delete(block:true)
+////                    } else {
+////                        print("failed to get destinationURL")
+////                    }
                 }
+
+                //Legacy clean-up
+                (filename + ".srt").fileSystemURL?.delete(block:true)
+//                if let filename = self?.filename {
+//                    (filename + ".srt").fileSystemURL?.delete(block:true)
+//                } else {
+//                    print("failed to get destinationURL")
+//                }
             }
         }
     }
@@ -3643,7 +3676,7 @@ class VoiceBase
         })
     }
     
-    func search(string:String?)
+    func search(string:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
@@ -3704,12 +3737,14 @@ class VoiceBase
             
             if let data = data, data.count > 0 {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
-                print(string as Any)
+                debug(string as Any)
                 
                 json = data.json as? [String:Any]
-                print(json as Any)
+                debug(json as Any)
                 
                 if let errors = json?["errors"] {
+                    print(string as Any)
+                    print(json as Any)
                     print(errors)
                     errorOccured = true
                 }
@@ -3733,11 +3768,11 @@ class VoiceBase
             
             if errorOccured {
                 Thread.onMainThread {
-                    
+                    onError?(json)
                 }
             } else {
                 Thread.onMainThread {
-                    
+                    completion?(json)
                 }
             }
         })
