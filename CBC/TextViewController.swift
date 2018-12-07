@@ -1525,43 +1525,18 @@ class TextViewController : UIViewController
 
                     // USE PROCESS TO SHOW SPINNER UNTIL FIRST CHANGE FOUND!
                     process(viewController: vc, work: { [weak self] () -> (Any?) in
-                        guard var masterChanges = self?.transcript?.masterChanges(interactive:true, longFormat:false) else {
+                        guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                             return nil
                         }
-                        
-                        var changes = [(String,String)]()
-                        
-                        for masterKey in masterChanges.keys {
-                            if let keys = masterChanges[masterKey]?.keys {
-                                for key in keys {
-                                    let oldText = key
-                                    if let newText = masterChanges[masterKey]?[key] {
-                                        if let newText = masterChanges[masterKey]?[key] {
-                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                if text.lowercased().range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            } else {
-                                                if text.range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        changes.sort(by: { (first, second) -> Bool in
-                            first.0.endIndex > second.0.endIndex
-                        })
                         
                         self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                         })
-
+                        
+                        self?.editingQueue.waitUntilAllOperationsAreFinished()
+                        
                         return nil
                     }) { [weak self] (data:Any?) in
                         self?.updateBarButtons()
@@ -1580,36 +1555,9 @@ class TextViewController : UIViewController
                 
                 // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
                 process(viewController: vc, work: { [weak self] () -> (Any?) in
-                    guard var masterChanges = self?.transcript?.masterChanges(interactive:true, longFormat:false) else {
+                    guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                         return nil
                     }
-                    
-                    var changes = [(String,String)]()
-                    
-                    for masterKey in masterChanges.keys {
-                        if let keys = masterChanges[masterKey]?.keys {
-                            for key in keys {
-                                let oldText = key
-                                if let newText = masterChanges[masterKey]?[key] {
-                                    if let newText = masterChanges[masterKey]?[key] {
-                                        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                            if text.lowercased().range(of: oldText) != nil {
-                                                changes.append((oldText,newText))
-                                            }
-                                        } else {
-                                            if text.range(of: oldText) != nil {
-                                                changes.append((oldText,newText))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    changes.sort(by: { (first, second) -> Bool in
-                        first.0.endIndex > second.0.endIndex
-                    })
                     
                     self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                         self?.updateBarButtons()
@@ -1617,6 +1565,8 @@ class TextViewController : UIViewController
                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                     })
 
+                    self?.editingQueue.waitUntilAllOperationsAreFinished()
+                    
                     return nil
                 }) { [weak self] (data:Any?) in
                     self?.updateBarButtons()
@@ -1903,34 +1853,9 @@ class TextViewController : UIViewController
                         
                         // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
                         process(viewController: vc, work: { [weak self] () -> (Any?) in
-                            guard var masterChanges = self?.transcript?.masterChanges(interactive:false, longFormat:false) else {
+                            guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                                 return nil
                             }
-                            
-                            var changes = [(String,String)]()
-                            
-                            for masterKey in masterChanges.keys {
-                                if let keys = masterChanges[masterKey]?.keys {
-                                    for key in keys {
-                                        let oldText = key
-                                        if let newText = masterChanges[masterKey]?[key] {
-                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                if text.lowercased().range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            } else {
-                                                if text.range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            changes.sort(by: { (first, second) -> Bool in
-                                first.0.endIndex > second.0.endIndex
-                            })
                             
                             self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
@@ -1973,34 +1898,9 @@ class TextViewController : UIViewController
                     
                     // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
                     process(viewController: vc, work: { [weak self] () -> (Any?) in
-                        guard var masterChanges = self?.transcript?.masterChanges(interactive:false, longFormat:false) else {
+                        guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                             return nil
                         }
-                        
-                        var changes = [(String,String)]()
-                        
-                        for masterKey in masterChanges.keys {
-                            if let keys = masterChanges[masterKey]?.keys {
-                                for key in keys {
-                                    let oldText = key
-                                    if let newText = masterChanges[masterKey]?[key] {
-                                        if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                            if text.lowercased().range(of: oldText) != nil {
-                                                changes.append((oldText,newText))
-                                            }
-                                        } else {
-                                            if text.range(of: oldText) != nil {
-                                                changes.append((oldText,newText))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        changes.sort(by: { (first, second) -> Bool in
-                            first.0.endIndex > second.0.endIndex
-                        })
                         
                         self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
@@ -3136,8 +3036,12 @@ class TextViewController : UIViewController
                             // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
                             process(viewController: vc, work: { [weak self] () -> (Any?) in
                                 self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
+                                
+                                self?.editingQueue.waitUntilAllOperationsAreFinished()
+                                
                                 return nil
                             }) { [weak self] (data:Any?) in
+                                
                             }
                         } else {
                             // ERROR
@@ -3152,8 +3056,12 @@ class TextViewController : UIViewController
                         // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
                         process(viewController: vc, work: { [weak self] () -> (Any?) in
                             self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
+                            
+                            self?.editingQueue.waitUntilAllOperationsAreFinished()
+                            
                             return nil
                         }) { [weak self] (data:Any?) in
+                            
                         }
 //                        self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, masterChanges:masterChanges, completion:completion)
                     }))
@@ -3200,36 +3108,44 @@ class TextViewController : UIViewController
                     }
                 }
             } else {
-                if interactive {
-                    let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                    self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
-                } else {
-                    editingQueue.addOperation { [weak self] in
-                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                        self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
-                    }
+                let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                editingQueue.addOperation { [weak self] in
+                    self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                 }
+//                if interactive {
+//                    let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+//                    self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
+//                } else {
+//                    editingQueue.addOperation { [weak self] in
+//                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+//                        self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
+//                    }
+//                }
             }
         } else {
-            if interactive {
-//                print(key)
-//                masterChanges[masterKey]?[key] = nil
-//                if masterChanges[masterKey]?.count == 0 {
-//                    print(masterKey)
-//                    masterChanges[masterKey] = nil
-//                }
-                changes.removeFirst()
-                self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
-            } else {
-                editingQueue.addOperation { [weak self] in
-//                    masterChanges[masterKey]?[key] = nil
-//                    if masterChanges[masterKey]?.count == 0 {
-//                        masterChanges[masterKey] = nil
-//                    }
-                    changes.removeFirst()
-                    self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
-                }
+            changes.removeFirst()
+            editingQueue.addOperation { [weak self] in
+                self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
             }
+//            if interactive {
+////                print(key)
+////                masterChanges[masterKey]?[key] = nil
+////                if masterChanges[masterKey]?.count == 0 {
+////                    print(masterKey)
+////                    masterChanges[masterKey] = nil
+////                }
+//                changes.removeFirst()
+//                self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
+//            } else {
+//                editingQueue.addOperation { [weak self] in
+////                    masterChanges[masterKey]?[key] = nil
+////                    if masterChanges[masterKey]?.count == 0 {
+////                        masterChanges[masterKey] = nil
+////                    }
+//                    changes.removeFirst()
+//                    self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
+//                }
+//            }
         }
     }
 
@@ -3255,34 +3171,9 @@ class TextViewController : UIViewController
             
             // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE - MAYBE, depends on automaticInteractive
             process(viewController: self, work: { [weak self] () -> (Any?) in
-                guard var masterChanges = self?.transcript?.masterChanges(interactive:self?.automaticInteractive == true, longFormat:false) else {
+                guard let changes = self?.transcript?.changes(interactive:self?.automaticInteractive == true, longFormat:false) else {
                     return nil
                 }
-                
-                var changes = [(String,String)]()
-                
-                for masterKey in masterChanges.keys {
-                    if let keys = masterChanges[masterKey]?.keys {
-                        for key in keys {
-                            let oldText = key
-                            if let newText = masterChanges[masterKey]?[key] {
-                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                    if text.lowercased().range(of: oldText) != nil {
-                                        changes.append((oldText,newText))
-                                    }
-                                } else {
-                                    if text.range(of: oldText) != nil {
-                                        changes.append((oldText,newText))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                changes.sort(by: { (first, second) -> Bool in
-                    first.0.endIndex > second.0.endIndex
-                })
                 
                 self?.changeText(interactive: self?.automaticInteractive == true, makeVisible:self?.automaticVisible == true, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                     self?.changedText = string

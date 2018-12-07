@@ -163,10 +163,10 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             case "Lexical Analysis":
                 process(viewController: self, disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
                     if #available(iOS 12.0, *) {
-                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup
+                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true)
                     } else {
                         // Fallback on earlier versions
-                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup
+                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true)
                     }
                 }) { (data:Any?) in
                     if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
@@ -689,6 +689,11 @@ class ScriptureViewController : UIViewController
     var webViewController:WebViewController?
     
     var scripture:Scripture?
+//    {
+//        didSet {
+//            webViewController?.bodyHTML = scripture?.text(scripture?.reference)
+//        }
+//    }
     
     @IBOutlet weak var directionLabel: UILabel!
     
@@ -729,16 +734,16 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    func actionMenu() -> [String]?
-    {
-        return webViewController?.actionMenu()
-        
-//        var actionMenu = [String]()
+//    func actionMenu() -> [String]?
+//    {
+//        return webViewController?.actionMenu()
 //
-//        actionMenu.append("Lexical Analysis")
-//
-//        return actionMenu.count > 0 ? actionMenu : nil
-    }
+////        var actionMenu = [String]()
+////
+////        actionMenu.append("Lexical Analysis")
+////
+////        return actionMenu.count > 0 ? actionMenu : nil
+//    }
     
     @objc func actions()
     {
@@ -763,8 +768,7 @@ class ScriptureViewController : UIViewController
             popover.purpose = .selectingAction
 
             webViewController?.bodyHTML = scripture?.text(scripture?.reference)
-
-            popover.section.strings = actionMenu()
+            popover.section.strings = webViewController?.actionMenu()
 
             self.popover = popover
             

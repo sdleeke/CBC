@@ -609,10 +609,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
         case "Lexical Analysis":
             process(viewController: self, disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
                 if #available(iOS 12.0, *) {
-                    return stripHTML(self.bodyHTML)?.nlNameAndLexicalTypesMarkup
+                    return stripHTML(self.bodyHTML)?.nlNameAndLexicalTypesMarkup(annotated:true)
                 } else {
                     // Fallback on earlier versions
-                    return stripHTML(self.bodyHTML)?.nsNameAndLexicalTypesMarkup
+                    return stripHTML(self.bodyHTML)?.nsNameAndLexicalTypesMarkup(annotated:true)
                 }
             }) { (data:Any?) in
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,

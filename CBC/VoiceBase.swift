@@ -4728,16 +4728,98 @@ class VoiceBase
     
     func preambles() -> [String]?
     {
-        let preambles = ["verse","verses","chapter","chapters"]
+        let preambles = ["chapters","chapter","verses","verse"]
         
         return preambles.count > 0 ? preambles : nil
     }
 
     func continuations() -> [String]?
     {
-        let continuations = ["through","to","and"]
+        let continuations = ["through","and","to"]
         
         return continuations.count > 0 ? continuations : nil
+    }
+    
+    func keyOrder() -> [String]?
+    {
+        var keyOrder = ["words","books"]
+        
+        if let preambles = preambles() {
+            keyOrder.append(contentsOf:preambles)
+        }
+        
+        if let continuations = continuations() {
+            keyOrder.append(contentsOf: continuations)
+        }
+        
+        keyOrder.append("textToNumbers")
+        
+        return keyOrder.count > 0 ? keyOrder : nil
+    }
+    
+    func changes(interactive:Bool, longFormat:Bool) -> [(String,String)]?
+    {
+        guard var masterChanges = masterChanges(interactive:interactive, longFormat:longFormat) else {
+            return nil
+        }
+        
+        guard let keyOrder = keyOrder() else {
+            return nil
+        }
+        
+        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+            let firstIndex = keyOrder.index(of: first)
+            let secondIndex = keyOrder.index(of: second)
+            
+            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+                return firstIndex < secondIndex
+            }
+            
+            if firstIndex != nil {
+                return true
+            }
+            
+            if secondIndex != nil {
+                return false
+            }
+            
+            return first.endIndex > second.endIndex
+        })
+        
+//        for masterKey in masterKeys {
+//            if !["words","books","textToNumbers"].contains(masterKey) {
+//                if !text.lowercased().contains(masterKey.lowercased()) {
+//                    masterChanges[masterKey] = nil
+//                }
+//            }
+//        }
+
+        var changes = [(String,String)]()
+        
+        for masterKey in masterKeys {
+            if let keys = masterChanges[masterKey]?.keys {
+                var masterKeyChanges = [(String,String)]()
+                
+                for key in keys {
+                    let oldText = key
+                    if let newText = masterChanges[masterKey]?[key] {
+                        masterKeyChanges.append((oldText,newText))
+                    }
+                }
+                
+                if masterKeyChanges.count > 0 {
+                    changes.append(contentsOf: masterKeyChanges.sorted(by: { (first, second) -> Bool in
+                        guard first.0.endIndex != second.0.endIndex else {
+                            return first.0 < second.0
+                        }
+                        
+                        return first.0.endIndex > second.0.endIndex
+                    }))
+                }
+            }
+        }
+        
+        return changes.count > 0 ? changes : nil
     }
     
     func masterChanges(interactive:Bool, longFormat:Bool) -> [String:[String:String]]?
@@ -5605,8 +5687,13 @@ class VoiceBase
                                         }
                                     }
                                     
+                                    // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
                                     changes.sort(by: { (first, second) -> Bool in
-                                        first.0.endIndex > second.0.endIndex
+                                        guard first.0.endIndex != second.0.endIndex else {
+                                            return first.0 < second.0
+                                        }
+                                        
+                                        return first.0.endIndex > second.0.endIndex
                                     })
                                     
                                     self.changeText(text: string, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
@@ -5641,8 +5728,13 @@ class VoiceBase
                                 }
                             }
                             
+                            // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
                             changes.sort(by: { (first, second) -> Bool in
-                                first.0.endIndex > second.0.endIndex
+                                guard first.0.endIndex != second.0.endIndex else {
+                                    return first.0 < second.0
+                                }
+                                
+                                return first.0.endIndex > second.0.endIndex
                             })
                             
                             self.changeText(text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in

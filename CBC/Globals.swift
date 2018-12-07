@@ -104,7 +104,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
 
             if !_isVoiceBaseAvailable {
-                if checkVoiceBaseTimer != nil {
+                if checkVoiceBaseTimer == nil {
                     checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
                 }
             } else {
@@ -417,7 +417,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             
         }
         didSet {
-            // This assumes it only changes ONCE.  I.e. another call w/ the new value and need.grouping will be false.
+            // This assumes it only changes ONCE.  I.e. another call w/ the new value and it will be false.
             media.need.grouping = (grouping != oldValue)
             
             let defaults = UserDefaults.standard
@@ -437,6 +437,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             
         }
         didSet {
+            // This assumes it only changes ONCE.  I.e. another call w/ the new value it will be false.
             media.need.sorting = (sorting != oldValue)
             
             let defaults = UserDefaults.standard

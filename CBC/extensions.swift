@@ -565,7 +565,26 @@ extension String
     }
 }
 
-let colors = ["LimeGreen", "Red", "Aqua", "Silver", "Fuchsia", "Lime", "Yellow", "Pink", "Gold", "LightBlue", "GoldenRod", "LightCoral", "DodgerBlue", "DarkTurquoise", "DarkCyan"]
+let colors = ["LimeGreen", "Red", "Aqua", "Silver", "Fuchsia", "GreenYellow", "Yellow", "Pink", "Gold", "LightBlue", "GoldenRod", "LightCoral", "DodgerBlue", "DarkTurquoise", "DarkCyan"]
+
+//let colors = [
+////"NAVY",
+//"BLUE",
+//"AQUA",
+//"TEAL",
+//"OLIVE",
+//"GREEN",
+//"LIME",
+//"YELLOW",
+//"ORANGE",
+//"RED",
+////"MAROON",
+//"FUCHSIA",
+//"PURPLE",
+////"BLACK",
+//"GRAY",
+//"SILVER"
+//]
 
 extension String
 {
@@ -628,125 +647,169 @@ extension String
         }
     }
 
+    func nsNameAndLexicalTypesMarkup(annotated:Bool) -> String?
+    {
+        guard let nameAndLexicalTypes = self.nsNameTypesAndLexicalClasses else {
+            return nil
+        }
+        
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        var types = Set<String>()
+        
+        for nameAndLexicalType in nameAndLexicalTypes {
+            types.insert(nameAndLexicalType.1)
+        }
+        
+        let lexicalTypes = Array(types).sorted()
+        
+        var lexicalTypeColors = [String:String]()
+        
+        var count = 0
+        for lexicalType in lexicalTypes {
+            lexicalTypeColors[lexicalType] = colors[count % colors.count]
+            count += 1
+        }
+        
+        for lexicalType in lexicalTypes {
+            if let color = lexicalTypeColors[lexicalType] {
+                htmlString += "<table style=\"display:inline;\">"
+                htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
+                htmlString += "</table>"
+//                htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
+                if lexicalType != lexicalTypes.last {
+                    htmlString += " "
+                }
+            }
+        }
+        htmlString += "<br/><br/>"
+        
+        var text = self
+        
+        for nameAndLexicalType in nameAndLexicalTypes.reversed() {
+            let token = nameAndLexicalType.0
+            let nameOrLexicalType = nameAndLexicalType.1
+            let nsRange = nameAndLexicalType.2
+            
+            let startIndex = text.index(text.startIndex,offsetBy: nsRange.lowerBound)
+            let endIndex = text.index(text.startIndex,offsetBy: nsRange.upperBound)
+            
+            let before = text[..<startIndex]
+            let after = text[endIndex...]
+            
+            if let color = lexicalTypeColors[nameOrLexicalType] {
+                var htmlString = String()
+
+                let annotate = false
+
+                htmlString += "<table style=\"display:inline;\">"
+                htmlString += "<tr><td style=\"background-color:\(color)\">\(token)</td></tr>"
+                if annotate {
+                    htmlString += "<tr><td style=\"font-size:75%;background-color:\(color)\">\(nameOrLexicalType)</td></tr>"
+                }
+                htmlString += "</table>"
+
+                text = before + htmlString + after
+                
+                //  <sup>\(nameOrLexicalType)</sup>
+//                text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
+            } else {
+                text = before + "<mark>\(token)</mark>" + after
+            }
+        }
+        
+        htmlString += text.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
+        htmlString += "</body></html>"
+        
+        return insertHead(htmlString, fontSize:Constants.FONT_SIZE)
+    }
+    
     var nsNameAndLexicalTypesMarkup : String?
     {
         get {
-            guard let nameAndLexicalTypes = self.nsNameTypesAndLexicalClasses else {
-                return nil
-            }
-            
-            var htmlString = "<!DOCTYPE html><html><body>"
-            
-            var types = Set<String>()
-            
-            for nameAndLexicalType in nameAndLexicalTypes {
-                types.insert(nameAndLexicalType.1)
-            }
-            
-            let lexicalTypes = Array(types).sorted()
-            
-            var lexicalTypeColors = [String:String]()
-            
-            var count = 0
-            for lexicalType in lexicalTypes {
-                lexicalTypeColors[lexicalType] = colors[count % colors.count]
-                count += 1
-            }
-            
-            for lexicalType in lexicalTypes {
-                if let color = lexicalTypeColors[lexicalType] {
-                    htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
-                    if lexicalType != lexicalTypes.last {
-                        htmlString += " "
-                    }
-                }
-            }
-            htmlString += "<br/><br/>"
-            
-            var text = self
-            
-            for nameAndLexicalType in nameAndLexicalTypes.reversed() {
-                let token = nameAndLexicalType.0
-                let nameOrLexicalType = nameAndLexicalType.1
-                let nsRange = nameAndLexicalType.2
-                
-                let startIndex = text.index(text.startIndex,offsetBy: nsRange.lowerBound)
-                let endIndex = text.index(text.startIndex,offsetBy: nsRange.upperBound)
-                
-                let before = text[..<startIndex]
-                let after = text[endIndex...]
-                
-                if let color = lexicalTypeColors[nameOrLexicalType] {
-                    text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
-                } else {
-                    text = before + "<mark>\(token)</mark>" + after
-                }
-            }
-            
-            htmlString += text.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
-            htmlString += "</body></html>"
-            
-            return insertHead(htmlString, fontSize:Constants.FONT_SIZE)
+            return nsNameAndLexicalTypesMarkup(annotated:false)
         }
+    }
+    
+    @available(iOS 12.0, *)
+    func nlNameAndLexicalTypesMarkup(annotated:Bool) -> String?
+    {
+        guard let nameAndLexicalTypes = self.nlNameTypesAndLexicalClasses else {
+            return nil
+        }
+        
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        var types = Set<String>()
+        
+        for nameAndLexicalType in nameAndLexicalTypes {
+            types.insert(nameAndLexicalType.1)
+        }
+        
+        let lexicalTypes = Array(types).sorted()
+        
+        var lexicalTypeColors = [String:String]()
+        
+        var count = 0
+        for lexicalType in lexicalTypes {
+            lexicalTypeColors[lexicalType] = colors[count % colors.count]
+            count += 1
+        }
+        
+        for lexicalType in lexicalTypes {
+            if let color = lexicalTypeColors[lexicalType] {
+                htmlString += "<table style=\"display:inline;\">"
+                htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
+                htmlString += "</table>"
+                //                    htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
+                if lexicalType != lexicalTypes.last {
+                    htmlString += " "
+                }
+            }
+        }
+        htmlString += "<br/><br/>"
+        
+        var text = self
+        
+        for nameAndLexicalType in nameAndLexicalTypes.reversed() {
+            let token = nameAndLexicalType.0
+            let nameOrLexicalType = nameAndLexicalType.1
+            let range = nameAndLexicalType.2
+            
+            let before = text[..<range.lowerBound]
+            let after = text[range.upperBound...]
+            
+            if let color = lexicalTypeColors[nameOrLexicalType] {
+                var htmlString = String()
+                
+                htmlString += "<table style=\"display:inline;\">"
+                htmlString += "<tr><td style=\"background-color:\(color)\">\(token)</td></tr>"
+                if annotated {
+                    htmlString += "<tr><td style=\"font-size:75%;background-color:\(color)\">\(nameOrLexicalType)</td></tr>"
+                }
+                htmlString += "</table>"
+                
+                text = before + htmlString + after
+                
+                //  <sup>\(nameOrLexicalType)</sup> style=\"background-color:\(color);\"
+                //                    text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
+            } else {
+                text = before + "<mark>\(token)</mark>" + after
+            }
+        }
+        
+        htmlString += text.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
+        htmlString += "</body></html>"
+        
+        return insertHead(htmlString, fontSize:Constants.FONT_SIZE)
+
     }
     
     @available(iOS 12.0, *)
     var nlNameAndLexicalTypesMarkup : String?
     {
         get {
-            guard let nameAndLexicalTypes = self.nlNameTypesAndLexicalClasses else {
-                return nil
-            }
-            
-            var htmlString = "<!DOCTYPE html><html><body>"
-            
-            var types = Set<String>()
-            
-            for nameAndLexicalType in nameAndLexicalTypes {
-                types.insert(nameAndLexicalType.1)
-            }
-            
-            let lexicalTypes = Array(types).sorted()
-            
-            var lexicalTypeColors = [String:String]()
-            
-            var count = 0
-            for lexicalType in lexicalTypes {
-                lexicalTypeColors[lexicalType] = colors[count % colors.count]
-                count += 1
-            }
-            
-            for lexicalType in lexicalTypes {
-                if let color = lexicalTypeColors[lexicalType] {
-                    htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
-                    if lexicalType != lexicalTypes.last {
-                        htmlString += " "
-                    }
-                }
-            }
-            htmlString += "<br/><br/>"
-            
-            var text = self
-            
-            for nameAndLexicalType in nameAndLexicalTypes.reversed() {
-                let token = nameAndLexicalType.0
-                let nameOrLexicalType = nameAndLexicalType.1
-                let range = nameAndLexicalType.2
-                
-                let before = text[..<range.lowerBound]
-                let after = text[range.upperBound...]
-                
-                if let color = lexicalTypeColors[nameOrLexicalType] {
-                    text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
-                } else {
-                    text = before + "<mark>\(token)</mark>" + after
-                }
-            }
-            
-            htmlString += text.replacingOccurrences(of: "\n\n", with: "<br/><br/>")
-            htmlString += "</body></html>"
-            
-            return insertHead(htmlString, fontSize:Constants.FONT_SIZE)
+            return nlNameAndLexicalTypesMarkup(annotated:false)
         }
     }
 }
