@@ -571,6 +571,30 @@ class MediaList // : Sequence
         mediaQueue.cancelAllOperations()
     }
     
+    func addAllToFavorites()
+    {
+        list?.forEach({ (mediaItem) in
+            mediaItem.addToFavorites()
+        })
+    }
+    
+    func removeAllFromFavorites()
+    {
+//        guard let list = list else {
+//            break
+//        }
+
+        list?.forEach({ (mediaItem) in
+            mediaItem.removeFromFavorites()
+        })
+        // This blocks this thread until it finishes.
+//        Globals.shared.queue.sync {
+//            for mediaItem in mediaItems {
+//                mediaItem.addTag(Constants.Strings.Favorites)
+//            }
+//        }
+    }
+    
     func downloadAllAudio()
     {
         guard let list = list else {

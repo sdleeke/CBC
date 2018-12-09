@@ -3589,6 +3589,22 @@ class MediaItem : NSObject
         viewController.present(alert, animated: true, completion: nil)
     }
     
+    func addToFavorites()
+    {
+        Globals.shared.queue.sync {
+            self.addTag(Constants.Strings.Favorites)
+            Alerts.shared.alert(title: "Added to Favorites",message: self.text)
+        }
+    }
+    
+    func removeFromFavorites()
+    {
+        Globals.shared.queue.sync {
+            self.removeTag(Constants.Strings.Favorites)
+            Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
+        }
+    }
+    
     func editActions(viewController: UIViewController) -> [AlertAction]?
     {
         var actions = [AlertAction]()
@@ -3716,18 +3732,12 @@ class MediaItem : NSObject
             switch title {
             case Constants.Strings.Add_to_Favorites:
                 // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    self.addTag(Constants.Strings.Favorites)
-                    Alerts.shared.alert(title: "Added to Favorites",message: self.text)
-                }
+                self.addToFavorites()
                 break
                 
             case Constants.Strings.Remove_From_Favorites:
                 // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    self.removeTag(Constants.Strings.Favorites)
-                    Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
-                }
+                self.removeFromFavorites()
                 break
                 
             default:

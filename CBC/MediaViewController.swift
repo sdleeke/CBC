@@ -118,29 +118,21 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
 
         case Constants.Strings.Add_All_to_Favorites:
-            guard let mediaItems = mediaItems?.list else {
-                break
-            }
-            
-            // This blocks this thread until it finishes.
-            Globals.shared.queue.sync {
-                for mediaItem in mediaItems {
-                    mediaItem.addTag(Constants.Strings.Favorites)
-                }
-            }
+            mediaItems?.addAllToFavorites()
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
-            guard let mediaItems = mediaItems?.list else {
-                break
-            }
-            
-            // This blocks this thread until it finishes.
-            Globals.shared.queue.sync {
-                for mediaItem in mediaItems {
-                    mediaItem.removeTag(Constants.Strings.Favorites)
-                }
-            }
+            mediaItems?.removeAllFromFavorites()
+//            guard let mediaItems = mediaItems?.list else {
+//                break
+//            }
+//
+//            // This blocks this thread until it finishes.
+//            Globals.shared.queue.sync {
+//                for mediaItem in mediaItems {
+//                    mediaItem.removeTag(Constants.Strings.Favorites)
+//                }
+//            }
             break
             
         case Constants.Strings.Scripture_Viewer:
