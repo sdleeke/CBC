@@ -96,6 +96,13 @@ extension Double {
 
 extension String
 {
+    var singleLine : String
+    {
+        get {
+            return self.replacingOccurrences(of: "\n", with: ", ").trimmingCharacters(in: CharacterSet(charactersIn: " ,"))
+        }
+    }
+    
     var asTag : String
     {
         get {

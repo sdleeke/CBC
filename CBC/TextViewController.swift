@@ -425,7 +425,7 @@ extension TextViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return self.navigationItem.title ?? ""
+        return transcript?.mediaItem?.text?.singleLine ?? (self.navigationItem.title ?? "")
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String

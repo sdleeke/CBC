@@ -3194,7 +3194,7 @@ class VoiceBase
         }
         
         for element in array {
-            string = string + " " + element.lowercased()
+            string += " " + element.lowercased()
         }
         
         return !string.isEmpty ? string : nil

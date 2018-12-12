@@ -81,7 +81,7 @@ extension MediaViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return selectedMediaItem?.text ?? (self.navigationItem.title ?? "")
+        return selectedMediaItem?.text?.singleLine ?? (self.navigationItem.title ?? "")
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String

@@ -1673,13 +1673,13 @@ class PopoverTableViewController : UIViewController
                 for key in keys {
                     var string = key
                     if let value = self.stringsAny?[key] as? String {
-                        string = string + ": " + value
+                        string += ": " + value
                     }
                     if let value = self.stringsAny?[key] as? Double {
-                        string = string + ": \(value)"
+                        string += ": \(value)"
                     } else
                         if let value = self.stringsAny?[key] as? Int {
-                            string = string + ": \(value)"
+                            string += ": \(value)"
                     }
                     strings.append(string)
                 }
@@ -1718,12 +1718,12 @@ class PopoverTableViewController : UIViewController
                         var string = "("
                         let keys = stringsAny.keys.sorted()
                         for key in keys {
-                            string = string + key
+                            string += key
                             if key != keys.last {
-                                string = string + ","
+                                string += ","
                             }
                         }
-                        string = string + ")"
+                        string += ")"
                         strings.append(string)
                     }
                 }
@@ -1763,6 +1763,10 @@ class PopoverTableViewController : UIViewController
         }
         
         searchBar.isUserInteractionEnabled = searchInteractive
+        
+        if !searchInteractive {
+            searchBar.alpha = 0.25
+        }
         
         updateToolbar()
     }

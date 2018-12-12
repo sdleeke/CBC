@@ -604,7 +604,7 @@ class Lexicon : NSObject
             
             if let keys = words?.keys.sorted() {
                 for key in keys {
-                    string = string + key + "\n"
+                    string += key + "\n"
                     if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in
                         if first.value == second.value {
                             if let firstDate = first.key.fullDate, let secondDate = second.key.fullDate {
@@ -617,7 +617,7 @@ class Lexicon : NSObject
                         }
                     }) {
                         for mediaItem in mediaItems {
-                            string = string + "(\(mediaItem.key,mediaItem.value))\n"
+                            string += "(\(mediaItem.key,mediaItem.value))\n"
                         }
                     }
                 }

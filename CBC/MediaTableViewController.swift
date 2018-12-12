@@ -2543,7 +2543,7 @@ class MediaTableViewController : UIViewController
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
 
-            Globals.shared.mediaStream.loadLive(completion: nil)
+            Globals.shared.mediaStream.loadLive()
             
             if let jsonSource = self?.jsonSource {
                 switch jsonSource {

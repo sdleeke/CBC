@@ -195,7 +195,7 @@ extension WebViewController : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
+        return mediaItem?.text?.singleLine ?? (self.navigationItem.title ?? "") // (transcript?.mediaItem?.text?.singleLine ?? )
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String

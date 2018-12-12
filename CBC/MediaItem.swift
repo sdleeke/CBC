@@ -162,7 +162,7 @@ extension MediaItem : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
     {
-        return self.text ?? ""
+        return self.text?.singleLine ?? ""
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
@@ -531,7 +531,7 @@ class MediaItem : NSObject
                 
                 let ymd = "YYMMDD"
                 
-                string = string + String(afterClassCode[..<ymd.endIndex])
+                string += String(afterClassCode[..<ymd.endIndex])
                 
                 let s = "s"
                 
@@ -553,7 +553,7 @@ class MediaItem : NSObject
             
             let ymd = "YYMMDD"
             
-            string = string + String(afterClassCode[..<ymd.endIndex]) + serviceCode
+            string += String(afterClassCode[..<ymd.endIndex]) + serviceCode
             
             let code = String(id[string.endIndex...])
             
@@ -3194,11 +3194,11 @@ class MediaItem : NSObject
             }
             
             if let service = service {
-                string = string + " \(service)"
+                string += " \(service)"
             }
             
             if hasSpeaker, let speaker = speaker {
-                string = string + "\n\(speaker)"
+                string += "\n\(speaker)"
             }
             
             if hasTitle, let title = title {
@@ -3206,22 +3206,22 @@ class MediaItem : NSObject
                     let first = String(title[..<rangeTo.upperBound])
                     let second = String(title[rangeFrom.upperBound...])
                     let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                    string = string + "\n\(combined)"
+                    string += "\n\(combined)"
                 } else {
-                    string = string + "\n\(title)"
+                    string += "\n\(title)"
                 }
             }
             
             if let scriptureReference = scriptureReference {
-                string = string + "\n\(scriptureReference)"
+                string += "\n\(scriptureReference)"
             }
             
             if hasClassName, let className = className {
-                string = string + "\n\(className)"
+                string += "\n\(className)"
             }
             
             if hasEventName, let eventName = eventName {
-                string = string + "\n\(eventName)"
+                string += "\n\(eventName)"
             }
             
             return string
