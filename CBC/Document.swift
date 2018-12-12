@@ -20,14 +20,14 @@ class Document : NSObject
     
     var setOffset = false
     
-    lazy var fetchData : Fetch<Data>! = {
+    lazy var fetchData : Fetch<Data>! = { [weak self] in
         let fetchData = Fetch<Data>(name:mediaItem?.id ?? "" + "DOCUMENT" + (purpose ?? "")) //
     
         fetchData.fetch = {
             var data : Data?
             
             if Globals.shared.cacheDownloads {
-                data = self.download?.fileSystemURL?.data ?? self.download?.downloadURL?.data?.save(to: self.download?.fileSystemURL)
+                data = self?.download?.fileSystemURL?.data ?? self?.download?.downloadURL?.data?.save(to: self?.download?.fileSystemURL)
                 
 //                if let fileSystemData = self.download?.fileSystemURL?.data {
 //                    data = fileSystemData
@@ -46,7 +46,7 @@ class Document : NSObject
 ////                    }
 //                }
             } else {
-                data = self.download?.downloadURL?.data
+                data = self?.download?.downloadURL?.data
 //                if let url = self.download?.downloadURL {
 //                    do {
 //                        data = try Data(contentsOf: url)
@@ -57,11 +57,11 @@ class Document : NSObject
             }
             
             if #available(iOS 11.0, *) {
-                if self.purpose == Purpose.slides, let docData = data {
+                if self?.purpose == Purpose.slides, let docData = data {
                     if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
                         let rect = page.bounds(for: .mediaBox)
                         
-                        if let pageImage = self.mediaItem?.posterImage?.image {
+                        if let pageImage = self?.mediaItem?.posterImage?.image {
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {

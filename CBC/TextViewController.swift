@@ -1023,21 +1023,20 @@ class TextViewController : UIViewController
 //            }
 //        }
 //    }
-    lazy var wordRangeTiming : Fetch<[[String:Any]]>? =
-    {
+    lazy var wordRangeTiming : Fetch<[[String:Any]]>? = { [weak self] in
         let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming") // Assumes there is only one at a time globally.
         
         fetch.fetch = {
-            return self.transcript?.wordRangeTiming
+            return self?.transcript?.wordRangeTiming
         }
         
         fetch.didSet = { (array:[[String:Any]]?) in
             if fetch.cache != nil {
-                self.checkSync()
+                self?.checkSync()
             }
             Thread.onMainThread {
-                self.syncButton?.isEnabled = self.wordRangeTiming != nil
-                self.activityIndicator?.stopAnimating()
+                self?.syncButton?.isEnabled = self?.wordRangeTiming != nil
+                self?.activityIndicator?.stopAnimating()
             }
         }
 

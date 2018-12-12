@@ -160,7 +160,7 @@ class MediaListGroupSort
         return string
     }
     
-    lazy var html:CachedString? = {
+    lazy var html:CachedString? = { [weak self] in
         return CachedString(index: contextOrder)
     }()
     
@@ -197,14 +197,14 @@ class MediaListGroupSort
         }
     }
     
-    lazy var lexicon:Lexicon? = {
+    lazy var lexicon:Lexicon? = { [weak self] in
         return Lexicon(self) // lexicon
     }()
     
     // Hierarchical means we could search within searches - but not right now.
     var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]?
     
-    lazy var scriptureIndex:ScriptureIndex? = {
+    lazy var scriptureIndex:ScriptureIndex? = { [weak self] in
         return ScriptureIndex(self)
     }()
     
@@ -530,7 +530,7 @@ class MediaListGroupSort
         }
     }
     
-    lazy var section:Section? = {
+    lazy var section:Section? = { [weak self] in
         return Section(self) // section
     }()
     
@@ -687,9 +687,9 @@ class MediaListGroupSort
         
         mediaList = MediaList(mediaItems)
         
-        mediaList?.didSet = {
-            self.lexicon?.eligible = nil
-            self.scriptureIndex?.eligible = nil
+        mediaList?.didSet = { [weak self] in
+            self?.lexicon?.eligible = nil
+            self?.scriptureIndex?.eligible = nil
         }
 
 //        index = [String:MediaItem]()

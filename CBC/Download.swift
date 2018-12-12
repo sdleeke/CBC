@@ -575,7 +575,7 @@ class Download : NSObject
         }
     }
     
-//    lazy var fileSize:Shadowed<Int> = {
+//    lazy var fileSize:Shadowed<Int> = { [weak self] in
 //        return Shadowed<Int>(get:{
 //            return self.fileSystemURL?.fileSize
 //        })

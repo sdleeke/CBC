@@ -280,7 +280,7 @@ class Lexicon : NSObject
         }
     }
     
-//    lazy var eligible = {
+//    lazy var eligible = { [weak self] in
 //        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
 //            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
 //                return mediaItem.hasNotesText

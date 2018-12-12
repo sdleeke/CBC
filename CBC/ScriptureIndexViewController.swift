@@ -546,7 +546,7 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
-    lazy var scripture:Scripture? = {
+    lazy var scripture:Scripture? = { [weak self] in
         return Scripture(reference: nil)
     }()
     

@@ -44,7 +44,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var checkVoiceBaseTimer : Timer?
     
-//    lazy var isVoiceBaseAvailable:Shadowed<Bool> = {
+//    lazy var isVoiceBaseAvailable:Shadowed<Bool> = { [weak self] in
 //        return Shadowed<Bool>(get:{
 //            guard self.allowMGTs else {
 //                return false
@@ -161,7 +161,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         checkingVoiceBaseAvailability = false
     }
 
-//    lazy var voiceBaseAPIKey:Shadowed<String> = {
+//    lazy var voiceBaseAPIKey:Shadowed<String> = { [weak self] in
 //        return Shadowed<String>(get: { () -> (String?) in
 //            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
 //                if key.isEmpty {

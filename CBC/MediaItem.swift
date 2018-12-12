@@ -209,7 +209,7 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var documents : ThreadSafeDictionaryOfDictionaries<Document>! = {
+    lazy var documents : ThreadSafeDictionaryOfDictionaries<Document>! = { [weak self] in
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
     
@@ -412,68 +412,68 @@ class MediaItem : NSObject
     // Make thread safe?
     var downloads = [String:Download]()
     
-    lazy var audioDownload:Download? = {
+    lazy var audioDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasAudio else {
+        guard self?.hasAudio == true else {
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self.audioURL) // ,fileSystemURL:self.audioFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self?.audioURL) // ,fileSystemURL:self.audioFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self.downloads[Purpose.audio] = download
+        self?.downloads[Purpose.audio] = download
         return download
     }()
     
-    lazy var videoDownload:Download? = {
+    lazy var videoDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasVideo else {
+        guard self?.hasVideo == true else {
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self.videoURL) // ,fileSystemURL:self.videoFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self?.videoURL) // ,fileSystemURL:self.videoFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self.downloads[Purpose.video] = download
+        self?.downloads[Purpose.video] = download
         return download
     }()
     
-    lazy var slidesDownload:Download? = {
+    lazy var slidesDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasSlides else {
+        guard self?.hasSlides == true else {
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self.slidesURL) // ,fileSystemURL:self.slidesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self?.slidesURL) // ,fileSystemURL:self.slidesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self.downloads[Purpose.slides] = download
+        self?.downloads[Purpose.slides] = download
         return download
     }()
     
-    lazy var notesDownload:Download? = {
+    lazy var notesDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasNotes else {
+        guard self?.hasNotes == true else {
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self.notesURL) // ,fileSystemURL:self.notesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self?.notesURL) // ,fileSystemURL:self.notesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self.downloads[Purpose.notes] = download
+        self?.downloads[Purpose.notes] = download
         return download
     }()
     
-    lazy var outlineDownload:Download? = {
+    lazy var outlineDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasOutline else {
+        guard self?.hasOutline == true else {
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self.outlineURL) // ,fileSystemURL:self.outlineFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self?.outlineURL) // ,fileSystemURL:self.outlineFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self.downloads[Purpose.outline] = download
+        self?.downloads[Purpose.outline] = download
         return download
     }()
     
@@ -1141,12 +1141,12 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var notesHTML:FetchCodable<String>? = {
+    lazy var notesHTML:FetchCodable<String>? = { [weak self] in
         guard hasNotesHTML else {
             return nil
         }
         
-        guard let mediaCode = self.mediaCode else {
+        guard let mediaCode = self?.mediaCode else {
             return nil
         }
         
@@ -1157,7 +1157,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            guard self.hasNotesHTML else {
+            guard self?.hasNotesHTML == true else {
                 return nil
             }
 
@@ -1168,7 +1168,7 @@ class MediaItem : NSObject
 
             var notesHTML : String?
             
-            if let mediaItemDict = self.singleJSONFromURL()?[0] {
+            if let mediaItemDict = self?.singleJSONFromURL()?[0] {
                 notesHTML = mediaItemDict[Field.notes_HTML]
             } else {
                 print("loadSingle failure")
@@ -1180,7 +1180,7 @@ class MediaItem : NSObject
         return fetch
     }()
     
-    lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = {
+    lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = { [weak self] in
         guard let mediaCode = mediaCode else {
             return nil
         }
@@ -1193,13 +1193,13 @@ class MediaItem : NSObject
             }
             
             print("Token Count vs. Mark Count Mismatch(es) Found")
-            print(self.text ?? "NO MEDIA ITEM TEXT")
+            print(self?.text ?? "NO MEDIA ITEM TEXT")
             print(strings)
             print("\n\n")
         }
         
         fetch.fetch = {
-            guard let notesTokens = self.notesTokens?.result else {
+            guard let notesTokens = self?.notesTokens?.result else {
                 return nil
             }
 
@@ -1209,7 +1209,7 @@ class MediaItem : NSObject
                 let tokenWord = notesToken.key
                 let tokenCount = notesToken.value
                 
-                let markCount = markHTML(html: self.notesText, searchText: tokenWord, wholeWordsOnly: true, index: false).1
+                let markCount = markHTML(html: self?.notesText, searchText: tokenWord, wholeWordsOnly: true, index: false).1
 
                 if tokenCount != markCount {
                     mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
@@ -1336,7 +1336,7 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var notesParagraphLengths : FetchCodable<[Int]>? = {
+    lazy var notesParagraphLengths : FetchCodable<[Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
         }
@@ -1348,7 +1348,7 @@ class MediaItem : NSObject
         let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "Notes Paragraph Lengths")
         
         fetch.fetch = {
-            guard let paragraphs = self.notesParagraphs else {
+            guard let paragraphs = self?.notesParagraphs else {
                 return nil
             }
             
@@ -1364,7 +1364,7 @@ class MediaItem : NSObject
         return fetch
     }()
     
-    lazy var notesParagraphWords : FetchCodable<[String:Int]>? = {
+    lazy var notesParagraphWords : FetchCodable<[String:Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
         }
@@ -1376,7 +1376,7 @@ class MediaItem : NSObject
         let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes Paragraph Words")
         
         fetch.fetch = {
-            guard let paragraphs = self.notesParagraphs else {
+            guard let paragraphs = self?.notesParagraphs else {
                 return nil
             }
             
@@ -1450,12 +1450,12 @@ class MediaItem : NSObject
         operationQueue.cancelAllOperations()
     }
     
-    lazy var notesHTMLTokens : FetchCodable<[String:Int]>? = {
+    lazy var notesHTMLTokens : FetchCodable<[String:Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
         }
         
-        guard let mediaCode = self.mediaCode else {
+        guard let mediaCode = self?.mediaCode else {
             return nil
         }
         
@@ -1466,11 +1466,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            guard self.hasNotesHTML else {
+            guard self?.hasNotesHTML == true else {
                 return nil
             }
 
-            return self.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
+            return self?.notesHTML?.result?.html2String?.tokensAndCounts // stripHTML(notesHTML) or notesHTML?.html2String // not sure one is much faster than the other, but html2String is Apple's conversion, the other mine.
         }
         
         return fetch
@@ -1575,10 +1575,10 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var scripture:Scripture? = {
+    lazy var scripture:Scripture? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        return Scripture(reference:self.scriptureReference)
+        return Scripture(reference:self?.scriptureReference)
     }()
     
     var classSectionSort:String!
@@ -2147,12 +2147,12 @@ class MediaItem : NSObject
         }
     }
 
-    lazy var posterImage:FetchImage? = {
+    lazy var posterImage:FetchImage? = { [weak self] in
         guard let posterImageURL = posterImageURL else {
             return nil
         }
         
-        return FetchImage(url: self.posterImageURL)
+        return FetchImage(url: posterImageURL)
     }()
 
     var hasSeriesImage : Bool
@@ -2176,7 +2176,7 @@ class MediaItem : NSObject
         return urlString.url
     }
 
-    lazy var seriesImage:FetchCachedImage? = {
+    lazy var seriesImage:FetchCachedImage? = { [weak self] in
         guard let seriesImageURL = seriesImageURL else {
             return nil
         }
@@ -2271,7 +2271,7 @@ class MediaItem : NSObject
 //    }
 //    
 //    @available(iOS 11.0, *)
-//    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = {
+//    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = { [weak self] in
 //        guard let mediaCode = self.mediaCode else {
 //            return nil
 //        }
@@ -2317,7 +2317,7 @@ class MediaItem : NSObject
 //    }
     
 //    @available(iOS 11.0, *)
-//    lazy var notesPDFText:FetchCodable<String>? = {
+//    lazy var notesPDFText:FetchCodable<String>? = { [weak self] in
 //        guard hasNotes else {
 //            return nil
 //        }
@@ -2413,7 +2413,7 @@ class MediaItem : NSObject
 //        return fetch
 //    }()
     
-    lazy var searchMarkedFullNotesHTML:CachedString? = {
+    lazy var searchMarkedFullNotesHTML:CachedString? = { [weak self] in
         return CachedString(index: nil)
     }()
         
@@ -2930,7 +2930,7 @@ class MediaItem : NSObject
         return chaptersForBook
     }
 
-//    lazy var books:Shadowed<[String]> = {
+//    lazy var books:Shadowed<[String]> = { [weak self] in
 //        return Shadowed<[String]>(get: { () -> ([String]?) in
 //            return booksFromScriptureReference(self.scriptureReference)
 //        })
@@ -2995,32 +2995,36 @@ class MediaItem : NSObject
     // Make thread safe?
     var transcripts = [String:VoiceBase]()
     
-    lazy var audioTranscript:VoiceBase? = {
+    lazy var audioTranscript:VoiceBase? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasAudio else {
+        guard self?.hasAudio == true else {
             return nil
         }
     
-        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio) // CRITICAL: This initializer sets mediaID and completed from settings.
-
+        guard let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio) else {// CRITICAL: This initializer sets mediaID and completed from settings.
+            return nil
+        }
+        
         if let purpose = voicebase.purpose {
-            self.transcripts[purpose] = voicebase
+            self?.transcripts[purpose] = voicebase
         }
         return voicebase
     }()
     
-    lazy var videoTranscript:VoiceBase? = {
+    lazy var videoTranscript:VoiceBase? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
-        guard self.hasVideo else {
+        guard self?.hasVideo == true else {
             return nil
         }
         
-        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video) // CRITICAL: This initializer sets mediaID and completed from settings.
+        guard let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video) else {// CRITICAL: This initializer sets mediaID and completed from settings.
+            return nil
+        }
 
         if let purpose = voicebase.purpose {
-            self.transcripts[purpose] = voicebase
+            self?.transcripts[purpose] = voicebase
         }
         return voicebase
     }()
@@ -3272,13 +3276,13 @@ class MediaItem : NSObject
         return json
     }
     
-    lazy var mediaItemSettings:MediaItemSettings? = {
+    lazy var mediaItemSettings:MediaItemSettings? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return MediaItemSettings(mediaItem:self)
     }()
     
-    lazy var multiPartSettings:MultiPartSettings? = {
+    lazy var multiPartSettings:MultiPartSettings? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
 //        [unowned self] in
         return MultiPartSettings(mediaItem:self)

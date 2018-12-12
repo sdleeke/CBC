@@ -914,8 +914,7 @@ class WebViewController: UIViewController
 
     var content:Content = .document
     
-    lazy var html:HTML! = {
-        [weak self] in
+    lazy var html:HTML! = { [weak self] in
         let html = HTML()
         html.webViewController = self
         return html

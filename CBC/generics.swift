@@ -249,7 +249,7 @@ class ThreadSafeArray<T>
     }
 
     // Make it thread safe
-    lazy var queue : DispatchQueue = {
+    lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
     
@@ -358,7 +358,7 @@ class ThreadSafeDictionary<T>
     }
     
     // Make it thread safe
-    lazy var queue : DispatchQueue = {
+    lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
     
@@ -458,7 +458,7 @@ class ThreadSafeDictionaryOfDictionaries<T>
     }
     
     // Make it thread safe
-    lazy var queue : DispatchQueue = {
+    lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
     
@@ -625,7 +625,7 @@ class FetchCodable<T:Codable> : Fetch<T>
 //    var fileSize = Shadowed<Int>()
 
     // Awful performance as a class and couldn't get a struct to work
-//    lazy var fileSize:Shadowed<Int> = {
+//    lazy var fileSize:Shadowed<Int> = { [weak self] in
 //        let shadowed = Shadowed<Int>(get:{
 //            return self.fileSystemURL?.fileSize
 //        })
@@ -675,7 +675,7 @@ class FetchCodable<T:Codable> : Fetch<T>
     {
         super.init(name: name, fetch: fetch)
 
-        store = { (t:T?) in
+        store = { [weak self] (t:T?) in
             guard Globals.shared.cacheDownloads else {
                 return
             }
@@ -684,7 +684,7 @@ class FetchCodable<T:Codable> : Fetch<T>
                 return
             }
 
-            guard let fileSystemURL = self.fileSystemURL else {
+            guard let fileSystemURL = self?.fileSystemURL else {
                 return
             }
 
@@ -697,7 +697,7 @@ class FetchCodable<T:Codable> : Fetch<T>
                 do {
                     try data.write(to: fileSystemURL)
 //                    print("able to write T to the file system: \(fileSystemURL.lastPathComponent)")
-                    self.fileSize = fileSystemURL.fileSize
+                    self?.fileSize = fileSystemURL.fileSize
                 } catch let error {
 //                    print("unable to write T to the file system: \(fileSystemURL.lastPathComponent)")
                     NSLog("unable to write T to the file system: \(fileSystemURL.lastPathComponent)", error.localizedDescription)
@@ -708,12 +708,12 @@ class FetchCodable<T:Codable> : Fetch<T>
             }
         }
 
-        retrieve = {
+        retrieve = { [weak self] in
             guard Globals.shared.cacheDownloads else {
                 return nil
             }
 
-            guard let fileSystemURL = self.fileSystemURL else {
+            guard let fileSystemURL = self?.fileSystemURL else {
                 return nil
             }
 

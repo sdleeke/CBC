@@ -54,10 +54,8 @@ class ScriptureIndex
         }
     }
     
-    lazy var html:CachedString? = {
-        // unowned self MIGHT BE needed because we are capturing self in a function that is used by the object owned by self.
-        [unowned self] in
-        return CachedString(index:self.index)
+    lazy var html:CachedString? = { [weak self] in // unowned self MIGHT BE needed because we are capturing self in a function that is used by the object owned by self.
+        return CachedString(index:self?.index)
     }()
     
     func index() -> String?
@@ -134,7 +132,7 @@ class ScriptureIndex
     
     var selectedVerse:Int = 0
 
-//    lazy var eligible:Shadowed<[MediaItem]> = {
+//    lazy var eligible:Shadowed<[MediaItem]> = { [weak self] in
 //        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
 //            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
 //                return mediaItem.books != nil

@@ -957,7 +957,7 @@ class VoiceBase
         }
     }
     
-//    lazy var transcript:Shadowed<String> = {
+//    lazy var transcript:Shadowed<String> = { [weak self] in
 //        return Shadowed<String>(get: { () -> (String?) in
 //            var value:String? = nil
 //
@@ -1292,7 +1292,7 @@ class VoiceBase
         }
     }
     
-//    lazy var mediaJSON:Shadowed<[String:Any]> = {
+//    lazy var mediaJSON:Shadowed<[String:Any]> = { [weak self] in
 //        return Shadowed<[String:Any]>(
 //        get: { () -> ([String : Any]?) in
 //            ///// THIS MAY BE A PRE /////
@@ -1700,8 +1700,16 @@ class VoiceBase
         }
     }
     
-    init(mediaItem:MediaItem,purpose:String)
+    init?(mediaItem:MediaItem?,purpose:String?)
     {
+        guard let mediaItem = mediaItem else {
+            return nil
+        }
+        
+        guard let purpose = purpose else {
+            return nil
+        }
+        
         self.mediaItem = mediaItem
         
         self.purpose = purpose
@@ -3007,7 +3015,7 @@ class VoiceBase
     }
     
     
-//    lazy var transcriptSegmentArrays:Shadowed<[[String]]> = {
+//    lazy var transcriptSegmentArrays:Shadowed<[[String]]> = { [weak self] in
 //        return Shadowed<[[String]]>(get: { () -> ([[String]]?) in
 //            let _ = self.transcriptSegments
 //        }, didSet: { (transcriptSegmentArrays, oldValue) in
@@ -3251,7 +3259,7 @@ class VoiceBase
         }
     }
     
-//    lazy var transcriptSegments:Shadowed<String> = {
+//    lazy var transcriptSegments:Shadowed<String> = { [weak self] in
 //        return Shadowed<String>(get: { () -> (String?) in
 //            ///// THIS MAY BE A PRE //////
 //            guard self.completed else {

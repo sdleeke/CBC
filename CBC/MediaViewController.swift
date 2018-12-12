@@ -1043,7 +1043,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    lazy var wkWebView:WKWebView? = {
+    lazy var wkWebView:WKWebView? = { [weak self] in
         guard isViewLoaded else {
             return nil
         }
@@ -1292,7 +1292,7 @@ class MediaViewController: UIViewController
         return operationQueue
     }()
     
-    var webQueue : OperationQueue! = {
+    lazy var webQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MVC:Web"
         operationQueue.qualityOfService = .userInteractive
@@ -1300,7 +1300,7 @@ class MediaViewController: UIViewController
         return operationQueue
     }()
     
-    var operationQueue : OperationQueue! = {
+    lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MVC:Operations"
         operationQueue.qualityOfService = .userInteractive

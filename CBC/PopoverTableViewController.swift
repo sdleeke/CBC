@@ -269,7 +269,7 @@ extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
 
 class Sort
 {
-    init(_ ptvc:PopoverTableViewController)
+    init(_ ptvc:PopoverTableViewController?)
     {
         self.ptvc = ptvc
     }
@@ -331,7 +331,7 @@ class PopoverTableViewController : UIViewController
     
     var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
     
-    lazy var sort = {
+    lazy var sort = { [weak self] in
         return Sort(self)
     }()
  

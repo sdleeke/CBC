@@ -67,7 +67,7 @@ class FetchImage
     
 //    var fileSize = Shadowed<Int>()
     
-//    lazy var fileSize:Shadowed<Int> = {
+//    lazy var fileSize:Shadowed<Int> = { [weak self] in
 //        return Shadowed<Int>(get:{
 //            return self.fileSystemURL?.fileSize
 //        })
@@ -109,21 +109,21 @@ class FetchImage
             return nil
         }
         
-//        return fileSystemURL?.data?.image
+        return fileSystemURL?.data?.image
         
-        guard let fileSystemURL = self.fileSystemURL else {
-            return nil
-        }
-        
-        guard fileSystemURL.exists else {
-            return nil
-        }
-        
-        guard let image = UIImage(contentsOfFile: fileSystemURL.path) else {
-            return nil
-        }
-        
-        return image
+//        guard let fileSystemURL = self.fileSystemURL else {
+//            return nil
+//        }
+//
+//        guard fileSystemURL.exists else {
+//            return nil
+//        }
+//
+//        guard let image = UIImage(contentsOfFile: fileSystemURL.path) else {
+//            return nil
+//        }
+//
+//        return image
     }
     
     func storeIt(image:UIImage?)
@@ -154,7 +154,7 @@ class FetchImage
         }
     }
     
-    lazy var fetch:Fetch<UIImage>? = { [unowned self] in // THIS IS VITAL TO PREVENT A MEMORY LEAK
+    lazy var fetch:Fetch<UIImage>? = { [weak self] in // THIS IS VITAL TO PREVENT A MEMORY LEAK
         guard let imageName = imageName else {
             return nil
         }
@@ -162,15 +162,15 @@ class FetchImage
         let fetch = Fetch<UIImage>(name:imageName)
         
         fetch.store = { (image:UIImage?) in
-            self.storeIt(image: image)
+            self?.storeIt(image: image)
         }
         
         fetch.retrieve = {
-            return self.retrieveIt()
+            return self?.retrieveIt()
         }
         
         fetch.fetch = {
-            return self.fetchIt()
+            return self?.fetchIt()
         }
         
         return fetch

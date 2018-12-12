@@ -183,7 +183,7 @@ class Scripture : NSObject
 
     var selected = Selected()
 
-    lazy var xml = {
+    lazy var xml = { [weak self] in
         return XML()
     }()
     
@@ -209,7 +209,7 @@ class Scripture : NSObject
         }
     }
     
-//    lazy var books:Shadowed<[String]> = {
+//    lazy var books:Shadowed<[String]> = { [weak self] in
 //        return Shadowed<[String]>(get: { () -> ([String]?) in
 //            return booksFromScriptureReference(self.reference)
 //        })
@@ -308,7 +308,7 @@ class Scripture : NSObject
         
     }
     
-    lazy var html:CachedString? = {
+    lazy var html:CachedString? = { [weak self] in
         return CachedString(index: nil)
     }()
     

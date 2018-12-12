@@ -17,7 +17,7 @@ import Foundation
 
 class StringTree
 {
-    lazy var root:StringNode! = {
+    lazy var root:StringNode! = { [weak self] in
         return StringNode(nil)
     }()
     
