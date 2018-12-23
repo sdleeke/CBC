@@ -1441,7 +1441,7 @@ class MediaViewController: UIViewController
                         removeSliderTimer()
                         
                         setupPlayPauseButton()
-                        setupSliderAndTimes()
+//                        setupSliderAndTimes()
                     }
                     
                     selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
@@ -1450,7 +1450,9 @@ class MediaViewController: UIViewController
                     
                     setupSliderAndTimes()
                     
-                    setupDocumentsAndVideo() // Calls setupSTVControl()
+                    setupDocumentsAndVideo()
+
+                    setupSegmentControls()
                     break
                     
                 default:
@@ -1472,14 +1474,14 @@ class MediaViewController: UIViewController
                         removeSliderTimer()
                         
                         setupPlayPauseButton()
-                        setupSliderAndTimes()
+//                        setupSliderAndTimes() // Calling it either way?
                     }
                     
                     selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
                     
                     playerURL(url: selectedMediaItem?.playingURL)
                     
-                    setupSliderAndTimes()
+                    setupSliderAndTimes() // Calling it either way?
                     
                     // Don't need to change the documents (they are already showing) or hte STV control as that will change when the video starts playing.
                     break
@@ -1570,6 +1572,30 @@ class MediaViewController: UIViewController
                                    change: change,
                                    context: context)
                 return
+            }
+            
+            let status: AVPlayerItemStatus
+            
+            // Get the status change from the change dictionary
+            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItemStatus(rawValue: statusNumber.intValue) {
+                status = playerStatus
+            } else {
+                status = .unknown
+            }
+            
+            // Switch over the status
+            switch status {
+            case .readyToPlay:
+                // Player item is ready to play.
+                break
+                
+            case .failed:
+                // Player item failed. See error.
+                break
+                
+            case .unknown:
+                // Player item is not yet ready.
+                break
             }
             
             setupSliderAndTimes()
@@ -2225,7 +2251,9 @@ class MediaViewController: UIViewController
         
         var actionMenu = [String]()
         
-        actionMenu.append(Constants.Strings.Scripture_Viewer)
+        if Globals.shared.reachability.isReachable {
+            actionMenu.append(Constants.Strings.Scripture_Viewer)
+        }
         
         if mediaItems.count > 1 {
             var favoriteMediaItems = 0
@@ -2772,12 +2800,11 @@ class MediaViewController: UIViewController
         }
         
         setupSpinner()
+        
         setupSliderAndTimes()
         setupPlayPauseButton()
 
-        setupAudioOrVideo()
-        setupSTVControl()
-        setSegmentWidths()
+        setupSegmentControls()
     }
     
     @objc func paused()
@@ -4048,16 +4075,25 @@ class MediaViewController: UIViewController
         addSliderTimer()
         
         setupTitle()
-        setupPlayPauseButton()
+        
         setupSpinner()
-        setupSliderAndTimes()
+        
         setupDocumentsAndVideo()
+        
+        setupSliderAndTimes()
+        setupPlayPauseButton()
         setupActionAndTagsButtons()
+
+        setupSegmentControls()
+        
+        scrollToMediaItem(selectedMediaItem, select: true, position: .none)
+    }
+    
+    func setupSegmentControls()
+    {
         setupAudioOrVideo()
         setupSTVControl()
         setSegmentWidths()
-        
-        scrollToMediaItem(selectedMediaItem, select: true, position: .none)
     }
     
     @objc func doneSeeking()
@@ -5003,9 +5039,7 @@ class MediaViewController: UIViewController
         setupPlayPauseButton()
         setupActionAndTagsButtons()
 
-        setupAudioOrVideo()
-        setupSTVControl()
-        setSegmentWidths()
+        setupSegmentControls()
     }
     
     func setupSpinner()

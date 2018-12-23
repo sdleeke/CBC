@@ -289,12 +289,14 @@ extension UIViewController
     func setDVCLeftBarButton()
     {
         // MUST be called from the detail view ONLY
-        if let isCollapsed = splitViewController?.isCollapsed {
-            if isCollapsed {
-                navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
-            } else {
-                navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-            }
+        guard let isCollapsed = splitViewController?.isCollapsed else {
+            return
+        }
+
+        if isCollapsed {
+            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
+        } else {
+            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
         }
     }
 }

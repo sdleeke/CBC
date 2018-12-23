@@ -68,7 +68,7 @@ public class Reachability
     
     public var whenReachable: NetworkReachable?
     public var whenUnreachable: NetworkUnreachable?
-    public var reachableOnWWAN: Bool
+//    public var reachableOnWWAN: Bool
     
     // The notification center on which "reachability changed" events are being posted
     public var notificationCenter: NotificationCenter = NotificationCenter.default
@@ -78,11 +78,14 @@ public class Reachability
     }
     
     public var currentReachabilityStatus: NetworkStatus {
-        guard isReachable else { return .notReachable }
+        guard isReachable else {
+            return .notReachable
+        }
         
         if isReachableViaWLAN {
             return .reachableViaWLAN
         }
+        
         if isRunningOnDevice {
             return .reachableViaWWAN
         }
@@ -106,7 +109,7 @@ public class Reachability
     fileprivate let reachabilitySerialQueue = DispatchQueue(label: "uk.co.ashleymills.reachability")
     
     required public init(reachabilityRef: SCNetworkReachability) {
-        reachableOnWWAN = true
+//        reachableOnWWAN = true
         self.reachabilityRef = reachabilityRef
     }
     
@@ -210,12 +213,15 @@ public extension Reachability
     }
     
     var isReachableViaWLAN: Bool {
-        
         // Check we're reachable
-        guard isReachableFlagSet else { return false }
+        guard isReachableFlagSet else {
+            return false
+        }
         
         // If reachable we're reachable, but not on an iOS device (i.e. simulator), we must be on WiFi
-        guard isRunningOnDevice else { return true }
+        guard isRunningOnDevice else {
+            return true
+        }
         
         // Check we're NOT on WWAN
         return !isOnWWANFlagSet
@@ -237,7 +243,7 @@ public extension Reachability
     }
 }
 
-fileprivate extension Reachability
+extension Reachability
 {
     func reachabilityChanged()
     {
@@ -302,8 +308,8 @@ fileprivate extension Reachability
         return reachabilityFlags.intersection([.connectionRequired, .transientConnection]) == [.connectionRequired, .transientConnection]
     }
     
-    var reachabilityFlags: SCNetworkReachabilityFlags {
-        
+    var reachabilityFlags: SCNetworkReachabilityFlags
+    {
         guard let reachabilityRef = reachabilityRef else {
             return SCNetworkReachabilityFlags()
         }

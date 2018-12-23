@@ -3869,7 +3869,7 @@ class VoiceBase
         }
     }
 
-    func confirmAlignment(action:(()->())?) // viewController:UIViewController, 
+    func confirmAlignment(source:String, action:(()->())?) // viewController:UIViewController,
     {
         guard let text = self.mediaItem?.text else {
             return
@@ -3885,7 +3885,7 @@ class VoiceBase
 
         }))
 
-        Alerts.shared.alert(title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.", actions: alertActions)
+        Alerts.shared.alert(title: "Confirm Alignment of Machine Generated Transcript From \(source)", message: "This may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.", actions: alertActions)
 
 //        yesOrNo(viewController: viewController, title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
 //            yesAction: { () -> (Void) in
@@ -3902,33 +3902,35 @@ class VoiceBase
         }
         
         var alertActions = [AlertAction]()
-        
+
+        // This is aligning the VB to the official transcript, not the edited VB transcript!
         if (self.mediaItem?.hasNotesText == true) {
-            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
-                self.confirmAlignment() { // viewController:viewController
+            alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .destructive, handler: {
+                self.confirmAlignment(source:Constants.Strings.HTML_Transcript) { // viewController:viewController
                     process(viewController: viewController, work: { [weak self] () -> (Any?) in
                         return self?.mediaItem?.notesText // self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
-                    }, completion: { [weak self] (data:Any?) in
-                        self?.align(data as? String) // stripHTML(self?.mediaItem?.notesHTML.result)
+                        }, completion: { [weak self] (data:Any?) in
+                            self?.align(data as? String) // stripHTML(self?.mediaItem?.notesHTML.result)
                     })
                 }
             }))
         }
-        
-//        alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
-//            self.confirmAlignment(viewController:viewController) {
-//                self.align(self.transcript)
-//            }
-//        }))
+
+        // This is aligning the VB transcript to the (presumably) edited VB transcript!
+        alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
+            self.confirmAlignment(source:Constants.Strings.Transcript) { // viewController:viewController
+                self.align(self.transcript)
+            }
+        }))
         
         alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .destructive, handler: {
-            self.confirmAlignment() { // viewController:viewController
+            self.confirmAlignment(source:Constants.Strings.Segments) { // viewController:viewController
                 self.align(self.transcriptFromTranscriptSegments)
             }
         }))
         
         alertActions.append(AlertAction(title: Constants.Strings.Words, style: .destructive, handler: {
-            self.confirmAlignment() { // viewController:viewController
+            self.confirmAlignment(source:Constants.Strings.Words) { // viewController:viewController
                 self.align(self.transcriptFromWords)
             }
         }))
@@ -5154,6 +5156,31 @@ class VoiceBase
             // Why is completion called here?
             self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
         }
+    }
+    
+    struct Change {
+        var oldText:String?
+        var newText:String?
+        var range:Range<String.Index>?
+    }
+    
+    func textChanges(text:String?, changes:[(String,String)]?) -> [Change]?
+    {
+        guard var text = text else {
+            return nil
+        }
+
+        var rangeChanges = [Change]()
+        
+        changes?.forEach({ (change:(String, String)) in
+            var startingRange:Range<String.Index>?
+
+            let oldText = change.0
+            let newText = change.1
+            
+        })
+        
+        return rangeChanges.count > 0 ? rangeChanges : nil
     }
     
     func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, completion:((String)->(Void))?)

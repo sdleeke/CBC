@@ -105,7 +105,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
             if !_isVoiceBaseAvailable {
                 if checkVoiceBaseTimer == nil {
-                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
+                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
                 }
             } else {
                 checkVoiceBaseTimer?.invalidate()
@@ -138,7 +138,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var checkingVoiceBaseAvailability = false
     
-    @objc func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
+    func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
     {
         isVoiceBaseAvailable = nil
 
@@ -159,6 +159,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         })
         
         checkingVoiceBaseAvailability = false
+    }
+    
+    @objc func ckVBA()
+    {
+        checkVoiceBaseAvailability()
     }
 
 //    lazy var voiceBaseAPIKey:Shadowed<String> = { [weak self] in
@@ -366,8 +371,16 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         // Don't include the list because we want to be warned at th start that there is no network connection
         if priorReachabilityStatus != .notReachable, !reachability.isReachable { // , mediaRepository.list != nil
-            Alerts.shared.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
+            let title = "No Network Connection"
+            var message = "Without a network connection only audio, slides, and transcripts previously downloaded will be available."
             
+            if reachability.isOnWWANFlagSet {
+                message += "\n\n"
+                message += "Cellular data appears to be turned off."
+            }
+
+            Alerts.shared.alert(title: title,message: message)
+
             isVoiceBaseAvailable = false
         }
         
