@@ -15,7 +15,7 @@ class CancellableOperation : Operation
     var tag : String?
     
     override var description: String
-        {
+    {
         get {
             return ""
         }
@@ -31,6 +31,11 @@ class CancellableOperation : Operation
     
     deinit {
         
+    }
+    
+    override func cancel()
+    {
+        super.cancel()
     }
     
     override func main()

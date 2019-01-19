@@ -1795,52 +1795,52 @@ class MediaItem : NSObject
         }
     }
     
-    func proposedTags(_ tags:String?) -> String?
-    {
-        var possibleTags = [String:Int]()
-        
-        if let tags = tagsArrayFromTagsString(tags) {
-            for tag in tags {
-                var possibleTag = tag
-                
-                if possibleTag.range(of: "-") != nil {
-                    while possibleTag.range(of: "-") != nil {
-                        if let range = possibleTag.range(of: "-") {
-                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                            
-                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-                                if let count = possibleTags[candidate] {
-                                    possibleTags[candidate] =  count + 1
-                                } else {
-                                    possibleTags[candidate] =  1
-                                }
-                            }
-                            
-                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                        } else {
-                            // ???
-                        }
-                    }
-                    
-                    if !possibleTag.isEmpty {
-                        let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                        
-                        if (Int(candidate) == nil) && !tags.contains(candidate) {
-                            if let count = possibleTags[candidate] {
-                                possibleTags[candidate] =  count + 1
-                            } else {
-                                possibleTags[candidate] =  1
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        let proposedTags = [String](possibleTags.keys)
-        
-        return proposedTags.count > 0 ? tagsArrayToTagsString(proposedTags) : nil
-    }
+//    func proposedTags(_ tags:String?) -> String?
+//    {
+//        var possibleTags = [String:Int]()
+//        
+//        if let tags = tagsArrayFromTagsString(tags) {
+//            for tag in tags {
+//                var possibleTag = tag
+//                
+//                if possibleTag.range(of: "-") != nil {
+//                    while possibleTag.range(of: "-") != nil {
+//                        if let range = possibleTag.range(of: "-") {
+//                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                            
+//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
+//                                if let count = possibleTags[candidate] {
+//                                    possibleTags[candidate] =  count + 1
+//                                } else {
+//                                    possibleTags[candidate] =  1
+//                                }
+//                            }
+//                            
+//                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                        } else {
+//                            // ???
+//                        }
+//                    }
+//                    
+//                    if !possibleTag.isEmpty {
+//                        let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                        
+//                        if (Int(candidate) == nil) && !tags.contains(candidate) {
+//                            if let count = possibleTags[candidate] {
+//                                possibleTags[candidate] =  count + 1
+//                            } else {
+//                                possibleTags[candidate] =  1
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        
+//        let proposedTags = [String](possibleTags.keys)
+//        
+//        return proposedTags.count > 0 ? tagsArrayToTagsString(proposedTags) : nil
+//    }
     
     var dynamicTags:String?
     {
@@ -1920,7 +1920,6 @@ class MediaItem : NSObject
         }
     }
     
-    // nil better be okay for these or expect a crash
     var tags:String?
     {
         get {
@@ -1946,8 +1945,25 @@ class MediaItem : NSObject
             if let tagsArray = tagsArrayFromTagsString(tags) {
                 let tagsString = tagsSetToString(Set(tagsArray.filter({ (string:String) -> Bool in
                     // WHY? Backwards compatibility
-                    return  !string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) &&
-                            !string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript)
+                    
+                    if string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) {
+                        return false
+                    }
+                    
+                    if string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript) {
+                        return false
+                    }
+
+                    // Check Downloaded
+                    if string.contains(Constants.Strings.Downloaded) {
+                        guard let audioDownload = audioDownload else {
+                            return false
+                        }
+
+                        return audioDownload.exists
+                    }
+                    
+                    return true
                 })))
 
                 return tagsString // tags

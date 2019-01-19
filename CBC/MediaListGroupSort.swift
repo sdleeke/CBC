@@ -238,50 +238,50 @@ class MediaListGroupSort
     }
     
     // Make thread safe?
-    var proposedTags:[String]?
-    {
-        get {
-            var possibleTags = [String:Int]()
-            
-            if let tags = mediaItemTags {
-                for tag in tags {
-                    var possibleTag = tag
-                    
-                    if possibleTag.range(of: "-") != nil {
-                        while let range = possibleTag.range(of: "-") {
-                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                            
-                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-                                if let count = possibleTags[candidate] {
-                                    possibleTags[candidate] =  count + 1
-                                } else {
-                                    possibleTags[candidate] =  1
-                                }
-                            }
-
-                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                        }
-                        
-                        if !possibleTag.isEmpty {
-                            let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-
-                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-                                if let count = possibleTags[candidate] {
-                                    possibleTags[candidate] =  count + 1
-                                } else {
-                                    possibleTags[candidate] =  1
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            let proposedTags = [String](possibleTags.keys)
-                
-            return proposedTags.count > 0 ? proposedTags : nil
-        }
-    }
+//    var proposedTags:[String]?
+//    {
+//        get {
+//            var possibleTags = [String:Int]()
+//            
+//            if let tags = mediaItemTags {
+//                for tag in tags {
+//                    var possibleTag = tag
+//                    
+//                    if possibleTag.range(of: "-") != nil {
+//                        while let range = possibleTag.range(of: "-") {
+//                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                            
+//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
+//                                if let count = possibleTags[candidate] {
+//                                    possibleTags[candidate] =  count + 1
+//                                } else {
+//                                    possibleTags[candidate] =  1
+//                                }
+//                            }
+//
+//                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                        }
+//                        
+//                        if !possibleTag.isEmpty {
+//                            let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//
+//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
+//                                if let count = possibleTags[candidate] {
+//                                    possibleTags[candidate] =  count + 1
+//                                } else {
+//                                    possibleTags[candidate] =  1
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            
+//            let proposedTags = [String](possibleTags.keys)
+//                
+//            return proposedTags.count > 0 ? proposedTags : nil
+//        }
+//    }
     
     // Make thread safe?
     var mediaItemTags:[String]?

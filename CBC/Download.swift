@@ -19,34 +19,41 @@ extension Download : URLSessionDownloadDelegate
 {
     // MARK: URLSessionDownloadDelegate
     
+    func downloadFailed(error:Error? = nil)
+    {
+        print("DOWNLOAD ERROR:",error?.localizedDescription ?? "",(task?.response as? HTTPURLResponse)?.statusCode ?? 0,totalBytesExpectedToWrite)
+        
+        guard state != .none else {
+            print("previously dealt with")
+            return
+        }
+        
+        Thread.onMainThread {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        }
+        
+        let title = "Download Failed (\(downloadPurpose))"
+        
+        if let taskDescription = task?.taskDescription, let index = taskDescription.range(of: ".") {
+            let id = String(taskDescription[..<index.lowerBound])
+            
+            if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+                Alerts.shared.alert(title: title, message: mediaItem.title)
+            }
+        } else {
+            Alerts.shared.alert(title: title, message: nil)
+        }
+        
+        cancel()
+    }
+    
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     {
         debug("urlSession:didWriteData")
         
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
-            
-            let title = "Download Failed (\(downloadPurpose))"
-            
-            if state != .none {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                }
-                
-                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
-                    let id = String(taskDescription[..<index.lowerBound])
-                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Alerts.shared.alert(title: title, message: mediaItem.title)
-                    }
-                } else {
-                    Alerts.shared.alert(title: title, message: nil)
-                }
-            } else {
-                print("previously dealt with")
-            }
-            
-            cancel()
+            downloadFailed()
             return
         }
         
@@ -111,30 +118,7 @@ extension Download : URLSessionDownloadDelegate
         debug("urlSession:didFinishDownloadingTo \(location.lastPathComponent)")
 
         guard let statusCode = (task?.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR",(task?.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite as Any)
-            
-            let title = "Download Failed (\(downloadPurpose))"
-            
-            if state != .none {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                }
-                
-                if let taskDescription = downloadTask.taskDescription, let index = taskDescription.range(of: ".") {
-                    let id = String(taskDescription[..<index.lowerBound])
-                    
-                    if let mediaItem = Globals.shared.mediaRepository.index?[id] {
-                        Alerts.shared.alert(title: title, message: mediaItem.title)
-                    }
-                } else {
-                    Alerts.shared.alert(title: title, message: nil)
-                }
-            } else {
-                print("previously dealth with")
-            }
-            
-            cancel()
+            downloadFailed()
             return
         }
         
@@ -205,50 +189,11 @@ extension Download : URLSessionDownloadDelegate
     {
         debug("urlSession:didCompleteWithError")
         
-        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
-            error == nil else {
-                print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite as Any)
-                
-                if let error = error {
-                    print("with error: \(error.localizedDescription)")
-                }
-                
-                let title = "Download Failed (\(downloadPurpose))"
-                
-                if state != .none {
-                    Thread.onMainThread {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
-                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    }
-                    
-                    if let taskDescription = task.taskDescription, let index = taskDescription.range(of: ".") {
-                        let id = String(taskDescription[..<index.lowerBound])
-                        
-                        if let message = Globals.shared.mediaRepository.index?[id]?.title {
-                            if let error = error {
-                                Alerts.shared.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
-                            } else {
-                                Alerts.shared.alert(title: title, message: message)
-                            }
-                        }
-                    } else {
-                        if let error = error {
-                            Alerts.shared.alert(title: title, message: "Error: \(error.localizedDescription)")
-                        } else {
-                            Alerts.shared.alert(title: title, message: nil)
-                        }
-                    }
-                } else {
-                    print("previously dealt with")
-                }
-                
-                cancel()
-                
-                return
-        }
-        
-        debug("URLSession:task:didCompleteWithError:")
-        
+//        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+//            error == nil else {
+//                return
+//        }
+
         debug("session: \(String(describing: session.sessionDescription))")
         debug("task: \(String(describing: task.taskDescription))")
         
@@ -270,23 +215,25 @@ extension Download : URLSessionDownloadDelegate
         debug("bytes written: \(totalBytesWritten)")
         debug("bytes expected to write: \(totalBytesExpectedToWrite)")
         
-        if let error = error, let purpose = purpose {
-            print("with error: \(error.localizedDescription)")
-            
-            switch purpose {
-            case Purpose.slides:
-                fallthrough
-            case Purpose.notes:
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
-                }
-                break
-                
-            default:
-                break
-            }
+        if error != nil {
+            downloadFailed(error:error)
         }
         
+//        if let purpose = purpose {
+//            switch purpose {
+//            case Purpose.slides:
+//                fallthrough
+//            case Purpose.notes:
+//                Thread.onMainThread {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+//                }
+//                break
+//
+//            default:
+//                break
+//            }
+//        }
+
         session.invalidateAndCancel()
         
         Thread.onMainThread {
@@ -425,10 +372,10 @@ class Download : NSObject
         }
     }
 
-    @objc func downloadFailed()
-    {
-        Alerts.shared.alert(title: "Network Error",message: "Download failed.")
-    }
+//    @objc func downloadFailed()
+//    {
+//        Alerts.shared.alert(title: "Network Error",message: "Download failed.")
+//    }
 
     var state:State = .none {
         willSet {

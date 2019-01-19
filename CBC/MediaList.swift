@@ -473,7 +473,11 @@ class MediaList // : Sequence
             }
             
             if self?.notesDownloading == 0 {
-                Alerts.shared.alert(title: "All Notes Downloads Complete")
+                if self?.notesDownloads == 0 {
+                    Alerts.shared.alert(title: "All Notes Downloads Complete")
+                } else {
+                    Alerts.shared.alert(title: "Some Notes Downloads Failed to Complete")
+                }
             }
         }
         
@@ -551,7 +555,11 @@ class MediaList // : Sequence
             }
             
             if self?.slidesDownloading == 0 {
-                Alerts.shared.alert(title: "All Slides Downloads Complete")
+                if self?.slidesDownloads == 0 {
+                    Alerts.shared.alert(title: "All Slides Downloads Complete")
+                } else {
+                    Alerts.shared.alert(title: "Some Slides Downloads Failed to Complete")
+                }
             }
         }
         
@@ -636,7 +644,11 @@ class MediaList // : Sequence
             }
             
             if self?.audioDownloading == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Complete")
+                if self?.audioDownloads == 0 {
+                    Alerts.shared.alert(title: "All Audio Downloads Complete")
+                } else {
+                    Alerts.shared.alert(title: "Some Audio Downloads Failed to Complete")
+                }
             }
         }
         
@@ -684,7 +696,11 @@ class MediaList // : Sequence
             }
             
             if self?.videoDownloading == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Complete")
+                if self?.videoDownloads == 0 {
+                    Alerts.shared.alert(title: "All Video Downloads Complete")
+                } else {
+                    Alerts.shared.alert(title: "Some Video Downloads Failed to Complete")
+                }
             }
         }
         
