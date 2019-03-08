@@ -384,7 +384,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             switch string {
             case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
+                mediaItem?.audioDownload?.download(background: true)
                 Thread.onMainThread {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
                 }
@@ -1343,6 +1343,8 @@ class MediaViewController: UIViewController
             
             webQueue.cancelAllOperations()
 
+            // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
+            // Is that what we want?
             mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
             
             if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
@@ -1371,10 +1373,10 @@ class MediaViewController: UIViewController
     var mediaItems:MediaList? // [MediaItem]?
     {
         didSet {
-            mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
-                mediaItem.loadDocuments()
-            })
             if mediaItems?.list != oldValue?.list {
+                mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                    mediaItem.loadDocuments()
+                })
                 tableView?.reloadData()
             }
         }
@@ -3129,7 +3131,7 @@ class MediaViewController: UIViewController
         }
         
         if download.state != .downloading {
-            download.download()
+            download.download(background: false)
         }
 
 //        if Globals.shared.cacheDownloads, let download = document.download {
@@ -4602,7 +4604,7 @@ class MediaViewController: UIViewController
             if document.showing(selectedMediaItem) && wkWebView.scrollView.isDecelerating {
                 captureContentOffset(document)
             }
-            self.wkWebView = nil
+//            self.wkWebView = nil // No reason for this and if this MVC is pushed this will wreck setup on viewWillAppear when back is used to come back to it.
         }
 
         removeSliderTimer()

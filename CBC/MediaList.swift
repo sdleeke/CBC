@@ -325,14 +325,22 @@ class MediaList // : Sequence
     func deleteAllAudioDownloads()
     {
         operationQueue.addOperation {
-            Alerts.shared.alert(title: "Deleting All Audio Downloads", message: "You will be notified when it is complete.")
+            var message = ""
+            
+            if let multiPartName = self.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Deleting All Audio Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
                 mediaItem.audioDownload?.delete(block:true)
             })
             
             if self.audioDownloaded == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Deleted")
+                Alerts.shared.alert(title: "All Audio Downloads Deleted", message: self.multiPartName)
             }
         }
     }
@@ -340,14 +348,22 @@ class MediaList // : Sequence
     func deleteAllVideoDownloads()
     {
         operationQueue.addOperation {
-            Alerts.shared.alert(title: "Deleting All Video Downloads", message: "You will be notified when it is complete.")
+            var message = ""
+            
+            if let multiPartName = self.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Deleting All Video Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
                 mediaItem.videoDownload?.delete(block:true)
             })
             
             if self.videoDownloaded == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Deleted")
+                Alerts.shared.alert(title: "All Video Downloads Deleted", message: self.multiPartName)
             }
         }
     }
@@ -365,14 +381,22 @@ class MediaList // : Sequence
         }
         
         operationQueue.addOperation {
-            Alerts.shared.alert(title: "Cancelling All Audio Downloads", message: "You will be notified when it is complete.")
+            var message = ""
+            
+            if let multiPartName = self.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Cancelling All Audio Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
                 mediaItem.audioDownload?.cancel()
             })
             
             if self.audioDownloading == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Cancelled")
+                Alerts.shared.alert(title: "All Audio Downloads Cancelled", message: self.multiPartName)
             }
         }
     }
@@ -390,14 +414,22 @@ class MediaList // : Sequence
         }
 
         operationQueue.addOperation {
-            Alerts.shared.alert(title: "Cancelling All Video Downloads", message: "You will be notified when it is complete.")
+            var message = ""
+            
+            if let multiPartName = self.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Cancelling All Video Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
                 mediaItem.videoDownload?.cancel()
             })
             
             if self.videoDownloading == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Cancelled")
+                Alerts.shared.alert(title: "All Video Downloads Cancelled", message: self.multiPartName)
             }
         }
     }
@@ -448,7 +480,7 @@ class MediaList // : Sequence
             }
             
             let operation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
+                _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
                     if test?() == true {
@@ -530,7 +562,7 @@ class MediaList // : Sequence
             }
             
             let operation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
+                _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
                     if test?() == true {
@@ -556,9 +588,9 @@ class MediaList // : Sequence
             
             if self?.slidesDownloading == 0 {
                 if self?.slidesDownloads == 0 {
-                    Alerts.shared.alert(title: "All Slides Downloads Complete")
+                    Alerts.shared.alert(title: "All Slides Downloads Complete", message: self?.multiPartName)
                 } else {
-                    Alerts.shared.alert(title: "Some Slides Downloads Failed to Complete")
+                    Alerts.shared.alert(title: "Some Slides Downloads Failed to Complete", message: self?.multiPartName)
                 }
             }
         }
@@ -574,6 +606,7 @@ class MediaList // : Sequence
         return operationQueue
     }()
     
+    // ALL operations stop on dealloc, including DOWNLOADING.
     deinit {
         operationQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
@@ -603,13 +636,40 @@ class MediaList // : Sequence
 //        }
     }
     
+    var multiPartName : String?
+    {
+        get {
+            guard let set = list?.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.multiPartName != nil
+            }).map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.multiPartName!
+            }) else {
+                return nil
+            }
+            
+            guard Set(set).count == 1 else {
+                return nil
+            }
+            
+            return set.first
+        }
+    }
+    
     func downloadAllAudio()
     {
         guard let list = list else {
             return
         }
         
-        Alerts.shared.alert(title: "Downloading All Audio", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+        var message = ""
+        
+        if let multiPartName = multiPartName {
+            message += multiPartName + "\n\n"
+        }
+        
+        message += "This may take a considerable amount of time.  You will be notified when it is complete."
+        
+        Alerts.shared.alert(title: "Downloading All Audio", message: message)
 
         for mediaItem in list {
             let download = mediaItem.audioDownload
@@ -619,7 +679,7 @@ class MediaList // : Sequence
             }
             
             let operation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
+                _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
                     if test?() == true {
@@ -645,9 +705,9 @@ class MediaList // : Sequence
             
             if self?.audioDownloading == 0 {
                 if self?.audioDownloads == 0 {
-                    Alerts.shared.alert(title: "All Audio Downloads Complete")
+                    Alerts.shared.alert(title: "All Audio Downloads Complete", message: self?.multiPartName)
                 } else {
-                    Alerts.shared.alert(title: "Some Audio Downloads Failed to Complete")
+                    Alerts.shared.alert(title: "Some Audio Downloads Failed to Complete", message: self?.multiPartName)
                 }
             }
         }
@@ -671,7 +731,7 @@ class MediaList // : Sequence
             }
             
             let operation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download()
+                _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
                     if test?() == true {
@@ -697,9 +757,9 @@ class MediaList // : Sequence
             
             if self?.videoDownloading == 0 {
                 if self?.videoDownloads == 0 {
-                    Alerts.shared.alert(title: "All Video Downloads Complete")
+                    Alerts.shared.alert(title: "All Video Downloads Complete", message: self?.multiPartName)
                 } else {
-                    Alerts.shared.alert(title: "Some Video Downloads Failed to Complete")
+                    Alerts.shared.alert(title: "Some Video Downloads Failed to Complete", message: self?.multiPartName)
                 }
             }
         }

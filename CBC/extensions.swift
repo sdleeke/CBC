@@ -86,8 +86,34 @@ extension Double {
             } else {
                 string = Constants.EMPTY_STRING
             }
-            
+
             string += "\(String(format: "%02d",mins)):\(String(format: "%02d",sec))"
+            
+            return string
+        }
+    }
+
+    var secondsToHMSms : String?
+    {
+        get {
+            guard !self.isNaN, !self.isInfinite else {
+                return nil
+            }
+            
+            let hours = max(Int(self / (60*60)),0)
+            let mins = max(Int((self - (Double(hours) * 60*60)) / 60),0)
+            let sec = max(Int(self.truncatingRemainder(dividingBy: 60)),0)
+            let fraction = self - Double(Int(self))
+            
+            var string:String
+            
+            if (hours > 0) {
+                string = "\(String(format: "%02d",hours)):"
+            } else {
+                string = "00:"
+            }
+            
+            string += "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
             
             return string
         }
@@ -235,7 +261,8 @@ extension UIBarButtonItem
     {
         setTitleTextAttributes(attributes, for: UIControlState.normal)
         setTitleTextAttributes(attributes, for: UIControlState.disabled)
-        setTitleTextAttributes(attributes, for: UIControlState.selected)
+        setTitleTextAttributes(attributes, for: UIControlState.highlighted)
+//        setTitleTextAttributes(attributes, for: UIControlState.selected)
     }
 }
 
@@ -245,7 +272,8 @@ extension UISegmentedControl
     {
         setTitleTextAttributes(attributes, for: UIControlState.normal)
         setTitleTextAttributes(attributes, for: UIControlState.disabled)
-        setTitleTextAttributes(attributes, for: UIControlState.selected)
+        setTitleTextAttributes(attributes, for: UIControlState.highlighted)
+//        setTitleTextAttributes(attributes, for: UIControlState.selected)
     }
 }
 
@@ -255,7 +283,8 @@ extension UIButton
     {
         setTitle(string, for: UIControlState.normal)
         setTitle(string, for: UIControlState.disabled)
-        setTitle(string, for: UIControlState.selected)
+        setTitle(string, for: UIControlState.highlighted)
+//        setTitle(string, for: UIControlState.selected)
     }
 }
 

@@ -295,7 +295,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             
             switch string {
             case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
+                mediaItem?.audioDownload?.download(background: true)
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -304,10 +304,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
                 break
                 
             default:

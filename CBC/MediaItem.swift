@@ -326,7 +326,7 @@ class MediaItem : NSObject
         if Globals.shared.cacheDownloads {
             guard document.download?.exists == true else {
                 if document.download?.state != .downloading {
-                    document.download?.download()
+                    document.download?.download(background: false)
                 }
                 
                 Thread.onMainThread {
@@ -3685,7 +3685,7 @@ class MediaItem : NSObject
             download = AlertAction(title: title, style: style, handler: {
                 switch title {
                 case Constants.Strings.Download_Audio:
-                    audioDownload.download()
+                    audioDownload.download(background: true)
                     break
                     
                 case Constants.Strings.Delete_Audio_Download:

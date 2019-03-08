@@ -1012,7 +1012,7 @@ class PopoverTableViewController : UIViewController
         
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
         
-        if let presentationStyle = navigationController?.modalPresentationStyle {
+        if navigationController?.viewControllers.count == 1, let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .formSheet:
                 fallthrough

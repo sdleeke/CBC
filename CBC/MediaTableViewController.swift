@@ -61,14 +61,11 @@ extension MediaTableViewController : UIScrollViewDelegate
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {
         if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
-            if !Globals.shared.isRefreshing {
-                refreshControl?.beginRefreshing()
-                if let refreshControl = refreshControl {
-                    handleRefresh(refreshControl)
-                }
+            if !Globals.shared.isRefreshing, let refreshControl = refreshControl {
+                handleRefresh(refreshControl)
             }
         } else if scrollView.contentOffset.y >= 0 {
-            
+
         }
     }
     
@@ -1243,7 +1240,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             switch string {
             case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
+                mediaItem?.audioDownload?.download(background: true)
                 Thread.onMainThread {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
                 }
@@ -2420,22 +2417,36 @@ class MediaTableViewController : UIViewController
     
     func jsonFromURL(urlString:String?,filename:String?) -> Any?
     {
-        guard let json = filename?.fileSystemURL?.data?.json else {
-            // BLOCKS
-            let data = urlString?.url?.data
-            
-            jsonQueue.addOperation {
-                _ = data?.save(to: filename?.fileSystemURL)
-            }
-            
-            return data?.json
+//        guard let json = filename?.fileSystemURL?.data?.json else {
+//            // BLOCKS
+//            let data = urlString?.url?.data
+//
+//            jsonQueue.addOperation {
+//                _ = data?.save(to: filename?.fileSystemURL)
+//            }
+//
+//            return data?.json
+//        }
+        
+        guard Globals.shared.reachability.isReachable else {
+            return filename?.fileSystemURL?.data?.json
+        }
+        
+        guard let data = urlString?.url?.data else {
+            return filename?.fileSystemURL?.data?.json
         }
         
         jsonQueue.addOperation {
-            _ = urlString?.url?.data?.save(to: filename?.fileSystemURL)
+            _ = data.save(to: filename?.fileSystemURL)
         }
         
-        return json
+        return data.json
+        
+//        jsonQueue.addOperation {
+//            _ = urlString?.url?.data?.save(to: filename?.fileSystemURL)
+//        }
+//
+//        return json
     }
 
     func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:String]]?
@@ -2742,6 +2753,10 @@ class MediaTableViewController : UIViewController
     
     @objc func handleRefresh(_ refreshControl: UIRefreshControl)
     {
+//        guard !Globals.shared.isRefreshing else {
+//            return
+//        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return

@@ -6303,12 +6303,12 @@ class VoiceBase
             alertActions.append(AlertAction(title: "By Word", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-                    
-                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    }
+//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+//
+//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//                    }
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -6332,22 +6332,24 @@ class VoiceBase
                         return Array(transcriptSegmentTokens).sorted()
                     }
 
-                    viewController.present(navigationController, animated: true, completion:  {
-                        completion?(popover)
-                    })
+                    viewController.navigationController?.pushViewController(popover, animated: true)
+                    completion?(popover)
+                    
+//                    viewController.present(navigationController, animated: true, completion:  {
+//                        completion?(popover)
+//                    })
                 }
             }))
             
             alertActions.append(AlertAction(title: "By Phrase", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-
-                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-                    
-                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    }
+//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+//
+//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//                    }
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -6370,22 +6372,24 @@ class VoiceBase
                         
                         return Array(keywordDictionaries).sorted()
                     }
+
+                    viewController.navigationController?.pushViewController(popover, animated: true)
+                    completion?(popover)
                     
-                    viewController.present(navigationController, animated: true, completion:  {
-                        completion?(popover)
-                    })
+//                    viewController.present(navigationController, animated: true, completion:  {
+//                        completion?(popover)
+//                    })
                 }
             }))
             
             alertActions.append(AlertAction(title: "By Timed Segment", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    
-                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-                    
-                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    }
+//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+//
+//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//                    }
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
@@ -6445,22 +6449,24 @@ class VoiceBase
                         
                     popover.track = true
                     popover.assist = true
+
+                    viewController.navigationController?.pushViewController(popover, animated: true)
+                    completion?(popover)
                     
-                    viewController.present(navigationController, animated: true, completion: {
-                        completion?(popover)
-                    })
+//                    viewController.present(navigationController, animated: true, completion: {
+//                        completion?(popover)
+//                    })
                 }
             }))
             
             alertActions.append(AlertAction(title: "By Timed Word", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    
-                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-                    
-                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    }
+//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+//
+//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//                    }
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -6496,34 +6502,37 @@ class VoiceBase
                         if let words = self.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }) {
-                            var lastEnd : Int?
+//                            var lastEnd : Int?
                             
                             for i in 0..<words.count {
                                 if  let position = words[i]["p"] as? Int,
                                     let start = words[i]["s"] as? Int,
                                     let end = words[i]["e"] as? Int,
                                     let word = words[i]["w"] as? String,
-                                    let startHMS = (Double(start)/1000.0).secondsToHMS,
-                                    let endHMS = (Double(end)/1000.0).secondsToHMS {
+                                    let startHMS = (Double(start)/1000.0).secondsToHMSms,
+                                    let endHMS = (Double(end)/1000.0).secondsToHMSms {
                                     strings.append("\(position+1)\n")
                                     
-                                    if let lastEnd = lastEnd {
-                                        strings[i] += String(format:"%.3f ",Double(start - lastEnd)/1000.0)
-                                    }
+//                                    if let lastEnd = lastEnd {
+//                                        strings[i] += String(format:"%.3f ",Double(start - lastEnd)/1000.0)
+//                                    }
 
                                     strings[i] += "\(startHMS) to \(endHMS)\n\(word)"
 
-                                    lastEnd = end
+//                                    lastEnd = end
                                 }
                             }
                         }
                     
                         return strings.count > 0 ? strings : nil
                     }
+
+                    viewController.navigationController?.pushViewController(popover, animated: true)
+                    completion?(popover)
                     
-                    viewController.present(navigationController, animated: true, completion: {
-                        completion?(popover)
-                    })
+//                    viewController.present(navigationController, animated: true, completion: {
+//                        completion?(popover)
+//                    })
                 }
             }))
             

@@ -1581,7 +1581,7 @@ class WebViewController: UIViewController
                         NotificationCenter.default.addObserver(self, selector: #selector(downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
                         NotificationCenter.default.addObserver(self, selector: #selector(downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
 
-                        download.download()
+                        download.download(background: false)
                     }
                 }
             } else {

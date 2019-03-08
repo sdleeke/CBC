@@ -4,31 +4,14 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>CBC.xcscheme</key>
+		<key>CBC.xcscheme_^#shared#^_</key>
 		<dict>
-			<key>isShown</key>
-			<true/>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>174EEE5F1B74C0DD004F6942</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>174EEE741B74C0DE004F6942</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>1798C7541CA93CC700CED4A5</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
 		<key>17A275611C85CE7600D24CEE</key>
 		<dict>
 			<key>primary</key>

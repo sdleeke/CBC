@@ -126,7 +126,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
             switch strings[index] {
             case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
+                mediaItem?.audioDownload?.download(background: true)
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
