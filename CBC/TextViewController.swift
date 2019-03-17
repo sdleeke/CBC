@@ -304,7 +304,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                     var actions = [AlertAction]()
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
-                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                        self.process(work: { [weak self] () -> (Any?) in
                             self?.addParagraphBreaks(   interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
@@ -323,7 +323,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
-                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                        self.process(work: { [weak self] () -> (Any?) in
                             self?.addParagraphBreaks(   interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
@@ -514,7 +514,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.actionTitle = Constants.Strings.Expanded_View
                     popover.action = { (String) in
-                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                        self.process(work: { [weak self] () -> (Any?) in
                             return popover.stringTree?.html
                         }, completion: { [weak self] (data:Any?) in
                             presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
@@ -1423,7 +1423,7 @@ class TextViewController : UIViewController
                             var actions = [AlertAction]()
                             
                             actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
-                                process(viewController: vc, work: { [weak self] () -> (Any?) in
+                                vc.process(work: { [weak self] () -> (Any?) in
                                     self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:true, tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
@@ -1440,7 +1440,7 @@ class TextViewController : UIViewController
                             }))
                             
                             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
-                                process(viewController: vc, work: { [weak self] () -> (Any?) in
+                                vc.process(work: { [weak self] () -> (Any?) in
                                     self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:false, tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
@@ -1470,7 +1470,7 @@ class TextViewController : UIViewController
                     alert.makeOpaque()
                     
                     let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
-                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] () -> (Any?) in
                             tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
                             speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
@@ -1495,7 +1495,7 @@ class TextViewController : UIViewController
                     alert.addAction(yesAction)
                     
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
-                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] () -> (Any?) in
 //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
@@ -1523,7 +1523,7 @@ class TextViewController : UIViewController
                     }
 
                     // USE PROCESS TO SHOW SPINNER UNTIL FIRST CHANGE FOUND!
-                    process(viewController: vc, work: { [weak self] () -> (Any?) in
+                    vc.process(work: { [weak self] () -> (Any?) in
                         guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                             return nil
                         }
@@ -1553,7 +1553,7 @@ class TextViewController : UIViewController
                 }
                 
                 // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
-                process(viewController: vc, work: { [weak self] () -> (Any?) in
+                vc.process(work: { [weak self] () -> (Any?) in
                     guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                         return nil
                     }
@@ -1620,7 +1620,7 @@ class TextViewController : UIViewController
                                     
                                     popover.actionTitle = Constants.Strings.Expanded_View
                                     popover.action = { (String) in
-                                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                                        self?.process(work: { [weak self] () -> (Any?) in
                                             return popover.stringTree?.html
                                         }, completion: { [weak self] (data:Any?) in
                                             presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
@@ -1724,7 +1724,7 @@ class TextViewController : UIViewController
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
-                                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                                    self?.process(work: { [weak self] () -> (Any?) in
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:true,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
                                                                     tooClose:tooClose, words:words, text:text,
@@ -1745,7 +1745,7 @@ class TextViewController : UIViewController
                                 }))
                                 
                                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
-                                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                                    self?.process(work: { [weak self] () -> (Any?) in
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:false,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
                                                                     tooClose:tooClose, words:words, text:text,
@@ -1796,7 +1796,7 @@ class TextViewController : UIViewController
                     alert.makeOpaque()
                     
                     let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
-                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] () -> (Any?) in
                             tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
 
                             speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
@@ -1821,7 +1821,7 @@ class TextViewController : UIViewController
                     alert.addAction(yesAction)
                     
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
-                        process(viewController: self!, work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] () -> (Any?) in
 //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
@@ -1851,7 +1851,7 @@ class TextViewController : UIViewController
                         }
                         
                         // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
-                        process(viewController: vc, work: { [weak self] () -> (Any?) in
+                        vc.process(work: { [weak self] () -> (Any?) in
                             guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                                 return nil
                             }
@@ -1896,7 +1896,7 @@ class TextViewController : UIViewController
                     }
                     
                     // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
-                    process(viewController: vc, work: { [weak self] () -> (Any?) in
+                    vc.process(work: { [weak self] () -> (Any?) in
                         guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                             return nil
                         }
@@ -3033,7 +3033,7 @@ class TextViewController : UIViewController
                             
                             // THIS ALLOWS THE TEXT TO CHANGE
                             // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
-                            process(viewController: vc, work: { [weak self] () -> (Any?) in
+                            vc.process(work: { [weak self] () -> (Any?) in
                                 self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                                 
                                 self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -3053,7 +3053,7 @@ class TextViewController : UIViewController
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         
                         // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
-                        process(viewController: vc, work: { [weak self] () -> (Any?) in
+                        vc.process(work: { [weak self] () -> (Any?) in
                             self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                             
                             self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -3169,7 +3169,7 @@ class TextViewController : UIViewController
             let text = self.textView.attributedText.string
             
             // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE - MAYBE, depends on automaticInteractive
-            process(viewController: self, work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] () -> (Any?) in
                 guard let changes = self?.transcript?.changes(interactive:self?.automaticInteractive == true, longFormat:false) else {
                     return nil
                 }

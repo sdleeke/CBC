@@ -824,7 +824,7 @@ class PopoverPickerViewController : UIViewController
 
         if (stringTree != nil) {
             if (strings != nil) {
-                process(viewController: self, work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] () -> (Any?) in
                     self?.stringTree?.build(strings: self?.strings)
                     
                     return nil
@@ -838,7 +838,7 @@ class PopoverPickerViewController : UIViewController
             if stringsFunction != nil {
 //                var strings : [String]?
                 
-                process(viewController: self, work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] () -> (Any?) in
                     let strings = self?.stringsFunction?()
                     
                     self?.stringTree?.build(strings: strings)

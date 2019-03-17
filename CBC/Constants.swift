@@ -384,7 +384,7 @@ enum Constants {
     
     static let TAGGED = "tagged"
     static let ALL = "all"
-    static let DOWNLOADED = "downloaded"
+//    static let DOWNLOADED = "downloaded"
 
     static let EMPTY_STRING = ""
 
@@ -423,7 +423,7 @@ enum Constants {
 
     static let FORWARD_SLASH = "/"
     
-    static let TAGS_SEPARATOR = "|"
+    static let SEPARATOR = "|"
     
     enum SETTINGS {
         static let prefix = "settings:"

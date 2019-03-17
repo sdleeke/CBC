@@ -12,6 +12,8 @@ import AudioToolbox
 import UserNotifications
 import CoreData
 
+import Firebase
+
 extension AppDelegate : UISplitViewControllerDelegate
 {
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool
@@ -444,7 +446,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         }
 
         if let mediaCode = Globals.shared.media.goto {
-            if let mediaItem = Globals.shared.mediaRepository.index?[mediaCode] {
+            if let mediaItem = Globals.shared.mediaRepository.index[mediaCode] {
                 Thread.onMainThread {
                     nvc.popToRootViewController(animated: false)
                 }
@@ -475,6 +477,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             return false
         }
         
+        FirebaseApp.configure()
+
         svc.delegate = self
         svc.preferredDisplayMode = .allVisible
 
@@ -553,19 +557,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
         configuration.sessionSendsLaunchEvents = true
         
-        var filename:String?
+//        var filename:String?
+//        filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
         
-        filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
-        
-        if let mediaItems = Globals.shared.mediaRepository.list {
-            for mediaItem in mediaItems {
-                if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
-                    //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
-                    return value.task?.taskDescription == filename
-                }).first?.value {
-                    download.session = URLSession(configuration: configuration, delegate: download, delegateQueue: nil)
-                    download.completionHandler = completionHandler
-                    break
+        if let range = identifier.range(of: ":") {
+            let filename = String(identifier[range.upperBound...])
+            
+            if let mediaItems = Globals.shared.mediaRepository.list {
+                for mediaItem in mediaItems {
+                    if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
+                        //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
+                        return value.task?.taskDescription == filename
+                    }).first?.value {
+                        download.session = URLSession(configuration: configuration, delegate: download, delegateQueue: nil)
+                        download.completionHandler = completionHandler
+                        break
+                    }
                 }
             }
         }

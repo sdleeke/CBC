@@ -1993,33 +1993,36 @@ class MediaItem : NSObject
             mediaItemSettings?[Field.tags] = tag
         } else {
             if let tags = mediaItemSettings?[Field.tags] {
-                mediaItemSettings?[Field.tags] = tags + Constants.TAGS_SEPARATOR + tag
+                mediaItemSettings?[Field.tags] = tags + Constants.SEPARATOR + tag
             }
         }
         
         let sortTag = tag.withoutPrefixes
-        if !sortTag.isEmpty {
-            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
-                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
-                    Globals.shared.media.all?.tagNames?[sortTag] = tag
-                }
-            } else {
-                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+        
+        guard !sortTag.isEmpty else {
+            return
+        }
+        
+        if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+                Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
                 Globals.shared.media.all?.tagNames?[sortTag] = tag
             }
-            
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-            
-            if (Globals.shared.media.tags.selected == tag) {
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-                }
-            }
-            
+        } else {
+            Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+            Globals.shared.media.all?.tagNames?[sortTag] = tag
+        }
+        
+        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+        
+        if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
             }
+        }
+        
+        Thread.onMainThread {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
     
@@ -2035,6 +2038,10 @@ class MediaItem : NSObject
         
         var tags = tagsArrayFromTagsString(mediaItemSettings?[Field.tags])
         
+        guard tags?.count > 0 else {
+            return
+        }
+        
         while let index = tags?.index(of: tag) {
             tags?.remove(at: index)
         }
@@ -2043,26 +2050,28 @@ class MediaItem : NSObject
         
         let sortTag = tag.withoutPrefixes
         
-        if !sortTag.isEmpty {
-            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
-                Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-            }
-            
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-                _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
-            }
-            
-            if Globals.shared.media.tags.selected == tag {
-                Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-                
-                Thread.onMainThread {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-                }
-            }
-            
+        guard !sortTag.isEmpty else {
+            return
+        }
+        
+        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
+            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
+        }
+        
+        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+            _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
+        }
+        
+        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+        
+        if Globals.shared.media.tags.selected == tag {
             Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
             }
+        }
+        
+        Thread.onMainThread {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
     
@@ -2080,7 +2089,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        return array.joined(separator: Constants.TAGS_SEPARATOR)
+        return array.joined(separator: Constants.SEPARATOR)
     }
     
     func tagsToSet(_ tags:String?) -> Set<String>?
@@ -2092,8 +2101,8 @@ class MediaItem : NSObject
         var tag:String
         var tagsSet = Set<String>()
         
-        while (tags.range(of: Constants.TAGS_SEPARATOR) != nil) {
-            if let range = tags.range(of: Constants.TAGS_SEPARATOR) {
+        while (tags.range(of: Constants.SEPARATOR) != nil) {
+            if let range = tags.range(of: Constants.SEPARATOR) {
                 tag = String(tags[..<range.lowerBound])
                 tagsSet.insert(tag)
                 tags = String(tags[range.upperBound...])
@@ -3520,7 +3529,7 @@ class MediaItem : NSObject
 
     func view(viewController: UIViewController, bodyHTML:String?)
     {
-        process(viewController: viewController, work: { [weak self] () -> (Any?) in
+        viewController.process(work: { [weak self] () -> (Any?) in
             var htmlString:String?
             
             if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
@@ -3576,7 +3585,7 @@ class MediaItem : NSObject
         let viewAction = UIAlertAction(title: "View", style: UIAlertActionStyle.default, handler: {
             (action : UIAlertAction!) -> Void in
             
-            process(viewController: viewController, work: { [weak self] () -> (Any?) in
+            viewController.process(work: { [weak self] () -> (Any?) in
                 var htmlString:String?
                 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
@@ -3611,18 +3620,18 @@ class MediaItem : NSObject
     
     func addToFavorites()
     {
-        Globals.shared.queue.sync {
-            self.addTag(Constants.Strings.Favorites)
-            Alerts.shared.alert(title: "Added to Favorites",message: self.text)
-        }
+        self.addTag(Constants.Strings.Favorites)
+        Alerts.shared.alert(title: "Added to Favorites",message: self.text)
+//        Globals.shared.queue.sync {
+//        }
     }
     
     func removeFromFavorites()
     {
-        Globals.shared.queue.sync {
-            self.removeTag(Constants.Strings.Favorites)
-            Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
-        }
+        self.removeTag(Constants.Strings.Favorites)
+        Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
+//        Globals.shared.queue.sync {
+//        }
     }
     
     func editActions(viewController: UIViewController) -> [AlertAction]?
@@ -3929,7 +3938,7 @@ class MediaItem : NSObject
                 }
             }
 
-            process(viewController: mtvc, work: { [weak self] () -> (Any?) in
+            mtvc.process(work: { [weak self] () -> (Any?) in
                 self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
             }, completion: { [weak self] (data:Any?) in
                 transcriptTokens()
@@ -3948,7 +3957,7 @@ class MediaItem : NSObject
 //            } else {
                 if self.hasNotesHTML {
                     transcript = AlertAction(title: "HTML Transcript", style: .default) {
-                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                        viewController.process(work: { [weak self] () -> (Any?) in
                             self?.notesHTML?.load()
                         }, completion: { [weak self] (data:Any?) in
                             self?.view(viewController:viewController, bodyHTML:self?.notesHTML?.result)
@@ -3971,7 +3980,7 @@ class MediaItem : NSObject
                     return
                 }
                 
-                process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                viewController.process(work: { [weak self] () -> (Any?) in
                     self?.scripture?.load()
                     return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in

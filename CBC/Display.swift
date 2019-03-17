@@ -18,12 +18,12 @@ class Display
         Globals.shared.groupings = Constants.groupings
         Globals.shared.groupingTitles = Constants.GroupingTitles
         
-        if active?.mediaList?.classes?.count > 0 {
+        if active?.mediaList?.classes.count > 0 {
             Globals.shared.groupings.append(GROUPING.CLASS)
             Globals.shared.groupingTitles.append(Grouping.Class)
         }
         
-        if active?.mediaList?.events?.count > 0 {
+        if active?.mediaList?.events.count > 0 {
             Globals.shared.groupings.append(GROUPING.EVENT)
             Globals.shared.groupingTitles.append(Grouping.Event)
         }

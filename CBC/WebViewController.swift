@@ -322,7 +322,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
                     firstAction: {
-                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                        self.process(work: { [weak self] () -> (Any?) in
                             return stripLinks(self?.html.string)
                         }, completion: { [weak self] (data:Any?) in
                             if let vc = self {
@@ -449,7 +449,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.actionTitle = Constants.Strings.Expanded_View
                 popover.action = { (String) in
-                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                    self.process(work: { [weak self] () -> (Any?) in
                         return popover.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
                         presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
@@ -607,7 +607,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case "Lexical Analysis":
-            process(viewController: self, disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
+            self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
                 if #available(iOS 12.0, *) {
                     return stripHTML(self.bodyHTML)?.nlNameAndLexicalTypesMarkup(annotated:true)
                 } else {

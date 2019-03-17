@@ -36,6 +36,98 @@ import PDFKit
 //    }
 //}
 
+extension UIViewController
+{
+    func process(disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
+    {
+        guard (work != nil) && (completion != nil) else {
+            return
+        }
+        
+//        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+//            return
+//        }
+        
+        guard let container = Globals.shared.loadingViewController?.view else {
+            return
+        }
+        
+        guard let view = self.view else {
+            return
+        }
+
+        Thread.onMainThread {
+            // Brute force disable
+            if disableEnable {
+                if let buttons = self.navigationItem.rightBarButtonItems {
+                    for button in buttons {
+                        button.isEnabled = false
+                    }
+                }
+                
+                if let buttons = self.navigationItem.leftBarButtonItems {
+                    for button in buttons {
+                        button.isEnabled = false
+                    }
+                }
+                
+                if let buttons = self.toolbarItems {
+                    for button in buttons {
+                        button.isEnabled = false
+                    }
+                }
+            }
+            
+            container.frame = view.frame
+            container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+            
+            container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+            
+            if hideSubviews {
+                for view in container.subviews {
+                    view.isHidden = true
+                }
+            }
+            
+            view.addSubview(container)
+            
+            // Should be an OperationQueue and work should be a CancellableOperation
+            DispatchQueue.global(qos: .background).async {
+                let data = work?()
+                
+                Thread.onMainThread {
+                    // Brute force enable => need to be set according to state in completion.
+                    if disableEnable {
+                        if let buttons = self.navigationItem.rightBarButtonItems {
+                            for button in buttons {
+                                button.isEnabled = true
+                            }
+                        }
+                        
+                        if let buttons = self.navigationItem.leftBarButtonItems {
+                            for button in buttons {
+                                button.isEnabled = true
+                            }
+                        }
+                        
+                        if let buttons = self.toolbarItems {
+                            for button in buttons {
+                                button.isEnabled = true
+                            }
+                        }
+                    }
+                    
+                    completion?(data)
+                    
+                    if container.superview != nil { //  != viewController.view
+                        container.removeFromSuperview()
+                    }
+                }
+            }
+        }
+    }
+}
+
 extension UIAlertController
 {
     func makeOpaque()

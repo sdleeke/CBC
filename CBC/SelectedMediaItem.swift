@@ -18,7 +18,7 @@ class SelectedMediaItem
             var selectedMediaItem:MediaItem?
             
             if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInMaster {
-                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
+                selectedMediaItem = Globals.shared.mediaRepository.index[selectedMediaItemID]
             }
             
             return selectedMediaItem
@@ -60,7 +60,7 @@ class SelectedMediaItem
             var selectedMediaItem:MediaItem?
             
             if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
-                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
+                selectedMediaItem = Globals.shared.mediaRepository.index[selectedMediaItemID]
             }
             
             return selectedMediaItem

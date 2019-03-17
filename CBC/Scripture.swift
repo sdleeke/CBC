@@ -44,136 +44,136 @@ struct Picker {
     var verses:[Int]?
 }
 
-struct XML {
-    var parser:XMLParser?
-    var strings = [String]()
-    
-    var elementNames = [String]()
-    var dicts = [Dict]()
+//struct XML {
+//    var parser:XMLParser?
+//    var strings = [String]()
+//
+//    var elementNames = [String]()
+//    var dicts = [Dict]()
+//
+//    var book:String?
+//    var chapter:String?
+//    var verse:String?
+//
+//    // Make thread safe?
+//
+//              //Book //Chap  //Verse //Text
+//    var text:[String:[String:[String:String]]]?
+//
+//    var dict = Dict()
+//}
 
-    var book:String?
-    var chapter:String?
-    var verse:String?
+//class Dict : NSObject {
+//    // Make thread safe?
+//    var data = [String:Any]()
+//
+//    subscript(key:String) -> Any?
+//    {
+//        get {
+//            return data[key]
+//        }
+//        set {
+//            data[key] = newValue
+//        }
+//    }
+//
+//    override var description: String {
+//        get {
+//            return data.description
+//        }
+//    }
+//}
 
-    // Make thread safe?
-
-              //Book //Chap  //Verse //Text
-    var text:[String:[String:[String:String]]]?
-    
-    var dict = Dict()
-}
-
-class Dict : NSObject {
-    // Make thread safe?
-    var data = [String:Any]()
-    
-    subscript(key:String) -> Any?
-    {
-        get {
-            return data[key]
-        }
-        set {
-            data[key] = newValue
-        }
-    }
-    
-    override var description: String {
-        get {
-            return data.description
-        }
-    }
-}
-
-extension Scripture : XMLParserDelegate
-{
-    // MARK: XMLParserDelegate
-    
-    func parserDidStartDocument(_ parser: XMLParser)
-    {
-        xml.dicts.append(xml.dict)
-        print(xml.dict)
-    }
-    
-    func parserDidEndDocument(_ parser: XMLParser)
-    {
-        print("\n\nEnd Document\n")
-        
-        print(xml.dict)
-    }
-    
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
-    {
-        print(parseError.localizedDescription)
-    }
-    
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:])
-    {
-        guard let currentDict = xml.dicts.last else {
-            return
-        }
-        
-        var name = elementName
-
-        xml.strings.append(String())
-
-        for key in attributeDict.keys {
-            if key.contains("id") {
-                if let id = attributeDict[key] {
-                    name = name + "-" + id
-                }
-            }
-        }
-
-        currentDict[name] = Dict()
-
-        if attributeDict.count > 0 {
-            (currentDict[name] as? Dict)?["attributes"] = attributeDict
-        }
-
-        if let dict = currentDict[name] as? Dict {
-            xml.dicts.append(dict)
-        }
-
-        xml.elementNames.append(name)
-    }
-    
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
-    {
-        if let currentDict = xml.dicts.last {
-            if let string = xml.strings.last {
-                if !string.isEmpty {
-                    currentDict["text"] = string
-                }
-                xml.strings.removeLast()
-            }
-            xml.dicts.removeLast()
-        }
-        
-        xml.elementNames.removeLast()
-    }
-    
-    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
-    {
-        print(elementName)
-        print(model)
-    }
-    
-    func parser(_ parser: XMLParser, foundCharacters string: String)
-    {
-        var count = xml.strings.count
-        
-        if count > 0 {
-            count -= 1
-            xml.strings[count] = (xml.strings[count] + string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        } else {
-            let string = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            
-            if !string.isEmpty {
-                xml.strings.append(string)
-            }
-        }
-    }
-}
+//extension Scripture : XMLParserDelegate
+//{
+//    // MARK: XMLParserDelegate
+//
+//    func parserDidStartDocument(_ parser: XMLParser)
+//    {
+//        xml.dicts.append(xml.dict)
+//        print(xml.dict)
+//    }
+//
+//    func parserDidEndDocument(_ parser: XMLParser)
+//    {
+//        print("\n\nEnd Document\n")
+//
+//        print(xml.dict)
+//    }
+//
+//    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
+//    {
+//        print(parseError.localizedDescription)
+//    }
+//
+//    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:])
+//    {
+//        guard let currentDict = xml.dicts.last else {
+//            return
+//        }
+//
+//        var name = elementName
+//
+//        xml.strings.append(String())
+//
+//        for key in attributeDict.keys {
+//            if key.contains("id") {
+//                if let id = attributeDict[key] {
+//                    name = name + "-" + id
+//                }
+//            }
+//        }
+//
+//        currentDict[name] = Dict()
+//
+//        if attributeDict.count > 0 {
+//            (currentDict[name] as? Dict)?["attributes"] = attributeDict
+//        }
+//
+//        if let dict = currentDict[name] as? Dict {
+//            xml.dicts.append(dict)
+//        }
+//
+//        xml.elementNames.append(name)
+//    }
+//
+//    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
+//    {
+//        if let currentDict = xml.dicts.last {
+//            if let string = xml.strings.last {
+//                if !string.isEmpty {
+//                    currentDict["text"] = string
+//                }
+//                xml.strings.removeLast()
+//            }
+//            xml.dicts.removeLast()
+//        }
+//
+//        xml.elementNames.removeLast()
+//    }
+//
+//    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
+//    {
+//        print(elementName)
+//        print(model)
+//    }
+//
+//    func parser(_ parser: XMLParser, foundCharacters string: String)
+//    {
+//        var count = xml.strings.count
+//
+//        if count > 0 {
+//            count -= 1
+//            xml.strings[count] = (xml.strings[count] + string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//        } else {
+//            let string = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//
+//            if !string.isEmpty {
+//                xml.strings.append(string)
+//            }
+//        }
+//    }
+//}
 
 class Scripture : NSObject
 {
@@ -183,9 +183,9 @@ class Scripture : NSObject
 
     var selected = Selected()
 
-    lazy var xml = { [weak self] in
-        return XML()
-    }()
+//    lazy var xml = { [weak self] in
+//        return XML()
+//    }()
     
     var booksChaptersVerses:BooksChaptersVerses?
     
@@ -497,244 +497,244 @@ class Scripture : NSObject
         }
     }
     
-    func loadXMLVerseFromURL(_ reference:String?) -> [String:Any]?
-    {
-        guard let reference = reference else {
-            return nil
-        }
-        
-        guard xml.parser == nil else {
-            return nil
-        }
-        
-        let scriptureReference = reference.replacingOccurrences(of: " ", with: "%20")
-        
-        xml.text = nil
-        
-        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(scriptureReference)&include-audio-link=false&include-headings=false&output-format=crossway-xml-1.0"
-        
-        if let url = URL(string: urlString) {
-            self.xml.parser = XMLParser(contentsOf: url)
-            
-            self.xml.parser?.delegate = self
-            
-            if let success = self.xml.parser?.parse(), success {
-                var bodyString:String!
-                
-                bodyString = "<!DOCTYPE html><html><body>"
-                
-                bodyString = bodyString + "Scripture: " + reference + "<br/><br/>"
-                
-                if let books = xml.text?.keys.sorted(by: { (first:String, second:String) -> Bool in
-                    if  let first = reference.range(of: first)?.lowerBound,
-                        let second = reference.range(of: second)?.lowerBound {
-                        return first < second
-                    } else {
-                        return false
-                    }
-                }) {
-                    for book in books {
-                        bodyString = bodyString + book
-                        if let chapters = xml.text?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                            for chapter in chapters {
-                                bodyString = bodyString + "<br/>"
-                                if !Constants.NO_CHAPTER_BOOKS.contains(book) {
-                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
-                                }
-                                if let verses = xml.text?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                                    for verse in verses {
-                                        if let text = xml.text?[book]?[chapter]?[verse] {
-                                            bodyString = bodyString + "<sup>" + verse + "</sup>" + text + " "
-                                        }
-                                    }
-                                    bodyString = bodyString + "<br/>"
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                bodyString = bodyString + "</body></html>"
-                
-                html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
-            }
-            
-            xml.parser = nil
-        }
-        
-        return xml.dict.data
-    }
-    
-    func loadXML(_ reference:String?)
-    {
-        guard let reference = reference else {
-            return
-        }
-        
-        var bodyString:String!
-        
-        bodyString = "<!DOCTYPE html><html><body>"
-        
-        bodyString = bodyString + "Scripture: " + reference
-        
-        guard let data = booksChaptersVerses?.data else {
-            return
-        }
-        
-        print(data)
-        
-        for book in data.keys {
-            if let chapters = data[book]?.keys.sorted() {
-                for chapter in chapters {
-                    var scriptureReference = book
-                    
-                    scriptureReference = scriptureReference + " \(chapter)"
-                    
-                    if let verses = data[book]?[chapter] {
-                        scriptureReference = scriptureReference + ":"
-                        
-                        var lastVerse = 0
-                        var hyphen = false
-                        
-                        for verse in verses {
-                            if hyphen == false,lastVerse == 0 {
-                                scriptureReference = scriptureReference + "\(verse)"
-                            }
-                            
-                            if hyphen == false,lastVerse != 0,verse != (lastVerse + 1) {
-                                scriptureReference = scriptureReference + ","
-                                scriptureReference = scriptureReference + "\(verse)"
-                            }
-                            
-                            if hyphen == false,lastVerse != 0,verse == (lastVerse + 1) {
-                                scriptureReference = scriptureReference + "-"
-                                hyphen = true
-                            }
-                            
-                            if hyphen == true,lastVerse != 0,verse != (lastVerse + 1) {
-                                scriptureReference = scriptureReference + "\(lastVerse)"
-                                scriptureReference = scriptureReference + ","
-                                scriptureReference = scriptureReference + "\(verse)"
-                                hyphen = false
-                            }
-                            
-                            if hyphen == true,lastVerse != 0,verse == (lastVerse + 1),verse == verses.last {
-                                scriptureReference = scriptureReference + "\(verse)"
-                                hyphen = false
-                            }
-                            
-                            lastVerse = verse
-                        }
-                    }
-                                        
-                    guard let dict = loadXMLVerseFromURL(scriptureReference) else {
-                        return
-                    }
-                    
-                    print(dict["book"] as Any)
-                    
-                    if let bookDicts = dict["book"] as? [[String:Any]] {
-                        var header = false
-                        
-                        var lastVerse = 0
-                        
-                        for bookDict in bookDicts {
-                            if !header {
-                                bodyString = bodyString + "<br><br>"
-                                
-                                if let book = bookDict["book_name"] as? String {
-                                    bodyString = bodyString + book + "<br/><br/>"
-                                }
-                                
-                                if let chapter = bookDict["chapter_nr"] as? String {
-                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
-                                }
-                                
-                                header = true
-                            }
-                            
-                            if let chapterDict = bookDict["chapter"] as? [String:Any] {
-                                print(chapterDict)
-                                print(chapterDict.keys.sorted())
-                                
-                                let keys = chapterDict.keys.map({ (string:String) -> Int in
-                                    if let num = Int(string) {
-                                        return num
-                                    } else {
-                                        return -1
-                                    }
-                                }).sorted()
-                                
-                                for key in keys {
-                                    print(key)
-                                    if let verseDict = chapterDict["\(key)"] as? [String:Any] {
-                                        print(verseDict)
-                                        if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
-                                            if let number = Int(verseNumber) {
-                                                if lastVerse != 0, number != (lastVerse + 1) {
-                                                    bodyString = bodyString + "<br><br>"
-                                                }
-                                                lastVerse = number
-                                            }
-                                            
-                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
-                                        }
-                                        if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
-                                            if lastVerse != 0, verseNumber != (lastVerse + 1) {
-                                                bodyString = bodyString + "<br><br>"
-                                            }
-                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
-                                            lastVerse = verseNumber
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else
-                        
-                        if let book = dict["book_name"] as? String {
-                            bodyString = bodyString + book + "<br/><br/>"
-                    }
-                    
-                    if let chapter = dict["chapter_nr"] as? Int {
-                        bodyString = bodyString + "Chapter \(chapter)"  + "<br/><br/>"
-                    }
-                    
-                    if let chapterDict = dict["chapter"] as? [String:Any] {
-                        print(chapterDict)
-                        print(chapterDict.keys.sorted())
-                        
-                        let keys = chapterDict.keys.map({ (string:String) -> Int in
-                            if let num = Int(string) {
-                                return num
-                            } else {
-                                return -1
-                            }
-                        }).sorted()
-                        
-                        for key in keys {
-                            print(key)
-                            if let verseDict = chapterDict["\(key)"] as? [String:Any] {
-                                print(verseDict)
-                                if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
-                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
-                                }
-                                if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
-                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        bodyString = bodyString + "<br/>"
-        
-        bodyString = bodyString + "</body></html>"
-        
-        html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
-    }
+//    func loadXMLVerseFromURL(_ reference:String?) -> [String:Any]?
+//    {
+//        guard let reference = reference else {
+//            return nil
+//        }
+//
+//        guard xml.parser == nil else {
+//            return nil
+//        }
+//
+//        let scriptureReference = reference.replacingOccurrences(of: " ", with: "%20")
+//
+//        xml.text = nil
+//
+//        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(scriptureReference)&include-audio-link=false&include-headings=false&output-format=crossway-xml-1.0"
+//
+//        if let url = URL(string: urlString) {
+//            self.xml.parser = XMLParser(contentsOf: url)
+//
+//            self.xml.parser?.delegate = self
+//
+//            if let success = self.xml.parser?.parse(), success {
+//                var bodyString:String!
+//
+//                bodyString = "<!DOCTYPE html><html><body>"
+//
+//                bodyString = bodyString + "Scripture: " + reference + "<br/><br/>"
+//
+//                if let books = xml.text?.keys.sorted(by: { (first:String, second:String) -> Bool in
+//                    if  let first = reference.range(of: first)?.lowerBound,
+//                        let second = reference.range(of: second)?.lowerBound {
+//                        return first < second
+//                    } else {
+//                        return false
+//                    }
+//                }) {
+//                    for book in books {
+//                        bodyString = bodyString + book
+//                        if let chapters = xml.text?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
+//                            for chapter in chapters {
+//                                bodyString = bodyString + "<br/>"
+//                                if !Constants.NO_CHAPTER_BOOKS.contains(book) {
+//                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
+//                                }
+//                                if let verses = xml.text?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
+//                                    for verse in verses {
+//                                        if let text = xml.text?[book]?[chapter]?[verse] {
+//                                            bodyString = bodyString + "<sup>" + verse + "</sup>" + text + " "
+//                                        }
+//                                    }
+//                                    bodyString = bodyString + "<br/>"
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                bodyString = bodyString + "</body></html>"
+//
+//                html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+//            }
+//
+//            xml.parser = nil
+//        }
+//
+//        return xml.dict.data
+//    }
+
+//    func loadXML(_ reference:String?)
+//    {
+//        guard let reference = reference else {
+//            return
+//        }
+//
+//        var bodyString:String!
+//
+//        bodyString = "<!DOCTYPE html><html><body>"
+//
+//        bodyString = bodyString + "Scripture: " + reference
+//
+//        guard let data = booksChaptersVerses?.data else {
+//            return
+//        }
+//
+//        print(data)
+//
+//        for book in data.keys {
+//            if let chapters = data[book]?.keys.sorted() {
+//                for chapter in chapters {
+//                    var scriptureReference = book
+//
+//                    scriptureReference = scriptureReference + " \(chapter)"
+//
+//                    if let verses = data[book]?[chapter] {
+//                        scriptureReference = scriptureReference + ":"
+//
+//                        var lastVerse = 0
+//                        var hyphen = false
+//
+//                        for verse in verses {
+//                            if hyphen == false,lastVerse == 0 {
+//                                scriptureReference = scriptureReference + "\(verse)"
+//                            }
+//
+//                            if hyphen == false,lastVerse != 0,verse != (lastVerse + 1) {
+//                                scriptureReference = scriptureReference + ","
+//                                scriptureReference = scriptureReference + "\(verse)"
+//                            }
+//
+//                            if hyphen == false,lastVerse != 0,verse == (lastVerse + 1) {
+//                                scriptureReference = scriptureReference + "-"
+//                                hyphen = true
+//                            }
+//
+//                            if hyphen == true,lastVerse != 0,verse != (lastVerse + 1) {
+//                                scriptureReference = scriptureReference + "\(lastVerse)"
+//                                scriptureReference = scriptureReference + ","
+//                                scriptureReference = scriptureReference + "\(verse)"
+//                                hyphen = false
+//                            }
+//
+//                            if hyphen == true,lastVerse != 0,verse == (lastVerse + 1),verse == verses.last {
+//                                scriptureReference = scriptureReference + "\(verse)"
+//                                hyphen = false
+//                            }
+//
+//                            lastVerse = verse
+//                        }
+//                    }
+//
+//                    guard let dict = loadXMLVerseFromURL(scriptureReference) else {
+//                        return
+//                    }
+//
+//                    print(dict["book"] as Any)
+//
+//                    if let bookDicts = dict["book"] as? [[String:Any]] {
+//                        var header = false
+//
+//                        var lastVerse = 0
+//
+//                        for bookDict in bookDicts {
+//                            if !header {
+//                                bodyString = bodyString + "<br><br>"
+//
+//                                if let book = bookDict["book_name"] as? String {
+//                                    bodyString = bodyString + book + "<br/><br/>"
+//                                }
+//
+//                                if let chapter = bookDict["chapter_nr"] as? String {
+//                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
+//                                }
+//
+//                                header = true
+//                            }
+//
+//                            if let chapterDict = bookDict["chapter"] as? [String:Any] {
+//                                print(chapterDict)
+//                                print(chapterDict.keys.sorted())
+//
+//                                let keys = chapterDict.keys.map({ (string:String) -> Int in
+//                                    if let num = Int(string) {
+//                                        return num
+//                                    } else {
+//                                        return -1
+//                                    }
+//                                }).sorted()
+//
+//                                for key in keys {
+//                                    print(key)
+//                                    if let verseDict = chapterDict["\(key)"] as? [String:Any] {
+//                                        print(verseDict)
+//                                        if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
+//                                            if let number = Int(verseNumber) {
+//                                                if lastVerse != 0, number != (lastVerse + 1) {
+//                                                    bodyString = bodyString + "<br><br>"
+//                                                }
+//                                                lastVerse = number
+//                                            }
+//
+//                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
+//                                        }
+//                                        if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
+//                                            if lastVerse != 0, verseNumber != (lastVerse + 1) {
+//                                                bodyString = bodyString + "<br><br>"
+//                                            }
+//                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
+//                                            lastVerse = verseNumber
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } else
+//
+//                        if let book = dict["book_name"] as? String {
+//                            bodyString = bodyString + book + "<br/><br/>"
+//                    }
+//
+//                    if let chapter = dict["chapter_nr"] as? Int {
+//                        bodyString = bodyString + "Chapter \(chapter)"  + "<br/><br/>"
+//                    }
+//
+//                    if let chapterDict = dict["chapter"] as? [String:Any] {
+//                        print(chapterDict)
+//                        print(chapterDict.keys.sorted())
+//
+//                        let keys = chapterDict.keys.map({ (string:String) -> Int in
+//                            if let num = Int(string) {
+//                                return num
+//                            } else {
+//                                return -1
+//                            }
+//                        }).sorted()
+//
+//                        for key in keys {
+//                            print(key)
+//                            if let verseDict = chapterDict["\(key)"] as? [String:Any] {
+//                                print(verseDict)
+//                                if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
+//                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
+//                                }
+//                                if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
+//                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        bodyString = bodyString + "<br/>"
+//
+//        bodyString = bodyString + "</body></html>"
+//
+//        html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+//    }
     
     func loadHTMLFromJSON()
     {

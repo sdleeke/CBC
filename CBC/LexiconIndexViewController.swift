@@ -112,7 +112,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.actionTitle = Constants.Strings.Expanded_View
                 popover.action = { (String) in
-                    process(viewController: self, work: { [weak self] () -> (Any?) in
+                    self.process(work: { [weak self] () -> (Any?) in
                         return popover.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
                         presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
@@ -127,7 +127,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.View_Words:
-            process(viewController: self, work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] () -> (Any?) in
                 // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
                 // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
                 return self?.lexicon?.wordsHTML
@@ -163,7 +163,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.View_List:
-            process(viewController: self, work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] () -> (Any?) in
                 if self?.results?.html?.string == nil {
                     self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true)
                 }

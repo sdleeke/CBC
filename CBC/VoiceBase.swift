@@ -814,12 +814,15 @@ class VoiceBase
             }
             
             mediaItem?.mediaItemSettings?["transcribing."+purpose] = transcribing ? "YES" : "NO"
-            
+
             if transcribing {
                 mediaItem?.addTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
             } else {
                 mediaItem?.removeTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
             }
+
+//            Globals.shared.queue.sync {
+//            }
         }
     }
     
@@ -1084,14 +1087,14 @@ class VoiceBase
                 return transcript._transcript != nil // self._
             }).count == 0 {
                 // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-                }
+                mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+//                Globals.shared.queue.sync {
+//                }
             } else {
                 // This blocks this thread until it finishes.
-                Globals.shared.queue.sync {
-                    mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-                }
+                mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+//                Globals.shared.queue.sync {
+//                }
             }
         }
     }
@@ -3907,7 +3910,7 @@ class VoiceBase
         if (self.mediaItem?.hasNotesText == true) {
             alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .destructive, handler: {
                 self.confirmAlignment(source:Constants.Strings.HTML_Transcript) { // viewController:viewController
-                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                    viewController.process(work: { [weak self] () -> (Any?) in
                         return self?.mediaItem?.notesText // self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
                         }, completion: { [weak self] (data:Any?) in
                             self?.align(data as? String) // stripHTML(self?.mediaItem?.notesHTML.result)
@@ -5486,7 +5489,7 @@ class VoiceBase
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
-                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
+                        viewController.process(work: { [weak self] () -> (Any?) in
                             var htmlString = "<!DOCTYPE html><html><body>"
                             
                             var transcriptSegmentHTML = String()

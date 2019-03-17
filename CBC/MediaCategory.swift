@@ -11,7 +11,7 @@ import Foundation
 class MediaCategory
 {
     // Make thread safe?
-    var dicts:[String:String]?
+    var dicts = ThreadSafeDictionary<String>() // :[String:String]?
     
     var filename:String?
     {
@@ -35,11 +35,14 @@ class MediaCategory
         }
     }
     
-    // Make thread safe?
     var names:[String]?
     {
         get {
-            guard let dicts = dicts else {
+//            guard let dicts = dicts else {
+//                return nil
+//            }
+
+            guard dicts.keys.count > 0 else {
                 return nil
             }
             
@@ -73,7 +76,7 @@ class MediaCategory
     {
         get {
             if let selected = selected {
-                return dicts?[selected] // ?? "1" // Sermons are category 1
+                return dicts[selected] // ?? "1" // Sermons are category 1
             } else {
                 return nil
             }

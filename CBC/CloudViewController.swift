@@ -550,7 +550,7 @@ class CloudViewController: UIViewController
         navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
 
         if cloudWordDictsFunction != nil {
-            process(viewController: self, work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] () -> (Any?) in
                 self?.cloudWordDicts = self?.cloudWordDictsFunction?()
 
                 self?.wordsTableViewController.section.strings = self?.cloudWordDicts?.map({ (dict:[String:Any]) -> String in

@@ -115,6 +115,75 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 ////    }
 //}
 
+class Cached<T> {
+    @objc func freeMemory()
+    {
+        cache.clear() // = [String:T]()
+    }
+    
+    var index:(()->String?)?
+    
+    // Make thread safe?
+    var cache = ThreadSafeDictionary<T>() // [String:T]
+    
+    // if index DOES NOT produce the full key
+    subscript(key:String?) -> T?
+    {
+        get {
+            guard let key = key else {
+                return nil
+            }
+            
+            if let index = self.index?() {
+                return cache[index+":"+key]
+            } else {
+                return cache[key]
+            }
+        }
+        set {
+            guard let key = key else {
+                return
+            }
+            
+            if let index = self.index?() {
+                cache[index+":"+key] = newValue
+            } else {
+                cache[key] = newValue
+            }
+        }
+    }
+    
+    // if index DOES produce the full key
+    var indexValue:T?
+    {
+        get {
+            if let index = self.index?() {
+                return cache[index]
+            } else {
+                return nil
+            }
+        }
+        set {
+            if let index = self.index?() {
+                cache[index] = newValue
+            }
+        }
+    }
+    
+    init(index:(()->String?)?)
+    {
+        self.index = index
+        
+        Thread.onMainThread {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
+    }
+    
+    deinit {
+        
+    }
+}
+
 class BoundsCheckedArray<T>
 {
     private var storage = [T]()
@@ -218,6 +287,15 @@ class ThreadSafeArray<T>
         }
     }
     
+    var reversed : [T]?
+    {
+        get {
+            return queue.sync {
+                return storage.count > 0 ? storage.reversed() : nil
+            }
+        }
+    }
+    
     var count : Int
     {
         get {
@@ -235,6 +313,11 @@ class ThreadSafeArray<T>
         queue.sync {
             self.storage = [T]()
         }
+    }
+    
+    func append(_ item:T)
+    {
+        storage.append(item)
     }
     
     func update(storage:Any?)
@@ -488,6 +571,40 @@ class ThreadSafeDictionaryOfDictionaries<T>
                 
                 storage[outer] = newValue
             }
+        }
+    }
+    
+    func set(_ outer:String?, _ inner:String?, value:T?)
+    {
+        queue.sync {
+            guard let outer = outer else {
+                return
+            }
+            
+            guard let inner = inner else {
+                return
+            }
+            
+            if storage[outer] == nil {
+                storage[outer] = [String:T]()
+            }
+            
+            storage[outer]?[inner] = value
+        }
+    }
+    
+    func get(_ outer:String?, _ inner:String?) -> T?
+    {
+        return queue.sync {
+            guard let outer = outer else {
+                return nil
+            }
+            
+            guard let inner = inner else {
+                return nil
+            }
+            
+            return storage[outer]?[inner]
         }
     }
     

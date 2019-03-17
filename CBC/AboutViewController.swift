@@ -210,14 +210,10 @@ class AboutViewController: UIViewController
     
     @objc func actions(_ sender: UIBarButtonItem)
     {
-        guard let storyboard = self.storyboard else {
-            return
-        }
-        
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             
             popover.navigationItem.title = "Select"

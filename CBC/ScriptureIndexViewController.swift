@@ -79,7 +79,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
             switch strings[index] {
             case Constants.Strings.View_List:
-                process(viewController: self, work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] () -> (Any?) in
                     if self?.scriptureIndex?.html?.string == nil {
                         self?.scriptureIndex?.html?.string = self?.setupMediaItemsHTMLScripture(self?.mediaItems, includeURLs:true, includeColumns:true)
                     }
@@ -98,7 +98,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     if scripture?.html?[reference] != nil {
                         popoverHTML(self,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,htmlString:scripture?.html?[reference], search:false)
                     } else {
-                        process(viewController: self, work: { [weak self] () -> (Any?) in
+                        self.process(work: { [weak self] () -> (Any?) in
                             self?.scripture?.load() // reference
                             return self?.scripture?.html?[reference]
                         }, completion: { [weak self] (data:Any?) in

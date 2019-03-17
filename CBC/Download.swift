@@ -38,7 +38,7 @@ extension Download : URLSessionDownloadDelegate
         if let taskDescription = task?.taskDescription, let index = taskDescription.range(of: ".") {
             let id = String(taskDescription[..<index.lowerBound])
             
-            if let mediaItem = Globals.shared.mediaRepository.index?[id] {
+            if let mediaItem = Globals.shared.mediaRepository.index[id] {
                 Alerts.shared.alert(title: title, message: mediaItem.title)
             }
         } else {
@@ -52,7 +52,8 @@ extension Download : URLSessionDownloadDelegate
     {
         debug("urlSession:didWriteData")
         
-        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+            totalBytesExpectedToWrite != -1 else {
             downloadFailed()
             return
         }
@@ -117,7 +118,7 @@ extension Download : URLSessionDownloadDelegate
     {
         debug("urlSession:didFinishDownloadingTo \(location.lastPathComponent)")
 
-        guard let statusCode = (task?.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+        if let statusCode = (task?.response as? HTTPURLResponse)?.statusCode, statusCode >= 400 {
             downloadFailed()
             return
         }
@@ -189,10 +190,10 @@ extension Download : URLSessionDownloadDelegate
     {
         debug("urlSession:didCompleteWithError")
         
-//        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
-//            error == nil else {
-//                return
-//        }
+        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+            error == nil else {
+            return
+        }
 
         debug("session: \(String(describing: session.sessionDescription))")
         debug("task: \(String(describing: task.taskDescription))")
@@ -276,10 +277,14 @@ extension Download : URLSessionDownloadDelegate
             return
         }
         
-        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
+//        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
 
-        if task?.taskDescription == filename {
-            completionHandler?()
+        if let range = identifier.range(of: ":") {
+            let filename = String(identifier[range.upperBound...])
+            
+            if task?.taskDescription == filename {
+                completionHandler?()
+            }
         }
     }
 }
@@ -342,6 +347,8 @@ class Download : NSObject
             return downloadPurpose.lowercased()
         }
     }
+    
+    var id:String?
     
     var downloadURL:URL?
     
@@ -412,23 +419,33 @@ class Download : NSObject
             }
             
             switch purpose {
+            case Purpose.video:
+                break
+                
             case Purpose.audio:
                 switch state {
                 case .downloading:
+                    self.mediaItem?.removeTag(Constants.Strings.Downloaded)
+                    self.mediaItem?.addTag(Constants.Strings.Downloading)
+                    // This blocks this thread until it finishes.
+//                    Globals.shared.queue.sync {
+//                    }
                     break
                     
                 case .downloaded:
+                    self.mediaItem?.removeTag(Constants.Strings.Downloading)
+                    self.mediaItem?.addTag(Constants.Strings.Downloaded)
                     // This blocks this thread until it finishes.
-                    Globals.shared.queue.sync {
-                        self.mediaItem?.addTag(Constants.Strings.Downloaded)
-                    }
+//                    Globals.shared.queue.sync {
+//                    }
                     break
                     
                 case .none:
+                    self.mediaItem?.removeTag(Constants.Strings.Downloading)
+                    self.mediaItem?.removeTag(Constants.Strings.Downloaded)
                     // This blocks this thread until it finishes.
-                    Globals.shared.queue.sync {
-                        self.mediaItem?.removeTag(Constants.Strings.Downloaded)
-                    }
+//                    Globals.shared.queue.sync {
+//                    }
                     break
                 }
                 
@@ -502,9 +519,13 @@ class Download : NSObject
         let downloadRequest = URLRequest(url: downloadURL)
 
         var configuration : URLSessionConfiguration?
+        
+        id = Constants.DOWNLOAD_IDENTIFIER + Date().timeIntervalSinceReferenceDate.description + ":"
+
+        if background, let id = id, let lastPathComponent = fileSystemURL?.lastPathComponent {
+//            configuration = .background(withIdentifier: Constants.IDENTIFIER.DOWNLOAD + lastPathComponent)
             
-        if background, let lastPathComponent = fileSystemURL?.lastPathComponent {
-            configuration = .background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + lastPathComponent)
+            configuration = .background(withIdentifier: id + lastPathComponent)
             
             // This allows the downloading to continue even if the app goes into the background or terminates.
             configuration?.sessionSendsLaunchEvents = true
@@ -514,17 +535,20 @@ class Download : NSObject
         
         if let configuration = configuration {
             session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
-            session?.reset() {}
+
+            session?.sessionDescription = self.fileSystemURL?.lastPathComponent
             
-            session?.sessionDescription = fileSystemURL?.lastPathComponent
-            
-            task = session?.downloadTask(with: downloadRequest)
-            task?.taskDescription = fileSystemURL?.lastPathComponent
-            
-            task?.resume()
-            
-            Thread.onMainThread {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+            session?.reset() {
+                if let task = self.session?.downloadTask(with: downloadRequest) {
+                    self.task = task
+                    
+                    task.taskDescription = self.fileSystemURL?.lastPathComponent
+                    task.resume()
+                    
+                    Thread.onMainThread {
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+                    }
+                }
             }
         }
     }

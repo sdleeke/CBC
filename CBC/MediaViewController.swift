@@ -15,6 +15,8 @@ import WebKit
 import MediaPlayer
 import MobileCoreServices
 
+//import Crashlytics
+
 extension MediaViewController : UIAdaptivePresentationControllerDelegate
 {
     // MARK: UIAdaptivePresentationControllerDelegate
@@ -237,7 +239,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Delete_All_Audio_Downloads:
             let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
-                                            message: nil,
+                                            message: mediaItems?.multiPartName,
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
@@ -262,7 +264,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Print:
-            process(viewController: self, work: { [weak self] in
+            self.process(work: { [weak self] in
                 return setupMediaItemsHTML(self?.mediaItems?.list, includeURLs:false, includeColumns:true)
             }, completion: { [weak self] (data:Any?) in
                 if let vc = self {
@@ -1379,6 +1381,19 @@ class MediaViewController: UIViewController
                 })
                 tableView?.reloadData()
             }
+            
+//            guard self.isViewLoaded else {
+//                return
+//            }
+//            
+//            if mediaItems?.list == nil {
+//                mediaItemNotesAndSlides.gestureRecognizers = nil
+//            } else {
+//                if mediaItemNotesAndSlides.gestureRecognizers == nil {
+//                    let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+//                    mediaItemNotesAndSlides.addGestureRecognizer(pan)
+//                }
+//            }
         }
     }
     
@@ -1696,6 +1711,10 @@ class MediaViewController: UIViewController
     func setSegmentWidths()
     {
         guard Thread.isMainThread else {
+            return
+        }
+        
+        guard self.isViewLoaded else {
             return
         }
         
@@ -2522,6 +2541,10 @@ class MediaViewController: UIViewController
     @objc func changeVerticalSplit(_ pan:UIPanGestureRecognizer)
     {
         guard !Globals.shared.mediaPlayer.fullScreen else {
+            return
+        }
+        
+        guard mediaItems?.list?.count > 0 else {
             return
         }
         
@@ -4457,6 +4480,8 @@ class MediaViewController: UIViewController
                 navigationController.popToRootViewController(animated: false)
             }
         }
+        
+//        Crashlytics.sharedInstance().crash()
     }
     
     fileprivate func captureVerticalSplit()

@@ -60,13 +60,15 @@ extension MediaTableViewController : UIScrollViewDelegate
     // This shortens the distance the tableView must be pulled to initiate a refresh.
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {
-        if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
-            if !Globals.shared.isRefreshing, let refreshControl = refreshControl {
-                handleRefresh(refreshControl)
-            }
-        } else if scrollView.contentOffset.y >= 0 {
-
-        }
+//        if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
+//            if !Globals.shared.isRefreshing, let refreshControl = refreshControl {
+////                scrollView.contentOffset.y = 0
+////                self.tableView.scrollRectToVisible(CGRect.zero, animated: true)
+//                self.handleRefresh(refreshControl)
+//            }
+//        } else if scrollView.contentOffset.y >= 0 {
+//
+//        }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
@@ -440,11 +442,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self?.popover?.present(navigationController, animated: true, completion: nil)
                         }
                     }
-                    }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                        self?.popover?.activityIndicator.stopAnimating()
-                        self?.popover?.activityIndicator.isHidden = true
-                        
-                        Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                    self?.popover?.activityIndicator.stopAnimating()
+                    self?.popover?.activityIndicator.isHidden = true
+                    
+                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                 })
             })
             
@@ -471,11 +473,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self?.popover?.present(navigationController, animated: true, completion: nil)
                         }
                     }
-                    }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                        self?.popover?.activityIndicator.stopAnimating()
-                        self?.popover?.activityIndicator.isHidden = true
-                        
-                        Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                    self?.popover?.activityIndicator.stopAnimating()
+                    self?.popover?.activityIndicator.isHidden = true
+                    
+                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                 })
             })
         }
@@ -676,11 +678,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     self?.popover?.navigationController?.pushViewController(popover, animated: true)
                                 }
                             }
-                            }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                                self?.popover?.activityIndicator.stopAnimating()
-                                self?.popover?.activityIndicator.isHidden = true
-                                
-                                Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                            self?.popover?.activityIndicator.stopAnimating()
+                            self?.popover?.activityIndicator.isHidden = true
+                            
+                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                         })
                     }))
                     
@@ -703,11 +705,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     self?.popover?.navigationController?.pushViewController(popover, animated: true)
                                 }
                             }
-                            }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                                self?.popover?.activityIndicator.stopAnimating()
-                                self?.popover?.activityIndicator.isHidden = true
-                                
-                                Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+                            self?.popover?.activityIndicator.stopAnimating()
+                            self?.popover?.activityIndicator.isHidden = true
+                            
+                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                         })
                     }))
 
@@ -727,7 +729,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         alert.makeOpaque()
         
         let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
-            Globals.shared.history = nil
+            Globals.shared.history.clear() // = nil
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
@@ -783,7 +785,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 } else {
                     if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
-                        alert(viewController:self,title: "Not in List",message: "\"\(text)\"\nis not in the list \"\(contextTitle).\"  Show \"All\" and try again.",completion:nil)
+                        alert(viewController:self,title: "Not in List",message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",completion:nil)
                     }
                 }
             } else {
@@ -1130,7 +1132,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.tableView?.reloadData()
             }
 
-            process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
+            self.process(disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
                 self.selectedMediaItem = Globals.shared.selectedMediaItem.master
                 
                 if Globals.shared.mediaCategory.selected != Constants.Strings.All {
@@ -1295,13 +1297,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if let history = Globals.shared.relevantHistory {
                 var mediaItemID:String
                 
-                if let range = history[index].range(of: Constants.TAGS_SEPARATOR) {
+                if let range = history[index].range(of: Constants.SEPARATOR) {
                     mediaItemID = String(history[index][range.upperBound...])
                 } else {
                     mediaItemID = history[index]
                 }
                 
-                if let mediaItem = Globals.shared.mediaRepository.index?[mediaItemID] {
+                if let mediaItem = Globals.shared.mediaRepository.index[mediaItemID] {
                     if mediaItem.text != strings[index] {
                         if let text = mediaItem.text {
                             print(text,strings[index])
@@ -1314,7 +1316,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
                             alert(  viewController:self,
                                     title:"Not in List",
-                                    message: "\"\(text)\"\nis not in the list \"\(contextTitle).\"  Show \"All\" and try again.",
+                                    message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",
                                 completion:nil)
                         }
                     }
@@ -1338,7 +1340,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 print("Index out of range")
             }
             
-            process(viewController: self, disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
+            self.process(disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
                 var new:Bool = false
                 
                 switch string {
@@ -1352,7 +1354,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 default:
                     //Tagged
                     
-                    let tagSelected = strings[index]
+                    let tagSelected = string // s[index]
                     
                     new = (Globals.shared.media.tags.showing != Constants.TAGGED) || (Globals.shared.media.tags.selected != tagSelected)
                     
@@ -1543,7 +1545,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                break
                 
             case Constants.Strings.View_List:
-                process(viewController: self, work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] () -> (Any?) in
                     if Globals.shared.media.active?.html?.string == nil {
                         Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
                     }
@@ -1963,8 +1965,15 @@ class MediaTableViewController : UIViewController
             refreshControl = UIRefreshControl()
             refreshControl?.addTarget(self, action: #selector(handleRefresh(_:)), for: UIControlEvents.valueChanged)
 
-            if let refreshControl = refreshControl {
-                tableView?.addSubview(refreshControl)
+            if #available(iOS 10.0, *) {
+                tableView.refreshControl = refreshControl
+            } else {
+                // Fallback on earlier versions
+                if let refreshControl = self.refreshControl {
+                    Thread.onMainThread {
+                        self.tableView?.addSubview(refreshControl)
+                    }
+                }
             }
             
             tableView?.allowsSelection = true
@@ -2507,7 +2516,9 @@ class MediaTableViewController : UIViewController
                 }
             }
             
-            Globals.shared.mediaCategory.dicts = mediaCategoryDicts
+//            Globals.shared.mediaCategory.dicts = mediaCategoryDicts
+            
+            Globals.shared.mediaCategory.dicts.update(storage: mediaCategoryDicts)
         }
     }
     
@@ -2569,7 +2580,9 @@ class MediaTableViewController : UIViewController
                             }
                         }
                         
-                        Globals.shared.mediaCategory.dicts = mediaCategoryDicts
+//                        Globals.shared.mediaCategory.dicts = mediaCategoryDicts
+                        
+                        Globals.shared.mediaCategory.dicts.update(storage: mediaCategoryDicts)
                     }
                     
                     if let teachersDicts = self?.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
@@ -2753,63 +2766,78 @@ class MediaTableViewController : UIViewController
     
     @objc func handleRefresh(_ refreshControl: UIRefreshControl)
     {
-//        guard !Globals.shared.isRefreshing else {
-//            return
-//        }
+//        print("1:",Date().timeIntervalSinceReferenceDate,refreshControl.isRefreshing,Globals.shared.isRefreshing)
+        
+        guard !Globals.shared.isRefreshing else {
+            return
+        }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return
         }
         
+//        print("2:",Date().timeIntervalSinceReferenceDate,refreshControl.isRefreshing,Globals.shared.isRefreshing)
+        
         Globals.shared.isRefreshing = true
         
-        setupListActivityIndicator()
-        refreshControl.beginRefreshing()
+//        if self.refreshControl?.isRefreshing == false {
+//            self.refreshControl?.beginRefreshing()
+//        }
         
-        Globals.shared.mediaPlayer.unobserve()
-        
-        Globals.shared.mediaPlayer.pause() // IfPlaying
-
-        Globals.shared.mediaRepository.cancelAllDownloads()
-
-        display.clear()
-        
-        Globals.shared.search.active = false
-
-        setupSearchBar()
-        
-        tableView?.reloadData()
-        
-        // tableView can't be hidden or refresh spinner won't show.
-        if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-            logo.isHidden = false // Don't like it offset, just hide it for now
-        }
-
-        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-
-        setupActionAndTagsButton()
-        setupCategoryButton()
-
-        setupBarButtons()
-        
-        // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        Globals.shared.media = Media()
-
-        switch jsonSource {
-        case .download:
-            navigationItem.title = "Downloading Media List"
-            let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
-            downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
-            break
-            
-        case .direct:
-            loadMediaItems()
-            {
-                self.loadCompletion()
-            }
-            break
-        }
+        yesOrNo(viewController: self, title: "Reload Media List?", message: nil,
+                yesAction: { () -> (Void) in
+                    self.setupListActivityIndicator()
+                    
+                    Globals.shared.mediaPlayer.unobserve()
+                    
+                    Globals.shared.mediaPlayer.pause() // IfPlaying
+                    
+                    Globals.shared.mediaRepository.cancelAllDownloads()
+                    
+                    self.display.clear()
+                    
+                    Globals.shared.search.active = false
+                    
+                    self.setupSearchBar()
+                    
+                    self.tableView?.reloadData()
+                    
+                    // tableView can't be hidden or refresh spinner won't show.
+                    if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                        self.logo.isHidden = false // Don't like it offset, just hide it for now
+                    }
+                    
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+                    
+                    self.setupActionAndTagsButton()
+                    self.setupCategoryButton()
+                    
+                    self.setupBarButtons()
+                    
+                    // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+                    Globals.shared.media = Media()
+                    
+                    switch self.jsonSource {
+                    case .download:
+                        self.navigationItem.title = "Downloading Media List"
+                        let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
+                        self.downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
+                        break
+                        
+                    case .direct:
+                        self.loadMediaItems()
+                            {
+                                self.loadCompletion()
+                        }
+                        break
+                    }
+                }, yesStyle: .destructive, noAction: { () -> (Void) in
+                    if self.refreshControl?.isRefreshing == true {
+                        self.refreshControl?.endRefreshing()
+                    }
+                    Globals.shared.isRefreshing = false
+                }, noStyle: .default)
     }
 
     @objc func updateList()
@@ -2957,7 +2985,7 @@ class MediaTableViewController : UIViewController
         if let goto = Globals.shared.media.goto {
             navigationController?.popToRootViewController(animated: false)
             Globals.shared.media.goto = nil 
-            if let mediaItem = Globals.shared.mediaRepository.index?[goto] {
+            if let mediaItem = Globals.shared.mediaRepository.index[goto] {
                 Globals.shared.selectedMediaItem.master = mediaItem
                 selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
                

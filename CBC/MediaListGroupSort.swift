@@ -58,7 +58,7 @@ class MediaListGroupSort
     var _search : Search!
     {
         didSet {
-            // Will this happen when it is a property of Search that is being set?
+            // Will this happen when it is a property of Search that is being set?  No.
         }
     }
     var search : Search!
@@ -365,12 +365,15 @@ class MediaListGroupSort
             default:
                 break
             }
-            
+
+            // Should be done in ThreadSafeDictionary
             if (groupNames?[grouping] == nil) {
                 groupNames?[grouping] = [String:String]()
             }
             if let entries = entries {
                 for entry in entries {
+//                    groupNames?.set(grouping,entry.string,value:entry.name)
+                    
                     groupNames?[grouping]?[entry.string] = entry.name
                     
                     if (groupedMediaItems[grouping] == nil) {
@@ -386,11 +389,13 @@ class MediaListGroupSort
             }
         }
         
+        // Should be done in ThreadSafeDictionary
         if (groupSort?[grouping] == nil) {
             groupSort?[grouping] = [String:[String:[MediaItem]]]()
         }
         if let keys = groupedMediaItems[grouping]?.keys {
             for string in keys {
+                // This is a third level of dictionary.  Is there any way to have a generic N-level dict of dicts?
                 if (groupSort?[grouping]?[string] == nil) {
                     groupSort?[grouping]?[string] = [String:[MediaItem]]()
                 }
@@ -721,34 +726,49 @@ class MediaListGroupSort
         
         sortGroup(grouping)
 
+        guard let mediaItems = mediaItems else {
+            return
+        }
+        
         // Why isn't this done on demand?
         //
         // Because we use tagNames (and tagMediaItems.keys for sorting the tagNames)
         // in the tag menu
         //
+        
         tagMediaItems = [String:[MediaItem]]()
         tagNames = [String:String]()
 
-        guard let mediaItems = mediaItems else {
-            return
-        }
-        
-        for mediaItem in mediaItems {
-            if let tags =  mediaItem.tagsSet {
-                for tag in tags {
-                    let sortTag = tag.withoutPrefixes
-                    
-                    if !sortTag.isEmpty {
-                        if tagMediaItems?[sortTag] == nil {
-                            tagMediaItems?[sortTag] = [mediaItem]
-                        } else {
-                            tagMediaItems?[sortTag]?.append(mediaItem)
-                        }
-                        tagNames?[sortTag] = tag
+        mediaItems.forEach { (mediaItem:MediaItem) in
+            mediaItem.tagsSet?.forEach({ (tag:String) in
+                let sortTag = tag.withoutPrefixes
+                
+                if !sortTag.isEmpty {
+                    if tagMediaItems?[sortTag] == nil {
+                        tagMediaItems?[sortTag] = [mediaItem]
+                    } else {
+                        tagMediaItems?[sortTag]?.append(mediaItem)
                     }
+                    tagNames?[sortTag] = tag
                 }
-            }
+            })
         }
+//        for mediaItem in mediaItems {
+//            if let tags =  mediaItem.tagsSet {
+//                for tag in tags {
+//                    let sortTag = tag.withoutPrefixes
+//                    
+//                    if !sortTag.isEmpty {
+//                        if tagMediaItems?[sortTag] == nil {
+//                            tagMediaItems?[sortTag] = [mediaItem]
+//                        } else {
+//                            tagMediaItems?[sortTag]?.append(mediaItem)
+//                        }
+//                        tagNames?[sortTag] = tag
+//                    }
+//                }
+//            }
+//        }
     }
 }
 

@@ -3459,7 +3459,7 @@ func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
         return nil
     }
     
-    let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR)
+    let array = tagsString.components(separatedBy: Constants.SEPARATOR)
     
     return array.count > 0 ? Set(array) : nil
 }
@@ -3470,7 +3470,7 @@ func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
         return nil
     }
 
-    return tagsArray.count > 0 ? tagsArray.joined(separator: Constants.TAGS_SEPARATOR) : nil
+    return tagsArray.count > 0 ? tagsArray.joined(separator: Constants.SEPARATOR) : nil
 }
 
 func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
@@ -3479,7 +3479,7 @@ func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
         return nil
     }
     
-    let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR) 
+    let array = tagsString.components(separatedBy: Constants.SEPARATOR) 
 
     return array.count > 0 ? array : nil
 }
@@ -3675,27 +3675,28 @@ func sort(method:String?,strings:[String]?) -> [String]?
 
 func process(viewController:UIViewController?,disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
 {
-    guard let viewController = viewController else {
-        return
-    }
-    
-    guard (work != nil) && (completion != nil) else {
-        return
-    }
-    
-    guard let loadingViewController = viewController.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
-        return
-    }
-
-    guard let container = loadingViewController.view else {
-        return
-    }
-    
-    guard let view = viewController.view else {
-        return
-    }
-    
     Thread.onMainThread {
+        guard let viewController = viewController else {
+            return
+        }
+        
+        guard (work != nil) && (completion != nil) else {
+            return
+        }
+        
+//        guard let loadingViewController = viewController.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+//            return
+//        }
+        
+        guard let container = Globals.shared.loadingViewController?.view else {
+            return
+        }
+        
+        guard let view = viewController.view else {
+            return
+        }
+        
+        // Brute force disable
         if disableEnable {
             if let buttons = viewController.navigationItem.rightBarButtonItems {
                 for button in buttons {
@@ -3728,16 +3729,13 @@ func process(viewController:UIViewController?,disableEnable:Bool = true,hideSubv
         }
         
         view.addSubview(container)
-        
+    
         // Should be an OperationQueue and work should be a CancellableOperation
         DispatchQueue.global(qos: .background).async {
             let data = work?()
             
             Thread.onMainThread {
-                if container != viewController.view {
-                    container.removeFromSuperview()
-                }
-                
+                // Brute force enable => need to be set according to state in completion.
                 if disableEnable {
                     if let buttons = viewController.navigationItem.rightBarButtonItems {
                         for button in buttons {
@@ -3759,6 +3757,10 @@ func process(viewController:UIViewController?,disableEnable:Bool = true,hideSubv
                 }
                 
                 completion?(data)
+                
+                if container.superview != nil { //  != viewController.view
+                    container.removeFromSuperview()
+                }
             }
         }
     }
@@ -3945,7 +3947,7 @@ func printDocument(viewController:UIViewController,documentURL:URL?)
         return
     }
     
-    process(viewController: viewController, work: {
+    viewController.process(work: {
         return NSData(contentsOf: documentURL)
     }, completion: { (data:Any?) in
         printHTMLJob(viewController: viewController, data: data as? Data, html: nil, orientation: .portrait)
@@ -3958,7 +3960,7 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
         return
     }
     
-    process(viewController: viewController, work: {
+    viewController.process(work: {
         return mediaItem?.contentsHTML
     }, completion: { (data:Any?) in
         printHTMLJob(viewController:viewController,data:nil,html:(data as? String),orientation:.portrait)
@@ -3982,7 +3984,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
     
     func processMediaItems(orientation:UIPrintInfoOrientation)
     {
-        process(viewController: viewController, work: {
+        viewController.process(work: {
             return stringFunction?(mediaItems,links,columns)
         }, completion: { (data:Any?) in
             printHTMLJob(viewController:viewController,data:nil,html:(data as? String),orientation:orientation)
@@ -4014,7 +4016,7 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
         return
     }
     
-    process(viewController: viewController, work: {
+    viewController.process(work: {
         if let text = stringFunction?(mediaItems,links,columns) {
             return [text]
         }

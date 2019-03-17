@@ -46,88 +46,123 @@ class MediaList // : Sequence
     
     func alignAllAudio(viewController:UIViewController)
     {
-        guard let mediaItems = list else {
-            return
-        }
-        
-        for mediaItem in mediaItems {
-            guard mediaItem.audioTranscript?.transcribing == false else {
-                continue
-            }
-            
-            guard mediaItem.audioTranscript?.aligning == false else {
-                continue
-            }
-            
-            guard mediaItem.audioTranscript?.completed == true else {
-                continue
-            }
-            
-            mediaItem.audioTranscript?.selectAlignmentSource(viewController: viewController)
-        }
+        alignAll(viewController:viewController,purpose:Purpose.audio)
     }
     
     func alignAllVideo(viewController:UIViewController)
     {
-        guard let mediaItems = list else {
-            return
-        }
-        
-        for mediaItem in mediaItems {
-            guard mediaItem.videoTranscript?.transcribing == false else {
-                continue
-            }
-            
-            guard mediaItem.videoTranscript?.aligning == false else {
-                continue
-            }
-            
-            guard mediaItem.videoTranscript?.completed == true else {
-                continue
-            }
-            
-            mediaItem.videoTranscript?.selectAlignmentSource(viewController: viewController)
-        }
+        alignAll(viewController:viewController,purpose:Purpose.video)
     }
     
-    func transcribeAllAudio(viewController:UIViewController)
+    func alignAll(viewController:UIViewController,purpose:String)
     {
         guard let mediaItems = list else {
             return
         }
         
         for mediaItem in mediaItems {
-            guard mediaItem.audioTranscript?.transcribing == false else {
+            guard let transcript = mediaItem.transcripts[purpose] else {
                 continue
             }
             
-            guard mediaItem.audioTranscript?.completed == false else {
+            guard transcript.transcribing == false else {
                 continue
             }
             
-            mediaItem.audioTranscript?.getTranscript(alert: true)
-            mediaItem.audioTranscript?.alert(viewController: viewController)
+            guard transcript.aligning == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.selectAlignmentSource(viewController: viewController)
         }
+    }
+    
+//    func alignAllVideo(viewController:UIViewController)
+//    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+//
+//        for mediaItem in mediaItems {
+//            guard mediaItem.videoTranscript?.transcribing == false else {
+//                continue
+//            }
+//
+//            guard mediaItem.videoTranscript?.aligning == false else {
+//                continue
+//            }
+//
+//            guard mediaItem.videoTranscript?.completed == true else {
+//                continue
+//            }
+//
+//            mediaItem.videoTranscript?.selectAlignmentSource(viewController: viewController)
+//        }
+//    }
+
+    func transcribeAllAudio(viewController:UIViewController)
+    {
+        transcribeAll(viewController:viewController,purpose:Purpose.audio)
     }
     
     func transcribeAllVideo(viewController:UIViewController)
     {
+        transcribeAll(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func transcribeAll(viewController:UIViewController,purpose:String)
+    {
         guard let mediaItems = list else {
             return
         }
         
         for mediaItem in mediaItems {
-            guard mediaItem.videoTranscript?.transcribing == false else {
+            guard let transcript = mediaItem.transcripts[purpose] else {
                 continue
             }
             
-            guard mediaItem.videoTranscript?.completed == false else {
+            guard transcript.transcribing == false else {
                 continue
             }
             
-            mediaItem.videoTranscript?.getTranscript(alert: true)
-            mediaItem.videoTranscript?.alert(viewController: viewController)
+            guard transcript.completed == false else {
+                continue
+            }
+            
+            transcript.getTranscript(alert: true)
+            transcript.alert(viewController: viewController)
         }
+    }
+    
+//    func transcribeAllVideo(viewController:UIViewController)
+//    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+//
+//        for mediaItem in mediaItems {
+//            guard mediaItem.videoTranscript?.transcribing == false else {
+//                continue
+//            }
+//
+//            guard mediaItem.videoTranscript?.completed == false else {
+//                continue
+//            }
+//
+//            mediaItem.videoTranscript?.getTranscript(alert: true)
+//            mediaItem.videoTranscript?.alert(viewController: viewController)
+//        }
+//    }
+    
+    func toTranscribe(purpose:String) -> Int?
+    {
+        return list?.filter({ (mediaItem) -> Bool in
+            return (mediaItem.transcripts[purpose]?.transcribing == false) && (mediaItem.transcripts[purpose]?.completed == false)
+        }).count
     }
     
     var toTranscribeAudio : Int?
@@ -148,11 +183,20 @@ class MediaList // : Sequence
         }
     }
     
+    func toAlign(purpose:String) -> Int?
+    {
+        return list?.filter({ (mediaItem) -> Bool in
+            return (mediaItem.transcripts[purpose]?.transcribing == false) &&       (mediaItem.transcripts[purpose]?.completed == false) &&
+                (mediaItem.transcripts[purpose]?.aligning == false)
+        }).count
+    }
+    
     var toAlignAudio : Int?
     {
         get {
             return list?.filter({ (mediaItem) -> Bool in
-                return mediaItem.hasAudio && (mediaItem.audioTranscript?.transcribing == false) && (mediaItem.audioTranscript?.completed == true) && (mediaItem.audioTranscript?.aligning == false)
+                return mediaItem.hasAudio && (mediaItem.audioTranscript?.transcribing == false) && (mediaItem.audioTranscript?.completed == true) &&
+                    (mediaItem.audioTranscript?.aligning == false)
             }).count
         }
     }
@@ -161,9 +205,22 @@ class MediaList // : Sequence
     {
         get {
             return list?.filter({ (mediaItem) -> Bool in
-                return mediaItem.hasVideo && (mediaItem.videoTranscript?.transcribing == false) && (mediaItem.videoTranscript?.completed == true) && (mediaItem.videoTranscript?.aligning == false)
+                return mediaItem.hasVideo && (mediaItem.videoTranscript?.transcribing == false) && (mediaItem.videoTranscript?.completed == true) &&
+                    (mediaItem.videoTranscript?.aligning == false)
             }).count
         }
+    }
+    
+    func downloads(purpose:String) -> Int?
+    {
+        guard Globals.shared.reachability.isReachable else {
+            return nil
+        }
+        
+        return list?.filter({ (mediaItem) -> Bool in
+            return (mediaItem.downloads[purpose]?.active == false) &&
+                (mediaItem.downloads[purpose]?.exists == false)
+        }).count
     }
     
     var audioDownloads : Int?
@@ -174,9 +231,17 @@ class MediaList // : Sequence
             }
 
             return list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.audioDownload?.active == false) && (mediaItem.audioDownload?.exists == false)
+                return (mediaItem.audioDownload?.active == false) &&
+                    (mediaItem.audioDownload?.exists == false)
             }).count
         }
+    }
+    
+    func downloading(purpose:String) -> Int?
+    {
+        return list?.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads[purpose]?.active == true
+        }).count
     }
     
     var audioDownloading : Int?
@@ -186,6 +251,13 @@ class MediaList // : Sequence
                 return (mediaItem.audioDownload?.active == true)
             }).count
         }
+    }
+    
+    func downloaded(purpose:String) -> Int?
+    {
+        return list?.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads[purpose]?.exists == true
+        }).count
     }
     
     var audioDownloaded : Int?
@@ -322,7 +394,7 @@ class MediaList // : Sequence
         }
     }
     
-    func deleteAllAudioDownloads()
+    func deleteAllDownloads(purpose:String,name:String)
     {
         operationQueue.addOperation {
             var message = ""
@@ -333,169 +405,202 @@ class MediaList // : Sequence
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title: "Deleting All Audio Downloads", message: message)
+            Alerts.shared.alert(title: "Deleting All \(name) Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
-                mediaItem.audioDownload?.delete(block:true)
+                mediaItem.downloads[purpose]?.delete(block:true)
             })
             
             if self.audioDownloaded == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Deleted", message: self.multiPartName)
+                Alerts.shared.alert(title: "All \(name) Downloads Deleted", message: self.multiPartName)
             }
         }
     }
     
+    func deleteAllAudioDownloads()
+    {
+        deleteAllDownloads(purpose: Purpose.audio, name: Constants.Strings.Audio)
+    }
+    
+//    func deleteAllAudioDownloads()
+//    {
+//        operationQueue.addOperation {
+//            var message = ""
+//
+//            if let multiPartName = self.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//
+//            message += "You will be notified when it is complete."
+//
+//            Alerts.shared.alert(title: "Deleting All Audio Downloads", message: message)
+//
+//            self.list?.forEach({ (mediaItem) in
+//                mediaItem.audioDownload?.delete(block:true)
+//            })
+//
+//            if self.audioDownloaded == 0 {
+//                Alerts.shared.alert(title: "All Audio Downloads Deleted", message: self.multiPartName)
+//            }
+//        }
+//    }
+    
     func deleteAllVideoDownloads()
     {
-        operationQueue.addOperation {
+        deleteAllDownloads(purpose: Purpose.video, name: Constants.Strings.Video)
+    }
+    
+//    func deleteAllVideoDownloads()
+//    {
+//        operationQueue.addOperation {
+//            var message = ""
+//
+//            if let multiPartName = self.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//
+//            message += "You will be notified when it is complete."
+//
+//            Alerts.shared.alert(title: "Deleting All Video Downloads", message: message)
+//
+//            self.list?.forEach({ (mediaItem) in
+//                mediaItem.videoDownload?.delete(block:true)
+//            })
+//
+//            if self.videoDownloaded == 0 {
+//                Alerts.shared.alert(title: "All Video Downloads Deleted", message: self.multiPartName)
+//            }
+//        }
+//    }
+    
+    func cancelAllDownloads(purpose:String,name:String)
+    {
+        let notifyOperation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
             var message = ""
             
-            if let multiPartName = self.multiPartName {
+            if let multiPartName = self?.multiPartName {
                 message += multiPartName + "\n\n"
             }
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title: "Deleting All Video Downloads", message: message)
+            Alerts.shared.alert(title: "Cancelling All \(name) Downloads", message: message)
             
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.videoDownload?.delete(block:true)
+            self?.list?.forEach({ (mediaItem) in
+                mediaItem.downloads[purpose]?.cancel()
             })
             
-            if self.videoDownloaded == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Deleted", message: self.multiPartName)
+            if self?.downloading(purpose:purpose) == 0 {
+                Alerts.shared.alert(title: "All \(name) Downloads Cancelled", message: self?.multiPartName)
             }
         }
-    }
-    
-    func cancelAllAudioDownloads()
-    {
+        
         for operation in mediaQueue.operations {
             guard let operation = operation as? CancellableOperation else {
                 continue
             }
             
-            if operation.tag == Purpose.audio {
+            notifyOperation.addDependency(operation)
+            
+            if operation.tag == purpose {
                 operation.cancel()
             }
         }
         
-        operationQueue.addOperation {
-            var message = ""
-            
-            if let multiPartName = self.multiPartName {
-                message += multiPartName + "\n\n"
-            }
-            
-            message += "You will be notified when it is complete."
-            
-            Alerts.shared.alert(title: "Cancelling All Audio Downloads", message: message)
-            
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.audioDownload?.cancel()
-            })
-            
-            if self.audioDownloading == 0 {
-                Alerts.shared.alert(title: "All Audio Downloads Cancelled", message: self.multiPartName)
-            }
-        }
+        operationQueue.addOperation(notifyOperation)
     }
+    
+    func cancelAllAudioDownloads()
+    {
+        cancelAllDownloads(purpose:Purpose.audio,name:Constants.Strings.Audio)
+    }
+    
+//    func cancelAllAudioDownloads()
+//    {
+//        for operation in mediaQueue.operations {
+//            guard let operation = operation as? CancellableOperation else {
+//                continue
+//            }
+//
+//            if operation.tag == Purpose.audio {
+//                operation.cancel()
+//            }
+//        }
+//
+//        operationQueue.addOperation {
+//            var message = ""
+//
+//            if let multiPartName = self.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//
+//            message += "You will be notified when it is complete."
+//
+//            Alerts.shared.alert(title: "Cancelling All Audio Downloads", message: message)
+//
+//            self.list?.forEach({ (mediaItem) in
+//                mediaItem.audioDownload?.cancel()
+//            })
+//
+//            if self.audioDownloading == 0 {
+//                Alerts.shared.alert(title: "All Audio Downloads Cancelled", message: self.multiPartName)
+//            }
+//        }
+//    }
     
     func cancellAllVideoDownloads()
     {
-        for operation in mediaQueue.operations {
-            guard let operation = operation as? CancellableOperation else {
-                continue
-            }
-            
-            if operation.tag == Purpose.video {
-                operation.cancel()
-            }
-        }
-
-        operationQueue.addOperation {
-            var message = ""
-            
-            if let multiPartName = self.multiPartName {
-                message += multiPartName + "\n\n"
-            }
-            
-            message += "You will be notified when it is complete."
-            
-            Alerts.shared.alert(title: "Cancelling All Video Downloads", message: message)
-            
-            self.list?.forEach({ (mediaItem) in
-                mediaItem.videoDownload?.cancel()
-            })
-            
-            if self.videoDownloading == 0 {
-                Alerts.shared.alert(title: "All Video Downloads Cancelled", message: self.multiPartName)
-            }
-        }
+        cancelAllDownloads(purpose:Purpose.video,name:Constants.Strings.Video)
     }
     
-    func downloadAllNotes()
+//    func cancellAllVideoDownloads()
+//    {
+//        for operation in mediaQueue.operations {
+//            guard let operation = operation as? CancellableOperation else {
+//                continue
+//            }
+//
+//            if operation.tag == Purpose.video {
+//                operation.cancel()
+//            }
+//        }
+//
+//        operationQueue.addOperation {
+//            var message = ""
+//
+//            if let multiPartName = self.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//
+//            message += "You will be notified when it is complete."
+//
+//            Alerts.shared.alert(title: "Cancelling All Video Downloads", message: message)
+//
+//            self.list?.forEach({ (mediaItem) in
+//                mediaItem.videoDownload?.cancel()
+//            })
+//
+//            if self.videoDownloading == 0 {
+//                Alerts.shared.alert(title: "All Video Downloads Cancelled", message: self.multiPartName)
+//            }
+//        }
+//    }
+
+    func downloadAll(purpose:String,name:String)
     {
         guard let list = list else {
             return
         }
         
-        //        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-        //            for mediaItem in list {
-        //                if test?() == true {
-        //                    break
-        //                }
-        //
-        //                let download = mediaItem.notesDownload
-        //
-        //                if download?.exists == true {
-        //                    continue
-        //                }
-        //
-        //                _ = download?.download()
-        //
-        //                while download?.state == .downloading {
-        //                    if test?() == true {
-        //                        download?.cancel()
-        //                        break
-        //                    }
-        //
-        //                    Thread.sleep(forTimeInterval: 1.0)
-        //                }
-        //            }
-        //            if self?.notesDownloads == 0 {
-        //                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
-        //            }
-        //        }
-        //
-        //        operationQueue.addOperation(operation)
+        var message = "This may take a considerable amount of time.  You will be notified when it is complete."
         
-        Alerts.shared.alert(title: "Downloading All Notes", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-        
-        for mediaItem in list {
-            let download = mediaItem.notesDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download(background: true)
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            operationQueue.addOperation(operation)
+        if let multiPartName = multiPartName {
+            message = "\(multiPartName)\n\n\(message)"
         }
         
-        let operation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->(Bool))?) in
+        Alerts.shared.alert(title: "Downloading All \(name)", message: message)
+        
+        let monitorOperation = CancellableOperation(tag:purpose) { [weak self] (test:(()->(Bool))?) in
             while self?.notesDownloading > 0 {
                 if test?() == true {
                     break
@@ -504,64 +609,23 @@ class MediaList // : Sequence
                 Thread.sleep(forTimeInterval: 1.0)
             }
             
-            if self?.notesDownloading == 0 {
-                if self?.notesDownloads == 0 {
-                    Alerts.shared.alert(title: "All Notes Downloads Complete")
+            if self?.downloading(purpose:purpose) == 0 {
+                if self?.downloads(purpose: purpose) == 0 {
+                    Alerts.shared.alert(title: "All \(name) Downloads Complete", message:self?.multiPartName)
                 } else {
-                    Alerts.shared.alert(title: "Some Notes Downloads Failed to Complete")
+                    Alerts.shared.alert(title: "Some \(name) Downloads Failed to Complete", message:self?.multiPartName)
                 }
             }
         }
         
-        operationQueue.addOperation(operation)
-    }
-    
-    func downloadAllSlides()
-    {
-        guard let list = list else {
-            return
-        }
-        
-        //        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
-        //            for mediaItem in list {
-        //                if test?() == true {
-        //                    break
-        //                }
-        //
-        //                let download = mediaItem.slidesDownload
-        //
-        //                if download?.exists == true {
-        //                    continue
-        //                }
-        //
-        //                _ = download?.download()
-        //
-        //                while download?.state == .downloading {
-        //                    if test?() == true {
-        //                        download?.cancel()
-        //                        break
-        //                    }
-        //
-        //                    Thread.sleep(forTimeInterval: 1.0)
-        //                }
-        //            }
-        //            if self?.slidesDownloads == 0 {
-        //                Alerts.shared.alert(title: "All Slide Downloads Complete")
-        //            }
-        //        }
-        //
-        //        operationQueue.addOperation(operation)
-        
-        Alerts.shared.alert(title: "Downloading All Slides", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-        
         for mediaItem in list {
-            let download = mediaItem.slidesDownload
+            let download = mediaItem.downloads[purpose]
             
             if download?.exists == true  {
                 continue
             }
             
-            let operation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->(Bool))?) in
+            let operation = CancellableOperation(tag:purpose) { [weak self] (test:(()->(Bool))?) in
                 _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
@@ -574,30 +638,193 @@ class MediaList // : Sequence
                 }
             }
             
+            monitorOperation.addDependency(operation)
+            
             operationQueue.addOperation(operation)
         }
         
-        let operation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->(Bool))?) in
-            while self?.slidesDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.slidesDownloading == 0 {
-                if self?.slidesDownloads == 0 {
-                    Alerts.shared.alert(title: "All Slides Downloads Complete", message: self?.multiPartName)
-                } else {
-                    Alerts.shared.alert(title: "Some Slides Downloads Failed to Complete", message: self?.multiPartName)
-                }
-            }
-        }
-        
-        operationQueue.addOperation(operation)
+        operationQueue.addOperation(monitorOperation)
+
     }
     
+    func downloadAllNotes()
+    {
+        downloadAll(purpose:Purpose.notes,name:Constants.Strings.Notes)
+    }
+    
+//    func downloadAllNotes()
+//    {
+//        guard let list = list else {
+//            return
+//        }
+//
+//        //        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+//        //            for mediaItem in list {
+//        //                if test?() == true {
+//        //                    break
+//        //                }
+//        //
+//        //                let download = mediaItem.notesDownload
+//        //
+//        //                if download?.exists == true {
+//        //                    continue
+//        //                }
+//        //
+//        //                _ = download?.download()
+//        //
+//        //                while download?.state == .downloading {
+//        //                    if test?() == true {
+//        //                        download?.cancel()
+//        //                        break
+//        //                    }
+//        //
+//        //                    Thread.sleep(forTimeInterval: 1.0)
+//        //                }
+//        //            }
+//        //            if self?.notesDownloads == 0 {
+//        //                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
+//        //            }
+//        //        }
+//        //
+//        //        operationQueue.addOperation(operation)
+//
+//        Alerts.shared.alert(title: "Downloading All Notes", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+//
+//        let monitorOperation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->(Bool))?) in
+//            while self?.notesDownloading > 0 {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                Thread.sleep(forTimeInterval: 1.0)
+//            }
+//
+//            if self?.notesDownloading == 0 {
+//                if self?.notesDownloads == 0 {
+//                    Alerts.shared.alert(title: "All Notes Downloads Complete")
+//                } else {
+//                    Alerts.shared.alert(title: "Some Notes Downloads Failed to Complete")
+//                }
+//            }
+//        }
+//
+//        for mediaItem in list {
+//            let download = mediaItem.notesDownload
+//
+//            if download?.exists == true  {
+//                continue
+//            }
+//
+//            let operation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->(Bool))?) in
+//                _ = download?.download(background: true)
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//
+//            monitorOperation.addDependency(operation)
+//
+//            operationQueue.addOperation(operation)
+//        }
+//
+//        operationQueue.addOperation(monitorOperation)
+//    }
+
+    func downloadAllSlides()
+    {
+        downloadAll(purpose: Purpose.slides, name: Constants.Strings.Slides)
+    }
+
+//    func downloadAllSlides()
+//    {
+//        guard let list = list else {
+//            return
+//        }
+//
+//        //        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+//        //            for mediaItem in list {
+//        //                if test?() == true {
+//        //                    break
+//        //                }
+//        //
+//        //                let download = mediaItem.slidesDownload
+//        //
+//        //                if download?.exists == true {
+//        //                    continue
+//        //                }
+//        //
+//        //                _ = download?.download()
+//        //
+//        //                while download?.state == .downloading {
+//        //                    if test?() == true {
+//        //                        download?.cancel()
+//        //                        break
+//        //                    }
+//        //
+//        //                    Thread.sleep(forTimeInterval: 1.0)
+//        //                }
+//        //            }
+//        //            if self?.slidesDownloads == 0 {
+//        //                Alerts.shared.alert(title: "All Slide Downloads Complete")
+//        //            }
+//        //        }
+//        //
+//        //        operationQueue.addOperation(operation)
+//
+//        Alerts.shared.alert(title: "Downloading All Slides", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+//
+//        let monitorOperation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->(Bool))?) in
+//            while self?.slidesDownloading > 0 {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                Thread.sleep(forTimeInterval: 1.0)
+//            }
+//
+//            if self?.slidesDownloading == 0 {
+//                if self?.slidesDownloads == 0 {
+//                    Alerts.shared.alert(title: "All Slides Downloads Complete", message: self?.multiPartName)
+//                } else {
+//                    Alerts.shared.alert(title: "Some Slides Downloads Failed to Complete", message: self?.multiPartName)
+//                }
+//            }
+//        }
+//
+//        for mediaItem in list {
+//            let download = mediaItem.slidesDownload
+//
+//            if download?.exists == true  {
+//                continue
+//            }
+//
+//            let operation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->(Bool))?) in
+//                _ = download?.download(background: true)
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//
+//            monitorOperation.addDependency(operation)
+//
+//            operationQueue.addOperation(operation)
+//        }
+//
+//        operationQueue.addOperation(monitorOperation)
+//    }
+
     lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MediaList:Media" + UUID().uuidString
@@ -605,20 +832,20 @@ class MediaList // : Sequence
         operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
         return operationQueue
     }()
-    
+
     // ALL operations stop on dealloc, including DOWNLOADING.
     deinit {
         operationQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
     }
-    
+
     func addAllToFavorites()
     {
         list?.forEach({ (mediaItem) in
             mediaItem.addToFavorites()
         })
     }
-    
+
     func removeAllFromFavorites()
     {
 //        guard let list = list else {
@@ -635,7 +862,7 @@ class MediaList // : Sequence
 //            }
 //        }
     }
-    
+
     var multiPartName : String?
     {
         get {
@@ -646,126 +873,140 @@ class MediaList // : Sequence
             }) else {
                 return nil
             }
-            
+
             guard Set(set).count == 1 else {
                 return nil
             }
-            
+
             return set.first
         }
     }
     
     func downloadAllAudio()
     {
-        guard let list = list else {
-            return
-        }
-        
-        var message = ""
-        
-        if let multiPartName = multiPartName {
-            message += multiPartName + "\n\n"
-        }
-        
-        message += "This may take a considerable amount of time.  You will be notified when it is complete."
-        
-        Alerts.shared.alert(title: "Downloading All Audio", message: message)
-
-        for mediaItem in list {
-            let download = mediaItem.audioDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download(background: true)
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            mediaQueue.addOperation(operation)
-        }
-        
-        let operation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->(Bool))?) in
-            while self?.audioDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.audioDownloading == 0 {
-                if self?.audioDownloads == 0 {
-                    Alerts.shared.alert(title: "All Audio Downloads Complete", message: self?.multiPartName)
-                } else {
-                    Alerts.shared.alert(title: "Some Audio Downloads Failed to Complete", message: self?.multiPartName)
-                }
-            }
-        }
-        
-        mediaQueue.addOperation(operation)
+        downloadAll(purpose: Purpose.audio, name: Constants.Strings.Audio)
     }
+    
+//    func downloadAllAudio()
+//    {
+//        guard let list = list else {
+//            return
+//        }
+//
+//        var message = ""
+//
+//        if let multiPartName = multiPartName {
+//            message += multiPartName + "\n\n"
+//        }
+//
+//        message += "This may take a considerable amount of time.  You will be notified when it is complete."
+//
+//        Alerts.shared.alert(title: "Downloading All Audio", message: message)
+//
+//        let monitorOperation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->(Bool))?) in
+//            while self?.audioDownloading > 0 {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                Thread.sleep(forTimeInterval: 1.0)
+//            }
+//
+//            if self?.audioDownloading == 0 {
+//                if self?.audioDownloads == 0 {
+//                    Alerts.shared.alert(title: "All Audio Downloads Complete", message: self?.multiPartName)
+//                } else {
+//                    Alerts.shared.alert(title: "Some Audio Downloads Failed to Complete", message: self?.multiPartName)
+//                }
+//            }
+//        }
+//
+//        for mediaItem in list {
+//            let download = mediaItem.audioDownload
+//
+//            if download?.exists == true  {
+//                continue
+//            }
+//
+//            let operation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->(Bool))?) in
+//                _ = download?.download(background: true)
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//
+//            monitorOperation.addDependency(operation)
+//
+//            mediaQueue.addOperation(operation)
+//        }
+//
+//        mediaQueue.addOperation(monitorOperation)
+//    }
     
     func downloadAllVideo()
     {
-        guard let list = list else {
-            return
-        }
-        
-        Alerts.shared.alert(title: "Downloading All Video", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
-
-        for mediaItem in list {
-            let download = mediaItem.videoDownload
-            
-            if download?.exists == true  {
-                continue
-            }
-            
-            let operation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->(Bool))?) in
-                _ = download?.download(background: true)
-                
-                while download?.state == .downloading {
-                    if test?() == true {
-                        download?.cancel()
-                        break
-                    }
-                    
-                    Thread.sleep(forTimeInterval: 1.0)
-                }
-            }
-            
-            mediaQueue.addOperation(operation)
-        }
-        
-        let operation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->(Bool))?) in
-            while self?.videoDownloading > 0 {
-                if test?() == true {
-                    break
-                }
-                
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            if self?.videoDownloading == 0 {
-                if self?.videoDownloads == 0 {
-                    Alerts.shared.alert(title: "All Video Downloads Complete", message: self?.multiPartName)
-                } else {
-                    Alerts.shared.alert(title: "Some Video Downloads Failed to Complete", message: self?.multiPartName)
-                }
-            }
-        }
-        
-        mediaQueue.addOperation(operation)
+        downloadAll(purpose: Purpose.video, name: Constants.Strings.Video)
     }
+    
+//    func downloadAllVideo()
+//    {
+//        guard let list = list else {
+//            return
+//        }
+//
+//        Alerts.shared.alert(title: "Downloading All Video", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
+//
+//        let monitorOperation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->(Bool))?) in
+//            while self?.videoDownloading > 0 {
+//                if test?() == true {
+//                    break
+//                }
+//
+//                Thread.sleep(forTimeInterval: 1.0)
+//            }
+//
+//            if self?.videoDownloading == 0 {
+//                if self?.videoDownloads == 0 {
+//                    Alerts.shared.alert(title: "All Video Downloads Complete", message: self?.multiPartName)
+//                } else {
+//                    Alerts.shared.alert(title: "Some Video Downloads Failed to Complete", message: self?.multiPartName)
+//                }
+//            }
+//        }
+//
+//        for mediaItem in list {
+//            let download = mediaItem.videoDownload
+//
+//            if download?.exists == true  {
+//                continue
+//            }
+//
+//            let operation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->(Bool))?) in
+//                _ = download?.download(background: true)
+//
+//                while download?.state == .downloading {
+//                    if test?() == true {
+//                        download?.cancel()
+//                        break
+//                    }
+//
+//                    Thread.sleep(forTimeInterval: 1.0)
+//                }
+//            }
+//
+//            monitorOperation.addDependency(operation)
+//
+//            mediaQueue.addOperation(operation)
+//        }
+//
+//        mediaQueue.addOperation(monitorOperation)
+//    }
     
     func loadAllDocuments()
     {
@@ -826,33 +1067,43 @@ class MediaList // : Sequence
     
     func updateIndex()
     {
-        index = nil
+//        index = nil
+//        classes = nil
+//        events = nil
+
+        index.clear()
+        classes.clear()
+        events.clear()
         
         guard let list = list, list.count > 0 else {
             return
         }
         
-        index = [String:MediaItem]()
-        
+//        index = [String:MediaItem]()
+//        classes = [String]()
+//        events = [String]()
+
         for mediaItem in list {
             if let id = mediaItem.id {
-                index?[id] = mediaItem
+                index[id] = mediaItem
             }
             
             if mediaItem.hasClassName, let className = mediaItem.className {
-                if classes == nil {
-                    classes = [className]
-                } else {
-                    classes?.append(className)
-                }
+//                if classes == nil {
+//                    classes = [className]
+//                } else {
+//                    classes?.append(className)
+//                }
+                classes.append(className)
             }
             
             if mediaItem.hasEventName, let eventName = mediaItem.eventName {
-                if events == nil {
-                    events = [eventName]
-                } else {
-                    events?.append(eventName)
-                }
+//                if events == nil {
+//                    events = [eventName]
+//                } else {
+//                    events?.append(eventName)
+//                }
+                events.append(eventName)
             }
         }
     }
@@ -884,15 +1135,24 @@ class MediaList // : Sequence
             
         }
         didSet {
+//            index = nil
+//            classes = nil
+//            events = nil
+//
+            index.clear()
+            classes.clear()
+            events.clear()
+            
             didSet?()
+            
             updateIndex()
             updateCacheSize()
         }
     }
     
     // Make thread safe?
-    var index:[String:MediaItem]? //MediaItems indexed by ID.
-    var classes:[String]?
-    var events:[String]?
+    var index = ThreadSafeDictionary<MediaItem>() // :[String:MediaItem]? //MediaItems indexed by ID.
+    var classes = ThreadSafeArray<String>() // :[String]?
+    var events = ThreadSafeArray<String>() // :[String]?
 }
 

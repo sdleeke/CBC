@@ -22,6 +22,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
+    lazy var loadingViewController:UIViewController? = {
+        return storyboard?.instantiateViewController(withIdentifier: "Loading View Controller")
+    }()
+    
     var splitViewController : UISplitViewController?
     {
         get {
@@ -601,7 +605,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]?
 
     // Make thread safe?
-    var history:[String]?
+    var history = ThreadSafeArray<String>() // :[String]?
     
     // Make thread safe?
     var relevantHistory:[String]?
@@ -611,8 +615,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return nil
             }
             
-            return history?.reversed().filter({ (string:String) -> Bool in
-                if let range = string.range(of: Constants.TAGS_SEPARATOR) {
+            return history.reversed?.filter({ (string:String) -> Bool in
+                if let range = string.range(of: Constants.SEPARATOR) {
                     let mediaItemID = String(string[range.upperBound...])
                     return index[mediaItemID] != nil
                 } else {
@@ -626,11 +630,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         get {
             if let first = relevantHistory?.first {
-                let components = first.components(separatedBy: Constants.TAGS_SEPARATOR)
+                let components = first.components(separatedBy: Constants.SEPARATOR)
                 
                 if components.count == 2 {
                     let id = components[1]
-                    return mediaRepository.index?[id]
+                    return mediaRepository.index[id]
                 }
             }
             
@@ -647,7 +651,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
             
             return relevantHistory?.map({ (string:String) -> String in
-                if  let range = string.range(of: Constants.TAGS_SEPARATOR),
+                if  let range = string.range(of: Constants.SEPARATOR),
                     let mediaItem = index[String(string[range.upperBound...])],
                     let text = mediaItem.text {
                     return text
@@ -665,16 +669,18 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem.id
+        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.id
         
-        if history == nil {
-            history = [entry]
-        } else {
-            history?.append(entry)
-        }
+//        if history == nil {
+//            history = [entry]
+//        } else {
+//            history?.append(entry)
+//        }
+        
+        history.append(entry)
         
         let defaults = UserDefaults.standard
-        defaults.set(history, forKey: Constants.SETTINGS.HISTORY)
+        defaults.set(history.copy, forKey: Constants.SETTINGS.HISTORY)
         defaults.synchronize()
     }
 
@@ -797,13 +803,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             search.active = search.text != nil
 
             if let playing = mediaCategory.playing {
-                mediaPlayer.mediaItem = mediaRepository.index?[playing]
+                mediaPlayer.mediaItem = mediaRepository.index[playing]
             } else {
                 mediaPlayer.mediaItem = nil
             }
 
             if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
-                history = historyArray as? [String]
+//                history = historyArray as? [String]
+                history.update(storage: historyArray as? [String])
             }
         } else {
             //This is where we should map the old version on to the new one and preserve the user's information.
