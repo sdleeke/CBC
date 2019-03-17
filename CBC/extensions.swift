@@ -38,6 +38,7 @@ import PDFKit
 
 extension UIViewController
 {
+    // This also works as a stand alone function w/ the view controller passed in as a parameter.
     func process(disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
     {
         guard (work != nil) && (completion != nil) else {
