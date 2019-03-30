@@ -217,7 +217,7 @@ class QuadTree
         
         if migratedBoundingRects.count > 0 {
             for boundingRect in migratedBoundingRects {
-                if let index = boundingRects.index(of: boundingRect) {
+                if let index = boundingRects.firstIndex(of: boundingRect) {
                     boundingRects.remove(at: index)
                 }
             }

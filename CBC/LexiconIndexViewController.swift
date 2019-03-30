@@ -30,6 +30,10 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
 
     func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
             return
@@ -49,6 +53,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 
     func actionMenu(action: String?,mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
             return
@@ -112,7 +120,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.actionTitle = Constants.Strings.Expanded_View
                 popover.action = { (String) in
-                    self.process(work: { [weak self] () -> (Any?) in
+                    popover.process(work: { [weak self] () -> (Any?) in
                         return popover.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
                         presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
@@ -120,7 +128,8 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 }
 
                 popover.stringTree = StringTree(incremental: true)
-                popover.strings = mediaListGroupSort?.lexicon?.tokens
+                // mediaListGroupSort?.lexicon?.tokens
+                popover.strings = activeWords
                 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -130,7 +139,11 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             self.process(work: { [weak self] () -> (Any?) in
                 // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
                 // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
-                return self?.lexicon?.wordsHTML
+
+                // SHOULD ONLY BE activeWords
+                
+//                return self?.lexicon?.wordsHTML
+                return self?.activeWordsHTML
             }, completion: { (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
                 presentHTMLModal(viewController: self, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
@@ -143,7 +156,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
-            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                 (action : UIAlertAction!) -> Void in
                 self.lexicon?.stop()
                 if self.navigationController?.visibleViewController == self {
@@ -153,7 +166,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(yesAction)
             
-            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction!) -> Void in
                 
             })
@@ -183,6 +196,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
             return
@@ -254,7 +271,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 }
                 
                 //Can't use this reliably w/ variable row heights.
-                tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
             }
             break
             
@@ -274,7 +291,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             var bounds = view.bounds
             
             if #available(iOS 11.0, *) {
-                bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+                bounds = view.bounds.inset(by: view.safeAreaInsets)
             } else {
                 // Fallback on earlier versions
             }
@@ -475,7 +492,7 @@ class LexiconIndexViewController : UIViewController
         var bounds = view.bounds
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            bounds = view.bounds.inset(by: view.safeAreaInsets)
         } else {
             // Fallback on earlier versions
         }
@@ -531,7 +548,7 @@ class LexiconIndexViewController : UIViewController
         var bounds = view.bounds
         
         if #available(iOS 11.0, *) {
-            bounds = UIEdgeInsetsInsetRect(view.bounds, view.safeAreaInsets)
+            bounds = view.bounds.inset(by: view.safeAreaInsets)
         } else {
             // Fallback on earlier versions
         }
@@ -874,7 +891,15 @@ class LexiconIndexViewController : UIViewController
                     
                     // Need to use this now that lexicon.strings is a computed variable and for large lexicons it can take a while.
                     wordsTableViewController.stringsFunction = {
-                        return self.mediaListGroupSort?.lexicon?.strings
+//                        return self.mediaListGroupSort?.lexicon?.strings
+
+                        return self.mediaListGroupSort?.lexicon?.strings?.sorted().map({ (string:String) -> String in
+                            if let count = self.lexicon?.occurrences(string) {
+                                return string + " (\(count))"
+                            } else {
+                                return string
+                            }
+                        })
                     }
                 }
                 break
@@ -1002,6 +1027,9 @@ class LexiconIndexViewController : UIViewController
         
         // Necessary to get the token word list to extend fully.
         setTableViewHeightConstraint(change:0)
+        
+        // must be done after PTVC is loaded
+        updateActionMenu()
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1181,8 +1209,8 @@ class LexiconIndexViewController : UIViewController
                         
                         if let indexTitles = results?.section?.indexStrings {
                             let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-                                if string.endIndex >= a.endIndex {
-                                    let indexString = String(string.withoutPrefixes[..<a.endIndex]).uppercased()
+                                if string.count >= a.count { // endIndex
+                                    let indexString = String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
                                     
                                     return indexString
                                 } else {
@@ -1194,7 +1222,7 @@ class LexiconIndexViewController : UIViewController
                             
                             if let indexStrings = results?.section?.indexStrings {
                                 for indexString in indexStrings {
-                                    let key = String(indexString[..<a.endIndex]).uppercased()
+                                    let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
                                     
                                     if stringIndex[key] == nil {
                                         stringIndex[key] = [String]()
@@ -1256,11 +1284,175 @@ class LexiconIndexViewController : UIViewController
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
+    var activeWords : [String]?
+    {
+        get {
+            return wordsTableViewController.section.strings?.compactMap({ (string:String) -> String? in
+                if let range = string.range(of: " (") {
+                    return String(string[..<range.lowerBound])
+                } else {
+                    return nil
+                }
+            })
+        }
+    }
+    
+    var activeWordsHTML : String?
+    {
+        get{
+            var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</body></html>", with: "") //
+            
+            bodyHTML += "<html><body>"
+            
+            var wordsHTML = ""
+            var indexHTML = ""
+            
+            if let words = activeWords?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+                return lhs < rhs
+            }) {
+                var roots = [String:Int]()
+                
+                var keys : [String] {
+                    get {
+                        return roots.keys.sorted()
+                    }
+                }
+                
+                words.forEach({ (word:String) in
+                    let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+                    //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+                    if let count = roots[key] {
+                        roots[key] = count + 1
+                    } else {
+                        roots[key] = 1
+                    }
+                })
+                
+                bodyHTML += "<br/>"
+                
+                //                    bodyHTML += "<p>Index to \(words.count) Words</p>"
+                bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+                
+                //                    indexHTML = "<table>"
+                //
+                //                    indexHTML += "<tr>"
+                
+                var index : String?
+                
+                for root in roots.keys.sorted() {
+                    let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+
+                    let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
+                    index = ((index != nil) ? index! + " " : "") + link
+                }
+                
+                indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
+                
+                if let index = index {
+                    indexHTML += index + "<br/>"
+                }
+                
+                //                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
+                //                    for root in roots.keys.sorted() {
+                //                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
+                //                    }
+                
+                //                    indexHTML += "</tr>"
+                //
+                //                    indexHTML += "</table>"
+                
+                indexHTML += "<br/>"
+                
+                wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
+                
+                wordsHTML += "<div class=\"index\">"
+                
+                wordsHTML += "<ul class=\"words\">"
+                
+                //                    wordsHTML += "<tr><td></td></tr>"
+                
+                //                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
+                
+                var section = 0
+                
+                //                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+                
+                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+
+                wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                
+                for word in words {
+                    let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+                    //                    let first = String(word[..<String.Index(encodedOffset: 1)])
+                    
+                    if first != keys[section] {
+                        // New Section
+                        section += 1
+                        //                            wordsHTML += "<tr><td></td></tr>"
+                        
+                        //                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+                        
+                        wordsHTML += "</ul>"
+                        
+                        wordsHTML += "<br/>"
+                        
+                        wordsHTML += "<ul class=\"words\">"
+                        
+                        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+                        
+                        wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                    }
+                    
+                    //                        wordsHTML += "<tr><td>" + word + "</td></tr>"
+                    
+                    //                        wordsHTML += "<li>" + word + "</li>"
+                    wordsHTML += "<li>"
+                    wordsHTML += word
+                    
+                    // Word Frequency and Links Back to Documents
+                    //                        if let entries = words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
+                    //                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
+                    //                        }) {
+                    //                            var count = 0
+                    //                            for entry in entries {
+                    //                                count += entry.value
+                    //                            }
+                    //                            wordsHTML += " (\(count))"
+                    //
+                    //                            wordsHTML += "<ul>"
+                    //                            var i = 1
+                    //                            for entry in entries {
+                    //                                if let tag = entry.key.title?.asTag {
+                    //                                    wordsHTML += "<li class\"back\">"
+                    //                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
+                    //                                    wordsHTML += "</li>"
+                    //                                }
+                    //                                i += 1
+                    //                            }
+                    //                            wordsHTML += "</ul>"
+                    //                        }
+                    
+                    wordsHTML += "</li>"
+                }
+                
+                wordsHTML += "</ul>"
+                
+                wordsHTML += "</div>"
+                
+                wordsHTML += "</div>"
+            }
+            
+            bodyHTML += indexHTML + wordsHTML + "</body></html>"
+            
+            return bodyHTML
+        }
+    }
+
     func actionMenuItems() -> [String]?
     {
         var actionMenu = [String]()
 
-        if lexicon?.tokens?.count > 0 {
+        if activeWords?.count > 0 {
             actionMenu.append(Constants.Strings.Word_Picker)
             actionMenu.append(Constants.Strings.View_Words)
         }
@@ -1278,6 +1470,10 @@ class LexiconIndexViewController : UIViewController
     
     @objc func actions()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
             return
@@ -1387,6 +1583,10 @@ class LexiconIndexViewController : UIViewController
     
     @objc func index(_ object:AnyObject?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
             return
@@ -1430,7 +1630,7 @@ class LexiconIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
         
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         navigationItem.setRightBarButton(actionButton, animated: true)
@@ -1438,6 +1638,10 @@ class LexiconIndexViewController : UIViewController
     
     func updateText()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
             return
@@ -1447,6 +1651,10 @@ class LexiconIndexViewController : UIViewController
     
     func isHiddenUI(_ state:Bool)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
             return
@@ -1462,6 +1670,10 @@ class LexiconIndexViewController : UIViewController
     
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
@@ -1475,6 +1687,10 @@ class LexiconIndexViewController : UIViewController
     
     func updateActionMenu()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
             return
@@ -1492,8 +1708,8 @@ class LexiconIndexViewController : UIViewController
             return
         }
 
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItem.Style.plain, target: self, action: #selector(index(_:)))
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)
         
@@ -1632,7 +1848,7 @@ extension LexiconIndexViewController : UITableViewDelegate
                     }
                 }
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                     (action : UIAlertAction) -> Void in
                 })
                 alert.addAction(okayAction)

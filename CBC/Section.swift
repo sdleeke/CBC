@@ -51,7 +51,7 @@ class Section
             string = String(string[..<range.lowerBound]) //.uppercased()
         }
         
-        guard let index = strings?.index(where: { (str:String) -> Bool in
+        guard let index = strings?.firstIndex(where: { (str:String) -> Bool in
             var match = str
             
             if let range = str.range(of: " (") {
@@ -211,8 +211,8 @@ class Section
             } else {
                 indexHeaders = Array(Set(indexStrings
                     .map({ (string:String) -> String in
-                        if string.endIndex >= a.endIndex {
-                            return String(string[..<a.endIndex]).uppercased()
+                        if string.count >= a.count {
+                            return String(string[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
                         } else {
                             return string
                         }
@@ -239,8 +239,8 @@ class Section
                     var header : String?
                     
                     if indexHeadersTransform == nil {
-                        if indexString.endIndex >= a.endIndex {
-                            header = String(indexString[..<a.endIndex])
+                        if indexString.count >= a.count { // endIndex
+                            header = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)])
                         }
                     } else {
                         header = indexHeadersTransform?(indexString)

@@ -18,7 +18,7 @@ func startAudio()
     let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
     
     do {
-        try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+        try audioSession.setCategory(AVAudioSession.Category(rawValue: convertFromAVAudioSessionCategory(AVAudioSession.Category.playback)))
     } catch let error {
         NSLog("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
     }
@@ -53,7 +53,7 @@ func open(scheme: String?,cannotOpen:(()->(Void))?)
     }
     
     if #available(iOS 10, *) {
-        UIApplication.shared.open(url, options: [:],
+        UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]),
                                   completionHandler: {
                                     (success) in
                                     print("Open \(scheme): \(success)")
@@ -93,6 +93,68 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
             if let range = string.range(of: fileType) {
                 if fileType == String(string[range.lowerBound...]) {
                     files.append(string)
+                }
+            }
+        }
+    } catch let error {
+        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+    }
+    
+    return files.count > 0 ? files : nil
+}
+
+func filesOfNameInCache(_ filename:String) -> [String]?
+{
+    guard let path = cachesURL?.path else {
+        return nil
+    }
+    
+    var files = [String]()
+    
+    do {
+        let array = try FileManager.default.contentsOfDirectory(atPath: path)
+        
+        for string in array {
+            if let range = string.range(of: filename) {
+                if filename == String(string[..<range.upperBound]) {
+                    files.append(string)
+                }
+            }
+        }
+    } catch let error {
+        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+    }
+    
+    return files.count > 0 ? files : nil
+}
+
+func deleteFilesOfNameInCache(_ filename:String) -> [String]?
+{
+    guard let path = cachesURL?.path else {
+        return nil
+    }
+    
+    var files = [String]()
+    
+    do {
+        let array = try FileManager.default.contentsOfDirectory(atPath: path)
+        
+        for string in array {
+            if let range = string.range(of: filename) {
+                if filename == String(string[..<range.upperBound]) {
+                    files.append(string)
+                    
+                    var fileURL = path.url
+                        
+                    fileURL?.appendPathComponent(string, isDirectory: false)
+                    
+                    if let fileURL = fileURL {
+                        do {
+                            try FileManager.default.removeItem(at: fileURL)
+                        } catch let error {
+                            NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
+                        }
+                    }
                 }
             }
         }
@@ -398,9 +460,11 @@ func stringMarkedBySearchAsAttributedString(attributedString:NSAttributedString!
                 break
             }
             
-            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+            let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
             
-            attributedText.addAttribute(NSAttributedStringKey.backgroundColor, value: UIColor.yellow, range: nsRange)
+//            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+            
+            attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
             startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
         }
         
@@ -948,7 +1012,7 @@ func verifyNASB()
     }
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
             let chapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
             
             let dict = Scripture(reference: "\(book) \(chapters+1):1").loadJSONVerseFromURL()
@@ -989,7 +1053,7 @@ func verifyNASB()
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS {
-        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
             let chapters = Constants.NEW_TESTAMENT_CHAPTERS[index]
             
             let dict = Scripture(reference: "\(book) \(chapters+1):1").loadJSONVerseFromURL()
@@ -1158,13 +1222,13 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
     
     switch testament(book) {
     case Constants.Old_Testament:
-        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
             endChapter = Constants.OLD_TESTAMENT_CHAPTERS[index]
         }
         break
         
     case Constants.New_Testament:
-        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
             endChapter = Constants.NEW_TESTAMENT_CHAPTERS[index]
         }
         break
@@ -1178,13 +1242,13 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
         
         switch testament(book) {
         case Constants.Old_Testament:
-            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+            if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
                 endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
             }
             break
             
         case Constants.New_Testament:
-            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+            if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
                 endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
             }
             break
@@ -1220,14 +1284,14 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     
     switch testament(book) {
     case Constants.Old_Testament:
-        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
             index < Constants.OLD_TESTAMENT_VERSES.count,
             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
         }
         break
     case Constants.New_Testament:
-        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
             index < Constants.NEW_TESTAMENT_VERSES.count,
             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
             endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1250,12 +1314,12 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book) {
         case Constants.Old_Testament:
-            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+            if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
                 debug(index,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index].count)
             }
             break
         case Constants.New_Testament:
-            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+            if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
                 debug(index,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index].count)
             }
             break
@@ -1424,14 +1488,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                                 
                                                 switch testament(book) {
                                                 case Constants.Old_Testament:
-                                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                                    if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                                         index < Constants.OLD_TESTAMENT_VERSES.count,
                                                         chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                                         endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                                     }
                                                     break
                                                 case Constants.New_Testament:
-                                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                                    if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                                         index < Constants.NEW_TESTAMENT_VERSES.count,
                                                         chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                         endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1519,14 +1583,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book) {
                             case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[index][startChapter - 1]
                                 }
                                 break
                             case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                     index < Constants.NEW_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.NEW_TESTAMENT_VERSES[index][startChapter - 1]
@@ -1568,14 +1632,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book) {
                                     case Constants.Old_Testament:
-                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                         }
                                         break
                                     case Constants.New_Testament:
-                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                             index < Constants.NEW_TESTAMENT_VERSES.count,
                                             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1640,7 +1704,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book) {
                             case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     index >= 0,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count,
@@ -1650,7 +1714,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 }
                                 break
                             case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                     index < Constants.NEW_TESTAMENT_VERSES.count,
                                     index >= 0,
                                     startChapter <= Constants.NEW_TESTAMENT_VERSES[index].count,
@@ -1695,14 +1759,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book) {
                                     case Constants.Old_Testament:
-                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                         }
                                         break
                                     case Constants.New_Testament:
-                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                             index < Constants.NEW_TESTAMENT_VERSES.count,
                                             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1738,14 +1802,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 
                                 switch testament(book) {
                                 case Constants.Old_Testament:
-                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                    if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                         index < Constants.OLD_TESTAMENT_VERSES.count,
                                         endChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                         endVerse = Constants.OLD_TESTAMENT_VERSES[index][endChapter - 1]
                                     }
                                     break
                                 case Constants.New_Testament:
-                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                    if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                         index < Constants.NEW_TESTAMENT_VERSES.count,
                                         endChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                         endVerse = Constants.NEW_TESTAMENT_VERSES[index][endChapter - 1]
@@ -1800,12 +1864,12 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 
                                 switch testament(book) {
                                 case Constants.Old_Testament:
-                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+                                    if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
                                         endVerse = Constants.OLD_TESTAMENT_VERSES[index][currentChapter - 1]
                                     }
                                     break
                                 case Constants.New_Testament:
-                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+                                    if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
                                         endVerse = Constants.NEW_TESTAMENT_VERSES[index][currentChapter - 1]
                                     }
                                     break
@@ -1848,14 +1912,14 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                         
                                         switch testament(book) {
                                         case Constants.Old_Testament:
-                                            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
+                                            if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book),
                                                 index < Constants.OLD_TESTAMENT_VERSES.count,
                                                 chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                             }
                                             break
                                         case Constants.New_Testament:
-                                            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
+                                            if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book),
                                                 index < Constants.NEW_TESTAMENT_VERSES.count,
                                                 chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -2301,8 +2365,8 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
                 let last = books[1]
                 
                 if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.OLD_TESTAMENT_BOOKS.contains(last) {
-                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first),
-                        let lastIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: last) {
+                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: first),
+                        let lastIndex = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: last) {
                         for index in firstIndex...lastIndex {
                             books.append(Constants.OLD_TESTAMENT_BOOKS[index])
                         }
@@ -2310,14 +2374,14 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
                 }
                 
                 if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
-                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first) {
+                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: first) {
                         let lastIndex = Constants.OLD_TESTAMENT_BOOKS.count - 1
                         for index in firstIndex...lastIndex {
                             books.append(Constants.OLD_TESTAMENT_BOOKS[index])
                         }
                     }
                     let firstIndex = 0
-                    if let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
+                    if let lastIndex = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: last) {
                         for index in firstIndex...lastIndex {
                             books.append(Constants.NEW_TESTAMENT_BOOKS[index])
                         }
@@ -2325,8 +2389,8 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
                 }
                 
                 if Constants.NEW_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
-                    if let firstIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: first),
-                        let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
+                    if let firstIndex = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: first),
+                        let lastIndex = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: last) {
                         for index in firstIndex...lastIndex {
                             books.append(Constants.NEW_TESTAMENT_BOOKS[index])
                         }
@@ -2538,11 +2602,11 @@ func bookNumberInBible(_ book:String?) -> Int?
         return nil
     }
 
-    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+    if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book) {
         return index
     }
     
-    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+    if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book) {
         return Constants.OLD_TESTAMENT_BOOKS.count + index
     }
     
@@ -3824,16 +3888,16 @@ func mailHTML(viewController:UIViewController?,to: [String]?,subject: String?, h
     }
 }
 
-func printTextJob(viewController:UIViewController,data:Data?,string:String?,orientation:UIPrintInfoOrientation)
+func printTextJob(viewController:UIViewController,data:Data?,string:String?,orientation:UIPrintInfo.Orientation)
 {
     guard UIPrintInteractionController.isPrintingAvailable, !((string != nil) && (data != nil)), (string != nil) || (data != nil) else {
         return
     }
     
     let pi = UIPrintInfo.printInfo()
-    pi.outputType = UIPrintInfoOutputType.general
+    pi.outputType = UIPrintInfo.OutputType.general
     pi.jobName = Constants.Strings.Print;
-    pi.duplex = UIPrintInfoDuplex.longEdge
+    pi.duplex = UIPrintInfo.Duplex.longEdge
     
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
@@ -3883,16 +3947,16 @@ func printText(viewController:UIViewController,string:String?)
     )
 }
 
-func printHTMLJob(viewController:UIViewController,data:Data?,html:String?,orientation:UIPrintInfoOrientation)
+func printHTMLJob(viewController:UIViewController,data:Data?,html:String?,orientation:UIPrintInfo.Orientation)
 {
     guard UIPrintInteractionController.isPrintingAvailable, !((html != nil) && (data != nil)), (html != nil) || (data != nil) else {
         return
     }
     
     let pi = UIPrintInfo.printInfo()
-    pi.outputType = UIPrintInfoOutputType.general
+    pi.outputType = UIPrintInfo.OutputType.general
     pi.jobName = Constants.Strings.Print;
-    pi.duplex = UIPrintInfoDuplex.longEdge
+    pi.duplex = UIPrintInfo.Duplex.longEdge
     pi.orientation = orientation
 
     let pic = UIPrintInteractionController.shared
@@ -3982,7 +4046,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
         return
     }
     
-    func processMediaItems(orientation:UIPrintInfoOrientation)
+    func processMediaItems(orientation:UIPrintInfo.Orientation)
     {
         viewController.process(work: {
             return stringFunction?(mediaItems,links,columns)
@@ -4659,8 +4723,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 if let indexTitles = Globals.shared.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-                        if string.endIndex >= a.endIndex {
-                            return String(string.withoutPrefixes[..<a.endIndex]).uppercased()
+                        if string.count >= a.count { // endIndex
+                            return String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
                         } else {
                             return string
                         }
@@ -4670,7 +4734,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     if let indexStrings = Globals.shared.media.active?.section?.indexStrings {
                         for indexString in indexStrings {
-                            let key = String(indexString[..<a.endIndex]).uppercased()
+                            let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
                             
                             if stringIndex[key] == nil {
                                 stringIndex[key] = [String]()
@@ -4986,8 +5050,8 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
         let a = "a"
         
         let titles = Array(Set(keys.map({ (string:String) -> String in
-            if string.endIndex >= a.endIndex {
-                return String(string.withoutPrefixes[..<a.endIndex]).uppercased()
+            if string.count >= a.count { // endIndex
+                return String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
             } else {
                 return string
             }
@@ -4996,7 +5060,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool = true,inclu
         var stringIndex = [String:[String]]()
         
         for string in keys {
-            let key = String(string.withoutPrefixes[..<a.endIndex]).uppercased()
+            let key = String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
             
             if stringIndex[key] == nil {
                 stringIndex[key] = [String]()
@@ -5079,7 +5143,7 @@ func networkUnavailable(_ viewController:UIViewController,_ message:String?)
 
 func alert(viewController:UIViewController,title:String?,message:String?,completion:(()->(Void))?)
 {
-    guard UIApplication.shared.applicationState == UIApplicationState.active else {
+    guard UIApplication.shared.applicationState == UIApplication.State.active else {
         return
     }
     
@@ -5088,7 +5152,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
                                   preferredStyle: .alert)
     alert.makeOpaque()
     
-    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
         completion?()
     })
     alert.addAction(action)
@@ -5105,7 +5169,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,actions
         return
     }
     
-    guard UIApplication.shared.applicationState == UIApplicationState.active else {
+    guard UIApplication.shared.applicationState == UIApplication.State.active else {
         return
     }
     
@@ -5122,7 +5186,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,actions
             alert.addAction(action)
         }
     } else {
-        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
             
         })
         alert.addAction(action)
@@ -5144,13 +5208,13 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
         textField.placeholder = searchText ?? "search string"
     })
     
-    let search = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+    let search = UIAlertAction(title: "Search", style: UIAlertAction.Style.default, handler: {
         (action : UIAlertAction!) -> Void in
         searchAction?(alert)
     })
     alert.addAction(search)
     
-    let clear = UIAlertAction(title: "Clear", style: UIAlertActionStyle.destructive, handler: {
+    let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: {
         (action : UIAlertAction!) -> Void in
         alert.textFields?[0].text = ""
         searchAction?(alert)
@@ -5168,8 +5232,8 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
 }
 
 func yesOrNo(viewController:UIViewController,title:String?,message:String?,
-                       yesAction:(()->(Void))?, yesStyle: UIAlertActionStyle,
-                       noAction:(()->(Void))?, noStyle: UIAlertActionStyle)
+                       yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
+                       noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
 {
     let alert = UIAlertController(title: title,
                                   message: message,
@@ -5192,8 +5256,8 @@ func yesOrNo(viewController:UIViewController,title:String?,message:String?,
 }
 
 func firstSecondCancel(viewController:UIViewController,title:String?,message:String?,
-                       firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertActionStyle,
-                       secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertActionStyle,
+                       firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertAction.Style,
+                       secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
                        cancelAction:(()->(Void))? = nil)
 {
     let alert = UIAlertController(title: title,
@@ -5215,7 +5279,7 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
         alert.addAction(noAction)
     }
     
-    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
     })
     alert.addAction(cancelAction)
@@ -5227,7 +5291,7 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
 
 struct AlertAction {
     let title : String
-    let style : UIAlertActionStyle
+    let style : UIAlertAction.Style
     let handler : (()->(Void))?
 }
 
@@ -5247,7 +5311,7 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
         }
     }
     
-    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
     })
     alert.addAction(cancelAction)
@@ -5273,7 +5337,7 @@ func alertActionsOkay(viewController:UIViewController,title:String?,message:Stri
         }
     }
     
-    let okayAlertAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+    let okayAlertAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { (UIAlertAction) -> Void in
         okayAction?()
     })
     alert.addAction(okayAlertAction)
@@ -5283,3 +5347,13 @@ func alertActionsOkay(viewController:UIViewController,title:String?,message:Stri
     }
 }
 
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromAVAudioSessionCategory(_ input: AVAudioSession.Category) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
+}

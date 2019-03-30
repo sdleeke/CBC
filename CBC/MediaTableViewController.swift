@@ -93,10 +93,15 @@ extension MediaTableViewController : UISearchBarDelegate
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
             return
         }
+        
         let searchText = searchText.uppercased()
         
         Globals.shared.search.text = searchText
@@ -114,6 +119,10 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
             return
@@ -138,6 +147,10 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
+        guard self.isViewLoaded else {
+            return false
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
             return false
@@ -148,12 +161,16 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
-        Globals.shared.search.active = true
+        guard self.isViewLoaded else {
+            return
+        }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
             return
         }
+
+        Globals.shared.search.active = true
         
         searchBar.showsCancelButton = true
         
@@ -174,6 +191,10 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
             return
@@ -183,18 +204,26 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
-        Globals.shared.search.active = false
+        guard self.isViewLoaded else {
+            return
+        }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
             return
         }
         
+        Globals.shared.search.active = false
+        
         didDismissSearch()
     }
     
     func didDismissSearch()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
             return
@@ -226,7 +255,7 @@ extension MediaTableViewController : UISearchBarDelegate
         enableBarButtons()
         
         //Moving the list can be very disruptive
-        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: false, position: UITableViewScrollPosition.none)
+        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: false, position: UITableView.ScrollPosition.none)
     }
 }
 
@@ -347,7 +376,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 alert.makeOpaque()
                 
-                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                     (action : UIAlertAction!) -> Void in
                     VoiceBase.delete(mediaID: mediaID)
                     
@@ -391,7 +420,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 alert.addAction(yesAction)
                 
-                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                     (action : UIAlertAction!) -> Void in
                     
                 })
@@ -410,7 +439,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     textField.text = mediaID
                 })
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                     (action : UIAlertAction) -> Void in
                 })
                 alert.addAction(okayAction)
@@ -574,7 +603,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         alert.makeOpaque()
 
-                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                             (action : UIAlertAction) -> Void in
                             VoiceBase.delete(mediaID: mediaID)
 
@@ -629,7 +658,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         })
                         alert.addAction(yesAction)
 
-                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                             (action : UIAlertAction) -> Void in
 
                         })
@@ -648,7 +677,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             textField.text = mediaID
                         })
 
-                        let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                        let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                             (action : UIAlertAction) -> Void in
                         })
                         alert.addAction(okayAction)
@@ -737,7 +766,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         })
         alert.addAction(yesAction)
 
-        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (alert:UIAlertAction!) -> Void in
+        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (alert:UIAlertAction!) -> Void in
 
         })
         alert.addAction(cancelAction)
@@ -755,6 +784,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
             return
@@ -778,10 +811,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         // Delay so UI works correctly.
                         DispatchQueue.global(qos: .background).async { [weak self] in
                             Thread.sleep(forTimeInterval: 0.1)
-                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                         }
                     } else {
-                        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                     }
                 } else {
                     if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
@@ -837,7 +870,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     let strings = Globals.shared.relevantHistoryList
 
                     Thread.onMainThread {
-                        popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.historyActions))
+                        popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.historyActions))
                         popover.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                     }
                     
@@ -967,7 +1000,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 textField.text = Globals.shared.voiceBaseAPIKey
             })
             
-            let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
+            let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction) -> Void in
                 Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
             })
@@ -1097,6 +1130,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
@@ -1161,7 +1198,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             // Delay so UI works correctly.
                             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                                 Thread.onMainThread {
-                                    self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                    self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                                 }
                             }
                         })
@@ -1170,9 +1207,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self.tableView?.reloadData()
                         
                         if self.selectedMediaItem != nil {
-                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.middle)
                         } else {
-                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableView.ScrollPosition.top, animated: false)
                         }
                     }
 
@@ -1311,7 +1348,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                     
                     if let contains = Globals.shared.media.active?.mediaItems?.contains(mediaItem), contains {
-                        selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
+                        selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top) // was Middle
                     } else {
                         if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
                             alert(  viewController:self,
@@ -1388,7 +1425,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.display.setup(Globals.shared.media.active)
                         
                         self?.tableView?.reloadData()
-                        self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                        self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.none) // was Middle
                         
                         self?.stopAnimating()
                         
@@ -1405,7 +1442,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.presentingVC = nil
             })
             
-            if let section = Globals.shared.media.active?.section?.headerStrings?.index(of: strings[index]) {
+            if let section = Globals.shared.media.active?.section?.headerStrings?.firstIndex(of: strings[index]) {
                 let indexPath = IndexPath(row: 0, section: section)
                 
                 if !(indexPath.section < tableView?.numberOfSections) {
@@ -1425,7 +1462,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 }
                 
                 //Can't use this reliably w/ variable row heights.
-                tableView?.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+                tableView?.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
             }
             break
             
@@ -1452,7 +1489,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     Thread.onMainThread {
                         self?.tableView?.reloadData()
                         
-                        self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                        self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.none) // was Middle
                         
                         self?.stopAnimating()
                         
@@ -1486,7 +1523,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         Thread.onMainThread {
                             self?.tableView?.reloadData()
                             
-                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.none) // was Middle
                             
                             self?.stopAnimating()
                             
@@ -1529,13 +1566,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                                                preferredStyle: .alert)
 //                alert.makeOpaque()
 //                
-//                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+//                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
 //                    (action : UIAlertAction) -> Void in
 //                    Globals.shared.media.active?.mediaList?.deleteAllAudioDownloads()
 //                })
 //                alert.addAction(yesAction)
 //                
-//                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+//                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
 //                    (action : UIAlertAction) -> Void in
 //                    
 //                })
@@ -1862,7 +1899,7 @@ class MediaTableViewController : UIViewController
         return true
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?)
     {
         Globals.shared.motionEnded(motion,event: event)
     }
@@ -1874,7 +1911,7 @@ class MediaTableViewController : UIViewController
                                         preferredStyle: .alert)
         alert.makeOpaque()
         
-        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
             (action : UIAlertAction!) -> Void in
             self.dismiss(animated: true, completion: {
                 self.presentingVC = nil
@@ -1884,7 +1921,7 @@ class MediaTableViewController : UIViewController
         })
         alert.addAction(yesAction)
         
-        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
             (action : UIAlertAction!) -> Void in
             
         })
@@ -1914,6 +1951,10 @@ class MediaTableViewController : UIViewController
     @IBOutlet weak var mediaCategoryButton: UIButton!
     @IBAction func mediaCategoryButtonAction(_ button: UIButton)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
             return
@@ -1963,7 +2004,7 @@ class MediaTableViewController : UIViewController
             tableView.register(MediaTableViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "MediaTableViewController")
 
             refreshControl = UIRefreshControl()
-            refreshControl?.addTarget(self, action: #selector(handleRefresh(_:)), for: UIControlEvents.valueChanged)
+            refreshControl?.addTarget(self, action: #selector(handleRefresh(_:)), for: UIControl.Event.valueChanged)
 
             if #available(iOS 10.0, *) {
                 tableView.refreshControl = refreshControl
@@ -1986,6 +2027,10 @@ class MediaTableViewController : UIViewController
     @IBOutlet weak var showButton: UIBarButtonItem!
     @IBAction func show(_ button: UIBarButtonItem)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
             return
@@ -2192,6 +2237,10 @@ class MediaTableViewController : UIViewController
     
     @objc func index(_ object:AnyObject?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
             return
@@ -2275,6 +2324,10 @@ class MediaTableViewController : UIViewController
 
     @objc func grouping(_ object:AnyObject?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
             return
@@ -2315,6 +2368,10 @@ class MediaTableViewController : UIViewController
     
     @objc func sorting(_ object:AnyObject?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
             return
@@ -2365,11 +2422,11 @@ class MediaTableViewController : UIViewController
     
     fileprivate func setupSortingAndGroupingOptions()
     {
-        let sortingButton = UIBarButtonItem(title: Constants.Strings.Menu.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(sorting(_:)))
-        let groupingButton = UIBarButtonItem(title: Constants.Strings.Menu.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(grouping(_:)))
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
+        let sortingButton = UIBarButtonItem(title: Constants.Strings.Menu.Sorting, style: UIBarButtonItem.Style.plain, target: self, action: #selector(sorting(_:)))
+        let groupingButton = UIBarButtonItem(title: Constants.Strings.Menu.Grouping, style: UIBarButtonItem.Style.plain, target: self, action: #selector(grouping(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItem.Style.plain, target: self, action: #selector(index(_:)))
 
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
 
         var barButtons = [UIBarButtonItem]()
         
@@ -2525,15 +2582,16 @@ class MediaTableViewController : UIViewController
     func loadTeachers()
     {
         if let teachersDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES,filename: Constants.JSON.FILENAME.TEACHERS) {
-            var mediaTeachersDict = [String:String]()
+//            var mediaTeachersDict = [String:String]()
             
             for teachersDict in teachersDicts {
                 if let name = teachersDict["name"] {
-                    mediaTeachersDict[name] = teachersDict["status"]
+                    Globals.shared.mediaTeachers[name] = MediaTeacher(name:name,title:teachersDict["status"])
+//                    mediaTeachersDict[name] = teachersDict["status"]
                 }
             }
             
-            Globals.shared.mediaTeachers = mediaTeachersDict
+//            Globals.shared.mediaTeachers = mediaTeachersDict
         }
     }
     
@@ -2586,15 +2644,16 @@ class MediaTableViewController : UIViewController
                     }
                     
                     if let teachersDicts = self?.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
-                        var mediaTeachersDict = [String:String]()
+//                        var mediaTeachersDict = [String:String]()
                         
                         for teachersDict in teachersDicts {
                             if let name = teachersDict["category_name"] {
-                                mediaTeachersDict[name] = teachersDict["status"]
+                                Globals.shared.mediaTeachers[name] = MediaTeacher(name:name,title:teachersDict["status"])
+//                              mediaTeachersDict[name] = teachersDict["status"]
                             }
                         }
                         
-                        Globals.shared.mediaTeachers = mediaTeachersDict
+//                        Globals.shared.mediaTeachers = mediaTeachersDict
                     }
                     
                     if  let mediaItemDicts = self?.loadJSONDictsFromFileSystem(filename:Globals.shared.mediaCategory.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
@@ -2768,12 +2827,16 @@ class MediaTableViewController : UIViewController
     {
 //        print("1:",Date().timeIntervalSinceReferenceDate,refreshControl.isRefreshing,Globals.shared.isRefreshing)
         
-        guard !Globals.shared.isRefreshing else {
+        guard self.isViewLoaded else {
             return
         }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
+            return
+        }
+        
+        guard !Globals.shared.isRefreshing else {
             return
         }
         
@@ -2816,8 +2879,10 @@ class MediaTableViewController : UIViewController
                     self.setupBarButtons()
                     
                     // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+                    Globals.shared.mediaTeachers = ThreadSafeDictionary<MediaTeacher>()
+                    Globals.shared.mediaRepository = MediaList()
                     Globals.shared.media = Media()
-                    
+
                     switch self.jsonSource {
                     case .download:
                         self.navigationItem.title = "Downloading Media List"
@@ -2851,9 +2916,27 @@ class MediaTableViewController : UIViewController
         tableView?.reloadData()
     }
     
-    var container:UIView!
-    var loadingView:UIView!
-    var actInd:UIActivityIndicatorView!
+    lazy var loadingViewController:UIViewController? = {
+        return storyboard?.instantiateViewController(withIdentifier: "Loading View Controller")
+    }()
+    
+    var container:UIView! {
+        get {
+            return loadingViewController?.view
+        }
+    }
+    
+    var loadingView:UIView! {
+        get {
+            return container.subviews[0]
+        }
+    }
+    
+    var actInd:UIActivityIndicatorView! {
+        get {
+            return loadingView.subviews[0] as? UIActivityIndicatorView
+        }
+    }
 
     func stopAnimating()
     {
@@ -2878,10 +2961,16 @@ class MediaTableViewController : UIViewController
     
     func startAnimating()
     {
-        if container == nil { // loadingView
-            setupLoadingView()
-        }
+        setupLoadingView()
+        
+//        if container == nil { // loadingView
+//            setupLoadingView()
+//        }
 
+        guard container != nil else {
+            return
+        }
+        
         guard loadingView != nil else {
             return
         }
@@ -2899,17 +2988,21 @@ class MediaTableViewController : UIViewController
     
     func setupLoadingView()
     {
-        guard (loadingView == nil) else {
+        guard !view.subviews.contains(container) else {
             return
         }
         
-        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
-            return
-        }
+//        guard (loadingView == nil) else {
+//            return
+//        }
+        
+//        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+//            return
+//        }
 
-        if let view = loadingViewController.view {
-            container = view
-        }
+//        if let view = Globals.shared.loadingViewController?.view {
+//            container = view
+//        }
         
         container.backgroundColor = UIColor.clear
 
@@ -2918,13 +3011,13 @@ class MediaTableViewController : UIViewController
         
         container.isUserInteractionEnabled = false
         
-        loadingView = loadingViewController.view.subviews[0]
+//        loadingView = loadingViewController.view.subviews[0]
         
         loadingView.isUserInteractionEnabled = false
         
-        if let view = loadingView.subviews[0] as? UIActivityIndicatorView {
-            actInd = view
-        }
+//        if let view = loadingView.subviews[0] as? UIActivityIndicatorView {
+//            actInd = view
+//        }
         
         actInd.isUserInteractionEnabled = false
         
@@ -2933,6 +3026,10 @@ class MediaTableViewController : UIViewController
     
     func loadCompletion()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             return
         }
@@ -2962,7 +3059,7 @@ class MediaTableViewController : UIViewController
                     // Delay so UI works correctly.
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         Thread.onMainThread {
-                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                         }
                     }
                 })
@@ -2971,9 +3068,9 @@ class MediaTableViewController : UIViewController
                 self.tableView?.reloadData()
 
                 if self.selectedMediaItem != nil {
-                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.middle)
                 } else {
-                    self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+                    self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableView.ScrollPosition.top, animated: false)
                 }
             }
         }
@@ -3008,6 +3105,10 @@ class MediaTableViewController : UIViewController
 
     func load()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
             return
@@ -3055,7 +3156,7 @@ class MediaTableViewController : UIViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
         
@@ -3068,8 +3169,8 @@ class MediaTableViewController : UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
     override func viewDidLoad()
@@ -3144,6 +3245,10 @@ class MediaTableViewController : UIViewController
     
     @objc func actions()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
@@ -3206,7 +3311,7 @@ class MediaTableViewController : UIViewController
         
         var barButtons = [UIBarButtonItem]()
         
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         if actionMenu()?.count > 0, let actionButton = actionButton {
@@ -3214,9 +3319,9 @@ class MediaTableViewController : UIViewController
         }
         
         if (Globals.shared.media.all?.mediaItemTags?.count > 1) {
-            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItem.Style.plain, target: self, action: #selector(selectingTagsAction(_:)))
         } else {
-            tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(selectingTagsAction(_:)))
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItem.Style.plain, target: self, action: #selector(selectingTagsAction(_:)))
         }
         tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
 
@@ -3251,6 +3356,10 @@ class MediaTableViewController : UIViewController
     
     @IBAction func selectingTagsAction(_ sender: UIButton)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
             return
@@ -3481,7 +3590,7 @@ class MediaTableViewController : UIViewController
         }
     }
 
-    func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
+    func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableView.ScrollPosition)
     {
         guard !tableView.isEditing else {
             return
@@ -3503,7 +3612,7 @@ class MediaTableViewController : UIViewController
             return
         }
         
-        guard let index = mediaItems.index(of: mediaItem) else {
+        guard let index = mediaItems.firstIndex(of: mediaItem) else {
             print("No index")
             return
         }
@@ -3547,7 +3656,7 @@ class MediaTableViewController : UIViewController
             break
         }
         
-        if let sectionIndex = sectionIndex, let stringIndex = indexStrings.index(of: sectionIndex) {
+        if let sectionIndex = sectionIndex, let stringIndex = indexStrings.firstIndex(of: sectionIndex) {
             section = stringIndex
         }
         
@@ -3578,7 +3687,7 @@ class MediaTableViewController : UIViewController
                 self.tableView?.setEditing(false, animated: true)
                 
                 if (select) {
-                    self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
+                    self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableView.ScrollPosition.none)
                 }
                 
                 if (scroll) {
@@ -3636,7 +3745,7 @@ class MediaTableViewController : UIViewController
             
         case .phone:
             if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
+                if (UIDevice.current.orientation.isLandscape) {
                     if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
                         navigationItem.title = Constants.CBC.TITLE.SHORT
                     } else {
@@ -3658,7 +3767,7 @@ class MediaTableViewController : UIViewController
     
     func setupSplitViewController()
     {
-        if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
+        if (UIDevice.current.orientation.isPortrait) {
             if (Globals.shared.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
@@ -3717,6 +3826,10 @@ class MediaTableViewController : UIViewController
 
     @objc func stopEditing()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
             return
@@ -3732,12 +3845,16 @@ class MediaTableViewController : UIViewController
     
     @objc func didBecomeActive()
     {
-        guard !Globals.shared.isLoading, Globals.shared.mediaRepository.list == nil else {
+        guard self.isViewLoaded else {
             return
         }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
+            return
+        }
+        
+        guard !Globals.shared.isLoading, Globals.shared.mediaRepository.list == nil else {
             return
         }
         
@@ -4153,7 +4270,7 @@ extension MediaTableViewController : UITableViewDelegate
                     }
                 }
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                     (action : UIAlertAction) -> Void in
                 })
                 alert.addAction(okayAction)

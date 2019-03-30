@@ -93,7 +93,7 @@ class Lexicon : NSObject
                     if candidate != candidates.first {
                         if currentCandidate.endIndex <= candidate.endIndex {
                             if String(candidate[..<currentCandidate.endIndex]) == currentCandidate {
-                                if let index = finalRoots.index(of: currentCandidate) {
+                                if let index = finalRoots.firstIndex(of: currentCandidate) {
                                     finalRoots.remove(at: index)
                                 }
                             }
@@ -140,7 +140,8 @@ class Lexicon : NSObject
                 }
                 
                 words.forEach({ (word:String) in
-                    let key = String(word[..<String.Index(encodedOffset: 1)])
+                    let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                    let key = String(word[..<String.Index(encodedOffset: 1)])
                     if let count = roots[key] {
                         roots[key] = count + 1
                     } else {
@@ -195,10 +196,13 @@ class Lexicon : NSObject
                 
                 //                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
                 
-                wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+
+                wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
                 
                 for word in words {
-                    let first = String(word[..<String.Index(encodedOffset: 1)])
+                    let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                    let first = String(word[..<String.Index(encodedOffset: 1)])
                     
                     if first != keys[section] {
                         // New Section
@@ -213,7 +217,9 @@ class Lexicon : NSObject
                         
                         wordsHTML += "<ul class=\"words\">"
                         
-                        wordsHTML += "<a id=\"words\(keys[section])\" name=\"words\(keys[section])\" href=#wordIndex\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+
+                        wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
                     }
                     
                     //                        wordsHTML += "<tr><td>" + word + "</td></tr>"
@@ -617,7 +623,7 @@ class Lexicon : NSObject
                         }
                     }) {
                         for mediaItem in mediaItems {
-                            string += "(\(mediaItem.key,mediaItem.value))\n"
+                            string += "(\(mediaItem.key),\(mediaItem.value))\n"
                         }
                     }
                 }

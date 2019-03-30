@@ -301,7 +301,7 @@ class StringNode {
                 newNode.stringNodes = stringNodes
                 newNode.wordEnding = wordEnding
                 
-                if !wordEnding, let index = stringNodes?.index(where: { (stringNode:StringNode) -> Bool in
+                if !wordEnding, let index = stringNodes?.firstIndex(where: { (stringNode:StringNode) -> Bool in
                     return stringNode.string == Constants.WORD_ENDING
                 }) {
                     stringNodes?.remove(at: index)

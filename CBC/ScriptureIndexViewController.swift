@@ -35,6 +35,10 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
@@ -71,7 +75,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             }
             
             //Can't use this reliably w/ variable row heights.
-            tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+            tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
             break
             
         case .selectingAction:
@@ -846,7 +850,7 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byTestament[testament]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -881,7 +885,7 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byBook[testament]?[selectedBook]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -916,7 +920,7 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -948,7 +952,7 @@ class ScriptureIndexViewController : UIViewController
                 self?.updateUI()
                 self?.tableView.reloadData()
                 if scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?[scriptureIndex.selectedVerse]?.count > 0 {
-                    self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
                 }
                 self?.scripturePicker.isUserInteractionEnabled = true
             }
@@ -1248,6 +1252,10 @@ class ScriptureIndexViewController : UIViewController
     
     @objc func index(_ object:AnyObject?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
             return
@@ -1282,8 +1290,12 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
-    func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
+    func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableView.ScrollPosition)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
             return
@@ -1298,7 +1310,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        if let index = mediaItems?.index(of: mediaItem) {
+        if let index = mediaItems?.firstIndex(of: mediaItem) {
             let indexPath = IndexPath(row: index, section: 0)
             
             if (select) {
@@ -1357,8 +1369,8 @@ class ScriptureIndexViewController : UIViewController
     {
         super.viewDidLoad()
         
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(index(_:)))
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItem.Style.plain, target: self, action: #selector(index(_:)))
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
 
         setToolbarItems([spaceButton,indexButton], animated: false)
 
@@ -1385,7 +1397,7 @@ class ScriptureIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
 
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actionMenu))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
@@ -1431,6 +1443,10 @@ class ScriptureIndexViewController : UIViewController
     
     func updateText()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
             return
@@ -1473,6 +1489,10 @@ class ScriptureIndexViewController : UIViewController
 
     func isHiddenUI(_ state:Bool)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
             return
@@ -1496,6 +1516,10 @@ class ScriptureIndexViewController : UIViewController
 
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
@@ -1509,6 +1533,10 @@ class ScriptureIndexViewController : UIViewController
     
     func updatePicker()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
             return
@@ -1517,19 +1545,19 @@ class ScriptureIndexViewController : UIViewController
         scripturePicker.reloadAllComponents()
         
         if let selectedTestament = scriptureIndex?.selectedTestament {
-            if let index = Constants.TESTAMENTS.index(of: selectedTestament) {
+            if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
                 scripturePicker.selectRow(index, inComponent: 0, animated: false)
             }
             
-            if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.index(of: selectedBook) {
+            if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
                 scripturePicker.selectRow(index, inComponent: 1, animated: false)
             }
             
-            if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.index(of: selectedChapter) {
+            if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: selectedChapter) {
                 scripturePicker.selectRow(index, inComponent: 2, animated: false)
             }
             
-            if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.index(of: selectedVerse) {
+            if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.firstIndex(of: selectedVerse) {
                 scripturePicker.selectRow(index, inComponent: 3, animated: false)
             }
         }
@@ -1537,6 +1565,10 @@ class ScriptureIndexViewController : UIViewController
 
     func updateSwitches()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
             return
@@ -1745,7 +1777,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 }
             }
             
-            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction) -> Void in
             })
             alert.addAction(okayAction)

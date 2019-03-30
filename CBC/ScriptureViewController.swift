@@ -55,9 +55,9 @@ extension ScriptureViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         guard let activityType = activityType else {
             return nil
@@ -78,12 +78,12 @@ extension ScriptureViewController : UIActivityItemSource
         return nil
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         guard let activityType = activityType else {
             return "public.plain-text"
@@ -103,6 +103,10 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
             return
@@ -365,12 +369,16 @@ extension ScriptureViewController : PopoverPickerControllerDelegate
     
     func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
-        guard let string = string else {
+        guard self.isViewLoaded else {
             return
         }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            return
+        }
+        
+        guard let string = string else {
             return
         }
         
@@ -747,6 +755,10 @@ class ScriptureViewController : UIViewController
     
     @objc func actions()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
@@ -973,16 +985,16 @@ class ScriptureViewController : UIViewController
     
     fileprivate func setupBarButtons()
     {
-        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(increaseFontSize))
+        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItem.Style.plain, target: self, action:  #selector(increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(decreaseFontSize))
+        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItem.Style.plain, target: self, action:  #selector(decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        let fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
+        let fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItem.Style.plain, target: self, action: #selector(showFullScreen))
         fullScreenButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
         
         if let minusButton = minusButton, let plusButton = plusButton, let actionButton = actionButton, let presentationStyle = navigationController?.modalPresentationStyle {
@@ -1008,7 +1020,7 @@ class ScriptureViewController : UIViewController
             }
         }
 
-        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
     }
     
     var activityViewController:UIActivityViewController?
@@ -1054,6 +1066,9 @@ class ScriptureViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1084,6 +1099,9 @@ class ScriptureViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1113,6 +1131,9 @@ class ScriptureViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1140,6 +1161,9 @@ class ScriptureViewController : UIViewController
                 
             case .unknown:
                 action()
+                break
+
+            @unknown default:
                 break
             }
             break
@@ -1169,6 +1193,9 @@ class ScriptureViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1197,10 +1224,16 @@ class ScriptureViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
         case .unknown:
+            break
+
+        @unknown default:
             break
         }
         
@@ -1229,12 +1262,15 @@ class ScriptureViewController : UIViewController
             
         case .unknown:
             break
+
+        @unknown default:
+            break
         }
     }
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
@@ -1403,15 +1439,15 @@ class ScriptureViewController : UIViewController
         scripturePicker.reloadAllComponents()
         
         if let selectedTestament = scripture?.selected.testament {
-            if let index = Constants.TESTAMENTS.index(of: selectedTestament) {
+            if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
                 scripturePicker.selectRow(index, inComponent: 0, animated: false)
             }
             
-            if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.index(of: selectedBook) {
+            if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
                 scripturePicker.selectRow(index, inComponent: 1, animated: false)
             }
             
-            if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.index(of: chapter) {
+            if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
                 scripturePicker.selectRow(index, inComponent: 2, animated: false)
             }
         }

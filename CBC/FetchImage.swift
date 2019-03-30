@@ -145,7 +145,7 @@ class FetchImage
         }
         
         do {
-            try UIImageJPEGRepresentation(image, 1.0)?.write(to: fileSystemURL, options: [.atomic])
+            try image.jpegData(compressionQuality: 1.0)?.write(to: fileSystemURL, options: [.atomic])
             print("Image \(fileSystemURL.lastPathComponent) saved to file system")
             fileSize = fileSystemURL.fileSize
         } catch let error {

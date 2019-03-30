@@ -238,6 +238,10 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:pickerView", completion: nil)
             return
@@ -288,6 +292,10 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 {
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
             return
@@ -353,6 +361,11 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 //                break
 
             default:
+                if string == actionTitle {
+                    dismiss(animated: true) {
+                        self.action?(string)
+                    }
+                }
                 break
             }
             break
@@ -472,6 +485,9 @@ class PopoverPickerViewController : UIViewController
     {
         var actionMenu = [String]()
         
+        if let actionTitle = actionTitle {
+            actionMenu.append(actionTitle)
+        }
 //        actionMenu.append(Constants.Strings.Expanded_View)
         
         return actionMenu.count > 0 ? actionMenu : nil
@@ -514,7 +530,7 @@ class PopoverPickerViewController : UIViewController
         }
 
         if actionMenu()?.count > 0 {
-            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
             actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
             navigationItem.setRightBarButton(actionButton, animated: false)
@@ -532,7 +548,7 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewDidLoad()
 
-        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done))
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -610,6 +626,9 @@ class PopoverPickerViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -640,6 +659,9 @@ class PopoverPickerViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -669,6 +691,9 @@ class PopoverPickerViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -696,6 +721,9 @@ class PopoverPickerViewController : UIViewController
                 
             case .unknown:
                 action()
+                break
+
+            @unknown default:
                 break
             }
             break
@@ -725,6 +753,9 @@ class PopoverPickerViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -753,10 +784,16 @@ class PopoverPickerViewController : UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
         case .unknown:
+            break
+
+        @unknown default:
             break
         }
         
@@ -785,12 +822,15 @@ class PopoverPickerViewController : UIViewController
             
         case .unknown:
             break
+
+        @unknown default:
+            break
         }
     }
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -818,10 +858,15 @@ class PopoverPickerViewController : UIViewController
             }
         }
         
-        if let string = string, let index = strings?.index(of:string) {
+        if let string = string, let index = strings?.firstIndex(of:string), picker.numberOfComponents == 1 {
+            // THIS IS FINE IF THERE IS ONE COMPONENT TO THE PICKER!
             picker.selectRow(index, inComponent: 0, animated: false)
         } else
 
+        if let string = string {
+            // This should only happen if we're coming back from action?().
+        } else
+            
         if (stringTree != nil) {
             if (strings != nil) {
                 self.process(work: { [weak self] () -> (Any?) in
@@ -852,21 +897,21 @@ class PopoverPickerViewController : UIViewController
             }
         }
         
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
 
         var barButtons = [UIBarButtonItem]()
         
-        if action != nil {
+//        if action != nil {
+//            barButtons.append(spaceButton)
+//            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
+//            barButtons.append(spaceButton)
+//            barButtons.append(UIBarButtonItem(title: actionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doAction)))
+//            barButtons.append(spaceButton)
+//        } else {
             barButtons.append(spaceButton)
-            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doSelect)))
+            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
             barButtons.append(spaceButton)
-            barButtons.append(UIBarButtonItem(title: actionTitle ?? "Action", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doAction)))
-            barButtons.append(spaceButton)
-        } else {
-            barButtons.append(spaceButton)
-            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItemStyle.plain, target: self, action: #selector(doSelect)))
-            barButtons.append(spaceButton)
-        }
+//        }
 
         toolbarItems = barButtons.count > 0 ? barButtons : nil
         
@@ -911,6 +956,10 @@ class PopoverPickerViewController : UIViewController
 
     func setPreferredContentSize()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
             return

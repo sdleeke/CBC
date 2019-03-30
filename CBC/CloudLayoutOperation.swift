@@ -494,7 +494,7 @@ class CloudLayoutOperation : Operation
                                      width: word.wordOrientationVertical ? containerSize.height : containerSize.width,
                                      height: word.wordOrientationVertical ? containerSize.width : containerSize.height)
         
-        let attributes = [NSAttributedStringKey.font : font]
+        let attributes = [NSAttributedString.Key.font : font]
         
         let attributedString = NSAttributedString(string: wordText, attributes: attributes)
         
@@ -522,7 +522,7 @@ class CloudLayoutOperation : Operation
 
                 let runAttributes:CFDictionary = CTRunGetAttributes(run)
 
-                let font = (runAttributes as NSDictionary)[NSAttributedStringKey.font] as! CTFont
+                let font = (runAttributes as NSDictionary)[NSAttributedString.Key.font] as! CTFont
 
                 for glyphIndex in 0..<CTRunGetGlyphCount(run) {
                     var glyphPosition = CGPoint.zero

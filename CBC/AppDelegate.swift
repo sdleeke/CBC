@@ -288,7 +288,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         
     }
     
-    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool
     {
         guard let scheme = url.scheme else {
             Alerts.shared.alert(title: "Unable to Read Scheme", message: url.absoluteString)
@@ -471,7 +471,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         return true
     }
     
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
+    func targetDisplayModeForAction(in svc: UISplitViewController) -> UISplitViewController.DisplayMode
+    {
+        Thread.onMainThread {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+        }
+        return UISplitViewController.DisplayMode.automatic
+    }
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool
     {
         guard let svc = window?.rootViewController as? UISplitViewController else {
             return false

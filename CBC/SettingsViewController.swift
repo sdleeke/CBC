@@ -74,7 +74,7 @@ class SettingsViewController: UIViewController
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
                 
             default:
                 break

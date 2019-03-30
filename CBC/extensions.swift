@@ -350,22 +350,22 @@ extension UIApplication
 
 extension UIBarButtonItem
 {
-    func setTitleTextAttributes(_ attributes:[NSAttributedStringKey:UIFont])
+    func setTitleTextAttributes(_ attributes:[NSAttributedString.Key:UIFont])
     {
-        setTitleTextAttributes(attributes, for: UIControlState.normal)
-        setTitleTextAttributes(attributes, for: UIControlState.disabled)
-        setTitleTextAttributes(attributes, for: UIControlState.highlighted)
+        setTitleTextAttributes(attributes, for: UIControl.State.normal)
+        setTitleTextAttributes(attributes, for: UIControl.State.disabled)
+        setTitleTextAttributes(attributes, for: UIControl.State.highlighted)
 //        setTitleTextAttributes(attributes, for: UIControlState.selected)
     }
 }
 
 extension UISegmentedControl
 {
-    func setTitleTextAttributes(_ attributes:[String:UIFont])
+    func setTitleTextAttributes(_ attributes:[NSAttributedString.Key:UIFont])
     {
-        setTitleTextAttributes(attributes, for: UIControlState.normal)
-        setTitleTextAttributes(attributes, for: UIControlState.disabled)
-        setTitleTextAttributes(attributes, for: UIControlState.highlighted)
+        setTitleTextAttributes(attributes, for: UIControl.State.normal)
+        setTitleTextAttributes(attributes, for: UIControl.State.disabled)
+        setTitleTextAttributes(attributes, for: UIControl.State.highlighted)
 //        setTitleTextAttributes(attributes, for: UIControlState.selected)
     }
 }
@@ -374,9 +374,9 @@ extension UIButton
 {
     func setTitle(_ string:String? = nil)
     {
-        setTitle(string, for: UIControlState.normal)
-        setTitle(string, for: UIControlState.disabled)
-        setTitle(string, for: UIControlState.highlighted)
+        setTitle(string, for: UIControl.State.normal)
+        setTitle(string, for: UIControl.State.disabled)
+        setTitle(string, for: UIControl.State.highlighted)
 //        setTitle(string, for: UIControlState.selected)
     }
 }
@@ -418,7 +418,7 @@ extension UIViewController
         if isCollapsed {
             navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
         } else {
-            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem            
         }
     }
 }
@@ -1118,7 +1118,7 @@ extension UIImage
         }
         
         do {
-            try UIImageJPEGRepresentation(self, 1.0)?.write(to: url, options: [.atomic])
+            try self.jpegData(compressionQuality: 1.0)?.write(to: url, options: [.atomic])
             print("Image saved to \(url.absoluteString)")
         } catch let error {
             NSLog(error.localizedDescription)

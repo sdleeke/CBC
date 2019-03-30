@@ -20,7 +20,8 @@ extension AboutViewController : UIAdaptivePresentationControllerDelegate
         return UIModalPresentationStyle.none
     }
     
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle
+    {
         return UIModalPresentationStyle.none
     }
 }
@@ -28,7 +29,8 @@ extension AboutViewController : UIAdaptivePresentationControllerDelegate
 extension AboutViewController : MFMailComposeViewControllerDelegate
 {
     // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+    {
         Thread.onMainThread {
             controller.dismiss(animated: true, completion: nil)
         }
@@ -41,6 +43,10 @@ extension AboutViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
             return
@@ -119,9 +125,9 @@ extension AboutViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivityType] = [.mail,.message]
+    static var cases : [UIActivity.ActivityType] = [.mail,.message]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         let url = URL(string: "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
 
@@ -132,12 +138,12 @@ extension AboutViewController : UIActivityItemSource
         }
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return "Countryside Bible Church Media App"
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         guard let activityType = activityType else {
             return "public.plain-text"
@@ -160,7 +166,7 @@ class AboutViewController: UIViewController
         return true
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?)
     {
         Globals.shared.motionEnded(motion,event: event)
     }
@@ -254,7 +260,7 @@ class AboutViewController: UIViewController
     func setupActionButton()
     {
         if actionMenu()?.count > 0 {
-            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
             actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
             
             navigationItem.rightBarButtonItem = actionButton
@@ -297,7 +303,7 @@ class AboutViewController: UIViewController
                 let mkPlacemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
                 self.item = MKMapItem(placemark: mkPlacemark)
                 
-                let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 50000, 50000)
+                let viewRegion = MKCoordinateRegion.init(center: coordinates, latitudinalMeters: 50000, longitudinalMeters: 50000)
                 if let adjustedRegion = self.mapView?.regionThatFits(viewRegion) {
                     self.mapView?.setRegion(adjustedRegion, animated: false)
                 }

@@ -38,7 +38,7 @@ class Alerts
             debug(alert)
         }
         
-        guard UIApplication.shared.applicationState == UIApplicationState.active else {
+        guard UIApplication.shared.applicationState == UIApplication.State.active else {
             return
         }
         
@@ -68,7 +68,7 @@ class Alerts
                 alertVC.addAction(action)
             }
         } else {
-            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
                 
             })
             alertVC.addAction(action)

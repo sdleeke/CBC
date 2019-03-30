@@ -595,8 +595,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var mediaStream = MediaStream()
     
-    var mediaTeachers : [String:String]?
-    
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     
@@ -684,7 +682,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         defaults.synchronize()
     }
 
-    var mediaRepository = MediaList(nil)
+    var mediaTeachers = ThreadSafeDictionary<MediaTeacher>() // [String:String]?
+    
+    var mediaRepository = MediaList()
 
     var media = Media()
     
@@ -862,7 +862,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //        return totalFileSize
 //    }
 
-    func motionEnded(_ motion: UIEventSubtype, event: UIEvent?)
+    func motionEnded(_ motion: UIEvent.EventSubtype, event: UIEvent?)
     {
         guard (UIDevice.current.userInterfaceIdiom == .phone) else {
             return

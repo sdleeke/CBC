@@ -481,26 +481,26 @@ enum Constants {
     }
     
     enum Fonts {
-        static let body = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        static let body = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
         
-        static let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        static let bold = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         
         enum Attributes {
-            static let normal = [ NSAttributedStringKey.font: Fonts.body ]
+            static let normal = [ NSAttributedString.Key.font: Fonts.body ]
             
-            static let bold = [ NSAttributedStringKey.font: Fonts.bold ]
+            static let bold = [ NSAttributedString.Key.font: Fonts.bold ]
             
-            static let marked = [ NSAttributedStringKey.backgroundColor: UIColor.lightGray,
-                                       NSAttributedStringKey.font: Fonts.body ]
+            static let marked = [ NSAttributedString.Key.backgroundColor: UIColor.lightGray,
+                                       NSAttributedString.Key.font: Fonts.body ]
             
-            static let highlighted = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
-                                       NSAttributedStringKey.font: Fonts.body ]
+            static let highlighted = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+                                       NSAttributedString.Key.font: Fonts.body ]
             
-            static let destructive = [ NSAttributedStringKey.foregroundColor: UIColor.red,
-                                       NSAttributedStringKey.font: Fonts.body ]
+            static let destructive = [ NSAttributedString.Key.foregroundColor: UIColor.red,
+                                       NSAttributedString.Key.font: Fonts.body ]
             
-            static let boldHighlighted = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
-                                           NSAttributedStringKey.font: Fonts.bold ]
+            static let boldHighlighted = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+                                           NSAttributedString.Key.font: Fonts.bold ]
         }
     }
     
@@ -514,14 +514,14 @@ enum Constants {
             static let icons    = UIFont(name: FA.name, size: ICONS_FONT_SIZE)!
             
             enum Attributes {
-                static let icons = [ NSAttributedStringKey.font: Fonts.icons ]
+                static let icons = [ NSAttributedString.Key.font: Fonts.icons ]
                 
-                static let highlightedIcons = [ NSAttributedStringKey.backgroundColor: UIColor.yellow,
-                                                NSAttributedStringKey.font: Fonts.icons ]
+                static let highlightedIcons = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+                                                NSAttributedString.Key.font: Fonts.icons ]
                 
-                static let tags = [ NSAttributedStringKey.font: Fonts.tags ]
+                static let tags = [ NSAttributedString.Key.font: Fonts.tags ]
                 
-                static let show = [ NSAttributedStringKey.font: Fonts.show ]
+                static let show = [ NSAttributedString.Key.font: Fonts.show ]
             }
         }
         
@@ -652,8 +652,13 @@ enum Constants {
         static let Actions = "Actions"
 
         static let Align = "Align"
+        static let Auto_Edit = "Auto Edit"
         static let Transcribe = "Transcribe"
         static let Transcribing = "Transcribing"
+        static let Transcription = "Transcription"
+        
+        static let Cancel_Auto_Edit = Cancel + SINGLE_SPACE + Auto_Edit
+        static let Cancel_Transcription = Cancel + SINGLE_SPACE + Transcription
 
         static let Download = "Download"
         static let Downloaded = Download + "ed"
@@ -676,6 +681,11 @@ enum Constants {
         static let Transcribe_All_Audio = Transcribe_All + SINGLE_SPACE + Audio
         static let Transcribe_All_Video = Transcribe_All + SINGLE_SPACE + Video
         
+        static let Auto_Edit_All = Auto_Edit + SINGLE_SPACE + All
+        
+        static let Auto_Edit_All_Audio = Auto_Edit_All + SINGLE_SPACE + Audio
+        static let Auto_Edit_All_Video = Auto_Edit_All + SINGLE_SPACE + Video
+
         static let Align_All = Align + SINGLE_SPACE + All
         
         static let Align_All_Audio = Align_All + SINGLE_SPACE + Audio
@@ -823,7 +833,7 @@ enum Constants {
     
     static let FONT_SIZE = 12
     
-    static let CMTime_Resolution = Int32(10)
+    static let CMTime_Resolution = Int32(100)
     
     static let APP_ID = "org.countrysidebible.CBC"
     

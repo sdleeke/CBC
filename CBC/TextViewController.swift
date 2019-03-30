@@ -15,6 +15,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
+        guard self.isViewLoaded else {
+            return false
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
             return false
@@ -45,6 +49,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
             return
@@ -55,6 +63,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
             return
@@ -68,6 +80,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
             return
@@ -80,6 +96,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
             return
@@ -124,6 +144,10 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
             return
@@ -254,12 +278,16 @@ extension TextViewController : PopoverPickerControllerDelegate
 {
     func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
-        dismiss(animated: true, completion: nil)
+        guard self.isViewLoaded else {
+            return
+        }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
             return
         }
+        
+        dismiss(animated: true, completion: nil)
         
         guard let string = string else {
             return
@@ -400,9 +428,9 @@ extension TextViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         guard let activityType = activityType else {
             return nil
@@ -423,12 +451,12 @@ extension TextViewController : UIActivityItemSource
         }
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return transcript?.mediaItem?.text?.singleLine ?? (self.navigationItem.title ?? "")
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         guard let activityType = activityType else {
             return "public.plain-text"
@@ -456,6 +484,10 @@ extension TextViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
@@ -1471,9 +1503,9 @@ class TextViewController : UIViewController
                     
                     let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
-                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
                                 if first.value == second.value {
@@ -1484,7 +1516,7 @@ class TextViewController : UIViewController
                             }))
                             
 //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
 //                            self?.wordRangeTiming = data as? [[String:Any]]
 //                            self?.creatingWordRangeTiming = false
@@ -1497,7 +1529,7 @@ class TextViewController : UIViewController
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
                         self?.process(work: { [weak self] () -> (Any?) in
 //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
 //                            self?.wordRangeTiming = data as? [[String:Any]]
 //                            self?.creatingWordRangeTiming = false
@@ -1797,9 +1829,9 @@ class TextViewController : UIViewController
                     
                     let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            tooClose = self?.transcript?.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
 
-                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.speakerNotesParagraphWords
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
                                 if first.value == second.value {
@@ -1810,7 +1842,7 @@ class TextViewController : UIViewController
                             }))
                             
 //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
 //                            self?.wordRangeTiming = data as? [[String:Any]]
 //                            self?.creatingWordRangeTiming = false
@@ -1823,7 +1855,7 @@ class TextViewController : UIViewController
                     let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
                         self?.process(work: { [weak self] () -> (Any?) in
 //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
 //                            self?.wordRangeTiming = data as? [[String:Any]]
 //                            self?.creatingWordRangeTiming = false
@@ -1946,7 +1978,7 @@ class TextViewController : UIViewController
 
     @objc func keyboardWillShow(_ notification: NSNotification)
     {
-        if let keyboardRect = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
             let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
             let intersectRect = txtRect.intersection(kbdRect)
@@ -2142,14 +2174,14 @@ class TextViewController : UIViewController
     {
         super.viewDidLoad()
         
-        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItemStyle.plain, target: self, action: #selector(playPause))
+        playPauseButton = UIBarButtonItem(title: "Play", style: UIBarButtonItem.Style.plain, target: self, action: #selector(playPause))
 
-        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(tracking))
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItem.Style.plain, target: self, action: #selector(tracking))
         syncButton.isEnabled = wordRangeTiming != nil
         
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
         
-        cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(cancel))
+        cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItem.Style.plain, target: self, action: #selector(cancel))
         
         if (Globals.shared.mediaPlayer.mediaItem != transcript?.mediaItem) || (transcript?.mediaItem?.playing != transcript?.purpose) {
             track = false
@@ -2176,7 +2208,7 @@ class TextViewController : UIViewController
             barButtonItems.append(syncButton)
 
             activityIndicator = UIActivityIndicatorView()
-            activityIndicator.activityIndicatorViewStyle = .gray
+            activityIndicator.style = .gray
             activityIndicator.hidesWhenStopped = true
             
             activityBarButton = UIBarButtonItem(customView: activityIndicator)
@@ -2192,10 +2224,10 @@ class TextViewController : UIViewController
             barButtonItems.append(playPauseButton)
         }
 
-        saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(save))
+        saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItem.Style.plain, target: self, action: #selector(save))
         
-        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(autoEdit))
-        dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItemStyle.plain, target: self, action: #selector(dismissKeyboard))
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItem.Style.plain, target: self, action: #selector(autoEdit))
+        dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItem.Style.plain, target: self, action: #selector(dismissKeyboard))
 
         if assist {
             barButtonItems.append(spaceButton)
@@ -2212,7 +2244,7 @@ class TextViewController : UIViewController
 
         toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
         
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actionMenu))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
         
         if navigationItem.rightBarButtonItem == nil {
@@ -2226,7 +2258,7 @@ class TextViewController : UIViewController
             case .formSheet:
                 fallthrough
             case .overCurrentContext:
-                fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
+                fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItem.Style.plain, target: self, action: #selector(showFullScreen))
                 fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
                 
                 if Globals.shared.splitViewController?.isCollapsed == false {
@@ -2309,8 +2341,8 @@ class TextViewController : UIViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(playing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
@@ -2428,7 +2460,8 @@ class TextViewController : UIViewController
             
             // Too close to the previous?
             if let lowerRange = lowerRange {
-                if (lowerRange.upperBound.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                // encodedOffset
+                if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
 //                    if interactive {
 //                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                    } else {
@@ -2474,7 +2507,7 @@ class TextViewController : UIViewController
                 // There is no previous.
                 
                 // Too close to the start?
-                if (text.startIndex.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
 //                    if interactive {
 //                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                    } else {
@@ -2524,7 +2557,7 @@ class TextViewController : UIViewController
             
             // Too close to the next?
             if let upperRange = upperRange {
-                if (range.upperBound.encodedOffset + tooClose) > upperRange.lowerBound.encodedOffset {
+                if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
 //                    if interactive {
 //                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                    } else {
@@ -2570,7 +2603,7 @@ class TextViewController : UIViewController
                 // There is no next.
                 
                 // Too close to end?
-                if (range.lowerBound.encodedOffset + tooClose) > text.endIndex.encodedOffset {
+                if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
 //                    if interactive {
 //                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
 //                    } else {

@@ -171,9 +171,19 @@ class MediaPlayer : NSObject {
     func checkPlayToEnd()
     {
         // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
-        if let currentTime = currentTime?.seconds,
-            let duration = duration?.seconds,
-            Int(currentTime) >= Int(duration) {
+        guard let currentTime = currentTime?.seconds else {
+            return
+        }
+
+        guard let duration = duration?.seconds else {
+            return
+        }
+        
+        if rate == 0, !fullScreen {
+            didPlayToEnd()
+        }
+
+        if Int(currentTime) >= Int(duration) {
             didPlayToEnd()
         }
     }
@@ -207,7 +217,7 @@ class MediaPlayer : NSObject {
         if #available(iOS 10.0, *) {
             if keyPath == #keyPath(AVPlayer.timeControlStatus) {
                 if  let statusNumber = change?[.newKey] as? NSNumber,
-                    let status = AVPlayerTimeControlStatus(rawValue: statusNumber.intValue) {
+                    let status = AVPlayer.TimeControlStatus(rawValue: statusNumber.intValue) {
                     switch status {
                     case .waitingToPlayAtSpecifiedRate:
                         if let reason = player?.reasonForWaitingToPlay {
@@ -272,6 +282,9 @@ class MediaPlayer : NSObject {
                             }
                         }
                         break
+
+                    @unknown default:
+                        break
                     }
                 }
             }
@@ -280,10 +293,10 @@ class MediaPlayer : NSObject {
         }
         
         if keyPath == #keyPath(AVPlayerItem.status) {
-            let status: AVPlayerItemStatus
+            let status: AVPlayerItem.Status
             
             // Get the status change from the change dictionary
-            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItemStatus(rawValue: statusNumber.intValue) {
+            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItem.Status(rawValue: statusNumber.intValue) {
                 status = playerStatus
             } else {
                 status = .unknown
@@ -351,6 +364,9 @@ class MediaPlayer : NSObject {
                     // Fallback on earlier versions
                 }
                 break
+                
+            @unknown default:
+                break
             }
         }
     }
@@ -379,9 +395,12 @@ class MediaPlayer : NSObject {
         
         unobserve()
 
-        controller?.contentOverlayView?.removeObserver(self, forKeyPath: #keyPath(UIView.frame))
+        // Crashes on iOS 10.3
+//        controller?.contentOverlayView?.removeObserver(self, forKeyPath: #keyPath(UIView.frame))
         
         controller = AVPlayerViewController()
+        
+//        controller?.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
 
         controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
 
@@ -460,12 +479,28 @@ class MediaPlayer : NSObject {
         
         //        logPlayerState()
         
-        guard let state = state,
-            let startTime = stateTime?.startTime,
-            let start = Double(startTime),
-            let timeElapsed = stateTime?.timeElapsed,
-            let currentTime = currentTime?.seconds else {
-                return
+        guard let state = state else {
+            return
+        }
+        
+        guard let startTime = stateTime?.startTime else {
+            return
+        }
+        
+        guard let start = Double(startTime) else {
+            return
+        }
+        
+        guard !start.isNaN else {
+            return
+        }
+        
+        guard let timeElapsed = stateTime?.timeElapsed else {
+            return
+        }
+        
+        guard let currentTime = currentTime?.seconds else {
+            return
         }
         
         switch state {
@@ -679,7 +714,15 @@ class MediaPlayer : NSObject {
     
     @objc func didPlayToEnd()
     {
-        guard let duration = duration?.seconds, let currentTime = currentTime?.seconds, currentTime >= (duration - 1) else {
+        guard let duration = duration?.seconds else {
+            return
+        }
+        
+        guard let currentTime = currentTime?.seconds else {
+            return
+        }
+        
+        guard (Int(currentTime) >= Int(duration)) || (rate == 0) else {
             return
         }
         
@@ -689,7 +732,7 @@ class MediaPlayer : NSObject {
         
         if Globals.shared.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
             let mediaItems = mediaItem.multiPartMediaItems,
-            let index = mediaItems.index(of: mediaItem), index < (mediaItems.count - 1) {
+            let index = mediaItems.firstIndex(of: mediaItem), index < (mediaItems.count - 1) {
             let nextMediaItem = mediaItems[index + 1]
             
             nextMediaItem.playing = Playing.audio
@@ -783,7 +826,7 @@ class MediaPlayer : NSObject {
         observerActive = true
         observedItem = currentItem
         
-        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.global(qos: .background), using: { [weak self] (time:CMTime) in //
+        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,preferredTimescale: Constants.CMTime_Resolution), queue: DispatchQueue.global(qos: .background), using: { [weak self] (time:CMTime) in //
             self?.playerTimer(time:time)
         })
         
@@ -974,13 +1017,15 @@ class MediaPlayer : NSObject {
                     seek = 0
                 }
                 
-                mediaItem?.atEnd = seek >= length
+                if seek >= length {
+                    mediaItem?.atEnd = true
+                }
 
                 operationQueue.addOperation { [weak self] in
                     self?.isSeeking = true
                     
-                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-                                      toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,preferredTimescale: Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution),
+                                      toleranceAfter: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution),
                                       completionHandler: { (finished:Bool) in
                                         if finished { // , self?.isSeeking == true
                                             self?.mediaItem?.currentTime = seek.description
@@ -1174,7 +1219,7 @@ class MediaPlayer : NSObject {
                     nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mediaItem.multiPartName
                     nowPlayingInfo[MPMediaItemPropertyAlbumArtist] = mediaItem.speaker
                     
-                    if let index = mediaItem.multiPartMediaItems?.index(of: mediaItem) {
+                    if let index = mediaItem.multiPartMediaItems?.firstIndex(of: mediaItem) {
                         nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
                     } else {
                         print(mediaItem as Any," not found in ",mediaItem.multiPartMediaItems as Any)

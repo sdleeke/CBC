@@ -159,7 +159,7 @@ class CloudWord : NSObject
         
         let divisions:CGFloat = 10.0
         
-        while (fabs(randomGaussianPoint.x) > (divisions / 2)) || (fabs(randomGaussianPoint.y) > (divisions / 2))
+        while (abs(randomGaussianPoint.x) > (divisions / 2)) || (abs(randomGaussianPoint.y) > (divisions / 2))
         {
             randomGaussianPoint = randomGaussian()
         }
@@ -199,7 +199,7 @@ class CloudWord : NSObject
         
         wordOrientationVertical = isVertical;
         
-        let attributes = [NSAttributedStringKey.font: font]
+        let attributes = [NSAttributedString.Key.font: font]
 
         let attributedWord = NSAttributedString(string: wordText, attributes: attributes)
 

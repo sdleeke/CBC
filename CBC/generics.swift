@@ -657,7 +657,7 @@ class Fetch<T>
         operationQueue.cancelAllOperations()
     }
     
-    init(name:String?,fetch:(()->(T?))? = nil)
+    init(name:String? = nil,fetch:(()->(T?))? = nil)
     {
         self.name = name
         self.fetch = fetch

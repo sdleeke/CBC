@@ -1278,8 +1278,8 @@ class VoiceBase
                     let startingRange = Range(uncheckedBounds: (lower: offset!, upper: transcript.endIndex))
                     if let range = transcript.range(of: text, options: [], range: startingRange, locale: nil) {
                         dict["range"] = range
-                        dict["lowerBound"] = range.lowerBound.encodedOffset
-                        dict["upperBound"] = range.upperBound.encodedOffset
+                        dict["lowerBound"] = range.lowerBound.utf16Offset(in: text)// encodedOffset
+                        dict["upperBound"] = range.upperBound.utf16Offset(in: text)// encodedOffset
                         offset = range.upperBound
                     }
                 }
@@ -3507,7 +3507,7 @@ class VoiceBase
                             if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
                                 let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
 
-                                if let index = transcriptSegmentComponents.index(of: transcriptSegmentComponent) {
+                                if let index = transcriptSegmentComponents.firstIndex(of: transcriptSegmentComponent) {
                                     transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
                                     changed = true
                                 }
@@ -3853,7 +3853,7 @@ class VoiceBase
                     textField.text = self.mediaID
                 })
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                     (action : UIAlertAction) -> Void in
                 })
                 alert.addAction(okayAction)
@@ -4781,8 +4781,8 @@ class VoiceBase
         }
         
         let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
-            let firstIndex = keyOrder.index(of: first)
-            let secondIndex = keyOrder.index(of: second)
+            let firstIndex = keyOrder.firstIndex(of: first)
+            let secondIndex = keyOrder.firstIndex(of: second)
             
             if let firstIndex = firstIndex, let secondIndex = secondIndex {
                 return firstIndex < secondIndex
@@ -4905,7 +4905,7 @@ class VoiceBase
                 }
                 
                 for book in books.keys {
-                    if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.index(of: bookName) {
+                    if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: bookName) {
                         if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
                             if changes[book] == nil {
                                 changes[book] = ["\(book) " + key:"\(bookName) " + value]
@@ -4915,7 +4915,7 @@ class VoiceBase
                         }
                     }
                     
-                    if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.index(of: bookName) {
+                    if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: bookName) {
                         if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
                             if changes[book] == nil {
                                 changes[book] = ["\(book) " + key:"\(bookName) " + value]
@@ -4929,7 +4929,7 @@ class VoiceBase
                 // For books that don't start w/ a number
                 for book in Constants.OLD_TESTAMENT_BOOKS {
                     if !books.values.contains(book) {
-                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
                             if changes[book.lowercased()] == nil {
                                 changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
                             } else {
@@ -4943,7 +4943,7 @@ class VoiceBase
                 
                 for book in Constants.NEW_TESTAMENT_BOOKS {
                     if !books.values.contains(book) {
-                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
                             if changes[book.lowercased()] == nil {
                                 changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
                             } else {
@@ -4987,7 +4987,7 @@ class VoiceBase
         return changes.count > 0 ? changes : nil
     }
     
-    func addParagraphBreaks(showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?, text:String?, completion:((String?)->(Void))?)
+    func addParagraphBreaks(showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?, text:String?, test:(()->Bool)? = nil, completion:((String?)->(Void))?)
     {
         guard var words = words else {
             return
@@ -4999,6 +4999,10 @@ class VoiceBase
         }
         
         guard let text = text else {
+            return
+        }
+        
+        if test?() == true {
             return
         }
         
@@ -5051,28 +5055,31 @@ class VoiceBase
             
             // Too close to the previous?
             if let lowerRange = lowerRange {
-                if (lowerRange.upperBound.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                //encodedOffset
+                if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
                         return
                     }
                     
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    operationQueue.addOperation(op)
                     return
                 }
             } else {
                 // There is no previous.
                 
                 // Too close to the start?
-                if (text.startIndex.encodedOffset + tooClose) > range.lowerBound.encodedOffset {
+                if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
                         return
                     }
                     
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    operationQueue.addOperation(op)
                     return
                 }
             }
@@ -5083,28 +5090,30 @@ class VoiceBase
             
             // Too close to the next?
             if let upperRange = upperRange {
-                if (range.upperBound.encodedOffset + tooClose) > upperRange.lowerBound.encodedOffset {
+                if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
                         return
                     }
                     
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    operationQueue.addOperation(op)
                     return
                 }
             } else {
                 // There is no next.
                 
                 // Too close to end?
-                if (range.lowerBound.encodedOffset + tooClose) > text.endIndex.encodedOffset {
+                if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
                         return
                     }
                     
-                    operationQueue.addOperation { [weak self] in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    operationQueue.addOperation(op)
                     return
                 }
             }
@@ -5155,10 +5164,11 @@ class VoiceBase
             }
         }
         
-        operationQueue.addOperation { [weak self] in
+        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
             // Why is completion called here?
-            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, completion:completion)
+            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
         }
+        operationQueue.addOperation(op)
     }
     
     struct Change {
@@ -5186,7 +5196,7 @@ class VoiceBase
         return rangeChanges.count > 0 ? rangeChanges : nil
     }
     
-    func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, completion:((String)->(Void))?)
+    func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, test:(()->(Bool))? = nil, completion:((String)->(Void))?)
     {
         guard var text = text else {
             return
@@ -5194,6 +5204,10 @@ class VoiceBase
 
         guard var changes = changes, let change = changes.first else {
             completion?(text)
+            return
+        }
+        
+        if test?() == true {
             return
         }
         
@@ -5289,34 +5303,253 @@ class VoiceBase
             // what about other surrounding characters besides newlines and whitespaces, and periods if following?
             // what about other token delimiters?
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
-                operationQueue.addOperation { [weak self] in
+                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     text.replaceSubrange(range, with: newText)
                     
                     let before = String(text[..<range.lowerBound])
                     
                     if let completedRange = text.range(of: before + newText) {
                         let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
-                        self?.changeText(text:text, startingRange:startingRange, changes:changes, completion:completion)
+                        self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                     } else {
                         // ERROR
                     }
                 }
+                operationQueue.addOperation(op)
             } else {
-                operationQueue.addOperation { [weak self] in
+                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                    self?.changeText(text:text, startingRange:startingRange, changes:changes, completion:completion)
+                    self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                 }
+                operationQueue.addOperation(op)
             }
         } else {
-            operationQueue.addOperation { [weak self] in
+            let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
 //                masterChanges[masterKey]?[key] = nil
 //                if masterChanges[masterKey]?.count == 0 {
 //                    masterChanges[masterKey] = nil
 //                }
                 changes.removeFirst()
-                self?.changeText(text:text, startingRange:nil, changes:changes, completion:completion)
+                self?.changeText(text:text, startingRange:nil, changes:changes, test:test, completion:completion)
             }
+            operationQueue.addOperation(op)
         }
+    }
+    
+    func autoEdit(viewController:UIViewController)
+    {
+        guard self.operationQueue.operationCount == 0 else {
+            var message = String()
+            
+            if let text = self.mediaItem?.text {
+                message = "for\n\n\(text)"
+                message += "\n(\(self.transcriptPurpose))"
+                message += "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title:"Auto Edit Already Underway",message:message)
+            return
+        }
+        
+        guard !self.aligning else {
+            if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                alertActionsCancel( viewController: viewController,
+                                    title: "Alignment Underway",
+                                    message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+                    alertActions: nil,
+                    cancelAction: nil)
+            } else {
+                alertActionsCancel( viewController: viewController,
+                                    title: "Alignment Underway",
+                                    message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+                    alertActions: nil,
+                    cancelAction: nil)
+            }
+            return
+        }
+        
+        var message = String()
+        
+        if let text = self.mediaItem?.text {
+            message = "for\n\n\(text)"
+            message += "\n(\(self.transcriptPurpose))"
+            message += "\n\n"
+        }
+        
+        message += "You will be notified when it is complete."
+        
+        Alerts.shared.alert(title: "Auto Edit Underway", message: message)
+        
+        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->(Bool))?) in
+            func textChanges()
+            {
+                guard let text = self?.transcript else {
+                    return
+                }
+                
+                guard var masterChanges = self?.masterChanges(interactive:false, longFormat:true) else {
+                    return
+                }
+                
+                if test?() == true {
+                    return
+                }
+                
+                var changes = [(String,String)]()
+                
+                // THIS IS A VERY, VERY LONG RUNNING LOOP
+                for masterKey in masterChanges.keys {
+                    if test?() == true {
+                        return
+                    }
+                    
+                    if let keys = masterChanges[masterKey]?.keys {
+                        for key in keys {
+                            if test?() == true {
+                                return
+                            }
+                            
+                            let oldText = key
+                            if let newText = masterChanges[masterKey]?[key] {
+                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+                                    if text.lowercased().range(of: oldText) != nil {
+                                        changes.append((oldText,newText))
+                                    }
+                                } else {
+                                    if text.range(of: oldText) != nil {
+                                        changes.append((oldText,newText))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if test?() == true {
+                    return
+                }
+                
+                // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
+                changes.sort(by: { (first, second) -> Bool in
+                    guard first.0.endIndex != second.0.endIndex else {
+                        return first.0 < second.0
+                    }
+                    
+                    return first.0.endIndex > second.0.endIndex
+                })
+                
+                if test?() == true {
+                    return
+                }
+                
+                self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
+                    Alerts.shared.alert(title:"Auto Edit Completed", message:self?.mediaItem?.text)
+                    self?.transcript = string
+                })
+            }
+            
+            if  let transcriptString = self?.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                let transcriptFromWordsString = self?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                transcriptString == transcriptFromWordsString {
+                // Can insert paragraph breaks
+                let tooClose = self?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                
+                let speakerNotesParagraphWords = self?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+                
+                //                        print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+                //                            if first.value == second.value {
+                //                                return first.key < second.key
+                //                            } else {
+                //                                return first.value > second.value
+                //                            }
+                //                        }))
+                
+                // Multiply the gap time by the frequency of the word that appears after it and sort
+                // in descending order to suggest the most likely paragraph breaks.
+                
+                if let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                    if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
+                        if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
+                            return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
+                        }
+                    }
+                    
+                    return first["gap"] != nil
+                }) {
+                    guard let text = self?.transcript else {
+                        return
+                    }
+                    
+                    self?.addParagraphBreaks(showGapTimes:false, tooClose:tooClose, words:words, text:text, test:test, completion: { (string:String?) -> (Void) in
+                        self?.transcript = string
+                        textChanges()
+                    })
+                }
+            } else {
+                textChanges()
+            }
+            
+            
+            //                        let keyOrder = ["words","books","verse","verses","chapter","chapters","textToNumbers"]
+            //
+            //                        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+            //                            let firstIndex = keyOrder.index(of: first)
+            //                            let secondIndex = keyOrder.index(of: second)
+            //
+            //                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+            //                                return firstIndex > secondIndex
+            //                            }
+            //
+            //                            if firstIndex != nil {
+            //                                return false
+            //                            }
+            //
+            //                            if secondIndex != nil {
+            //                                return true
+            //                            }
+            //
+            //                            return first.endIndex > second.endIndex
+            //                        })
+            
+            //                        print(changes)
+            
+            //                        for masterKey in masterKeys {
+            //                            if !["words","books","textToNumbers"].contains(masterKey) {
+            //                                if !text.lowercased().contains(masterKey.lowercased()) {
+            //                                    masterChanges[masterKey] = nil
+            //                                }
+            //                            }
+            //                        }
+            
+            //                        guard let masterKey = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+            //                            let firstIndex = keyOrder.index(of: first)
+            //                            let secondIndex = keyOrder.index(of: second)
+            //
+            //                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+            //                                return firstIndex > secondIndex
+            //                            }
+            //
+            //                            if firstIndex != nil {
+            //                                return false
+            //                            }
+            //
+            //                            if secondIndex != nil {
+            //                                return true
+            //                            }
+            //
+            //                            return first.endIndex > second.endIndex
+            //                        }).first else {
+            //                            return
+            //                        }
+            //
+            //                        guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
+            //                            return
+            //                        }
+        }
+        
+        self.operationQueue.addOperation(op)
     }
     
     func alertActions(viewController:UIViewController) -> AlertAction?
@@ -5358,7 +5591,7 @@ class VoiceBase
                             textField.text = Globals.shared.voiceBaseAPIKey
                         })
                         
-                        let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: {
+                        let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
                             (action : UIAlertAction) -> Void in
                             Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
                             
@@ -5560,7 +5793,9 @@ class VoiceBase
                         var message = String()
                         
                         if let text = self.mediaItem?.text {
-                            message = "for\n\n\(text)\n\n"
+                            message = "for\n\n\(text)"
+                            message += "\n(\(self.transcriptPurpose))"
+                            message += "\n\n"
                         }
                         
                         message += "You will be notified when it is complete."
@@ -5624,221 +5859,29 @@ class VoiceBase
                     }
                 }))
                 
-                alertActions.append(AlertAction(title: "Auto Edit", style: .default, handler: {
-                    guard let text = self.transcript else {
-                        return
-                    }
-                    
-                    guard self.operationQueue.operationCount == 0 else {
-                        var message = String()
+                if self.operationQueue.operationCount == 0 {
+                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .destructive, handler: {
+                        var alertActions = [AlertAction]()
                         
-                        if let text = self.mediaItem?.text {
-                            message = "for\n\n\(text)\n\n"
-                        }
-
-                        message += "You will be notified when it is complete."
+                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                            () -> Void in
+                            self.autoEdit(viewController:viewController)
+                        })
+                        alertActions.append(yesAction)
                         
-                        Alerts.shared.alert(title:"Auto Edit Already Underway",message:message)
-                        return
-                    }
-                    
-                    guard !self.aligning else {
-                        if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                                alertActions: nil,
-                                cancelAction: nil)
-                        } else {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                                alertActions: nil,
-                                cancelAction: nil)
-                        }
-                        return
-                    }
-
-                    var message = String()
-                    
-                    if let text = self.mediaItem?.text {
-                        message = "for\n\n\(text)\n\n"
-                    }
-                    
-                    message += "You will be notified when it is complete."
-                    
-                    Alerts.shared.alert(title: "Auto Edit Underway", message: message)
-
-                    self.operationQueue.addOperation {
-                        if  let transcriptString = self.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                            let transcriptFromWordsString = self.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                            transcriptString == transcriptFromWordsString {
-                            // Can insert paragraph breaks
-                            let tooClose = self.mediaItem?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                            () -> Void in
                             
-                            let speakerNotesParagraphWords = self.mediaItem?.speakerNotesParagraphWords
-                            
-                            //                        print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-                            //                            if first.value == second.value {
-                            //                                return first.key < second.key
-                            //                            } else {
-                            //                                return first.value > second.value
-                            //                            }
-                            //                        }))
-                            
-                            // Multiply the gap time by the frequency of the word that appears after it and sort
-                            // in descending order to suggest the most likely paragraph breaks.
-                            
-                            if let words = self.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
-                                if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
-                                    if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
-                                        return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
-                                    }
-                                }
-                                
-                                return first["gap"] != nil
-                            }) {
-                                self.addParagraphBreaks(showGapTimes:false, tooClose:tooClose, words:words, text:text, completion: { (string:String?) -> (Void) in
-                                    guard var masterChanges = self.masterChanges(interactive:false, longFormat:true) else {
-                                        self.transcript = string
-                                        return
-                                    }
-                                    
-                                    var changes = [(String,String)]()
-                                    
-                                    for masterKey in masterChanges.keys {
-                                        if let keys = masterChanges[masterKey]?.keys {
-                                            for key in keys {
-                                                let oldText = key
-                                                if let newText = masterChanges[masterKey]?[key] {
-                                                    if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                        if text.lowercased().range(of: oldText) != nil {
-                                                            changes.append((oldText,newText))
-                                                        }
-                                                    } else {
-                                                        if text.range(of: oldText) != nil {
-                                                            changes.append((oldText,newText))
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    
-                                    // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
-                                    changes.sort(by: { (first, second) -> Bool in
-                                        guard first.0.endIndex != second.0.endIndex else {
-                                            return first.0 < second.0
-                                        }
-                                        
-                                        return first.0.endIndex > second.0.endIndex
-                                    })
-                                    
-                                    self.changeText(text: string, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
-                                        Alerts.shared.alert(title:"Auto Edit Completed", message:self.mediaItem?.text)
-                                        self.transcript = string
-                                    })
-                                })
-                            }
-                        } else {
-                            guard var masterChanges = self.masterChanges(interactive:false, longFormat:true) else {
-                                return
-                            }
-                            
-                            var changes = [(String,String)]()
-                            
-                            for masterKey in masterChanges.keys {
-                                if let keys = masterChanges[masterKey]?.keys {
-                                    for key in keys {
-                                        let oldText = key
-                                        if let newText = masterChanges[masterKey]?[key] {
-                                            if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                                if text.lowercased().range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            } else {
-                                                if text.range(of: oldText) != nil {
-                                                    changes.append((oldText,newText))
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
-                            changes.sort(by: { (first, second) -> Bool in
-                                guard first.0.endIndex != second.0.endIndex else {
-                                    return first.0 < second.0
-                                }
-                                
-                                return first.0.endIndex > second.0.endIndex
-                            })
-                            
-                            self.changeText(text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
-                                Alerts.shared.alert(title:"Auto Edit Completed", message:self.mediaItem?.text)
-                                self.transcript = string
-                            })
-                        }
+                        })
+                        alertActions.append(noAction)
                         
-
-//                        let keyOrder = ["words","books","verse","verses","chapter","chapters","textToNumbers"]
-//
-//                        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
-//                            let firstIndex = keyOrder.index(of: first)
-//                            let secondIndex = keyOrder.index(of: second)
-//
-//                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
-//                                return firstIndex > secondIndex
-//                            }
-//
-//                            if firstIndex != nil {
-//                                return false
-//                            }
-//
-//                            if secondIndex != nil {
-//                                return true
-//                            }
-//
-//                            return first.endIndex > second.endIndex
-//                        })
-                        
-//                        print(changes)
-                        
-//                        for masterKey in masterKeys {
-//                            if !["words","books","textToNumbers"].contains(masterKey) {
-//                                if !text.lowercased().contains(masterKey.lowercased()) {
-//                                    masterChanges[masterKey] = nil
-//                                }
-//                            }
-//                        }
-
-//                        guard let masterKey = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
-//                            let firstIndex = keyOrder.index(of: first)
-//                            let secondIndex = keyOrder.index(of: second)
-//
-//                            if let firstIndex = firstIndex, let secondIndex = secondIndex {
-//                                return firstIndex > secondIndex
-//                            }
-//
-//                            if firstIndex != nil {
-//                                return false
-//                            }
-//
-//                            if secondIndex != nil {
-//                                return true
-//                            }
-//
-//                            return first.endIndex > second.endIndex
-//                        }).first else {
-//                            return
-//                        }
-//
-//                        guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
-//                            return
-//                        }
-                    }
-                }))
+                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: nil, actions: alertActions)
+                    }))
+                } else {
+                    alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .default, handler: {
+                        self.operationQueue.cancelAllOperations()
+                    }))
+                }
                 
                 alertActions.append(AlertAction(title: "Media ID", style: .default, handler: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
@@ -5850,7 +5893,7 @@ class VoiceBase
                         textField.text = self.mediaID
                     })
                     
-                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
                         (action : UIAlertAction) -> Void in
                     })
                     alert.addAction(okayAction)
@@ -6191,7 +6234,7 @@ class VoiceBase
         }).first,
             let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
             let textPopover = navigationController.viewControllers[0] as? TextViewController,
-            let transcriptSegmentIndex = self.transcriptSegmentComponents?.index(of: first),
+            let transcriptSegmentIndex = self.transcriptSegmentComponents?.firstIndex(of: first),
             let range = string.range(of:timing+"\n") {
             navigationController.modalPresentationStyle = .overCurrentContext
             
@@ -6267,7 +6310,7 @@ class VoiceBase
                 }
                 
                 Thread.onMainThread {
-                    popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
+                    popover.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.middle, animated: true)
                 }
                 
                 if playing {

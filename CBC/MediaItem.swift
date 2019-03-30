@@ -133,7 +133,7 @@ extension MediaItem : UIActivityItemSource
         return ""
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         guard let text = self.text else {
             return nil
@@ -143,9 +143,9 @@ extension MediaItem : UIActivityItemSource
             return nil
         }
         
-        if activityType == UIActivityType.mail {
+        if activityType == UIActivity.ActivityType.mail {
             return series
-        } else if activityType == UIActivityType.print {
+        } else if activityType == UIActivity.ActivityType.print {
             return series
         }
 
@@ -160,16 +160,16 @@ extension MediaItem : UIActivityItemSource
         return string
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return self.text?.singleLine ?? ""
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
-        if activityType == UIActivityType.mail {
+        if activityType == UIActivity.ActivityType.mail {
             return "public.text"
-        } else if activityType == UIActivityType.print {
+        } else if activityType == UIActivity.ActivityType.print {
             return "public.text"
         }
         
@@ -253,6 +253,10 @@ class MediaItem : NSObject
     
     func clearCache(block:Bool)
     {
+        // Really should delete anything that matches what comes before "." in lastPathComponent,
+        // which in this case is id (which is mediaCode)
+        print(deleteFilesOfNameInCache(id))
+        
         notesDownload?.delete(block:block)
         slidesDownload?.delete(block:block)
         
@@ -515,7 +519,9 @@ class MediaItem : NSObject
             
             let afterDate = String(afterClassCode[ymd.endIndex...])
             
-            let code = String(afterDate[..<String.Index(encodedOffset: 1)])
+            let code = String(afterDate[..<String.Index(utf16Offset: 1, in: afterDate)])
+
+//            let code = String(afterDate[..<String.Index(encodedOffset: 1)])
             
             return code
         }
@@ -1150,7 +1156,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<String>(name: mediaCode + "." + "HTML Transcript")
+        let fetch = FetchCodable<String>(name: mediaCode + "." + "HTMLTranscript")
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1185,7 +1191,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[String]>(name: mediaCode + "." + "Notes Tokens Mark Mismatches")
+        let fetch = FetchCodable<[String]>(name: mediaCode + "." + "NotesTokensMarkMismatches")
 
         fetch.didSet = { (strings:[String]?) in
             guard let strings = strings, strings.count > 0 else {
@@ -1233,109 +1239,113 @@ class MediaItem : NSObject
         }
     }
     
-    // Replace with Fetch?
-    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
-    private var _speakerNotesParagraphWords:[String:Int]?
-    {
-        didSet {
-            
-        }
-    }
-    var speakerNotesParagraphWords:[String:Int]?
-    {
-        get {
-            guard _speakerNotesParagraphWords == nil else {
-                return _speakerNotesParagraphWords
-            }
-            
-            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
-            }) else {
-                return nil
-            }
-            
-            var allNotesParagraphWords = [String:Int]()
-            
-            for mediaItem in mediaItems {
-                if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
-                    // notesParagraphWords.count is the number of paragraphs.
-                    // So we can get the distribution of the number of paragraphs
-                    // in each document - if that is useful.
-                    allNotesParagraphWords.merge(notesParagraphWords) { (firstValue, secondValue) -> Int in
-                        return firstValue + secondValue
-                    }
-                }
-            }
-            
-            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
-            
-            return _speakerNotesParagraphWords
-        }
-        set {
-            _speakerNotesParagraphWords = newValue
-        }
-    }
-
-    var overallAverageSpeakerNotesParagraphLength : Int?
-    {
-        get {
-            guard let values = averageSpeakerNotesParagraphLength?.values else {
-                return nil
-            }
-            
-            let averageLengths = Array(values)
-            
-            return averageLengths.reduce(0,+) / averageLengths.count
-        }
-    }
-    
-    var averageSpeakerNotesParagraphLength : [String:Int]?
-    {
-        get {
-            return speakerNotesParagraphLengths?.mapValues({ (paragraphLengths:[Int]) -> Int in
-                return paragraphLengths.reduce(0,+) / paragraphLengths.count
-            })
-        }
-    }
+    //////////////////////////////////////////////
+    // THESE REALLY SHOULD BE IN A SPEAKER OBJECT
     
     // Replace with Fetch?
     // How will we know when new transcripts are added?  On refresh when this is reset to nil.
-    private var _speakerNotesParagraphLengths : [String:[Int]]?
-    {
-        didSet {
-            
-        }
-    }
-    var speakerNotesParagraphLengths : [String:[Int]]?
-    {
-        get {
-            guard _speakerNotesParagraphLengths == nil else {
-                return _speakerNotesParagraphLengths
-            }
-            
-            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
-            }) else {
-                return nil
-            }
-            
-            var allNotesParagraphLengths = [String:[Int]]()
-            
-            for mediaItem in mediaItems {
-                if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
-                    allNotesParagraphLengths[mediaItem.id] = notesParagraphLengths
-                }
-            }
-            
-            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
+//    private var _speakerNotesParagraphWords:[String:Int]?
+//    {
+//        didSet {
+//            
+//        }
+//    }
+//    var speakerNotesParagraphWords:[String:Int]?
+//    {
+//        get {
+//            guard _speakerNotesParagraphWords == nil else {
+//                return _speakerNotesParagraphWords
+//            }
+//            
+//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
+//            }) else {
+//                return nil
+//            }
+//            
+//            var allNotesParagraphWords = [String:Int]()
+//            
+//            for mediaItem in mediaItems {
+//                if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
+//                    // notesParagraphWords.count is the number of paragraphs.
+//                    // So we can get the distribution of the number of paragraphs
+//                    // in each document - if that is useful.
+//                    allNotesParagraphWords.merge(notesParagraphWords) { (firstValue, secondValue) -> Int in
+//                        return firstValue + secondValue
+//                    }
+//                }
+//            }
+//            
+//            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
+//            
+//            return _speakerNotesParagraphWords
+//        }
+//        set {
+//            _speakerNotesParagraphWords = newValue
+//        }
+//    }
+//
+//    var overallAverageSpeakerNotesParagraphLength : Int?
+//    {
+//        get {
+//            guard let values = averageSpeakerNotesParagraphLength?.values else {
+//                return nil
+//            }
+//            
+//            let averageLengths = Array(values)
+//            
+//            return averageLengths.reduce(0,+) / averageLengths.count
+//        }
+//    }
+//    
+//    var averageSpeakerNotesParagraphLength : [String:Int]?
+//    {
+//        get {
+//            return speakerNotesParagraphLengths?.mapValues({ (paragraphLengths:[Int]) -> Int in
+//                return paragraphLengths.reduce(0,+) / paragraphLengths.count
+//            })
+//        }
+//    }
+//    
+//    // Replace with Fetch?
+//    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
+//    private var _speakerNotesParagraphLengths : [String:[Int]]?
+//    {
+//        didSet {
+//            
+//        }
+//    }
+//    var speakerNotesParagraphLengths : [String:[Int]]?
+//    {
+//        get {
+//            guard _speakerNotesParagraphLengths == nil else {
+//                return _speakerNotesParagraphLengths
+//            }
+//            
+//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
+//            }) else {
+//                return nil
+//            }
+//            
+//            var allNotesParagraphLengths = [String:[Int]]()
+//            
+//            for mediaItem in mediaItems {
+//                if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
+//                    allNotesParagraphLengths[mediaItem.id] = notesParagraphLengths
+//                }
+//            }
+//            
+//            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
+//
+//            return _speakerNotesParagraphLengths
+//        }
+//        set {
+//            _speakerNotesParagraphLengths = newValue
+//        }
+//    }
+    //////////////////////////////////////////////
 
-            return _speakerNotesParagraphLengths
-        }
-        set {
-            _speakerNotesParagraphLengths = newValue
-        }
-    }
-    
     lazy var notesParagraphLengths : FetchCodable<[Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
@@ -1345,7 +1355,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "Notes Paragraph Lengths")
+        let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "NotesParagraphLengths")
         
         fetch.fetch = {
             guard let paragraphs = self?.notesParagraphs else {
@@ -1373,7 +1383,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes Paragraph Words")
+        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "NotesParagraphWords")
         
         fetch.fetch = {
             guard let paragraphs = self?.notesParagraphs else {
@@ -1459,7 +1469,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "Notes HTML Tokens")
+        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "NotesHTMLTokens")
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1668,7 +1678,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return Globals.shared.mediaTeachers?[speaker]
+            return Globals.shared.mediaTeachers[speaker]?.name
         }
     }
     
@@ -1680,6 +1690,16 @@ class MediaItem : NSObject
             }
 
             return speaker
+        }
+    }
+    
+    var mediaTeacher : MediaTeacher?
+    {
+        get {
+            guard let speaker = speaker else {
+                return nil
+            }
+            return Globals.shared.mediaTeachers[speaker]
         }
     }
     
@@ -1985,7 +2005,7 @@ class MediaItem : NSObject
         
         let tags = tagsArrayFromTagsString(mediaItemSettings?[Field.tags])
         
-        guard tags?.index(of: tag) == nil else {
+        guard tags?.firstIndex(of: tag) == nil else {
             return
         }
         
@@ -2004,7 +2024,7 @@ class MediaItem : NSObject
         }
         
         if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) == nil {
                 Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
                 Globals.shared.media.all?.tagNames?[sortTag] = tag
             }
@@ -2042,7 +2062,7 @@ class MediaItem : NSObject
             return
         }
         
-        while let index = tags?.index(of: tag) {
+        while let index = tags?.firstIndex(of: tag) {
             tags?.remove(at: index)
         }
         
@@ -2054,7 +2074,7 @@ class MediaItem : NSObject
             return
         }
         
-        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.index(of: self) {
+        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) {
             Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
         }
         
@@ -3555,7 +3575,7 @@ class MediaItem : NSObject
                                         preferredStyle: .alert)
         alert.makeOpaque()
         
-        let editAction = UIAlertAction(title: "Edit", style: UIAlertActionStyle.default, handler: {
+        let editAction = UIAlertAction(title: "Edit", style: UIAlertAction.Style.default, handler: {
             (action : UIAlertAction!) -> Void in
             if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
                 let textPopover = navigationController.viewControllers[0] as? TextViewController {
@@ -3582,7 +3602,7 @@ class MediaItem : NSObject
         })
         alert.addAction(editAction)
         
-        let viewAction = UIAlertAction(title: "View", style: UIAlertActionStyle.default, handler: {
+        let viewAction = UIAlertAction(title: "View", style: UIAlertAction.Style.default, handler: {
             (action : UIAlertAction!) -> Void in
             
             viewController.process(work: { [weak self] () -> (Any?) in
@@ -3609,7 +3629,7 @@ class MediaItem : NSObject
         })
         alert.addAction(viewAction)
         
-        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
             (action : UIAlertAction!) -> Void in
             
         })
@@ -3657,14 +3677,14 @@ class MediaItem : NSObject
         clearCache = AlertAction(title: "Clear Cache", style: .default) {
             var alertActions = [AlertAction]()
             
-            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                 () -> Void in
                 self.clearCache(block:true)
                 Alerts.shared.alert(title:"Cache Cleared", message: self.text)
             })
             alertActions.append(yesAction)
             
-            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                 () -> Void in
                 
             })
@@ -3675,7 +3695,7 @@ class MediaItem : NSObject
         
         if hasAudio, let audioDownload = audioDownload {
             var title = ""
-            var style = UIAlertActionStyle.default
+            var style = UIAlertAction.Style.default
             
             switch audioDownload.state {
             case .none:
@@ -3687,7 +3707,7 @@ class MediaItem : NSObject
                 break
             case .downloaded:
                 title = Constants.Strings.Delete_Audio_Download
-                style = UIAlertActionStyle.destructive
+                style = UIAlertAction.Style.destructive
                 break
             }
             
@@ -3700,13 +3720,13 @@ class MediaItem : NSObject
                 case Constants.Strings.Delete_Audio_Download:
                     var alertActions = [AlertAction]()
 
-                    let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                    let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                         () -> Void in
                         audioDownload.delete(block:true)
                     })
                     alertActions.append(yesAction)
                     
-                    let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                    let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                         () -> Void in
                         
                     })
@@ -3724,13 +3744,13 @@ class MediaItem : NSObject
                     case .downloaded:
                         var alertActions = [AlertAction]()
                         
-                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertActionStyle.destructive, handler: {
+                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                             () -> Void in
                             self.audioDownload?.delete(block:true)
                         })
                         alertActions.append(yesAction)
                         
-                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertActionStyle.default, handler: {
+                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
                             () -> Void in
                             
                         })

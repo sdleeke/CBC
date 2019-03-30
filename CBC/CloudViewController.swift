@@ -250,9 +250,9 @@ extension CloudViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         guard let activityType = activityType else {
             return nil
@@ -269,12 +269,12 @@ extension CloudViewController : UIActivityItemSource
         return nil
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return self.navigationItem.title ?? "" // mediaItem?.text ?? (transcript?.mediaItem?.text ?? ( ?? ""))
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         guard let activityType = activityType else {
             return "public.plain-text"
@@ -330,11 +330,16 @@ class CloudViewController: UIViewController
         return operationQueue
     }()
     
-    deinit {
+    func cancelAllOperations()
+    {
         labelQueue.cancelAllOperations()
         layoutQueue.cancelAllOperations()
         animateQueue.cancelAllOperations()
         operationQueue.cancelAllOperations()
+    }
+    
+    deinit {
+        cancelAllOperations()
     }
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -532,7 +537,7 @@ class CloudViewController: UIViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryDidChange), name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryDidChange), name: UIContentSizeCategory.didChangeNotification, object: nil)
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -546,8 +551,8 @@ class CloudViewController: UIViewController
         addNotifications()
 
         navigationItem.title = cloudTitle
-        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
-        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(share)), animated: true)
+        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
+        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(share)), animated: true)
 
         if cloudWordDictsFunction != nil {
             self.process(work: { [weak self] () -> (Any?) in
@@ -586,8 +591,10 @@ class CloudViewController: UIViewController
         if Alerts.shared.topViewController.last == navigationController {
             Alerts.shared.topViewController.removeLast()
         }
+
+        cancelAllOperations()
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIContentSizeCategory.didChangeNotification, object: nil)
     }
     
     func removeCloudWords()

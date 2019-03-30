@@ -81,6 +81,43 @@ class MediaList // : Sequence
         }
     }
     
+    func autoEditAllAudio(viewController:UIViewController)
+    {
+        autoEditAll(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func autoEditAllVideo(viewController:UIViewController)
+    {
+        autoEditAll(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func autoEditAll(viewController:UIViewController,purpose:String)
+    {
+        guard let mediaItems = list else {
+            return
+        }
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.aligning == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.autoEdit(viewController:viewController)
+        }
+    }
+    
 //    func alignAllVideo(viewController:UIViewController)
 //    {
 //        guard let mediaItems = list else {
@@ -163,6 +200,24 @@ class MediaList // : Sequence
         return list?.filter({ (mediaItem) -> Bool in
             return (mediaItem.transcripts[purpose]?.transcribing == false) && (mediaItem.transcripts[purpose]?.completed == false)
         }).count
+    }
+    
+    var transcribedAudio : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasAudio && (mediaItem.audioTranscript?.completed == true)
+            }).count
+        }
+    }
+    
+    var transcribedVideo : Int?
+    {
+        get {
+            return list?.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasVideo && (mediaItem.videoTranscript?.completed == true)
+            }).count
+        }
     }
     
     var toTranscribeAudio : Int?
@@ -366,21 +421,9 @@ class MediaList // : Sequence
         let operationQueue = OperationQueue()
         operationQueue.name = "MediaList" + UUID().uuidString
         operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 3
+        operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
-    
-    func cancelAllDownloads()
-    {
-        operationQueue.addOperation {
-            self.list?.forEach({ (mediaItem) in
-                // Could be audio, video, slides, or notes
-                mediaItem.downloads.values.forEach({ (download) in
-                    download.cancel()
-                })
-            })
-        }
-    }
     
     func deleteAllDownloads()
     {
@@ -473,6 +516,18 @@ class MediaList // : Sequence
 //        }
 //    }
     
+    func cancelAllDownloads()
+    {
+        operationQueue.addOperation {
+            self.list?.forEach({ (mediaItem) in
+                // Could be audio, video, slides, or notes
+                mediaItem.downloads.values.forEach({ (download) in
+                    download.cancel()
+                })
+            })
+        }
+    }
+    
     func cancelAllDownloads(purpose:String,name:String)
     {
         let notifyOperation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
@@ -507,7 +562,7 @@ class MediaList // : Sequence
             }
         }
         
-        operationQueue.addOperation(notifyOperation)
+        mediaQueue.addOperation(notifyOperation)
     }
     
     func cancelAllAudioDownloads()
@@ -640,11 +695,10 @@ class MediaList // : Sequence
             
             monitorOperation.addDependency(operation)
             
-            operationQueue.addOperation(operation)
+            mediaQueue.addOperation(operation)
         }
         
-        operationQueue.addOperation(monitorOperation)
-
+        mediaQueue.addOperation(monitorOperation)
     }
     
     func downloadAllNotes()
@@ -1059,7 +1113,7 @@ class MediaList // : Sequence
     
     var didSet : (()->(Void))?
 
-    init(_ list:[MediaItem]?)
+    init(_ list:[MediaItem]? = nil)
     {
         self.list = list
         updateIndex() // didSets are not called during init

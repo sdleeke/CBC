@@ -174,9 +174,9 @@ extension WebViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
         guard let activityType = activityType else {
             return nil
@@ -193,12 +193,12 @@ extension WebViewController : UIActivityItemSource
         return nil
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         return mediaItem?.text?.singleLine ?? (self.navigationItem.title ?? "") // (transcript?.mediaItem?.text?.singleLine ?? )
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
         guard let activityType = activityType else {
             return "public.plain-text"
@@ -233,12 +233,16 @@ extension WebViewController : PopoverPickerControllerDelegate
     
     func stringPicked(_ string: String?, purpose:PopoverPurpose?)
     {
-        guard let string = string else {
+        guard self.isViewLoaded else {
             return
         }
         
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            return
+        }
+        
+        guard let string = string else {
             return
         }
         
@@ -303,6 +307,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
     func selectingAction(action: String?, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
@@ -353,7 +361,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 textField.placeholder = self.searchText ?? "search string"
             })
             
-            let search = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+            let search = UIAlertAction(title: "Search", style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction!) -> Void in
                 self.searchText = alert.textFields?[0].text
                 
@@ -378,7 +386,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(search)
             
-            let searchWhole = UIAlertAction(title: "Search - Whole Words Only", style: UIAlertActionStyle.default, handler: {
+            let searchWhole = UIAlertAction(title: "Search - Whole Words Only", style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction!) -> Void in
                 self.searchText = alert.textFields?[0].text
                 
@@ -403,7 +411,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(searchWhole)
             
-            let clear = UIAlertAction(title: "Clear", style: UIAlertActionStyle.destructive, handler: {
+            let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: {
                 (action : UIAlertAction!) -> Void in
                 self.searchText = ""
                 
@@ -596,7 +604,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             wkWebView?.isHidden = true
             wkWebView?.removeFromSuperview()
             
-            webView.bringSubview(toFront: activityIndicator)
+            webView.bringSubviewToFront(activityIndicator)
             
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
@@ -644,6 +652,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
@@ -966,7 +978,7 @@ class WebViewController: UIViewController
                     self.wkWebView?.isHidden = true
                     
                     self.logo.isHidden = false
-                    self.webView.bringSubview(toFront: self.logo)
+                    self.webView.bringSubviewToFront(self.logo)
                     
                     // Can't prevent this from getting called twice in succession.
                     networkUnavailable(self,"Document could not be loaded.")
@@ -1009,7 +1021,7 @@ class WebViewController: UIViewController
         return true
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?)
     {
         Globals.shared.motionEnded(motion,event: event)
     }
@@ -1048,16 +1060,16 @@ class WebViewController: UIViewController
 //        let height = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
 //        wkWebView.superview?.addConstraint(height)
         
-        let top = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.topMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.topMargin, multiplier: 1.0, constant: 0.0)
+        let top = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutConstraint.Attribute.topMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: wkWebView.superview, attribute: NSLayoutConstraint.Attribute.topMargin, multiplier: 1.0, constant: 0.0)
         wkWebView.superview?.addConstraint(top)
         
-        let bottom = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.bottomMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.bottomMargin, multiplier: 1.0, constant: 0.0)
+        let bottom = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutConstraint.Attribute.bottomMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: wkWebView.superview, attribute: NSLayoutConstraint.Attribute.bottomMargin, multiplier: 1.0, constant: 0.0)
         wkWebView.superview?.addConstraint(bottom)
         
-        let leading = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.leadingMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.leadingMargin, multiplier: 1.0, constant: 0.0)
+        let leading = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutConstraint.Attribute.leadingMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: wkWebView.superview, attribute: NSLayoutConstraint.Attribute.leadingMargin, multiplier: 1.0, constant: 0.0)
         wkWebView.superview?.addConstraint(leading)
         
-        let trailing = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.trailingMargin, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.trailingMargin, multiplier: 1.0, constant: 0.0)
+        let trailing = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutConstraint.Attribute.trailingMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: wkWebView.superview, attribute: NSLayoutConstraint.Attribute.trailingMargin, multiplier: 1.0, constant: 0.0)
         wkWebView.superview?.addConstraint(trailing)
         
         wkWebView.superview?.setNeedsLayout()
@@ -1065,6 +1077,10 @@ class WebViewController: UIViewController
     
     @objc func done()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:done", completion: nil)
             return
@@ -1190,20 +1206,20 @@ class WebViewController: UIViewController
     
     fileprivate func setupActionButton()
     {
-        fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(showFullScreen))
+        fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItem.Style.plain, target: self, action: #selector(showFullScreen))
         fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(increaseFontSize))
+        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItem.Style.plain, target: self, action:  #selector(increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(decreaseFontSize))
+        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItem.Style.plain, target: self, action:  #selector(decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         activityButtonIndicator = UIActivityIndicatorView()
-        activityButtonIndicator.activityIndicatorViewStyle = .gray
+        activityButtonIndicator.style = .gray
         activityButtonIndicator.hidesWhenStopped = true
         
         activityButton = UIBarButtonItem(customView: activityButtonIndicator)
@@ -1224,7 +1240,7 @@ class WebViewController: UIViewController
             case .overCurrentContext:
                 // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                 if self.navigationController?.viewControllers.count == 1 {
-                    navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+                    navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
 
                                                                                 // To Keep WEB VIEWS over other Forms from failing.
                     if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
@@ -1246,7 +1262,7 @@ class WebViewController: UIViewController
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
-                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(done)), animated: true)
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
                 navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                 
             default:
@@ -1424,7 +1440,7 @@ class WebViewController: UIViewController
     
     func setupSplitViewController()
     {
-        if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
+        if (UIDevice.current.orientation.isPortrait) {
             if (Globals.shared.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay //iPad only
             } else {
@@ -1586,7 +1602,7 @@ class WebViewController: UIViewController
                 }
             } else {
                 if let activityIndicator = activityIndicator {
-                    webView.bringSubview(toFront: activityIndicator)
+                    webView.bringSubviewToFront(activityIndicator)
                 }
                 
                 activityIndicator.isHidden = false
@@ -1714,6 +1730,9 @@ class WebViewController: UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1744,6 +1763,9 @@ class WebViewController: UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1773,6 +1795,9 @@ class WebViewController: UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1800,6 +1825,9 @@ class WebViewController: UIViewController
                 
             case .unknown:
                 action()
+                break
+
+            @unknown default:
                 break
             }
             break
@@ -1829,6 +1857,9 @@ class WebViewController: UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
@@ -1857,10 +1888,16 @@ class WebViewController: UIViewController
             case .unknown:
                 action()
                 break
+
+            @unknown default:
+                break
             }
             break
             
         case .unknown:
+            break
+
+        @unknown default:
             break
         }
         
@@ -1889,6 +1926,9 @@ class WebViewController: UIViewController
             
         case .unknown:
             break
+
+        @unknown default:
+            break
         }
     }
     
@@ -1899,9 +1939,9 @@ class WebViewController: UIViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
@@ -1924,7 +1964,7 @@ class WebViewController: UIViewController
         
         logo.isHidden = true
         
-        webView.bringSubview(toFront: activityIndicator)
+        webView.bringSubviewToFront(activityIndicator)
         
         progressIndicator.isHidden = content == .html
 
