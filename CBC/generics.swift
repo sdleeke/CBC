@@ -63,14 +63,14 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 //    }
 //
 //    private var get : (()->(T?))?
-////    private var pre : (()->(Bool))?
+////    private var pre : (()->Bool)?
 ////    private var toSet : ((T?)->(T?))?
 //    private var didSet : ((T?,T?)->())?
 //
 //    init(get:(()->(T?))?,
 ////         toSet:((T?)->(T?))? = nil,
 //         didSet:((T?,T?)->())? = nil
-//        ) // pre:(()->(Bool))? = nil,
+//        ) // pre:(()->Bool)? = nil,
 //    {
 //        self.get = get
 ////        self.toSet = toSet

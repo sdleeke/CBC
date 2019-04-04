@@ -36,7 +36,7 @@ class BooksChaptersVerses : Swift.Comparable
         get {
             var count = 0
             
-            if let books = data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
+            if let books = data?.keys.sorted(by: { $0.bookNumberInBible < $1.bookNumberInBible }) {
                 for book in books {
                     if let chapters = data?[book]?.keys.sorted() {
                         for chapter in chapters {
@@ -68,8 +68,8 @@ class BooksChaptersVerses : Swift.Comparable
     
     static func ==(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
     {
-        let lhsBooks = lhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-        let rhsBooks = rhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+        let lhsBooks = lhs.data?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+        let rhsBooks = rhs.data?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         
         if (lhsBooks == nil) && (rhsBooks == nil) {
         } else
@@ -164,8 +164,8 @@ class BooksChaptersVerses : Swift.Comparable
     
     static func <(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
     {
-        let lhsBooks = lhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-        let rhsBooks = rhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+        let lhsBooks = lhs.data?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+        let rhsBooks = rhs.data?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         
         if (lhsBooks == nil) && (rhsBooks == nil) {
             return false
@@ -227,7 +227,7 @@ class BooksChaptersVerses : Swift.Comparable
                                                 }
                                     }
                                 } else {
-                                    return bookNumberInBible(lhsBook) < bookNumberInBible(rhsBook)
+                                    return lhsBook.bookNumberInBible < rhsBook.bookNumberInBible
                                 }
                             }
                         }

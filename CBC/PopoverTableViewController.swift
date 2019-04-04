@@ -41,7 +41,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
             return false
         }
         
@@ -59,7 +59,10 @@ extension PopoverTableViewController: UISearchBarDelegate
         })
         
         if let section = toolBarItems?.firstIndex(of: sender) {
-            tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: UITableView.ScrollPosition.top, animated: true)
+            let indexPath = IndexPath(row: 0, section: section)
+            if tableView.isValid(indexPath) {
+                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+            }
         }
     }
     
@@ -113,7 +116,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
@@ -143,7 +146,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -159,7 +162,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
@@ -175,7 +178,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
@@ -193,7 +196,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
@@ -241,7 +244,7 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -382,7 +385,7 @@ class PopoverTableViewController : UIViewController
         }
         
         if trackingTimer == nil {
-            if let indexPath = tableView.indexPathForSelectedRow {
+            if let indexPath = tableView.indexPathForSelectedRow, tableView.isValid(indexPath) {
                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
             
@@ -488,11 +491,11 @@ class PopoverTableViewController : UIViewController
                     let indexPath = IndexPath(row: row, section: section)
                     
                     if timeWindowFound {
-                        if tableView.indexPathForSelectedRow != indexPath {
+                        if tableView.indexPathForSelectedRow != indexPath, tableView.isValid(indexPath) {
                             tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
                         }
                     } else {
-                        if let lastFollow = lastFollow, indexPath != lastFollow {
+                        if let lastFollow = lastFollow, indexPath != lastFollow, tableView.isValid(indexPath) {
                             tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                         }
                     }
@@ -748,7 +751,7 @@ class PopoverTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:setPreferredContentSize",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:setPreferredContentSize",completion:nil)
             return
         }
 
@@ -886,7 +889,7 @@ class PopoverTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
             return
         }
         
@@ -978,7 +981,7 @@ class PopoverTableViewController : UIViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
+        self.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
     func actions()
@@ -1013,7 +1016,7 @@ class PopoverTableViewController : UIViewController
 
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        alert(viewController:self,title:"Actions",message:nil,actions:actions)
+        self.alert(title:"Actions",message:nil,actions:actions)
     }
     
     @objc func playPause()
@@ -1130,11 +1133,14 @@ class PopoverTableViewController : UIViewController
                             Thread.onMainThread {
                                 if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                                     let indexPath = IndexPath(row: row,section: section)
-                                    if scroll {
-                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                    }
-                                    if select {
-                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                    
+                                    if self.tableView.isValid(indexPath) {
+                                        if scroll {
+                                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                        }
+                                        if select {
+                                            self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                        }
                                     }
                                 } else {
 
@@ -1152,11 +1158,14 @@ class PopoverTableViewController : UIViewController
                         Thread.onMainThread {
                             if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                                 let indexPath = IndexPath(row: row,section: section)
-                                if scroll {
-                                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                }
-                                if select {
-                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                
+                                if self.tableView.isValid(indexPath) {
+                                    if scroll {
+                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                    }
+                                    if select {
+                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                    }
                                 }
                             } else {
 
@@ -1170,7 +1179,7 @@ class PopoverTableViewController : UIViewController
             }
         } else {
             if let selectedText = selectedText {
-                alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
+                self.alert(title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
             }
         }
     }
@@ -1747,7 +1756,7 @@ class PopoverTableViewController : UIViewController
                 
                 self.setPreferredContentSize()
                 
-                if let indexPath = section.indexPath(from: stringSelected) {
+                if let indexPath = section.indexPath(from: stringSelected), tableView.isValid(indexPath) {
                     tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                 }
             }
@@ -1791,7 +1800,7 @@ class PopoverTableViewController : UIViewController
 
                 self.setPreferredContentSize()
                 
-                if let indexPath = section.indexPath(from: stringSelected) {
+                if let indexPath = section.indexPath(from: stringSelected), tableView.isValid(indexPath) {
                     tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                 }
             }
@@ -1811,7 +1820,7 @@ class PopoverTableViewController : UIViewController
             
             setPreferredContentSize()
             
-            if let indexPath = section.indexPath(from: stringSelected) {
+            if let indexPath = section.indexPath(from: stringSelected), tableView.isValid(indexPath) {
                 tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
             }
             
@@ -2326,7 +2335,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:didSelectRowAt",completion:nil)
+            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:didSelectRowAt",completion:nil)
             return
         }
         
@@ -2358,7 +2367,7 @@ extension PopoverTableViewController : UITableViewDelegate
             self.searchBar.resignFirstResponder()
         }
         
-        if isTracking {
+        if isTracking, tableView.isValid(indexPath) {
             tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
         }
 
@@ -2401,7 +2410,9 @@ extension PopoverTableViewController : UITableViewDelegate
                 popover.parser = self.parser
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
+                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.century
+                } // century
                 popover.section.indexSort = { (first:String?,second:String?) -> Bool in
                     guard let first = first else {
                         return false
@@ -2411,7 +2422,7 @@ extension PopoverTableViewController : UITableViewDelegate
                     }
                     return Int(first) < Int(second)
                 }
-                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
                     return string
                 }
                 

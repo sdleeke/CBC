@@ -43,9 +43,9 @@ class Tags
             
             guard Globals.shared.media.all != nil else {
                 //This is filtering, i.e. searching all mediaItems => s/b in background
-                Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: mediaItemsWithTag(Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                     return mediaItem.category == Globals.shared.mediaCategory.selected
-                }), tag: newValue))
+                }).withTag(tag: newValue))
                 return
             }
 

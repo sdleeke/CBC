@@ -40,7 +40,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -58,24 +58,26 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
             let indexPath = IndexPath(row: 0, section: index)
             
-            if !(indexPath.section < tableView.numberOfSections) {
-                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                break
-            }
-            
-            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                NSLog("Row: \(indexPath.row)")
-                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-                break
-            }
+//            if !(indexPath.section < tableView.numberOfSections) {
+//                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
+//                NSLog("Section: \(indexPath.section)")
+//                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+//                break
+//            }
+//
+//            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+//                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
+//                NSLog("Section: \(indexPath.section)")
+//                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+//                NSLog("Row: \(indexPath.row)")
+//                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+//                break
+//            }
             
             //Can't use this reliably w/ variable row heights.
-            tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+            if tableView.isValid(indexPath) {
+                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+            }
             break
             
         case .selectingAction:
@@ -91,7 +93,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     return self?.scriptureIndex?.html?.string
                 }, completion: { [weak self] (data:Any?) in
                     if let vc = self {
-                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+                        vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                     }
                 })
                 break
@@ -100,7 +102,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 if let reference = scripture?.selected.reference {
                     scripture?.reference = reference
                     if scripture?.html?[reference] != nil {
-                        popoverHTML(self,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,htmlString:scripture?.html?[reference], search:false)
+                        self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
                     } else {
                         self.process(work: { [weak self] () -> (Any?) in
                             self?.scripture?.load() // reference
@@ -108,11 +110,11 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                         }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
                                 if let vc = self {
-                                    popoverHTML(vc,title:reference,barButtonItem:self?.navigationItem.rightBarButtonItem,htmlString:htmlString, search:false)
+                                    vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
                                 }
                             } else {
                                 if let vc = self {
-                                    networkUnavailable(vc,"Scripture text unavailable.")
+                                    vc.networkUnavailable("Scripture text unavailable.")
                                 }
                             }
                         })
@@ -178,7 +180,9 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 popover.wholeWordsOnly = true
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
+                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.century
+                } // century
                 popover.section.indexHeadersTransform = { (string:String?)->(String?) in
                     return string
                 }
@@ -294,7 +298,7 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             }
 
             if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(selectedTestament)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+                scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
                 scriptureIndex?.selectedBook = scripture?.picker.books?[0]
             } else {
                 scriptureIndex?.selectedBook = nil
@@ -303,7 +307,7 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             updateSwitches()
             
             if let selectedTestament = scriptureIndex?.selectedTestament, chapterSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(selectedTestament)]?[selectedBook]?.keys.sorted()
+                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
                 
                 if let chapter = scripture?.picker.chapters?[0] {
                     scriptureIndex?.selectedChapter = chapter
@@ -325,13 +329,13 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             
         case 1: // Book
             if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(selectedTestament)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+                scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
                 scriptureIndex?.selectedBook = scripture?.picker.books?[row]
                 
                 updateSwitches()
                 
                 if chapterSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook {
-                    scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(selectedTestament)]?[selectedBook]?.keys.sorted()
+                    scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
 
                     if let chapter = scripture?.picker.chapters?[0] {
                         scriptureIndex?.selectedChapter = chapter
@@ -351,14 +355,22 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             break
             
         case 2: // Chapter
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
+            if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook, chapterSwitch.isOn {
                 if let chapter = scripture?.picker.chapters?[row] {
                     scriptureIndex?.selectedChapter = chapter
                 }
                 
                 scriptureIndex?.selectedVerse = 0
                 
+                if let selectedChapter = scriptureIndex?.selectedChapter {
+                    scripture?.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
+                }
+                
                 pickerView.reloadAllComponents()
+                
+                if includeVerses {
+                    pickerView.selectRow(0, inComponent: 3, animated: true)
+                }
                 
                 updateSearchResults()
             }
@@ -384,8 +396,9 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
 {
     // MARK: UIPickerViewDataSource
     
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 3
+    func numberOfComponents(in pickerView: UIPickerView) -> Int
+    {
+        return includeVerses ? 4 : 3  // Compact width => 3, otherwise 5?  (beginning and ending verses)
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
@@ -404,30 +417,60 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             break
             
         case 1:
-            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
-                if let count = scripture?.picker.books?.count {
-                    numberOfRows = count
-                }
-            } else {
-                numberOfRows = 0 // number of books in testament
+            guard scriptureIndex?.selectedTestament != nil else {
+                numberOfRows = 0 // number of books
+                break
+            }
+            
+            guard bookSwitch.isOn else {
+                numberOfRows = 0 // number of books
+                break
+            }
+            
+            if let count = scripture?.picker.books?.count {
+                numberOfRows = count // number of books
             }
             break
             
         case 2:
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
-                if let count = scripture?.picker.chapters?.count {
-                    numberOfRows = count
-                }
-            } else {
+            guard scriptureIndex?.selectedTestament != nil else {
                 numberOfRows = 0 // number of chapters in book
+                break
+            }
+
+            guard bookSwitch.isOn else {
+                numberOfRows = 0 // number of chapters in book
+                break
+            }
+            
+            guard scriptureIndex?.selectedBook != nil else {
+                numberOfRows = 0 // number of chapters in book
+                break
+            }
+            
+            guard chapterSwitch.isOn else {
+                numberOfRows = 0 // number of chapters in book
+                break
+            }
+
+            if let count = scripture?.picker.chapters?.count {
+                numberOfRows = count
             }
             break
             
         case 3:
-            if scriptureIndex?.selectedChapter > 0 {
-                numberOfRows = 1 // number of verses in chapter
-            } else {
+            guard includeVerses else {
                 numberOfRows = 0 // number of verses in chapter
+                break
+            }
+            
+            guard scriptureIndex?.selectedChapter > 0 else {
+                numberOfRows = 0 // number of verses in chapter
+                break
+            }
+            
+            if let count = scripture?.picker.verses?.count {
+                numberOfRows = count // number of verses in chapter
             }
             break
             
@@ -483,8 +526,14 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             break
             
         case 3:
+            guard includeVerses else {
+                break
+            }
+
             if scriptureIndex?.selectedChapter > 0 {
-                return "1"
+                if let num = scripture?.picker.verses?[row] {
+                    return num.description
+                }
             }
             break
             
@@ -533,6 +582,8 @@ class ScriptureIndexViewController : UIViewController
 {
     var popover : PopoverTableViewController?
 
+    var includeVerses = false
+    
     var finished:Float = 0.0
     var progress:Float = 0.0 {
         willSet {
@@ -580,15 +631,13 @@ class ScriptureIndexViewController : UIViewController
     @IBAction func bookSwitchAction(_ sender: UISwitch)
     {
         if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-            let testament = translateTestament(selectedTestament)
+            scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
             
-            if let book = scriptureIndex?.selectedBook {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[testament]?[book]?.keys.sorted()
-            }
-
-            scripture?.picker.books = scriptureIndex?.byBook[translateTestament(selectedTestament)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-
             scriptureIndex?.selectedBook = scripture?.picker.books?[0]
+
+            if let book = scriptureIndex?.selectedBook {
+                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[book]?.keys.sorted()
+            }
         } else {
             scriptureIndex?.selectedBook = nil
         }
@@ -607,15 +656,16 @@ class ScriptureIndexViewController : UIViewController
     
     @IBAction func chapterSwitchAction(_ sender: UISwitch) {
         if chapterSwitch.isOn {
-            if let selectedTestament = scriptureIndex?.selectedTestament {
-                let testament = translateTestament(selectedTestament)
-                if let book = scriptureIndex?.selectedBook {
-                    scripture?.picker.chapters = scriptureIndex?.byChapter[testament]?[book]?.keys.sorted()
-                }
+            if let selectedTestament = scriptureIndex?.selectedTestament, let selectedBook = scriptureIndex?.selectedBook {
+                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
             }
 
             if let num = scripture?.picker.chapters?[0] {
                 scriptureIndex?.selectedChapter = num
+            }
+            
+            if let selectedTestament = scriptureIndex?.selectedTestament, let selectedBook = scriptureIndex?.selectedBook, let selectedChapter = scriptureIndex?.selectedChapter {
+                scripture?.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
             }
         } else {
             scriptureIndex?.selectedChapter = 0
@@ -651,7 +701,7 @@ class ScriptureIndexViewController : UIViewController
     var sectionTitles:[String]?
     {
         get {
-            return scriptureIndex?.sectionTitles // sections?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+            return scriptureIndex?.sectionTitles // sections?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         }
     }
     
@@ -672,7 +722,7 @@ class ScriptureIndexViewController : UIViewController
                     if let books = mediaItem.books {
                         for book in books {
                             if let selectedTestament = scriptureIndex?.selectedTestament {
-                                if translateTestament(selectedTestament) == testament(book) {
+                                if selectedTestament.translateTestament == book.testament {
                                     if sections[book] == nil {
                                         sections[book] = [mediaItem]
                                     } else {
@@ -768,7 +818,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
 
-        let testament = translateTestament(selectedTestament)
+        let testament = selectedTestament.translateTestament
 
         guard let selectedBook = scriptureIndex.selectedBook else {
             mediaItems = scriptureIndex.byTestament[testament]
@@ -823,7 +873,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
 
-        let testament = translateTestament(selectedTestament)
+        let testament = selectedTestament.translateTestament
 
         guard let selectedBook = scriptureIndex.selectedBook else {
 //            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -850,7 +900,11 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byTestament[testament]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
+                        let indexPath = IndexPath(row: 0,section: 0)
+                        
+                        if self?.tableView.isValid(indexPath) == true {
+                            self?.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                        }
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -885,7 +939,11 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byBook[testament]?[selectedBook]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
+                        let indexPath = IndexPath(row: 0,section: 0)
+                        
+                        if self?.tableView.isValid(indexPath) == true {
+                            self?.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                        }
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -920,7 +978,11 @@ class ScriptureIndexViewController : UIViewController
                     self?.updateUI()
                     self?.tableView.reloadData()
                     if scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?.count > 0 {
-                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
+                        let indexPath = IndexPath(row: 0,section: 0)
+                        
+                        if self?.tableView.isValid(indexPath) == true {
+                            self?.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                        }
                     }
                     self?.scripturePicker.isUserInteractionEnabled = true
                 }
@@ -952,7 +1014,11 @@ class ScriptureIndexViewController : UIViewController
                 self?.updateUI()
                 self?.tableView.reloadData()
                 if scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?[scriptureIndex.selectedVerse]?.count > 0 {
-                    self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableView.ScrollPosition.top, animated: true)
+                    let indexPath = IndexPath(row: 0,section: 0)
+                    
+                    if self?.tableView.isValid(indexPath) == true {
+                        self?.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                    }
                 }
                 self?.scripturePicker.isUserInteractionEnabled = true
             }
@@ -1096,7 +1162,7 @@ class ScriptureIndexViewController : UIViewController
         bodyString = bodyString + "</div>"
 
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
-            var indexFor = translateTestament(selectedTestament)
+            var indexFor = selectedTestament.translateTestament
 
             if let selectedBook = self.scriptureIndex?.selectedBook {
                 indexFor = selectedBook
@@ -1117,7 +1183,7 @@ class ScriptureIndexViewController : UIViewController
 
         bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
         
-        let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+        let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         
         if includeURLs, (books.count > 1) {
             bodyString = bodyString + "<br/>"
@@ -1209,7 +1275,7 @@ class ScriptureIndexViewController : UIViewController
         
         bodyString = bodyString + "</body></html>"
         
-        return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
     }
 
     func actionMenuItems() -> [String]?
@@ -1257,7 +1323,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
             return
         }
 
@@ -1297,7 +1363,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
             return
         }
         
@@ -1310,25 +1376,31 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        if let index = mediaItems?.firstIndex(of: mediaItem) {
-            let indexPath = IndexPath(row: index, section: 0)
-            
-            if (select) {
-                // So UI operates as desired.
-                DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread {
-                        self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
-                    }
+        guard let index = mediaItems?.firstIndex(of: mediaItem) else {
+            return
+        }
+        
+        let indexPath = IndexPath(row: index, section: 0)
+        
+        guard tableView.isValid(indexPath) else {
+            return
+        }
+        
+        if (select) {
+            // So UI operates as desired.
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                Thread.onMainThread {
+                    self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                 }
             }
-            
-            if (scroll) {
-                // Scrolling when the user isn't expecting it can be jarring.
-                // So UI operates as desired.
-                DispatchQueue.global(qos: .background).async { [weak self] in
-                    Thread.onMainThread {
-                        self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
-                    }
+        }
+        
+        if (scroll) {
+            // Scrolling when the user isn't expecting it can be jarring.
+            // So UI operates as desired.
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                Thread.onMainThread {
+                    self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                 }
             }
         }
@@ -1377,15 +1449,21 @@ class ScriptureIndexViewController : UIViewController
         navigationController?.toolbar.isTranslucent = false
 
         if let selectedTestament = scriptureIndex?.selectedTestament {
-            let testament = translateTestament(selectedTestament)
+            let testament = selectedTestament.translateTestament
             
             if scripture?.picker.books == nil {
-                scripture?.picker.books = scriptureIndex?.byBook[testament]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+                scripture?.picker.books = scriptureIndex?.byBook[testament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
             }
-            
-            if scripture?.picker.chapters == nil {
-                if let book = scriptureIndex?.selectedBook {
+
+            if let book = scriptureIndex?.selectedBook {
+                if scripture?.picker.chapters == nil {
                     scripture?.picker.chapters = scriptureIndex?.byChapter[testament]?[book]?.keys.sorted()
+                }
+                
+                if scripture?.picker.verses == nil {
+                    if let chapter = scriptureIndex?.selectedChapter {
+                        scripture?.picker.verses = scriptureIndex?.byVerse[testament]?[book]?[chapter]?.keys.sorted()
+                    }
                 }
             }
         }
@@ -1423,7 +1501,7 @@ class ScriptureIndexViewController : UIViewController
                 if let firstDate = first.fullDate, let secondDate = second.fullDate {
                     if firstDate.isEqualTo(secondDate) {
                         if first.service == second.service {
-                            return lastNameFromName(first.speaker) < lastNameFromName(second.speaker)
+                            return first.speaker?.lastName < second.speaker?.lastName
                         } else {
                             return first.service < second.service
                         }
@@ -1448,7 +1526,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
             return
         }
         
@@ -1460,7 +1538,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        let testament = translateTestament(selectedTestament)
+        let testament = selectedTestament.translateTestament
         let book = scriptureIndex.selectedBook
         let chapter = scriptureIndex.selectedChapter
         let verse = scriptureIndex.selectedVerse
@@ -1494,7 +1572,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1521,7 +1599,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1538,28 +1616,34 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
             return
         }
         
         scripturePicker.reloadAllComponents()
         
-        if let selectedTestament = scriptureIndex?.selectedTestament {
-            if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
-                scripturePicker.selectRow(index, inComponent: 0, animated: false)
-            }
-            
-            if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
-                scripturePicker.selectRow(index, inComponent: 1, animated: false)
-            }
-            
-            if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: selectedChapter) {
-                scripturePicker.selectRow(index, inComponent: 2, animated: false)
-            }
-            
-            if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.firstIndex(of: selectedVerse) {
-                scripturePicker.selectRow(index, inComponent: 3, animated: false)
-            }
+        guard let selectedTestament = scriptureIndex?.selectedTestament else {
+            return
+        }
+        
+        if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
+            scripturePicker.selectRow(index, inComponent: 0, animated: false)
+        }
+        
+        if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
+            scripturePicker.selectRow(index, inComponent: 1, animated: false)
+        }
+        
+        if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: selectedChapter) {
+            scripturePicker.selectRow(index, inComponent: 2, animated: false)
+        }
+
+        guard includeVerses else {
+            return
+        }
+        
+        if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.firstIndex(of: selectedVerse) {
+            scripturePicker.selectRow(index, inComponent: 3, animated: false)
         }
     }
 
@@ -1570,14 +1654,14 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
             return
         }
         
         bookSwitch.isOn = scriptureIndex?.selectedBook != nil
         
         if let selectedTestament = scriptureIndex?.selectedTestament {
-            bookSwitch.isEnabled = (scriptureIndex?.byTestament[translateTestament(selectedTestament)] != nil)
+            bookSwitch.isEnabled = (scriptureIndex?.byTestament[selectedTestament.translateTestament] != nil)
         } else {
             bookSwitch.isEnabled = false
         }
@@ -1585,10 +1669,10 @@ class ScriptureIndexViewController : UIViewController
         chapterSwitch.isOn = scriptureIndex?.selectedChapter > 0
         chapterSwitch.isEnabled = bookSwitch.isOn
 
-        if let book = scriptureIndex?.selectedBook, Constants.NO_CHAPTER_BOOKS.contains(book) {
-            chapterSwitch.isOn = false
-            chapterSwitch.isEnabled = false
-        }
+//        if let book = scriptureIndex?.selectedBook, Constants.NO_CHAPTER_BOOKS.contains(book) {
+//            chapterSwitch.isOn = false
+//            chapterSwitch.isEnabled = false
+//        }
     }
     
     func updateActionMenu()
@@ -1614,7 +1698,7 @@ class ScriptureIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
             return
         }
     

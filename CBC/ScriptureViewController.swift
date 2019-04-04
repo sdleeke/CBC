@@ -108,7 +108,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -144,27 +144,27 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Print:
                 if let string = webViewController?.html.string, string.contains(" href=") {
-                    firstSecondCancel(  viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
+                    self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
                         firstTitle: Constants.Strings.Yes,
                         firstAction: {
                             self.process(work: { [weak self] () -> (Any?) in
-                                return stripLinks(self?.webViewController?.html.string)
+                                return self?.webViewController?.html.string?.stripLinks
                                 }, completion: { [weak self] (data:Any?) in
                                     if let vc = self {
-                                        printHTML(viewController: vc, htmlString: data as? String)
+                                        vc.printHTML(htmlString: data as? String)
                                     }
                             })
                     }, firstStyle: .default,
                        secondTitle: Constants.Strings.No,
                        secondAction: {
-                        printHTML(viewController: self, htmlString: self.webViewController?.html.string)
+                        self.printHTML(htmlString: self.webViewController?.html.string)
                     }, secondStyle: .default)
                 } else {
-                    printHTML(viewController: self, htmlString: self.webViewController?.html.string)
+                    self.printHTML(htmlString: self.webViewController?.html.string)
                 }
                 break
                 
-            case "Lexical Analysis":
+            case Constants.Strings.Lexical_Analysis:
                 self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
                     if #available(iOS 12.0, *) {
                         return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true)
@@ -190,7 +190,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Search:
-                searchAlert(viewController: self, title: "Search", message: nil, searchText:webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
+                self.searchAlert(title: "Search", message: nil, searchText:webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
                     self.webViewController?.searchText = alert.textFields?[0].text
                     
                     self.webViewController?.wkWebView?.isHidden = true
@@ -199,12 +199,12 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     self.webViewController?.activityIndicator.startAnimating()
                     
                     if let isEmpty = self.webViewController?.searchText?.isEmpty, isEmpty {
-                        self.webViewController?.html.string = insertHead(stripHead(self.webViewController?.html.original),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                        self.webViewController?.html.string = self.webViewController?.html.original?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
                         if self.webViewController?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                            self.webViewController?.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.webViewController?.bodyHTML, headerHTML: self.webViewController?.headerHTML, searchText:self.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            self.webViewController?.html.string = self.webViewController?.bodyHTML?.markHTML(headerHTML: self.webViewController?.headerHTML, searchText:self.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                         } else {
-                            self.webViewController?.html.string = insertHead(stripHead(markHTML(html:self.webViewController?.html.original, searchText:self.webViewController?.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            self.webViewController?.html.string = self.webViewController?.html.original?.markHTML(searchText:self.webViewController?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                         }
                     }
                     
@@ -230,7 +230,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         self.process(work: { [weak self] () -> (Any?) in
                             return popover.stringTree?.html
                         }, completion: { [weak self] (data:Any?) in
-                            presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                         })
                     }
 
@@ -374,7 +374,7 @@ extension ScriptureViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
         }
         
@@ -398,10 +398,10 @@ extension ScriptureViewController : PopoverPickerControllerDelegate
         self.webViewController?.activityIndicator.startAnimating()
         
         if webViewController?.bodyHTML != nil { // , headerHTML != nil // Not necessary
-            webViewController?.html.string = markBodyHTML(bodyHTML: webViewController?.bodyHTML, headerHTML: webViewController?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+            webViewController?.html.string = webViewController?.bodyHTML?.markHTML(headerHTML: webViewController?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
         }
         
-        webViewController?.html.string = insertHead(stripHead(webViewController?.html.string),fontSize: webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+        webViewController?.html.string = webViewController?.html.string?.stripHead.insertHead(fontSize: webViewController?.html.fontSize ?? Constants.FONT_SIZE)
         
         if let url = self.webViewController?.html.fileURL {
             webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -413,8 +413,9 @@ extension ScriptureViewController : UIPickerViewDataSource
 {
     // MARK: UIPickerViewDataSource
     
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 3
+    func numberOfComponents(in pickerView: UIPickerView) -> Int
+    {
+        return includeVerses ? 4 : 3  // Compact width => 3, otherwise 5?  (beginning and ending verses)
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
@@ -435,20 +436,44 @@ extension ScriptureViewController : UIPickerViewDataSource
             break
             
         case 2:
-            if  scripture?.selected.testament != nil,
-                scripture?.selected.book != nil,
-                let chapters = scripture?.picker.chapters {
+            guard scripture?.selected.testament != nil else {
+                numberOfRows = 0
+                break
+            }
+            
+            guard scripture?.selected.book != nil else {
+                numberOfRows = 0
+                break
+            }
+            
+            if let chapters = scripture?.picker.chapters {
                 numberOfRows = chapters.count
-            } else {
-                numberOfRows = 0 // number of chapters in book
             }
             break
             
         case 3:
-            if scripture?.selected.chapter > 0 {
-                numberOfRows = 1 // number of verses in chapter
-            } else {
-                numberOfRows = 0 // number of verses in chapter
+            guard includeVerses else {
+                numberOfRows = 0
+                break
+            }
+            
+            guard scripture?.selected.testament != nil else {
+                numberOfRows = 0
+                break
+            }
+            
+            guard scripture?.selected.book != nil else {
+                numberOfRows = 0
+                break
+            }
+            
+            guard scripture?.selected.chapter > 0 else {
+                numberOfRows = 0
+                break
+            }
+            
+            if let verses = scripture?.picker.verses {
+                numberOfRows = verses.count
             }
             break
             
@@ -515,8 +540,12 @@ extension ScriptureViewController : UIPickerViewDataSource
                 break
             }
             
-            if scripture?.selected.chapter > 0 {
-                return "1"
+//            if scripture?.selected.chapter > 0 {
+//                return "1"
+//            }
+            
+            if let verses = scripture?.picker.verses {
+                return "\(verses[row])"
             }
             break
             
@@ -539,6 +568,7 @@ extension ScriptureViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
     {
+        // These should be dynamic
         switch component {
         case 0:
             return 50
@@ -599,9 +629,13 @@ extension ScriptureViewController : UIPickerViewDelegate
             
             pickerView.reloadAllComponents()
             
-            pickerView.selectRow(0, inComponent: 1, animated: true)
+            if pickerView.numberOfComponents > 1 {
+                pickerView.selectRow(0, inComponent: 1, animated: true)
+            }
             
-            pickerView.selectRow(0, inComponent: 2, animated: true)
+            if pickerView.numberOfComponents > 2 {
+                pickerView.selectRow(0, inComponent: 2, animated: true)
+            }
             
             updateReferenceLabel()
             break
@@ -621,7 +655,9 @@ extension ScriptureViewController : UIPickerViewDelegate
             
             pickerView.reloadAllComponents()
             
-            pickerView.selectRow(0, inComponent: 2, animated: true)
+            if pickerView.numberOfComponents > 2 {
+                pickerView.selectRow(0, inComponent: 2, animated: true)
+            }
             
             updateReferenceLabel()
             break
@@ -639,7 +675,17 @@ extension ScriptureViewController : UIPickerViewDelegate
                 scripture?.selected.chapter = chapter
             }
             
+            updatePicker()
+            
+            if let verse = scripture?.picker.verses?[0] {
+                scripture?.selected.verse = verse
+            }
+            
             pickerView.reloadAllComponents()
+            
+            if pickerView.numberOfComponents > 3 {
+                pickerView.selectRow(0, inComponent: 3, animated: true)
+            }
             
             updateReferenceLabel()
             break
@@ -657,7 +703,11 @@ extension ScriptureViewController : UIPickerViewDelegate
                 break
             }
             
-            pickerView.reloadAllComponents()
+            if let verse = scripture?.picker.verses?[row] {
+                scripture?.selected.verse = verse
+            }
+            
+//            pickerView.reloadAllComponents()
             
             updateReferenceLabel()
             break
@@ -689,6 +739,8 @@ extension ScriptureViewController : UIPopoverPresentationControllerDelegate
 class ScriptureViewController : UIViewController
 {
     var popover : PopoverTableViewController?
+    
+    var includeVerses = false
     
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
@@ -760,7 +812,7 @@ class ScriptureViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
         }
 
@@ -875,7 +927,7 @@ class ScriptureViewController : UIViewController
         
         if self.scripture?.html?[reference] != nil {
             if let string = self.scripture?.html?[reference] {
-                self.webViewController?.html.string = insertHead(stripHead(string), fontSize:webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                self.webViewController?.html.string = string.stripHead.insertHead(fontSize:webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                 
                 if let url = self.webViewController?.html.fileURL {
                     self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -891,31 +943,33 @@ class ScriptureViewController : UIViewController
                 if let string = data as? String {
 //                        self?.webViewController?.html.string = string
 
-                    if let string = insertHead(stripHead(string),fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
-                        self?.webViewController?.html.string = string
-                        
-                        if let url = self?.webViewController?.html.fileURL {
-                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                        }
-                    } else {
-                        if let url = self?.webViewController?.html.fileURL {
-                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                        }
+                    self?.webViewController?.html.string = string.stripHead.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                    
+                    if let url = self?.webViewController?.html.fileURL {
+                        self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
+
+//                    if let string =  { //
+//                    } else {
+//                        if let url = self?.webViewController?.html.fileURL {
+//                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+//                        }
+//                    }
                 } else {
                     var bodyString = "<!DOCTYPE html><html><body>"
                     
                     bodyString = bodyString + "Network error.  Scripture text unavailable."
                     
                     bodyString = bodyString + "</body></html>"
+
+                    self?.webViewController?.html.string = bodyString.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                     
-                    if let string = insertHead(bodyString,fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
-                        self?.webViewController?.html.string = string
-                        
-                        if let url = self?.webViewController?.html.fileURL {
-                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                        }
+                    if let url = self?.webViewController?.html.fileURL {
+                        self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
+
+//                    if let string = bodyString.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
+//                    }
                 }
 
                 self?.webViewController?.view.isHidden = false
@@ -1310,7 +1364,7 @@ class ScriptureViewController : UIViewController
         
         setupBarButtons()
         
-        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
+        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
             webViewController?.view.isHidden = true
             
 //            DispatchQueue.global(qos: .background).async { [weak self] in
@@ -1321,7 +1375,7 @@ class ScriptureViewController : UIViewController
                 if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
-                    self?.scripture?.selected.testament = self?.testament(book)
+                    self?.scripture?.selected.testament = book.testament
                     self?.scripture?.selected.book = book
                     
                     if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
@@ -1387,7 +1441,11 @@ class ScriptureViewController : UIViewController
             scripture?.selected.testament = Constants.OT
         }
         
-        guard let selectedTestament = scripture?.selected.testament, !selectedTestament.isEmpty else {
+        guard let selectedTestament = scripture?.selected.testament else {
+            return
+        }
+        
+        guard !selectedTestament.isEmpty else {
             return
         }
         
@@ -1411,13 +1469,13 @@ class ScriptureViewController : UIViewController
         var maxChapters = 0
         switch selectedTestament {
         case Constants.OT:
-            if let index = bookNumberInBible(scripture?.selected.book) {
+            if let index = scripture?.selected.book?.bookNumberInBible {
                 maxChapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
             }
             break
             
         case Constants.NT:
-            if let index = bookNumberInBible(scripture?.selected.book) {
+            if let index = scripture?.selected.book?.bookNumberInBible {
                 maxChapters = Constants.NEW_TESTAMENT_CHAPTERS[index - Constants.OLD_TESTAMENT_BOOKS.count]
             }
             break
@@ -1431,25 +1489,60 @@ class ScriptureViewController : UIViewController
             chapters.append(i)
         }
         scripture?.picker.chapters = chapters
-            
+        
         if scripture?.selected.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
             scripture?.selected.chapter = chapter
         }
 
+        if includeVerses, let index = scripture?.selected.book?.bookNumberInBible, let chapter = scripture?.selected.chapter {
+            var maxVerses = 0
+            switch selectedTestament {
+            case Constants.OT:
+                maxVerses = Constants.OLD_TESTAMENT_VERSES[index][chapter]
+                break
+                
+            case Constants.NT:
+                maxVerses = Constants.NEW_TESTAMENT_VERSES[index - Constants.OLD_TESTAMENT_BOOKS.count][chapter]
+                break
+                
+            default:
+                break
+            }
+            var verses = [Int]()
+            for i in 1...maxVerses {
+                verses.append(i)
+            }
+            scripture?.picker.verses = verses
+            
+            if scripture?.selected.verse == 0, let verse = scripture?.picker.verses?[0] {
+                scripture?.selected.verse = verse
+            }
+        }
+
         scripturePicker.reloadAllComponents()
         
-        if let selectedTestament = scripture?.selected.testament {
-            if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
-                scripturePicker.selectRow(index, inComponent: 0, animated: false)
-            }
-            
-            if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
-                scripturePicker.selectRow(index, inComponent: 1, animated: false)
-            }
-            
-            if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
-                scripturePicker.selectRow(index, inComponent: 2, animated: false)
-            }
+//        guard let selectedTestament = scripture?.selected.testament else {
+//            return
+//        }
+        
+        if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
+            scripturePicker.selectRow(index, inComponent: 0, animated: false)
+        }
+        
+        if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
+            scripturePicker.selectRow(index, inComponent: 1, animated: false)
+        }
+        
+        if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
+            scripturePicker.selectRow(index, inComponent: 2, animated: false)
+        }
+        
+        guard includeVerses else {
+            return
+        }
+        
+        if let verse = scripture?.selected.verse, verse > 0, let index = scripture?.picker.verses?.firstIndex(of: verse) {
+            scripturePicker.selectRow(index, inComponent: 3, animated: false)
         }
     }
     

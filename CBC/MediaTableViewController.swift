@@ -98,7 +98,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
             return
         }
         
@@ -124,7 +124,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
             return
         }
 
@@ -152,7 +152,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
             return false
         }
         
@@ -166,7 +166,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
             return
         }
 
@@ -196,7 +196,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
             return
         }
         
@@ -209,7 +209,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
             return
         }
         
@@ -225,7 +225,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
             return
         }
         
@@ -459,7 +459,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         popover.navigationItem.title = "Information" // self?.popover?.navigationItem.title // "VoiceBase Media Item"
                         
                         popover.html.fontSize = 12
-                        popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
+                        popover.html.string = VoiceBase.html(json)?.insertHead(fontSize: popover.html.fontSize)
                         
                         popover.search = true
                         popover.content = .html
@@ -694,7 +694,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 let popover = navigationController.viewControllers[0] as? WebViewController {
                                 
                                 popover.html.fontSize = 12
-                                popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
+                                popover.html.string = VoiceBase.html(json)?.insertHead(fontSize: popover.html.fontSize)
                                 
                                 popover.search = true
                                 popover.content = .html
@@ -789,7 +789,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
             return
         }
 
@@ -818,11 +818,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 } else {
                     if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
-                        alert(viewController:self,title: "Not in List",message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",completion:nil)
+                        self.alert(title: "Not in List",message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",completion:nil)
                     }
                 }
             } else {
-                alert(viewController:self,title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
+                self.alert(title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
             }
             break
             
@@ -837,7 +837,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Scripture_Index:
             if (Globals.shared.media.active?.scriptureIndex?.eligible == nil) {
-                alert(viewController:self,title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
+                self.alert(title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
             } else {
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
             }
@@ -845,7 +845,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Lexicon_Index:
             guard (Globals.shared.media.active?.lexicon?.eligible != nil) else {
-                alert(viewController:self,title:"No Lexicon Index Available",
+                self.alert(title:"No Lexicon Index Available",
                       message: "These media items do not have HTML transcripts.",
                       completion:nil)
                 break
@@ -1135,7 +1135,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -1209,7 +1209,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         if self.selectedMediaItem != nil {
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.middle)
                         } else {
-                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableView.ScrollPosition.top, animated: false)
+                            let indexPath = IndexPath(row:0,section:0)
+                            if self.tableView?.isValid(indexPath) == true {
+                                self.tableView?.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: false)
+                            }
                         }
                     }
 
@@ -1351,14 +1354,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top) // was Middle
                     } else {
                         if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
-                            alert(  viewController:self,
-                                    title:"Not in List",
-                                    message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",
-                                completion:nil)
+                            self.alert( title:"Not in List",
+                                        message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",
+                                        completion:nil)
                         }
                     }
                 } else {
-                    alert(viewController:self,title:"Media Item Not Found!",
+                    self.alert(title:"Media Item Not Found!",
                           message: "Oops, this should never happen!",
                           completion:nil)
                 }
@@ -1462,7 +1464,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 }
                 
                 //Can't use this reliably w/ variable row heights.
-                tableView?.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                if tableView?.isValid(indexPath) == true {
+                    tableView?.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                }
             }
             break
             
@@ -1584,12 +1588,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.View_List:
                 self.process(work: { [weak self] () -> (Any?) in
                     if Globals.shared.media.active?.html?.string == nil {
-                        Globals.shared.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs:true, includeColumns:true)
+                        Globals.shared.media.active?.html?.string = Globals.shared.media.active?.html(includeURLs:true, includeColumns:true)
                     }
                     return Globals.shared.media.active?.html?.string
                 }, completion: { [weak self] (data:Any?) in
                     if let vc = self {
-                        presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+                        vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                     }
                 })
 //                if let string = Globals.shared.media.active?.html?.string {
@@ -1645,8 +1649,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.wholeWordsOnly = true
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
-                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.century
+                } // century
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
                     return string
                 }
                 
@@ -1956,7 +1962,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
             return
         }
 
@@ -2032,7 +2038,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
             return
         }
 
@@ -2242,7 +2248,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
             return
         }
 
@@ -2278,12 +2284,12 @@ class MediaTableViewController : UIViewController
             switch grouping {
             case GROUPING.BOOK:
                 if let books = Globals.shared.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
-                    return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                    return string.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                 }) {
                     popover.section.strings = books
 
                     if let other = Globals.shared.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
-                        return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                        return string.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                     }) {
                         popover.section.strings?.append(contentsOf: other)
                     }
@@ -2292,21 +2298,27 @@ class MediaTableViewController : UIViewController
                 
             case GROUPING.TITLE:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = stringWithoutPrefixes
+                popover.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.withoutPrefixes
+                }
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = stringWithoutPrefixes
+                popover.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.withoutPrefixes
+                }
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.SPEAKER:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = lastNameFromName
+                popover.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.lastName
+                } // lastNameFromName
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
@@ -2329,7 +2341,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
             return
         }
 
@@ -2358,7 +2370,7 @@ class MediaTableViewController : UIViewController
             
             popover.purpose = .selectingGrouping
             popover.section.strings = Globals.shared.groupingTitles
-            popover.stringSelected = translate(Globals.shared.grouping)
+            popover.stringSelected = Globals.shared.grouping?.translate
             
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2373,7 +2385,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
             return
         }
 
@@ -2402,7 +2414,7 @@ class MediaTableViewController : UIViewController
             
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
-            popover.stringSelected = translate(Globals.shared.sorting)
+            popover.stringSelected = Globals.shared.sorting?.translate
 
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
@@ -2611,7 +2623,7 @@ class MediaTableViewController : UIViewController
         
 //        operationQueue.waitUntilAllOperationsAreFinished()
         
-        let operation = CancellableOperation { [weak self] (test:(()->(Bool))?) in
+        let operation = CancellableOperation { [weak self] (test:(()->Bool)?) in
 //        DispatchQueue.global(qos: .).async { [weak self] in
             self?.setupSearchBar()
             self?.setupCategoryButton()
@@ -2832,7 +2844,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return
         }
         
@@ -2848,7 +2860,7 @@ class MediaTableViewController : UIViewController
 //            self.refreshControl?.beginRefreshing()
 //        }
         
-        yesOrNo(viewController: self, title: "Reload Media List?", message: nil,
+        self.yesOrNo(title: "Reload Media List?", message: nil,
                 yesAction: { () -> (Void) in
                     self.setupListActivityIndicator()
                     
@@ -3044,7 +3056,7 @@ class MediaTableViewController : UIViewController
                 Globals.shared.isRefreshing = false
             }
 
-            alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
+            self.alert(title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
         } else {
             if Globals.shared.isRefreshing {
                 self.refreshControl?.endRefreshing()
@@ -3064,13 +3076,20 @@ class MediaTableViewController : UIViewController
                     }
                 })
             } else {
-                // Reload the table
-                self.tableView?.reloadData()
-
-                if self.selectedMediaItem != nil {
-                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.middle)
-                } else {
-                    self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableView.ScrollPosition.top, animated: false)
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    Thread.onMainThread {
+                        // Reload the table
+                        self?.tableView?.reloadData()
+                        
+                        if self?.selectedMediaItem != nil {
+                            self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.middle)
+                        } else {
+                            let indexPath = IndexPath(row:0,section:0)
+                            if self?.tableView?.isValid(indexPath) == true {
+                                self?.tableView?.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: false)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -3110,7 +3129,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
             return
         }
         
@@ -3250,7 +3269,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
         }
         
@@ -3361,7 +3380,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
             return
         }
 
@@ -3405,7 +3424,9 @@ class MediaTableViewController : UIViewController
             popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
             
             popover.section.showIndex = true
-            popover.indexStringsTransform = stringWithoutPrefixes
+            popover.indexStringsTransform = { (string:String?) -> String? in
+                return string?.withoutPrefixes
+            }
 
             popover.section.strings = tagsMenu()
             
@@ -3664,36 +3685,42 @@ class MediaTableViewController : UIViewController
             row = index - sectionIndexes[section]
         }
         
-        if (section >= 0) && (row >= 0) {
-            indexPath = IndexPath(row: row,section: section)
-            
-            guard indexPath.section >= 0, (indexPath.section < tableView.numberOfSections) else {
-                NSLog("indexPath section ERROR in selectOrScrollToMediaItem")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                return
-            }
-            
-            guard indexPath.row >= 0, indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
-                NSLog("indexPath row ERROR in selectOrScrollToMediaItem")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                NSLog("Row: \(indexPath.row)")
-                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+        guard (section >= 0) && (row >= 0) else {
+            return
+        }
+        
+        indexPath = IndexPath(row: row,section: section)
+        
+        guard indexPath.section >= 0, (indexPath.section < tableView.numberOfSections) else {
+            NSLog("indexPath section ERROR in selectOrScrollToMediaItem")
+            NSLog("Section: \(indexPath.section)")
+            NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+            return
+        }
+        
+        guard indexPath.row >= 0, indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
+            NSLog("indexPath row ERROR in selectOrScrollToMediaItem")
+            NSLog("Section: \(indexPath.section)")
+            NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+            NSLog("Row: \(indexPath.row)")
+            NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+            return
+        }
+        
+        Thread.onMainThread {
+            self.tableView?.setEditing(false, animated: true)
+
+            guard self.tableView?.isValid(indexPath) == true else {
                 return
             }
 
-            Thread.onMainThread {
-                self.tableView?.setEditing(false, animated: true)
-                
-                if (select) {
-                    self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableView.ScrollPosition.none)
-                }
-                
-                if (scroll) {
-                    //Scrolling when the user isn't expecting it can be jarring.
-                    self.tableView?.scrollToRow(at: indexPath, at: position, animated: false)
-                }
+            if (select) {
+                self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableView.ScrollPosition.none)
+            }
+
+            if (scroll) {
+                //Scrolling when the user isn't expecting it can be jarring.
+                self.tableView?.scrollToRow(at: indexPath, at: position, animated: false)
             }
         }
     }
@@ -3831,7 +3858,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
             return
         }
         
@@ -3850,7 +3877,7 @@ class MediaTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
             return
         }
         

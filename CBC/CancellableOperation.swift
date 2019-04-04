@@ -10,7 +10,7 @@ import Foundation
 
 class CancellableOperation : Operation
 {
-    var block : (((()->(Bool))?)->())?
+    var block : (((()->Bool)?)->())?
     
     var tag : String?
     
@@ -21,7 +21,7 @@ class CancellableOperation : Operation
         }
     }
     
-    init(tag:String? = nil,block:(((()->(Bool))?)->())?)
+    init(tag:String? = nil,block:(((()->Bool)?)->())?)
     {
         super.init()
         

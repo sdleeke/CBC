@@ -48,7 +48,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -63,7 +63,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
             switch strings[index] {
                 
             case Constants.Strings.Email_CBC:
-                mailHTML(viewController: self, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
+                self.mailHTML(to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
                 break
                 
             case Constants.Strings.CBC_WebSite:
@@ -179,8 +179,8 @@ class AboutViewController: UIViewController
     
     fileprivate func openWebSite(_ urlString:String)
     {
-        open(scheme: urlString) {
-            networkUnavailable(self,"Unable to open web site: \(urlString)")
+        UIApplication.shared.open(scheme: urlString) {
+            self.networkUnavailable("Unable to open web site: \(urlString)")
         }
     }
     
@@ -189,8 +189,8 @@ class AboutViewController: UIViewController
         let urlAddress = Constants.CBC.FULL_ADDRESS.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.PLUS, options: NSString.CompareOptions.literal, range: nil)
         
         let querystring = "comgooglemaps://?q="+urlAddress
-        open(scheme: querystring) {
-            alert(viewController:self,title: "Google Maps is not available", message: "", completion: nil)
+        UIApplication.shared.open(scheme: querystring) {
+            self.alert(title: "Google Maps is not available", message: "", completion: nil)
         }
     }
     

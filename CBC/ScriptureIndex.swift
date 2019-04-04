@@ -50,7 +50,7 @@ class ScriptureIndex
     var sectionTitles : [String]?
     {
         get {
-            return sections?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+            return sections?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         }
     }
     
@@ -201,8 +201,11 @@ class ScriptureIndex
             return
         }
         
+        let start = Date().timeIntervalSince1970
+
 //        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-        operationQueue.addOperation {  [weak self] in
+//        operationQueue.addOperation {  [weak self] in
+        let op = CancellableOperation { [weak self] (test:(() -> (Bool))?) in
 //            self?.creating = true
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
@@ -215,6 +218,10 @@ class ScriptureIndex
                         break
                     }
                     
+                    if let test = test, test() {
+                        break
+                    }
+                    
                     let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
                     if let books = booksChaptersVerses?.data?.keys {
                         for book in books {
@@ -222,23 +229,27 @@ class ScriptureIndex
                                 break
                             }
                             
-                            if let contains = self?.byTestament[testament(book)]?.contains(mediaItem) {
-                                if !contains {
-                                    self?.byTestament[testament(book)]?.append(mediaItem)
-                                }
-                            } else {
-                                self?.byTestament[testament(book)] = [mediaItem]
+                            if let test = test, test() {
+                                break
                             }
                             
-                            if self?.byBook[testament(book)] == nil {
-                                self?.byBook[testament(book)] = [String:[MediaItem]]()
-                            }
-                            if let contains = self?.byBook[testament(book)]?[book]?.contains(mediaItem) {
+                            if let contains = self?.byTestament[book.testament]?.contains(mediaItem) {
                                 if !contains {
-                                    self?.byBook[testament(book)]?[book]?.append(mediaItem)
+                                    self?.byTestament[book.testament]?.append(mediaItem)
                                 }
                             } else {
-                                self?.byBook[testament(book)]?[book] = [mediaItem]
+                                self?.byTestament[book.testament] = [mediaItem]
+                            }
+                            
+                            if self?.byBook[book.testament] == nil {
+                                self?.byBook[book.testament] = [String:[MediaItem]]()
+                            }
+                            if let contains = self?.byBook[book.testament]?[book]?.contains(mediaItem) {
+                                if !contains {
+                                    self?.byBook[book.testament]?[book]?.append(mediaItem)
+                                }
+                            } else {
+                                self?.byBook[book.testament]?[book] = [mediaItem]
                             }
                             
                             if let chapters = booksChaptersVerses?[book]?.keys {
@@ -247,18 +258,22 @@ class ScriptureIndex
                                         break
                                     }
                                     
-                                    if self?.byChapter[testament(book)] == nil {
-                                        self?.byChapter[testament(book)] = [String:[Int:[MediaItem]]]()
+                                    if let test = test, test() {
+                                        break
                                     }
-                                    if self?.byChapter[testament(book)]?[book] == nil {
-                                        self?.byChapter[testament(book)]?[book] = [Int:[MediaItem]]()
+                                    
+                                    if self?.byChapter[book.testament] == nil {
+                                        self?.byChapter[book.testament] = [String:[Int:[MediaItem]]]()
                                     }
-                                    if let contains = self?.byChapter[testament(book)]?[book]?[chapter]?.contains(mediaItem) {
+                                    if self?.byChapter[book.testament]?[book] == nil {
+                                        self?.byChapter[book.testament]?[book] = [Int:[MediaItem]]()
+                                    }
+                                    if let contains = self?.byChapter[book.testament]?[book]?[chapter]?.contains(mediaItem) {
                                         if !contains {
-                                            self?.byChapter[testament(book)]?[book]?[chapter]?.append(mediaItem)
+                                            self?.byChapter[book.testament]?[book]?[chapter]?.append(mediaItem)
                                         }
                                     } else {
-                                        self?.byChapter[testament(book)]?[book]?[chapter] = [mediaItem]
+                                        self?.byChapter[book.testament]?[book]?[chapter] = [mediaItem]
                                     }
                                     
                                     if let verses = booksChaptersVerses?[book]?[chapter] {
@@ -267,21 +282,25 @@ class ScriptureIndex
                                                 break
                                             }
                                             
-                                            if self?.byVerse[testament(book)] == nil {
-                                                self?.byVerse[testament(book)] = [String:[Int:[Int:[MediaItem]]]]()
+                                            if let test = test, test() {
+                                                break
                                             }
-                                            if self?.byVerse[testament(book)]?[book] == nil {
-                                                self?.byVerse[testament(book)]?[book] = [Int:[Int:[MediaItem]]]()
+                                            
+                                            if self?.byVerse[book.testament] == nil {
+                                                self?.byVerse[book.testament] = [String:[Int:[Int:[MediaItem]]]]()
                                             }
-                                            if self?.byVerse[testament(book)]?[book]?[chapter] == nil {
-                                                self?.byVerse[testament(book)]?[book]?[chapter] = [Int:[MediaItem]]()
+                                            if self?.byVerse[book.testament]?[book] == nil {
+                                                self?.byVerse[book.testament]?[book] = [Int:[Int:[MediaItem]]]()
                                             }
-                                            if let contains = self?.byVerse[testament(book)]?[book]?[chapter]?[verse]?.contains(mediaItem) {
+                                            if self?.byVerse[book.testament]?[book]?[chapter] == nil {
+                                                self?.byVerse[book.testament]?[book]?[chapter] = [Int:[MediaItem]]()
+                                            }
+                                            if let contains = self?.byVerse[book.testament]?[book]?[chapter]?[verse]?.contains(mediaItem) {
                                                 if !contains {
-                                                    self?.byVerse[testament(book)]?[book]?[chapter]?[verse]?.append(mediaItem)
+                                                    self?.byVerse[book.testament]?[book]?[chapter]?[verse]?.append(mediaItem)
                                                 }
                                             } else {
-                                                self?.byVerse[testament(book)]?[book]?[chapter]?[verse] = [mediaItem]
+                                                self?.byVerse[book.testament]?[book]?[chapter]?[verse] = [mediaItem]
                                             }
                                         }
                                     }
@@ -296,7 +315,7 @@ class ScriptureIndex
             self?.completed = true
             
             if let selectedTestament = self?.selectedTestament {
-                let testament = translateTestament(selectedTestament)
+                let testament = selectedTestament.translateTestament
                 
                 switch selectedTestament {
                 case Constants.OT:
@@ -319,7 +338,13 @@ class ScriptureIndex
             Globals.shared.queue.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             }
+            
+            let end = Date().timeIntervalSince1970
+            
+            print(end - start)
         }
+        
+        operationQueue.addOperation(op)
     }
 }
 

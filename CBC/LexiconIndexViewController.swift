@@ -35,7 +35,7 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
             return
         }
         
@@ -58,7 +58,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
             return
         }
         
@@ -123,7 +123,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     popover.process(work: { [weak self] () -> (Any?) in
                         return popover.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
-                        presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                        popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     })
                 }
 
@@ -146,7 +146,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 return self?.activeWordsHTML
             }, completion: { (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
-                presentHTMLModal(viewController: self, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+                self.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
             })
             break
             
@@ -184,7 +184,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 return self?.results?.html?.string
             }, completion: { [weak self] (data:Any?) in
                 if let searchText = self?.searchText, let vc = self {
-                    presentHTMLModal(viewController: vc, mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
+                    vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
                 }
             })
             break
@@ -201,7 +201,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -254,24 +254,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 let indexPath = IndexPath(row: 0, section: i)
                 
-                if !(indexPath.section < tableView.numberOfSections) {
-                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
-                    NSLog("Section: \(indexPath.section)")
-                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                    break
-                }
-                
-                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
-                    NSLog("Section: \(indexPath.section)")
-                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                    NSLog("Row: \(indexPath.row)")
-                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-                    break
-                }
+//                if !(indexPath.section < tableView.numberOfSections) {
+//                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
+//                    NSLog("Section: \(indexPath.section)")
+//                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+//                    break
+//                }
+//
+//                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+//                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
+//                    NSLog("Section: \(indexPath.section)")
+//                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+//                    NSLog("Row: \(indexPath.row)")
+//                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+//                    break
+//                }
                 
                 //Can't use this reliably w/ variable row heights.
-                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                if tableView.isValid(indexPath) {
+                    tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                }
             }
             break
             
@@ -282,18 +284,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 text = String(string[..<range.lowerBound])
             }
 
-            searchText = text.uppercased()
-            
-            Thread.onMainThread {
-                self.tableView.setEditing(false, animated: true)
-            }
-            
             var bounds = view.bounds
             
             if #available(iOS 11.0, *) {
                 bounds = view.bounds.inset(by: view.safeAreaInsets)
             } else {
                 // Fallback on earlier versions
+            }
+            
+            guard searchText != text.uppercased() else {
+                searchText = nil
+                if let indexPath = wordsTableViewController.tableView.indexPathForSelectedRow {
+                    wordsTableViewController.tableView.deselectRow(at: indexPath, animated: true)
+                }
+                break
+            }
+            
+            searchText = text.uppercased()
+            
+            Thread.onMainThread {
+                self.tableView.setEditing(false, animated: true)
             }
             
             if tableViewHeightConstraint.constant == bounds.height {
@@ -360,8 +370,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 popover.wholeWordsOnly = true
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
-                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                popover.section.indexStringsTransform =  { (string:String?) -> String? in
+                    return string?.century
+                } //century
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
                     return string
                 }
                 
@@ -1097,11 +1109,11 @@ class LexiconIndexViewController : UIViewController
             bodyString = bodyString + "Search: \(searchText)<br/>"
         }
         
-        if let grouping = translate(Globals.shared.grouping) {
+        if let grouping = Globals.shared.grouping?.translate {
             bodyString = bodyString + "Grouped: By \(grouping)<br/>"
         }
         
-        if let sorting = translate(Globals.shared.sorting) {
+        if let sorting = Globals.shared.sorting?.translate {
             bodyString = bodyString + "Sorted: \(sorting)<br/>"
         }
         
@@ -1281,7 +1293,7 @@ class LexiconIndexViewController : UIViewController
         
         bodyString = bodyString + "</body></html>"
         
-        return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
     }
     
     var activeWords : [String]?
@@ -1475,7 +1487,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
             return
         }
         
@@ -1588,7 +1600,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
             return
         }
         
@@ -1643,7 +1655,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
             return
         }
      
@@ -1656,7 +1668,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1675,7 +1687,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1692,7 +1704,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
             return
         }
         
@@ -1733,7 +1745,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
+            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
 

@@ -24,7 +24,7 @@ extension NSMutableData
 
 extension VoiceBase // Class Methods
 {
-    static func url(path:String?, query:String? = nil) -> String // mediaID:String?,
+    private static func url(path:String?, query:String? = nil) -> String // mediaID:String?,
     {
         if path == nil, query == nil { // mediaID == nil,
             return Constants.URL.VOICE_BASE_ROOT + "?limit=1000"
@@ -215,7 +215,7 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-    static func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
+    private static func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
     {
         if !Globals.shared.checkingVoiceBaseAvailability {
             if !(Globals.shared.isVoiceBaseAvailable ?? false){
@@ -318,7 +318,7 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    private static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard let mediaID = mediaID else {
             return
@@ -327,7 +327,7 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media/\(mediaID)/metadata", query:nil, completion:completion, onError:onError)
     }
 
-    static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    private static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard let mediaID = mediaID else {
             return
@@ -1936,7 +1936,7 @@ class VoiceBase
         task.resume()
     }
     
-    func userInfo(alert:Bool,detailedAlerts:Bool,
+    private func userInfo(alert:Bool,//detailedAlerts:Bool,
                   finishedTitle:String?,finishedMessage:String?,onFinished:(()->(Void))?,
                   errorTitle:String?,errorMessage:String?,onError:(()->(Void))?) -> [String:Any]?
     {
@@ -2052,25 +2052,27 @@ class VoiceBase
         return userInfo.count > 0 ? userInfo : nil
     }
     
-    func uploadUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
+    private func uploadUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
         guard let text = self.mediaItem?.text else {
             return nil
         }
         
-        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+        return userInfo(alert: alert, //detailedAlerts: detailedAlerts,
                         finishedTitle: "Transcription Completed", finishedMessage: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.", onFinished: {
-                            self.getTranscript(alert:detailedAlerts) {
-                                self.getTranscriptSegments(alert:detailedAlerts) {
-                                    self.details(alert:detailedAlerts) {
-                                        self.transcribing = false
-                                        self.completed = true
-                                        
-                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-                                        // sure I can predict the context in which this (i.e. that) would happen.
-                                    }
-                                }
-                            }
+                            self.getTranscript(alert:detailedAlerts,detailedAlerts:detailedAlerts)
+                            
+//                            self.getTranscript(alert:detailedAlerts) {
+//                                self.getTranscriptSegments(alert:detailedAlerts) {
+//                                    self.details(alert:detailedAlerts) {
+//                                        self.transcribing = false
+//                                        self.completed = true
+//
+//                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+//                                        // sure I can predict the context in which this (i.e. that) would happen.
+//                                    }
+//                                }
+//                            }
                         },
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
                             self.remove()
@@ -2482,12 +2484,12 @@ class VoiceBase
         return nil
     }
     
-    func details(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    private func details(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         VoiceBase.details(mediaID: mediaID, completion: completion, onError: onError)
     }
 
-    func details(alert:Bool, atEnd:(()->())?)
+    private func details(alert:Bool, atEnd:(()->())?)
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
             if let json = json?["media"] as? [String:Any] {
@@ -2575,26 +2577,33 @@ class VoiceBase
 //        }
 //    }
     
-    func alignUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
+    private func alignUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
         guard let text = self.mediaItem?.text else {
             return nil
         }
 
-        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+        return userInfo(alert: alert, //detailedAlerts: detailedAlerts,
                         finishedTitle: "Transcript Alignment Complete", finishedMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.", onFinished: {
                             // Get the new versions.
-                            self.getTranscript(alert:detailedAlerts) {
-//                                self.correctAlignedTranscript()
-                                self.getTranscriptSegments(alert:detailedAlerts) {
-                                    self.details(alert:detailedAlerts) {
-                                        self.aligning = false
-
-                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-                                        // sure I can predict the context in which this (i.e. that) would happen.
-                                    }
-                                }
+                            self.getTranscript(alert:detailedAlerts,detailedAlerts:detailedAlerts) {
+                                self.aligning = false
+                                
+                                // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                // sure I can predict the context in which this (i.e. that) would happen.
                             }
+                            
+//                            self.getTranscript(alert:detailedAlerts) {
+////                                self.correctAlignedTranscript()
+//                                self.getTranscriptSegments(alert:detailedAlerts) {
+//                                    self.details(alert:detailedAlerts) {
+//                                        self.aligning = false
+//
+//                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+//                                        // sure I can predict the context in which this (i.e. that) would happen.
+//                                    }
+//                                }
+//                            }
                         },
                         errorTitle: "Transcript Alignment Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.", onError: {
                             // WHY would we remove when an alignment fails?
@@ -2799,7 +2808,7 @@ class VoiceBase
                     }
                     
                     if self.resultsTimer == nil {
-                        let newUserInfo = self.userInfo(alert: false, detailedAlerts: false,
+                        let newUserInfo = self.userInfo(alert: false, //detailedAlerts: false,
                                                         finishedTitle: nil, finishedMessage: nil, onFinished: {
                                                             // Now do the relignment
                                                             var parameters:[String:String] = ["transcript":transcript]
@@ -2918,7 +2927,26 @@ class VoiceBase
         })
     }
     
-    func getTranscript(alert:Bool, onSuccess:(()->())? = nil)
+    func getTranscript(alert:Bool = true,detailedAlerts:Bool = false,completion:(()->())? = nil)
+    {
+        getTranscript(alert: alert) {
+            self.getTranscriptSegments(alert:detailedAlerts) {
+                self.details(alert:detailedAlerts) {
+                    if let completion = completion {
+                        completion()
+                    } else {
+                        self.transcribing = false
+                        self.completed = true
+                    }
+                    
+                    // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                    // sure I can predict the context in which this (i.e. that) would happen.
+                }
+            }
+        }
+    }
+    
+    private func getTranscript(alert:Bool, onSuccess:(()->())? = nil)
     {
         guard let mediaID = mediaID else {
             upload()
@@ -3063,7 +3091,7 @@ class VoiceBase
 
             for transcriptSegmentArray in transcriptSegmentArrays {
                 if let times = transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
-                    if let tokens = tokensFromString(transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)) {
+                    if let tokens = transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)?.tokens {
                         for token in tokens {
                             let key = token
 
@@ -3653,7 +3681,7 @@ class VoiceBase
         }
     }
     
-    func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
+    private func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
     {
         guard let mediaID = mediaID else {
             return
@@ -3791,24 +3819,31 @@ class VoiceBase
         task.resume()
     }
 
-    func relaodUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
+    private func relaodUserInfo(alert:Bool,detailedAlerts:Bool) -> [String:Any]?
     {
         guard let text = self.mediaItem?.text else {
             return nil
         }
         
-        return userInfo(alert: alert, detailedAlerts: detailedAlerts,
+        return userInfo(alert: alert, //detailedAlerts: detailedAlerts,
                         finishedTitle: "Transcript Reload Completed", finishedMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded.", onFinished: {
-                            self.getTranscript(alert:detailedAlerts) {
-                                self.getTranscriptSegments(alert:detailedAlerts) {
-                                    self.details(alert:detailedAlerts) {
+                            self.getTranscript(alert:detailedAlerts,detailedAlerts:detailedAlerts) {
 
-                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-                                        // sure I can predict the context in which this (i.e. that) would happen.
-
-                                    }
-                                }
+                                // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+                                // sure I can predict the context in which this (i.e. that) would happen.
+                                
                             }
+
+//                            self.getTranscript(alert:detailedAlerts) {
+//                                self.getTranscriptSegments(alert:detailedAlerts) {
+//                                    self.details(alert:detailedAlerts) {
+//
+//                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+//                                        // sure I can predict the context in which this (i.e. that) would happen.
+//
+//                                    }
+//                                }
+//                            }
                         },
                         errorTitle: "Transcript Reload Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not reloaded.  Please try again.", onError: {
 
@@ -3831,7 +3866,7 @@ class VoiceBase
             message += " for\n\n\(text)\(completion) "
         }
         
-        if (mediaID != nil) {
+        guard (mediaID == nil) else {
             title += "in Progress"
             message += "\n\nis available."
             
@@ -3843,10 +3878,10 @@ class VoiceBase
                 if let text = self.mediaItem?.text {
                     message = text + " (\(self.transcriptPurpose))"
                 }
-
+                
                 let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                 message: message,
-                    preferredStyle: .alert)
+                                                preferredStyle: .alert)
                 alert.makeOpaque()
                 
                 alert.addTextField(configurationHandler: { (textField:UITextField) in
@@ -3864,12 +3899,14 @@ class VoiceBase
             actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
             
             Alerts.shared.alert(title:title, message:message, actions:actions)
-        } else {
-            title += "Requested"
-            message += "\n\nhas started."
             
-            Alerts.shared.alert(title:title, message:message)
+            return
         }
+        
+        title += "Requested"
+        message += "\n\nhas started."
+        
+        Alerts.shared.alert(title:title, message:message)
     }
 
     func confirmAlignment(source:String, action:(()->())?) // viewController:UIViewController,
@@ -5002,7 +5039,7 @@ class VoiceBase
             return
         }
         
-        if test?() == true {
+        if let test = test, test() {
             return
         }
         
@@ -5064,6 +5101,11 @@ class VoiceBase
                     let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    
+                    if let test = test, test() {
+                        return
+                    }
+
                     operationQueue.addOperation(op)
                     return
                 }
@@ -5079,6 +5121,11 @@ class VoiceBase
                     let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    
+                    if let test = test, test() {
+                        return
+                    }
+                    
                     operationQueue.addOperation(op)
                     return
                 }
@@ -5098,6 +5145,11 @@ class VoiceBase
                     let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    
+                    if let test = test, test() {
+                        return
+                    }
+                    
                     operationQueue.addOperation(op)
                     return
                 }
@@ -5113,6 +5165,11 @@ class VoiceBase
                     let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
+                    
+                    if let test = test, test() {
+                        return
+                    }
+                    
                     operationQueue.addOperation(op)
                     return
                 }
@@ -5168,6 +5225,11 @@ class VoiceBase
             // Why is completion called here?
             self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
         }
+        
+        if let test = test, test() {
+            return
+        }
+        
         operationQueue.addOperation(op)
     }
     
@@ -5177,26 +5239,26 @@ class VoiceBase
         var range:Range<String.Index>?
     }
     
-    func textChanges(text:String?, changes:[(String,String)]?) -> [Change]?
-    {
-        guard var text = text else {
-            return nil
-        }
-
-        var rangeChanges = [Change]()
-        
-        changes?.forEach({ (change:(String, String)) in
-            var startingRange:Range<String.Index>?
-
-            let oldText = change.0
-            let newText = change.1
-            
-        })
-        
-        return rangeChanges.count > 0 ? rangeChanges : nil
-    }
+//    func textChanges(text:String?, changes:[(String,String)]?) -> [Change]?
+//    {
+//        guard var text = text else {
+//            return nil
+//        }
+//
+//        var rangeChanges = [Change]()
+//
+//        changes?.forEach({ (change:(String, String)) in
+//            var startingRange:Range<String.Index>?
+//
+//            let oldText = change.0
+//            let newText = change.1
+//
+//        })
+//
+//        return rangeChanges.count > 0 ? rangeChanges : nil
+//    }
     
-    func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, test:(()->(Bool))? = nil, completion:((String)->(Void))?)
+    func changeText(text:String?, startingRange:Range<String.Index>?, changes:[(String,String)]?, test:(()->Bool)? = nil, completion:((String)->(Void))?)
     {
         guard var text = text else {
             return
@@ -5207,7 +5269,7 @@ class VoiceBase
             return
         }
         
-        if test?() == true {
+        if let test = test, test() {
             return
         }
         
@@ -5315,12 +5377,26 @@ class VoiceBase
                         // ERROR
                     }
                 }
+                
+                if let test = test, test() {
+                    return
+                }
+                
+                print("Changes left:",changes.count)
+
                 operationQueue.addOperation(op)
             } else {
                 let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                 }
+                
+                if let test = test, test() {
+                    return
+                }
+                
+                print("Changes left:",changes.count)
+                
                 operationQueue.addOperation(op)
             }
         } else {
@@ -5332,11 +5408,21 @@ class VoiceBase
                 changes.removeFirst()
                 self?.changeText(text:text, startingRange:nil, changes:changes, test:test, completion:completion)
             }
+            
+            if let test = test, test() {
+                return
+            }
+            
+            print("Changes left:",changes.count)
+            
             operationQueue.addOperation(op)
         }
     }
     
-    func autoEdit(viewController:UIViewController)
+    // We need a way to report how long autoEdit takes.
+    // We also need a way to report progress on a percentage basis
+    
+    func autoEdit(viewController:UIViewController,notify:Bool = true)
     {
         guard self.operationQueue.operationCount == 0 else {
             var message = String()
@@ -5349,23 +5435,25 @@ class VoiceBase
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title:"Auto Edit Already Underway",message:message)
+            if notify {
+                Alerts.shared.alert(title:"Auto Edit Already Underway",message:message)
+            }
             return
         }
         
         guard !self.aligning else {
-            if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                alertActionsCancel( viewController: viewController,
-                                    title: "Alignment Underway",
-                                    message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
-                    alertActions: nil,
-                    cancelAction: nil)
-            } else {
-                alertActionsCancel( viewController: viewController,
-                                    title: "Alignment Underway",
-                                    message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
-                    alertActions: nil,
-                    cancelAction: nil)
+            if notify {
+                if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                    viewController.alertActionsCancel( title: "Alignment Underway",
+                                                       message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+                        alertActions: nil,
+                        cancelAction: nil)
+                } else {
+                    viewController.alertActionsCancel( title: "Alignment Underway",
+                                                       message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+                        alertActions: nil,
+                        cancelAction: nil)
+                }
             }
             return
         }
@@ -5380,9 +5468,11 @@ class VoiceBase
         
         message += "You will be notified when it is complete."
         
-        Alerts.shared.alert(title: "Auto Edit Underway", message: message)
+        if notify {
+            Alerts.shared.alert(title: "Auto Edit Underway", message: message)
+        }
         
-        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->(Bool))?) in
+        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
             func textChanges()
             {
                 guard let text = self?.transcript else {
@@ -5393,7 +5483,7 @@ class VoiceBase
                     return
                 }
                 
-                if test?() == true {
+                if let test = test, test() {
                     return
                 }
                 
@@ -5401,37 +5491,41 @@ class VoiceBase
                 
                 // THIS IS A VERY, VERY LONG RUNNING LOOP
                 for masterKey in masterChanges.keys {
-                    if test?() == true {
+                    if let test = test, test() {
                         return
                     }
                     
                     if let keys = masterChanges[masterKey]?.keys {
                         for key in keys {
-                            if test?() == true {
+                            if let test = test, test() {
                                 return
                             }
                             
                             let oldText = key
                             if let newText = masterChanges[masterKey]?[key] {
-                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
-                                    if text.lowercased().range(of: oldText) != nil {
-                                        changes.append((oldText,newText))
-                                    }
-                                } else {
-                                    if text.range(of: oldText) != nil {
-                                        changes.append((oldText,newText))
-                                    }
-                                }
+                                // In case we don't want to prefilter the edits (delay now or later)
+                                changes.append((oldText,newText))
+                                print("changes:",changes.count)
+
+//                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
+//                                    if text.lowercased().range(of: oldText) != nil {
+//                                        changes.append((oldText,newText))
+//                                    }
+//                                } else {
+//                                    if text.range(of: oldText) != nil {
+//                                        changes.append((oldText,newText))
+//                                    }
+//                                }
                             }
                         }
                     }
                 }
                 
-                if test?() == true {
+                if let test = test, test() {
                     return
                 }
                 
-                // THIS IS NOT THE RIGHT WAY TO SORT CHANGES
+                // THIS IS NOT THE RIGHT WAY TO SORT CHANGES - WHY?
                 changes.sort(by: { (first, second) -> Bool in
                     guard first.0.endIndex != second.0.endIndex else {
                         return first.0 < second.0
@@ -5440,14 +5534,24 @@ class VoiceBase
                     return first.0.endIndex > second.0.endIndex
                 })
                 
-                if test?() == true {
+                if let test = test, test() {
                     return
                 }
                 
-                self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
-                    Alerts.shared.alert(title:"Auto Edit Completed", message:self?.mediaItem?.text)
-                    self?.transcript = string
-                })
+                print("Total changes:",changes.count)
+                
+                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                    self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
+                        Alerts.shared.alert(title:"Auto Edit Completed", message:self?.mediaItem?.text)
+                        self?.transcript = string
+                    })
+                }
+                
+                if let test = test, test() {
+                    return
+                }
+                
+                self?.operationQueue.addOperation(op)
             }
             
             if  let transcriptString = self?.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
@@ -5609,21 +5713,22 @@ class VoiceBase
 //
 //                                            alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                             
-                                            yesOrNo(viewController: viewController,
-                                                    title: "Begin Creating\nMachine Generated Transcript?",
+                                            viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                                     message: "\(text) (\(self.transcriptPurpose))",
                                                     yesAction: { () -> (Void) in
-                                                        self.getTranscript(alert:true) {
-                                                            self.getTranscriptSegments(alert:true) {
-                                                                self.details(alert:true) {
-                                                                    self.transcribing = false
-                                                                    self.completed = true
-                                                                    
-                                                                    // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-                                                                    // sure I can predict the context in which this (i.e. that) would happen.
-                                                                }
-                                                            }
-                                                        }
+                                                        self.getTranscript(alert:true,detailedAlerts:true)
+                                                        
+//                                                        self.getTranscript(alert:true) {
+//                                                            self.getTranscriptSegments(alert:true) {
+//                                                                self.details(alert:true) {
+//                                                                    self.transcribing = false
+//                                                                    self.completed = true
+//
+//                                                                    // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+//                                                                    // sure I can predict the context in which this (i.e. that) would happen.
+//                                                                }
+//                                                            }
+//                                                        }
 
                                                         self.alert(viewController:viewController)
                                                     },
@@ -5637,7 +5742,7 @@ class VoiceBase
 //                                                    alertActions: alertActions,
 //                                                    cancelAction: nil)
                                         } else {
-                                            networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
+                                            viewController.networkUnavailable( "Machine Generated Transcript Unavailable.")
                                         }
                                     } else {
                                         self.alert(viewController:viewController)
@@ -5654,13 +5759,13 @@ class VoiceBase
                         
                         viewController.present(alert, animated: true, completion: nil)
                     } else {
-                        networkUnavailable(viewController,"VoiceBase unavailable.")
+                        viewController.networkUnavailable("VoiceBase unavailable.")
                     }
                     return
                 }
                 
                 guard Globals.shared.reachability.isReachable else {
-                    networkUnavailable(viewController,"VoiceBase unavailable.")
+                    viewController.networkUnavailable("VoiceBase unavailable.")
                     return
                 }
                 
@@ -5675,21 +5780,23 @@ class VoiceBase
 //
 //                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                         
-                        yesOrNo(viewController: viewController,
-                                title: "Begin Creating\nMachine Generated Transcript?",
+                        viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.getTranscript(alert:true) {
-                                    self.getTranscriptSegments(alert:true) {
-                                        self.details(alert:true) {
-                                            self.transcribing = false
-                                            self.completed = true
-                                            
-                                            // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-                                            // sure I can predict the context in which this (i.e. that) would happen.
-                                        }
-                                    }
-                                }
+                                self.getTranscript(alert:true,detailedAlerts:true)
+
+//                                self.getTranscript(alert:true) {
+//                                    self.getTranscriptSegments(alert:true) {
+//                                        self.details(alert:true) {
+//                                            self.transcribing = false
+//                                            self.completed = true
+//
+//                                            // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
+//                                            // sure I can predict the context in which this (i.e. that) would happen.
+//                                        }
+//                                    }
+//                                }
+                                
                                 self.alert(viewController:viewController)
                             },
                             yesStyle: .default,
@@ -5702,7 +5809,7 @@ class VoiceBase
 //                                alertActions: alertActions,
 //                                cancelAction: nil)
                     } else {
-                        networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
+                        viewController.networkUnavailable( "Machine Generated Transcript Unavailable.")
                     }
                 } else {
                     self.alert(viewController:viewController)
@@ -5718,7 +5825,7 @@ class VoiceBase
                             print("THEY ARE THE SAME!")
                         }
 
-                        popoverHTML(viewController, title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML, search:true)
+                        viewController.popoverHTML(title:self.mediaItem?.title, bodyHTML:self.bodyHTML, headerHTML:self.headerHTML, search:true)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
@@ -5776,16 +5883,15 @@ class VoiceBase
                             return htmlString as Any
                         }, completion: { [weak self] (data:Any?) in
                             if let htmlString = data as? String {
-                                popoverHTML(viewController,title:self?.mediaItem?.title,htmlString:htmlString, search:true)
+                                viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
                             }
                         })
                     }))
 
-                    alertActionsCancel( viewController: viewController,
-                                        title: "View",
-                                        message: "This is a machine generated transcript for \n\n\(text) (\(self.transcriptPurpose))\n\nIt may lack proper formatting and have signifcant errors.",
-                                        alertActions: alertActions,
-                                        cancelAction: nil)
+                    viewController.alertActionsCancel(  title: "View",
+                                                        message: "This is a machine generated transcript for \n\n\(text) (\(self.transcriptPurpose))\n\nIt may lack proper formatting and have signifcant errors.",
+                                                        alertActions: alertActions,
+                                                        cancelAction:nil)
                 }))
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, handler: {
@@ -5806,15 +5912,13 @@ class VoiceBase
                     
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                            viewController.alertActionsCancel( title: "Alignment Underway",
+                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                            viewController.alertActionsCancel( title: "Alignment Underway",
+                                                               message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         }
@@ -5824,7 +5928,7 @@ class VoiceBase
                     if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
                         let textPopover = navigationController.viewControllers[0] as? TextViewController {
 
-                        navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+                        navigationController.modalPresentationStyle = viewController.preferredModalPresentationStyle
                         
                         if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
                             navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -5875,11 +5979,20 @@ class VoiceBase
                         })
                         alertActions.append(noAction)
                         
-                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: nil, actions: alertActions)
+                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: text + " (\(self.transcriptPurpose))", actions: alertActions)
                     }))
                 } else {
                     alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .default, handler: {
-                        self.operationQueue.cancelAllOperations()
+                        let message = "for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it is complete."
+                        
+                        Alerts.shared.alert(title: "Cancelling Auto Edit", message: message)
+
+                        DispatchQueue.global(qos: .userInteractive).async {
+                            self.operationQueue.cancelAllOperations()
+//                            self.operationQueue.waitUntilAllOperationsAreFinished()
+                            
+                            Alerts.shared.alert(title: "Auto Edit Cancelled", message: "\(text) (\(self.transcriptPurpose))")
+                        }
                     }))
                 }
                 
@@ -5937,15 +6050,13 @@ class VoiceBase
                     alertActions.append(AlertAction(title: "Align", style: .destructive, handler: {
                         guard !self.aligning else {
                             if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                                alertActionsCancel( viewController: viewController,
-                                                    title: "Alignment Underway",
-                                                    message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                viewController.alertActionsCancel( title: "Alignment Underway",
+                                                                   message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                     alertActions: nil,
                                     cancelAction: nil)
                             } else {
-                                alertActionsCancel( viewController: viewController,
-                                                    title: "Alignment Underway",
-                                                    message: "There is an alignment already underway.\n\nPlease try again later.",
+                                viewController.alertActionsCancel( title: "Alignment Underway",
+                                                                   message: "There is an alignment already underway.\n\nPlease try again later.",
                                     alertActions: nil,
                                     cancelAction: nil)
                             }
@@ -6041,15 +6152,13 @@ class VoiceBase
                 alertActions.append(AlertAction(title: "Restore", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                            viewController.alertActionsCancel( title: "Alignment Underway",
+                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                            viewController.alertActionsCancel( title: "Alignment Underway",
+                                                               message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         }
@@ -6059,8 +6168,7 @@ class VoiceBase
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, handler: {
-                        yesOrNo(viewController: viewController,
-                                title: "Confirm Regeneration of Transcript",
+                        viewController.yesOrNo(title: "Confirm Regeneration of Transcript",
                                 message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
                                 yesAction: { () -> (Void) in
                                     self.transcript = self.transcriptFromWords
@@ -6109,8 +6217,7 @@ class VoiceBase
 //
 //                                alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                                 
-                                yesOrNo(viewController: viewController,
-                                        title: "Confirm Reloading",
+                                viewController.yesOrNo(title: "Confirm Reloading",
                                         message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
                                         yesAction: { () -> (Void) in
                                             Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
@@ -6146,9 +6253,8 @@ class VoiceBase
                         }))
                     }
                     
-                    alertActionsCancel( viewController: viewController,
-                                        title: "Restore Options",
-                                        message: "\(text) (\(self.transcriptPurpose))",
+                    viewController.alertActionsCancel( title: "Restore Options",
+                                                       message: "\(text) (\(self.transcriptPurpose))",
                         alertActions: alertActions,
                         cancelAction: nil)
                 }))
@@ -6156,17 +6262,15 @@ class VoiceBase
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                            viewController.alertActionsCancel( title: "Alignment Underway",
+                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                                alertActions: nil,
-                                cancelAction: nil)
+                            viewController.alertActionsCancel(  title: "Alignment Underway",
+                                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                                                alertActions: nil,
+                                                                cancelAction: nil)
                         }
                         return
                     }
@@ -6179,8 +6283,7 @@ class VoiceBase
 //
 //                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
                     
-                    yesOrNo(viewController: viewController,
-                            title: "Confirm Deletion of Machine Generated Transcript",
+                    viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
                                 self.remove()
@@ -6196,8 +6299,7 @@ class VoiceBase
 //                            cancelAction: nil)
                 }))
                 
-                alertActionsCancel(  viewController: viewController,
-                                     title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
+                viewController.alertActionsCancel(title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
                     message: text + " (\(self.transcriptPurpose))",
                     alertActions: alertActions,
                     cancelAction: nil)
@@ -6301,16 +6403,18 @@ class VoiceBase
                     popover.tableView.reloadData()
                 }
                 
-                if indexPath.section >= popover.tableView.numberOfSections {
-                    print("ERROR: bad indexPath.section")
-                }
-                
-                if indexPath.row >= popover.tableView.numberOfRows(inSection: indexPath.section) {
-                    print("ERROR: bad indexPath.row")
-                }
+//                if indexPath.section >= popover.tableView.numberOfSections {
+//                    print("ERROR: bad indexPath.section")
+//                }
+//
+//                if indexPath.row >= popover.tableView.numberOfRows(inSection: indexPath.section) {
+//                    print("ERROR: bad indexPath.row")
+//                }
                 
                 Thread.onMainThread {
-                    popover.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.middle, animated: true)
+                    if popover.tableView.isValid(indexPath) {
+                        popover.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.middle, animated: true)
+                    }
                 }
                 
                 if playing {
@@ -6462,7 +6566,10 @@ class VoiceBase
                     }
                     
                     popover.section.showIndex = true
-                    popover.section.indexStringsTransform = century
+                    popover.section.indexStringsTransform = { (string:String?)->(String?) in // century
+                        return string?.century
+                    }
+                    
                     popover.section.indexHeadersTransform = { (string:String?)->(String?) in
                         return string
                     }
@@ -6527,7 +6634,10 @@ class VoiceBase
                     popover.purpose = .selectingTime
                     
                     popover.section.showIndex = true
-                    popover.section.indexStringsTransform = century
+                    popover.section.indexStringsTransform = { (string:String?) -> String? in // century
+                        return string?.century
+                    }
+                    
                     popover.section.indexSort = { (first:String?,second:String?) -> Bool in
                         guard let first = first else {
                             return false
@@ -6582,11 +6692,10 @@ class VoiceBase
                 }
             }))
             
-            alertActionsCancel( viewController: viewController,
-                                title: "Show Timing Index",
-                                message: nil,
-                                alertActions: alertActions,
-                                cancelAction: nil)
+            viewController.alertActionsCancel( title: "Show Timing Index",
+                                               message: nil,
+                                               alertActions: alertActions,
+                                               cancelAction: nil)
         }
         
         return action

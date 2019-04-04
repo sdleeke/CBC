@@ -20,7 +20,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
             return false
         }
         
@@ -34,8 +34,8 @@ extension TextViewController: UISearchBarDelegate
         
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
-            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+            let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text
@@ -54,7 +54,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
@@ -68,7 +68,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -85,7 +85,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
@@ -101,7 +101,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
@@ -111,8 +111,8 @@ extension TextViewController: UISearchBarDelegate
 
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
-            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+            let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text
@@ -149,7 +149,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
@@ -283,7 +283,7 @@ extension TextViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
             return
         }
         
@@ -489,7 +489,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -526,7 +526,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Print:
-                printText(viewController: self, string: self.textView.text)
+                self.printText(string: self.textView.text)
                 break
                 
             case Constants.Strings.Share:
@@ -549,7 +549,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         self.process(work: { [weak self] () -> (Any?) in
                             return popover.stringTree?.html
                         }, completion: { [weak self] (data:Any?) in
-                            presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                         })
                     }
                     
@@ -1320,7 +1320,7 @@ class TextViewController : UIViewController
 //
 //                actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:nil))
 //
-//                alert(viewController:self,title:confirmationTitle, message:self.confirmationMessage, actions:actions)
+//                self.alert(title:confirmationTitle, message:self.confirmationMessage, actions:actions)
 //            } else {
 //                if isTracking {
 //                    stopTracking()
@@ -1330,7 +1330,7 @@ class TextViewController : UIViewController
 //            }
 
         case "Cancel":
-            yesOrNo(viewController: self, title: "Discard Changes?", message: nil, yesAction: { () -> (Void) in
+            self.yesOrNo(title: "Discard Changes?", message: nil, yesAction: { () -> (Void) in
                 self.dismiss(animated: true, completion: {
                     if self.isTracking {
                         self.stopTracking()
@@ -1384,8 +1384,8 @@ class TextViewController : UIViewController
         
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->(Bool))?) in
-            let text = stringMarkedBySearchAsAttributedString(attributedString: attributedText,string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
+        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+            let text = attributedText?.markedBySearch(string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text
@@ -1578,7 +1578,7 @@ class TextViewController : UIViewController
                     self?.updateBarButtons()
                 }))
                 
-                alert(viewController:vc,title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
+                vc.alert(title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
             } else {
                 guard let text = self?.textView.attributedText.string else {
                     return
@@ -1655,7 +1655,7 @@ class TextViewController : UIViewController
                                         self?.process(work: { [weak self] () -> (Any?) in
                                             return popover.stringTree?.html
                                         }, completion: { [weak self] (data:Any?) in
-                                            presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                                         })
                                     }
 
@@ -1725,7 +1725,7 @@ class TextViewController : UIViewController
                                                 
                                                 newText = "<!DOCTYPE html><html><body>" + newText + "</body></html>"
                                                 
-                                                webView.html.string = insertHead(newText,fontSize: 24)
+                                                webView.html.string = newText.insertHead(fontSize: 24)
                                                 
                                                 Thread.onMainThread {
                                                     webView.navigationItem.title = self?.navigationItem.title
@@ -1965,7 +1965,7 @@ class TextViewController : UIViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
+        self.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
     }
 
     var cancelButton : UIBarButtonItem!
@@ -2225,6 +2225,7 @@ class TextViewController : UIViewController
         }
 
         saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItem.Style.plain, target: self, action: #selector(save))
+        saveButton.tintColor = UIColor.red
         
         assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItem.Style.plain, target: self, action: #selector(autoEdit))
         dismissButton = UIBarButtonItem(title: "Dismiss", style: UIBarButtonItem.Style.plain, target: self, action: #selector(dismissKeyboard))

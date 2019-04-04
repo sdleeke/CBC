@@ -84,7 +84,7 @@ class StringTree
 
             bodyHTML += "</body></html>"
             
-            return insertHead(bodyHTML,fontSize: Constants.FONT_SIZE)
+            return bodyHTML.insertHead(fontSize: Constants.FONT_SIZE)
         }
     }
     

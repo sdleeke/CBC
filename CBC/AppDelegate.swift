@@ -426,7 +426,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             Thread.onMainThread {
                 mtvc.tableView?.reloadData()
                 
-                mtvc.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+                let indexPath = IndexPath(row:0,section:0)
+                if mtvc.tableView.isValid(indexPath) {
+                    mtvc.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
+                }
                 
                 //                                    mtvc.selectOrScrollToMediaItem(mtvc.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                 
@@ -441,7 +444,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             }
         } else {
             Thread.onMainThread {
-                mtvc.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+                let indexPath = IndexPath(row:0,section:0)
+                if mtvc.tableView.isValid(indexPath) {
+                    mtvc.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
+                }
             }
         }
 

@@ -106,7 +106,7 @@ extension MediaItem : UIActivityItemSource
 {
     func share(viewController:UIViewController)
     {
-        guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
+        guard let series = self.multiPartMediaItems?.html() else {
             return
         }
         
@@ -139,7 +139,7 @@ extension MediaItem : UIActivityItemSource
             return nil
         }
         
-        guard let series = setupMediaItemsHTML(self.multiPartMediaItems) else {
+        guard let series = self.multiPartMediaItems?.html else {
             return nil
         }
         
@@ -179,6 +179,113 @@ extension MediaItem : UIActivityItemSource
 
 class MediaItem : NSObject
 {
+//    var multiPartMediaItems : [MediaItem]?
+//    {
+////        guard let mediaItem = mediaItem else {
+////            return nil
+////        }
+//
+//        let mediaItem = self
+//
+//        guard let multiPartSort = mediaItem.multiPartSort else {
+//            return nil
+//        }
+//
+//        var multiPartMediaItems:[MediaItem]?
+//
+//        if mediaItem.hasMultipleParts {
+//            if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+//                let seriesMediaItems = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+//                    return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
+//                })
+//                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
+//            } else {
+//                multiPartMediaItems = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]
+//            }
+//        } else {
+//            multiPartMediaItems = [mediaItem]
+//        }
+//
+//        return multiPartMediaItems
+//    }
+    
+    var multiPartMediaItems:[MediaItem]?
+    {
+        get {
+            guard hasMultipleParts else {
+                return [self]
+            }
+            
+            var mediaItemParts:[MediaItem]?
+            
+            if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+                mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    if testMediaItem.hasMultipleParts {
+                        return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
+                    } else {
+                        return false
+                    }
+                })
+            } else {
+                if let multiPartSort = multiPartSort {
+                    mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
+                    })
+                }
+            }
+            
+            // Filter for conference series
+            
+            // Second sort by title is necessary if they all fall on the same day!
+            if conferenceCode != nil {
+                mediaItemParts = mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    return testMediaItem.conferenceCode == conferenceCode
+                }).sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                    first.title?.withoutPrefixes < second.title?.withoutPrefixes
+                })
+            } else {
+                if hasClassName {
+                    mediaItemParts = mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                        return testMediaItem.classCode == classCode
+                    }).sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                        first.title?.withoutPrefixes < second.title?.withoutPrefixes
+                    })
+                } else {
+                    mediaItemParts = mediaItemParts?.sortByYear(sorting: SORTING.CHRONOLOGICAL)
+                }
+            }
+            
+            // Filter for multiple series of the same name
+            var mediaList = [MediaItem]()
+            
+            if mediaItemParts?.count > 1 {
+                var number = 0
+                
+                if let mediaItemParts = mediaItemParts {
+                    for mediaItem in mediaItemParts {
+                        if let part = mediaItem.part, let partNumber = Int(part) {
+                            if partNumber > number {
+                                mediaList.append(mediaItem)
+                                number = partNumber
+                            } else {
+                                if (mediaList.count > 0) && mediaList.contains(self) {
+                                    break
+                                } else {
+                                    mediaList = [mediaItem]
+                                    number = partNumber
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return mediaList.count > 0 ? mediaList : nil
+            } else {
+                return mediaItemParts
+            }
+        }
+    }
+    
     var notesName:String?
     {
         get {
@@ -255,7 +362,7 @@ class MediaItem : NSObject
     {
         // Really should delete anything that matches what comes before "." in lastPathComponent,
         // which in this case is id (which is mediaCode)
-        print(deleteFilesOfNameInCache(id))
+        print(FileManager.default.deleteFilesOfNameInCache(id))
         
         notesDownload?.delete(block:block)
         slidesDownload?.delete(block:block)
@@ -571,83 +678,6 @@ class MediaItem : NSObject
         }
     }
     
-    var multiPartMediaItems:[MediaItem]?
-    {
-        get {
-            guard hasMultipleParts else {
-                return [self]
-            }
-
-            var mediaItemParts:[MediaItem]?
-
-            if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-                mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-                    if testMediaItem.hasMultipleParts {
-                        return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
-                    } else {
-                        return false
-                    }
-                })
-            } else {
-                if let multiPartSort = multiPartSort {
-                    mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
-                    })
-                }
-            }
-
-            // Filter for conference series
-            
-            // Second sort by title is necessary if they all fall on the same day!
-            if conferenceCode != nil {
-                mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
-                    return testMediaItem.conferenceCode == conferenceCode
-                }),sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
-                    first.title?.withoutPrefixes < second.title?.withoutPrefixes
-                })
-            } else {
-                if hasClassName {
-                    mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        return testMediaItem.classCode == classCode
-                    }),sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
-                        first.title?.withoutPrefixes < second.title?.withoutPrefixes
-                    })
-                } else {
-                    mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: SORTING.CHRONOLOGICAL)
-                }
-            }
-            
-            // Filter for multiple series of the same name
-            var mediaList = [MediaItem]()
-            
-            if mediaItemParts?.count > 1 {
-                var number = 0
-                
-                if let mediaItemParts = mediaItemParts {
-                    for mediaItem in mediaItemParts {
-                        if let part = mediaItem.part, let partNumber = Int(part) {
-                            if partNumber > number {
-                                mediaList.append(mediaItem)
-                                number = partNumber
-                            } else {
-                                if (mediaList.count > 0) && mediaList.contains(self) {
-                                    break
-                                } else {
-                                    mediaList = [mediaItem]
-                                    number = partNumber
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                return mediaList.count > 0 ? mediaList : nil
-            } else {
-                return mediaItemParts
-            }
-        }
-    }
-    
     func searchStrings() -> [String]?
     {
         var array = [String]()
@@ -670,7 +700,7 @@ class MediaItem : NSObject
             array.append(contentsOf: books)
         }
         
-        if let titleTokens = tokensFromString(title) {
+        if let titleTokens = title?.tokens {
             array.append(contentsOf: titleTokens)
         }
         
@@ -683,18 +713,18 @@ class MediaItem : NSObject
 
         if let tagsArray = tagsArray {
             for tag in tagsArray {
-                if let tokens = tokensFromString(tag) {
+                if let tokens = tag.tokens {
                     set = set.union(Set(tokens))
                 }
             }
         }
         
         if hasSpeaker {
-            if let firstname = firstNameFromName(speaker) {
+            if let firstname = speaker?.firstName {
                 set.insert(firstname)
             }
 
-            if let lastname = lastNameFromName(speaker) {
+            if let lastname = speaker?.lastName {
                 set.insert(lastname)
             }
         }
@@ -703,7 +733,7 @@ class MediaItem : NSObject
             set = set.union(Set(books))
         }
         
-        if let titleTokens = tokensFromString(title) {
+        if let titleTokens = title?.tokens {
             set = set.union(Set(titleTokens))
         }
         
@@ -1215,7 +1245,7 @@ class MediaItem : NSObject
                 let tokenWord = notesToken.key
                 let tokenCount = notesToken.value
                 
-                let markCount = markHTML(html: self?.notesText, searchText: tokenWord, wholeWordsOnly: true, index: false).1
+                let markCount = self?.notesText?.markHTML(searchText: tokenWord, wholeWordsOnly: true, index: false).1
 
                 if tokenCount != markCount {
                     mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
@@ -1678,7 +1708,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return Globals.shared.mediaTeachers[speaker]?.name
+            return Globals.shared.mediaTeachers[speaker]?.title
         }
     }
     
@@ -1716,10 +1746,10 @@ class MediaItem : NSObject
                     
                     if hasSpeaker, let speaker = speaker {
                         if !speaker.contains("Ministry Panel") {
-                            if let lastName = lastNameFromName(speaker) {
+                            if let lastName = speaker.lastName {
                                 speakerSort = lastName
                             }
-                            if let firstName = firstNameFromName(speaker) {
+                            if let firstName = speaker.firstName {
                                 speakerSort = ((speakerSort != nil) ? speakerSort! + ", " : "") + firstName
                             }
                         } else {
@@ -1962,7 +1992,7 @@ class MediaItem : NSObject
             }
             
             // This coalesces the tags so there are no duplicates
-            if let tagsArray = tagsArrayFromTagsString(tags) {
+            if let tagsArray = tags?.tagsArray {
                 let tagsString = tagsSetToString(Set(tagsArray.filter({ (string:String) -> Bool in
                     // WHY? Backwards compatibility
                     
@@ -2003,7 +2033,7 @@ class MediaItem : NSObject
             return
         }
         
-        let tags = tagsArrayFromTagsString(mediaItemSettings?[Field.tags])
+        let tags = mediaItemSettings?[Field.tags]?.tagsArray
         
         guard tags?.firstIndex(of: tag) == nil else {
             return
@@ -2056,7 +2086,7 @@ class MediaItem : NSObject
             return
         }
         
-        var tags = tagsArrayFromTagsString(mediaItemSettings?[Field.tags])
+        var tags = mediaItemSettings?[Field.tags]?.tagsArray
         
         guard tags?.count > 0 else {
             return
@@ -2066,7 +2096,7 @@ class MediaItem : NSObject
             tags?.remove(at: index)
         }
         
-        mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
+        mediaItemSettings?[Field.tags] = tags?.toTagsString
         
         let sortTag = tag.withoutPrefixes
         
@@ -2469,7 +2499,7 @@ class MediaItem : NSObject
                 return nil
             }
 
-            return insertHead("<!DOCTYPE html><html><body>" + headerHTML + notesHTML + "</body></html>",fontSize: Constants.FONT_SIZE)
+            return "<!DOCTYPE html><html><body>" + headerHTML + notesHTML + "</body></html>".insertHead(fontSize: Constants.FONT_SIZE)
         }
     }
     
@@ -2867,7 +2897,7 @@ class MediaItem : NSObject
 //                } while bk.count > 2
                 
                 // What if a reference includes the book more than once?
-                booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:reference)
+                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
                 
                 if let chapters = booksAndChaptersAndVerses[book]?.keys {
                     for chapter in chapters {
@@ -2896,7 +2926,7 @@ class MediaItem : NSObject
         
         var chaptersForBook:[Int]?
         
-        guard let books = booksFromScriptureReference(scriptureReference) else {
+        guard let books = scriptureReference.books else {
             return nil
         }
 
@@ -2913,7 +2943,7 @@ class MediaItem : NSObject
                     
                     if (string.range(of: ";") == nil) {
                         if let range = scriptureReference.range(of: thisBook) {
-                            chaptersForBook = chaptersFromScriptureReference(String(string[range.upperBound...]))
+                            chaptersForBook = String(string[range.upperBound...]).chapters
                         } else {
                             // ???
                         }
@@ -2924,7 +2954,7 @@ class MediaItem : NSObject
                             if let range = subString.range(of: thisBook) {
                                 subString = String(subString[range.upperBound...])
                             }
-                            if let chapters = chaptersFromScriptureReference(subString) {
+                            if let chapters = subString.chapters {
                                 chaptersForBook?.append(contentsOf: chapters)
                             }
                             
@@ -2934,7 +2964,7 @@ class MediaItem : NSObject
                         if let range = string.range(of: thisBook) {
                             string = String(string[range.upperBound...])
                         }
-                        if let chapters = chaptersFromScriptureReference(string) {
+                        if let chapters = string.chapters {
                             chaptersForBook?.append(contentsOf: chapters)
                         }
                     }
@@ -2960,7 +2990,7 @@ class MediaItem : NSObject
             
             for scripture in scriptures {
                 if let range = scripture.range(of: thisBook) {
-                    if let chapters = chaptersFromScriptureReference(String(scripture[range.upperBound...])) {
+                    if let chapters = String(scripture[range.upperBound...]).chapters {
                         if chaptersForBook == nil {
                             chaptersForBook = chapters
                         } else {
@@ -2995,7 +3025,7 @@ class MediaItem : NSObject
                 return _books
             }
             
-            _books = booksFromScriptureReference(scriptureReference)
+            _books = scriptureReference?.books
             
             return _books
         }
@@ -3018,7 +3048,7 @@ class MediaItem : NSObject
     var contents:String?
     {
         get {
-            return stripHTML(bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: false, includeColumns: false))
+            return bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: false, includeColumns: false)?.stripHTML
         }
     }
 
@@ -3553,18 +3583,18 @@ class MediaItem : NSObject
             var htmlString:String?
             
             if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
             } else
                 
             if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
-                htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true).0
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true).0
             }
             
             return htmlString
         }, completion: { [weak self] (data:Any?) in
             let htmlString = data as? String
             
-            popoverHTML(viewController, title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:true)
+            viewController.popoverHTML(title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:true)
         })
     }
     
@@ -3579,7 +3609,7 @@ class MediaItem : NSObject
             (action : UIAlertAction!) -> Void in
             if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
                 let textPopover = navigationController.viewControllers[0] as? TextViewController {
-                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
+                navigationController.modalPresentationStyle = viewController.preferredModalPresentationStyle
                 
                 if navigationController.modalPresentationStyle == .popover {
                     navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -3609,11 +3639,11 @@ class MediaItem : NSObject
                 var htmlString:String?
                 
                 if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
+                    htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
                 } else
                     
                     if let _ = viewController as? MediaTableViewController, Globals.shared.search.active, Globals.shared.search.transcripts {
-                        htmlString = markBodyHTML(bodyHTML: bodyHTML, headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
+                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
                     } else {
                         htmlString = bodyHTML
                 }
@@ -3621,7 +3651,7 @@ class MediaItem : NSObject
                 return htmlString
             }, completion: { [weak self] (data:Any?) in
                 if let _ = data as? String {
-                    popoverHTML(viewController, title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
+                    viewController.popoverHTML(title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
                 } else {
                     Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
                 }
@@ -3638,18 +3668,24 @@ class MediaItem : NSObject
         viewController.present(alert, animated: true, completion: nil)
     }
     
-    func addToFavorites()
+    func addToFavorites(alert:Bool = true)
     {
         self.addTag(Constants.Strings.Favorites)
-        Alerts.shared.alert(title: "Added to Favorites",message: self.text)
+        
+        if alert {
+            Alerts.shared.alert(title: "Added to Favorites",message: self.text)
+        }
 //        Globals.shared.queue.sync {
 //        }
     }
     
-    func removeFromFavorites()
+    func removeFromFavorites(alert:Bool = true)
     {
         self.removeTag(Constants.Strings.Favorites)
-        Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
+        
+        if alert {
+            Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
+        }
 //        Globals.shared.queue.sync {
 //        }
     }
@@ -3796,7 +3832,7 @@ class MediaItem : NSObject
         
         openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
             if let url = self.websiteURL {
-                open(scheme: url.absoluteString) {
+                UIApplication.shared.open(scheme: url.absoluteString) {
                     Alerts.shared.alert(title: "Network Error",message: "Unable to open: \(url)")
                 }
             }
@@ -3883,14 +3919,14 @@ class MediaItem : NSObject
             func transcriptTokens()
             {
                 guard Thread.isMainThread else {
-                    alert(viewController:viewController,title: "Not Main Thread", message: "MediaTableViewController:transcriptTokens", completion: nil)
+                    viewController.alert(title: "Not Main Thread", message: "MediaTableViewController:transcriptTokens", completion: nil)
                     return
                 }
                 
                 guard let tokens = self.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
                 }).sorted() else {
-                    networkUnavailable(viewController,"HTML transcript vocabulary unavailable.")
+                    viewController.networkUnavailable("HTML transcript vocabulary unavailable.")
                     return
                 }
                 
@@ -3993,10 +4029,10 @@ class MediaItem : NSObject
             }
             
             if self.scripture?.html?[reference] != nil {
-                popoverHTML(viewController, title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference], search:false)
+                viewController.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self.scripture?.html?[reference], search:false)
             } else {
                 guard Globals.shared.reachability.isReachable else {
-                    networkUnavailable(viewController,"Scripture text unavailable.")
+                    viewController.networkUnavailable("Scripture text unavailable.")
                     return
                 }
                 
@@ -4005,7 +4041,7 @@ class MediaItem : NSObject
                     return self?.scripture?.html?[reference]
                     }, completion: { [weak self] (data:Any?) in
                         if let htmlString = data as? String {
-                            popoverHTML(viewController, title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
+                            viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
                         } else {
                             Alerts.shared.alert(title:"Scripture Unavailable")
                         }
@@ -4047,11 +4083,10 @@ class MediaItem : NSObject
                 message += "\n\n\(text)"
             }
             
-            alertActionsCancel( viewController: viewController,
-                                title: Constants.Strings.VoiceBase,
-                                message: message,
-                                alertActions: alertActions,
-                                cancelAction: nil)
+            viewController.alertActionsCancel( title: Constants.Strings.VoiceBase,
+                                               message: message,
+                                               alertActions: alertActions,
+                                               cancelAction: nil)
         }
         
         topics = AlertAction(title: "List", style: .default) {

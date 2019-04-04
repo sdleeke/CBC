@@ -144,7 +144,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.scripture = self.scripture
                 
                 // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: self)
+                navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
 
                 if navigationController.modalPresentationStyle == .popover {
                     
@@ -265,10 +265,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             self.process(work: { [weak self] in
-                return setupMediaItemsHTML(self?.mediaItems?.list, includeURLs:false, includeColumns:true)
+                return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
             }, completion: { [weak self] (data:Any?) in
                 if let vc = self {
-                    printHTML(viewController: vc, htmlString: data as? String)
+                    vc.printHTML(htmlString: data as? String)
                 }
             })
             break
@@ -328,12 +328,61 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Auto_Edit_All_Audio:
             mediaItems?.autoEditAllAudio(viewController:self)
             break
-
+            
         case Constants.Strings.Auto_Edit_All_Video:
             mediaItems?.autoEditAllVideo(viewController:self)
             break
             
+            
+        case Constants.Strings.Cancel_All_Auto_Edit_Audio:
+            var message = ""
+            
+            if let multiPartName = self.mediaItems?.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Cancelling All Auto Edits for Audio Transcripts", message: message)
 
+            // We have to cancel and wait until they are finished to we need to do this in the background.
+            DispatchQueue.global(qos: .userInteractive).async {
+                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                    repeat {
+                        mediaItem.audioTranscript?.operationQueue.cancelAllOperations()
+                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+                    } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
+//                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+                })
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaItems?.multiPartName)
+            }
+            break
+            
+        case Constants.Strings.Cancel_All_Auto_Edit_Video:
+            var message = ""
+            
+            if let multiPartName = self.mediaItems?.multiPartName {
+                message += multiPartName + "\n\n"
+            }
+            
+            message += "You will be notified when it is complete."
+            
+            Alerts.shared.alert(title: "Cancelling All Auto Edits for Video Transcripts", message: message)
+            
+            // We have to cancel and wait until they are finished to we need to do this in the background.
+            DispatchQueue.global(qos: .userInteractive).async {
+                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                    repeat {
+                        mediaItem.videoTranscript?.operationQueue.cancelAllOperations()
+                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+                    } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
+//                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+                })
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaItems?.multiPartName)
+            }
+            break
+            
+            
         case Constants.Strings.Align_All_Audio:
             mediaItems?.alignAllAudio(viewController:self)
 //            guard let mediaItems = mediaItems?.list else {
@@ -385,7 +434,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -455,8 +504,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.wholeWordsOnly = true
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
-                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                popover.section.indexStringsTransform =  { (string:String?) -> String? in
+                    return string?.century
+                } // century
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
                     return string
                 }
                 
@@ -534,8 +585,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.wholeWordsOnly = true
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = century
-                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.century
+                } // century
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
                     return string
                 }
                 
@@ -758,11 +811,11 @@ extension MediaViewController : WKNavigationDelegate
             if let purpose = document?.purpose {
                 switch purpose {
                 case Purpose.slides:
-                    networkUnavailable(self,"Slides not available.")
+                    self.networkUnavailable("Slides not available.")
                     break
                     
                 case Purpose.notes:
-                    networkUnavailable(self,"Transcript not available.")
+                    self.networkUnavailable("Transcript not available.")
                     break
                     
                 default:
@@ -783,7 +836,7 @@ extension MediaViewController : WKNavigationDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
             return
         }
         
@@ -845,7 +898,7 @@ extension MediaViewController : WKNavigationDelegate
             mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
         }
         
-        networkUnavailable(self,withError.localizedDescription)
+        self.networkUnavailable(withError.localizedDescription)
         NSLog(withError.localizedDescription)
     }
     
@@ -878,11 +931,11 @@ extension MediaViewController : WKNavigationDelegate
         if let purpose = self.document?.download?.purpose {
             switch purpose {
             case Purpose.notes:
-                networkUnavailable(self,"Transcript not available.")
+                self.networkUnavailable("Transcript not available.")
                 break
                 
             case Purpose.slides:
-                networkUnavailable(self,"Slides not available.")
+                self.networkUnavailable("Slides not available.")
                 break
                 
             default:
@@ -1002,7 +1055,7 @@ extension MediaViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
             return
         }
         
@@ -1178,11 +1231,11 @@ class MediaViewController: UIViewController
                     if let purpose = self.document?.purpose {
                         switch purpose {
                         case Purpose.slides:
-                            networkUnavailable(self,"Slides unavailable.")
+                            self.networkUnavailable("Slides unavailable.")
                             break
                             
                         case Purpose.notes:
-                            networkUnavailable(self,"Transcript unavailable.")
+                            self.networkUnavailable("Transcript unavailable.")
                             break
                             
                         default:
@@ -1404,7 +1457,7 @@ class MediaViewController: UIViewController
                     if let url = selectedMediaItem.playingURL {
                         playerURL(url: url)
                     } else {
-                        networkUnavailable(self,"Media Not Available")
+                        self.networkUnavailable("Media Not Available")
                     }
                 }
 
@@ -1480,7 +1533,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
             return
         }
         
@@ -1586,7 +1639,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
             return
         }
         
@@ -1702,7 +1755,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupSTVControl", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl", completion: nil)
             return
         }
 
@@ -2305,7 +2358,7 @@ class MediaViewController: UIViewController
 
     func showSendMessageErrorAlert()
     {
-        alert(viewController:self,title: "Could Not Send a Message",
+        self.alert(title: "Could Not Send a Message",
               message: "Your device could not send a text message.  Please check your configuration and try again.",
               completion:nil)
     }
@@ -2313,7 +2366,7 @@ class MediaViewController: UIViewController
     func message(_ mediaItem:MediaItem?)
     {
         guard MFMessageComposeViewController.canSendText() else {
-            showSendMailErrorAlert(viewController: self)
+            self.showSendMailErrorAlert()
             return
         }
 
@@ -2338,8 +2391,8 @@ class MediaViewController: UIViewController
         let urlString = Constants.SCRIPTURE_URL.PREFIX + scriptureReference + Constants.SCRIPTURE_URL.POSTFIX
 
         if let urlString = urlString.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
-            open(scheme: urlString) {
-                networkUnavailable(self,"Unable to open scripture at: \(urlString)")
+            UIApplication.shared.open(scheme: urlString) {
+                self.networkUnavailable("Unable to open scripture at: \(urlString)")
             }
         } else {
             
@@ -2526,12 +2579,20 @@ class MediaViewController: UIViewController
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedAudio > 0 {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedAudio > self.mediaItems?.autoEditingAudio {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedVideo > 0 {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedVideo > self.mediaItems?.autoEditingVideo {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Video)
+        }
+        
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.autoEditingAudio > 0 {
+            actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Audio)
+        }
+        
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.autoEditingVideo > 0 {
+            actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Video)
         }
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
@@ -2730,7 +2791,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:swapVideoLocation", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:swapVideoLocation", completion: nil)
             return
         }
         
@@ -2769,7 +2830,11 @@ class MediaViewController: UIViewController
             break
             
         case .withTableView:
-            tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableView.ScrollPosition.top, animated: false)
+            let indexPath = IndexPath(row:0,section:0)
+            if tableView.isValid(indexPath) {
+                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: false)
+            }
+            
             tableView.isScrollEnabled = false
             tableView.isHidden = true
             break
@@ -2952,7 +3017,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
             return
         }
         
@@ -3051,7 +3116,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
             return
         }
         
@@ -3273,7 +3338,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
             return
         }
 
@@ -3493,7 +3558,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo", completion: nil)
             return
         }
         
@@ -3606,11 +3671,11 @@ class MediaViewController: UIViewController
                 if document?.fetchData.cache == nil, !Globals.shared.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
-                        alert(viewController: self, title: "Slides Not Available", message: nil, completion: nil)
+                        self.alert(title: "Slides Not Available", message: nil, completion: nil)
                         break
                         
                     case Showing.notes:
-                        alert(viewController: self, title: "Transcript Not Available", message: nil, completion: nil)
+                        self.alert(title: "Transcript Not Available", message: nil, completion: nil)
                         break
                         
                     default:
@@ -3756,7 +3821,9 @@ class MediaViewController: UIViewController
             tableView.selectRow(at: indexPath, animated: true, scrollPosition: position)
         }
 
-        tableView.scrollToRow(at: indexPath, at: position, animated: false)
+        if tableView.isValid(indexPath) {
+            tableView.scrollToRow(at: indexPath, at: position, animated: false)
+        }
     }
     
     @objc func setupPlayPauseButton()
@@ -3766,7 +3833,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
             return
         }
         
@@ -3828,7 +3895,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
             return
         }
 
@@ -4670,7 +4737,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
             return
         }
         
@@ -5030,7 +5097,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
             return
         }
         
@@ -5057,7 +5124,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setSliderAndTimesToAudio", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setSliderAndTimesToAudio", completion: nil)
             return
         }
      
@@ -5198,7 +5265,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
             return
         }
         
@@ -5260,7 +5327,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
             return
         }
         
@@ -5419,9 +5486,9 @@ class MediaViewController: UIViewController
             }
             
             if doNotPlay {
-                alert(viewController: self, title: "Media Not Available",
-                      message: "Please check your network connection and try again.",
-                      completion: nil)
+                self.alert(title: "Media Not Available",
+                           message: "Please check your network connection and try again.",
+                           completion: nil)
                 return
             }
         }
@@ -5458,7 +5525,7 @@ class MediaViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupSpinner", completion: nil)
+            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSpinner", completion: nil)
             return
         }
         

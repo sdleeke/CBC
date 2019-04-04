@@ -31,6 +31,10 @@ struct Selected {
                 if reference != nil, !Constants.NO_CHAPTER_BOOKS.contains(selectedBook), chapter > 0 {
                     reference = reference! + " \(chapter)"
                 }
+                
+                if reference != nil, verse > 0 {
+                    reference = reference! + ":\(verse)"
+                }
             }
             
             return reference
@@ -229,7 +233,7 @@ class Scripture : NSObject
                 return _books
             }
             
-            _books = booksFromScriptureReference(reference)
+            _books = reference?.books
             
             return _books
         }
@@ -253,7 +257,7 @@ class Scripture : NSObject
             return nil
         }
         
-        guard var string = stripHTML(html?[reference]) else {
+        guard var string = html?[reference]?.stripHTML else {
             return nil
         }
 
@@ -415,7 +419,7 @@ class Scripture : NSObject
 
                 // What if a reference includes the book more than once?
 
-                if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
+                if let chaptersAndVerses = reference?.chaptersAndVerses(book) {
                     if let _ = booksAndChaptersAndVerses[book] {
                         for key in chaptersAndVerses.keys {
                             if let verses = chaptersAndVerses[key] {
@@ -461,7 +465,7 @@ class Scripture : NSObject
 
                     bodyString = bodyString + "</body></html>"
                     
-                    return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+                    return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
                 }
             }
         }
@@ -903,7 +907,7 @@ class Scripture : NSObject
         bodyString = bodyString + "</body></html>"
         
         if let reference = reference {
-            html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+            html?[reference] = bodyString.insertHead(fontSize:Constants.FONT_SIZE)
         }
     }
 }

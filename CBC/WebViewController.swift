@@ -238,7 +238,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            self.alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
         }
         
@@ -262,10 +262,10 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.startAnimating()
         
         if bodyHTML != nil { // , headerHTML != nil // Not necessary
-            html.string = markBodyHTML(bodyHTML: bodyHTML, headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+            html.string = bodyHTML?.markHTML(headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
         }
 
-        html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+        html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
         
         if let url = self.html.fileURL {
             wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -312,7 +312,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            self.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -327,23 +327,23 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
-                firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
+                self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
                     firstAction: {
                         self.process(work: { [weak self] () -> (Any?) in
-                            return stripLinks(self?.html.string)
+                            return self?.html.string?.stripLinks
                         }, completion: { [weak self] (data:Any?) in
                             if let vc = self {
-                                printHTML(viewController: vc, htmlString: data as? String)
+                                vc.printHTML(htmlString: data as? String)
                             }
                         })
                 }, firstStyle: .default,
                    secondTitle: Constants.Strings.No,
                    secondAction: {
-                    printHTML(viewController: self, htmlString: self.html.string)
+                    self.printHTML(htmlString: self.html.string)
                 }, secondStyle: .default)
             } else {
-                printHTML(viewController: self, htmlString: self.html.string)
+                self.printHTML(htmlString: self.html.string)
             }
             break
             
@@ -371,12 +371,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.startAnimating()
                 
                 if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
+                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -396,12 +396,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.startAnimating()
                 
                 if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
+                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: true, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: true, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -421,12 +421,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.startAnimating()
                 
                 if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = insertHead(stripHead(self.html.original),fontSize: self.html.fontSize)
+                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
                 } else {
                     if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = insertHead(stripHead(markBodyHTML(bodyHTML: self.bodyHTML, headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     } else {
-                        self.html.string = insertHead(stripHead(markHTML(html:self.html.original, searchText:self.searchText, wholeWordsOnly: false, index: true).0),fontSize: self.html.fontSize)
+                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
                     }
                 }
                 
@@ -460,7 +460,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.process(work: { [weak self] () -> (Any?) in
                         return popover.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
-                        presentHTMLModal(viewController: popover, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                        popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     })
                 }
                 
@@ -594,7 +594,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Email_One:
             if let title = navigationItem.title, let htmlString = html.string {
-                mailHTML(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, htmlString: htmlString)
+                self.mailHTML(to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, htmlString: htmlString)
             }
             break
             
@@ -614,13 +614,13 @@ extension WebViewController : PopoverTableViewControllerDelegate
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             break
             
-        case "Lexical Analysis":
+        case Constants.Strings.Lexical_Analysis:
             self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
                 if #available(iOS 12.0, *) {
-                    return stripHTML(self.bodyHTML)?.nlNameAndLexicalTypesMarkup(annotated:true)
+                    return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true)
                 } else {
                     // Fallback on earlier versions
-                    return stripHTML(self.bodyHTML)?.nsNameAndLexicalTypesMarkup(annotated:true)
+                    return self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true)
                 }
             }) { (data:Any?) in
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
@@ -629,7 +629,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     if let title = self.navigationItem.title {
                         popover.navigationItem.title = title + " Lexical Analysis"
                     } else {
-                        popover.navigationItem.title = "Lexical Analysis"
+                        popover.navigationItem.title = Constants.Strings.Lexical_Analysis
                     }
                     
                     navigationController.isNavigationBarHidden = false
@@ -657,7 +657,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            self.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -692,11 +692,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
             // This serializes the webView loading
             operationQueue.addOperation { [weak self] in
                 if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
-                    self?.html.string = markBodyHTML(bodyHTML: self?.bodyHTML, headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+                    self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
                 }
                 
                 if let fontSize = self?.html.fontSize {
-                    self?.html.string = insertHead(stripHead(self?.html.string),fontSize: fontSize)
+                    self?.html.string = self?.html.string?.stripHead.insertHead(fontSize: fontSize)
                     
                     if let url = self?.html.fileURL {
                         Thread.onMainThread {
@@ -767,7 +767,7 @@ extension WebViewController : WKNavigationDelegate
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
-            networkUnavailable(self,withError.localizedDescription)
+            self.networkUnavailable(withError.localizedDescription)
             NSLog(withError.localizedDescription)
         }
     }
@@ -779,7 +779,7 @@ extension WebViewController : WKNavigationDelegate
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
-            networkUnavailable(self,withError.localizedDescription)
+            self.networkUnavailable(withError.localizedDescription)
             NSLog(withError.localizedDescription)
         }
     }
@@ -796,7 +796,7 @@ extension WebViewController : WKNavigationDelegate
             if let url = navigationAction.request.url?.absoluteString, url.contains("file:///") {
                 decisionHandler(WKNavigationActionPolicy.allow)
             } else {
-                open(scheme: navigationAction.request.url?.absoluteString) {}
+                UIApplication.shared.open(scheme: navigationAction.request.url?.absoluteString) {}
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
             break
@@ -981,7 +981,7 @@ class WebViewController: UIViewController
                     self.webView.bringSubviewToFront(self.logo)
                     
                     // Can't prevent this from getting called twice in succession.
-                    networkUnavailable(self,"Document could not be loaded.")
+                    self.networkUnavailable("Document could not be loaded.")
                 }
                 break
                 
@@ -1082,7 +1082,7 @@ class WebViewController: UIViewController
         }
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:done", completion: nil)
+            self.alert(title: "Not Main Thread", message: "WebViewController:done", completion: nil)
             return
         }
 
@@ -1113,7 +1113,7 @@ class WebViewController: UIViewController
                     actionMenu.append(Constants.Strings.Word_Cloud)
                 }
             }
-            actionMenu.append("Lexical Analysis")
+            actionMenu.append(Constants.Strings.Lexical_Analysis)
         }
         
         if self.navigationController?.modalPresentationStyle == .popover {
@@ -1173,7 +1173,7 @@ class WebViewController: UIViewController
             self.activityIndicator.startAnimating()
         }
 
-        html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+        html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
 
         if let url = html.fileURL {
             wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -1196,7 +1196,7 @@ class WebViewController: UIViewController
                 self.activityIndicator.startAnimating()
             }
             
-            html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+            html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
 
             if let url = html.fileURL {
                 wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -1992,7 +1992,7 @@ class WebViewController: UIViewController
                 
             case .html:
                 if html.string != nil {
-                    html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+                    html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
   
                     if let url = html.fileURL {
                         wkWebView?.loadFileURL(url, allowingReadAccessTo: url)

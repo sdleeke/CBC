@@ -613,6 +613,8 @@ enum Constants {
         static let LocalDevice = "This Device"
         static let OtherDevices = "Other Devices"
 
+        static let Lexical_Analysis = "Lexical Analysis"
+        
         static let Scripture_in_Browser = "Scripture in Browser"
         
         static let Scripture_Viewer = "Scripture Viewer"
@@ -685,7 +687,10 @@ enum Constants {
         
         static let Auto_Edit_All_Audio = Auto_Edit_All + SINGLE_SPACE + Audio
         static let Auto_Edit_All_Video = Auto_Edit_All + SINGLE_SPACE + Video
-
+        
+        static let Cancel_All_Auto_Edit_Audio = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Audio
+        static let Cancel_All_Auto_Edit_Video = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Video
+        
         static let Align_All = Align + SINGLE_SPACE + All
         
         static let Align_All_Audio = Align_All + SINGLE_SPACE + Audio

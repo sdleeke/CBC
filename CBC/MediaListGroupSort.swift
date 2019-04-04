@@ -400,7 +400,7 @@ class MediaListGroupSort
                     groupSort?[grouping]?[string] = [String:[MediaItem]]()
                 }
                 for sort in Constants.sortings {
-                    let array = sortMediaItemsChronologically(groupedMediaItems[grouping]?[string])
+                    let array = groupedMediaItems[grouping]?[string]?.sortChronologically
                     
                     switch sort {
                     case SORTING.CHRONOLOGICAL:
@@ -453,10 +453,10 @@ class MediaListGroupSort
                         break
                         
                     case GROUPING.BOOK:
-                        if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                        if ($0.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && ($1.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                             return $0.withoutPrefixes < $1.withoutPrefixes
                         } else {
-                            return bookNumberInBible($0) < bookNumberInBible($1)
+                            return $0.bookNumberInBible < $1.bookNumberInBible
                         }
                         
                     default:
@@ -561,10 +561,10 @@ class MediaListGroupSort
                 break
                 
             case GROUPING.BOOK:
-                if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                if ($0.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && ($1.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
-                    return bookNumberInBible($0) < bookNumberInBible($1)
+                    return $0.bookNumberInBible < $1.bookNumberInBible
                 }
                 
             default:
@@ -608,10 +608,10 @@ class MediaListGroupSort
                 break
                 
             case GROUPING.BOOK:
-                if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                if ($0.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && ($1.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
-                    return bookNumberInBible($0) < bookNumberInBible($1)
+                    return $0.bookNumberInBible < $1.bookNumberInBible
                 }
                 
             default:
@@ -660,10 +660,10 @@ class MediaListGroupSort
                 break
                 
             case GROUPING.BOOK:
-                if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                if ($0.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && ($1.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return $0.withoutPrefixes < $1.withoutPrefixes
                 } else {
-                    return bookNumberInBible($0) < bookNumberInBible($1)
+                    return $0.bookNumberInBible < $1.bookNumberInBible
                 }
                 
             default:
@@ -769,6 +769,270 @@ class MediaListGroupSort
 //                }
 //            }
 //        }
+    }
+
+    func html(includeURLs:Bool,includeColumns:Bool) -> String?
+    {
+        //        guard (Globals.shared.media.active?.mediaList?.list != nil) else {
+        //            return nil
+        //        }
+        
+        guard let grouping = grouping else {
+            return nil
+        }
+
+        guard let sorting = sorting else {
+            return nil
+        }
+        
+        var bodyString = "<!DOCTYPE html><html><body>"
+        
+        bodyString = bodyString + "The following media "
+        
+        if mediaItems?.count > 1 {
+            bodyString = bodyString + "are"
+        } else {
+            bodyString = bodyString + "is"
+        }
+        
+        if includeURLs {
+            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        } else {
+            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+        }
+        
+        if let category = category {
+            bodyString = bodyString + "Category: \(category)<br/>"
+        }
+        
+//                if let category = Globals.shared.mediaCategory.selected {
+//                    bodyString = bodyString + "Category: \(category)<br/>"
+//                }
+        
+        if let tag = tagSelected {
+            bodyString = bodyString + "Collection: \(tag)<br/>"
+        }
+        
+        //        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
+        //            bodyString = bodyString + "Collection: \(tag)<br/>"
+        //        }
+        
+        if let searchText = search {
+            bodyString = bodyString + "Search: \(searchText)<br/>"
+        }
+        
+        //        if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
+        //            bodyString = bodyString + "Search: \(searchText)<br/>"
+        //        }
+        
+        bodyString = bodyString + "Grouped: By \(grouping.translate)<br/>"
+
+        bodyString = bodyString + "Sorted: \(sorting.translate)<br/>"
+        
+        if let keys = Globals.shared.media.active?.section?.indexStrings {
+            var count = 0
+            for key in keys {
+                if let mediaItems = groupSort?[grouping]?[key]?[sorting] {
+                    count += mediaItems.count
+                }
+            }
+            
+            bodyString = bodyString + "Total: \(count)<br/>"
+            
+            if includeURLs, (keys.count > 1) {
+                bodyString = bodyString + "<br/>"
+                bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+            }
+            
+            if includeColumns {
+                bodyString = bodyString + "<table>"
+            }
+            
+            for key in keys {
+                if  let name = groupNames?[grouping]?[key],
+                    let mediaItems = groupSort?[grouping]?[key]?[sorting] {
+                    var speakerCounts = [String:Int]()
+                    
+                    for mediaItem in mediaItems {
+                        if let speaker = mediaItem.speaker {
+                            if let count = speakerCounts[speaker] {
+                                speakerCounts[speaker] = count + 1
+                            } else {
+                                speakerCounts[speaker] = 1
+                            }
+                        }
+                    }
+                    
+                    let speakerCount = speakerCounts.keys.count
+                    
+                    let tag = key.asTag
+                    
+                    if includeColumns {
+                        if includeURLs {
+                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+                        } else {
+                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+                        }
+                    } else {
+                        if includeURLs {
+                            bodyString = bodyString + "<br/>"
+                        } else {
+                            bodyString = bodyString + "<br/>"
+                        }
+                    }
+                    
+                    if includeColumns {
+                        bodyString = bodyString + "<tr>"
+                        bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
+                    }
+                    
+                    if includeURLs, (keys.count > 1) {
+                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
+                    } else {
+                        bodyString = bodyString + name + " (\(mediaItems.count))"
+                    }
+                    
+                    if speakerCount == 1 {
+                        if var speaker = mediaItems[0].speaker, name != speaker {
+                            if let speakerTitle = mediaItems[0].speakerTitle {
+                                speaker += ", \(speakerTitle)"
+                            }
+                            bodyString = bodyString + " by " + speaker
+                        }
+                    }
+                    
+                    if includeColumns {
+                        bodyString = bodyString + "</td>"
+                        bodyString = bodyString + "</tr>"
+                    } else {
+                        bodyString = bodyString + "<br/>"
+                    }
+                    
+                    for mediaItem in mediaItems {
+                        var order = ["date","title","scripture"]
+                        
+                        if speakerCount > 1 {
+                            order.append("speaker")
+                        }
+                        
+                        if Globals.shared.grouping != GROUPING.CLASS {
+                            if mediaItem.hasClassName {
+                                order.append("class")
+                            }
+                        }
+                        
+                        if Globals.shared.grouping != GROUPING.EVENT {
+                            if mediaItem.hasEventName {
+                                order.append("event")
+                            }
+                        }
+                        
+                        if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
+                            bodyString = bodyString + string
+                        }
+                        
+                        if !includeColumns {
+                            bodyString = bodyString + "<br/>"
+                        }
+                    }
+                }
+            }
+            
+            if includeColumns {
+                bodyString = bodyString + "</table>"
+            }
+            
+            bodyString = bodyString + "<br/>"
+            
+            if includeURLs, keys.count > 1 {
+                bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+                
+                switch grouping {
+                case GROUPING.CLASS:
+                    fallthrough
+                case GROUPING.SPEAKER:
+                    fallthrough
+                case GROUPING.TITLE:
+                    let a = "A"
+                    
+                    if let indexTitles = section?.indexStrings {
+                        let titles = Array(Set(indexTitles.map({ (string:String) -> String in
+                            if string.count >= a.count { // endIndex
+                                return String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
+                            } else {
+                                return string
+                            }
+                        }))).sorted() { $0 < $1 }
+                        
+                        var stringIndex = [String:[String]]()
+                        
+                        if let indexStrings = section?.indexStrings {
+                            for indexString in indexStrings {
+                                let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
+                                
+                                if stringIndex[key] == nil {
+                                    stringIndex[key] = [String]()
+                                }
+                                
+                                stringIndex[key]?.append(indexString)
+                            }
+                        }
+                        
+                        var index:String?
+                        
+                        for title in titles {
+                            let link = "<a href=\"#\(title)\">\(title)</a>"
+                            index = ((index != nil) ? index! + " " : "") + link
+                        }
+                        
+                        bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+                        
+                        if let index = index {
+                            bodyString = bodyString + index + "<br/>"
+                        }
+                        
+                        for title in titles {
+                            bodyString = bodyString + "<br/>"
+                            if let count = stringIndex[title]?.count { // Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count
+                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
+                            } else {
+                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                            }
+                            
+                            if let keys = stringIndex[title] {
+                                for key in keys {
+                                    if let title = groupNames?[grouping]?[key] {
+                                        let tag = key.asTag
+                                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
+                                    }
+                                }
+                            }
+                            
+                            bodyString = bodyString + "</div>"
+                        }
+                        
+                        bodyString = bodyString + "</div>"
+                    }
+                    break
+                    
+                default:
+                    for key in keys {
+                        if let title = groupNames?[grouping]?[key],
+                            let count = groupSort?[grouping]?[key]?[sorting]?.count {
+                            let tag = key.asTag
+                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                        }
+                    }
+                    break
+                }
+                
+                bodyString = bodyString + "</div>"
+            }
+        }
+        
+        bodyString = bodyString + "</body></html>"
+        
+        return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
     }
 }
 
