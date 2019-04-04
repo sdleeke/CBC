@@ -176,6 +176,46 @@ class ScriptureIndex
         }
     }
     
+    var mediaItems:[MediaItem]?
+    {
+        willSet {
+            
+        }
+        didSet {
+            guard self.sections == nil else {
+                return
+            }
+            
+            var sections = [String:[MediaItem]]()
+            
+            if let mediaItems = mediaItems {
+                for mediaItem in mediaItems {
+                    if let books = mediaItem.books {
+                        for book in books {
+                            if let selectedTestament = selectedTestament {
+                                if selectedTestament.translateTestament == book.testament {
+                                    if sections[book] == nil {
+                                        sections[book] = [mediaItem]
+                                    } else {
+                                        sections[book]?.append(mediaItem)
+                                    }
+                                } else {
+                                    // THIS SHOULD NEVER HAPPEN
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            for book in sections.keys {
+                sections[book] = sections[book]?.sort(book:book)
+            }
+            
+            self.sections = sections
+        }
+    }
+
     lazy var operationQueue:OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "ScriptureIndex" + UUID().uuidString
@@ -345,6 +385,181 @@ class ScriptureIndex
         }
         
         operationQueue.addOperation(op)
+    }
+
+    func html(includeURLs:Bool, includeColumns:Bool) -> String?
+    {
+        guard let mediaItems = mediaItems else {
+            return nil
+        }
+        
+        var bodyItems = [String:[MediaItem]]()
+        
+        for mediaItem in mediaItems {
+            if let books = mediaItem.books {
+                for book in books {
+                    if let okay = sectionTitles?.contains(book) {
+                        if okay {
+                            if bodyItems[book] == nil {
+                                bodyItems[book] = [mediaItem]
+                            } else {
+                                bodyItems[book]?.append(mediaItem)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        var bodyString:String!
+        
+        bodyString = "<!DOCTYPE html><html><body>"
+        
+        bodyString = bodyString + "<div>"
+        
+        bodyString = bodyString + "The following media "
+        
+        if mediaItems.count > 1 {
+            bodyString = bodyString + "are"
+        } else {
+            bodyString = bodyString + "is"
+        }
+        
+        if includeURLs {
+            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        } else {
+            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+        }
+        
+        if let category = mediaListGroupSort?.category.value {
+            bodyString = bodyString + "Category: \(category)<br/><br/>"
+        }
+        
+        if let tag = mediaListGroupSort?.tagSelected.value {
+            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
+        }
+        
+        if let text = mediaListGroupSort?.search.value?.text {
+            bodyString = bodyString + "Search: \(text)<br/><br/>"
+        }
+        
+        bodyString = bodyString + "</div>"
+        
+        if let selectedTestament = selectedTestament {
+            var indexFor = selectedTestament.translateTestament
+            
+            if let selectedBook = selectedBook {
+                indexFor = selectedBook
+                
+                if selectedChapter > 0 {
+                    indexFor = indexFor + " \(selectedChapter)"
+                    
+                    if selectedVerse > 0 {
+                        indexFor = indexFor + ":\(selectedVerse)"
+                    }
+                }
+            }
+            
+            bodyString = bodyString + "\(indexFor) Scripture Index<br/>"
+        }
+        
+        bodyString = bodyString + "Items are grouped and sorted by Scripture reference.<br/>"
+        
+        bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
+        
+        let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+        
+        if includeURLs, (books.count > 1) {
+            bodyString = bodyString + "<br/>"
+            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+        }
+        
+        if includeColumns {
+            bodyString  = bodyString + "<table>"
+        }
+        
+        for book in books {
+            let tag = book.asTag
+            
+            if includeColumns {
+                bodyString  = bodyString + "<tr><td><br/></td></tr>"
+                bodyString  = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+            }
+            
+            if let mediaItems = bodyItems[book] {
+                if includeURLs && (books.count > 1) {
+                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
+                } else {
+                    bodyString = bodyString + book
+                }
+                
+                var speakerCounts = [String:Int]()
+                
+                for mediaItem in mediaItems {
+                    if let speaker = mediaItem.speaker {
+                        guard let count = speakerCounts[speaker] else {
+                            speakerCounts[speaker] = 1
+                            continue
+                        }
+                        
+                        speakerCounts[speaker] = count + 1
+                    }
+                }
+                
+                let speakerCount = speakerCounts.keys.count
+                
+                let speakers = Array(speakerCounts.keys)
+                
+                if speakerCount == 1{
+                    bodyString = bodyString + " by \(speakers[0])"
+                }
+                
+                if includeColumns {
+                    bodyString  = bodyString + "</td>"
+                    bodyString  = bodyString + "</tr>"
+                } else {
+                    bodyString = bodyString + "<br/>"
+                }
+                
+                for mediaItem in mediaItems {
+                    var order = ["scripture","title","date"]
+                    
+                    if speakerCount > 1 {
+                        order.append("speaker")
+                    }
+                    
+                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
+                        bodyString = bodyString + string
+                    }
+                    
+                    if !includeColumns {
+                        bodyString = bodyString + "<br/>"
+                    }
+                }
+            }
+        }
+        
+        if includeColumns {
+            bodyString  = bodyString + "</table>"
+        }
+        
+        bodyString = bodyString + "<br/>"
+        
+        if includeURLs, (books.count > 1) {
+            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+            
+            for book in books {
+                if let count = bodyItems[book]?.count {
+                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
+                }
+            }
+            
+            bodyString = bodyString + "</div>"
+        }
+        
+        bodyString = bodyString + "</body></html>"
+        
+        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
     }
 }
 

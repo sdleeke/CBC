@@ -169,6 +169,36 @@ extension FileManager
 
 extension Array where Element == MediaItem
 {
+    func sort(book:String?) -> [MediaItem]?
+    {
+        var list:[MediaItem]?
+        
+        list = self.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
+            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+            
+            if firstBooksChaptersVerses == secondBooksChaptersVerses {
+                if let firstDate = first.fullDate, let secondDate = second.fullDate {
+                    if firstDate.isEqualTo(secondDate) {
+                        if first.service == second.service {
+                            return first.speaker?.lastName < second.speaker?.lastName
+                        } else {
+                            return first.service < second.service
+                        }
+                    } else {
+                        return firstDate.isOlderThan(secondDate)
+                    }
+                } else {
+                    return false
+                }
+            } else {
+                return firstBooksChaptersVerses < secondBooksChaptersVerses
+            }
+        })
+        
+        return list
+    }
+    
     var sortChronologically : [MediaItem]?
     {
         return self.sorted() {
@@ -463,7 +493,7 @@ extension Array where Element == MediaItem
         //        bodyString = bodyString + "Collection: \(tag)<br/><br/>"
         //    }
         //
-        //    if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
+        //    if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
         //        bodyString = bodyString + "Search: \(searchText)<br/><br/>"
         //    }
         
@@ -724,7 +754,7 @@ extension Array where Element == MediaItem
 //            bodyString = bodyString + "Search: \(searchText)<br/>"
 //        }
 //        
-////        if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
+////        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
 ////            bodyString = bodyString + "Search: \(searchText)<br/>"
 ////        }
 //        

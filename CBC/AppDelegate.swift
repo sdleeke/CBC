@@ -417,7 +417,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 mtvc.disableBarButtons()
             }
             
-            if (Globals.shared.search.active) {
+            if (Globals.shared.search.isActive) {
                 mtvc.updateSearchResults(Globals.shared.search.text,completion: nil)
             }
             

@@ -12,26 +12,26 @@ class Search
 {
     var complete:Bool = true
     
-    var active:Bool = false
+    var isActive:Bool = false
     {
         willSet {
             
         }
         didSet {
-            if !active {
+            if !isActive {
                 complete = true
             }
         }
     }
     
-    var valid:Bool
+    var isValid:Bool
     {
         get {
-            return active && extant
+            return isActive && isExtant
         }
     }
     
-    var extant:Bool
+    var isExtant:Bool
     {
         get {
             if let isEmpty = text?.isEmpty {
@@ -56,7 +56,7 @@ class Search
                 return
             }
             
-            if extant {
+            if isExtant {
                 UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
                 UserDefaults.standard.synchronize()
             } else {

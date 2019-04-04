@@ -133,7 +133,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return false
             }
 
-            return _isVoiceBaseAvailable ?? checkingVoiceBaseAvailability
+            return _isVoiceBaseAvailable ?? false // checkingVoiceBaseAvailability
         }
         set {
             _isVoiceBaseAvailable = newValue
@@ -515,7 +515,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     string = (string != nil ? string! + ", " : "") + tag  // Collection:
                 }
                 
-                if self.search.valid, let search = self.search.text {
+                if self.search.isValid, let search = self.search.text {
                     string = (string != nil ? string! + ", " : "") + "\"\(search)\""  // Search:
                 }
             }
@@ -564,7 +564,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 string = (!string.isEmpty ? string + ":" : "") + tag
             }
             
-            if self.search.valid, let search = self.search.text {
+            if self.search.isValid, let search = self.search.text {
                 string = (!string.isEmpty ? string + ":" : "") + search
             }
 
@@ -800,7 +800,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
 
             search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-            search.active = search.text != nil
+            search.isActive = search.text != nil
 
             if let playing = mediaCategory.playing {
                 mediaPlayer.mediaItem = mediaRepository.index[playing]

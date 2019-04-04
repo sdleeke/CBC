@@ -87,7 +87,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.View_List:
                 self.process(work: { [weak self] () -> (Any?) in
                     if self?.scriptureIndex?.html?.string == nil {
-                        self?.scriptureIndex?.html?.string = self?.setupMediaItemsHTMLScripture(self?.mediaItems, includeURLs:true, includeColumns:true)
+                        self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true)
                     }
                     
                     return self?.scriptureIndex?.html?.string
@@ -585,7 +585,8 @@ class ScriptureIndexViewController : UIViewController
     var includeVerses = false
     
     var finished:Float = 0.0
-    var progress:Float = 0.0 {
+    var progress:Float = 0.0
+    {
         willSet {
             
         }
@@ -707,43 +708,55 @@ class ScriptureIndexViewController : UIViewController
     
     var mediaItems:[MediaItem]?
     {
-        willSet {
-            
+        get {
+            return scriptureIndex?.mediaItems
         }
-        didSet {
-            guard self.sections == nil else {
-                return
-            }
-            
-            var sections = [String:[MediaItem]]()
-            
-            if let mediaItems = mediaItems {
-                for mediaItem in mediaItems {
-                    if let books = mediaItem.books {
-                        for book in books {
-                            if let selectedTestament = scriptureIndex?.selectedTestament {
-                                if selectedTestament.translateTestament == book.testament {
-                                    if sections[book] == nil {
-                                        sections[book] = [mediaItem]
-                                    } else {
-                                        sections[book]?.append(mediaItem)
-                                    }
-                                } else {
-                                    // THIS SHOULD NEVER HAPPEN
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            for book in sections.keys {
-                sections[book] = sortMediaItems(sections[book],book:book)
-            }
-            
-            self.sections = sections
+        
+        set {
+            scriptureIndex?.mediaItems = newValue
         }
     }
+
+//var mediaItems:[MediaItem]?
+//    {
+//        willSet {
+//
+//        }
+//        didSet {
+//            guard self.sections == nil else {
+//                return
+//            }
+//
+//            var sections = [String:[MediaItem]]()
+//
+//            if let mediaItems = mediaItems {
+//                for mediaItem in mediaItems {
+//                    if let books = mediaItem.books {
+//                        for book in books {
+//                            if let selectedTestament = scriptureIndex?.selectedTestament {
+//                                if selectedTestament.translateTestament == book.testament {
+//                                    if sections[book] == nil {
+//                                        sections[book] = [mediaItem]
+//                                    } else {
+//                                        sections[book]?.append(mediaItem)
+//                                    }
+//                                } else {
+//                                    // THIS SHOULD NEVER HAPPEN
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            for book in sections.keys {
+//                sections[book] = sections[book]?.sort(book:book)
+//            }
+//
+//            self.sections = sections
+//        }
+//    }
+    
     var selectedMediaItem:MediaItem?
     {
         willSet {
@@ -889,7 +902,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 if scriptureIndex.sorted[testament] == nil {
                     let mediaItems = scriptureIndex.byTestament[testament]
-                    scriptureIndex.byTestament[testament] = self?.sortMediaItems(mediaItems,book:nil)
+                    scriptureIndex.byTestament[testament] = mediaItems?.sort(book:nil)
                     scriptureIndex.sorted[testament] = true
                 }
                 
@@ -928,7 +941,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 if scriptureIndex.sorted[index] == nil {
                     let mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
-                    scriptureIndex.byBook[testament]?[selectedBook] = self?.sortMediaItems(mediaItems,book:selectedBook)
+                    scriptureIndex.byBook[testament]?[selectedBook] = mediaItems?.sort(book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
@@ -967,7 +980,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 if scriptureIndex.sorted[index] == nil {
                     let mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
-                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = self?.sortMediaItems(mediaItems,book:selectedBook)
+                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = mediaItems?.sort(book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
@@ -1103,180 +1116,180 @@ class ScriptureIndexViewController : UIViewController
 
     }
     
-    func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
-    {
-        guard let mediaItems = mediaItems else {
-            return nil
-        }
-        
-        var bodyItems = [String:[MediaItem]]()
-        
-        for mediaItem in mediaItems {
-            if let books = mediaItem.books {
-                for book in books {
-                    if let okay = sectionTitles?.contains(book) {
-                        if okay {
-                            if bodyItems[book] == nil {
-                                bodyItems[book] = [mediaItem]
-                            } else {
-                                bodyItems[book]?.append(mediaItem)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        var bodyString:String!
-        
-        bodyString = "<!DOCTYPE html><html><body>"
-        
-        bodyString = bodyString + "<div>"
-
-        bodyString = bodyString + "The following media "
-        
-        if mediaItems.count > 1 {
-            bodyString = bodyString + "are"
-        } else {
-            bodyString = bodyString + "is"
-        }
-        
-        if includeURLs {
-            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
-        } else {
-            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
-        }
-        
-        if let category = Globals.shared.mediaCategory.selected {
-            bodyString = bodyString + "Category: \(category)<br/><br/>"
-        }
-        
-        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
-        }
-        
-        if Globals.shared.search.valid, let text = Globals.shared.search.text {
-            bodyString = bodyString + "Search: \(text)<br/><br/>"
-        }
-        
-        bodyString = bodyString + "</div>"
-
-        if let selectedTestament = self.scriptureIndex?.selectedTestament {
-            var indexFor = selectedTestament.translateTestament
-
-            if let selectedBook = self.scriptureIndex?.selectedBook {
-                indexFor = selectedBook
-                
-                if let chapter = self.scriptureIndex?.selectedChapter, chapter > 0 {
-                    indexFor = indexFor + " \(chapter)"
-                    
-                    if let verse = self.scriptureIndex?.selectedVerse, verse > 0 {
-                        indexFor = indexFor + ":\(verse)"
-                    }
-                }
-            }
-            
-            bodyString = bodyString + "\(indexFor) Scripture Index<br/>"
-        }
-        
-        bodyString = bodyString + "Items are grouped and sorted by Scripture reference.<br/>"
-
-        bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
-        
-        let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
-        
-        if includeURLs, (books.count > 1) {
-            bodyString = bodyString + "<br/>"
-            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
-        }
-        
-        if includeColumns {
-            bodyString  = bodyString + "<table>"
-        }
-        
-        for book in books {
-            let tag = book.asTag
-
-            if includeColumns {
-                bodyString  = bodyString + "<tr><td><br/></td></tr>"
-                bodyString  = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
-            }
-            
-            if let mediaItems = bodyItems[book] {
-                if includeURLs && (books.count > 1) {
-                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
-                } else {
-                    bodyString = bodyString + book
-                }
-
-                var speakerCounts = [String:Int]()
-                
-                for mediaItem in mediaItems {
-                    if let speaker = mediaItem.speaker {
-                        guard let count = speakerCounts[speaker] else {
-                            speakerCounts[speaker] = 1
-                            continue
-                        }
-
-                        speakerCounts[speaker] = count + 1
-                    }
-                }
-                
-                let speakerCount = speakerCounts.keys.count
-                
-                let speakers = Array(speakerCounts.keys)
-                
-                if speakerCount == 1{
-                    bodyString = bodyString + " by \(speakers[0])"
-                }
-                
-                if includeColumns {
-                    bodyString  = bodyString + "</td>"
-                    bodyString  = bodyString + "</tr>"
-                } else {
-                    bodyString = bodyString + "<br/>"
-                }
-                
-                for mediaItem in mediaItems {
-                    var order = ["scripture","title","date"]
-                    
-                    if speakerCount > 1 {
-                        order.append("speaker")
-                    }
-                    
-                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                        bodyString = bodyString + string
-                    }
-                    
-                    if !includeColumns {
-                        bodyString = bodyString + "<br/>"
-                    }
-                }
-            }
-        }
-        
-        if includeColumns {
-            bodyString  = bodyString + "</table>"
-        }
-        
-        bodyString = bodyString + "<br/>"
-        
-        if includeURLs, (books.count > 1) {
-            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
-
-            for book in books {
-                if let count = bodyItems[book]?.count {
-                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
-                }
-            }
-            
-            bodyString = bodyString + "</div>"
-        }
-        
-        bodyString = bodyString + "</body></html>"
-        
-        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
-    }
+//    func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+//    {
+//        guard let mediaItems = mediaItems else {
+//            return nil
+//        }
+//        
+//        var bodyItems = [String:[MediaItem]]()
+//        
+//        for mediaItem in mediaItems {
+//            if let books = mediaItem.books {
+//                for book in books {
+//                    if let okay = sectionTitles?.contains(book) {
+//                        if okay {
+//                            if bodyItems[book] == nil {
+//                                bodyItems[book] = [mediaItem]
+//                            } else {
+//                                bodyItems[book]?.append(mediaItem)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        
+//        var bodyString:String!
+//        
+//        bodyString = "<!DOCTYPE html><html><body>"
+//        
+//        bodyString = bodyString + "<div>"
+//
+//        bodyString = bodyString + "The following media "
+//        
+//        if mediaItems.count > 1 {
+//            bodyString = bodyString + "are"
+//        } else {
+//            bodyString = bodyString + "is"
+//        }
+//        
+//        if includeURLs {
+//            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+//        } else {
+//            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+//        }
+//        
+//        if let category = Globals.shared.mediaCategory.selected {
+//            bodyString = bodyString + "Category: \(category)<br/><br/>"
+//        }
+//        
+//        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
+//            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
+//        }
+//        
+//        if Globals.shared.search.isValid, let text = Globals.shared.search.text {
+//            bodyString = bodyString + "Search: \(text)<br/><br/>"
+//        }
+//        
+//        bodyString = bodyString + "</div>"
+//
+//        if let selectedTestament = self.scriptureIndex?.selectedTestament {
+//            var indexFor = selectedTestament.translateTestament
+//
+//            if let selectedBook = self.scriptureIndex?.selectedBook {
+//                indexFor = selectedBook
+//                
+//                if let chapter = self.scriptureIndex?.selectedChapter, chapter > 0 {
+//                    indexFor = indexFor + " \(chapter)"
+//                    
+//                    if let verse = self.scriptureIndex?.selectedVerse, verse > 0 {
+//                        indexFor = indexFor + ":\(verse)"
+//                    }
+//                }
+//            }
+//            
+//            bodyString = bodyString + "\(indexFor) Scripture Index<br/>"
+//        }
+//        
+//        bodyString = bodyString + "Items are grouped and sorted by Scripture reference.<br/>"
+//
+//        bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
+//        
+//        let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+//        
+//        if includeURLs, (books.count > 1) {
+//            bodyString = bodyString + "<br/>"
+//            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+//        }
+//        
+//        if includeColumns {
+//            bodyString  = bodyString + "<table>"
+//        }
+//        
+//        for book in books {
+//            let tag = book.asTag
+//
+//            if includeColumns {
+//                bodyString  = bodyString + "<tr><td><br/></td></tr>"
+//                bodyString  = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+//            }
+//            
+//            if let mediaItems = bodyItems[book] {
+//                if includeURLs && (books.count > 1) {
+//                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
+//                } else {
+//                    bodyString = bodyString + book
+//                }
+//
+//                var speakerCounts = [String:Int]()
+//                
+//                for mediaItem in mediaItems {
+//                    if let speaker = mediaItem.speaker {
+//                        guard let count = speakerCounts[speaker] else {
+//                            speakerCounts[speaker] = 1
+//                            continue
+//                        }
+//
+//                        speakerCounts[speaker] = count + 1
+//                    }
+//                }
+//                
+//                let speakerCount = speakerCounts.keys.count
+//                
+//                let speakers = Array(speakerCounts.keys)
+//                
+//                if speakerCount == 1{
+//                    bodyString = bodyString + " by \(speakers[0])"
+//                }
+//                
+//                if includeColumns {
+//                    bodyString  = bodyString + "</td>"
+//                    bodyString  = bodyString + "</tr>"
+//                } else {
+//                    bodyString = bodyString + "<br/>"
+//                }
+//                
+//                for mediaItem in mediaItems {
+//                    var order = ["scripture","title","date"]
+//                    
+//                    if speakerCount > 1 {
+//                        order.append("speaker")
+//                    }
+//                    
+//                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
+//                        bodyString = bodyString + string
+//                    }
+//                    
+//                    if !includeColumns {
+//                        bodyString = bodyString + "<br/>"
+//                    }
+//                }
+//            }
+//        }
+//        
+//        if includeColumns {
+//            bodyString  = bodyString + "</table>"
+//        }
+//        
+//        bodyString = bodyString + "<br/>"
+//        
+//        if includeURLs, (books.count > 1) {
+//            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+//
+//            for book in books {
+//                if let count = bodyItems[book]?.count {
+//                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
+//                }
+//            }
+//            
+//            bodyString = bodyString + "</div>"
+//        }
+//        
+//        bodyString = bodyString + "</body></html>"
+//        
+//        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
+//    }
 
     func actionMenuItems() -> [String]?
     {
@@ -1489,35 +1502,35 @@ class ScriptureIndexViewController : UIViewController
         scriptureIndex?.build()
     }
     
-    func sortMediaItems(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
-    {
-        var list:[MediaItem]?
-        
-        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-
-            if firstBooksChaptersVerses == secondBooksChaptersVerses {
-                if let firstDate = first.fullDate, let secondDate = second.fullDate {
-                    if firstDate.isEqualTo(secondDate) {
-                        if first.service == second.service {
-                            return first.speaker?.lastName < second.speaker?.lastName
-                        } else {
-                            return first.service < second.service
-                        }
-                    } else {
-                        return firstDate.isOlderThan(secondDate)
-                    }
-                } else {
-                    return false
-                }
-            } else {
-                return firstBooksChaptersVerses < secondBooksChaptersVerses
-            }
-        })
-
-        return list
-    }
+//    func sortMediaItems(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
+//    {
+//        var list:[MediaItem]?
+//        
+//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
+//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+//
+//            if firstBooksChaptersVerses == secondBooksChaptersVerses {
+//                if let firstDate = first.fullDate, let secondDate = second.fullDate {
+//                    if firstDate.isEqualTo(secondDate) {
+//                        if first.service == second.service {
+//                            return first.speaker?.lastName < second.speaker?.lastName
+//                        } else {
+//                            return first.service < second.service
+//                        }
+//                    } else {
+//                        return firstDate.isOlderThan(secondDate)
+//                    }
+//                } else {
+//                    return false
+//                }
+//            } else {
+//                return firstBooksChaptersVerses < secondBooksChaptersVerses
+//            }
+//        })
+//
+//        return list
+//    }
     
     func updateText()
     {

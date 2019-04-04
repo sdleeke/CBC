@@ -134,7 +134,7 @@ extension MediaTableViewController : UISearchBarDelegate
         
         Globals.shared.search.text = searchText
         
-        if Globals.shared.search.valid {
+        if Globals.shared.search.isValid {
             updateSearchResults(searchBar.text,completion: nil)
         } else {
             display.clear()
@@ -170,7 +170,7 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
 
-        Globals.shared.search.active = true
+        Globals.shared.search.isActive = true
         
         searchBar.showsCancelButton = true
         
@@ -178,7 +178,7 @@ extension MediaTableViewController : UISearchBarDelegate
         
         Globals.shared.search.text = searchText
         
-        if Globals.shared.search.valid { //
+        if Globals.shared.search.isValid { //
             updateSearchResults(searchText,completion: nil)
         } else {
             display.clear()
@@ -213,7 +213,7 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
         
-        Globals.shared.search.active = false
+        Globals.shared.search.isActive = false
         
         didDismissSearch()
     }
@@ -1193,7 +1193,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.updateUI()
 
                 Thread.onMainThread {
-                    if Globals.shared.search.active { //  && !Globals.shared.search.complete
+                    if Globals.shared.search.isActive { //  && !Globals.shared.search.complete
                         self.updateSearchResults(Globals.shared.search.text,completion: {
                             // Delay so UI works correctly.
                             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -1265,7 +1265,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 searchText = String(searchText[..<range.lowerBound])
             }
             
-            Globals.shared.search.active = true
+            Globals.shared.search.isActive = true
             Globals.shared.search.text = searchText
             
             tableView?.setEditing(false, animated: true)
@@ -1311,7 +1311,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if let range = string.range(of: " (") {
                 let searchText = String(string[..<range.lowerBound]).uppercased()
                 
-                Globals.shared.search.active = true
+                Globals.shared.search.isActive = true
                 Globals.shared.search.text = searchText
                 
                 Thread.onMainThread {
@@ -1419,7 +1419,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.disableBarButtons()
                     }
                     
-                    if (Globals.shared.search.active) {
+                    if (Globals.shared.search.isActive) {
                         self?.updateSearchResults(Globals.shared.search.text,completion: nil)
                     }
                     
@@ -2711,7 +2711,7 @@ class MediaTableViewController : UIViewController
                 }))
             }
             
-            if Globals.shared.search.valid {
+            if Globals.shared.search.isValid {
                 Thread.onMainThread {
                     self?.searchBar.text = Globals.shared.search.text
                     self?.searchBar.showsCancelButton = true
@@ -2775,7 +2775,7 @@ class MediaTableViewController : UIViewController
     
     func setupListActivityIndicator()
     {
-        if Globals.shared.isLoading || (Globals.shared.search.active && !Globals.shared.search.complete) {
+        if Globals.shared.isLoading || (Globals.shared.search.isActive && !Globals.shared.search.complete) {
             if !Globals.shared.isRefreshing {
                 Thread.onMainThread {
                     self.startAnimating()
@@ -2872,7 +2872,7 @@ class MediaTableViewController : UIViewController
                     
                     self.display.clear()
                     
-                    Globals.shared.search.active = false
+                    Globals.shared.search.isActive = false
                     
                     self.setupSearchBar()
                     
@@ -3066,7 +3066,7 @@ class MediaTableViewController : UIViewController
             
             self.selectedMediaItem = Globals.shared.selectedMediaItem.master
             
-            if Globals.shared.search.active && !Globals.shared.search.complete {
+            if Globals.shared.search.isActive && !Globals.shared.search.complete {
                 self.updateSearchResults(Globals.shared.search.text,completion: {
                     // Delay so UI works correctly.
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -3444,7 +3444,7 @@ class MediaTableViewController : UIViewController
             return
         }
         
-        if !Globals.shared.search.active || (Globals.shared.search.text?.uppercased() == searchText) {
+        if !Globals.shared.search.isActive || (Globals.shared.search.text?.uppercased() == searchText) {
             display.setup(Globals.shared.media.active)
         }
         
@@ -3493,7 +3493,7 @@ class MediaTableViewController : UIViewController
         
         func shouldAbort() -> Bool
         {
-            return !Globals.shared.search.valid || (Globals.shared.search.text != searchText)
+            return !Globals.shared.search.isValid || (Globals.shared.search.text != searchText)
         }
         
         Globals.shared.search.complete = false
@@ -3823,7 +3823,7 @@ class MediaTableViewController : UIViewController
     
     @objc func updateSearch()
     {
-        guard Globals.shared.search.valid else {
+        guard Globals.shared.search.isValid else {
             return
         }
         
@@ -4130,7 +4130,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         cell.vc = self
         
-        cell.searchText = Globals.shared.search.active ? Globals.shared.search.text : nil
+        cell.searchText = Globals.shared.search.isActive ? Globals.shared.search.text : nil
         
         // Configure the cell
         if indexPath.section >= 0, indexPath.section < display.section.indexes?.count {

@@ -23,68 +23,74 @@ typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
-    var _sorting : String?
-    {
-        didSet {
-            
-        }
-    }
-    var sorting : String?
-    {
-        get {
-            return _sorting ?? Globals.shared.sorting
-        }
-        set {
-            _sorting = newValue
-        }
-    }
+    var sorting = Shadowed<String>({ return Globals.shared.sorting })
     
-    var _grouping : String?
-    {
-        didSet {
-            
-        }
-    }
-    var grouping : String?
-    {
-        get {
-            return _grouping ?? Globals.shared.grouping
-        }
-        set {
-            _grouping = newValue
-        }
-    }
+//    var _sorting : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//    var sorting : String?
+//    {
+//        get {
+//            return _sorting ?? Globals.shared.sorting
+//        }
+//        set {
+//            _sorting = newValue
+//        }
+//    }
     
-    var _search : Search!
-    {
-        didSet {
-            // Will this happen when it is a property of Search that is being set?  No.
-        }
-    }
-    var search : Search!
-    {
-        get {
-            return _search ?? Globals.shared.search
-        }
-        set {
-            if _search == nil {
-                _search = Search()
-            }
-            
-            _search = newValue
-        }
-    }
+    var grouping = Shadowed<String>({ return Globals.shared.grouping })
+    
+//    var _grouping : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//    var grouping : String?
+//    {
+//        get {
+//            return _grouping ?? Globals.shared.grouping
+//        }
+//        set {
+//            _grouping = newValue
+//        }
+//    }
+    
+    var search = Shadowed<Search>({ return Globals.shared.search })
+    
+//    var _search : Search!
+//    {
+//        didSet {
+//            // Will this happen when it is a property of Search that is being set?  No.
+//        }
+//    }
+//    var search : Search!
+//    {
+//        get {
+//            return _search ?? Globals.shared.search
+//        }
+//        set {
+//            if _search == nil {
+//                _search = Search()
+//            }
+//
+//            _search = newValue
+//        }
+//    }
     
     var orderString:String?
     {
         get {
             var string:String?
             
-            if let sorting = sorting {
+            if let sorting = sorting.value {
                 string = ((string != nil) ? string! + ":" : "") + sorting
             }
             
-            if let grouping = grouping {
+            if let grouping = grouping.value {
                 string = ((string != nil) ? string! + ":" : "") + grouping
             }
             
@@ -92,52 +98,56 @@ class MediaListGroupSort
         }
     }
     
-    var _category : String?
-    {
-        didSet {
-            
-        }
-    }
-    var category : String?
-    {
-        get {
-            return _category ?? Globals.shared.mediaCategory.selected
-        }
-        set {
-            _category = newValue
-        }
-    }
-    
-    var _tagSelected : String?
-    {
-        didSet {
-            
-        }
-    }
-    var tagSelected : String?
-    {
-        get {
-            return _tagSelected ?? Globals.shared.media.tags.selected
-        }
-        set {
-            _tagSelected = newValue
-        }
-    }
+    var category = Shadowed<String>({ return Globals.shared.mediaCategory.selected })
+
+//    var _category : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//    var category : String?
+//    {
+//        get {
+//            return _category ?? Globals.shared.mediaCategory.selected
+//        }
+//        set {
+//            _category = newValue
+//        }
+//    }
+
+    var tagSelected = Shadowed<String>({ return Globals.shared.media.tags.selected })
+
+//    var _tagSelected : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//    var tagSelected : String?
+//    {
+//        get {
+//            return _tagSelected ?? Globals.shared.media.tags.selected
+//        }
+//        set {
+//            _tagSelected = newValue
+//        }
+//    }
     
     var contextString:String?
     {
         get {
-            guard let category = category else {
+            guard let category = category.value else {
                 return nil
             }
             
             var string = category
             
-            if let tag = tagSelected {
+            if let tag = tagSelected.value {
                 string = (!string.isEmpty ? string + ":" : "") + tag
             }
             
-            if search.valid, let search = search.text {
+            if search.value?.isValid == true, let search = search.value?.text {
                 string = (!string.isEmpty ? string + ":" : "") + search
             }
             
@@ -174,13 +184,13 @@ class MediaListGroupSort
             return
         }
         
-        if !search.active {
+        if let isActive = search.value?.isActive, !isActive {
             searches = nil
         } else {
             // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
             if let keys = searches?.keys {
                 for key in keys {
-                    if key != search.text {
+                    if key != search.value?.text {
                         searches?[key] = nil
                     } else {
 
@@ -301,7 +311,7 @@ class MediaListGroupSort
     var mediaItems:[MediaItem]?
     {
         get {
-            return mediaItems(grouping: grouping,sorting: sorting)
+            return mediaItems(grouping: grouping.value,sorting: sorting.value)
         }
     }
     
@@ -486,14 +496,14 @@ class MediaListGroupSort
         var sorting : String?
         {
             get {
-                return mediaListGroupSort?.sorting
+                return mediaListGroupSort?.sorting.value
             }
         }
         
         var grouping : String?
         {
             get {
-                return mediaListGroupSort?.grouping
+                return mediaListGroupSort?.grouping.value
             }
         }
         
@@ -632,7 +642,7 @@ class MediaListGroupSort
     var sectionIndexes:[Int]?
     {
         get {
-            return sectionIndexes(grouping: grouping,sorting: sorting)
+            return sectionIndexes(grouping: grouping.value,sorting: sorting.value)
         }
     }
     
@@ -724,7 +734,7 @@ class MediaListGroupSort
         groupNames = MediaGroupNames(name: "MediaGroupNames")
         groupSort = MediaGroupSort(name: "MediaGroupSort")
         
-        sortGroup(grouping)
+        sortGroup(grouping.value)
 
         guard let mediaItems = mediaItems else {
             return
@@ -777,11 +787,11 @@ class MediaListGroupSort
         //            return nil
         //        }
         
-        guard let grouping = grouping else {
+        guard let grouping = grouping.value else {
             return nil
         }
 
-        guard let sorting = sorting else {
+        guard let sorting = sorting.value else {
             return nil
         }
         
@@ -801,7 +811,7 @@ class MediaListGroupSort
             bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = category {
+        if let category = category.value {
             bodyString = bodyString + "Category: \(category)<br/>"
         }
         
@@ -809,7 +819,7 @@ class MediaListGroupSort
 //                    bodyString = bodyString + "Category: \(category)<br/>"
 //                }
         
-        if let tag = tagSelected {
+        if let tag = tagSelected.value {
             bodyString = bodyString + "Collection: \(tag)<br/>"
         }
         
@@ -817,11 +827,11 @@ class MediaListGroupSort
         //            bodyString = bodyString + "Collection: \(tag)<br/>"
         //        }
         
-        if let searchText = search {
+        if let searchText = search.value?.text {
             bodyString = bodyString + "Search: \(searchText)<br/>"
         }
         
-        //        if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
+        //        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
         //            bodyString = bodyString + "Search: \(searchText)<br/>"
         //        }
         
@@ -829,7 +839,7 @@ class MediaListGroupSort
 
         bodyString = bodyString + "Sorted: \(sorting.translate)<br/>"
         
-        if let keys = Globals.shared.media.active?.section?.indexStrings {
+        if let keys = section?.indexStrings { // Globals.shared.media.active?.
             var count = 0
             for key in keys {
                 if let mediaItems = groupSort?[grouping]?[key]?[sorting] {
@@ -915,13 +925,13 @@ class MediaListGroupSort
                             order.append("speaker")
                         }
                         
-                        if Globals.shared.grouping != GROUPING.CLASS {
+                        if grouping != GROUPING.CLASS { // Globals.shared.
                             if mediaItem.hasClassName {
                                 order.append("class")
                             }
                         }
                         
-                        if Globals.shared.grouping != GROUPING.EVENT {
+                        if grouping != GROUPING.EVENT { // Globals.shared.
                             if mediaItem.hasEventName {
                                 order.append("event")
                             }

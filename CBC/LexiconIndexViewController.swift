@@ -1105,7 +1105,7 @@ class LexiconIndexViewController : UIViewController
             bodyString = bodyString + "Collection: \(tag)<br/>"
         }
         
-        if Globals.shared.search.valid, let searchText = Globals.shared.search.text {
+        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
             bodyString = bodyString + "Search: \(searchText)<br/>"
         }
         

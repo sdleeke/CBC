@@ -84,7 +84,7 @@ class Media
                 }
             }
             
-            if Globals.shared.search.active {
+            if Globals.shared.search.isActive {
                 if let searchText = Globals.shared.search.text?.uppercased() {
                     mediaItems = mediaItems?.searches?[searchText]
                 }

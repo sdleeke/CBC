@@ -47,6 +47,60 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
+class Shadowed<T>
+{
+    var _value : T?
+    {
+        didSet {
+            onDidSet?()
+        }
+    }
+    
+    var value : T?
+    {
+        get {
+            guard onGet == nil else {
+                return onGet?(_value)
+            }
+            
+            if _value == nil, onNil != nil {
+                _value = onNil?()
+            }
+            
+            return _value ?? defaultValue?()
+        }
+        set {
+//            if _value == nil {
+//                _value = onNil?()
+//            } else { // ???
+//                _value = newValue // ???
+//            }
+
+            guard onSet == nil else {
+                _value = onSet?()
+                return
+            }
+            
+            _value = newValue
+        }
+    }
+            
+    var defaultValue : (()->T?)?
+    
+    var onGet : ((T?)->T?)?
+    
+    var onSet : (()->T?)?
+    
+    var onNil : (()->T?)?
+    
+    var onDidSet : (()->())?
+    
+    init(_ defaultValue:(()->T?)? = nil,onGet:((T?)->T?)? = nil,onSet:(()->T?)? = nil,onNil:(()->T?)? = nil,onDidSet:(()->())? = nil)
+    {
+        self.defaultValue = defaultValue
+    }
+}
+
 //class Shadowed<T>
 //{
 //    private var _backingStore : T?
