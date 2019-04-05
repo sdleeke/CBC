@@ -323,31 +323,41 @@ class MediaItem : NSObject
     var cacheSize : Int
     {
         get {
+            guard let cachesURL = FileManager.default.cachesURL else {
+                return 0
+            }
+            
             var totalCacheSize = 0
             
-            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
+            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
+                var fileURL = cachesURL
+                fileURL.appendPathComponent(string)
+                totalCacheSize += fileURL.fileSize ?? 0
+            })
             
-            totalCacheSize += cacheSize(Purpose.notes)
-            totalCacheSize += cacheSize(Purpose.slides)
-
-//            totalCacheSize += downloads[Purpose.notes]?.fileSize ?? 0
-//            totalCacheSize += downloads[Purpose.slides]?.fileSize ?? 0
-
-            totalCacheSize += posterImage?.fileSize ?? 0
-            totalCacheSize += seriesImage?.fileSize ?? 0
-
-            totalCacheSize += notesHTML?.fileSize ?? 0
-            totalCacheSize += notesTokens?.fileSize ?? 0
-            
-//            if #available(iOS 11.0, *) {
-//                totalCacheSize += notesPDFText?.fileSize ?? 0
-//            } else {
-//                // Fallback on earlier versions
-//            }
-
-            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
-            totalCacheSize += notesParagraphWords?.fileSize ?? 0
-            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
+//            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
+//
+//            totalCacheSize += cacheSize(Purpose.notes)
+//            totalCacheSize += cacheSize(Purpose.slides)
+//
+////            totalCacheSize += downloads[Purpose.notes]?.fileSize ?? 0
+////            totalCacheSize += downloads[Purpose.slides]?.fileSize ?? 0
+//
+//            totalCacheSize += posterImage?.fileSize ?? 0
+//            totalCacheSize += seriesImage?.fileSize ?? 0
+//
+//            totalCacheSize += notesHTML?.fileSize ?? 0
+//            totalCacheSize += notesTokens?.fileSize ?? 0
+//
+////            if #available(iOS 11.0, *) {
+////                totalCacheSize += notesPDFText?.fileSize ?? 0
+////            } else {
+////                // Fallback on earlier versions
+////            }
+//
+//            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
+//            totalCacheSize += notesParagraphWords?.fileSize ?? 0
+//            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
 
             return totalCacheSize
         }
@@ -360,28 +370,37 @@ class MediaItem : NSObject
     
     func clearCache(block:Bool)
     {
+        guard let cachesURL = FileManager.default.cachesURL else {
+            return
+        }
+        
         // Really should delete anything that matches what comes before "." in lastPathComponent,
         // which in this case is id (which is mediaCode)
-        print(FileManager.default.deleteFilesOfNameInCache(id))
+        // BUT all we're doing is looking for files that START with id, lots more could follow, not just "."
+        cachesURL.files(startingWith:id)?.forEach({ (string:String) in
+            var fileURL = cachesURL
+            fileURL.appendPathComponent(string)
+            fileURL.delete(block: block)
+        })
         
-        notesDownload?.delete(block:block)
-        slidesDownload?.delete(block:block)
-        
-        posterImage?.delete(block:block)
-        seriesImage?.delete(block:block)
-        
-        notesHTML?.delete(block:block)
-        notesTokens?.delete(block:block)
-        
-//        if #available(iOS 11.0, *) {
-//            notesPDFText?.delete()
-//        } else {
-//            // Fallback on earlier versions
-//        }
-        
-        notesParagraphWords?.delete(block:block)
-        notesParagraphLengths?.delete(block:block)
-        notesTokensMarkMismatches?.delete(block:block)
+//        notesDownload?.delete(block:block)
+//        slidesDownload?.delete(block:block)
+//
+//        posterImage?.delete(block:block)
+//        seriesImage?.delete(block:block)
+//
+//        notesHTML?.delete(block:block)
+//        notesTokens?.delete(block:block)
+//
+////        if #available(iOS 11.0, *) {
+////            notesPDFText?.delete()
+////        } else {
+////            // Fallback on earlier versions
+////        }
+//
+//        notesParagraphWords?.delete(block:block)
+//        notesParagraphLengths?.delete(block:block)
+//        notesTokensMarkMismatches?.delete(block:block)
     }
     
     @objc func downloaded(_ notification : NSNotification)
@@ -2096,7 +2115,7 @@ class MediaItem : NSObject
             tags?.remove(at: index)
         }
         
-        mediaItemSettings?[Field.tags] = tags?.toTagsString
+        mediaItemSettings?[Field.tags] = tags?.tagsString
         
         let sortTag = tag.withoutPrefixes
         

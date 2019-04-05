@@ -79,92 +79,92 @@ extension FileManager
         }
     }
 
-    func filesOfTypeInCache(_ fileType:String) -> [String]?
-    {
-        guard let path = self.cachesURL?.path else {
-            return nil
-        }
-        
-        var files = [String]()
-        
-        do {
-            let array = try self.contentsOfDirectory(atPath: path)
-            
-            for string in array {
-                if let range = string.range(of: fileType) {
-                    if fileType == String(string[range.lowerBound...]) {
-                        files.append(string)
-                    }
-                }
-            }
-        } catch let error {
-            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-        }
-        
-        return files.count > 0 ? files : nil
-    }
-    
-    func filesOfNameInCache(_ filename:String) -> [String]?
-    {
-        guard let path = self.cachesURL?.path else {
-            return nil
-        }
-        
-        var files = [String]()
-        
-        do {
-            let array = try self.contentsOfDirectory(atPath: path)
-            
-            for string in array {
-                if let range = string.range(of: filename) {
-                    if filename == String(string[..<range.upperBound]) {
-                        files.append(string)
-                    }
-                }
-            }
-        } catch let error {
-            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-        }
-        
-        return files.count > 0 ? files : nil
-    }
-    
-    func deleteFilesOfNameInCache(_ filename:String) -> [String]?
-    {
-        guard let path = self.cachesURL?.path else {
-            return nil
-        }
-        
-        var files = [String]()
-        
-        do {
-            let array = try self.contentsOfDirectory(atPath: path)
-            
-            for string in array {
-                if let range = string.range(of: filename) {
-                    if filename == String(string[..<range.upperBound]) {
-                        files.append(string)
-                        
-                        var fileURL = path.url
-                        
-                        fileURL?.appendPathComponent(string, isDirectory: false)
-                        
-                        if let fileURL = fileURL {
-                            do {
-                                try self.removeItem(at: fileURL)
-                            } catch let error {
-                                NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
-                            }
-                        }
-                    }
-                }
-            }
-        } catch let error {
-            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-        }
-        
-        return files.count > 0 ? files : nil
-    }
+//    func filesOfTypeInCache(_ fileType:String) -> [String]?
+//    {
+//        guard let path = self.cachesURL?.path else {
+//            return nil
+//        }
+//
+//        var files = [String]()
+//
+//        do {
+//            let array = try self.contentsOfDirectory(atPath: path)
+//
+//            for string in array {
+//                if let range = string.range(of: fileType) {
+//                    if fileType == String(string[range.lowerBound...]) {
+//                        files.append(string)
+//                    }
+//                }
+//            }
+//        } catch let error {
+//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//        }
+//
+//        return files.count > 0 ? files : nil
+//    }
+//
+//    func filesOfNameInCache(_ filename:String) -> [String]?
+//    {
+//        guard let path = self.cachesURL?.path else {
+//            return nil
+//        }
+//
+//        var files = [String]()
+//
+//        do {
+//            let array = try self.contentsOfDirectory(atPath: path)
+//
+//            for string in array {
+//                if let range = string.range(of: filename) {
+//                    if filename == String(string[..<range.upperBound]) {
+//                        files.append(string)
+//                    }
+//                }
+//            }
+//        } catch let error {
+//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//        }
+//
+//        return files.count > 0 ? files : nil
+//    }
+//
+//    func deleteFilesOfNameInCache(_ filename:String) -> [String]?
+//    {
+//        guard let path = self.cachesURL?.path else {
+//            return nil
+//        }
+//
+//        var files = [String]()
+//
+//        do {
+//            let array = try self.contentsOfDirectory(atPath: path)
+//
+//            for string in array {
+//                if let range = string.range(of: filename) {
+//                    if filename == String(string[..<range.upperBound]) {
+//                        files.append(string)
+//
+//                        var fileURL = path.url
+//
+//                        fileURL?.appendPathComponent(string, isDirectory: false)
+//
+//                        if let fileURL = fileURL {
+//                            do {
+//                                try self.removeItem(at: fileURL)
+//                            } catch let error {
+//                                NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch let error {
+//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//        }
+//
+//        return files.count > 0 ? files : nil
+//    }
 }
 
 extension Array where Element == MediaItem
@@ -1023,13 +1023,72 @@ extension Array where Element == String
         }
     }
 
-    var toTagsString : String?
+    var tagsString : String?
     {
 //        guard let tagsArray = tagsArray else {
 //            return nil
 //        }
         
         return self.count > 0 ? self.joined(separator: Constants.SEPARATOR) : nil
+    }
+}
+
+extension String
+{
+    var translateTestament : String
+    {
+        var translation = Constants.EMPTY_STRING
+        
+        switch self {
+        case Constants.OT:
+            translation = Constants.Old_Testament
+            break
+            
+        case Constants.NT:
+            translation = Constants.New_Testament
+            break
+            
+        default:
+            break
+        }
+        
+        return translation
+    }
+    
+    var translate : String
+    {
+        //        guard let string = string else {
+        //            return nil
+        //        }
+        
+        switch self {
+        case SORTING.CHRONOLOGICAL:
+            return Sorting.Oldest_to_Newest
+            
+        case SORTING.REVERSE_CHRONOLOGICAL:
+            return Sorting.Newest_to_Oldest
+            
+        case GROUPING.YEAR:
+            return Grouping.Year
+            
+        case GROUPING.TITLE:
+            return Grouping.Title
+            
+        case GROUPING.BOOK:
+            return Grouping.Book
+            
+        case GROUPING.SPEAKER:
+            return Grouping.Speaker
+            
+        case GROUPING.CLASS:
+            return Grouping.Class
+            
+        case GROUPING.EVENT:
+            return Grouping.Event
+            
+        default:
+            return "ERROR"
+        }
     }
 }
 
@@ -2380,7 +2439,8 @@ extension String
     }
 }
 
-extension UITableView {
+extension UITableView
+{
     func isValid(_ indexPath:IndexPath) -> Bool
     {
         guard indexPath.section >= 0 else {
@@ -5195,6 +5255,115 @@ extension String
 
 extension URL
 {
+    func files(ofType fileType:String) -> [String]?
+    {
+        //        guard let path = self.path else {
+        //            return nil
+        //        }
+        
+        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
+            return nil
+        }
+        
+        var files = [String]()
+        
+        do {
+            let array = try FileManager.default.contentsOfDirectory(atPath: path)
+            
+            for string in array {
+                //                if let range = string.range(of: fileType) {
+                if let range = string.range(of: "." + fileType) {
+                    if fileType == String(string[range.lowerBound...]) {
+                        files.append(string)
+                    }
+                }
+            }
+        } catch let error {
+            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+        }
+        
+        return files.count > 0 ? files : nil
+    }
+    
+    func files(startingWith filename:String) -> [String]?
+    {
+//        guard let path = path else {
+//            return nil
+//        }
+        
+        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
+            return nil
+        }
+        
+        var files = [String]()
+        
+        do {
+            let array = try FileManager.default.contentsOfDirectory(atPath: path)
+            
+            for string in array {
+                if let range = string.range(of: filename) {
+                    if filename == String(string[..<range.upperBound]) {
+                        files.append(string)
+                    }
+                }
+            }
+        } catch let error {
+            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+        }
+        
+        return files.count > 0 ? files : nil
+    }
+    
+//    func delete(startingWith filename:String, block:Bool) -> [String]?
+//    {
+//        return self.files(startingWith:filename)?.forEach({ (string:String) in
+//            var fileURL = self
+//            fileURL.appendPathComponent(string)
+//            fileURL.delete(block: block)
+//        })
+//    }
+    
+//    func delete(startingWith filename:String) -> [String]?
+//    {
+////        guard let path = self.cachesURL?.path else {
+////            return nil
+////        }
+//        
+//        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
+//            return nil
+//        }
+//        
+//        var files = [String]()
+//        
+//        do {
+//            let array = try FileManager.default.contentsOfDirectory(atPath: path)
+//            
+//            for string in array {
+//                if let range = string.range(of: filename) {
+//                    if filename == String(string[..<range.upperBound]) {
+//                        files.append(string)
+//                        
+//                        var fileURL = path.url
+//                        
+//                        fileURL?.appendPathComponent(string, isDirectory: false)
+//                        
+//                        if let fileURL = fileURL {
+//                            do {
+//                                try FileManager.default.removeItem(at: fileURL)
+//                            } catch let error {
+//                                NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch let error {
+//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//        }
+//        
+//        return files.count > 0 ? files : nil
+//    }
+
     var fileSystemURL : URL?
     {
         return self.lastPathComponent.fileSystemURL

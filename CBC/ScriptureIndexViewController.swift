@@ -1434,6 +1434,7 @@ class ScriptureIndexViewController : UIViewController
     {
         updateSearchResults()
         
+        // In case the search results were already computed.
         Thread.onMainThread {
             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
         }

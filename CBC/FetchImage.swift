@@ -65,6 +65,8 @@ class FetchImage
         fetch?.load()
     }
     
+    // BAD PERFORMANCE
+
 //    var fileSize = Shadowed<Int>()
     
 //    lazy var fileSize:Shadowed<Int> = { [weak self] in
@@ -72,12 +74,25 @@ class FetchImage
 //            return self.fileSystemURL?.fileSize
 //        })
 //    }()
+    
+//    lazy var fileSize : Shadowed<Int> = {
+//        let fileSize = Shadowed<Int>()
+//
+//        fileSize.onGet = { [weak self] (_fileSize:Int?) in
+//            guard let fileSize = _fileSize else {
+//                return self?.fileSystemURL?.fileSize
+//            }
+//
+//            return fileSize
+//        }
+//
+//        return fileSize
+//    }()
 
-    // Replace with Fetch?
     private var _fileSize : Int?
     {
         didSet {
-            
+
         }
     }
     var fileSize : Int?
@@ -94,7 +109,7 @@ class FetchImage
             _fileSize = newValue
         }
     }
-    
+
     func delete(block:Bool)
     {
         fetch?.clear()
@@ -147,7 +162,7 @@ class FetchImage
         do {
             try image.jpegData(compressionQuality: 1.0)?.write(to: fileSystemURL, options: [.atomic])
             print("Image \(fileSystemURL.lastPathComponent) saved to file system")
-            fileSize = fileSystemURL.fileSize
+            fileSize = fileSystemURL.fileSize ?? 0
         } catch let error {
             NSLog(error.localizedDescription)
             print("Image \(fileSystemURL.lastPathComponent) not saved to file system")

@@ -23,7 +23,7 @@ typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
-    var sorting = Shadowed<String>({ return Globals.shared.sorting })
+    var sorting = Default<String>({ return Globals.shared.sorting })
     
 //    var _sorting : String?
 //    {
@@ -41,7 +41,7 @@ class MediaListGroupSort
 //        }
 //    }
     
-    var grouping = Shadowed<String>({ return Globals.shared.grouping })
+    var grouping = Default<String>({ return Globals.shared.grouping })
     
 //    var _grouping : String?
 //    {
@@ -59,7 +59,7 @@ class MediaListGroupSort
 //        }
 //    }
     
-    var search = Shadowed<Search>({ return Globals.shared.search })
+    var search = Default<Search>({ return Globals.shared.search })
     
 //    var _search : Search!
 //    {
@@ -98,7 +98,7 @@ class MediaListGroupSort
         }
     }
     
-    var category = Shadowed<String>({ return Globals.shared.mediaCategory.selected })
+    var category = Default<String>({ return Globals.shared.mediaCategory.selected })
 
 //    var _category : String?
 //    {
@@ -116,7 +116,7 @@ class MediaListGroupSort
 //        }
 //    }
 
-    var tagSelected = Shadowed<String>({ return Globals.shared.media.tags.selected })
+    var tagSelected = Default<String>({ return Globals.shared.media.tags.selected })
 
 //    var _tagSelected : String?
 //    {
