@@ -81,23 +81,6 @@ class MediaListGroupSort
 //        }
 //    }
     
-    var orderString:String?
-    {
-        get {
-            var string:String?
-            
-            if let sorting = sorting.value {
-                string = ((string != nil) ? string! + ":" : "") + sorting
-            }
-            
-            if let grouping = grouping.value {
-                string = ((string != nil) ? string! + ":" : "") + grouping
-            }
-            
-            return string
-        }
-    }
-    
     var category = Default<String>({ return Globals.shared.mediaCategory.selected })
 
 //    var _category : String?
@@ -133,6 +116,23 @@ class MediaListGroupSort
 //            _tagSelected = newValue
 //        }
 //    }
+    
+    var orderString:String?
+    {
+        get {
+            var string:String?
+            
+            if let sorting = sorting.value {
+                string = ((string != nil) ? string! + ":" : "") + sorting
+            }
+            
+            if let grouping = grouping.value {
+                string = ((string != nil) ? string! + ":" : "") + grouping
+            }
+            
+            return string
+        }
+    }
     
     var contextString:String?
     {

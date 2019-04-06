@@ -2686,7 +2686,8 @@ extension String
     }
 }
 
-struct AlertAction {
+struct AlertAction
+{
     let title : String
     let style : UIAlertAction.Style
     let handler : (()->(Void))?
@@ -5255,72 +5256,152 @@ extension String
 
 extension URL
 {
-    func files(ofType fileType:String) -> [String]?
-    {
-        //        guard let path = self.path else {
-        //            return nil
-        //        }
-        
-        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
-            return nil
-        }
-        
-        var files = [String]()
-        
-        do {
-            let array = try FileManager.default.contentsOfDirectory(atPath: path)
-            
-            for string in array {
-                //                if let range = string.range(of: fileType) {
-                if let range = string.range(of: "." + fileType) {
-                    if fileType == String(string[range.lowerBound...]) {
-                        files.append(string)
-                    }
-                }
-            }
-        } catch let error {
-            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-        }
-        
-        return files.count > 0 ? files : nil
-    }
+//    func files(ofType fileType:String) -> [String]?
+//    {
+//        //        guard let path = self.path else {
+//        //            return nil
+//        //        }
+//
+//        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
+//            return nil
+//        }
+//
+//        var files = [String]()
+//
+//        do {
+//              // contentsOfDirectory is a MASSIVE MEMORY LEAK
+//            let array = try FileManager.default.contentsOfDirectory(atPath: path)
+//
+//            for string in array {
+//                //                if let range = string.range(of: fileType) {
+//                if let range = string.range(of: "." + fileType) {
+//                    if fileType == String(string[range.lowerBound...]) {
+//                        files.append(string)
+//                    }
+//                }
+//            }
+//        } catch let error {
+//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//        }
+//
+//        return files.count > 0 ? files : nil
+//    }
     
-    func files(startingWith filename:String) -> [String]?
+    func files(startingWith filename:String? = nil,ofType fileType:String? = nil,notOfType notFileType:String? = nil) -> [String]?
     {
 //        guard let path = path else {
 //            return nil
 //        }
         
+        ////////////////////////////////////////////////////////////////////
+        // THIS CAN BE A HUGE MEMORY LEAK IF NOT USED IN AN AUTORELEASEPOOL
+        ////////////////////////////////////////////////////////////////////
+
+        guard (filename != nil) || (fileType != nil) else {
+            return nil
+        }
+
         guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
             return nil
         }
-        
+
         var files = [String]()
         
+        // contentsOfDirectory causes a massive memory leak
+        // is this a typical problem when trying to use methods that throw in an extension?
+//        let array = try? FileManager.default.contentsOfDirectory(atPath: path)
+
+        // autoreleasepool helps but still a HUGE MEMORY LEAK
+//        return autoreleasepool {
+//            var files = [String]()
+//
+//            let path = self.path
+//
+//            let enumerator = FileManager.default.enumerator(atPath: path)
+//
+//            while let file = enumerator?.nextObject() as? FileWrapper {
+//                if let name = file.filename, let range = name.range(of: filename) {
+//                    if filename == String(name[..<range.upperBound]) {
+//                        files.append(name)
+//                    }
+//                }
+//            }
+//
+//            return files.count > 0 ? files : nil
+//        }
+
         do {
             let array = try FileManager.default.contentsOfDirectory(atPath: path)
-            
+
             for string in array {
-                if let range = string.range(of: filename) {
-                    if filename == String(string[..<range.upperBound]) {
-                        files.append(string)
+                var fileNameCandidate : String?
+                var fileTypeCandidate : String?
+                var notFileTypeCandidate : String?
+                
+                if let filename = filename {
+                    if let range = string.range(of: filename) {
+                        if filename == String(string[..<range.upperBound]) {
+                            fileNameCandidate = string
+                        }
+                    }
+                }
+                
+                if let fileType = fileType {
+                    if let range = string.range(of: "." + fileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
+                        if fileType == String(string[range.lowerBound...]) {
+                            fileTypeCandidate = string
+                        }
+                    }
+                }
+                
+                if let notFileType = notFileType {
+                    if let range = string.range(of: "." + notFileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
+                        if notFileType == String(string[range.lowerBound...]) {
+                            notFileTypeCandidate = string
+                        }
+                    }
+                }
+                
+                if let fileNameCandidate = fileNameCandidate {
+                    if let fileTypeCandidate = fileTypeCandidate {
+                        if fileNameCandidate == fileTypeCandidate {
+                            if notFileTypeCandidate == nil {
+                                files.append(string)
+                            }
+                        }
+                    } else {
+                        if notFileTypeCandidate == nil {
+                            files.append(string)
+                        }
+                    }
+                } else {
+                    if fileTypeCandidate != nil {
+                        if notFileTypeCandidate == nil {
+                            files.append(string)
+                        }
                     }
                 }
             }
         } catch let error {
-            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//            NSLog("Error: \(error.localizedDescription)")
+//            NSLog("Failed to get files in directory: \(self.path)")
+            print("failed to get files in directory \(self.path): \(error.localizedDescription)") // remove
         }
-        
+
         return files.count > 0 ? files : nil
     }
     
 //    func delete(startingWith filename:String, block:Bool) -> [String]?
 //    {
-//        return self.files(startingWith:filename)?.forEach({ (string:String) in
+//        let files = self.files(startingWith:filename)
+//        
+//        files?.forEach({ (string:String) in
 //            var fileURL = self
 //            fileURL.appendPathComponent(string)
 //            fileURL.delete(block: block)
 //        })
+//        
+//        return files
 //    }
     
 //    func delete(startingWith filename:String) -> [String]?
@@ -5379,15 +5460,26 @@ extension URL
             debug("File does not exist at \(fileSystemURL.absoluteString)")
             return 0
         }
+
+        // Either of the following work
         
+//        let fileAttributes = try? FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
+//
+//        if let num = fileAttributes?[FileAttributeKey.size] as? Int {
+//            return num
+//        }
+
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
-            
+
             if let num = fileAttributes[FileAttributeKey.size] as? Int {
                 return num
             }
         } catch let error {
-            debug("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
+//            debug("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
+//            NSLog("Error: \(error.localizedDescription)")
+//            NSLog("Failed to get file attributes for: \(fileSystemURL)")
+            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)") // remove
         }
         
         return nil

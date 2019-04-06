@@ -35,31 +35,34 @@ class SettingsViewController: UIViewController
     @IBAction func cacheAction(_ sender: UISwitch)
     {
         Globals.shared.cacheDownloads = sender.isOn
+    }
+    
+    @IBOutlet weak var clearCache: UIButton!
+    @IBAction func clearCacheAction(_ sender: UIButton)
+    {
+        URLCache.shared.removeAllCachedResponses()
         
-        if !sender.isOn {
-            URLCache.shared.removeAllCachedResponses()
-            
-            // Let it finish
-//            operationQueue.cancelAllOperations()
-            
-            operationQueue.addOperation { [weak self] in
-                Thread.onMainThread {
-                    self?.cacheSizeLabel.text = "Updating..."
-                }
-                
-                // This really should be looking at what is in the directory as well.
-                // E.g. what if a sermon is no longer in the list but its slides or notes
-                // were downloaded previously?
-                Globals.shared.mediaRepository.clearCache(block:false)
-                
-//                if let mediaItems = Globals.shared.mediaRepository.list {
-//                    for mediaItem in mediaItems {
-//                        mediaItem.clearCache()
-//                    }
-//                }
-                
-                self?.updateCacheSize()
+        // Let it finish
+        //            operationQueue.cancelAllOperations()
+        
+        operationQueue.addOperation { [weak self] in
+            Thread.onMainThread {
+                sender.isEnabled = false
+                self?.cacheSizeLabel.text = "Updating..."
             }
+            
+            // This really should be looking at what is in the directory as well.
+            // E.g. what if a sermon is no longer in the list but its slides or notes
+            // were downloaded previously?
+            Globals.shared.mediaRepository.clearCache(block:false)
+            
+            //                if let mediaItems = Globals.shared.mediaRepository.list {
+            //                    for mediaItem in mediaItems {
+            //                        mediaItem.clearCache()
+            //                    }
+            //                }
+            
+            self?.updateCacheSize(sender)
         }
     }
     
@@ -91,19 +94,20 @@ class SettingsViewController: UIViewController
         autoAdvanceSwitch.isOn = Globals.shared.autoAdvance
         cacheSwitch.isOn = Globals.shared.cacheDownloads
         
-        operationQueue.addOperation {
+        operationQueue.addOperation { [weak self] in
             Thread.onMainThread {
-                self.cacheSizeLabel.text = "Updating..."
+                self?.clearCache.isEnabled = false
+                self?.cacheSizeLabel.text = "Updating..."
             }
             
-            self.updateCacheSize()
+            self?.updateCacheSize(self?.clearCache)
         }
         
         audioSizeLabel.text = "Audio Storage: updating..."
         self.updateAudioSize()
     }
     
-    func updateCacheSize()
+    func updateCacheSize(_ sender:UIButton?)
     {
         let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
         
@@ -142,6 +146,7 @@ class SettingsViewController: UIViewController
         
         Thread.onMainThread {
             self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
+            sender?.isEnabled = size > 0
         }
     }
     

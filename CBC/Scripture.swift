@@ -8,7 +8,8 @@
 
 import Foundation
 
-struct Selected {
+struct Selected
+{
     var testament:String?
 
     var book:String?
@@ -42,7 +43,8 @@ struct Selected {
     }
 }
 
-struct Picker {
+struct Picker
+{
     var books:[String]?
     var chapters:[Int]?
     var verses:[Int]?

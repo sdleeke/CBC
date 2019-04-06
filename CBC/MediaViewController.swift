@@ -1443,7 +1443,7 @@ class MediaViewController: UIViewController
             webQueue.cancelAllOperations()
 
             // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
-            // Is that what we want?
+            // Is that what we want? No, not unless the value of selectedMediaItem should really change
             mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
             
             if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
@@ -3149,7 +3149,9 @@ class MediaViewController: UIViewController
     
     @objc func updateView()
     {
-        selectedMediaItem = Globals.shared.selectedMediaItem.detail
+        if selectedMediaItem != Globals.shared.selectedMediaItem.detail {
+            selectedMediaItem = Globals.shared.selectedMediaItem.detail
+        }
         
         tableView.reloadData()
         

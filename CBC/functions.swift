@@ -42,6 +42,76 @@ func stopAudio()
     }
 }
 
+//func deleteFilesOfNameInCache(_ filename:String,block:Bool) -> [String]?
+//{
+//    guard let path = FileManager.default.cachesURL?.path else {
+//        return nil
+//    }
+//    
+//    var files = [String]()
+//    
+//    do {
+//        let array = try FileManager.default.contentsOfDirectory(atPath: path)
+//        
+//        for string in array {
+//            if let range = string.range(of: filename) {
+//                if filename == String(string[..<range.upperBound]) {
+//                    files.append(string)
+//                    
+//                    var fileURL = path.url
+//                    
+//                    fileURL?.appendPathComponent(string, isDirectory: false)
+//                    
+//                    fileURL?.delete(block:block)
+//                    
+//                    //                    if let fileURL = fileURL {
+//                    //                        do {
+//                    //                            try FileManager.default.removeItem(at: fileURL)
+//                    //                        } catch let error {
+//                    //                            NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
+//                    //                        }
+//                    //                    }
+//                }
+//            }
+//        }
+//    } catch let error {
+//        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//    }
+//    
+//    return files.count > 0 ? files : nil
+//}
+
+//func sizeOfFilesOfNameInCache(_ filename:String) -> Int?
+//{
+//    guard let path = FileManager.default.cachesURL?.path else {
+//        return nil
+//    }
+//
+//    var totalSize = 0
+//
+//    do {
+//        let array = try FileManager.default.contentsOfDirectory(atPath: path)
+//
+//        for string in array {
+//            if let range = string.range(of: filename) {
+//                if filename == String(string[..<range.upperBound]) {
+//                    var fileURL = path.url
+//
+//                    fileURL?.appendPathComponent(string, isDirectory: false)
+//
+//                    if let fileSize = fileURL?.fileSize {
+//                        totalSize += fileSize
+//                    }
+//                }
+//            }
+//        }
+//    } catch let error {
+//        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
+//    }
+//
+//    return totalSize
+//}
+
 //func open(scheme: String?,cannotOpen:(()->(Void))?)
 //{
 //    guard let scheme = scheme else {
@@ -133,43 +203,6 @@ func stopAudio()
 //    return files.count > 0 ? files : nil
 //}
 //
-//func deleteFilesOfNameInCache(_ filename:String) -> [String]?
-//{
-//    guard let path = cachesURL?.path else {
-//        return nil
-//    }
-//    
-//    var files = [String]()
-//    
-//    do {
-//        let array = try FileManager.default.contentsOfDirectory(atPath: path)
-//        
-//        for string in array {
-//            if let range = string.range(of: filename) {
-//                if filename == String(string[..<range.upperBound]) {
-//                    files.append(string)
-//                    
-//                    var fileURL = path.url
-//                        
-//                    fileURL?.appendPathComponent(string, isDirectory: false)
-//                    
-//                    if let fileURL = fileURL {
-//                        do {
-//                            try FileManager.default.removeItem(at: fileURL)
-//                        } catch let error {
-//                            NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    } catch let error {
-//        NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//    }
-//    
-//    return files.count > 0 ? files : nil
-//}
-
 //func jsonToFileSystemDirectory(key:String)
 //{
 //    guard let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE) else {

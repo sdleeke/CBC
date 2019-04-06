@@ -606,9 +606,11 @@ enum Constants {
         
         static let Individual_Media     = "Single Part Media"
         
-        static let VoiceBase_API_Key    = "VoiceBase API Key"
-        static let VoiceBase_Media      = "VoiceBase Media"
-        static let VoiceBase            = "VoiceBase"
+        static let VoiceBase_API_Key        = "VoiceBase API Key"
+        static let VoiceBase_Media          = "VoiceBase Media"
+        static let VoiceBase_Bulk_Delete    = "VoiceBase Bulk Delete"
+        static let VoiceBase_Delete_All     = "VoiceBase Delete All"
+        static let VoiceBase                = "VoiceBase"
 
         static let LocalDevice = "This Device"
         static let OtherDevices = "Other Devices"
@@ -654,6 +656,7 @@ enum Constants {
         static let Actions = "Actions"
 
         static let Align = "Align"
+        static let Aligning = "Aligning"
         static let Auto_Edit = "Auto Edit"
         static let Transcribe = "Transcribe"
         static let Transcribing = "Transcribing"

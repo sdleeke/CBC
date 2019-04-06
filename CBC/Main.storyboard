@@ -1402,8 +1402,8 @@ Web site: www.countrysidebible.org</string>
                                             <action selector="searchTranscriptsAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="lFO-Ak-kFL"/>
                                         </connections>
                                     </switch>
-                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Searching the text of transcripts (where available) may take longer." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tn4-h0-vPl" userLabel="Search Transcripts Text View">
-                                        <rect key="frame" x="20" y="59" width="210" height="66.5"/>
+                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Searching the text of transcripts may take longer." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tn4-h0-vPl" userLabel="Search Transcripts Text View">
+                                        <rect key="frame" x="20" y="59" width="210" height="49.5"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="70" id="aLu-fl-HRb"/>
@@ -1417,53 +1417,61 @@ Web site: www.countrysidebible.org</string>
                                         </variation>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Auto Advance" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gnT-dw-7zS">
-                                        <rect key="frame" x="20" y="139" width="101" height="20"/>
+                                        <rect key="frame" x="20" y="122" width="101" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y4M-HY-Dah">
-                                        <rect key="frame" x="181" y="133.5" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="116.5" width="51" height="31"/>
                                         <connections>
                                             <action selector="autoAdvanceAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="azT-R1-wnB"/>
                                         </connections>
                                     </switch>
-                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="If Auto Advance is on and  another part is available, it will automatically play from the beginning.  (Audio only)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hlW-97-eSd" userLabel="Auto Advance Text View">
-                                        <rect key="frame" x="20" y="172.5" width="210" height="83"/>
+                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="When on and another in the same series is available, it will automatically play from the beginning.  (Audio only)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hlW-97-eSd" userLabel="Auto Advance Text View">
+                                        <rect key="frame" x="20" y="155.5" width="210" height="83"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Use Cache" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Gu-Cg-PFQ">
-                                        <rect key="frame" x="20" y="269" width="79" height="20"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Cache Documents" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Gu-Cg-PFQ">
+                                        <rect key="frame" x="20" y="252" width="134" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Cache Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3SF-aq-otG">
-                                        <rect key="frame" x="20" y="287" width="54" height="12"/>
+                                        <rect key="frame" x="20" y="376.5" width="54" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Sn-mJ-Y8T">
-                                        <rect key="frame" x="181" y="263.5" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="246.5" width="51" height="31"/>
                                         <connections>
                                             <action selector="cacheAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="Wvg-H1-QjW"/>
                                         </connections>
                                     </switch>
-                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="When on, documents are downloaded and stored on the device." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u50-19-12r" userLabel="Cache Text View">
-                                        <rect key="frame" x="20" y="302.5" width="210" height="66.5"/>
+                                    <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="When on, documents are stored locally.  The app may also cache other data.  The total will be shown below." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u50-19-12r" userLabel="Cache Text View">
+                                        <rect key="frame" x="20" y="285.5" width="210" height="83"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Audio Download Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLU-YE-rdr">
-                                        <rect key="frame" x="20" y="377" width="102" height="12"/>
+                                        <rect key="frame" x="20" y="396.5" width="102" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pIV-sH-BWC">
+                                        <rect key="frame" x="82" y="370.5" width="77" height="24"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                        <state key="normal" title="Minimize Cache"/>
+                                        <connections>
+                                            <action selector="clearCacheAction:" destination="2PY-rw-Zwl" eventType="touchUpInside" id="1IN-x9-8G0"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <constraints>
                                     <constraint firstItem="gnT-dw-7zS" firstAttribute="leading" secondItem="886-lR-yL1" secondAttribute="leading" id="1Bo-MH-h1Y"/>
@@ -1474,8 +1482,12 @@ Web site: www.countrysidebible.org</string>
                                     <constraint firstItem="Tn4-h0-vPl" firstAttribute="centerX" secondItem="bqv-74-88o" secondAttribute="centerX" id="EWh-We-3vD"/>
                                     <constraint firstItem="886-lR-yL1" firstAttribute="leading" secondItem="bqv-74-88o" secondAttribute="leading" constant="20" symbolic="YES" id="Eew-Jg-tJZ"/>
                                     <constraint firstItem="hlW-97-eSd" firstAttribute="centerX" secondItem="Tn4-h0-vPl" secondAttribute="centerX" id="H6B-K0-H6D"/>
+                                    <constraint firstItem="pIV-sH-BWC" firstAttribute="leading" secondItem="3SF-aq-otG" secondAttribute="trailing" constant="8" id="HI5-BL-cFZ"/>
+                                    <constraint firstAttribute="bottom" secondItem="pLU-YE-rdr" secondAttribute="bottom" constant="8" id="Hzb-gz-nW9"/>
                                     <constraint firstItem="0Sn-mJ-Y8T" firstAttribute="trailing" secondItem="y4M-HY-Dah" secondAttribute="trailing" id="ISK-UJ-b34"/>
                                     <constraint firstItem="5Gu-Cg-PFQ" firstAttribute="leading" secondItem="gnT-dw-7zS" secondAttribute="leading" id="JNP-pj-KMu"/>
+                                    <constraint firstItem="pLU-YE-rdr" firstAttribute="top" secondItem="3SF-aq-otG" secondAttribute="bottom" constant="8" id="Jha-DK-CJl"/>
+                                    <constraint firstItem="3SF-aq-otG" firstAttribute="top" secondItem="u50-19-12r" secondAttribute="bottom" constant="8" id="Kdw-Av-Mg8"/>
                                     <constraint firstItem="ESn-dy-XfR" firstAttribute="top" secondItem="bqv-74-88o" secondAttribute="top" constant="20" symbolic="YES" id="L5i-v0-6K9"/>
                                     <constraint firstItem="Tn4-h0-vPl" firstAttribute="leading" secondItem="886-lR-yL1" secondAttribute="leading" id="L8d-Au-eBQ"/>
                                     <constraint firstItem="5Gu-Cg-PFQ" firstAttribute="centerY" secondItem="0Sn-mJ-Y8T" secondAttribute="centerY" id="N1S-Uu-kxM"/>
@@ -1483,16 +1495,15 @@ Web site: www.countrysidebible.org</string>
                                     <constraint firstItem="hlW-97-eSd" firstAttribute="top" secondItem="bqv-74-88o" secondAttribute="top" constant="22" id="PR4-T4-QsF"/>
                                     <constraint firstItem="Tn4-h0-vPl" firstAttribute="trailing" secondItem="ESn-dy-XfR" secondAttribute="trailing" id="SEl-ip-Q4m"/>
                                     <constraint firstItem="hlW-97-eSd" firstAttribute="trailing" secondItem="y4M-HY-Dah" secondAttribute="trailing" id="TGB-gh-ZyZ"/>
-                                    <constraint firstItem="3SF-aq-otG" firstAttribute="top" secondItem="5Gu-Cg-PFQ" secondAttribute="bottom" constant="-2" id="Yqv-3r-gh1"/>
                                     <constraint firstItem="hlW-97-eSd" firstAttribute="leading" secondItem="gnT-dw-7zS" secondAttribute="leading" id="a6W-HP-WGx"/>
                                     <constraint firstItem="gnT-dw-7zS" firstAttribute="centerY" secondItem="y4M-HY-Dah" secondAttribute="centerY" id="cnh-Tj-Mo3"/>
-                                    <constraint firstItem="pLU-YE-rdr" firstAttribute="top" secondItem="u50-19-12r" secondAttribute="bottom" constant="8" symbolic="YES" id="dM4-QA-ccC"/>
                                     <constraint firstAttribute="trailing" secondItem="ESn-dy-XfR" secondAttribute="trailing" constant="20" symbolic="YES" id="enr-um-eKB"/>
                                     <constraint firstItem="Tn4-h0-vPl" firstAttribute="top" secondItem="ESn-dy-XfR" secondAttribute="bottom" constant="8" symbolic="YES" id="gEh-Qw-M9B"/>
                                     <constraint firstItem="pLU-YE-rdr" firstAttribute="leading" secondItem="u50-19-12r" secondAttribute="leading" id="gZh-34-s6G"/>
                                     <constraint firstItem="y4M-HY-Dah" firstAttribute="top" secondItem="Tn4-h0-vPl" secondAttribute="bottom" constant="8" symbolic="YES" id="hkb-lm-UVi"/>
                                     <constraint firstItem="u50-19-12r" firstAttribute="top" secondItem="0Sn-mJ-Y8T" secondAttribute="bottom" constant="8" symbolic="YES" id="ljE-qg-uMn"/>
                                     <constraint firstItem="886-lR-yL1" firstAttribute="centerY" secondItem="ESn-dy-XfR" secondAttribute="centerY" id="ow7-ZH-eoH"/>
+                                    <constraint firstItem="pIV-sH-BWC" firstAttribute="centerY" secondItem="3SF-aq-otG" secondAttribute="centerY" id="pAT-qY-On7"/>
                                     <constraint firstAttribute="bottom" secondItem="pLU-YE-rdr" secondAttribute="bottom" constant="20" symbolic="YES" id="v5Z-vm-dLm"/>
                                     <constraint firstItem="u50-19-12r" firstAttribute="trailing" secondItem="0Sn-mJ-Y8T" secondAttribute="trailing" id="ymJ-LP-WNC"/>
                                     <constraint firstItem="u50-19-12r" firstAttribute="leading" secondItem="5Gu-Cg-PFQ" secondAttribute="leading" id="zoQ-t6-CcL"/>
@@ -1500,6 +1511,7 @@ Web site: www.countrysidebible.org</string>
                                 <variation key="default">
                                     <mask key="constraints">
                                         <exclude reference="PR4-T4-QsF"/>
+                                        <exclude reference="v5Z-vm-dLm"/>
                                     </mask>
                                 </variation>
                             </scrollView>
@@ -1526,6 +1538,7 @@ Web site: www.countrysidebible.org</string>
                         <outlet property="autoAdvanceSwitch" destination="y4M-HY-Dah" id="1DZ-bV-8M1"/>
                         <outlet property="cacheSizeLabel" destination="3SF-aq-otG" id="6LQ-mD-cGf"/>
                         <outlet property="cacheSwitch" destination="0Sn-mJ-Y8T" id="kOn-VC-Y2L"/>
+                        <outlet property="clearCache" destination="pIV-sH-BWC" id="szE-d7-Dfi"/>
                         <outlet property="searchTranscriptsSwitch" destination="ESn-dy-XfR" id="Fn1-ti-vjz"/>
                     </connections>
                 </viewController>
@@ -2233,7 +2246,7 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="2ws-5f-m41">
-                                        <rect key="frame" x="194" y="53" width="279" height="72"/>
+                                        <rect key="frame" x="325.5" y="81" width="16" height="16"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>

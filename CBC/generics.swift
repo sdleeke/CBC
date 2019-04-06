@@ -47,7 +47,7 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-class Default<T>
+struct Default<T>
 {
     var _value : T?
     {

@@ -106,11 +106,11 @@ extension MediaItem : UIActivityItemSource
 {
     func share(viewController:UIViewController)
     {
-        guard let series = self.multiPartMediaItems?.html() else {
+        guard let html = self.multiPartMediaItems?.html() else {
             return
         }
         
-        let print = UIMarkupTextPrintFormatter(markupText: series)
+        let print = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
         
@@ -139,7 +139,7 @@ extension MediaItem : UIActivityItemSource
             return nil
         }
         
-        guard let series = self.multiPartMediaItems?.html else {
+        guard let series = self.multiPartMediaItems?.html() else {
             return nil
         }
         
@@ -327,15 +327,34 @@ class MediaItem : NSObject
                 return 0
             }
             
-            var totalCacheSize = 0
+            // without this autoreleasepool closure THIS IS A MASSIVE MEMORY LEAK
+            return autoreleasepool {
+                var totalCacheSize = 0
+                
+                cachesURL.files(startingWith:id,notOfType:Constants.FILENAME_EXTENSION.MP3)?.forEach({ (string:String) in
+                    var fileURL = cachesURL
+                    fileURL.appendPathComponent(string)
+                    totalCacheSize += fileURL.fileSize ?? 0
+                })
+                
+                return totalCacheSize
+                
+//                return sizeOfFilesOfNameInCache(id) ?? 0
+            }
+//            guard let cachesURL = FileManager.default.cachesURL else {
+//                return 0
+//            }
             
-            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
-                var fileURL = cachesURL
-                fileURL.appendPathComponent(string)
-                totalCacheSize += fileURL.fileSize ?? 0
-            })
-            
-//            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
+//            var totalCacheSize = 0
+//
+//            // HUGE MEMORY LEAK
+//            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
+//                var fileURL = cachesURL
+//                fileURL.appendPathComponent(string)
+//                totalCacheSize += fileURL.fileSize ?? 0
+//            })
+//
+////            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
 //
 //            totalCacheSize += cacheSize(Purpose.notes)
 //            totalCacheSize += cacheSize(Purpose.slides)
@@ -358,8 +377,8 @@ class MediaItem : NSObject
 //            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
 //            totalCacheSize += notesParagraphWords?.fileSize ?? 0
 //            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
-
-            return totalCacheSize
+//
+//            return totalCacheSize
         }
     }
 
@@ -377,11 +396,35 @@ class MediaItem : NSObject
         // Really should delete anything that matches what comes before "." in lastPathComponent,
         // which in this case is id (which is mediaCode)
         // BUT all we're doing is looking for files that START with id, lots more could follow, not just "."
-        cachesURL.files(startingWith:id)?.forEach({ (string:String) in
-            var fileURL = cachesURL
-            fileURL.appendPathComponent(string)
-            fileURL.delete(block: block)
-        })
+  
+        autoreleasepool {
+            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
+                if let audioTranscript = audioTranscript, let filename = audioTranscript.filename, string.range(of: filename) != nil {
+                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
+                    if !audioTranscript.completed {
+                        audioTranscript.fileSystemURL?.delete(block: block)
+                    }
+                } else
+                
+                if let videoTranscript = videoTranscript, let filename = videoTranscript.filename, string.range(of: filename) != nil {
+                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
+                    if !videoTranscript.completed {
+                        videoTranscript.fileSystemURL?.delete(block: block)
+                    }
+                } else
+                 
+                if let audioDownload = audioDownload, let filename = audioDownload.fileSystemURL?.lastPathComponent, string.range(of: filename) != nil {
+                    // DO NOT DELETE AUDIO FILES
+                } else {
+                    // DELETE EVERYTHING ELSE.  THIS COULD BE FILES FROM A FETCH VARIABLE.
+                    var fileURL = cachesURL
+                    fileURL.appendPathComponent(string)
+                    fileURL.delete(block: block)
+                }
+            })
+        }
+        
+//        _ = deleteFilesOfNameInCache(id,block:block)
         
 //        notesDownload?.delete(block:block)
 //        slidesDownload?.delete(block:block)

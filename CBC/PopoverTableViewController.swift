@@ -329,7 +329,8 @@ class Sort
     }
 }
 
-struct SegmentAction {
+struct SegmentAction
+{
     var title:String?
     var position:Int
     var action:(()->(Void))?
@@ -675,6 +676,10 @@ class PopoverTableViewController : UIViewController
     
     var transcript:VoiceBase?
     
+    // This updates section.strings
+    // Ideally it would update a thread safe strings array
+    // that would then update section.strings - making
+    // that update thread safe.
     var stringsFunction:(()->[String]?)?
     
     // Make thread safe?

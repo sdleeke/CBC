@@ -1014,6 +1014,28 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             present(alert, animated: true, completion: nil)
             break
             
+        case Constants.Strings.VoiceBase_Delete_All:
+            Globals.shared.mediaRepository.deleteAllVoiceBaseMedia()
+            break
+            
+        case Constants.Strings.VoiceBase_Bulk_Delete:
+            var alertActions = [AlertAction]()
+            
+            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                () -> Void in
+                VoiceBase.bulkDelete()
+            })
+            alertActions.append(yesAction)
+            
+            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                () -> Void in
+                
+            })
+            alertActions.append(noAction)
+            
+            Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media", message: nil, actions: alertActions)
+            break
+            
         case Constants.Strings.VoiceBase_Media:
             guard Globals.shared.reachability.isReachable else {
                 Alerts.shared.alert(title:"Network Error",message:"VoiceBase media not available.")
@@ -1041,12 +1063,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     self.popover?.tableView?.reloadData()
                     
-                    VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+                    VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
                         guard let mediaItems = json?["media"] as? [[String:Any]] else {
                             return
                         }
                         
-                        self.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                        self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
                             if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
                                 let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
                                 return Date(string: date0) < Date(string: date1)
@@ -1055,24 +1077,24 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                         })
                         
-                        self.popover?.section.stringIndex = self.stringIndex?.stringIndex(key: "title", sort: nil)
+                        self?.popover?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
 
                         Thread.onMainThread {
-                            self.popover?.updateSearchResults()
+                            self?.popover?.updateSearchResults()
                             
-                            self.popover?.updateToolbar()
+                            self?.popover?.updateToolbar()
                             
-                            self.popover?.tableView?.reloadData()
+                            self?.popover?.tableView?.reloadData()
                             
                             if #available(iOS 10.0, *) {
-                                if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
-                                    self.popover?.refreshControl?.endRefreshing()
+                                if let isRefreshing = self?.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
+                                    self?.popover?.refreshControl?.endRefreshing()
                                 }
                             } else {
                                 // Fallback on earlier versions
-                                if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
-                                    self.popover?.refreshControl?.endRefreshing()
-                                    self.popover?.isRefreshing = false
+                                if let isRefreshing = self?.popover?.isRefreshing, isRefreshing {
+                                    self?.popover?.refreshControl?.endRefreshing()
+                                    self?.popover?.isRefreshing = false
                                 }
                             }
                         }
@@ -1092,12 +1114,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.present(navigationController, animated: true, completion: {
                     self.popover?.activityIndicator.startAnimating()
                     
-                    VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+                    VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
                         guard let mediaItems = json?["media"] as? [[String:Any]] else {
                             return
                         }
                         
-                        self.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                        self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
                             if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
                                 let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
                                 return Date(string: date0) < Date(string: date1)
@@ -1106,15 +1128,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                         })
                         
-                        self.popover?.section.stringIndex = self.stringIndex?.stringIndex(key: "title", sort: nil)
+                        self?.popover?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
                         
-                        self.popover?.updateToolbar()
+                        self?.popover?.updateToolbar()
                         
-                        self.popover?.updateSearchResults()
+                        self?.popover?.updateSearchResults()
 
                         Thread.onMainThread {
-                            self.popover?.tableView?.reloadData()
-                            self.popover?.activityIndicator.stopAnimating()
+                            self?.popover?.tableView?.reloadData()
+                            self?.popover?.activityIndicator.stopAnimating()
                         }
                     },onError: nil)
                     
@@ -1910,9 +1932,9 @@ class MediaTableViewController : UIViewController
         Globals.shared.motionEnded(motion,event: event)
     }
 
-    func deleteAllMedia()
+    func bulkDeleteMedia()
     {
-        let alert = UIAlertController(  title: "Confirm Deletion of All VoiceBase Media Items",
+        let alert = UIAlertController(  title: "Confirm Bulk Deletion of VoiceBase Media",
                                         message: nil,
                                         preferredStyle: .alert)
         alert.makeOpaque()
@@ -1923,7 +1945,7 @@ class MediaTableViewController : UIViewController
                 self.presentingVC = nil
             })
             
-            VoiceBase.deleteAll()
+            VoiceBase.bulkDelete()
         })
         alert.addAction(yesAction)
         
@@ -2159,6 +2181,8 @@ class MediaTableViewController : UIViewController
             
             if Globals.shared.isVoiceBaseAvailable ?? false {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
+                showMenu.append(Constants.Strings.VoiceBase_Bulk_Delete)
+                showMenu.append(Constants.Strings.VoiceBase_Delete_All)
             }
             
             popover.section.strings = showMenu

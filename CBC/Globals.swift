@@ -155,11 +155,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         checkingVoiceBaseAvailability = true
         
-        VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
-            self.isVoiceBaseAvailable = true
+        VoiceBase.all(completion: { [weak self] (json:[String : Any]?) -> (Void) in
+            self?.isVoiceBaseAvailable = true
             completion?()
-        }, onError: { (json:[String : Any]?) -> (Void) in
-            self.isVoiceBaseAvailable = false
+        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+            self?.isVoiceBaseAvailable = false
             completion?()
         })
         

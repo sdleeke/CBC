@@ -456,9 +456,10 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    @objc static func deleteAll()
+    static func bulkDelete()
     {
-        print("VoiceBase.deleteAllMedia")
+        print("VoiceBase.bulkDelete")
+        // This will only return up to 100
         
         // mediaID:nil,
         get(accept:nil,  path:"media", query:nil, completion: { (json:[String : Any]?) -> (Void) in
@@ -794,6 +795,12 @@ class VoiceBase
                 return
             }
             
+            if completed {
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+            } else {
+                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+            }
+
             mediaItem?.mediaItemSettings?["completed."+purpose] = completed ? "YES" : "NO"
 
             Thread.onMainThread {
@@ -840,6 +847,12 @@ class VoiceBase
             }
             
             mediaItem?.mediaItemSettings?["aligning."+purpose] = aligning ? "YES" : "NO"
+            
+            if aligning {
+                mediaItem?.addTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
+            } else {
+                mediaItem?.removeTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
+            }
         }
     }
     
@@ -1149,6 +1162,7 @@ class VoiceBase
 //                }
             }
 
+            // TRANSCRIBING
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
                 Thread.onMainThread {
@@ -1164,6 +1178,7 @@ class VoiceBase
                 }
             }
 
+            // ALIGNING
             if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
                 Thread.onMainThread {
@@ -1178,7 +1193,23 @@ class VoiceBase
                     debug("TIMER NOT NIL!")
                 }
             }
+            
+            if !transcribing {
+                mediaItem?.removeTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
+            }
+            
+            if !aligning {
+                mediaItem?.removeTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
+            }
+            
+            if !completed {
+                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+            }
 
+            if _transcript == nil, resultsTimer == nil, mediaID != nil {
+                mediaID = nil
+            }
+            
             return _transcript
         }
         set {
@@ -2321,6 +2352,20 @@ class VoiceBase
         task.resume()
     }
     
+//    private func details(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+//    {
+//        VoiceBase.details(mediaID: mediaID, completion: completion, onError: onError)
+//    }
+    
+    func details(completion:(([String:Any]?)->())?,onError:(([String:Any]?)->())?)
+    {
+        VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+            completion?(json)
+        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+            onError?(json)
+        })
+    }
+    
     func remove()
     {
         delete()
@@ -2484,11 +2529,6 @@ class VoiceBase
         return nil
     }
     
-    private func details(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
-    {
-        VoiceBase.details(mediaID: mediaID, completion: completion, onError: onError)
-    }
-
     private func details(alert:Bool, atEnd:(()->())?)
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
@@ -5233,7 +5273,8 @@ class VoiceBase
         operationQueue.addOperation(op)
     }
     
-    struct Change {
+    struct Change
+    {
         var oldText:String?
         var newText:String?
         var range:Range<String.Index>?
@@ -5716,7 +5757,7 @@ class VoiceBase
                                             viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                                     message: "\(text) (\(self.transcriptPurpose))",
                                                     yesAction: { () -> (Void) in
-                                                        self.getTranscript(alert:true,detailedAlerts:true)
+                                                        self.getTranscript() // alert:true,detailedAlerts:true
                                                         
 //                                                        self.getTranscript(alert:true) {
 //                                                            self.getTranscriptSegments(alert:true) {
@@ -5783,7 +5824,7 @@ class VoiceBase
                         viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.getTranscript(alert:true,detailedAlerts:true)
+                                self.getTranscript() // alert:true,detailedAlerts:true
 
 //                                self.getTranscript(alert:true) {
 //                                    self.getTranscriptSegments(alert:true) {
