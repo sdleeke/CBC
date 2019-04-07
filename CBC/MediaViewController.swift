@@ -2660,6 +2660,10 @@ class MediaViewController: UIViewController
                 return false
             }
             
+            guard selectedMediaItem.playing == Playing.video else {
+                return false
+            }
+            
             let hasSlides = selectedMediaItem.hasSlides
             let hasNotes = selectedMediaItem.hasNotes
             
