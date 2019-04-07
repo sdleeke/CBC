@@ -3092,7 +3092,7 @@ class MediaItem : NSObject
 //        })
 //    }()
     
-    // Replace with Fetch?
+    // Replace with Shadow?
     private var _books:[String]?
     {
         didSet {

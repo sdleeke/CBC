@@ -1106,6 +1106,14 @@ extension String
             translation = Constants.New_Testament
             break
             
+        case Constants.Old_Testament:
+            translation = Constants.OT
+            break
+            
+        case Constants.New_Testament:
+            translation = Constants.NT
+            break
+            
         default:
             break
         }

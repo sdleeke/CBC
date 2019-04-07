@@ -222,10 +222,18 @@ class Scripture : NSObject
 //    }()
     
     // Replace with Fetch?
+    
+//    lazy var books : OnNil<[String]> = {
+//        let books = OnNil({
+//            return self.reference?.books
+//        })
+//        return books
+//    }()
+    
     private var _books:[String]?
     {
         didSet {
-            
+
         }
     }
     var books:[String]?
@@ -234,9 +242,9 @@ class Scripture : NSObject
             guard _books == nil else {
                 return _books
             }
-            
+
             _books = reference?.books
-            
+
             return _books
         }
         set {

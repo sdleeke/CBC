@@ -52,25 +52,60 @@ class Default<T>
     private var _value : T?
     {
         didSet {
-
+            
         }
     }
-
+    
     var value : T?
     {
         get {
+            // Calls defaultValue EVERY TIME _value is nil
             return _value ?? defaultValue?()
         }
         set {
             _value = newValue
         }
     }
-
+    
     var defaultValue : (()->T?)?
-
+    
     init(_ defaultValue:(()->T?)? = nil)
     {
         self.defaultValue = defaultValue
+    }
+}
+
+class OnNil<T>
+{
+    private var _value : T?
+    {
+        didSet {
+            
+        }
+    }
+    
+    var value : T?
+    {
+        get {
+            guard _value == nil else {
+                return _value
+            }
+            
+            // Loads _value when it is nil.
+            _value = onNil?()
+            
+            return _value
+        }
+        set {
+            _value = newValue
+        }
+    }
+    
+    var onNil : (()->T?)?
+    
+    init(_ onNil:(()->T?)? = nil)
+    {
+        self.onNil = onNil
     }
 }
 
@@ -867,12 +902,18 @@ class Fetch<T>
     }
 }
 
+protocol Size
+{
+    var _fileSize : Int? { get set }
+    var fileSize : Int? { get set }
+}
+
 // It would nice if properties that were FetchCodable were kept track of so the class would know
 // how to get the size of all the cache files or to delete them, or to clear all the cache properties to reduce memory usage
 // without having to keep track of each individual proeprty, e.g. a FetchCodable index whenever a class (or struct)
 // uses one(?) or more FetchCodable properties.
 
-class FetchCodable<T:Codable> : Fetch<T>
+class FetchCodable<T:Codable> : Fetch<T>, Size
 {
     var fileSystemURL : URL?
     {
@@ -893,12 +934,7 @@ class FetchCodable<T:Codable> : Fetch<T>
 //    }()
 
     // Guess we use the var _foo/var foo shadow pattern
-    private var _fileSize : Int?
-    {
-        didSet {
-            
-        }
-    }
+    internal var _fileSize : Int?
     var fileSize : Int?
     {
         get {

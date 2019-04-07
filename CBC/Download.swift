@@ -289,7 +289,7 @@ extension Download : URLSessionDownloadDelegate
     }
 }
 
-class Download : NSObject
+class Download : NSObject, Size
 {
     init(mediaItem:MediaItem?,purpose:String?,downloadURL:URL?) // ,fileSystemURL:URL?
     {
@@ -559,18 +559,13 @@ class Download : NSObject
 //        })
 //    }()
 
-    // Replace with Fetch?
-    private var _fileSize : Int?
-    {
-        didSet {
-            
-        }
-    }
+    // Slow when replaced w/ struct or class
+    internal var _fileSize : Int?
     var fileSize : Int?
     {
         get {
             guard state == .downloaded else {
-                return 0
+                return nil
             }
             
             guard let fileSize = _fileSize else {

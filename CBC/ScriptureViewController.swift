@@ -1375,7 +1375,7 @@ class ScriptureViewController : UIViewController
                 if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
-                    self?.scripture?.selected.testament = book.testament
+                    self?.scripture?.selected.testament = book.testament.translateTestament
                     self?.scripture?.selected.book = book
                     
                     if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
@@ -1485,8 +1485,10 @@ class ScriptureViewController : UIViewController
         }
 
         var chapters = [Int]()
-        for i in 1...maxChapters {
-            chapters.append(i)
+        if maxChapters > 0 {
+            for i in 1...maxChapters {
+                chapters.append(i)
+            }
         }
         scripture?.picker.chapters = chapters
         
@@ -1509,8 +1511,10 @@ class ScriptureViewController : UIViewController
                 break
             }
             var verses = [Int]()
-            for i in 1...maxVerses {
-                verses.append(i)
+            if maxVerses > 0 {
+                for i in 1...maxVerses {
+                    verses.append(i)
+                }
             }
             scripture?.picker.verses = verses
             

@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class FetchImage
+class FetchImage : Size
 {
     var url : URL?
     
@@ -89,12 +89,9 @@ class FetchImage
 //        return fileSize
 //    }()
 
-    private var _fileSize : Int?
-    {
-        didSet {
 
-        }
-    }
+    // Slow when replaced w/ class or struct
+    internal var _fileSize : Int?
     var fileSize : Int?
     {
         get {

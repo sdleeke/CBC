@@ -5014,68 +5014,70 @@ class VoiceBase
         }
         
         // These should really be hierarchical.
-        for number in 1...maxNumber {
-            let value = number.description
-            guard let keys = numbersToText[value] else {
-                continue
-            }
-            for key in keys {
-                for context in preambles {
-                    if changes[context] == nil {
-                        changes[context] = ["\(context) " + key:"\(context) " + value]
-                    } else {
-                        changes[context]?["\(context) " + key] = "\(context) " + value
-                    }
+        if maxNumber > 0 {
+            for number in 1...maxNumber {
+                let value = number.description
+                guard let keys = numbersToText[value] else {
+                    continue
                 }
-                
-                for book in books.keys {
-                    if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: bookName) {
-                        if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
-                            if changes[book] == nil {
-                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
-                            } else {
-                                changes[book]?["\(book) " + key] = "\(bookName) " + value
+                for key in keys {
+                    for context in preambles {
+                        if changes[context] == nil {
+                            changes[context] = ["\(context) " + key:"\(context) " + value]
+                        } else {
+                            changes[context]?["\(context) " + key] = "\(context) " + value
+                        }
+                    }
+                    
+                    for book in books.keys {
+                        if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: bookName) {
+                            if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                                if changes[book] == nil {
+                                    changes[book] = ["\(book) " + key:"\(bookName) " + value]
+                                } else {
+                                    changes[book]?["\(book) " + key] = "\(bookName) " + value
+                                }
+                            }
+                        }
+                        
+                        if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: bookName) {
+                            if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                                if changes[book] == nil {
+                                    changes[book] = ["\(book) " + key:"\(bookName) " + value]
+                                } else {
+                                    changes[book]?["\(book) " + key] = "\(bookName) " + value
+                                }
                             }
                         }
                     }
                     
-                    if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: bookName) {
-                        if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
-                            if changes[book] == nil {
-                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
-                            } else {
-                                changes[book]?["\(book) " + key] = "\(bookName) " + value
+                    // For books that don't start w/ a number
+                    for book in Constants.OLD_TESTAMENT_BOOKS {
+                        if !books.values.contains(book) {
+                            if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                                if changes[book.lowercased()] == nil {
+                                    changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                                } else {
+                                    changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                                }
                             }
+                        } else {
+                            
                         }
                     }
-                }
-                
-                // For books that don't start w/ a number
-                for book in Constants.OLD_TESTAMENT_BOOKS {
-                    if !books.values.contains(book) {
-                        if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
-                            if changes[book.lowercased()] == nil {
-                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
-                            } else {
-                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                    
+                    for book in Constants.NEW_TESTAMENT_BOOKS {
+                        if !books.values.contains(book) {
+                            if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                                if changes[book.lowercased()] == nil {
+                                    changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                                } else {
+                                    changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                                }
                             }
+                        } else {
+                            
                         }
-                    } else {
-                        
-                    }
-                }
-                
-                for book in Constants.NEW_TESTAMENT_BOOKS {
-                    if !books.values.contains(book) {
-                        if let index = Constants.NEW_TESTAMENT_BOOKS.firstIndex(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
-                            if changes[book.lowercased()] == nil {
-                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
-                            } else {
-                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
-                            }
-                        }
-                    } else {
-                        
                     }
                 }
             }
@@ -5087,22 +5089,24 @@ class VoiceBase
             }
         }
 
-        for number in 1...maxNumber {
-            if !interactive, Constants.singleNumbers.values.contains(number.description) {
-                continue
-            }
-            
-            let value = number.description
-            guard let keys = numbersToText[value] else {
-                continue
-            }
-            
-            for key in keys {
-                for context in continuations {
-                    if changes[context] == nil {
-                        changes[context] = ["\(context) " + key:"\(context) " + value]
-                    } else {
-                        changes[context]?["\(context) " + key] = "\(context) " + value
+        if maxNumber > 0 {
+            for number in 1...maxNumber {
+                if !interactive, Constants.singleNumbers.values.contains(number.description) {
+                    continue
+                }
+                
+                let value = number.description
+                guard let keys = numbersToText[value] else {
+                    continue
+                }
+                
+                for key in keys {
+                    for context in continuations {
+                        if changes[context] == nil {
+                            changes[context] = ["\(context) " + key:"\(context) " + value]
+                        } else {
+                            changes[context]?["\(context) " + key] = "\(context) " + value
+                        }
                     }
                 }
             }
