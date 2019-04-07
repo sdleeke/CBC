@@ -167,6 +167,26 @@ extension FileManager
 //    }
 }
 
+extension Set where Element == String
+{
+    var tagsString: String?
+    {
+//        guard let tagsSet = tagsSet else {
+//            return nil
+//        }
+        
+        let array = self.array.sorted { (first:String, second:String) -> Bool in
+            return first.withoutPrefixes < second.withoutPrefixes
+        }
+        
+        guard array.count > 0 else {
+            return nil
+        }
+        
+        return array.joined(separator: Constants.SEPARATOR)
+    }
+}
+
 extension Array where Element == MediaItem
 {
     func sort(book:String?) -> [MediaItem]?
@@ -971,6 +991,44 @@ extension Array where Element == MediaItem
 
 extension Array where Element == String
 {
+    func additions(to array1:[String]?) -> [(Int,String)]?
+    {
+        guard let array1 = array1 else {
+            return self.enumerated().map({ (arg0) -> (Int,String) in
+//                let (offset, element) = arg0
+                return arg0
+            })
+        }
+        
+        var array2 = self as [String]
+        
+        var diff = [(Int,String)]()
+        
+        for (index, element) in array1.enumerated() {
+//            var first:String? = array2[index]
+//            var second:String? = array1[index]
+//
+//            if let separator = separator {
+//                if let range = first?.range(of: separator), let string = first {
+//                    first = String(string[..<range.lowerBound])
+//                }
+//
+//                if let range = second?.range(of: separator), let string = second {
+//                    second = String(string[..<range.lowerBound])
+//                }
+//            }
+//
+//            if first != second {
+
+            if array2[index] != array1[index] {
+                array2.remove(at: index)
+                diff.append((index,element))
+            }
+        }
+
+        return diff.count > 0 ? diff : nil
+    }
+    
     func sort(method:String?) -> [String]?
     {
 //        guard let strings = strings else {
@@ -2416,6 +2474,30 @@ extension String
 
 extension String
 {
+//    var toTagsSet : Set<String>?
+//    {
+//        guard var tags = tags else {
+//            return nil
+//        }
+//
+//        var tag:String
+//        var tagsSet = Set<String>()
+//
+//        while (tags.range(of: Constants.SEPARATOR) != nil) {
+//            if let range = tags.range(of: Constants.SEPARATOR) {
+//                tag = String(tags[..<range.lowerBound])
+//                tagsSet.insert(tag)
+//                tags = String(tags[range.upperBound...])
+//            } else {
+//                // ???
+//            }
+//        }
+//
+//        tagsSet.insert(tags)
+//
+//        return tagsSet.count == 0 ? nil : tagsSet
+//    }
+
     var tagsSet : Set<String>?
     {
 //        guard let tagsString = tagsString else {

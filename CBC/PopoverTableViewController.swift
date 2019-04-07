@@ -1602,28 +1602,28 @@ class PopoverTableViewController : UIViewController
         
         switch (search,segments) {
         case (true,true):
-            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: segmentedControl, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 8.0)
+            topConstraint = NSLayoutConstraint(item: tableView as Any, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: segmentedControl, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 8.0)
             break
             
         case (true,false):
             segmentedControl.removeFromSuperview()
             
-            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: searchBar, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
+            topConstraint = NSLayoutConstraint(item: tableView as Any, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: searchBar, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
             break
             
         case (false,true):
             searchBar.removeFromSuperview()
             
-            view.addConstraint(NSLayoutConstraint(item: segmentedControl, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 8.0))
+            view.addConstraint(NSLayoutConstraint(item: segmentedControl as Any, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 8.0))
             
-            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: segmentedControl, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 8.0)
+            topConstraint = NSLayoutConstraint(item: tableView as Any, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: segmentedControl, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 8.0)
             break
             
         case (false,false):
             searchBar.removeFromSuperview()
             segmentedControl.removeFromSuperview()
             
-            topConstraint = NSLayoutConstraint(item: tableView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+            topConstraint = NSLayoutConstraint(item: tableView as Any, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
             break
         }
         

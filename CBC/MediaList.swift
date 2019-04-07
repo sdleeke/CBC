@@ -132,7 +132,7 @@ class MediaList // : Sequence
                 continue
             }
             
-            transcript.autoEdit(viewController:viewController, notify: false)
+            transcript.autoEdit(notify:false)
         }
         
         if let multiPartName = multiPartName {

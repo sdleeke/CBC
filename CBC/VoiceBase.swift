@@ -865,12 +865,18 @@ class VoiceBase
     
     var uploadJSON:[String:Any]?
     
+    // Prevents a background thread from creating multiple timers accidentally
+    // by accessing transcript before the timer creation on the main thread is complete.
+    var settingTimer = false
+
     var resultsTimer:Timer?
     {
         didSet {
-            
+
         }
     }
+
+//    var resultsTimer = Setting<Timer>()
     
     var url:String?
     {
@@ -946,10 +952,6 @@ class VoiceBase
             return htmlString
         }
     }
-    
-    // Prevents a background thread from creating multiple timers accidentally
-    // by accessing transcript before the timer creation on the main thread is complete.
-    var settingTimer = false
     
     var filename : String?
     {
@@ -1164,6 +1166,13 @@ class VoiceBase
 
             // TRANSCRIBING
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
+//                resultsTimer.set { (setter: ((Timer?)->())?) in
+//                    Thread.onMainThread {
+//                        let timer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                        setter?(timer)
+//                    }
+//                }
+                
                 settingTimer = true
                 Thread.onMainThread {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
@@ -1180,6 +1189,13 @@ class VoiceBase
 
             // ALIGNING
             if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
+//                resultsTimer.set { (setter: ((Timer?)->())?) in
+//                    Thread.onMainThread {
+//                        let timer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                        setter?(timer)
+//                    }
+//                }
+                
                 settingTimer = true
                 Thread.onMainThread {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
@@ -1206,7 +1222,7 @@ class VoiceBase
                 mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
             }
 
-            if _transcript == nil, resultsTimer == nil, mediaID != nil {
+            if _transcript == nil, resultsTimer == nil, !settingTimer, mediaID != nil {
                 mediaID = nil
             }
             
@@ -2981,6 +2997,35 @@ class VoiceBase
                     
                     // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
                     // sure I can predict the context in which this (i.e. that) would happen.
+                    var alertActions = [AlertAction]()
+                    
+                    var message:String?
+                    
+                    if let text = self.mediaItem?.text {
+                        message = text + " (\(self.transcriptPurpose))"
+                    }
+                    
+                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+                        var alertActions = [AlertAction]()
+                        
+                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+                            self.autoEdit()
+                        })
+                        alertActions.append(yesAction)
+                        
+                        let noAction = AlertAction(title: Constants.Strings.No, style: .default, handler: {
+                            
+                        })
+                        alertActions.append(noAction)
+                        
+                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
+                        
+                    }))
+                        
+                    Alerts.shared.alert(title:"Perform " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
                 }
             }
         }
@@ -5463,7 +5508,7 @@ class VoiceBase
     // We need a way to report how long autoEdit takes.
     // We also need a way to report progress on a percentage basis
     
-    func autoEdit(viewController:UIViewController,notify:Bool = true)
+    func autoEdit(notify:Bool = true)
     {
         guard self.operationQueue.operationCount == 0 else {
             var message = String()
@@ -5485,15 +5530,20 @@ class VoiceBase
         guard !self.aligning else {
             if notify {
                 if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                    viewController.alertActionsCancel( title: "Alignment Underway",
-                                                       message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
-                        alertActions: nil,
-                        cancelAction: nil)
+                    Alerts.shared.alert(title: "Alignment Underway",
+                                        message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.")
+
+//                    viewController.alertActionsCancel( title: "Alignment Underway",
+//                                                       message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+//                        alertActions: nil,
+//                        cancelAction: nil)
                 } else {
-                    viewController.alertActionsCancel( title: "Alignment Underway",
-                                                       message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
-                        alertActions: nil,
-                        cancelAction: nil)
+                    Alerts.shared.alert(title: "Alignment Underway",
+                                        message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.")
+//                    viewController.alertActionsCancel( title: "Alignment Underway",
+//                                                       message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.",
+//                        alertActions: nil,
+//                        cancelAction: nil)
                 }
             }
             return
@@ -6010,7 +6060,7 @@ class VoiceBase
                         
                         let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                             () -> Void in
-                            self.autoEdit(viewController:viewController)
+                            self.autoEdit()
                         })
                         alertActions.append(yesAction)
                         

@@ -97,6 +97,48 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //        })
 //    }()
     
+//    lazy var isVoiceBaseAvailable : Shadowed<Bool> = {
+//        let shadow = Shadowed<Bool>()
+//
+//        shadow.onGet = { [weak self] (oldValue:Bool?) in
+//            guard self?.allowMGTs == true else {
+//                return false
+//            }
+//
+//            guard Globals.shared.reachability.isReachable else {
+//                return false
+//            }
+//
+//            return oldValue ?? false // checkingVoiceBaseAvailability
+//        }
+//
+//        shadow.onDidSet = { [weak self] (value:Bool?,oldValue:Bool?) in
+//            guard value != oldValue else {
+//                return
+//            }
+//
+//            guard let value = value else {
+//                return
+//            }
+//
+//            if !value {
+//                if self?.checkVoiceBaseTimer == nil {
+//                    self?.checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self!, selector: #selector(self?.ckVBA), userInfo:nil, repeats:true)
+//                }
+//            } else {
+//                self?.checkVoiceBaseTimer?.invalidate()
+//                self?.checkVoiceBaseTimer = nil
+//            }
+//
+//            // Why?
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+//            }
+//        }
+//
+//        return shadow
+//    }()
+    
     private var _isVoiceBaseAvailable : Bool? // = false
     {
         didSet {

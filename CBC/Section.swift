@@ -139,7 +139,7 @@ class Section
     var strings:[String]?
     {
         willSet {
-            
+//            print(newValue?.additions(to: strings))
         }
         didSet {
             stringsAction?(strings)

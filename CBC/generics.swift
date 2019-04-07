@@ -47,7 +47,7 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-struct Default<T>
+class Default<T>
 {
     var _value : T?
     {
@@ -74,66 +74,119 @@ struct Default<T>
     }
 }
 
-// BAD PERFORMANCE
-//class Shadowed<T>
-//{
-//    var _value : T?
-//    {
-//        didSet {
-//            onDidSet?()
-//        }
-//    }
-//
-//    var value : T?
-//    {
-//        get {
-//            guard onGet == nil else {
-//                _value = onGet?(_value)
-//                return _value
-//            }
-//
-//            if _value == nil, onNil != nil {
-//                _value = onNil?()
-//            }
-//
-//            return _value ?? defaultValue?()
-//        }
-//        set {
-//            //            if _value == nil {
-//            //                _value = onNil?()
-//            //            } else { // ???
-//            //                _value = newValue // ???
-//            //            }
-//
-//            guard onSet == nil else {
-//                _value = onSet?()
-//                return
-//            }
-//
-//            _value = newValue
-//        }
-//    }
-//
-//    func clear()
-//    {
-//        _value = nil
-//    }
-//
-//    var defaultValue : (()->T?)?
-//
-//    var onGet : ((T?)->T?)?
-//
-//    var onSet : (()->T?)?
-//
-//    var onNil : (()->T?)?
-//
-//    var onDidSet : (()->())?
-//
-//    init(_ defaultValue:(()->T?)? = nil,onGet:((T?)->T?)? = nil,onSet:(()->T?)? = nil,onNil:(()->T?)? = nil,onDidSet:(()->())? = nil)
-//    {
-//        self.defaultValue = defaultValue
-//    }
-//}
+class Sync<T>
+{
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+        }()
+    
+    private var _value:T?
+    {
+        didSet {
+            
+        }
+    }
+    
+    var value:T?
+    {
+        set {
+            queue.sync {
+                _value = newValue
+            }
+        }
+        get {
+            return queue.sync {
+                return _value
+            }
+        }
+    }
+}
+
+class Setting<T>
+{
+    var isSetting : Bool = false
+    
+    var value:T?
+    {
+        didSet {
+            
+        }
+    }
+    
+    // The variable setting, the argument to the setter function/closure, is itself a function/closure.
+    //
+    // The variable setting must be optional because it must be escaping, which optional functions/closures are by default in Swift.
+    //
+    // I.e the setter function/closure is assumed to be a closure from which setting, the closure after setter() below, escapes.
+    //
+    // Because we assume setting is escaping from setter we can't use Sync in this case because we don't block on setter.
+    //
+    
+    func set(setter : ((_ setting:((T?)->())?)->()))
+    {
+        isSetting = true
+        setter( // setting:
+        { (value:T?) in
+            self.value = value
+            self.isSetting = false
+        })
+    }
+}
+
+// CAN LEAD TO BAD PERFORMANCE
+// if used for large numbers of shadowed scalars
+class Shadowed<T>
+{
+    private var _value : T?
+    {
+        didSet {
+            onDidSet?(_value,oldValue)
+        }
+    }
+
+    var value : T?
+    {
+        get {
+            guard onGet == nil else {
+                return onGet?(_value)
+            }
+
+            if _value == nil, onNil != nil {
+                _value = onNil?()
+            }
+
+            return _value ?? defaultValue?()
+        }
+        set {
+            guard onSet == nil else {
+                _value = onSet?(newValue)
+                return
+            }
+
+            _value = newValue
+        }
+    }
+
+    func clear()
+    {
+        _value = nil
+    }
+
+    var defaultValue : (()->T?)?
+
+    var onGet : ((T?)->T?)?
+
+    var onSet : ((T?)->T?)?
+
+    var onNil : (()->T?)?
+
+    var onDidSet : ((T?,T?)->())?
+
+    init(_ defaultValue:(()->T?)? = nil,onGet:((T?)->T?)? = nil,onSet:((T?)->T?)? = nil,onNil:(()->T?)? = nil,onDidSet:((T?,T?)->())? = nil)
+    {
+        self.defaultValue = defaultValue
+    }
+}
 
 // BAD PERFORMANCE
 //class Shadowed<T>

@@ -2055,7 +2055,7 @@ class MediaItem : NSObject
             
             // This coalesces the tags so there are no duplicates
             if let tagsArray = tags?.tagsArray {
-                let tagsString = tagsSetToString(Set(tagsArray.filter({ (string:String) -> Bool in
+                let tagsString = tagsArray.filter({ (string:String) -> Bool in
                     // WHY? Backwards compatibility
                     
                     if string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) {
@@ -2076,7 +2076,7 @@ class MediaItem : NSObject
                     }
                     
                     return true
-                })))
+                }).set.tagsString
 
                 return tagsString // tags
             } else {
@@ -2187,51 +2187,70 @@ class MediaItem : NSObject
         }
     }
     
-    func tagsSetToString(_ tagsSet:Set<String>?) -> String?
-    {
-        guard let tagsSet = tagsSet else {
-            return nil
-        }
-        
-        let array = Array(tagsSet).sorted { (first:String, second:String) -> Bool in
-            return first.withoutPrefixes < second.withoutPrefixes
-        }
-        
-        guard array.count > 0 else {
-            return nil
-        }
-        
-        return array.joined(separator: Constants.SEPARATOR)
-    }
-    
-    func tagsToSet(_ tags:String?) -> Set<String>?
-    {
-        guard var tags = tags else {
-            return nil
-        }
-        
-        var tag:String
-        var tagsSet = Set<String>()
-        
-        while (tags.range(of: Constants.SEPARATOR) != nil) {
-            if let range = tags.range(of: Constants.SEPARATOR) {
-                tag = String(tags[..<range.lowerBound])
-                tagsSet.insert(tag)
-                tags = String(tags[range.upperBound...])
-            } else {
-                // ???
-            }
-        }
-        
-        tagsSet.insert(tags)
-        
-        return tagsSet.count == 0 ? nil : tagsSet
-    }
+//    func tagsSetToString(_ tagsSet:Set<String>?) -> String?
+//    {
+//        guard let tagsSet = tagsSet else {
+//            return nil
+//        }
+//
+//        let array = Array(tagsSet).sorted { (first:String, second:String) -> Bool in
+//            return first.withoutPrefixes < second.withoutPrefixes
+//        }
+//
+//        guard array.count > 0 else {
+//            return nil
+//        }
+//        
+//        return array.joined(separator: Constants.SEPARATOR)
+//    }
+//
+//    func tagsToSet(_ tags:String?) -> Set<String>?
+//    {
+//        guard var tags = tags else {
+//            return nil
+//        }
+//
+//        var tag:String
+//        var tagsSet = Set<String>()
+//
+//        while (tags.range(of: Constants.SEPARATOR) != nil) {
+//            if let range = tags.range(of: Constants.SEPARATOR) {
+//                tag = String(tags[..<range.lowerBound])
+//                tagsSet.insert(tag)
+//                tags = String(tags[range.upperBound...])
+//            } else {
+//                // ???
+//            }
+//        }
+//
+//        tagsSet.insert(tags)
+//
+//        return tagsSet.count == 0 ? nil : tagsSet
+//    }
     
     var tagsSet:Set<String>?
     {
         get {
-            return tagsToSet(self.tags)
+            guard var tags = tags else {
+                return nil
+            }
+            
+            var tag:String
+            var tagsSet = Set<String>()
+            
+            while (tags.range(of: Constants.SEPARATOR) != nil) {
+                if let range = tags.range(of: Constants.SEPARATOR) {
+                    tag = String(tags[..<range.lowerBound])
+                    tagsSet.insert(tag)
+                    tags = String(tags[range.upperBound...])
+                } else {
+                    // ???
+                }
+            }
+            
+            tagsSet.insert(tags)
+            
+            return tagsSet.count == 0 ? nil : tagsSet
         }
     }
     

@@ -365,6 +365,7 @@ class Lexicon : NSObject
     {
         get {
             // What happens if build() inserts a new key while this is happening?
+            // Nothing words is thread safe
             return words?.keys.sorted()
         }
     }
