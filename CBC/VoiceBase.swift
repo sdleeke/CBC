@@ -1222,6 +1222,7 @@ class VoiceBase
                 mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
             }
 
+            // !settingTimer is CRUCIAL since the timer is set in a DISPATCH to the MAIN thread above.
             if _transcript == nil, resultsTimer == nil, !settingTimer, mediaID != nil {
                 mediaID = nil
             }
