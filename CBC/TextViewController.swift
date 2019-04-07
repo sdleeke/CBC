@@ -1344,7 +1344,7 @@ class TextViewController : UIViewController
         }
     }
     
-//    lazy var operationQueue : OperationQueue! = {
+//    private lazy var operationQueue : OperationQueue! = {
 //        let operationQueue = OperationQueue()
 //        operationQueue.name = "TEVC:Operations" // Implies there is only ever one at a time globally
 //        operationQueue.qualityOfService = .userInteractive
@@ -1352,7 +1352,7 @@ class TextViewController : UIViewController
 //        return operationQueue
 //    }()
     
-    lazy var editingQueue : OperationQueue! = {
+    private lazy var editingQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "TEVC:Editing" // Implies there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
@@ -1360,7 +1360,7 @@ class TextViewController : UIViewController
         return operationQueue
     }()
     
-    lazy var searchQueue : OperationQueue! = {
+    private lazy var searchQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "TEVC:Search" // Implies there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive

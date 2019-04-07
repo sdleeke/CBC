@@ -851,7 +851,7 @@ class ScriptureIndexViewController : UIViewController
         mediaItems = nil
     }
     
-    var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "SIVC:Operations"
         operationQueue.qualityOfService = .userInteractive

@@ -1329,7 +1329,7 @@ class ScriptureViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "SVC" // Asumes there is only ever one at a time globally.
         operationQueue.qualityOfService = .userInteractive

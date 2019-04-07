@@ -49,7 +49,7 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 class Default<T>
 {
-    var _value : T?
+    private var _value : T?
     {
         didSet {
 
@@ -78,7 +78,7 @@ class Sync<T>
 {
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: UUID().uuidString)
-        }()
+    }()
     
     private var _value:T?
     {
@@ -787,7 +787,7 @@ class ThreadSafeDictionaryOfDictionaries<T>
 
 class Fetch<T>
 {
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "Fetch" + UUID().uuidString
         operationQueue.qualityOfService = .background

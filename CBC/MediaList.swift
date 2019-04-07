@@ -459,7 +459,7 @@ class MediaList // : Sequence
         }
     }
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MediaList" + UUID().uuidString
         operationQueue.qualityOfService = .background
@@ -921,7 +921,7 @@ class MediaList // : Sequence
 //        operationQueue.addOperation(monitorOperation)
 //    }
 
-    lazy var mediaQueue : OperationQueue! = {
+    private lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MediaList:Media" + UUID().uuidString
         operationQueue.qualityOfService = .background

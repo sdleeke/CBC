@@ -209,7 +209,7 @@ class SettingsViewController: UIViewController
 
     }
 
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "SettingsViewController" // Assumes there is only ever one at a time globally 
         operationQueue.qualityOfService = .userInteractive

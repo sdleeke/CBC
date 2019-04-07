@@ -14,7 +14,7 @@ import MobileCoreServices
 class HTML {
     weak var webViewController: WebViewController?
     
-//    lazy var operationQueue : OperationQueue! = {
+//    private lazy var operationQueue : OperationQueue! = {
 //        let operationQueue = OperationQueue()
 //        operationQueue.name = "HTML"
 //        operationQueue.qualityOfService = .userInteractive
@@ -890,7 +890,7 @@ extension WebViewController: UIPopoverPresentationControllerDelegate
 
 class WebViewController: UIViewController
 {
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "WebViewController" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive

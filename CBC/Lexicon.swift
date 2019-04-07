@@ -377,7 +377,7 @@ class Lexicon : NSObject
         }
     }
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "Lexicon" + UUID().uuidString
         operationQueue.qualityOfService = .userInteractive

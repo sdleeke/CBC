@@ -1540,7 +1540,7 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = id // Assumed to be globally unique, i.e. that there is only one mediaItem instance w/ this id
         operationQueue.qualityOfService = .background

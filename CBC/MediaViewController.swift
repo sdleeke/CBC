@@ -1383,7 +1383,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    lazy var mediaQueue : OperationQueue! = {
+    private lazy var mediaQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MVC:Media" //  + UUID().uuidString // Why?
         operationQueue.qualityOfService = .background
@@ -1391,7 +1391,7 @@ class MediaViewController: UIViewController
         return operationQueue
     }()
     
-    lazy var webQueue : OperationQueue! = {
+    private lazy var webQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MVC:Web"
         operationQueue.qualityOfService = .userInteractive
@@ -1399,7 +1399,7 @@ class MediaViewController: UIViewController
         return operationQueue
     }()
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MVC:Operations"
         operationQueue.qualityOfService = .userInteractive

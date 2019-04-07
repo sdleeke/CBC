@@ -1564,7 +1564,7 @@ class PopoverTableViewController : UIViewController
     
     var topConstraint : NSLayoutConstraint!
     
-    var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "PTVC:Operations"
         operationQueue.qualityOfService = .userInteractive

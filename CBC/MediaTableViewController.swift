@@ -2509,7 +2509,7 @@ class MediaTableViewController : UIViewController
         return nil
     }
     
-    var jsonQueue : OperationQueue! = {
+    private lazy var jsonQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MTVC:JSON"
         operationQueue.qualityOfService = .background
@@ -2631,7 +2631,7 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "MTVC:Operations" + UUID().uuidString
         operationQueue.qualityOfService = .userInitiated

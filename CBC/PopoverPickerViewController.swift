@@ -378,7 +378,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
 class PopoverPickerViewController : UIViewController
 {
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "PopoverPickerViewController" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive

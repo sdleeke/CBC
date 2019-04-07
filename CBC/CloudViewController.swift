@@ -305,7 +305,7 @@ class CloudViewController: UIViewController
     
     var wordsTableViewController:PopoverTableViewController!
     
-    lazy var operationQueue : OperationQueue! = {
+    private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "CloudViewController:Operations" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
@@ -313,7 +313,7 @@ class CloudViewController: UIViewController
         return operationQueue
     }()
     
-    lazy var layoutQueue : OperationQueue! = {
+    private lazy var layoutQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "CloudViewController:Operations" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive
@@ -321,7 +321,7 @@ class CloudViewController: UIViewController
         return operationQueue
     }()
     
-    lazy var labelQueue : OperationQueue! = {
+    private lazy var labelQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "CloudViewController:Labels" // Assumes there is only ever one at a time globally
         operationQueue.qualityOfService = .userInteractive

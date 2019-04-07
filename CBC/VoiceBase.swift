@@ -4079,6 +4079,7 @@ class VoiceBase
         //                                cancelAction: nil)
     }
     
+    // This is used to keep track of auto edit and must be accessible, i.e. not private
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "VoiceBase:Operations" + UUID().uuidString
