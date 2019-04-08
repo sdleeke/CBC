@@ -5344,6 +5344,59 @@ extension String
     }
 }
 
+extension URLSession
+{
+    // Downside - .failure does NOT get to look at the http response
+    func dataTask(with request: URLRequest, result: @escaping (Result<(URLResponse, Data), Error>) -> Void) -> URLSessionDataTask
+    {
+        return dataTask(with: request) { (data, response, error) in
+            if let error = error {
+                result(.failure(error))
+                return
+            }
+            
+            guard let response = response, let data = data else {
+                let error = NSError(domain: "error", code: 0, userInfo: nil)
+                result(.failure(error))
+                return
+            }
+            
+            result(.success((response, data)))
+        }
+    }
+    
+    // Downside - .failure does NOT get to look at the http response
+    func dataTask(with url: URL, result: @escaping (Result<(URLResponse, Data), Error>) -> Void) -> URLSessionDataTask
+    {
+        return dataTask(with: url) { (data, response, error) in
+            if let error = error {
+                result(.failure(error))
+                return
+            }
+            
+            guard let response = response, let data = data else {
+                let error = NSError(domain: "error", code: 0, userInfo: nil)
+                result(.failure(error))
+                return
+            }
+            
+            result(.success((response, data)))
+        }
+    }
+    
+    // Usage
+//    let foo = URLSession.shared.dataTask(with: url) { (result) in
+//        switch result {
+//        case .success(let response, let data):
+//            // Handle Data and Response
+//            break
+//        case .failure(let error):
+//            // Handle Error
+//            break
+//        }
+//    }
+}
+
 extension URL
 {
 //    func files(ofType fileType:String) -> [String]?

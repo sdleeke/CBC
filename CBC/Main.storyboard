@@ -2246,7 +2246,7 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="2ws-5f-m41">
-                                        <rect key="frame" x="325.5" y="81" width="16" height="16"/>
+                                        <rect key="frame" x="194" y="53" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -2283,7 +2283,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pLR-iq-BTO" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1652" y="-204"/>
+            <point key="canvasLocation" x="2464" y="-52"/>
         </scene>
         <!--WebView NavBar-->
         <scene sceneID="VhB-bd-2P2">
@@ -2302,7 +2302,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SlQ-fk-vmo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="602" y="-190"/>
+            <point key="canvasLocation" x="1718" y="-290"/>
         </scene>
         <!--Settings Navigation Controller-->
         <scene sceneID="P0e-f4-mkI">
@@ -2329,7 +2329,7 @@ Web site: www.countrysidebible.org</string>
         <!--Scripture-->
         <scene sceneID="l6c-mP-mmA">
             <objects>
-                <viewController title="Scripture Index" automaticallyAdjustsScrollViewInsets="NO" id="Aee-xE-ARq" userLabel="Scripture" customClass="ScriptureViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Scripture Viewer" automaticallyAdjustsScrollViewInsets="NO" id="Aee-xE-ARq" userLabel="Scripture" customClass="ScriptureViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Fsl-H1-JuA">
                         <rect key="frame" x="0.0" y="0.0" width="667" height="343"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2340,7 +2340,16 @@ Web site: www.countrysidebible.org</string>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="X57-KO-3fC">
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OIW-4C-Odd">
+                                <rect key="frame" x="0.0" y="40.5" width="667" height="125"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="125" id="Zrl-fL-kxt"/>
+                                </constraints>
+                                <connections>
+                                    <segue destination="c6e-ec-iAr" kind="embed" identifier="Show Scripture Picker" id="fmf-fw-4AU"/>
+                                </connections>
+                            </containerView>
+                            <pickerView hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="X57-KO-3fC">
                                 <rect key="frame" x="0.0" y="40.5" width="667" height="125"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="125" id="GXP-Z2-amM"/>
@@ -2363,12 +2372,16 @@ Web site: www.countrysidebible.org</string>
                             <constraint firstItem="X57-KO-3fC" firstAttribute="leading" secondItem="0ZK-DQ-KkA" secondAttribute="leading" id="3MN-QZ-BFk"/>
                             <constraint firstItem="X57-KO-3fC" firstAttribute="top" secondItem="qcl-au-baW" secondAttribute="bottom" constant="8" symbolic="YES" id="4q3-i4-lh6"/>
                             <constraint firstAttribute="trailingMargin" secondItem="qcl-au-baW" secondAttribute="trailing" id="93R-4P-bjq"/>
+                            <constraint firstItem="0ZK-DQ-KkA" firstAttribute="trailing" secondItem="OIW-4C-Odd" secondAttribute="trailing" id="KRN-1Z-FDI"/>
                             <constraint firstItem="X57-KO-3fC" firstAttribute="top" secondItem="qcl-au-baW" secondAttribute="bottom" id="QIB-Uj-ewh"/>
+                            <constraint firstItem="2Or-rs-f6C" firstAttribute="top" secondItem="OIW-4C-Odd" secondAttribute="bottom" id="WgX-6T-2yY"/>
                             <constraint firstItem="0ZK-DQ-KkA" firstAttribute="trailing" secondItem="X57-KO-3fC" secondAttribute="trailing" id="cbO-Qo-keL"/>
                             <constraint firstItem="2Or-rs-f6C" firstAttribute="top" secondItem="X57-KO-3fC" secondAttribute="bottom" id="l2t-ph-xen"/>
                             <constraint firstItem="qcl-au-baW" firstAttribute="leading" secondItem="Fsl-H1-JuA" secondAttribute="leadingMargin" id="poE-2I-YAp"/>
+                            <constraint firstItem="OIW-4C-Odd" firstAttribute="top" secondItem="qcl-au-baW" secondAttribute="bottom" id="qT9-4g-c3U"/>
                             <constraint firstItem="qcl-au-baW" firstAttribute="top" secondItem="Fsl-H1-JuA" secondAttribute="top" constant="20" symbolic="YES" id="qmC-b9-CDt"/>
                             <constraint firstItem="0ZK-DQ-KkA" firstAttribute="trailing" secondItem="2Or-rs-f6C" secondAttribute="trailing" id="rfd-8J-SYE"/>
+                            <constraint firstItem="OIW-4C-Odd" firstAttribute="leading" secondItem="0ZK-DQ-KkA" secondAttribute="leading" id="sHd-ev-XTU"/>
                             <constraint firstItem="2Or-rs-f6C" firstAttribute="leading" secondItem="0ZK-DQ-KkA" secondAttribute="leading" id="zcN-pN-CwV"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="0ZK-DQ-KkA"/>
@@ -2387,7 +2400,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Rkh-vM-RF9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1819" y="495"/>
+            <point key="canvasLocation" x="1718" y="530"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="YAt-yj-IPk">
@@ -2772,6 +2785,41 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YoE-f1-V1P" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
+        </scene>
+        <!--Scripture-->
+        <scene sceneID="gzl-x5-S5k">
+            <objects>
+                <viewController title="Scripture Index" automaticallyAdjustsScrollViewInsets="NO" id="c6e-ec-iAr" userLabel="Scripture" customClass="ScripturePickerViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="xuC-Bj-ceG">
+                        <rect key="frame" x="0.0" y="0.0" width="667" height="125"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hrt-0X-Zqa">
+                                <rect key="frame" x="0.0" y="0.0" width="667" height="125"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="c6e-ec-iAr" id="sKe-Ak-rRM"/>
+                                    <outlet property="delegate" destination="c6e-ec-iAr" id="O04-c7-Qi4"/>
+                                </connections>
+                            </pickerView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="dPx-oH-iOo" firstAttribute="bottom" secondItem="hrt-0X-Zqa" secondAttribute="bottom" id="7lf-he-4oD"/>
+                            <constraint firstItem="hrt-0X-Zqa" firstAttribute="top" secondItem="dPx-oH-iOo" secondAttribute="top" id="Btp-cf-4hj"/>
+                            <constraint firstItem="dPx-oH-iOo" firstAttribute="trailing" secondItem="hrt-0X-Zqa" secondAttribute="trailing" id="UUN-fZ-KLE"/>
+                            <constraint firstItem="hrt-0X-Zqa" firstAttribute="leading" secondItem="dPx-oH-iOo" secondAttribute="leading" id="xOT-Mu-O30"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="dPx-oH-iOo"/>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" title="Scripture" id="fmY-GH-6vR"/>
+                    <connections>
+                        <outlet property="scripturePicker" destination="hrt-0X-Zqa" id="6Nr-gl-Men"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="nt4-Dl-cHj" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2465" y="1505"/>
         </scene>
     </scenes>
     <resources>

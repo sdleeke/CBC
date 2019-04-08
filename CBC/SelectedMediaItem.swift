@@ -77,7 +77,7 @@ class SelectedMediaItem
 //            if (selectedMediaItem != mediaItems?[indexPath.row]) || (Globals.shared.history == nil) {
 //                Globals.shared.addToHistory(mediaItems?[indexPath.row])
 //            }
-
+            
             if let newValue = newValue {
                 UserDefaults.standard.set(newValue.id, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
             } else {

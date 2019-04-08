@@ -8,13 +8,14 @@
 
 import Foundation
 
-struct Selected
+class Selected
 {
     var testament:String?
 
     var book:String?
     
     var chapter:Int = 0
+
     var verse:Int = 0
     
     var reference:String?
@@ -40,6 +41,14 @@ struct Selected
             
             return reference
         }
+    }
+    
+    func clear()
+    {
+        testament = nil
+        book = nil
+        chapter = 0
+        verse = 0
     }
 }
 
@@ -203,7 +212,7 @@ class Scripture : NSObject
     var reference:String?
     {
         willSet {
-            
+
         }
         didSet {
             if reference != oldValue {

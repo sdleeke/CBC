@@ -142,7 +142,8 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
                 
                 popover.scripture = self.scripture
-                
+                popover.mediaItem = self.selectedMediaItem
+
                 // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
 

@@ -244,7 +244,68 @@ extension VoiceBase // Class Methods
         let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: mediaID ?? UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
-        // URLSession.shared
+        // Alternate using extension that uses Swift 5's new Result type.
+        // Downside - .failure does NOT get to look at the http response
+//        let task = session.dataTask(with: request) { (result) in
+//            var errorOccured = false
+//
+//            var json : [String:Any]?
+//
+//            switch result {
+//            case .success(let response, let data):
+//                // Handle Data and Response
+//                debug("post response: ",response.description)
+//
+//                if let httpResponse = response as? HTTPURLResponse {
+//                    debug("post HTTP response: ",httpResponse.description)
+//                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+//                    debug("post HTTP response: ",httpResponse.statusCode)
+//                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//
+//                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+//                        errorOccured = true
+//                    }
+//                }
+//
+//                if data.count > 0 {
+//                    let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+//
+//                    if let acceptText = accept?.contains("text"), acceptText {
+//                        json = ["text":string as Any]
+//                    } else {
+//                        json = data.json as? [String:Any]
+//
+//                        if let errors = json?["errors"] {
+//                            print(string as Any)
+//                            print(json as Any)
+//                            print(errors)
+//                            errorOccured = true
+//                        }
+//                    }
+//                } else {
+//                    // no data
+//                    errorOccured = true
+//                }
+//                break
+//
+//            case .failure(let error):
+//                // Handle Error - Don't get to see the response!
+//                print("post error: ",error.localizedDescription)
+//                errorOccured = true
+//                break
+//            }
+//
+//            if errorOccured {
+//                Thread.onMainThread {
+//                    onError?(json)
+//                }
+//            } else {
+//                Thread.onMainThread {
+//                    completion?(json)
+//                }
+//            }
+//        }
+        
         let task = session.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             var errorOccured = false
             

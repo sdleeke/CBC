@@ -56,6 +56,7 @@
 		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
 		17A952682158FE830033903C /* generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A952672158FE830033903C /* generics.swift */; };
 		17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */; };
+		17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */; };
 		17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17CDEF0D2167762900B21C87 /* FetchImage.swift */; };
 		17D44587223D2337005D6681 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 17D44586223D2337005D6681 /* GoogleService-Info.plist */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
@@ -165,6 +166,7 @@
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17A952672158FE830033903C /* generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generics.swift; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
+		17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScripturePickerViewController.swift; sourceTree = "<group>"; };
 		17CDEF0D2167762900B21C87 /* FetchImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchImage.swift; sourceTree = "<group>"; };
 		17D21A2D2134914600CA5F57 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		17D21A2F2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 				17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */,
 				17613FD41E4364F200ADFFCD /* LexiconIndexViewController.swift */,
 				17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */,
+				17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */,
 				17074CB01E25A92B00332F0A /* Scripture.swift */,
 				174EEE8A1B74C11E004F6942 /* AboutViewController.swift */,
 				1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */,
@@ -716,6 +719,7 @@
 				1778D476224D2B7C007C43A8 /* MediaTeacher.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
 				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
+				17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,

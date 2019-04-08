@@ -747,13 +747,17 @@ class ScriptureViewController : UIViewController
     var actionButton:UIBarButtonItem?
     
     var webViewController:WebViewController?
+    var scripturePickerViewController:ScripturePickerViewController?
+    
+    var mediaItem : MediaItem?
     
     var scripture:Scripture?
-//    {
-//        didSet {
+    {
+        didSet {
 //            webViewController?.bodyHTML = scripture?.text(scripture?.reference)
-//        }
-//    }
+            scripturePickerViewController?.scripture = scripture
+        }
+    }
     
     @IBOutlet weak var directionLabel: UILabel!
     
@@ -778,13 +782,26 @@ class ScriptureViewController : UIViewController
                     webViewController = wvc
                     
                     // Just not ready.
-//                    webViewController?.search = true
+                    //                    webViewController?.search = true
                     
                     webViewController?.html.string = "" // Why?
                     if let fontSize = fontSize {
                         webViewController?.html.fontSize = fontSize
                     }
                     webViewController?.content = .html
+                }
+                break
+                
+            case "Show Scripture Picker":
+                if let spvc = destination as? ScripturePickerViewController {
+                    scripturePickerViewController = spvc
+                    scripturePickerViewController?.scripture = scripture
+//                    scripturePickerViewController?.includeVerses = true
+                    scripturePickerViewController?.show = {
+                        self.showScripture()
+                        self.setupBarButtons()
+                        self.updateReferenceLabel()
+                    }
                 }
                 break
                 
@@ -842,7 +859,7 @@ class ScriptureViewController : UIViewController
     
     func updateReferenceLabel()
     {
-
+        print(scripture?.reference)
     }
 
     func disableToolBarButtons()
@@ -923,6 +940,10 @@ class ScriptureViewController : UIViewController
             return
         }
         
+        // This is MANDATORY or loading the scripture won't work.
+        // The problem is this means the scripture object for the selected mediaItem
+        // is changed and the scripture reference may no longer match what is
+        // shown with the title.
         scripture?.reference = reference
         
         if self.scripture?.html?[reference] != nil {
@@ -1037,6 +1058,17 @@ class ScriptureViewController : UIViewController
         Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
     }
     
+    @objc func resetScripture()
+    {
+        scripture?.selected.clear()
+        scripture?.reference = mediaItem?.scriptureReference
+        setupPicker()
+        navigationController?.isToolbarHidden = true
+
+//        scripturePickerViewController?.updatePicker()
+//        updatePicker()
+    }
+    
     fileprivate func setupBarButtons()
     {
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItem.Style.plain, target: self, action:  #selector(increaseFontSize))
@@ -1075,6 +1107,37 @@ class ScriptureViewController : UIViewController
         }
 
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
+
+        guard let scriptureReference = mediaItem?.scriptureReference else {
+            navigationController?.isToolbarHidden = true
+            return
+        }
+        
+        let mediaItemScripture = Scripture(reference: scriptureReference)
+        
+        if let book = mediaItemScripture.booksChaptersVerses?.data?.keys.sorted(by: { self.scripture?.reference?.range(of: $0)?.lowerBound < self.scripture?.reference?.range(of: $1)?.lowerBound }).first {
+            let testament = book.testament.translateTestament
+            
+            let chapter = mediaItemScripture.booksChaptersVerses?.data?[book]?.keys.sorted()[0]
+            
+            if (scripture?.selected.testament != testament) ||  (scripture?.selected.book != book) || (scripture?.selected.chapter != chapter) {
+                let resetButton = UIBarButtonItem(title: "Reset", style: UIBarButtonItem.Style.plain, target: self, action: #selector(resetScripture))
+                
+                let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+                
+                var barButtons = [UIBarButtonItem]()
+                
+                barButtons.append(spaceButton)
+                barButtons.append(resetButton)
+                barButtons.append(spaceButton)
+                
+                navigationController?.toolbar.isTranslucent = false
+                
+                setToolbarItems(barButtons, animated: true)
+                
+                navigationController?.isToolbarHidden = false
+            }
+        }
     }
     
     var activityViewController:UIActivityViewController?
@@ -1341,6 +1404,40 @@ class ScriptureViewController : UIViewController
         operationQueue.cancelAllOperations()
     }
     
+    func setupPicker()
+    {
+        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
+            webViewController?.view.isHidden = true
+            
+            //            DispatchQueue.global(qos: .background).async { [weak self] in
+            operationQueue.addOperation { [weak self] in
+                self?.scripture?.reference = reference // Why?
+                self?.scripture?.load()
+                
+                if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
+                    let book = books[0]
+                    
+                    self?.scripture?.selected.testament = book.testament.translateTestament
+                    self?.scripture?.selected.book = book
+                    
+                    if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
+                        self?.scripture?.selected.chapter = chapters[0]
+                    }
+                }
+                
+                Thread.onMainThread {
+                    self?.updatePicker()
+                    self?.scripturePickerViewController?.updatePicker()
+                    self?.showScripture()
+                }
+            }
+        } else {
+            updatePicker()
+            scripturePickerViewController?.updatePicker()
+            showScripture()
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1361,37 +1458,10 @@ class ScriptureViewController : UIViewController
         } else {
             
         }
-        
+
+        setupPicker()
+
         setupBarButtons()
-        
-        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
-            webViewController?.view.isHidden = true
-            
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-            operationQueue.addOperation { [weak self] in
-                self?.scripture?.reference = reference
-                self?.scripture?.load()
-                
-                if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
-                    let book = books[0]
-                    
-                    self?.scripture?.selected.testament = book.testament.translateTestament
-                    self?.scripture?.selected.book = book
-                    
-                    if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
-                        self?.scripture?.selected.chapter = chapters[0]
-                    }
-                }
-                
-                Thread.onMainThread {
-                    self?.updatePicker()
-                    self?.showScripture()
-                }
-            }
-        } else {
-            updatePicker()
-            showScripture()
-        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1415,19 +1485,20 @@ class ScriptureViewController : UIViewController
     {
         super.viewDidAppear(animated)
 
+        setupBarButtons()
     }
     
-    func testament(_ book:String) -> String?
-    {
-        if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
-            return Constants.OT
-        } else
-            if (Constants.NEW_TESTAMENT_BOOKS.contains(book)) {
-                return Constants.NT
-        }
-        
-        return nil
-    }
+//    func testament(_ book:String) -> String?
+//    {
+//        if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
+//            return Constants.OT
+//        } else
+//            if (Constants.NEW_TESTAMENT_BOOKS.contains(book)) {
+//                return Constants.NT
+//        }
+//
+//        return nil
+//    }
     
     override func viewDidLoad()
     {

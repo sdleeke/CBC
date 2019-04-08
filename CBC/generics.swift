@@ -109,6 +109,43 @@ class OnNil<T>
     }
 }
 
+// Like a blocking Fetch
+class OnNilGet<T>
+{
+    private var _value : T?
+    {
+        didSet {
+            
+        }
+    }
+    
+    var value : T?
+    {
+        get {
+            guard _value == nil else {
+                return _value
+            }
+            
+            // Loads _value when it is nil.
+            _value = onNil?()
+            
+            return _value
+        }
+    }
+    
+    var onNil : (()->T?)?
+    
+    init(_ onNil:(()->T?)? = nil)
+    {
+        self.onNil = onNil
+    }
+    
+    func clear()
+    {
+        _value = nil
+    }
+}
+
 class Sync<T>
 {
     lazy var queue : DispatchQueue = { [weak self] in
