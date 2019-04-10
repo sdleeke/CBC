@@ -664,6 +664,14 @@ enum Constants {
 
         static let Underway = "Underway"
         
+        static let Cache = "Cache"
+        static let Clear = "Clear"
+        static let Cleared = "Cleared"
+        
+        static let Clear_Cache = Clear + SINGLE_SPACE + Cache
+        static let Cache_Cleared = Cache + SINGLE_SPACE + Cleared
+        static let Confirm_Clear_Cache = Confirm + SINGLE_SPACE + Clear + SINGLE_SPACE + Cache
+
         static let Auto_Edit_Canceled = Auto_Edit + SINGLE_SPACE + Canceled
         static let Auto_Edit_Underway = Auto_Edit + SINGLE_SPACE + Underway
         

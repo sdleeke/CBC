@@ -268,7 +268,11 @@ class MediaList // : Sequence
         if let multiPartName = multiPartName {
             Alerts.shared.alert(title: "All Auto Edits Underway", message: "\(multiPartName)\n(\(purpose.lowercased()))")
         } else {
-            Alerts.shared.alert(title: "All Auto Edits Underway")
+            if list?.count == 1, let mediaItem = list?.first, let title = mediaItem.title {
+                Alerts.shared.alert(title: "All Auto Edits Underway", message: "\(title)\n(\(purpose.lowercased()))")
+            } else {
+                Alerts.shared.alert(title: "All Auto Edits Underway")
+            }
         }
     }
     

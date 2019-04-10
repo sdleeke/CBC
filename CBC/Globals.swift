@@ -49,11 +49,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
         
         queue.sync {
-            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
+            if let index = media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
                 media.all?.tagMediaItems?[sortTag]?.remove(at: index)
             }
             
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+            if media.all?.tagMediaItems?[sortTag]?.count == 0 {
                 _ = media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
             }
             
@@ -101,7 +101,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //                return false
 //            }
 //
-//            guard Globals.shared.reachability.isReachable else {
+//            guard reachability.isReachable else {
 //                return false
 //            }
 //
@@ -112,7 +112,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 ////                return false
 ////            }
 ////
-////            if !Globals.shared.reachability.isReachable {
+////            if !reachability.isReachable {
 ////                return false
 ////            }
 ////
@@ -151,7 +151,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //                return false
 //            }
 //
-//            guard Globals.shared.reachability.isReachable else {
+//            guard reachability.isReachable else {
 //                return false
 //            }
 //
@@ -218,7 +218,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 return false
             }
 
-            guard Globals.shared.reachability.isReachable else {
+            guard reachability.isReachable else {
                 return false
             }
 

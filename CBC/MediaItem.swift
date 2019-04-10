@@ -2150,6 +2150,10 @@ class MediaItem : NSObject
         
         var tags = mediaItemSettings?[Field.tags]?.tagsArray
         
+        guard tags?.contains(tag) == true else {
+            return
+        }
+        
         guard tags?.count > 0 else {
             return
         }
@@ -3792,23 +3796,23 @@ class MediaItem : NSObject
         
         var clearCache:AlertAction!
         
-        clearCache = AlertAction(title: "Clear Cache", style: .default) {
+        clearCache = AlertAction(title: Constants.Strings.Clear_Cache, style: .destructive) {
             var alertActions = [AlertAction]()
             
-            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+            let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                 () -> Void in
                 self.clearCache(block:true)
-                Alerts.shared.alert(title:"Cache Cleared", message: self.text)
+                Alerts.shared.alert(title:Constants.Strings.Cache_Cleared, message: self.text)
             })
             alertActions.append(yesAction)
             
-            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+            let noAction = AlertAction(title: Constants.Strings.No, style: .default, handler: {
                 () -> Void in
                 
             })
             alertActions.append(noAction)
             
-            Alerts.shared.alert(title: "Confirm Clear Cache", message: self.text, actions: alertActions)
+            Alerts.shared.alert(title: Constants.Strings.Confirm_Clear_Cache, message: self.text, actions: alertActions)
         }
         
         if hasAudio, let audioDownload = audioDownload {
@@ -3822,6 +3826,7 @@ class MediaItem : NSObject
                 
             case .downloading:
                 title = Constants.Strings.Cancel_Audio_Download
+                style = UIAlertAction.Style.destructive
                 break
             case .downloaded:
                 title = Constants.Strings.Delete_Audio_Download
