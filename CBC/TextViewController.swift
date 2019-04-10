@@ -34,7 +34,7 @@ extension TextViewController: UISearchBarDelegate
         
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+        let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
@@ -111,7 +111,7 @@ extension TextViewController: UISearchBarDelegate
 
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+        let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
@@ -1384,7 +1384,7 @@ class TextViewController : UIViewController
         
         let attributedText = self.textView.attributedText
         
-        let searchOp = CancellableOperation { (test:(()->Bool)?) in
+        let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = attributedText?.markedBySearch(string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {

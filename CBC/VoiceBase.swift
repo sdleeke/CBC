@@ -414,7 +414,7 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media", query:nil, completion:completion, onError:onError)
     }
     
-    static func delete(mediaID:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
+    static func delete(alert:Bool,mediaID:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         print("VoiceBase.delete")
 
@@ -504,10 +504,20 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
+                if alert {
+                    if let error = error?.localizedDescription {
+                        Alerts.shared.alert(title:"Media NOT Removed From VoiceBase", message:"Error: " + error + "\n\nMedia ID: " + mediaID)
+                    } else {
+                        Alerts.shared.alert(title:"Media NOT Removed From VoiceBase", message:"Media ID: " + mediaID)
+                    }
+                }
                 Thread.onMainThread {
                     onError?(json)
                 }
             } else {
+                if alert {
+                    Alerts.shared.alert(title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
+                }
                 Thread.onMainThread {
                     completion?(json)
                 }
@@ -517,7 +527,7 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    static func bulkDelete()
+    static func bulkDelete(alert:Bool, alertNone:Bool = true)
     {
         print("VoiceBase.bulkDelete")
         // This will only return up to 100
@@ -526,24 +536,35 @@ extension VoiceBase // Class Methods
         get(accept:nil,  path:"media", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let mediaItems = json?["media"] as? [[String:Any]] {
                 if mediaItems.count > 0 {
-                    if mediaItems.count > 1 {
-                        Alerts.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
-                    } else {
-                        Alerts.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                    if alert {
+                        if mediaItems.count > 1 {
+                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
+                        } else {
+                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                        }
                     }
                     
                     for mediaItem in mediaItems {
-                        delete(mediaID:mediaItem["mediaId"] as? String)
+                        delete(alert:false,mediaID:mediaItem["mediaId"] as? String)
                     }
+                    
+                    // Keep going until they are all gone since it only does up to 100 at a time.
+                    bulkDelete(alert:alert,alertNone:false) // alertNone == false => Don't tell when we've stopped.
                 } else {
-                    Alerts.shared.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
+                    if alertNone {
+                        Alerts.shared.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
+                    }
                 }
             } else {
                 // No mediaItems
-                Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                if alertNone {
+                    Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                }
             }
         }, onError:  { (json:[String : Any]?) -> (Void) in
-            Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+            if alertNone {
+                Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+            }
         })
     }
 }
@@ -917,6 +938,8 @@ class VoiceBase
         }
     }
     
+    var totalChanges = 0
+    
     var percentComplete:String?
     {
         didSet {
@@ -1198,6 +1221,11 @@ class VoiceBase
 //            }
 
             if completed {
+                if _transcript == nil {
+                    // In case app was killed during auto editing.
+                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
+                }
+                
                 _transcript = filename?.fileSystemURL?.string16
 
                 if _transcript == nil {
@@ -2184,7 +2212,7 @@ class VoiceBase
 //                            }
                         },
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
-                            self.remove()
+                            self.remove(alert:false)
                             
                             Thread.onMainThread {
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -2320,7 +2348,7 @@ class VoiceBase
         progress(completion: completion, onError: onError)
     }
     
-    func delete(completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
+    func delete(alert:Bool,completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         guard Globals.shared.isVoiceBaseAvailable ?? false else {
             return
@@ -2444,9 +2472,9 @@ class VoiceBase
         })
     }
     
-    func remove()
+    func remove(alert:Bool)
     {
-        delete()
+        delete(alert:alert)
 
         // Must retain purpose and mediaItem.
         
@@ -3068,19 +3096,7 @@ class VoiceBase
                     }
                     
                     alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                        var alertActions = [AlertAction]()
-                        
-                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                            self.autoEdit()
-                        })
-                        alertActions.append(yesAction)
-                        
-                        let noAction = AlertAction(title: Constants.Strings.No, style: .default, handler: {
-                            
-                        })
-                        alertActions.append(noAction)
-                        
-                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
+                        self.confirmAutoEdit()
                     }))
                     
                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
@@ -3134,7 +3150,7 @@ class VoiceBase
                     Alerts.shared.alert(title: "Transcript Not Available",message: message)
                 }
                 
-                self.remove()
+                self.remove(alert:false)
 
                 return
             }
@@ -3188,7 +3204,7 @@ class VoiceBase
                 Alerts.shared.alert(title: "Transcription Failed",message: message)
             }
             
-            self.remove()
+            self.remove(alert:false)
         })
     }
     
@@ -5250,7 +5266,7 @@ class VoiceBase
                         return
                     }
                     
-                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     
@@ -5270,7 +5286,7 @@ class VoiceBase
                         return
                     }
                     
-                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     
@@ -5294,7 +5310,7 @@ class VoiceBase
                         return
                     }
                     
-                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     
@@ -5314,7 +5330,7 @@ class VoiceBase
                         return
                     }
                     
-                    let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     
@@ -5373,7 +5389,7 @@ class VoiceBase
             }
         }
         
-        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
             // Why is completion called here?
             self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
         }
@@ -5518,7 +5534,7 @@ class VoiceBase
             // what about other surrounding characters besides newlines and whitespaces, and periods if following?
             // what about other token delimiters?
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
-                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     text.replaceSubrange(range, with: newText)
                     
                     let before = String(text[..<range.lowerBound])
@@ -5535,11 +5551,13 @@ class VoiceBase
                     return
                 }
                 
-                print("Changes left:",changes.count)
+                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+
+                print("Changes left:",changes.count, percentComplete ?? "", "%")
 
                 operationQueue.addOperation(op)
             } else {
-                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                 }
@@ -5548,12 +5566,14 @@ class VoiceBase
                     return
                 }
                 
-                print("Changes left:",changes.count)
+                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+
+                print("Changes left:",changes.count, percentComplete ?? "", "%")
                 
                 operationQueue.addOperation(op)
             }
         } else {
-            let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+            let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
 //                masterChanges[masterKey]?[key] = nil
 //                if masterChanges[masterKey]?.count == 0 {
 //                    masterChanges[masterKey] = nil
@@ -5566,7 +5586,9 @@ class VoiceBase
                 return
             }
             
-            print("Changes left:",changes.count)
+            percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+
+            print("Changes left:",changes.count, percentComplete ?? "", "%")
             
             operationQueue.addOperation(op)
         }
@@ -5574,15 +5596,155 @@ class VoiceBase
     
     // We need a way to report how long autoEdit takes.
     // We also need a way to report progress on a percentage basis
+
+    func cancelAutoEdit(alert:Bool)
+    {
+//        DispatchQueue.global(qos: .userInteractive).async {
+            self.operationQueue.cancelAllOperations()
+            self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
+            
+            //                            self.operationQueue.waitUntilAllOperationsAreFinished()
+            
+            guard alert else {
+                return
+            }
+            
+            if let text = self.mediaItem?.text {
+                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
+            } else {
+                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
+            }
+//        }
+    }
+    
+    func cancelAutoEdit(confirm:Bool,alert:Bool)
+    {
+//        Alerts.shared.alert(title: Constants.Strings.Canceling_Auto_Edit, message: message)
+//
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            self.operationQueue.cancelAllOperations()
+//            //                            self.operationQueue.waitUntilAllOperationsAreFinished()
+//
+//            if let text = self.mediaItem?.text {
+//                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
+//            } else {
+//                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
+//            }
+//        }
+
+        guard confirm else {
+            cancelAutoEdit(alert:alert)
+            return
+        }
+        
+        var alertActions = [AlertAction]()
+        
+        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+            () -> Void in
+            if let text = self.mediaItem?.text {
+                Alerts.shared.alert(title: Constants.Strings.Canceling_Auto_Edit, message: "\(text) (\(self.transcriptPurpose))")
+            } else {
+                Alerts.shared.alert(title: Constants.Strings.Canceling_Auto_Edit)
+            }
+
+            self.cancelAutoEdit(alert:alert)
+
+//            DispatchQueue.global(qos: .userInteractive).async {
+//                self.operationQueue.cancelAllOperations()
+//                self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
+//
+//                //                            self.operationQueue.waitUntilAllOperationsAreFinished()
+//
+//                if let text = self.mediaItem?.text {
+//                    Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
+//                } else {
+//                    Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
+//                }
+//            }
+        })
+        alertActions.append(yesAction)
+        
+        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+            () -> Void in
+            
+        })
+        alertActions.append(noAction)
+        
+        if let text = self.mediaItem?.text {
+            Alerts.shared.alert(title: Constants.Strings.Confirm_Cancel_Auto_Edit, message: "\(text) (\(self.transcriptPurpose))", actions: alertActions)
+        } else {
+            Alerts.shared.alert(title: Constants.Strings.Confirm_Cancel_Auto_Edit, actions: alertActions)
+        }
+    }
+    
+    func autoEditUnderway()
+    {
+        var message = String()
+        
+        if let text = self.mediaItem?.text {
+            message = "for\n\n\(text)"
+            message += "\n(\(self.transcriptPurpose))"
+            if let percentComplete = self.percentComplete {
+                message += "\n(\(percentComplete)% complete)"
+            }
+            message += "\n\n"
+        }
+        
+        message += "You will be notified when it is complete."
+        
+        var alertActions = [AlertAction]()
+        
+        let cancelAction = AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .destructive, handler: {
+            () -> Void in
+            self.cancelAutoEdit(confirm: true, alert: true)
+        })
+        alertActions.append(cancelAction)
+        
+        let okayAction = AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
+            () -> Void in
+            
+        })
+        alertActions.append(okayAction)
+        
+        Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Underway, message: message, actions: alertActions)
+    }
+    
+    func confirmAutoEdit()
+    {
+        var message = String()
+        
+        if let text = self.mediaItem?.text {
+            message = "for\n\n\(text)"
+            message += "\n(\(self.transcriptPurpose))"
+            message += "\n\n"
+        }
+
+        var alertActions = [AlertAction]()
+        
+        let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+            self.autoEdit()
+        })
+        alertActions.append(yesAction)
+        
+        let noAction = AlertAction(title: Constants.Strings.No, style: .default, handler: {
+            
+        })
+        alertActions.append(noAction)
+        
+        Alerts.shared.alert(title: Constants.Strings.Confirm_Auto_Edit, message: message, actions: alertActions)
+    }
     
     func autoEdit(notify:Bool = true)
     {
         guard self.operationQueue.operationCount == 0 else {
             var message = String()
-            
+        
             if let text = self.mediaItem?.text {
                 message = "for\n\n\(text)"
                 message += "\n(\(self.transcriptPurpose))"
+                if let percentComplete = self.percentComplete {
+                    message += "\n(\(percentComplete)% complete)"
+                }
                 message += "\n\n"
             }
             
@@ -5616,21 +5778,39 @@ class VoiceBase
             return
         }
         
-        var message = String()
-        
-        if let text = self.mediaItem?.text {
-            message = "for\n\n\(text)"
-            message += "\n(\(self.transcriptPurpose))"
-            message += "\n\n"
-        }
-        
-        message += "You will be notified when it is complete."
-        
         if notify {
-            Alerts.shared.alert(title: "Auto Edit Underway", message: message)
+            autoEditUnderway()
+//            var message = String()
+//
+//            if let text = self.mediaItem?.text {
+//                message = "for\n\n\(text)"
+//                message += "\n(\(self.transcriptPurpose))"
+//                if let percentComplete = self.percentComplete {
+//                    message += "\n(\(percentComplete)% complete)"
+//                }
+//                message += "\n\n"
+//            }
+//
+//            message += "You will be notified when it is complete."
+//
+//            var alertActions = [AlertAction]()
+//
+//            alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .destructive, handler: {
+//                self.cancelAutoEdit()
+//            }))
+//
+//            let okayAction = AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
+//                () -> Void in
+//
+//            })
+//            alertActions.append(okayAction)
+//
+//            Alerts.shared.alert(title: "Auto Edit Underway", message: message, actions:alertActions)
         }
         
-        let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+            self?.mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
+
             func textChanges()
             {
                 guard let text = self?.transcript else {
@@ -5663,7 +5843,7 @@ class VoiceBase
                             if let newText = masterChanges[masterKey]?[key] {
                                 // In case we don't want to prefilter the edits (delay now or later)
                                 changes.append((oldText,newText))
-                                print("changes:",changes.count)
+//                                print("changes:",changes.count)
 
 //                                if oldText == oldText.lowercased(), oldText.lowercased() != newText.lowercased() {
 //                                    if text.lowercased().range(of: oldText) != nil {
@@ -5696,12 +5876,14 @@ class VoiceBase
                     return
                 }
                 
+                self?.totalChanges = changes.count
                 print("Total changes:",changes.count)
                 
-                let op = CancellableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
                         Alerts.shared.alert(title:"Auto Edit Completed", message:self?.mediaItem?.text)
                         self?.transcript = string
+                        self?.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
                     })
                 }
                 
@@ -6054,17 +6236,33 @@ class VoiceBase
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, handler: {
                     guard self.operationQueue.operationCount == 0 else {
-                        var message = String()
-                        
-                        if let text = self.mediaItem?.text {
-                            message = "for\n\n\(text)"
-                            message += "\n(\(self.transcriptPurpose))"
-                            message += "\n\n"
-                        }
-                        
-                        message += "You will be notified when it is complete."
-                        
-                        Alerts.shared.alert(title:"Auto Edit Underway",message:message)
+                        self.autoEditUnderway()
+//                        var message = String()
+//
+//                        if let text = self.mediaItem?.text {
+//                            message = "for\n\n\(text)"
+//                            message += "\n(\(self.transcriptPurpose))"
+//                            if let percentComplete = self.percentComplete {
+//                                message += "\n(\(percentComplete)% complete)"
+//                            }
+//                            message += "\n\n"
+//                        }
+//
+//                        message += "You will be notified when it is complete."
+//
+//                        var alertActions = [AlertAction]()
+//
+//                        alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .destructive, handler: {
+//                            self.cancelAutoEdit()
+//                        }))
+//
+//                        let okayAction = AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
+//                            () -> Void in
+//
+//                        })
+//                        alertActions.append(okayAction)
+//
+//                        Alerts.shared.alert(title:Constants.Strings.Auto_Edit_Underway,message:message,actions:alertActions)
                         return
                     }
                     
@@ -6120,39 +6318,54 @@ class VoiceBase
                         print("ERROR")
                     }
                 }))
-                
+
                 if self.operationQueue.operationCount == 0 {
                     alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .destructive, handler: {
-                        var alertActions = [AlertAction]()
-                        
-                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                            () -> Void in
-                            self.autoEdit()
-                        })
-                        alertActions.append(yesAction)
-                        
-                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                            () -> Void in
-                            
-                        })
-                        alertActions.append(noAction)
-                        
-                        Alerts.shared.alert(title: "Confirm " + Constants.Strings.Auto_Edit, message: text + " (\(self.transcriptPurpose))", actions: alertActions)
+                        self.confirmAutoEdit()
                     }))
                 } else {
-                    alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .default, handler: {
-                        let message = "for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it is complete."
-                        
-                        Alerts.shared.alert(title: "Cancelling Auto Edit", message: message)
-
-                        DispatchQueue.global(qos: .userInteractive).async {
-                            self.operationQueue.cancelAllOperations()
-//                            self.operationQueue.waitUntilAllOperationsAreFinished()
-                            
-                            Alerts.shared.alert(title: "Auto Edit Cancelled", message: "\(text) (\(self.transcriptPurpose))")
-                        }
+                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .default, handler: {
+                        self.autoEditUnderway()
                     }))
                 }
+                
+//                if self.operationQueue.operationCount == 0 {
+//                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .destructive, handler: {
+//                        self.confirmAutoEdit()
+////                        var alertActions = [AlertAction]()
+////
+////                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+////                            () -> Void in
+////                            self.autoEdit()
+////                        })
+////                        alertActions.append(yesAction)
+////
+////                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+////                            () -> Void in
+////
+////                        })
+////                        alertActions.append(noAction)
+////
+////                        Alerts.shared.alert(title: Constants.Strings.Confirm_Auto_Edit, message: text + " (\(self.transcriptPurpose))", actions: alertActions)
+//                    }))
+//                } else {
+////                    alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .default, handler: {
+////                        let message = "for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it is complete."
+////
+////                        Alerts.shared.alert(title: "Canceling Auto Edit", message: message)
+////
+////                        DispatchQueue.global(qos: .userInteractive).async {
+////                            self.operationQueue.cancelAllOperations()
+//////                            self.operationQueue.waitUntilAllOperationsAreFinished()
+////
+////                            Alerts.shared.alert(title: "Auto Edit Canceled", message: "\(text) (\(self.transcriptPurpose))")
+////                        }
+////                    }))
+//
+//                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .default, handler: {
+//                        self.autoEditUnderway()
+//                    }))
+//                }
                 
                 alertActions.append(AlertAction(title: "Media ID", style: .default, handler: {
                     let alert = UIAlertController(  title: "VoiceBase Media ID",
@@ -6182,7 +6395,7 @@ class VoiceBase
                                     var actions = [AlertAction]()
                                     
                                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                                        VoiceBase.delete(mediaID: self.mediaID)
+                                        VoiceBase.delete(alert:true,mediaID: self.mediaID)
                                     }))
                                     
                                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:nil))
@@ -6444,7 +6657,7 @@ class VoiceBase
                     viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.remove()
+                                self.remove(alert:true)
                             },
                             yesStyle: .destructive,
                             noAction: nil,

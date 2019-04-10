@@ -378,7 +378,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                     (action : UIAlertAction!) -> Void in
-                    VoiceBase.delete(mediaID: mediaID)
+                    VoiceBase.delete(alert:true,mediaID: mediaID)
                     
                     searchIndex?[key]?.remove(at: indexPath.row)
                     
@@ -605,7 +605,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                         let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                             (action : UIAlertAction) -> Void in
-                            VoiceBase.delete(mediaID: mediaID)
+                            VoiceBase.delete(alert:true,mediaID: mediaID)
 
                             self.stringIndex?[key]?.remove(at: indexPath.row)
 
@@ -1015,15 +1015,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.VoiceBase_Delete_All:
-            Globals.shared.mediaRepository.deleteAllVoiceBaseMedia()
-            break
-            
-        case Constants.Strings.VoiceBase_Bulk_Delete:
             var alertActions = [AlertAction]()
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                 () -> Void in
-                VoiceBase.bulkDelete()
+                Globals.shared.mediaRepository.deleteAllVoiceBaseMedia(alert:false, detailedAlert:false)
             })
             alertActions.append(yesAction)
             
@@ -1033,7 +1029,26 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             alertActions.append(noAction)
             
-            Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media", message: nil, actions: alertActions)
+            Alerts.shared.alert(title: "Confirm Deletion of All VoiceBase Media", message: nil, actions: alertActions)
+            break
+            
+        case Constants.Strings.VoiceBase_Bulk_Delete:
+            bulkDeleteMedia()
+//            var alertActions = [AlertAction]()
+//
+//            let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                () -> Void in
+//                VoiceBase.bulkDelete(alert:true)
+//            })
+//            alertActions.append(yesAction)
+//
+//            let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                () -> Void in
+//
+//            })
+//            alertActions.append(noAction)
+//
+//            Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media", message: nil, actions: alertActions)
             break
             
         case Constants.Strings.VoiceBase_Media:
@@ -1945,7 +1960,7 @@ class MediaTableViewController : UIViewController
                 self.presentingVC = nil
             })
             
-            VoiceBase.bulkDelete()
+            VoiceBase.bulkDelete(alert:true)
         })
         alert.addAction(yesAction)
         
@@ -2647,7 +2662,7 @@ class MediaTableViewController : UIViewController
         
 //        operationQueue.waitUntilAllOperationsAreFinished()
         
-        let operation = CancellableOperation { [weak self] (test:(()->Bool)?) in
+        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
 //        DispatchQueue.global(qos: .).async { [weak self] in
             self?.setupSearchBar()
             self?.setupCategoryButton()

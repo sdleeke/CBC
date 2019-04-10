@@ -320,6 +320,7 @@ class MediaItem : NSObject
         return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
     }()
     
+    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     var cacheSize : Int
     {
         get {
@@ -2035,23 +2036,23 @@ class MediaItem : NSObject
     var tags:String?
     {
         get {
+            var tags:String?
+
+            if let dynamicTags = self.dynamicTags {
+                tags = tags != nil ? (tags! + "|" + dynamicTags) : dynamicTags
+            }
+            
+            if let constantTags = self.constantTags {
+                tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
+            }
+            
             let jsonTags = self[Field.tags]
             
             let savedTags = mediaItemSettings?[Field.tags]
             
-            var tags:String?
-
             tags = tags != nil ? tags! + (jsonTags != nil ? "|" + jsonTags! : "") : jsonTags
             
             tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : savedTags
-            
-            if let dynamicTags = self.dynamicTags {
-                tags = tags != nil ? (tags! + "|" + dynamicTags) : dynamicTags
-            }
-
-            if let constantTags = self.constantTags {
-                tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
-            }
             
             // This coalesces the tags so there are no duplicates
             if let tagsArray = tags?.tagsArray {
@@ -2091,10 +2092,6 @@ class MediaItem : NSObject
             return
         }
         
-        guard Globals.shared.media.all != nil else {
-            return
-        }
-        
         let tags = mediaItemSettings?[Field.tags]?.tagsArray
         
         guard tags?.firstIndex(of: tag) == nil else {
@@ -2114,18 +2111,25 @@ class MediaItem : NSObject
         guard !sortTag.isEmpty else {
             return
         }
-        
-        if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) == nil {
-                Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
-                Globals.shared.media.all?.tagNames?[sortTag] = tag
-            }
-        } else {
-            Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
-            Globals.shared.media.all?.tagNames?[sortTag] = tag
-        }
-        
-        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+
+        Globals.shared.addTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+//        lazy var queue : DispatchQueue = { [weak self] in
+//            return DispatchQueue(label: UUID().uuidString)
+//            }()
+//
+//        queue.sync {
+//            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
+//                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) == nil {
+//                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
+//                    Globals.shared.media.all?.tagNames?[sortTag] = tag
+//                }
+//            } else {
+//                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
+//                Globals.shared.media.all?.tagNames?[sortTag] = tag
+//            }
+//
+//            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+//        }
         
         if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
@@ -2141,10 +2145,6 @@ class MediaItem : NSObject
     func removeTag(_ tag:String)
     {
         guard mediaItemSettings?[Field.tags] != nil else {
-            return
-        }
-        
-        guard Globals.shared.media.all != nil else {
             return
         }
         
@@ -2166,15 +2166,16 @@ class MediaItem : NSObject
             return
         }
         
-        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) {
-            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-        }
-        
-        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-            _ = Globals.shared.media.all?.tagMediaItems?.removeValue(forKey: sortTag)
-        }
-        
-        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+        Globals.shared.removeTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+//        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) {
+//            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
+//        }
+//
+//        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+//            _ = Globals.shared.media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+//        }
+//
+//        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         
         if Globals.shared.media.tags.selected == tag {
             Thread.onMainThread {
@@ -4235,11 +4236,16 @@ class MediaItem : NSObject
         if Globals.shared.allowMGTs {
             actions.append(voiceBase)
         }
-        
-        if cacheSize > 0 {
-            actions.append(clearCache)
-        }
-        
+
+        // Calling cacheSize is VERY expensive.
+        // AND
+        // canEditRow gets called with EACH cell
+        // which calls THIS!
+//        if cacheSize > 0 {
+//            actions.append(clearCache)
+//        }
+        actions.append(clearCache)
+
         return actions.count > 0 ? actions : nil
     }
 }

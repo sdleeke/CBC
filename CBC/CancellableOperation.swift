@@ -1,5 +1,5 @@
 //
-//  CancellableOperation.swift
+//  CancelableOperation.swift
 //  CBC
 //
 //  Created by Steve Leeke on 10/10/18.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-class CancellableOperation : Operation
+class CancelableOperation : Operation
 {
     var block : (((()->Bool)?)->())?
     

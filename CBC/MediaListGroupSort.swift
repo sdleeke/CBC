@@ -12,7 +12,7 @@ import AVKit
 
 //Group//String//Sort
 //[String:[String:[String:[MediaItem]]]]
-typealias MediaGroupSort = ThreadSafeDictionaryOfDictionaries<[String:[MediaItem]]>
+typealias MediaGroupSort = ThreadSafeDictionaryOfDictionariesOfDictionaries<[MediaItem]>
 
 //Group//String//Name
 //[String:[String:String]]
@@ -231,16 +231,16 @@ class MediaListGroupSort
         }
     }
     
-    // Make thread safe?
-    var tagMediaItems:[String:[MediaItem]]?//sortTag:MediaItem
+    // Make thread safe? YES.
+    var tagMediaItems : ThreadSafeDictionary<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem
     {
         didSet {
             
         }
     }
 
-    // Make thread safe?
-    var tagNames:[String:String]?//sortTag:tag
+    // Make thread safe? YES.
+    var tagNames:ThreadSafeDictionary<String>? // [String:String]?//sortTag:tag
     {
         didSet {
             
@@ -293,7 +293,7 @@ class MediaListGroupSort
 //        }
 //    }
     
-    // Make thread safe?
+    // Make thread safe? YES. Done by virtue of it being computed.
     var mediaItemTags:[String]?
     {
         get {
@@ -307,7 +307,7 @@ class MediaListGroupSort
         }
     }
     
-    // Make thread safe?
+    // Make thread safe? YES.
     var mediaItems:[MediaItem]?
     {
         get {
@@ -326,7 +326,7 @@ class MediaListGroupSort
         }
         
         // Make thread safe?
-        var groupedMediaItems = [String:[String:[MediaItem]]]()
+        let groupedMediaItems = ThreadSafeDictionaryOfDictionaries<[MediaItem]>() // [String:[String:[MediaItem]]]()
         
         for mediaItem in mediaList {
             var entries:[(string:String,name:String)]?
@@ -376,49 +376,55 @@ class MediaListGroupSort
                 break
             }
 
-            // Should be done in ThreadSafeDictionary
-            if (groupNames?[grouping] == nil) {
-                groupNames?[grouping] = [String:String]()
-            }
+            // Should be done in ThreadSafeDictionary - it is.
+            // This is not needed because this is a dictionary of a dictionary of strings and it is smart enough to know
+            // it needs a blank dicionary at the intermediate step.
+//            if (groupNames?[grouping] == nil) {
+//                groupNames?[grouping] = [String:String]()
+//            }
             if let entries = entries {
                 for entry in entries {
 //                    groupNames?.set(grouping,entry.string,value:entry.name)
                     
-                    groupNames?[grouping]?[entry.string] = entry.name
+                    groupNames?[grouping,entry.string] = entry.name
                     
-                    if (groupedMediaItems[grouping] == nil) {
-                        groupedMediaItems[grouping] = [String:[MediaItem]]()
-                    }
+//                    if (groupedMediaItems[grouping] == nil) {
+//                        groupedMediaItems[grouping] = [String:[MediaItem]]()
+//                    }
                     
-                    if groupedMediaItems[grouping]?[entry.string] == nil {
-                        groupedMediaItems[grouping]?[entry.string] = [mediaItem]
+                    if groupedMediaItems[grouping,entry.string] == nil {
+                        groupedMediaItems[grouping,entry.string] = [mediaItem]
                     } else {
-                        groupedMediaItems[grouping]?[entry.string]?.append(mediaItem)
+                        groupedMediaItems[grouping,entry.string]?.append(mediaItem)
                     }
                 }
             }
         }
         
-        // Should be done in ThreadSafeDictionary
-        if (groupSort?[grouping] == nil) {
-            groupSort?[grouping] = [String:[String:[MediaItem]]]()
-        }
+        // Should be done in ThreadSafeDictionary - it is.
+        // BUT when the type of the dictionary of dictionaries is also a dictionary and it is addressed at the lowest level, i.e. three keys
+        // it doesn't know to fill in the missing blank dictionaries.
+//        if (groupSort?[grouping] == nil) {
+//            groupSort?[grouping] = [String:[String:[MediaItem]]]()
+//        }
         if let keys = groupedMediaItems[grouping]?.keys {
             for string in keys {
                 // This is a third level of dictionary.  Is there any way to have a generic N-level dict of dicts?
-                if (groupSort?[grouping]?[string] == nil) {
-                    groupSort?[grouping]?[string] = [String:[MediaItem]]()
-                }
+//                if (groupSort?[grouping]?[string] == nil) {
+//                    groupSort?[grouping]?[string] = [String:[MediaItem]]()
+//                }
                 for sort in Constants.sortings {
                     let array = groupedMediaItems[grouping]?[string]?.sortChronologically
                     
+                    // Without the above blank dictionary assignments this would fail.
+                    // ]?[ Not any more
                     switch sort {
                     case SORTING.CHRONOLOGICAL:
-                        groupSort?[grouping]?[string]?[sort] = array
+                        groupSort?[grouping,string,sort] = array
                         break
                         
                     case SORTING.REVERSE_CHRONOLOGICAL:
-                        groupSort?[grouping]?[string]?[sort] = array?.reversed()
+                        groupSort?[grouping,string,sort] = array?.reversed()
                         break
                         
                     default:
@@ -746,8 +752,8 @@ class MediaListGroupSort
         // in the tag menu
         //
         
-        tagMediaItems = [String:[MediaItem]]()
-        tagNames = [String:String]()
+        tagMediaItems = ThreadSafeDictionary<[MediaItem]>() // [String:[MediaItem]]()
+        tagNames = ThreadSafeDictionary<String>() // [String:String]()
 
         mediaItems.forEach { (mediaItem:MediaItem) in
             mediaItem.tagsSet?.forEach({ (tag:String) in

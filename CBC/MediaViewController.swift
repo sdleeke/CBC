@@ -344,13 +344,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title: "Cancelling All Auto Edits for Audio Transcripts", message: message)
+            Alerts.shared.alert(title: "Canceling All Auto Edits for Audio Transcripts", message: message)
 
             // We have to cancel and wait until they are finished to we need to do this in the background.
             DispatchQueue.global(qos: .userInteractive).async {
                 self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
-                        mediaItem.audioTranscript?.operationQueue.cancelAllOperations()
+                        mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
 //                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
@@ -368,13 +368,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title: "Cancelling All Auto Edits for Video Transcripts", message: message)
+            Alerts.shared.alert(title: "Canceling All Auto Edits for Video Transcripts", message: message)
             
             // We have to cancel and wait until they are finished to we need to do this in the background.
             DispatchQueue.global(qos: .userInteractive).async {
                 self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
-                        mediaItem.videoTranscript?.operationQueue.cancelAllOperations()
+                        mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
 //                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang

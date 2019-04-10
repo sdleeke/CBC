@@ -757,7 +757,7 @@ class ThreadSafeDictionaryOfDictionaries<T>
     // Make it thread safe
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: name ?? UUID().uuidString)
-    }()
+        }()
     
     var name : String?
     
@@ -850,8 +850,230 @@ class ThreadSafeDictionaryOfDictionaries<T>
                 if storage[outer] == nil {
                     storage[outer] = [String:T]()
                 }
-
+                
                 storage[outer]?[inner] = newValue
+            }
+        }
+    }
+}
+
+class ThreadSafeDictionaryOfDictionariesOfDictionaries<T>
+{
+    private var storage = [String:[String:[String:T]]]()
+    
+    var count : Int
+    {
+        get {
+            return queue.sync {
+                return storage.count
+            }
+        }
+    }
+    
+    var copy : [String:[String:[String:T]]]?
+    {
+        get {
+            return queue.sync {
+                return storage.count > 0 ? storage : nil
+            }
+        }
+    }
+    
+    var isEmpty : Bool
+    {
+        return queue.sync {
+            return storage.isEmpty
+        }
+    }
+    
+    var values : [[String:[String:T]]]
+    {
+        get {
+            return queue.sync {
+                return Array(storage.values)
+            }
+        }
+    }
+    
+    var keys : [String]
+    {
+        get {
+            return queue.sync {
+                return Array(storage.keys)
+            }
+        }
+    }
+    
+    func clear()
+    {
+        queue.sync {
+            self.storage = [String:[String:[String:T]]]()
+        }
+    }
+    
+    func update(storage:Any?)
+    {
+        queue.sync {
+            guard let storage = storage as? [String:[String:[String:T]]] else {
+                return
+            }
+            
+            self.storage = storage
+        }
+    }
+    
+    // Make it thread safe
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: name ?? UUID().uuidString)
+        }()
+    
+    var name : String?
+    
+    init(name:String? = nil)
+    {
+        self.name = name
+    }
+    
+    func set(_ outer:String?, _ middle:String?, _ inner:String?, value:T?)
+    {
+        queue.sync {
+            guard let outer = outer else {
+                return
+            }
+            
+            guard let middle = middle else {
+                return
+            }
+            
+            guard let inner = inner else {
+                return
+            }
+            
+            if storage[outer] == nil {
+                storage[outer] = [String:[String:T]]()
+            }
+            
+            if storage[outer]?[middle] == nil {
+                storage[outer]?[middle] = [String:T]()
+            }
+            
+            storage[outer]?[middle]?[inner] = value
+        }
+    }
+    
+    func get(_ outer:String?, _ middle:String?, _ inner:String?) -> T?
+    {
+        return queue.sync {
+            guard let outer = outer else {
+                return nil
+            }
+            
+            guard let middle = middle else {
+                return nil
+            }
+
+            guard let inner = inner else {
+                return nil
+            }
+            
+            return storage[outer]?[middle]?[inner]
+        }
+    }
+    
+    subscript(outer:String?) -> [String:[String:T]]?
+    {
+        get {
+            return queue.sync {
+                guard let outer = outer else {
+                    return nil
+                }
+                
+                return storage[outer]
+            }
+        }
+        set {
+            queue.sync {
+                guard let outer = outer else {
+                    return
+                }
+                
+                storage[outer] = newValue
+            }
+        }
+    }
+    
+    subscript(outer:String?,middle:String?) -> [String:T]?
+    {
+        get {
+            return queue.sync {
+                guard let outer = outer else {
+                    return nil
+                }
+                
+                guard let middle = middle else {
+                    return nil
+                }
+                
+                return storage[outer]?[middle]
+            }
+        }
+        set {
+            queue.sync {
+                guard let outer = outer else {
+                    return
+                }
+                
+                guard let middle = middle else {
+                    return
+                }
+                
+                storage[outer]?[middle] = newValue
+            }
+        }
+    }
+    
+    subscript(outer:String?,middle:String?,inner:String?) -> T?
+    {
+        get {
+            return queue.sync {
+                guard let outer = outer else {
+                    return nil
+                }
+                
+                guard let middle = middle else {
+                    return nil
+                }
+                
+                guard let inner = inner else {
+                    return nil
+                }
+                
+                return storage[outer]?[middle]?[inner]
+            }
+        }
+        set {
+            queue.sync {
+                guard let outer = outer else {
+                    return
+                }
+                
+                guard let middle = middle else {
+                    return
+                }
+                
+                guard let inner = inner else {
+                    return
+                }
+                
+                if storage[outer] == nil {
+                    storage[outer] = [String:[String:T]]()
+                }
+                
+                if storage[outer]?[middle] == nil {
+                    storage[outer]?[middle] = [String:T]()
+                }
+                
+                storage[outer]?[middle]?[inner] = newValue
             }
         }
     }

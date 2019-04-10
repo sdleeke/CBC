@@ -9,25 +9,153 @@
 import Foundation
 import UIKit
 
-class MediaList // : Sequence
+class CheckIn
 {
-    func deleteAllVoiceBaseMedia()
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+
+    func reset()
     {
-        list?.forEach({ (mediaItem:MediaItem) in
-            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
-                voiceBase.delete()
-            })
-        })
+        total = 0
+        success = 0
+        failure = 0
     }
     
-    func voiceBaseMedia(completion:(([String:Any]?)->())?,onError:(([String:Any]?)->())?)
+    var total = 0
+    
+    var _success = 0
+    var success : Int
     {
-        list?.forEach({ (mediaItem:MediaItem) in
+        get {
+            return queue.sync {
+                return _success
+            }
+        }
+        set {
+            queue.sync {
+                _success = newValue
+            }
+        }
+    }
+
+    var _failure = 0
+    var failure : Int
+    {
+        get {
+            return queue.sync {
+                return _failure
+            }
+        }
+        set {
+            queue.sync {
+                _failure = newValue
+            }
+        }
+    }
+}
+
+class MediaList // : Sequence
+{
+    lazy var checkIn : CheckIn = {
+        return CheckIn()
+    }()
+    
+    func deleteAllVoiceBaseMedia(alert:Bool,detailedAlert:Bool)
+    {
+        guard let list = list?.filter({ (mediaItem:MediaItem) -> Bool in
+            return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                return transcript.mediaID != nil
+            }).count > 0
+        }) else {
+            Alerts.shared.alert(title: "No VoiceBase Media Were Deleted", message:self.multiPartName)
+            return
+        }
+        
+        checkIn.reset()
+        checkIn.total = list.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.transcripts.values.filter({ (voiceBase:VoiceBase) -> Bool in
+                return voiceBase.mediaID != nil
+            }).count
+        })
+        
+        let monitorOperation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
+            // How do I know all of the deletions were successful?
+            
+            guard let checkIn = self?.checkIn else {
+                return
+            }
+            
+            while ((checkIn.success + checkIn.failure) < checkIn.total) {
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+
+            var preamble = String()
+            
+            if checkIn.success == checkIn.total, checkIn.failure == 0 {
+                preamble = "All "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:self?.multiPartName)
+            }
+            
+            if checkIn.failure == checkIn.total, checkIn.success == 0 {
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:self?.multiPartName)
+                
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Found\n(\(checkIn.failure) of \(checkIn.total))", message:self?.multiPartName)
+            }
+            
+            if checkIn.failure > 0, checkIn.failure < checkIn.total, checkIn.success > 0, checkIn.success < checkIn.total {
+                preamble = "Some "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:self?.multiPartName)
+                
+                preamble = "Several "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Not Found\n(\(checkIn.failure) of \(checkIn.total))", message:self?.multiPartName)
+            }
+        }
+        
+        list.forEach({ (mediaItem:MediaItem) in
             mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
-                voiceBase.details(completion:completion,onError:onError)
+                if voiceBase.mediaID != nil {
+                    let operation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
+                        voiceBase.delete(alert:detailedAlert,
+                                         completion: { [weak self] (json:[String:Any]?) in
+                                            if let success = self?.checkIn.success {
+                                                self?.checkIn.success = success + 1
+                                            }
+                            },
+                                         onError: { [weak self] (json:[String:Any]?) in
+                                            if let failure = self?.checkIn.failure {
+                                                self?.checkIn.failure = failure + 1
+                                            }
+                            }
+                        )
+                    }
+                    
+                    monitorOperation.addDependency(operation)
+                    
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    mediaQueue.addOperation(operation)
+                }
             })
         })
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        mediaQueue.addOperation(monitorOperation)
     }
+    
+//    func voiceBaseMedia(completion:(([String:Any]?)->())?,onError:(([String:Any]?)->())?)
+//    {
+//        list?.forEach({ (mediaItem:MediaItem) in
+//            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
+//                voiceBase.details(completion:completion,onError:onError)
+//            })
+//        })
+//    }
     
     func clearCache(block:Bool)
     {
@@ -36,6 +164,7 @@ class MediaList // : Sequence
         })
     }
     
+    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     var cacheSize : Int?
     {
         get {
@@ -45,6 +174,7 @@ class MediaList // : Sequence
         }
     }
     
+    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     func cacheSize(_ purpose:String) -> Int?
     {
         return list?.reduce(0, { (result, mediaItem) -> Int in
@@ -467,7 +597,7 @@ class MediaList // : Sequence
         return operationQueue
     }()
     
-    func deleteAllDownloads()
+    func deleteAllDownloads(alert:Bool)
     {
         operationQueue.addOperation {
             self.list?.forEach({ (mediaItem) in
@@ -476,6 +606,10 @@ class MediaList // : Sequence
                     download.delete(block:true)
                 })
             })
+            
+            if alert {
+                Alerts.shared.alert(title: "All Downloads Deleted", message: self.multiPartName)
+            }
         }
     }
     
@@ -498,6 +632,8 @@ class MediaList // : Sequence
             
             if self.audioDownloaded == 0 {
                 Alerts.shared.alert(title: "All \(name) Downloads Deleted", message: self.multiPartName)
+            } else {
+                Alerts.shared.alert(title: "Some \(name) Downloads Were Not Deleted", message: self.multiPartName)
             }
         }
     }
@@ -572,7 +708,7 @@ class MediaList // : Sequence
     
     func cancelAllDownloads(purpose:String,name:String)
     {
-        let notifyOperation = CancellableOperation { [weak self] (test:(()->Bool)?) in
+        let notifyOperation = CancelableOperation { [weak self] (test:(()->Bool)?) in
             var message = ""
             
             if let multiPartName = self?.multiPartName {
@@ -581,19 +717,19 @@ class MediaList // : Sequence
             
             message += "You will be notified when it is complete."
             
-            Alerts.shared.alert(title: "Cancelling All \(name) Downloads", message: message)
+            Alerts.shared.alert(title: "Canceling All \(name) Downloads", message: message)
             
             self?.list?.forEach({ (mediaItem) in
                 mediaItem.downloads[purpose]?.cancel()
             })
             
             if self?.downloading(purpose:purpose) == 0 {
-                Alerts.shared.alert(title: "All \(name) Downloads Cancelled", message: self?.multiPartName)
+                Alerts.shared.alert(title: "All \(name) Downloads Canceled", message: self?.multiPartName)
             }
         }
         
         for operation in mediaQueue.operations {
-            guard let operation = operation as? CancellableOperation else {
+            guard let operation = operation as? CancelableOperation else {
                 continue
             }
             
@@ -615,7 +751,7 @@ class MediaList // : Sequence
 //    func cancelAllAudioDownloads()
 //    {
 //        for operation in mediaQueue.operations {
-//            guard let operation = operation as? CancellableOperation else {
+//            guard let operation = operation as? CancelableOperation else {
 //                continue
 //            }
 //
@@ -633,14 +769,14 @@ class MediaList // : Sequence
 //
 //            message += "You will be notified when it is complete."
 //
-//            Alerts.shared.alert(title: "Cancelling All Audio Downloads", message: message)
+//            Alerts.shared.alert(title: "Canceling All Audio Downloads", message: message)
 //
 //            self.list?.forEach({ (mediaItem) in
 //                mediaItem.audioDownload?.cancel()
 //            })
 //
 //            if self.audioDownloading == 0 {
-//                Alerts.shared.alert(title: "All Audio Downloads Cancelled", message: self.multiPartName)
+//                Alerts.shared.alert(title: "All Audio Downloads Canceled", message: self.multiPartName)
 //            }
 //        }
 //    }
@@ -653,7 +789,7 @@ class MediaList // : Sequence
 //    func cancellAllVideoDownloads()
 //    {
 //        for operation in mediaQueue.operations {
-//            guard let operation = operation as? CancellableOperation else {
+//            guard let operation = operation as? CancelableOperation else {
 //                continue
 //            }
 //
@@ -671,14 +807,14 @@ class MediaList // : Sequence
 //
 //            message += "You will be notified when it is complete."
 //
-//            Alerts.shared.alert(title: "Cancelling All Video Downloads", message: message)
+//            Alerts.shared.alert(title: "Canceling All Video Downloads", message: message)
 //
 //            self.list?.forEach({ (mediaItem) in
 //                mediaItem.videoDownload?.cancel()
 //            })
 //
 //            if self.videoDownloading == 0 {
-//                Alerts.shared.alert(title: "All Video Downloads Cancelled", message: self.multiPartName)
+//                Alerts.shared.alert(title: "All Video Downloads Canceled", message: self.multiPartName)
 //            }
 //        }
 //    }
@@ -697,7 +833,7 @@ class MediaList // : Sequence
         
         Alerts.shared.alert(title: "Downloading All \(name)", message: message)
         
-        let monitorOperation = CancellableOperation(tag:purpose) { [weak self] (test:(()->Bool)?) in
+        let monitorOperation = CancelableOperation(tag:purpose) { [weak self] (test:(()->Bool)?) in
             while self?.notesDownloading > 0 {
                 if let test = test, test() {
                     break
@@ -722,7 +858,7 @@ class MediaList // : Sequence
                 continue
             }
             
-            let operation = CancellableOperation(tag:purpose) { [weak self] (test:(()->Bool)?) in
+            let operation = CancelableOperation(tag:purpose) { [weak self] (test:(()->Bool)?) in
                 _ = download?.download(background: true)
                 
                 while download?.state == .downloading {
@@ -754,7 +890,7 @@ class MediaList // : Sequence
 //            return
 //        }
 //
-//        //        let operation = CancellableOperation { [weak self] (test:(()->Bool)?) in
+//        //        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
 //        //            for mediaItem in list {
 //        //                if let test = test, test() {
 //        //                    break
@@ -786,7 +922,7 @@ class MediaList // : Sequence
 //
 //        Alerts.shared.alert(title: "Downloading All Notes", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
 //
-//        let monitorOperation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->Bool)?) in
+//        let monitorOperation = CancelableOperation(tag:Purpose.notes) { [weak self] (test:(()->Bool)?) in
 //            while self?.notesDownloading > 0 {
 //                if let test = test, test() {
 //                    break
@@ -811,7 +947,7 @@ class MediaList // : Sequence
 //                continue
 //            }
 //
-//            let operation = CancellableOperation(tag:Purpose.notes) { [weak self] (test:(()->Bool)?) in
+//            let operation = CancelableOperation(tag:Purpose.notes) { [weak self] (test:(()->Bool)?) in
 //                _ = download?.download(background: true)
 //
 //                while download?.state == .downloading {
@@ -843,7 +979,7 @@ class MediaList // : Sequence
 //            return
 //        }
 //
-//        //        let operation = CancellableOperation { [weak self] (test:(()->Bool)?) in
+//        //        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
 //        //            for mediaItem in list {
 //        //                if let test = test, test() {
 //        //                    break
@@ -875,7 +1011,7 @@ class MediaList // : Sequence
 //
 //        Alerts.shared.alert(title: "Downloading All Slides", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
 //
-//        let monitorOperation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->Bool)?) in
+//        let monitorOperation = CancelableOperation(tag:Purpose.slides) { [weak self] (test:(()->Bool)?) in
 //            while self?.slidesDownloading > 0 {
 //                if let test = test, test() {
 //                    break
@@ -900,7 +1036,7 @@ class MediaList // : Sequence
 //                continue
 //            }
 //
-//            let operation = CancellableOperation(tag:Purpose.slides) { [weak self] (test:(()->Bool)?) in
+//            let operation = CancelableOperation(tag:Purpose.slides) { [weak self] (test:(()->Bool)?) in
 //                _ = download?.download(background: true)
 //
 //                while download?.state == .downloading {
@@ -1002,7 +1138,7 @@ class MediaList // : Sequence
 //
 //        Alerts.shared.alert(title: "Downloading All Audio", message: message)
 //
-//        let monitorOperation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->Bool)?) in
+//        let monitorOperation = CancelableOperation(tag:Purpose.audio) { [weak self] (test:(()->Bool)?) in
 //            while self?.audioDownloading > 0 {
 //                if let test = test, test() {
 //                    break
@@ -1027,7 +1163,7 @@ class MediaList // : Sequence
 //                continue
 //            }
 //
-//            let operation = CancellableOperation(tag:Purpose.audio) { [weak self] (test:(()->Bool)?) in
+//            let operation = CancelableOperation(tag:Purpose.audio) { [weak self] (test:(()->Bool)?) in
 //                _ = download?.download(background: true)
 //
 //                while download?.state == .downloading {
@@ -1061,7 +1197,7 @@ class MediaList // : Sequence
 //
 //        Alerts.shared.alert(title: "Downloading All Video", message: "This may take a considerable amount of time.  You will be notified when it is complete.")
 //
-//        let monitorOperation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->Bool)?) in
+//        let monitorOperation = CancelableOperation(tag:Purpose.video) { [weak self] (test:(()->Bool)?) in
 //            while self?.videoDownloading > 0 {
 //                if let test = test, test() {
 //                    break
@@ -1086,7 +1222,7 @@ class MediaList // : Sequence
 //                continue
 //            }
 //
-//            let operation = CancellableOperation(tag:Purpose.video) { [weak self] (test:(()->Bool)?) in
+//            let operation = CancelableOperation(tag:Purpose.video) { [weak self] (test:(()->Bool)?) in
 //                _ = download?.download(background: true)
 //
 //                while download?.state == .downloading {

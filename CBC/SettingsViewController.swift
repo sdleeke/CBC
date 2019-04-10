@@ -109,6 +109,7 @@ class SettingsViewController: UIViewController
     
     func updateCacheSize(_ sender:UIButton?)
     {
+        // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
         let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
         
         var size:Float = Float(cacheSize ?? 0)

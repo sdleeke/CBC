@@ -245,7 +245,7 @@ class ScriptureIndex
 
 //        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
 //        operationQueue.addOperation {  [weak self] in
-        let op = CancellableOperation { [weak self] (test:(() -> (Bool))?) in
+        let op = CancelableOperation { [weak self] (test:(() -> (Bool))?) in
 //            self?.creating = true
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {

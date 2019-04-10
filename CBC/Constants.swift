@@ -661,8 +661,17 @@ enum Constants {
         static let Transcribe = "Transcribe"
         static let Transcribing = "Transcribing"
         static let Transcription = "Transcription"
+
+        static let Underway = "Underway"
         
+        static let Auto_Edit_Canceled = Auto_Edit + SINGLE_SPACE + Canceled
+        static let Auto_Edit_Underway = Auto_Edit + SINGLE_SPACE + Underway
+        
+        static let Confirm_Auto_Edit = Confirm + SINGLE_SPACE + Auto_Edit
         static let Cancel_Auto_Edit = Cancel + SINGLE_SPACE + Auto_Edit
+        static let Canceling_Auto_Edit = Canceling + SINGLE_SPACE + Auto_Edit
+        static let Confirm_Cancel_Auto_Edit = Confirm + SINGLE_SPACE + Cancel_Auto_Edit
+
         static let Cancel_Transcription = Cancel + SINGLE_SPACE + Transcription
 
         static let Download = "Download"
@@ -731,8 +740,12 @@ enum Constants {
         static let All = "All"
         static let None = "None"
         static let Okay = "OK"
+        static let Confirm = "Confirm"
         static let Cancel = "Cancel"
+        static let Canceled = "Canceled"
+        static let Canceling = "Canceling"
         static let Delete = "Delete"
+        static let Deleting = "Deleting"
         static let About = "About"
         static let Current_Selection = "Current Selection"
         static let Tags = "Tags"

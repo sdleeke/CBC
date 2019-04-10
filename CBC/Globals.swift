@@ -15,6 +15,52 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     static var shared = Globals()
     
+//    lazy var queue : DispatchQueue = { [weak self] in
+//        return DispatchQueue(label: UUID().uuidString)
+//    }()
+    
+    func addTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+    {
+        // Tag added but no point in updating unless...
+        guard media.all != nil else {
+            return
+        }
+        
+        queue.sync {
+            if media.all?.tagMediaItems?[sortTag] != nil {
+                if media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
+                    media.all?.tagMediaItems?[sortTag]?.append(mediaItem)
+                    media.all?.tagNames?[sortTag] = tag
+                }
+            } else {
+                media.all?.tagMediaItems?[sortTag] = [mediaItem]
+                media.all?.tagNames?[sortTag] = tag
+            }
+            
+            media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
+        }
+    }
+    
+    func removeTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+    {
+        // Tag removed but no point in updating unless...
+        guard media.all != nil else {
+            return
+        }
+        
+        queue.sync {
+            if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
+                media.all?.tagMediaItems?[sortTag]?.remove(at: index)
+            }
+            
+            if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
+                _ = media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+            }
+            
+            media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
+        }
+    }
+    
     var rootViewController : UIViewController?
     {
         get {

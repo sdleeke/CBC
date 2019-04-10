@@ -414,7 +414,7 @@ class Lexicon : NSObject
         
         creating = true
         
-        let operation = CancellableOperation { [weak self] (test:(()->Bool)?) in
+        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
             if let test = test, test() {
                 return
             }
