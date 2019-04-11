@@ -218,7 +218,7 @@ class MediaItem : NSObject
             
             var mediaItemParts:[MediaItem]?
             
-            if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+            if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE,multiPartSort,SORTING.CHRONOLOGICAL] == nil) { // ]?[
                 mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                     if testMediaItem.hasMultipleParts {
                         return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
@@ -228,7 +228,7 @@ class MediaItem : NSObject
                 })
             } else {
                 if let multiPartSort = multiPartSort {
-                    mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    mediaItemParts = Globals.shared.media.all?.groupSort?[GROUPING.TITLE,multiPartSort,SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in // ]?[
                         return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
                     })
                 }
@@ -316,8 +316,8 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var documents : ThreadSafeDictionaryOfDictionaries<Document>! = { [weak self] in
-        return ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
+    lazy var documents : ThreadSafeDN<Document>! = { [weak self] in // ictionaryOfDictionaries
+        return ThreadSafeDN<Document>(name:id+"Documents") // ictionaryOfDictionaries
     }()
     
     // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
@@ -531,8 +531,8 @@ class MediaItem : NSObject
         return lhs.id == rhs.id
     }
     
-    var storage : ThreadSafeDictionary<String>? = { // [String:String]?
-        return ThreadSafeDictionary<String>(name: UUID().uuidString) // Can't be id because that becomes recursive.
+    var storage : ThreadSafeDN<String>? = { // [String:String]? // ictionary
+        return ThreadSafeDN<String>(name: UUID().uuidString) // Can't be id because that becomes recursive.
     }()
     
     subscript(key:String?) -> String?
@@ -561,7 +561,7 @@ class MediaItem : NSObject
         // What are the side effects of this?
         seriesImage?.clearImageCache()
         
-        documents = ThreadSafeDictionaryOfDictionaries<Document>(name:id+"Documents")
+        documents = ThreadSafeDN<Document>(name:id+"Documents") // ictionaryOfDictionaries
 
         notesHTML?.cache = nil
         notesTokens?.cache = nil

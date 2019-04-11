@@ -136,6 +136,9 @@ class MediaList // : Sequence
                     
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////
                     // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+                    // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+                    // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+                    // meaning both are blocked because the second, the dataTask, is.
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////
                     mediaQueue.addOperation(operation)
                 }
@@ -144,6 +147,9 @@ class MediaList // : Sequence
         
         /////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+        // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+        // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+        // meaning both are blocked because the second, the dataTask, is.
         /////////////////////////////////////////////////////////////////////////////////////////////////////////
         mediaQueue.addOperation(monitorOperation)
     }
@@ -737,9 +743,8 @@ class MediaList // : Sequence
                 continue
             }
             
-            notifyOperation.addDependency(operation)
-            
             if operation.tag == purpose {
+                notifyOperation.addDependency(operation)
                 operation.cancel()
             }
         }
@@ -1296,7 +1301,7 @@ class MediaList // : Sequence
         }
     }
     
-    var didSet : (()->(Void))?
+    var listDidSet : (()->(Void))?
 
     init(_ list:[MediaItem]? = nil)
     {
@@ -1382,7 +1387,7 @@ class MediaList // : Sequence
             classes.clear()
             events.clear()
             
-            didSet?()
+            listDidSet?()
             
             updateIndex()
             updateCacheSize()
@@ -1390,7 +1395,7 @@ class MediaList // : Sequence
     }
     
     // Make thread safe?
-    var index = ThreadSafeDictionary<MediaItem>() // :[String:MediaItem]? //MediaItems indexed by ID.
+    var index = ThreadSafeDN<MediaItem>() // :[String:MediaItem]? //MediaItems indexed by ID.
     var classes = ThreadSafeArray<String>() // :[String]?
     var events = ThreadSafeArray<String>() // :[String]?
 

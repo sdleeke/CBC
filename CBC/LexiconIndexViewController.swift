@@ -827,7 +827,7 @@ class LexiconIndexViewController : UIViewController
                             
                             self?.wordsTableViewController.sort.sorting = true
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.lexicon?.words?.keys) // self?.wordsTableViewController.section.strings
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
 
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
@@ -867,7 +867,7 @@ class LexiconIndexViewController : UIViewController
                             
                             self?.wordsTableViewController.sort.sorting = true
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys) // self?.wordsTableViewController.section.strings
+                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
                             
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
@@ -1128,8 +1128,8 @@ class LexiconIndexViewController : UIViewController
             }
             
             for key in keys {
-                if  let name = results?.groupNames?[grouping]?[key],
-                    let mediaItems = results?.groupSort?[grouping]?[key]?[sorting] {
+                if  let name = results?.groupNames?[grouping,key], // ]?[
+                    let mediaItems = results?.groupSort?[grouping,key,sorting] { // ]?[
                     var speakerCounts = [String:Int]()
                     
                     for mediaItem in mediaItems {
@@ -1261,8 +1261,8 @@ class LexiconIndexViewController : UIViewController
                                 
                                 if let keys = stringIndex[title] {
                                     for key in keys {
-                                        if let title = results?.groupNames?[grouping]?[key],
-                                            let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
+                                        if let title = results?.groupNames?[grouping,key], // ]?[
+                                            let count = results?.groupSort?[grouping,key,sorting]?.count { // ]?[
                                             let tag = key.asTag
                                             bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                         }
@@ -1277,8 +1277,8 @@ class LexiconIndexViewController : UIViewController
                         
                     default:
                         for key in keys {
-                            if let title = results?.groupNames?[grouping]?[key],
-                                let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
+                            if let title = results?.groupNames?[grouping,key], // ]?[
+                                let count = results?.groupSort?[grouping,key,sorting]?.count { // ]?[
                                 let tag = key.asTag
                                 bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                             }

@@ -24,7 +24,7 @@ class Lexicon : NSObject
     var tokens:[String]?
     {
         get {
-            return words?.keys.sorted()
+            return words?.keys()?.sorted()
         }
     }
     
@@ -278,11 +278,19 @@ class Lexicon : NSObject
                 return nil
             }
             
-            return Array(Set(
-                words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
-                    return Array(mediaItemFrequency.value.keys)
-                }) ?? []
-            ))
+            return words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: Any)) -> [MediaItem] in
+                if let keys = (mediaItemFrequency.value as? [MediaItem:Int])?.keys {
+                    return Set(keys).array
+                } else {
+                    return []
+                }
+            }).set.array
+            
+//            return Array(Set(
+//                words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: )) -> [MediaItem] in
+//                    return Array(mediaItemFrequency.value.keys)
+//                }) ?? []
+//            ))
         }
     }
     
@@ -366,7 +374,7 @@ class Lexicon : NSObject
         get {
             // What happens if build() inserts a new key while this is happening?
             // Nothing words is thread safe
-            return words?.keys.sorted()
+            return words?.keys()?.sorted()
         }
     }
 
@@ -579,7 +587,7 @@ class Lexicon : NSObject
         get {
             var string = String()
             
-            if let keys = words?.keys.sorted(), let values = words?.values {
+            if let keys = words?.keys()?.sorted(), let values = words?.values {
                 var mediaItems = 0
                 
                 var minMediaItems:Int?
@@ -609,7 +617,7 @@ class Lexicon : NSObject
             
             var string = String()
             
-            if let keys = words?.keys.sorted() {
+            if let keys = words?.keys()?.sorted() {
                 for key in keys {
                     string += key + "\n"
                     if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in

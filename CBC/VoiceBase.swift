@@ -946,7 +946,8 @@ class VoiceBase
 
         }
     }
-    
+
+    // Make thread safe?
     var uploadJSON:[String:Any]?
     
     // Prevents a background thread from creating multiple timers accidentally
@@ -1536,6 +1537,7 @@ class VoiceBase
 //        })
 //    }()
     
+    // Make thread safe?
     private var _mediaJSON : [String:Any]?
     {
         didSet {
@@ -1641,6 +1643,7 @@ class VoiceBase
         }
     }
 
+    // Make thread safe?
     var keywordsJSON: [String:Any]?
     {
         get {
@@ -1648,6 +1651,7 @@ class VoiceBase
         }
     }
     
+    // Make thread safe?
     var keywordTimes : [String:[String]]?
     {
         get {
@@ -1669,6 +1673,7 @@ class VoiceBase
         }
     }
     
+    // Make thread safe?
     var keywordDictionaries : [String:[String:Any]]?
     {
         get {
@@ -1690,6 +1695,7 @@ class VoiceBase
         }
     }
     
+    // Make thread safe?
     var keywords : [String]?
     {
         get {
@@ -5553,7 +5559,7 @@ class VoiceBase
                 
                 percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
-                print("Changes left:",changes.count, percentComplete ?? "", "%")
+//                print("Changes left:",changes.count, percentComplete ?? "", "%")
 
                 operationQueue.addOperation(op)
             } else {
@@ -5568,7 +5574,7 @@ class VoiceBase
                 
                 percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
-                print("Changes left:",changes.count, percentComplete ?? "", "%")
+//                print("Changes left:",changes.count, percentComplete ?? "", "%")
                 
                 operationQueue.addOperation(op)
             }
@@ -5588,7 +5594,7 @@ class VoiceBase
             
             percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
-            print("Changes left:",changes.count, percentComplete ?? "", "%")
+//            print("Changes left:",changes.count, percentComplete ?? "", "%")
             
             operationQueue.addOperation(op)
         }

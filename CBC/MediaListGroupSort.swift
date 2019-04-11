@@ -12,13 +12,13 @@ import AVKit
 
 //Group//String//Sort
 //[String:[String:[String:[MediaItem]]]]
-typealias MediaGroupSort = ThreadSafeDictionaryOfDictionariesOfDictionaries<[MediaItem]>
+typealias MediaGroupSort = ThreadSafeDN<[MediaItem]> // ictionaryOfDictionariesOfDictionaries
 
 //Group//String//Name
 //[String:[String:String]]
-typealias MediaGroupNames = ThreadSafeDictionaryOfDictionaries<String>
+typealias MediaGroupNames = ThreadSafeDN<String> // ictionaryOfDictionaries
 
-typealias Words = ThreadSafeDictionary<[MediaItem:Int]>
+typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
 
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
@@ -188,7 +188,7 @@ class MediaListGroupSort
             searches = nil
         } else {
             // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
-            if let keys = searches?.keys {
+            if let keys = searches?.keys() {
                 for key in keys {
                     if key != search.value?.text {
                         searches?[key] = nil
@@ -212,7 +212,7 @@ class MediaListGroupSort
     }()
     
     // Hierarchical means we could search within searches - but not right now.
-    var searches: ThreadSafeDictionary<MediaListGroupSort>? // [String:MediaListGroupSort]?
+    var searches: ThreadSafeDN<MediaListGroupSort>? // [String:MediaListGroupSort]? // ictionary
     
     lazy var scriptureIndex:ScriptureIndex? = { [weak self] in
         return ScriptureIndex(self)
@@ -232,7 +232,7 @@ class MediaListGroupSort
     }
     
     // Make thread safe? YES.
-    var tagMediaItems : ThreadSafeDictionary<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem
+    var tagMediaItems : ThreadSafeDN<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem // ictionary
     {
         didSet {
             
@@ -240,7 +240,7 @@ class MediaListGroupSort
     }
 
     // Make thread safe? YES.
-    var tagNames:ThreadSafeDictionary<String>? // [String:String]?//sortTag:tag
+    var tagNames:ThreadSafeDN<String>? // [String:String]?//sortTag:tag // ictionary
     {
         didSet {
             
@@ -297,7 +297,7 @@ class MediaListGroupSort
     var mediaItemTags:[String]?
     {
         get {
-            return tagMediaItems?.keys.sorted(by: { $0 < $1 }).map({ (string:String) -> String in
+            return tagMediaItems?.keys()?.sorted(by: { $0 < $1 }).map({ (string:String) -> String in
                 if let tagName = self.tagNames?[string] {
                     return tagName
                 } else {
@@ -326,7 +326,7 @@ class MediaListGroupSort
         }
         
         // Make thread safe?
-        let groupedMediaItems = ThreadSafeDictionaryOfDictionaries<[MediaItem]>() // [String:[String:[MediaItem]]]()
+        let groupedMediaItems = ThreadSafeDN<[MediaItem]>() // [String:[String:[MediaItem]]]() // ictionaryOfDictionaries
         
         for mediaItem in mediaList {
             var entries:[(string:String,name:String)]?
@@ -407,14 +407,14 @@ class MediaListGroupSort
 //        if (groupSort?[grouping] == nil) {
 //            groupSort?[grouping] = [String:[String:[MediaItem]]]()
 //        }
-        if let keys = groupedMediaItems[grouping]?.keys {
+        if let keys = groupedMediaItems.keys(grouping) {
             for string in keys {
                 // This is a third level of dictionary.  Is there any way to have a generic N-level dict of dicts?
 //                if (groupSort?[grouping]?[string] == nil) {
 //                    groupSort?[grouping]?[string] = [String:[MediaItem]]()
 //                }
                 for sort in Constants.sortings {
-                    let array = groupedMediaItems[grouping]?[string]?.sortChronologically
+                    let array = groupedMediaItems[grouping,string]?.sortChronologically
                     
                     // Without the above blank dictionary assignments this would fail.
                     // ]?[ Not any more
@@ -452,7 +452,7 @@ class MediaListGroupSort
         }
         
         //        print("\(groupSort)")
-        if let keys = groupSort?[grouping]?.keys.sorted(
+        if let keys = groupSort?.keys(grouping)?.sorted(
                 by: {
                     switch grouping {
                     case GROUPING.YEAR:
@@ -482,7 +482,7 @@ class MediaListGroupSort
                     return $0 < $1
             }) {
             for key in keys {
-                if let mediaItems = groupSort?[grouping]?[key]?[sorting] {
+                if let mediaItems = groupSort?[grouping,key,sorting] { // ]?[
                     if (groupedSortedMediaItems == nil) {
                         groupedSortedMediaItems = mediaItems
                     } else {
@@ -561,7 +561,7 @@ class MediaListGroupSort
             return nil
         }
         
-        return groupSort?[grouping]?.keys.sorted(by: {
+        return groupSort?.keys(grouping)?.sorted(by: {
             switch grouping {
             case GROUPING.YEAR:
                 switch sorting {
@@ -598,7 +598,7 @@ class MediaListGroupSort
         }
         
         return sectionIndexTitles(grouping: grouping,sorting: sorting)?.compactMap({ (string:String) -> String? in
-            return groupNames?[grouping]?[string]
+            return groupNames?[grouping,string] // ]?[
         })
     }
     
@@ -608,7 +608,7 @@ class MediaListGroupSort
             return nil
         }
         
-        return groupSort?[grouping]?.keys.sorted(by: {
+        return groupSort?.keys(grouping)?.sorted(by: {
             switch grouping {
             case GROUPING.YEAR:
                 switch sorting {
@@ -636,7 +636,7 @@ class MediaListGroupSort
             
             return $0 < $1
         }).map({ (string:String) -> Int in
-            if let count = groupSort?[grouping]?[string]?[sorting]?.count {
+            if let count = groupSort?[grouping,string,sorting]?.count { // ]?[
                 return count
             } else {
                 // ERROR
@@ -660,7 +660,7 @@ class MediaListGroupSort
         
         var cumulative = 0
         
-        return groupSort?[grouping]?.keys.sorted(by: {
+        return groupSort?.keys(grouping)?.sorted(by: {
             switch grouping {
             case GROUPING.YEAR:
                 switch sorting {
@@ -690,7 +690,7 @@ class MediaListGroupSort
         }).map({ (string:String) -> Int in
             let prior = cumulative
             
-            if let count = groupSort?[grouping]?[string]?[sorting]?.count {
+            if let count = groupSort?[grouping,string,sorting]?.count { // ]?[
                 cumulative += count
             } else {
                 // ???
@@ -708,7 +708,7 @@ class MediaListGroupSort
         
         mediaList = MediaList(mediaItems)
         
-        mediaList?.didSet = { [weak self] in
+        mediaList?.listDidSet = { [weak self] in
             self?.lexicon?.eligible = nil
             self?.scriptureIndex?.eligible = nil
         }
@@ -752,8 +752,8 @@ class MediaListGroupSort
         // in the tag menu
         //
         
-        tagMediaItems = ThreadSafeDictionary<[MediaItem]>() // [String:[MediaItem]]()
-        tagNames = ThreadSafeDictionary<String>() // [String:String]()
+        tagMediaItems = ThreadSafeDN<[MediaItem]>() // [String:[MediaItem]]() // ictionary
+        tagNames = ThreadSafeDN<String>() // [String:String]() // ictionary
 
         mediaItems.forEach { (mediaItem:MediaItem) in
             mediaItem.tagsSet?.forEach({ (tag:String) in
@@ -848,7 +848,7 @@ class MediaListGroupSort
         if let keys = section?.indexStrings { // Globals.shared.media.active?.
             var count = 0
             for key in keys {
-                if let mediaItems = groupSort?[grouping]?[key]?[sorting] {
+                if let mediaItems = groupSort?[grouping,key,sorting] { // ]?[
                     count += mediaItems.count
                 }
             }
@@ -865,8 +865,8 @@ class MediaListGroupSort
             }
             
             for key in keys {
-                if  let name = groupNames?[grouping]?[key],
-                    let mediaItems = groupSort?[grouping]?[key]?[sorting] {
+                if  let name = groupNames?[grouping,key], // ]?[
+                    let mediaItems = groupSort?[grouping,key,sorting] { // ]?[
                     var speakerCounts = [String:Int]()
                     
                     for mediaItem in mediaItems {
@@ -1017,7 +1017,7 @@ class MediaListGroupSort
                             
                             if let keys = stringIndex[title] {
                                 for key in keys {
-                                    if let title = groupNames?[grouping]?[key] {
+                                    if let title = groupNames?[grouping,key] { // ]?[
                                         let tag = key.asTag
                                         bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
                                     }
@@ -1033,8 +1033,8 @@ class MediaListGroupSort
                     
                 default:
                     for key in keys {
-                        if let title = groupNames?[grouping]?[key],
-                            let count = groupSort?[grouping]?[key]?[sorting]?.count {
+                        if let title = groupNames?[grouping,key], // ]?[
+                            let count = groupSort?[grouping,key,sorting]?.count { // ]?[
                             let tag = key.asTag
                             bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                         }

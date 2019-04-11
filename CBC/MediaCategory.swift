@@ -11,7 +11,7 @@ import Foundation
 class MediaCategory
 {
     // Make thread safe?
-    var dicts = ThreadSafeDictionary<String>() // :[String:String]?
+    var dicts = ThreadSafeDN<String>() // :[String:String]? // ictionary
     
     var filename:String?
     {
@@ -42,11 +42,15 @@ class MediaCategory
 //                return nil
 //            }
 
-            guard dicts.keys.count > 0 else {
+            guard let keys = dicts.keys() else {
                 return nil
             }
             
-            return Array(dicts.keys).sorted()
+            guard keys.count > 0 else {
+                return nil
+            }
+            
+            return Array(keys).sorted()
         }
     }
     
@@ -83,7 +87,7 @@ class MediaCategory
         }
     }
     
-    var settings = ThreadSafeDictionaryOfDictionaries<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]?
+    var settings = ThreadSafeDN<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
     
     var allowSaveSettings = true
     
@@ -128,7 +132,7 @@ class MediaCategory
     {
         get {
             if let selected = selected {
-                return settings[selected]?[key]
+                return settings[selected,key] // ]?[
             } else {
                 return nil
             }

@@ -191,8 +191,8 @@ class FetchImage : Size
 
 class FetchCachedImage : FetchImage
 {
-    private static var cache : ThreadSafeDictionary<UIImage>! = {
-        return ThreadSafeDictionary<UIImage>(name:"FetchImageCache")
+    private static var cache : ThreadSafeDN<UIImage>! = { // ictionary
+        return ThreadSafeDN<UIImage>(name:"FetchImageCache")
     }()
 
     private static var queue : DispatchQueue = {
@@ -246,10 +246,16 @@ class FetchCachedImage : FetchImage
     var cachedImage : UIImage?
     {
         get {
-            return FetchCachedImage.cache[self.imageName]
+            guard let imageName = self.imageName else {
+                return nil
+            }
+            return FetchCachedImage.cache[imageName]
         }
         set {
-            FetchCachedImage.cache[self.imageName] = newValue
+            guard let imageName = self.imageName else {
+                return
+            }
+            FetchCachedImage.cache[imageName] = newValue
         }
     }
 }

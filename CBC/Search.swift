@@ -73,7 +73,7 @@ class Search
         }
         set {
             // Setting to nil can cause a crash.
-            Globals.shared.media.toSearch?.searches = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]()
+            Globals.shared.media.toSearch?.searches = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]() // ictionary
             
             UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
             UserDefaults.standard.synchronize()

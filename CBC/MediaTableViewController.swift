@@ -1209,12 +1209,21 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             self.process(disableEnable: true, hideSubviews: false, work: { () -> (Any?) in
                 self.selectedMediaItem = Globals.shared.selectedMediaItem.master
                 
-                if Globals.shared.mediaCategory.selected != Constants.Strings.All {
-                    Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                        mediaItem.category == Globals.shared.mediaCategory.selected
-                    }))
+                guard let selected = Globals.shared.mediaCategory.selected else {
+                    return nil
+                }
+                
+                if Globals.shared.media.cache[selected] != nil {
+                    Globals.shared.media.all = Globals.shared.media.cache[selected]
                 } else {
-                    Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+                    if selected != Constants.Strings.All {
+                        Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                            mediaItem.category == Globals.shared.mediaCategory.selected
+                        }))
+                    } else {
+                        Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+                    }
+                    Globals.shared.media.cache[selected] = Globals.shared.media.all
                 }
 
                 Globals.shared.media.tagged.clear()
@@ -2930,7 +2939,7 @@ class MediaTableViewController : UIViewController
                     self.setupBarButtons()
                     
                     // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-                    Globals.shared.mediaTeachers = ThreadSafeDictionary<MediaTeacher>()
+                    Globals.shared.mediaTeachers = ThreadSafeDN<MediaTeacher>()
                     Globals.shared.mediaRepository = MediaList()
                     Globals.shared.media = Media()
 
@@ -2943,8 +2952,8 @@ class MediaTableViewController : UIViewController
                         
                     case .direct:
                         self.loadMediaItems()
-                            {
-                                self.loadCompletion()
+                        {
+                            self.loadCompletion()
                         }
                         break
                     }
@@ -3503,7 +3512,7 @@ class MediaTableViewController : UIViewController
         }
         
         if Globals.shared.media.toSearch?.searches == nil {
-            Globals.shared.media.toSearch?.searches = ThreadSafeDictionary<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]()
+            Globals.shared.media.toSearch?.searches = ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]() // ictionary
         }
         
         Globals.shared.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)

@@ -7,7 +7,31 @@
 
 import Foundation
 
-func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func == <T : Equatable>(lhs: [T]?, rhs: [T]?) -> Bool
+{
+    guard let lhs = lhs else {
+        return false
+    }
+    
+    guard let rhs = rhs else {
+        return false
+    }
+    
+    if lhs.count != rhs.count {
+        return false
+    } else {
+        for index in 0..<lhs.count {
+            if rhs[index] != lhs[index] {
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
+func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool
+{
     switch (lhs, rhs) {
     case let (l?, r?):
         return l < r
@@ -18,7 +42,8 @@ func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool
+{
     switch (lhs, rhs) {
     case let (l?, r?):
         return l <= r
@@ -29,7 +54,8 @@ func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool
+{
     switch (lhs, rhs) {
     case let (l?, r?):
         return l >= r
@@ -38,7 +64,8 @@ func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool
+{
     switch (lhs, rhs) {
     case let (l?, r?):
         return l > r
@@ -338,7 +365,7 @@ class Cached<T> {
     var index:(()->String?)?
     
     // Make thread safe?
-    var cache = ThreadSafeDictionary<T>() // [String:T]
+    var cache = ThreadSafeDN<T>() // [String:T] // ictionary
     
     // if index DOES NOT produce the full key
     subscript(key:String?) -> T?
@@ -689,6 +716,243 @@ class ThreadSafeDictionary<T>
     }
 }
 
+//extension Dictionary
+//{
+//    func search(key:String, in dict:[String:Any] = [:]) -> Any?
+//    {
+//        guard var currDict = self as? [String : Any]  else {
+//            return nil
+//        }
+//
+//        currDict = !dict.isEmpty ? dict : currDict
+//
+//        if let foundValue = currDict[key] {
+//            return foundValue
+//        } else {
+//            for val in currDict.values {
+//                if let innerDict = val as? [String:Any], let result = search(key: key, in: innerDict) {
+//                    return result
+//                }
+//            }
+//            return nil
+//        }
+//    }
+//}
+
+class ThreadSafeDN<T>
+{
+    // Make it thread safe
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: name ?? UUID().uuidString)
+    }()
+    
+    private var storage = [String:Any]()
+    
+//    var levels = 0
+    
+    var name : String?
+    
+    init(name:String? = nil) // ,levels:Int
+    {
+        self.name = name
+//        self.levels = levels
+    }
+
+    var values : [T]?
+    {
+        get {
+            return queue.sync {
+                if let storage = (storage as? [String:T]) {
+                    return Array(storage.values)
+                } else {
+                    return nil
+                }
+            }
+        }
+    }
+
+    var count : Int
+    {
+        get {
+            return queue.sync {
+                return storage.count
+            }
+        }
+    }
+    
+    var copy : [String:Any]?
+    {
+        get {
+            return queue.sync {
+                return storage.count > 0 ? storage : nil
+            }
+        }
+    }
+    
+    func clear()
+    {
+        queue.sync {
+            self.storage = [String:Any]()
+        }
+    }
+
+    func update(storage:[String:Any]?)
+    {
+        queue.sync {
+            guard let storage = storage else {
+                return
+            }
+            
+            self.storage = storage
+        }
+    }
+    
+    func keys(_ keys:String...) -> [String]?
+    {
+        // keys.count is the number of levels deep in the hierarchy of dictionaries we are to go
+        // the array.last is key to the dictionary before last, it returns the last from which
+        // keys are produced.
+        
+        // Doesn't work, will always return nil because self[] always returns T? which in this case is nil.
+//        return (self[keys.joined(separator: ",")] as? [String:Any])?.keys
+        
+        // This differs from the subscript algorithm in the return before return nil
+        return queue.sync {
+            guard keys.count > 0 else {
+                return Array(storage.keys)
+            }
+            
+            // start with a copy of storage
+            var dict:[String:Any]? = storage
+
+            for index in keys.indices {
+                // go through all of the levels but the last
+                guard index < keys.indices.last else {
+                    break
+                }
+                // keep going deeper into the nested dictionaries
+                dict = dict?[keys[index]] as? [String:Any]
+            }
+
+            if let index = keys.indices.last, let keys = (dict?[keys[index]] as? [String:Any])?.keys {
+                // we've reached the last index, the value of which in the current dictionary (one before last)
+                // is the last dictionary (of N hierarchical levels deep) from which we return the keys.
+                return Array(keys)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    subscript(keys:String...) -> T?
+    {
+        get {
+            guard keys.count > 0 else {
+                return nil
+            }
+            
+            // keys.count is the number of levels deep in the hierarchy of dictionaries we are to go
+            // the array.last is key to the last dictionary, it returns the value which is cast to T and returned
+
+            // This differs from the keys algorithm in the return before return nil
+            return queue.sync {
+                // start with a copy of storage
+                var dict:[String:Any]? = storage
+                
+                for index in keys.indices {
+                    // go through all of the levels but the last
+                    guard index < keys.indices.last else {
+                        break
+                    }
+                    
+                    // keep going deeper into the nested dictionaries
+                    dict = dict?[keys[index]] as? [String:Any]
+                }
+                
+                if let index = keys.indices.last {
+                    // we've reached the last index, the value of which in the current dictionary (the last)
+                    // is the value we return as? T
+                    return dict?[keys[index]] as? T
+                } else {
+                    return nil
+                }
+            }
+        }
+        set {
+            guard keys.count > 0 else {
+                return
+            }
+            
+//            print(keys)
+            queue.sync {
+                // start with a copy of storage
+                var dict:[String:Any]? = storage
+                
+                // keey an array of all the dictionaries we traverse
+                // since everytime we touch a new level we make a copy
+                // since dictionaries are value, not reference, objects
+                // in order to copy them back after we finally set the value
+                var dicts = [[String:Any]]()
+
+                // Go through the levels
+                for index in 0..<keys.count {
+                    // Except the last since that's the dictionary in which we have to set the value
+                    guard index < (keys.count - 1) else {
+                        break
+                    }
+                    
+                    guard dict != nil else {
+                        // If this ever happens something is very wrong.
+                        break
+                    }
+                    
+                    // keep a copy of each dict we touch
+                    dicts.append(dict!)
+                    
+                    // If this level's value is nil, set a blank dictionary in its place
+                    // as we'll need that in the next level, i.e. be self-assembling
+                    if dict?[keys[index]] == nil {
+                        dict?[keys[index]] = [String:Any]()
+                    }
+
+                    // keep going deeper into the nested dictionaries
+                    dict = dict?[keys[index]] as? [String:Any]
+                }
+
+                // Don't append the last dict since we have it in hand (i.e. the var dict)
+//                dicts.append(dict!)
+
+                // Set the new value at the deepest level, which is assumed to be the leaf level
+                // i.e. no dictionaries as values at this level
+                if let index = keys.indices.last {
+//                    print(keys[index])
+                    dict?[keys[index]] = newValue
+                }
+
+                // Now we have to reconstruct the hierarchy
+                // Start with the deepest level
+                var newDict:[String:Any]? = dict
+                
+                // got through the other levels in the hierarchy
+                for index in 0..<(keys.count - 1) {
+                    // In reverse order, of course
+                    let maxIndex = keys.count - 2 // since keys.count - 1 is one more than we'll ever go.
+                    let index = maxIndex - index
+                    
+                    dicts[index][keys[index]] = newDict
+                    
+                    // Move to the next level higher up
+                    newDict = dicts[index]
+                }
+
+                // Reset storage to the modified dict hierarchy
+//                print(newDict!)
+                storage = newDict!
+            }
+        }
+    }
+}
+
 class ThreadSafeDictionaryOfDictionaries<T>
 {
     private var storage = [String:[String:T]]()
@@ -757,7 +1021,7 @@ class ThreadSafeDictionaryOfDictionaries<T>
     // Make it thread safe
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: name ?? UUID().uuidString)
-        }()
+    }()
     
     var name : String?
     

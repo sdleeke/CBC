@@ -688,9 +688,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     
-    var multiPartSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]?
+    var multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
 
-    var mediaItemSettings = ThreadSafeDictionaryOfDictionaries<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]?
+    var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
 
     // Make thread safe?
     var history = ThreadSafeArray<String>() // :[String]?
@@ -772,7 +772,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         defaults.synchronize()
     }
 
-    var mediaTeachers = ThreadSafeDictionary<MediaTeacher>() // [String:String]?
+    var mediaTeachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
     
     var mediaRepository = MediaList()
 

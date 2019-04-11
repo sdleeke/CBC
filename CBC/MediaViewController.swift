@@ -1104,7 +1104,7 @@ class MediaViewController: UIViewController
     
     var sliderTimer:Timer?
 
-    var documents : ThreadSafeDictionaryOfDictionaries<Document>!
+    var documents : ThreadSafeDN<Document>! // ictionaryOfDictionaries
     {
         get {
             return selectedMediaItem?.documents
@@ -1444,8 +1444,25 @@ class MediaViewController: UIViewController
             webQueue.cancelAllOperations()
 
             // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
-            // Is that what we want? No, not unless the value of selectedMediaItem should really change
-            mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
+            // Is that what we want? No, not unless the value of multiPartMediaItems should really change
+            if selectedMediaItem?.multiPartMediaItems != mediaItems?.list {
+                mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
+            }
+            
+//            if selectedMediaItem?.multiPartMediaItems?.count != mediaItems?.list?.count {
+//                mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
+//            } else {
+//                if let mediaItems = mediaItems?.list, let multiPartMediaItems = selectedMediaItem?.multiPartMediaItems {
+//                    for index in 0..<mediaItems.count {
+//                        if mediaItems[index].id != multiPartMediaItems[index].id {
+//                            self.mediaItems = MediaList(multiPartMediaItems)
+//                            break
+//                        }
+//                    }
+//                } else {
+//                    mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
+//                }
+//            }
             
             if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
                 if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {

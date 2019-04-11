@@ -22,17 +22,22 @@ class Media
     
     var need = MediaNeed()
     
+    // Globals.shared.mediaCategory.selected as the key
+    // That way work can be saved when a category is changed.
+    var cache = ThreadSafeDN<MediaListGroupSort>()
+    
     //All mediaItems
     var all:MediaListGroupSort?
     {
         didSet {
-            all?.lexicon?.eligible = nil
-            all?.scriptureIndex?.eligible = nil
+            // WHY?
+//            all?.lexicon?.eligible = nil
+//            all?.scriptureIndex?.eligible = nil
         }
     }
     
     //The mediaItems with the selected tags, although now we only support one tag being selected
-    var tagged = ThreadSafeDictionary<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]()
+    var tagged = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]() // ictionary
     
     var tags = Tags()
     

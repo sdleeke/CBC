@@ -88,6 +88,7 @@ class ScriptureIndex
         }
     }
     
+    // Make thread safe?
     var sorted = [String:Bool]()
     
     // Make thread safe?

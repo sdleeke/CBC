@@ -4486,6 +4486,7 @@ extension String
         return tokenCounts.count > 0 ? tokenCounts : nil
     }
     
+    // Make thread safe?
     var tokensAndCounts : [String:Int]?
     {
         guard !Globals.shared.isRefreshing else {
@@ -4971,6 +4972,7 @@ extension String
 //        }
 //    }
 
+    // Make thread safe?
     var nsTaggerTokensAndCounts : [String:Int]?
     {
         //        guard let string = string else {
@@ -5270,7 +5272,8 @@ extension String
         }
         
         let lexicalTypes = Array(types).sorted()
-        
+
+        // Make thread safe?
         var lexicalTypeColors = [String:String]()
         
         var count = 0
