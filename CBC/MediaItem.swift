@@ -320,7 +320,6 @@ class MediaItem : NSObject
         return ThreadSafeDN<Document>(name:id+"Documents") // ictionaryOfDictionaries
     }()
     
-    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     var cacheSize : Int
     {
         get {
@@ -332,6 +331,7 @@ class MediaItem : NSObject
             return autoreleasepool {
                 var totalCacheSize = 0
                 
+                // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
                 cachesURL.files(startingWith:id,notOfType:Constants.FILENAME_EXTENSION.MP3)?.forEach({ (string:String) in
                     var fileURL = cachesURL
                     fileURL.appendPathComponent(string)
@@ -532,7 +532,7 @@ class MediaItem : NSObject
     }
     
     var storage : ThreadSafeDN<String>? = { // [String:String]? // ictionary
-        return ThreadSafeDN<String>(name: UUID().uuidString) // Can't be id because that becomes recursive.
+        return ThreadSafeDN<String>() // Can't be id because that becomes recursive.
     }()
     
     subscript(key:String?) -> String?
@@ -552,7 +552,7 @@ class MediaItem : NSObject
         }
     }
     
-    var booksChaptersVerses:BooksChaptersVerses?
+//    var booksChaptersVerses:BooksChaptersVerses?
     
     var singleLoaded = false
 
@@ -566,7 +566,7 @@ class MediaItem : NSObject
         notesHTML?.cache = nil
         notesTokens?.cache = nil
         
-        booksChaptersVerses = nil
+//        booksChaptersVerses = nil
     }
     
     init(storage:[String:String]?)
@@ -759,7 +759,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books {
+        if let books = scripture?.books {
             array.append(contentsOf: books)
         }
         
@@ -792,7 +792,7 @@ class MediaItem : NSObject
             }
         }
         
-        if let books = books {
+        if let books = scripture?.books {
             set = set.union(Set(books))
         }
         
@@ -2837,7 +2837,7 @@ class MediaItem : NSObject
     var bookSections:[String]
     {
         get {
-            if let books = books {
+            if let books = scripture?.books {
                 return books
             }
             
@@ -2849,247 +2849,247 @@ class MediaItem : NSObject
         }
     }
     
-    func verses(book:String,chapter:Int) -> [Int]
-    {
-        var versesForChapter = [Int]()
-        
-        if let bacv = booksAndChaptersAndVerses(), let verses = bacv[book]?[chapter] {
-            versesForChapter = verses
-        }
-        
-        return versesForChapter
-    }
-    
-    func chaptersAndVerses(book:String) -> [Int:[Int]]
-    {
-        var chaptersAndVerses = [Int:[Int]]()
-        
-        if let bacv = booksAndChaptersAndVerses(), let cav = bacv[book] {
-            chaptersAndVerses = cav
-        }
-        
-        return chaptersAndVerses
-    }
-    
-    func booksAndChaptersAndVerses() -> BooksChaptersVerses?
-    {
-        // PUT THIS BACK LATER
-        if self.booksChaptersVerses != nil {
-            return self.booksChaptersVerses
-        }
-        
-        guard (scripture != nil) else {
-            return nil
-        }
-        
-        guard let scriptureReference = scriptureReference else {
-            return nil
-        }
-        
-        guard let books = books else { // booksFromScriptureReference(scriptureReference)
-            return nil
-        }
-        
-        let booksAndChaptersAndVerses = BooksChaptersVerses()
-        
-//        let separator = ";"
-//        let scriptures = scriptureReference.components(separatedBy: separator)
-
-        var ranges = [Range<String.Index>]()
-        var scriptures = [String]()
-        
-        for book in books {
-            if let range = scriptureReference.range(book) {
-                ranges.append(range)
-            }
-//            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
-//                ranges.append(range)
-//            } else {
-//                var bk = book
+//    func verses(book:String,chapter:Int) -> [Int]
+//    {
+//        var versesForChapter = [Int]()
 //
-//                repeat {
-//                    if let range = scriptureReference.range(of: bk.lowercased()) {
-//                        ranges.append(range)
-//                        break
-//                    } else {
-//                        bk.removeLast()
-//                        if bk.last == " " {
-//                            break
-//                        }
-//                    }
-//                } while bk.count > 2
-//            }
-        }
-        
-        if books.count == ranges.count {
-            var lastRange : Range<String.Index>?
-            
-            for range in ranges {
-                if let lastRange = lastRange {
-                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
-                }
-                
-                lastRange = range
-            }
-            
-            if let lastRange = lastRange {
-                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
-            }
-        } else {
-            // BUMMER
-        }
-
-//        var scriptures = [String]()
-//
-//        var string = scriptureReference
-//
-//        while let range = string.range(of: separator) {
-//            scriptures.append(String(string[..<range.lowerBound]))
-//            string = String(string[range.upperBound...])
+//        if let bacv = scriptureReference?.booksAndChaptersAndVerses, let verses = bacv[book]?[chapter] {
+//            versesForChapter = verses
 //        }
 //
-//        scriptures.append(string)
-
-//        var lastBook:String?
-        
-        for scripture in scriptures {
-//            var book = booksFromScriptureReference(scripture)?.first
+//        return versesForChapter
+//    }
 //
-//            if book == nil {
-//                book = lastBook
-//            } else {
-//                lastBook = book
+//    func chaptersAndVerses(book:String) -> [Int:[Int]]
+//    {
+//        var chaptersAndVerses = [Int:[Int]]()
+//
+//        if let bacv = scriptureReference?.booksAndChaptersAndVerses, let cav = bacv[book] {
+//            chaptersAndVerses = cav
+//        }
+//
+//        return chaptersAndVerses
+//    }
+    
+//    func booksAndChaptersAndVerses() -> BooksChaptersVerses?
+//    {
+//        // PUT THIS BACK LATER
+//        if self.booksChaptersVerses != nil {
+//            return self.booksChaptersVerses
+//        }
+//
+//        guard (scripture != nil) else {
+//            return nil
+//        }
+//
+//        guard let scriptureReference = scriptureReference else {
+//            return nil
+//        }
+//
+//        guard let books = books else { // booksFromScriptureReference(scriptureReference)
+//            return nil
+//        }
+//
+//        let booksAndChaptersAndVerses = BooksChaptersVerses()
+//
+////        let separator = ";"
+////        let scriptures = scriptureReference.components(separatedBy: separator)
+//
+//        var ranges = [Range<String.Index>]()
+//        var scriptures = [String]()
+//
+//        for book in books {
+//            if let range = scriptureReference.range(book) {
+//                ranges.append(range)
 //            }
-            
-            if let book = scripture.books?.first {
-                var reference : String?
-
-                if let range = scripture.range(book) {
-                    reference = String(scripture[range.upperBound...])
-                }
-
-//                var bk = book
+////            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
+////                ranges.append(range)
+////            } else {
+////                var bk = book
+////
+////                repeat {
+////                    if let range = scriptureReference.range(of: bk.lowercased()) {
+////                        ranges.append(range)
+////                        break
+////                    } else {
+////                        bk.removeLast()
+////                        if bk.last == " " {
+////                            break
+////                        }
+////                    }
+////                } while bk.count > 2
+////            }
+//        }
 //
-//                repeat {
-//                    if let range = scripture.lowercased().range(of: bk.lowercased()) {
-//                        reference = String(scripture[range.upperBound...])
-//                        break
-//                    } else {
-//                        bk.removeLast()
-//                        if bk.last == " " {
-//                            break
+//        if books.count == ranges.count {
+//            var lastRange : Range<String.Index>?
+//
+//            for range in ranges {
+//                if let lastRange = lastRange {
+//                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
+//                }
+//
+//                lastRange = range
+//            }
+//
+//            if let lastRange = lastRange {
+//                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
+//            }
+//        } else {
+//            // BUMMER
+//        }
+//
+////        var scriptures = [String]()
+////
+////        var string = scriptureReference
+////
+////        while let range = string.range(of: separator) {
+////            scriptures.append(String(string[..<range.lowerBound]))
+////            string = String(string[range.upperBound...])
+////        }
+////
+////        scriptures.append(string)
+//
+////        var lastBook:String?
+//
+//        for scripture in scriptures {
+////            var book = booksFromScriptureReference(scripture)?.first
+////
+////            if book == nil {
+////                book = lastBook
+////            } else {
+////                lastBook = book
+////            }
+//
+//            if let book = scripture.books?.first {
+//                var reference : String?
+//
+//                if let range = scripture.range(book) {
+//                    reference = String(scripture[range.upperBound...])
+//                }
+//
+////                var bk = book
+////
+////                repeat {
+////                    if let range = scripture.lowercased().range(of: bk.lowercased()) {
+////                        reference = String(scripture[range.upperBound...])
+////                        break
+////                    } else {
+////                        bk.removeLast()
+////                        if bk.last == " " {
+////                            break
+////                        }
+////                    }
+////                } while bk.count > 2
+//
+//                // What if a reference includes the book more than once?
+//                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
+//
+//                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+//                    for chapter in chapters {
+//                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+//                            print(description,book,chapter)
 //                        }
 //                    }
-//                } while bk.count > 2
-                
-                // What if a reference includes the book more than once?
-                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
-                
-                if let chapters = booksAndChaptersAndVerses[book]?.keys {
-                    for chapter in chapters {
-                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
-                            print(description,book,chapter)
-                        }
-                    }
-                }
-            }
-        }
-        
-        self.booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
-        
-        return self.booksChaptersVerses
-    }
-    
-    func chapters(_ thisBook:String) -> [Int]?
-    {
-        guard let scriptureReference = scriptureReference else {
-            return nil
-        }
-        
-        guard !Constants.NO_CHAPTER_BOOKS.contains(thisBook) else {
-            return [1]
-        }
-        
-        var chaptersForBook:[Int]?
-        
-        guard let books = scriptureReference.books else {
-            return nil
-        }
-
-        switch books.count {
-        case 0:
-            break
-            
-        case 1:
-            if thisBook == books.first {
-                if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
-                    chaptersForBook = [1]
-                } else {
-                    var string = scriptureReference
-                    
-                    if (string.range(of: ";") == nil) {
-                        if let range = scriptureReference.range(of: thisBook) {
-                            chaptersForBook = String(string[range.upperBound...]).chapters
-                        } else {
-                            // ???
-                        }
-                    } else {
-                        while let range = string.range(of: ";") {
-                            var subString = String(string[..<range.lowerBound])
-                            
-                            if let range = subString.range(of: thisBook) {
-                                subString = String(subString[range.upperBound...])
-                            }
-                            if let chapters = subString.chapters {
-                                chaptersForBook?.append(contentsOf: chapters)
-                            }
-                            
-                            string = String(string[range.upperBound...])
-                        }
-                        
-                        if let range = string.range(of: thisBook) {
-                            string = String(string[range.upperBound...])
-                        }
-                        if let chapters = string.chapters {
-                            chaptersForBook?.append(contentsOf: chapters)
-                        }
-                    }
-                }
-            } else {
-                // THIS SHOULD NOT HAPPEN
-            }
-            break
-            
-        default:
-            var scriptures = [String]()
-            
-            var string = scriptureReference
-            
-            let separator = ";"
-            
-            while let range = string.range(of: separator) {
-                scriptures.append(String(string[..<range.lowerBound]))
-                string = String(string[range.upperBound...])
-            }
-            
-            scriptures.append(string)
-            
-            for scripture in scriptures {
-                if let range = scripture.range(of: thisBook) {
-                    if let chapters = String(scripture[range.upperBound...]).chapters {
-                        if chaptersForBook == nil {
-                            chaptersForBook = chapters
-                        } else {
-                            chaptersForBook?.append(contentsOf: chapters)
-                        }
-                    }
-                }
-            }
-            break
-        }
-        
-        return chaptersForBook
-    }
+//                }
+//            }
+//        }
+//
+//        self.booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+//
+//        return self.booksChaptersVerses
+//    }
+//
+//    func chapters(_ thisBook:String) -> [Int]?
+//    {
+//        guard let scriptureReference = scriptureReference else {
+//            return nil
+//        }
+//
+//        guard !Constants.NO_CHAPTER_BOOKS.contains(thisBook) else {
+//            return [1]
+//        }
+//
+//        var chaptersForBook:[Int]?
+//
+//        guard let books = scriptureReference.books else {
+//            return nil
+//        }
+//
+//        switch books.count {
+//        case 0:
+//            break
+//
+//        case 1:
+//            if thisBook == books.first {
+//                if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
+//                    chaptersForBook = [1]
+//                } else {
+//                    var string = scriptureReference
+//
+//                    if (string.range(of: ";") == nil) {
+//                        if let range = scriptureReference.range(of: thisBook) {
+//                            chaptersForBook = String(string[range.upperBound...]).chapters
+//                        } else {
+//                            // ???
+//                        }
+//                    } else {
+//                        while let range = string.range(of: ";") {
+//                            var subString = String(string[..<range.lowerBound])
+//
+//                            if let range = subString.range(of: thisBook) {
+//                                subString = String(subString[range.upperBound...])
+//                            }
+//                            if let chapters = subString.chapters {
+//                                chaptersForBook?.append(contentsOf: chapters)
+//                            }
+//
+//                            string = String(string[range.upperBound...])
+//                        }
+//
+//                        if let range = string.range(of: thisBook) {
+//                            string = String(string[range.upperBound...])
+//                        }
+//                        if let chapters = string.chapters {
+//                            chaptersForBook?.append(contentsOf: chapters)
+//                        }
+//                    }
+//                }
+//            } else {
+//                // THIS SHOULD NOT HAPPEN
+//            }
+//            break
+//
+//        default:
+//            var scriptures = [String]()
+//
+//            var string = scriptureReference
+//
+//            let separator = ";"
+//
+//            while let range = string.range(of: separator) {
+//                scriptures.append(String(string[..<range.lowerBound]))
+//                string = String(string[range.upperBound...])
+//            }
+//
+//            scriptures.append(string)
+//
+//            for scripture in scriptures {
+//                if let range = scripture.range(of: thisBook) {
+//                    if let chapters = String(scripture[range.upperBound...]).chapters {
+//                        if chaptersForBook == nil {
+//                            chaptersForBook = chapters
+//                        } else {
+//                            chaptersForBook?.append(contentsOf: chapters)
+//                        }
+//                    }
+//                }
+//            }
+//            break
+//        }
+//
+//        return chaptersForBook
+//    }
 
 //    lazy var books:Shadowed<[String]> = { [weak self] in
 //        return Shadowed<[String]>(get: { () -> ([String]?) in
@@ -3098,27 +3098,27 @@ class MediaItem : NSObject
 //    }()
     
     // Replace with Shadow?
-    private var _books:[String]?
-    {
-        didSet {
-            
-        }
-    }
-    var books:[String]?
-    {
-        get {
-            guard _books == nil else {
-                return _books
-            }
-            
-            _books = scriptureReference?.books
-            
-            return _books
-        }
-        set {
-            _books = newValue
-        }
-    }
+//    private var _books:[String]?
+//    {
+//        didSet {
+//            
+//        }
+//    }
+//    var books:[String]?
+//    {
+//        get {
+//            guard _books == nil else {
+//                return _books
+//            }
+//            
+//            _books = scripture?.books
+//            
+//            return _books
+//        }
+//        set {
+//            _books = newValue
+//        }
+//    }
     
     var fullDate:Date?
     {
@@ -3564,7 +3564,7 @@ class MediaItem : NSObject
     var hasBook:Bool
     {
         get {
-            return (self.books != nil)
+            return (self.scripture?.books != nil)
         }
     }
     
@@ -4046,15 +4046,15 @@ class MediaItem : NSObject
                     
                     popover.segments = true
                     
-                    popover.sort.function = sort
-                    popover.sort.method = Constants.Sort.Alphabetical
+                    popover.section.function = sort
+                    popover.section.method = Constants.Sort.Alphabetical
                     
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        let strings = popover.sort.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            popover.sort.method = Constants.Sort.Alphabetical
+                            popover.section.method = Constants.Sort.Alphabetical
                             popover.section.strings = strings
                             popover.section.showIndex = true
                             popover.tableView?.reloadData()
@@ -4062,9 +4062,9 @@ class MediaItem : NSObject
                     }))
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        let strings = popover.sort.function?(Constants.Sort.Frequency,popover.section.strings)
+                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            popover.sort.method = Constants.Sort.Frequency
+                            popover.section.method = Constants.Sort.Frequency
                             popover.section.strings = strings
                             popover.section.showIndex = false
                             popover.tableView?.reloadData()
@@ -4202,7 +4202,7 @@ class MediaItem : NSObject
             }
         }
         
-        if books != nil {
+        if self.scripture?.books != nil {
             actions.append(scripture)
         }
 

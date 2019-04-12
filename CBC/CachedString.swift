@@ -8,7 +8,8 @@
 
 import Foundation
 
-class CachedString {
+class CachedString
+{
     @objc func freeMemory()
     {
         cache = [String:String]()

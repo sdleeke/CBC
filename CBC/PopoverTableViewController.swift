@@ -104,9 +104,9 @@ extension PopoverTableViewController: UISearchBarDelegate
 
         updateToolbar()
         
-        Thread.onMainThread {
-            self.tableView.reloadData()
-        }
+//        Thread.onMainThread {
+//            self.tableView.reloadData()
+//        }
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
@@ -209,8 +209,8 @@ extension PopoverTableViewController: UISearchBarDelegate
             unfilteredSection.showHeaders = filteredSection.showHeaders
             
             // In case the method changed
-            if let function = sort.function {
-                section.strings = function(sort.method,section.strings)
+            if let function = section.function {
+                section.strings = function(section.method,section.strings)
             }
         }
         
@@ -227,7 +227,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             self.follow()
         }
         
-        filteredSection = Section(stringsAction: { (strings:[String]?) in
+        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?) in
             Thread.onMainThread {
                 self.segmentedControl?.isEnabled = strings != nil
             }
@@ -262,7 +262,7 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingSorting:
-            sort.method = string
+            section.method = string
             
             switch string {
             case Constants.Sort.Alphabetical:
@@ -277,8 +277,8 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            if let function = sort.function {
-                section.strings = function(sort.method,section.strings)
+            if let function = section.function {
+                section.strings = function(section.method,section.strings)
             }
             
             tableView.reloadData()
@@ -298,36 +298,36 @@ extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
     }
 }
 
-class Sort
-{
-    init(_ ptvc:PopoverTableViewController?)
-    {
-        self.ptvc = ptvc
-    }
-    
-    private weak var ptvc : PopoverTableViewController!
-    
-    var sorting = false
-    {
-        didSet {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
-            }
-        }
-    }
-
-    var function : ((String?,[String]?)->[String]?)?
-    
-    var method : String? = Constants.Sort.Alphabetical
-    {
-        willSet {
-            
-        }
-        didSet {
-
-        }
-    }
-}
+//class Sort
+//{
+//    init(_ ptvc:PopoverTableViewController?)
+//    {
+//        self.ptvc = ptvc
+//    }
+//
+//    private weak var ptvc : PopoverTableViewController!
+//
+//    var sorting = false
+//    {
+//        didSet {
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
+//            }
+//        }
+//    }
+//
+//    var function : ((String?,[String]?)->[String]?)?
+//
+//    var method : String? = Constants.Sort.Alphabetical
+//    {
+//        willSet {
+//
+//        }
+//        didSet {
+//
+//        }
+//    }
+//}
 
 struct SegmentAction
 {
@@ -363,9 +363,9 @@ class PopoverTableViewController : UIViewController
     
     var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
     
-    lazy var sort = { [weak self] in
-        return Sort(self)
-    }()
+//    lazy var sort = { [weak self] in
+//        return Sort(self)
+//    }()
  
     func stopTracking()
     {
@@ -707,23 +707,25 @@ class PopoverTableViewController : UIViewController
     var stringSelected : String?
     
     lazy var filteredSection:Section! = { [weak self] in
-        let section = Section(stringsAction: { (strings:[String]?) in
+        let section = Section(tableView:tableView, stringsAction: nil)
+        
+        section.stringsAction = { (strings:[String]?) in
             Thread.onMainThread {
-                if let sorting = self?.sort.sorting {
-                    self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
-                }
+                self?.segmentedControl?.isEnabled = (strings != nil) && !section.sorting
             }
-        })
+        }
+        
         return section
     }()
     lazy var unfilteredSection:Section! = { [weak self] in
-        let section = Section(stringsAction: { (strings:[String]?) in
+        let section = Section(tableView:tableView, stringsAction: nil)
+        
+        section.stringsAction = { (strings:[String]?) in
             Thread.onMainThread {
-                if let sorting = self?.sort.sorting {
-                    self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
-                }
+                self?.segmentedControl?.isEnabled = (strings != nil) && !section.sorting
             }
-        })
+        }
+        
         return section
     }()
     
@@ -1120,7 +1122,7 @@ class PopoverTableViewController : UIViewController
                 return selectedText.uppercased() == string.uppercased()
             }
         }) {
-            if let method = sort.method {
+            if let method = section.method {
                 switch method {
                 case Constants.Sort.Alphabetical:
                     var i = 0
@@ -1630,7 +1632,7 @@ class PopoverTableViewController : UIViewController
         view.addConstraint(topConstraint)
         self.view.setNeedsLayout()
         
-        if segments, let method = sort.method {
+        if segments, let method = section.method {
             switch method {
             case Constants.Sort.Alphabetical:
                 segmentedControl.selectedSegmentIndex = 0

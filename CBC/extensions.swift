@@ -194,8 +194,8 @@ extension Array where Element == MediaItem
         var list:[MediaItem]?
         
         list = self.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+            let firstBooksChaptersVerses   = first.scripture?.booksChaptersVerses?.bookChaptersVerses(book: book)
+            let secondBooksChaptersVerses  = second.scripture?.booksChaptersVerses?.bookChaptersVerses(book: book)
             
             if firstBooksChaptersVerses == secondBooksChaptersVerses {
                 if let firstDate = first.fullDate, let secondDate = second.fullDate {
@@ -280,7 +280,7 @@ extension Array where Element == MediaItem
         }
         
         return self.filter({ (mediaItem:MediaItem) -> Bool in
-            if let books = mediaItem.books {
+            if let books = mediaItem.scripture?.books {
                 return books.contains(book)
             } else {
                 return false
@@ -309,7 +309,7 @@ extension Array where Element == MediaItem
         var bookSet = Set<String>()
         
         for mediaItem in mediaItems {
-            if let books = mediaItem.books {
+            if let books = mediaItem.scripture?.books {
                 for book in books {
                     bookSet.insert(book)
                 }
@@ -1160,6 +1160,250 @@ extension String
 
 extension String
 {
+    func verses(book:String,chapter:Int) -> [Int]
+    {
+        var versesForChapter = [Int]()
+        
+        if let verses = self.booksChaptersVerses?[book]?[chapter] {
+            versesForChapter = verses
+        }
+        
+        return versesForChapter
+    }
+    
+    func chaptersAndVerses(book:String) -> [Int:[Int]]
+    {
+        var chaptersAndVerses = [Int:[Int]]()
+        
+        if let cav = self.booksChaptersVerses?[book] {
+            chaptersAndVerses = cav
+        }
+        
+        return chaptersAndVerses
+    }
+
+    var booksChaptersVerses : BooksChaptersVerses?
+    {
+        // PUT THIS BACK LATER
+//        if self.booksChaptersVerses != nil {
+//            return self.booksChaptersVerses
+//        }
+        
+//        guard (scripture != nil) else {
+//            return nil
+//        }
+        
+//        guard let scriptureReference = scriptureReference else {
+//            return nil
+//        }
+        
+        let scriptureReference = self
+        
+        guard let books = books else { // booksFromScriptureReference(scriptureReference)
+            return nil
+        }
+        
+        let booksAndChaptersAndVerses = BooksChaptersVerses()
+        
+        //        let separator = ";"
+        //        let scriptures = scriptureReference.components(separatedBy: separator)
+        
+        var ranges = [Range<String.Index>]()
+        var scriptures = [String]()
+        
+        for book in books {
+            if let range = scriptureReference.range(book) {
+                ranges.append(range)
+            }
+            //            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
+            //                ranges.append(range)
+            //            } else {
+            //                var bk = book
+            //
+            //                repeat {
+            //                    if let range = scriptureReference.range(of: bk.lowercased()) {
+            //                        ranges.append(range)
+            //                        break
+            //                    } else {
+            //                        bk.removeLast()
+            //                        if bk.last == " " {
+            //                            break
+            //                        }
+            //                    }
+            //                } while bk.count > 2
+            //            }
+        }
+        
+        if books.count == ranges.count {
+            var lastRange : Range<String.Index>?
+            
+            for range in ranges {
+                if let lastRange = lastRange {
+                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
+                }
+                
+                lastRange = range
+            }
+            
+            if let lastRange = lastRange {
+                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
+            }
+        } else {
+            // BUMMER
+        }
+        
+        //        var scriptures = [String]()
+        //
+        //        var string = scriptureReference
+        //
+        //        while let range = string.range(of: separator) {
+        //            scriptures.append(String(string[..<range.lowerBound]))
+        //            string = String(string[range.upperBound...])
+        //        }
+        //
+        //        scriptures.append(string)
+        
+        //        var lastBook:String?
+        
+        for scripture in scriptures {
+            //            var book = booksFromScriptureReference(scripture)?.first
+            //
+            //            if book == nil {
+            //                book = lastBook
+            //            } else {
+            //                lastBook = book
+            //            }
+            
+            if let book = scripture.books?.first {
+                var reference : String?
+                
+                if let range = scripture.range(book) {
+                    reference = String(scripture[range.upperBound...])
+                }
+                
+                //                var bk = book
+                //
+                //                repeat {
+                //                    if let range = scripture.lowercased().range(of: bk.lowercased()) {
+                //                        reference = String(scripture[range.upperBound...])
+                //                        break
+                //                    } else {
+                //                        bk.removeLast()
+                //                        if bk.last == " " {
+                //                            break
+                //                        }
+                //                    }
+                //                } while bk.count > 2
+                
+                // What if a reference includes the book more than once?
+                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
+                
+                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                    for chapter in chapters {
+                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                            print(description,book,chapter)
+                        }
+                    }
+                }
+            }
+        }
+        
+        return booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+    }
+    
+    func chapters(_ thisBook:String) -> [Int]?
+    {
+//        guard let scriptureReference = scriptureReference else {
+//            return nil
+//        }
+        
+        let scriptureReference = self
+        
+        guard !Constants.NO_CHAPTER_BOOKS.contains(thisBook) else {
+            return [1]
+        }
+        
+        var chaptersForBook:[Int]?
+        
+        guard let books = scriptureReference.books else {
+            return nil
+        }
+        
+        switch books.count {
+        case 0:
+            break
+            
+        case 1:
+            if thisBook == books.first {
+                if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
+                    chaptersForBook = [1]
+                } else {
+                    var string = scriptureReference
+                    
+                    if (string.range(of: ";") == nil) {
+                        if let range = scriptureReference.range(of: thisBook) {
+                            chaptersForBook = String(string[range.upperBound...]).chapters
+                        } else {
+                            // ???
+                        }
+                    } else {
+                        while let range = string.range(of: ";") {
+                            var subString = String(string[..<range.lowerBound])
+                            
+                            if let range = subString.range(of: thisBook) {
+                                subString = String(subString[range.upperBound...])
+                            }
+                            if let chapters = subString.chapters {
+                                chaptersForBook?.append(contentsOf: chapters)
+                            }
+                            
+                            string = String(string[range.upperBound...])
+                        }
+                        
+                        if let range = string.range(of: thisBook) {
+                            string = String(string[range.upperBound...])
+                        }
+                        if let chapters = string.chapters {
+                            chaptersForBook?.append(contentsOf: chapters)
+                        }
+                    }
+                }
+            } else {
+                // THIS SHOULD NOT HAPPEN
+            }
+            break
+            
+        default:
+            var scriptures = [String]()
+            
+            var string = scriptureReference
+            
+            let separator = ";"
+            
+            while let range = string.range(of: separator) {
+                scriptures.append(String(string[..<range.lowerBound]))
+                string = String(string[range.upperBound...])
+            }
+            
+            scriptures.append(string)
+            
+            for scripture in scriptures {
+                if let range = scripture.range(of: thisBook) {
+                    if let chapters = String(scripture[range.upperBound...]).chapters {
+                        if chaptersForBook == nil {
+                            chaptersForBook = chapters
+                        } else {
+                            chaptersForBook?.append(contentsOf: chapters)
+                        }
+                    }
+                }
+            }
+            break
+        }
+        
+        return chaptersForBook
+    }
+    
     func versesForChapter(_ chapter:Int) -> [Int]?
     {
 //        guard let book = book else {
@@ -2687,6 +2931,47 @@ extension NSAttributedString
         
         return newAttrString
     }
+}
+
+extension Dictionary
+{
+    // Would be nice to know the key path of what comes back.
+    func search(key:String) -> Any?
+    {
+        guard var currDict = self as? [String : Any]  else {
+            return nil
+        }
+        
+        if let foundValue = currDict[key] {
+            return foundValue
+        } else {
+            for val in currDict.values {
+                if let innerDict = val as? [String:Any], let result = innerDict.search(key: key) {
+                    return result
+                }
+            }
+            return nil
+        }
+    }
+//    func search(key:String, in dict:[String:Any] = [:]) -> Any?
+//    {
+//        guard var currDict = self as? [String : Any]  else {
+//            return nil
+//        }
+//
+//        currDict = !dict.isEmpty ? dict : currDict
+//
+//        if let foundValue = currDict[key] {
+//            return foundValue
+//        } else {
+//            for val in currDict.values {
+//                if let innerDict = val as? [String:Any], let result = search(key: key, in: innerDict) {
+//                    return result
+//                }
+//            }
+//            return nil
+//        }
+//    }
 }
 
 //extension Dictionary
@@ -5273,7 +5558,6 @@ extension String
         
         let lexicalTypes = Array(types).sorted()
 
-        // Make thread safe?
         var lexicalTypeColors = [String:String]()
         
         var count = 0
@@ -5443,10 +5727,14 @@ extension URL
         // THIS CAN BE A HUGE MEMORY LEAK IF NOT USED IN AN AUTORELEASEPOOL
         ////////////////////////////////////////////////////////////////////
 
-        guard (filename != nil) || (fileType != nil) else {
+        guard (filename != nil) || (fileType != nil) || (notFileType != nil) else {
             return nil
         }
-
+        
+        if fileType != nil, notFileType != nil, fileType == notFileType {
+            return nil
+        }
+        
         guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
             return nil
         }
@@ -5484,28 +5772,30 @@ extension URL
                 var fileTypeCandidate : String?
                 var notFileTypeCandidate : String?
                 
-                if let filename = filename {
-                    if let range = string.range(of: filename) {
-                        if filename == String(string[..<range.upperBound]) {
-                            fileNameCandidate = string
-                        }
+                if let filename = filename, let range = string.range(of: filename) {
+                    if filename == String(string[..<range.upperBound]) {
+                        fileNameCandidate = string
                     }
                 }
                 
-                if let fileType = fileType {
-                    if let range = string.range(of: "." + fileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
-                        if fileType == String(string[range.lowerBound...]) {
-                            fileTypeCandidate = string
-                        }
+                if let fileType = fileType, let range = string.range(of: "." + fileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
+                    if fileType == String(string[range.lowerBound...]) {
+                        fileTypeCandidate = string
                     }
                 }
                 
-                if let notFileType = notFileType {
-                    if let range = string.range(of: "." + notFileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
-                        if notFileType == String(string[range.lowerBound...]) {
-                            notFileTypeCandidate = string
-                        }
+                if let notFileType = notFileType, let range = string.range(of: "." + notFileType.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
+                    if notFileType == String(string[range.lowerBound...]) {
+                        notFileTypeCandidate = string
                     }
+                }
+
+                if filename == nil, notFileType != nil, notFileTypeCandidate == nil {
+                    fileNameCandidate = string
+                }
+                
+                if fileType == nil, notFileType != nil, notFileTypeCandidate == nil {
+                    fileNameCandidate = string
                 }
                 
                 if let fileNameCandidate = fileNameCandidate {

@@ -10,7 +10,6 @@ import Foundation
 
 class MediaCategory
 {
-    // Make thread safe?
     var dicts = ThreadSafeDN<String>() // :[String:String]? // ictionary
     
     var filename:String?

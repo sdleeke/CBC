@@ -170,19 +170,19 @@ class MediaList // : Sequence
         })
     }
     
-    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     var cacheSize : Int?
     {
         get {
+            // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
             return list?.reduce(0, { (result, mediaItem) -> Int in
                 return result + mediaItem.cacheSize
             })
         }
     }
     
-    // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
     func cacheSize(_ purpose:String) -> Int?
     {
+        // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
         return list?.reduce(0, { (result, mediaItem) -> Int in
 //            return result + (mediaItem.downloads[purpose]?.fileSize ?? 0)
             return result + mediaItem.cacheSize(purpose)
@@ -1390,11 +1390,10 @@ class MediaList // : Sequence
             listDidSet?()
             
             updateIndex()
-            updateCacheSize()
+//            updateCacheSize()
         }
     }
     
-    // Make thread safe?
     var index = ThreadSafeDN<MediaItem>() // :[String:MediaItem]? //MediaItems indexed by ID.
     var classes = ThreadSafeArray<String>() // :[String]?
     var events = ThreadSafeArray<String>() // :[String]?

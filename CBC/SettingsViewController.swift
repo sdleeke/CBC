@@ -109,10 +109,22 @@ class SettingsViewController: UIViewController
     
     func updateCacheSize(_ sender:UIButton?)
     {
-        // THIS IS INCREDIBLY COMPUTATIONALLY EXPENSIVE TO CALL
-        let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+        var cacheSize = 0
         
-        var size:Float = Float(cacheSize ?? 0)
+        autoreleasepool {
+            if let cachesURL = FileManager.default.cachesURL {
+                cachesURL.files(notOfType:Constants.FILENAME_EXTENSION.MP3)?.forEach({ (string:String) in
+                    var fileURL = cachesURL
+                    fileURL.appendPathComponent(string)
+                    cacheSize += fileURL.fileSize ?? 0
+                })
+            }
+        }
+
+        // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
+//        let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+        
+        var size:Float = Float(cacheSize) //  ?? 0
         
         var count = 0
         

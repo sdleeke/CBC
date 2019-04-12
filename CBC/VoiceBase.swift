@@ -1643,7 +1643,7 @@ class VoiceBase
         }
     }
 
-    // Make thread safe?
+    // thread safe?
     var keywordsJSON: [String:Any]?
     {
         get {
@@ -1651,7 +1651,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var keywordTimes : [String:[String]]?
     {
         get {
@@ -1673,7 +1673,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var keywordDictionaries : [String:[String:Any]]?
     {
         get {
@@ -1695,7 +1695,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var keywords : [String]?
     {
         get {
@@ -1716,7 +1716,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var transcriptsJSON : [String:Any]?
     {
         get {
@@ -1724,7 +1724,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var transcriptLatest : [String:Any]?
     {
         get {
@@ -1732,7 +1732,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var tokensAndCounts : [String:Int]?
     {
         get {
@@ -1757,7 +1757,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var words : [[String:Any]]?
     {
         get {
@@ -1800,7 +1800,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var topicsJSON : [String:Any]?
     {
         get {
@@ -1808,7 +1808,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var topicsDictionaries : [String:[String:Any]]?
     {
         get {
@@ -1832,7 +1832,7 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var topics : [String]?
     {
         get {
@@ -2565,46 +2565,50 @@ class VoiceBase
         return nil
     }
     
-    // Make thread safe?
+    // thread safe?
     var allTopicKeywords : [String]?
     {
-        guard let topics = topics else {
-            return nil
-        }
-        
-        var keywords = Set<String>()
-        
-        for topic in topics {
-            if let topicsKeywords = topicKeywords(topic: topic) {
-                keywords = keywords.union(Set(topicsKeywords))
+        get {
+            guard let topics = topics else {
+                return nil
             }
+            
+            var keywords = Set<String>()
+            
+            for topic in topics {
+                if let topicsKeywords = topicKeywords(topic: topic) {
+                    keywords = keywords.union(Set(topicsKeywords))
+                }
+            }
+            
+            return keywords.count > 0 ? Array(keywords) : nil
         }
-        
-        return keywords.count > 0 ? Array(keywords) : nil
     }
     
-    // Make thread safe?
+    // thread safe?
     var allTopicKeywordDictionaries : [String:[String:Any]]?
     {
-        guard let topics = topics else {
-            return nil
-        }
-        
-        var allTopicKeywordDictionaries = [String:[String:Any]]()
-        
-        for topic in topics {
-            if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
-                for topicKeywordDictionary in topicKeywordDictionaries {
-                    if allTopicKeywordDictionaries[topicKeywordDictionary.key] == nil {
-                        allTopicKeywordDictionaries[topicKeywordDictionary.key.lowercased()] = topicKeywordDictionary.value
-                    } else {
-                        print("allTopicKeywordDictionaries key occupied")
+        get {
+            guard let topics = topics else {
+                return nil
+            }
+            
+            var allTopicKeywordDictionaries = [String:[String:Any]]()
+            
+            for topic in topics {
+                if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
+                    for topicKeywordDictionary in topicKeywordDictionaries {
+                        if allTopicKeywordDictionaries[topicKeywordDictionary.key] == nil {
+                            allTopicKeywordDictionaries[topicKeywordDictionary.key.lowercased()] = topicKeywordDictionary.value
+                        } else {
+                            print("allTopicKeywordDictionaries key occupied")
+                        }
                     }
                 }
             }
+            
+            return allTopicKeywordDictionaries.count > 0 ? allTopicKeywordDictionaries : nil
         }
-        
-        return allTopicKeywordDictionaries.count > 0 ? allTopicKeywordDictionaries : nil
     }
     
     func allTopicKeywordTimes(keyword:String?) -> [String]?
@@ -3297,10 +3301,12 @@ class VoiceBase
         }
     }
     
-    // Make thread safe?
+    // thread safe?
     var transcriptSegmentTokens : [String]?
     {
-        return transcriptSegmentTokensTimes?.keys.sorted()
+        get {
+            return transcriptSegmentTokensTimes?.keys.sorted()
+        }
     }
     
     func transcriptSegmentTokenTimes(token:String) -> [String]?
@@ -3315,7 +3321,7 @@ class VoiceBase
             
         }
     }
-    var transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
+    var transcriptSegmentTokensTimes : [String:[String]]? // thread safe?
     {
         get {
             guard _transcriptSegmentTokensTimes == nil else {
@@ -3442,7 +3448,7 @@ class VoiceBase
             self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
         }
     }
-    var transcriptSegmentComponents:[String]? // Make thread safe?
+    var transcriptSegmentComponents:[String]? // thread safe?
     {
         get {
             guard _transcriptSegmentComponents == nil else {

@@ -564,7 +564,7 @@ class CloudViewController: UIViewController
                     return "\(word) (\(count))"
                 })
 
-                self?.wordsTableViewController.section.strings = self?.wordsTableViewController.sort.function?(self?.wordsTableViewController.sort.method,self?.wordsTableViewController.section.strings)
+                self?.wordsTableViewController.section.strings = self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method,self?.wordsTableViewController.section.strings)
 
                 return nil
             }, completion: { [weak self] (data:Any?) in
@@ -732,7 +732,7 @@ class CloudViewController: UIViewController
                     }
                     wordsTableViewController.segments = true
                     
-                    wordsTableViewController.sort.function = sort
+                    wordsTableViewController.section.function = sort
                     
                     var segmentActions = [SegmentAction]()
                     
@@ -762,11 +762,11 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
+                            let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
-                                    self?.wordsTableViewController.sort.method = Constants.Sort.Alphabetical
+                                    self?.wordsTableViewController.section.method = Constants.Sort.Alphabetical
                                     self?.wordsTableViewController.section.showIndex = true
                                     self?.wordsTableViewController.section.strings = strings
                                     self?.wordsTableViewController.tableView.reloadData()
@@ -805,11 +805,11 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            let strings = self?.wordsTableViewController.sort.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
+                            let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
-                                    self?.wordsTableViewController.sort.method = Constants.Sort.Frequency
+                                    self?.wordsTableViewController.section.method = Constants.Sort.Frequency
                                     self?.wordsTableViewController.section.showIndex = false
                                     self?.wordsTableViewController.section.strings = strings
                                     self?.wordsTableViewController.tableView.reloadData()
@@ -831,7 +831,7 @@ class CloudViewController: UIViewController
                     
                     wordsTableViewController.section.showIndex = false
 
-                    wordsTableViewController.sort.method = Constants.Sort.Frequency
+                    wordsTableViewController.section.method = Constants.Sort.Frequency
 
                     wordsTableViewController.section.strings = self.cloudWordDicts?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"
@@ -839,9 +839,9 @@ class CloudViewController: UIViewController
                         return "\(word) (\(count))"
                     })
                     
-                    wordsTableViewController.section.strings = wordsTableViewController.sort.function?(wordsTableViewController.sort.method,wordsTableViewController.section.strings)
+                    wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
                     
-                    if let method = wordsTableViewController.sort.method {
+                    if let method = wordsTableViewController.section.method {
                         switch method {
                         case Constants.Sort.Alphabetical:
                             self.cloudWordDicts = self.cloudWordDicts?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in

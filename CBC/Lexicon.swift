@@ -369,6 +369,7 @@ class Lexicon : NSObject
         return words?[word]?.values.reduce(0, +)
     }
     
+    // thread safe?
     var strings : [String]?
     {
         get {
@@ -587,7 +588,7 @@ class Lexicon : NSObject
         get {
             var string = String()
             
-            if let keys = words?.keys()?.sorted(), let values = words?.values {
+            if let keys = words?.keys()?.sorted(), let values = words?.values() {
                 var mediaItems = 0
                 
                 var minMediaItems:Int?

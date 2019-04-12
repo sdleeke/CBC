@@ -692,10 +692,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
 
-    // Make thread safe?
     var history = ThreadSafeArray<String>() // :[String]?
     
-    // Make thread safe?
+    // thread safe
     var relevantHistory:[String]?
     {
         get {
@@ -730,7 +729,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    // Make thread safe?
+    // thread safe
     var relevantHistoryList:[String]?
     {
         get {

@@ -231,7 +231,6 @@ class MediaListGroupSort
         }
     }
     
-    // Make thread safe? YES.
     var tagMediaItems : ThreadSafeDN<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem // ictionary
     {
         didSet {
@@ -239,7 +238,6 @@ class MediaListGroupSort
         }
     }
 
-    // Make thread safe? YES.
     var tagNames:ThreadSafeDN<String>? // [String:String]?//sortTag:tag // ictionary
     {
         didSet {
@@ -247,7 +245,6 @@ class MediaListGroupSort
         }
     }
     
-    // Make thread safe?
 //    var proposedTags:[String]?
 //    {
 //        get {
@@ -293,7 +290,7 @@ class MediaListGroupSort
 //        }
 //    }
     
-    // Make thread safe? YES. Done by virtue of it being computed.
+    // thread safe
     var mediaItemTags:[String]?
     {
         get {
@@ -307,7 +304,7 @@ class MediaListGroupSort
         }
     }
     
-    // Make thread safe? YES.
+    // thread safe?
     var mediaItems:[MediaItem]?
     {
         get {
@@ -325,7 +322,6 @@ class MediaListGroupSort
             return
         }
         
-        // Make thread safe?
         let groupedMediaItems = ThreadSafeDN<[MediaItem]>() // [String:[String:[MediaItem]]]() // ictionaryOfDictionaries
         
         for mediaItem in mediaList {
@@ -342,7 +338,7 @@ class MediaListGroupSort
                 
             case GROUPING.BOOK:
                 // Need to update this for the fact that mediaItems can have more than one book.
-                if let books = mediaItem.books {
+                if let books = mediaItem.scripture?.books {
                     for book in books {
                         if entries == nil {
                             entries = [(book,book)]

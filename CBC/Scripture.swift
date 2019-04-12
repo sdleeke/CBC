@@ -202,8 +202,26 @@ class Scripture : NSObject
 //        return XML()
 //    }()
     
+    private var _booksChaptersVerses:BooksChaptersVerses?
+    {
+        didSet {
+            
+        }
+    }
     var booksChaptersVerses:BooksChaptersVerses?
-    
+    {
+        get {
+            if _booksChaptersVerses == nil {
+                _booksChaptersVerses = reference?.booksChaptersVerses
+            }
+            
+            return _booksChaptersVerses
+        }
+        set {
+            _booksChaptersVerses = newValue
+        }
+    }
+
     override var description: String
     {
         return reference ?? ""
@@ -219,7 +237,8 @@ class Scripture : NSObject
                 // MUST update the data structure.
 //                _books = nil
                 books = nil
-                setupBooksChaptersVerses()
+                booksChaptersVerses = reference?.booksChaptersVerses
+//                setupBooksChaptersVerses()
             }
         }
     }
@@ -324,7 +343,9 @@ class Scripture : NSObject
         
         self.reference = reference
         
-        setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
+//        booksChaptersVerses = reference?.booksChaptersVerses
+        
+//        setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
     }
     
     deinit {
@@ -335,137 +356,137 @@ class Scripture : NSObject
         return CachedString(index: nil)
     }()
     
-    func setupBooksChaptersVerses()
-    {
-        guard let scriptureReference = reference else {
-            return
-        }
-        
-        guard let books = books else {
-            return
-        }
-        
-        let booksAndChaptersAndVerses = BooksChaptersVerses()
-        
+//    func setupBooksChaptersVerses()
+//    {
+//        guard let scriptureReference = reference else {
+//            return
+//        }
+//
+//        guard let books = books else {
+//            return
+//        }
+//
+//        let booksAndChaptersAndVerses = BooksChaptersVerses()
+//
+////        var scriptures = [String]()
+//
+////        var string = scriptureReference
+//
+////        let separator = ";"
+////
+////        let scriptures = scriptureReference.components(separatedBy: separator)
+//
+//        var ranges = [Range<String.Index>]()
 //        var scriptures = [String]()
-        
-//        var string = scriptureReference
-        
-//        let separator = ";"
 //
-//        let scriptures = scriptureReference.components(separatedBy: separator)
-
-        var ranges = [Range<String.Index>]()
-        var scriptures = [String]()
-        
-        for book in books {
-            if let range = scriptureReference.range(book) {
-                ranges.append(range)
-            }
-            
-//            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
+//        for book in books {
+//            if let range = scriptureReference.range(book) {
 //                ranges.append(range)
-//            } else {
-//                var bk = book
+//            }
 //
-//                repeat {
-//                    if let range = scriptureReference.range(of: bk.lowercased()) {
-//                        ranges.append(range)
-//                        break
+////            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
+////                ranges.append(range)
+////            } else {
+////                var bk = book
+////
+////                repeat {
+////                    if let range = scriptureReference.range(of: bk.lowercased()) {
+////                        ranges.append(range)
+////                        break
+////                    } else {
+////                        bk.removeLast()
+////                        if bk.last == " " {
+////                            break
+////                        }
+////                    }
+////                } while bk.count > 2
+////            }
+//        }
+//
+//        if books.count == ranges.count {
+//            var lastRange : Range<String.Index>?
+//
+//            for range in ranges {
+//                if let lastRange = lastRange {
+//                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
+//                }
+//
+//                lastRange = range
+//            }
+//
+//            if let lastRange = lastRange {
+//                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
+//            }
+//        } else {
+//            // BUMMER
+//        }
+//
+////        while (string.range(of: separator) != nil) {
+////            if let lowerBound = string.range(of: separator)?.lowerBound {
+////                scriptures.append(String(string[..<lowerBound]))
+////            }
+////
+////            if let range = string.range(of: separator) {
+////                string = String(string[range.upperBound...])
+////            }
+////        }
+////
+////        scriptures.append(string)
+//
+////        var lastBook:String?
+//
+//        for scripture in scriptures {
+//            if let book = scripture.books?.first {
+//                var reference : String?
+//
+//                if let range = scripture.range(book) {
+//                    reference = String(scripture[range.upperBound...])
+//                }
+//
+////                var bk = book
+////
+////                repeat {
+////                    if let range = scripture.range(of: bk) {
+////                        reference = String(scripture[range.upperBound...])
+////                        break
+////                    } else {
+////                        bk.removeLast()
+////                        if bk.last == " " {
+////                            break
+////                        }
+////                    }
+////                } while bk.count > 2
+//
+//                // What if a reference includes the book more than once?
+//
+//                if let chaptersAndVerses = reference?.chaptersAndVerses(book) {
+//                    if let _ = booksAndChaptersAndVerses[book] {
+//                        for key in chaptersAndVerses.keys {
+//                            if let verses = chaptersAndVerses[key] {
+//                                if let _ = booksAndChaptersAndVerses[book]?[key] {
+//                                    booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
+//                                } else {
+//                                    booksAndChaptersAndVerses[book]?[key] = verses
+//                                }
+//                            }
+//                        }
 //                    } else {
-//                        bk.removeLast()
-//                        if bk.last == " " {
-//                            break
+//                        booksAndChaptersAndVerses[book] = chaptersAndVerses
+//                    }
+//                }
+//
+//                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+//                    for chapter in chapters {
+//                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+//                            print(description,book,chapter)
 //                        }
 //                    }
-//                } while bk.count > 2
-//            }
-        }
-        
-        if books.count == ranges.count {
-            var lastRange : Range<String.Index>?
-            
-            for range in ranges {
-                if let lastRange = lastRange {
-                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
-                }
-
-                lastRange = range
-            }
-            
-            if let lastRange = lastRange {
-                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
-            }
-        } else {
-            // BUMMER
-        }
-        
-//        while (string.range(of: separator) != nil) {
-//            if let lowerBound = string.range(of: separator)?.lowerBound {
-//                scriptures.append(String(string[..<lowerBound]))
-//            }
-//
-//            if let range = string.range(of: separator) {
-//                string = String(string[range.upperBound...])
+//                }
 //            }
 //        }
 //
-//        scriptures.append(string)
-        
-//        var lastBook:String?
-        
-        for scripture in scriptures {
-            if let book = scripture.books?.first {
-                var reference : String?
-                
-                if let range = scripture.range(book) {
-                    reference = String(scripture[range.upperBound...])
-                }
-                
-//                var bk = book
-//
-//                repeat {
-//                    if let range = scripture.range(of: bk) {
-//                        reference = String(scripture[range.upperBound...])
-//                        break
-//                    } else {
-//                        bk.removeLast()
-//                        if bk.last == " " {
-//                            break
-//                        }
-//                    }
-//                } while bk.count > 2
-
-                // What if a reference includes the book more than once?
-
-                if let chaptersAndVerses = reference?.chaptersAndVerses(book) {
-                    if let _ = booksAndChaptersAndVerses[book] {
-                        for key in chaptersAndVerses.keys {
-                            if let verses = chaptersAndVerses[key] {
-                                if let _ = booksAndChaptersAndVerses[book]?[key] {
-                                    booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
-                                } else {
-                                    booksAndChaptersAndVerses[book]?[key] = verses
-                                }
-                            }
-                        }
-                    } else {
-                        booksAndChaptersAndVerses[book] = chaptersAndVerses
-                    }
-                }
-                
-                if let chapters = booksAndChaptersAndVerses[book]?.keys {
-                    for chapter in chapters {
-                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
-                            print(description,book,chapter)
-                        }
-                    }
-                }
-            }
-        }
-        
-        booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
-    }
+//        booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+//    }
     
     func loadHTMLVerseFromURL() -> String?
     {

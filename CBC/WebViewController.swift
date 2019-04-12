@@ -534,15 +534,15 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.segments = true
                 
-                popover.sort.function = sort
-                popover.sort.method = Constants.Sort.Alphabetical
+                popover.section.function = sort
+                popover.section.method = Constants.Sort.Alphabetical
                 
                 var segmentActions = [SegmentAction]()
                 
                 segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                    let strings = popover.sort.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                    let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                     if popover.segmentedControl.selectedSegmentIndex == 0 {
-                        popover.sort.method = Constants.Sort.Alphabetical
+                        popover.section.method = Constants.Sort.Alphabetical
                         popover.section.strings = strings
                         popover.section.showIndex = true
                         popover.tableView?.reloadData()
@@ -550,9 +550,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 }))
                 
                 segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                    let strings = popover.sort.function?(Constants.Sort.Frequency,popover.section.strings)
+                    let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                     if popover.segmentedControl.selectedSegmentIndex == 1 {
-                        popover.sort.method = Constants.Sort.Frequency
+                        popover.section.method = Constants.Sort.Frequency
                         popover.section.strings = strings
                         popover.section.showIndex = false
                         popover.tableView?.reloadData()

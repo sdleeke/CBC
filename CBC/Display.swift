@@ -11,7 +11,7 @@ import Foundation
 class Display
 {
     var mediaItems:[MediaItem]?
-    var section = Section(stringsAction: nil)
+    var section = Section(tableView:nil, stringsAction:nil)
     
     func setup(_ active:MediaListGroupSort? = nil)
     {

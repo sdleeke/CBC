@@ -55,13 +55,17 @@ class ScriptureIndex
     }
     
     lazy var html:CachedString? = { [weak self] in // unowned self MIGHT BE needed because we are capturing self in a function that is used by the object owned by self.
-        return CachedString(index:self?.index)
+        return CachedString(index: {
+            return self?.context
+        })
     }()
     
-    func index() -> String?
-    {
-        return context
-    }
+//    var index : String?
+//    {
+//        get {
+//            return context
+//        }
+//    }
     
     var context:String?
     {
@@ -120,7 +124,8 @@ class ScriptureIndex
         }
     }
     
-    var selectedChapter:Int = 0 {
+    var selectedChapter:Int = 0
+    {
         willSet {
             
         }
@@ -163,7 +168,7 @@ class ScriptureIndex
                 return _eligible
             }
             if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.books != nil
+                return mediaItem.scripture?.books != nil
             }), list.count > 0 {
                 _eligible = list
             } else {
@@ -191,7 +196,7 @@ class ScriptureIndex
             
             if let mediaItems = mediaItems {
                 for mediaItem in mediaItems {
-                    if let books = mediaItem.books {
+                    if let books = mediaItem.scripture?.books {
                         for book in books {
                             if let selectedTestament = selectedTestament {
                                 if selectedTestament.translateTestament == book.testament {
@@ -242,7 +247,7 @@ class ScriptureIndex
             return
         }
         
-        let start = Date().timeIntervalSince1970
+//        let start = Date().timeIntervalSince1970
 
 //        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
 //        operationQueue.addOperation {  [weak self] in
@@ -263,7 +268,7 @@ class ScriptureIndex
                         break
                     }
                     
-                    let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
+                    let booksChaptersVerses = mediaItem.scripture?.booksChaptersVerses
                     if let books = booksChaptersVerses?.data?.keys {
                         for book in books {
                             if Globals.shared.isRefreshing || Globals.shared.isLoading {
@@ -282,6 +287,7 @@ class ScriptureIndex
                                 self?.byTestament[book.testament] = [mediaItem]
                             }
                             
+                            // Can't we build these later?
                             if self?.byBook[book.testament] == nil {
                                 self?.byBook[book.testament] = [String:[MediaItem]]()
                             }
@@ -293,6 +299,7 @@ class ScriptureIndex
                                 self?.byBook[book.testament]?[book] = [mediaItem]
                             }
                             
+                            // Can't we build these later?
                             if let chapters = booksChaptersVerses?[book]?.keys {
                                 for chapter in chapters {
                                     if Globals.shared.isRefreshing || Globals.shared.isLoading {
@@ -380,9 +387,9 @@ class ScriptureIndex
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             }
             
-            let end = Date().timeIntervalSince1970
-            
-            print(end - start)
+//            let end = Date().timeIntervalSince1970
+//
+//            print(end - start)
         }
         
         operationQueue.addOperation(op)
@@ -397,7 +404,7 @@ class ScriptureIndex
         var bodyItems = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {
-            if let books = mediaItem.books {
+            if let books = mediaItem.scripture?.books {
                 for book in books {
                     if let okay = sectionTitles?.contains(book) {
                         if okay {
