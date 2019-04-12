@@ -1508,8 +1508,8 @@ class ScriptureIndexViewController : UIViewController
 //        var list:[MediaItem]?
 //        
 //        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
+//            let firstBooksChaptersVerses   = first.booksChaptersVerses()?.bookChaptersVerses(book: book)
+//            let secondBooksChaptersVerses  = second.booksChaptersVerses()?.bookChaptersVerses(book: book)
 //
 //            if firstBooksChaptersVerses == secondBooksChaptersVerses {
 //                if let firstDate = first.fullDate, let secondDate = second.fullDate {

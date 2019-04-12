@@ -1115,10 +1115,10 @@ class ScriptureViewController : UIViewController
         
         let mediaItemScripture = Scripture(reference: scriptureReference)
         
-        if let book = mediaItemScripture.booksChaptersVerses?.data?.keys.sorted(by: { self.scripture?.reference?.range(of: $0)?.lowerBound < self.scripture?.reference?.range(of: $1)?.lowerBound }).first {
+        if let book = mediaItemScripture.booksChaptersVerses?.books?.sorted(by: { self.scripture?.reference?.range(of: $0)?.lowerBound < self.scripture?.reference?.range(of: $1)?.lowerBound }).first {
             let testament = book.testament.translateTestament
             
-            let chapter = mediaItemScripture.booksChaptersVerses?.data?[book]?.keys.sorted()[0]
+            let chapter = mediaItemScripture.booksChaptersVerses?[book]?.keys.sorted()[0]
             
             if (scripture?.selected.testament != testament) ||  (scripture?.selected.book != book) || (scripture?.selected.chapter != chapter) {
                 let resetButton = UIBarButtonItem(title: "Reset", style: UIBarButtonItem.Style.plain, target: self, action: #selector(resetScripture))
@@ -1414,13 +1414,13 @@ class ScriptureViewController : UIViewController
                 self?.scripture?.reference = reference // Why?
                 self?.scripture?.load()
                 
-                if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
+                if let books = self?.scripture?.booksChaptersVerses?.books?.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
                     self?.scripture?.selected.testament = book.testament.translateTestament
                     self?.scripture?.selected.book = book
                     
-                    if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
+                    if let chapters = self?.scripture?.booksChaptersVerses?[book]?.keys.sorted() {
                         self?.scripture?.selected.chapter = chapters[0]
                     }
                 }

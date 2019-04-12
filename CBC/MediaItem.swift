@@ -2853,7 +2853,7 @@ class MediaItem : NSObject
 //    {
 //        var versesForChapter = [Int]()
 //
-//        if let bacv = scriptureReference?.booksAndChaptersAndVerses, let verses = bacv[book]?[chapter] {
+//        if let bacv = scriptureReference?.booksChaptersVerses, let verses = bacv[book]?[chapter] {
 //            versesForChapter = verses
 //        }
 //
@@ -2864,14 +2864,14 @@ class MediaItem : NSObject
 //    {
 //        var chaptersAndVerses = [Int:[Int]]()
 //
-//        if let bacv = scriptureReference?.booksAndChaptersAndVerses, let cav = bacv[book] {
+//        if let bacv = scriptureReference?.booksChaptersVerses, let cav = bacv[book] {
 //            chaptersAndVerses = cav
 //        }
 //
 //        return chaptersAndVerses
 //    }
     
-//    func booksAndChaptersAndVerses() -> BooksChaptersVerses?
+//    func booksChaptersVerses() -> BooksChaptersVerses?
 //    {
 //        // PUT THIS BACK LATER
 //        if self.booksChaptersVerses != nil {
@@ -2890,7 +2890,7 @@ class MediaItem : NSObject
 //            return nil
 //        }
 //
-//        let booksAndChaptersAndVerses = BooksChaptersVerses()
+//        let booksChaptersVerses = BooksChaptersVerses()
 //
 ////        let separator = ";"
 ////        let scriptures = scriptureReference.components(separatedBy: separator)
@@ -2983,11 +2983,11 @@ class MediaItem : NSObject
 ////                } while bk.count > 2
 //
 //                // What if a reference includes the book more than once?
-//                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
+//                booksChaptersVerses[book] = reference?.chaptersAndVerses(book)
 //
-//                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+//                if let chapters = booksChaptersVerses[book]?.keys {
 //                    for chapter in chapters {
-//                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+//                        if booksChaptersVerses[book]?[chapter] == nil {
 //                            print(description,book,chapter)
 //                        }
 //                    }
@@ -2995,7 +2995,7 @@ class MediaItem : NSObject
 //            }
 //        }
 //
-//        self.booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+//        self.booksChaptersVerses = booksChaptersVerses.data?.count > 0 ? booksChaptersVerses : nil
 //
 //        return self.booksChaptersVerses
 //    }

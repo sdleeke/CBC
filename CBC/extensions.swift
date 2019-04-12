@@ -194,8 +194,8 @@ extension Array where Element == MediaItem
         var list:[MediaItem]?
         
         list = self.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-            let firstBooksChaptersVerses   = first.scripture?.booksChaptersVerses?.bookChaptersVerses(book: book)
-            let secondBooksChaptersVerses  = second.scripture?.booksChaptersVerses?.bookChaptersVerses(book: book)
+            let firstBooksChaptersVerses   = first.scripture?.booksChaptersVerses?.copy(for: book)
+            let secondBooksChaptersVerses  = second.scripture?.booksChaptersVerses?.copy(for: book)
             
             if firstBooksChaptersVerses == secondBooksChaptersVerses {
                 if let firstDate = first.fullDate, let secondDate = second.fullDate {
@@ -1184,7 +1184,6 @@ extension String
 
     var booksChaptersVerses : BooksChaptersVerses?
     {
-        // PUT THIS BACK LATER
 //        if self.booksChaptersVerses != nil {
 //            return self.booksChaptersVerses
 //        }
@@ -1203,7 +1202,7 @@ extension String
             return nil
         }
         
-        let booksAndChaptersAndVerses = BooksChaptersVerses()
+        let booksChaptersVerses = BooksChaptersVerses()
         
         //        let separator = ";"
         //        let scriptures = scriptureReference.components(separatedBy: separator)
@@ -1296,11 +1295,11 @@ extension String
                 //                } while bk.count > 2
                 
                 // What if a reference includes the book more than once?
-                booksAndChaptersAndVerses[book] = reference?.chaptersAndVerses(book)
+                booksChaptersVerses[book] = reference?.chaptersAndVerses(book)
                 
-                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                if let chapters = booksChaptersVerses[book]?.keys {
                     for chapter in chapters {
-                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                        if booksChaptersVerses[book]?[chapter] == nil {
                             print(description,book,chapter)
                         }
                     }
@@ -1308,7 +1307,7 @@ extension String
             }
         }
         
-        return booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+        return booksChaptersVerses.count > 0 ? booksChaptersVerses : nil
     }
     
     func chapters(_ thisBook:String) -> [Int]?

@@ -473,13 +473,13 @@ class ScripturePickerViewController : UIViewController
 //        setupBarButtons()
         
         if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
-            if let books = scripture?.booksChaptersVerses?.data?.keys.sorted(by: { scripture?.reference?.range(of: $0)?.lowerBound < scripture?.reference?.range(of: $1)?.lowerBound }) {
+            if let books = scripture?.booksChaptersVerses?.books?.sorted(by: { scripture?.reference?.range(of: $0)?.lowerBound < scripture?.reference?.range(of: $1)?.lowerBound }) {
                 let book = books[0]
                 
                 scripture?.selected.testament = book.testament.translateTestament
                 scripture?.selected.book = book
                 
-                if let chapters = scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
+                if let chapters = scripture?.booksChaptersVerses?[book]?.keys.sorted() {
                     scripture?.selected.chapter = chapters[0]
                 }
             }

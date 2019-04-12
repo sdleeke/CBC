@@ -11,14 +11,31 @@ import Foundation
 class BooksChaptersVerses : Swift.Comparable
 {
     // Make thread safe?
-    var data:[String:[Int:[Int]]]?
+    private var data:[String:[Int:[Int]]]?
     {
         didSet {
             
         }
     }
     
-    func bookChaptersVerses(book:String?) -> BooksChaptersVerses?
+    var count : Int?
+    {
+        get {
+            return data?.count
+        }
+    }
+    
+    var books : [String]?
+    {
+        get {
+            guard let keys = data?.keys else {
+                return nil
+            }
+            return Array(keys)
+        }
+    }
+    
+    func copy(for book:String?) -> BooksChaptersVerses?
     {
         guard let book = book else {
             return self
@@ -26,7 +43,7 @@ class BooksChaptersVerses : Swift.Comparable
         
         let bcv = BooksChaptersVerses()
         
-        bcv[book] = data?[book]
+        bcv[book] = self[book]
         
         return bcv
     }

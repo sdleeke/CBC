@@ -366,7 +366,7 @@ class Scripture : NSObject
 //            return
 //        }
 //
-//        let booksAndChaptersAndVerses = BooksChaptersVerses()
+//        let booksChaptersVerses = BooksChaptersVerses()
 //
 ////        var scriptures = [String]()
 //
@@ -460,24 +460,24 @@ class Scripture : NSObject
 //                // What if a reference includes the book more than once?
 //
 //                if let chaptersAndVerses = reference?.chaptersAndVerses(book) {
-//                    if let _ = booksAndChaptersAndVerses[book] {
+//                    if let _ = booksChaptersVerses[book] {
 //                        for key in chaptersAndVerses.keys {
 //                            if let verses = chaptersAndVerses[key] {
-//                                if let _ = booksAndChaptersAndVerses[book]?[key] {
-//                                    booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
+//                                if let _ = booksChaptersVerses[book]?[key] {
+//                                    booksChaptersVerses[book]?[key]?.append(contentsOf: verses)
 //                                } else {
-//                                    booksAndChaptersAndVerses[book]?[key] = verses
+//                                    booksChaptersVerses[book]?[key] = verses
 //                                }
 //                            }
 //                        }
 //                    } else {
-//                        booksAndChaptersAndVerses[book] = chaptersAndVerses
+//                        booksChaptersVerses[book] = chaptersAndVerses
 //                    }
 //                }
 //
-//                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+//                if let chapters = booksChaptersVerses[book]?.keys {
 //                    for chapter in chapters {
-//                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+//                        if booksChaptersVerses[book]?[chapter] == nil {
 //                            print(description,book,chapter)
 //                        }
 //                    }
@@ -485,7 +485,7 @@ class Scripture : NSObject
 //            }
 //        }
 //
-//        booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+//        booksChaptersVerses = booksChaptersVerses.data?.count > 0 ? booksChaptersVerses : nil
 //    }
     
     func loadHTMLVerseFromURL() -> String?
@@ -792,9 +792,9 @@ class Scripture : NSObject
         
         //        print(books)
         
-        guard let data = booksChaptersVerses?.data else {
-            return
-        }
+//        guard let data = booksChaptersVerses?.data else {
+//            return
+//        }
         
         //        print(data)
         
@@ -803,7 +803,7 @@ class Scripture : NSObject
         var fums:String?
         
         for book in books {
-            if let chapters = data[book]?.keys.sorted(by: { (first:Int, second:Int) -> Bool in
+            if let chapters = booksChaptersVerses?[book]?.keys.sorted(by: { (first:Int, second:Int) -> Bool in
                 if let left = reference?.range(of: "\(first):")?.lowerBound, let right = reference?.range(of: "\(second):")?.lowerBound {
                     return left < right
                 } else {
@@ -815,7 +815,7 @@ class Scripture : NSObject
                     
                     scriptureReference = scriptureReference + " \(chapter)"
                     
-                    if let verses = data[book]?[chapter] {
+                    if let verses = booksChaptersVerses?[book]?[chapter] {
                         scriptureReference = scriptureReference + ":"
                         
                         var lastVerse = 0

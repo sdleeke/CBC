@@ -269,7 +269,7 @@ class ScriptureIndex
                     }
                     
                     let booksChaptersVerses = mediaItem.scripture?.booksChaptersVerses
-                    if let books = booksChaptersVerses?.data?.keys {
+                    if let books = booksChaptersVerses?.books {
                         for book in books {
                             if Globals.shared.isRefreshing || Globals.shared.isLoading {
                                 break
