@@ -15,9 +15,9 @@ class Section
     var sorting = false
     {
         didSet {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.tableView)
-            }
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.tableView)
+//            }
         }
     }
     

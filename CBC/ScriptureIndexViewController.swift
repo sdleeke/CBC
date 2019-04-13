@@ -1071,11 +1071,11 @@ class ScriptureIndexViewController : UIViewController
     
     func addNotifications()
     {
-        Globals.shared.queue.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
-        }
+//        Globals.shared.queue.async {
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
+//        }
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -1084,6 +1084,16 @@ class ScriptureIndexViewController : UIViewController
         
         addNotifications()
         
+        scriptureIndex?.start = {
+            self.started()
+        }
+        scriptureIndex?.update = {
+            self.updated()
+        }
+        scriptureIndex?.complete = {
+            self.completed()
+        }
+
         navigationItem.hidesBackButton = false
         
         navigationController?.isToolbarHidden = true
@@ -1101,6 +1111,10 @@ class ScriptureIndexViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
+        scriptureIndex?.start = nil
+        scriptureIndex?.update = nil
+        scriptureIndex?.complete = nil
+
         NotificationCenter.default.removeObserver(self)
     }
     

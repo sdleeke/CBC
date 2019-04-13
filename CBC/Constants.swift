@@ -206,15 +206,15 @@ enum Constants {
         static let UPDATE_DOWNLOAD          = "UPDATE DOWNLOAD"
         static let CANCEL_DOWNLOAD          = "CANCEL DOWNLOAD"
         
-        static let LEXICON_STARTED          = "LEXICON STARTED"
-        static let LEXICON_UPDATED          = "LEXICON UPDATED"
-        static let LEXICON_COMPLETED        = "LEXICON COMPLETED"
+//        static let LEXICON_STARTED          = "LEXICON STARTED"
+//        static let LEXICON_UPDATED          = "LEXICON UPDATED"
+//        static let LEXICON_COMPLETED        = "LEXICON COMPLETED"
 
-        static let STRING_TREE_UPDATED      = "STRING TREE UPDATED"
+//        static let STRING_TREE_UPDATED      = "STRING TREE UPDATED"
 
-        static let SCRIPTURE_INDEX_STARTED          = "SCRIPTURE_INDEX STARTED"
-        static let SCRIPTURE_INDEX_UPDATED          = "SCRIPTURE_INDEX UPDATED"
-        static let SCRIPTURE_INDEX_COMPLETED        = "SCRIPTURE_INDEX COMPLETED"
+//        static let SCRIPTURE_INDEX_STARTED          = "SCRIPTURE_INDEX STARTED"
+//        static let SCRIPTURE_INDEX_UPDATED          = "SCRIPTURE_INDEX UPDATED"
+//        static let SCRIPTURE_INDEX_COMPLETED        = "SCRIPTURE_INDEX COMPLETED"
         
         static let UPDATE_PLAY_PAUSE        = "UPDATE PLAY PAUSE"
         

@@ -63,9 +63,9 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         default:
             for i in 0..<component {
                 if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                    pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
+                    pickerSelections.value?[i] = pickerSelections.value?[i] != nil ? pickerSelections.value?[i] : 0
                     
-                    if let selection = pickerSelections[i] {
+                    if let selection = pickerSelections.value?[i] {
                         if selection < stringNodes.count {
                             stringNode = stringNodes[selection]
                         }
@@ -124,9 +124,9 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         default:
             for i in 0..<component {
                 if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                    pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
+                    pickerSelections.value?[i] = pickerSelections.value?[i] != nil ? pickerSelections.value?[i] : 0
                     
-                    if let selection = pickerSelections[i] {
+                    if let selection = pickerSelections.value?[i] {
                         if selection < stringNodes.count {
                             stringNode = stringNodes[selection]
                         }
@@ -195,9 +195,9 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         default:
             for i in 0..<component {
                 if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                    pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
+                    pickerSelections.value?[i] = pickerSelections.value?[i] != nil ? pickerSelections.value?[i] : 0
                     
-                    if let selection = pickerSelections[i] {
+                    if let selection = pickerSelections.value?[i] {
                         if selection < stringNodes.count {
                             stringNode = stringNodes[selection]
                         }
@@ -228,7 +228,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             return 0
         }
         
-        if  component < pickerSelections.count, let index = pickerSelections[component], index < stringNode?.stringNodes?.count,
+        if  component < pickerSelections.value?.count, let index = pickerSelections.value?[component], index < stringNode?.stringNodes?.count,
             let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
             return width + 20
         } else {
@@ -258,12 +258,12 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             return
         }
         
-        pickerSelections[component] = row
+        pickerSelections.value?[component] = row
         
         var wheel = component+1
         
-        while wheel < pickerSelections.count {
-            pickerSelections[wheel] = 0
+        while wheel < pickerSelections.value?.count {
+            pickerSelections.value?[wheel] = 0
             wheel += 1
         }
 
@@ -401,8 +401,12 @@ class PopoverPickerViewController : UIViewController
     
     var action : ((String?)->())?
     var actionTitle : String?
-
-    var pickerSelections = [Int:Int]()
+    
+    lazy var pickerSelections : ThreadSafe<[Int:Int]> = {
+        let ps = ThreadSafe<[Int:Int]>()
+        ps.value = [Int:Int]()
+        return ps
+    }()
     
     var stringsFunction:(()->[String]?)?
     var strings:[String]?
@@ -853,9 +857,13 @@ class PopoverPickerViewController : UIViewController
                 spinner.startAnimating()
             }
 
-            Globals.shared.queue.async {
-                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
+            stringTree?.update = {
+                self.updated()
             }
+            
+//            Globals.shared.queue.async {
+//                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
+//            }
         }
         
         if let string = string, let index = strings?.firstIndex(of:string), picker.numberOfComponents == 1 {
@@ -941,6 +949,10 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
+        stringTree?.start = nil
+        stringTree?.update = nil
+        stringTree?.complete = nil
+
         if Alerts.shared.topViewController.last == navigationController {
             Alerts.shared.topViewController.removeLast()
         }
@@ -994,15 +1006,15 @@ class PopoverPickerViewController : UIViewController
         
         while stringNode != nil {
             if stringNode?.stringNodes == nil {
-                pickerSelections[i] = nil
+                pickerSelections.value?[i] = nil
                 stringNode = nil
             } else
                 
-            if let count = stringNode?.stringNodes?.count, pickerSelections[i] >= count {
-                pickerSelections[i] = 0
+            if let count = stringNode?.stringNodes?.count, pickerSelections.value?[i] >= count {
+                pickerSelections.value?[i] = 0
                 stringNode = stringNode?.stringNodes?[0]
             } else {
-                if let index = pickerSelections[i] {
+                if let index = pickerSelections.value?[i] {
                     stringNode = stringNode?.stringNodes?[index]
                 } else {
                     stringNode = nil
@@ -1016,7 +1028,7 @@ class PopoverPickerViewController : UIViewController
         
         Thread.onMainThread {
             while index < self.picker.numberOfComponents {
-                self.pickerSelections[index] = nil
+                self.pickerSelections.value?[index] = nil
                 index += 1
             }
             
@@ -1032,8 +1044,8 @@ class PopoverPickerViewController : UIViewController
         
         var i = 0
         
-        while i < pickerSelections.count, pickerSelections[i] != nil {
-            if i < pickerSelections.count, let selection = pickerSelections[i] {
+        while i < pickerSelections.value?.count, pickerSelections.value?[i] != nil {
+            if i < pickerSelections.value?.count, let selection = pickerSelections.value?[i] {
                 if let stringNodes = stringNode?.stringNodes {
                     if selection < stringNodes.count {
                         let node = stringNodes.sorted(by: { $0.string < $1.string })[selection]
@@ -1066,8 +1078,8 @@ class PopoverPickerViewController : UIViewController
 
             var i = 0
             
-            while i < self.picker.numberOfComponents, i < self.pickerSelections.count, self.pickerSelections[i] != nil {
-                if let row = self.pickerSelections[i] {
+            while i < self.picker.numberOfComponents, i < self.pickerSelections.value?.count, self.pickerSelections.value?[i] != nil {
+                if let row = self.pickerSelections.value?[i] {
                     self.picker.selectRow(row,inComponent: i, animated: true)
                 }
                 

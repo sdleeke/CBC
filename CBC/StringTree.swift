@@ -17,6 +17,10 @@ import Foundation
 
 class StringTree
 {
+    var start : (()->())?
+    var update : (()->())?
+    var complete : (()->())?
+    
     lazy var root:StringNode! = { [weak self] in
         return StringNode(nil)
     }()
@@ -122,10 +126,11 @@ class StringTree
                 for string in strings {
                     self?.root.addString(string)
                     
-                    if (date == nil) || (date?.timeIntervalSinceNow <= -1) { // Any more frequent and the UI becomes unresponsive.
-                        Globals.shared.queue.async {
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-                        }
+                    if (date == nil) || (date?.timeIntervalSinceNow <= -3) { // Any more frequent and the UI becomes unresponsive.
+                        self?.update?()
+//                        Globals.shared.queue.async {
+//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+//                        }
                         
                         date = Date()
                     }
@@ -134,9 +139,10 @@ class StringTree
                 self?.building = false
                 self?.completed = true
                 
-                Globals.shared.queue.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-                }
+                self?.update?()
+//                Globals.shared.queue.async {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+//                }
             }
         } else {
             // This blocks

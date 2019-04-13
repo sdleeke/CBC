@@ -12,6 +12,10 @@ class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
+    var start : (()->())?
+    var update : (()->())?
+    var complete : (()->())?
+
     var selected:String?
     
     init(_ mediaListGroupSort:MediaListGroupSort?)
@@ -379,12 +383,12 @@ class Lexicon : NSObject
         }
     }
 
-    func update()
-    {
-        Globals.shared.queue.async {
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-        }
-    }
+//    func update()
+//    {
+//        Globals.shared.queue.async {
+//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+//        }
+//    }
     
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -445,9 +449,11 @@ class Lexicon : NSObject
             
             var date = Date()
             
-            Globals.shared.queue.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
-            }
+//            Globals.shared.queue.async {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
+//            }
+
+            self?.start?()
             
             repeat {
                 guard let mediaItem = list.first else { // One chance to load tokens per media item
@@ -518,7 +524,7 @@ class Lexicon : NSObject
 //                self?.update()
 
                 if firstUpdate || (date.timeIntervalSinceNow <= -5) {
-                    self?.update()
+                    self?.update?()
 
                     date = Date()
 
@@ -542,17 +548,19 @@ class Lexicon : NSObject
                 return
             }
 
-            self?.update()
+//            self?.update?()
             
             self?.creating = false
             
             if !Globals.shared.isRefreshing && !Globals.shared.isLoading {
                 self?.completed = true
             }
+
+//            Globals.shared.queue.async {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
+//            }
             
-            Globals.shared.queue.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
-            }
+            self?.complete?()
         }
 
         operationQueue.addOperation(operation)

@@ -717,7 +717,7 @@ class LexiconIndexViewController : UIViewController
     {
         guard let searchText = searchText else {
             results = nil
-            Thread.onMainThread {
+            Thread.onMainThreadSync {
                 self.tableView.reloadData()
                 self.updateUI()
             }
@@ -729,7 +729,7 @@ class LexiconIndexViewController : UIViewController
             return mediaItemFrequency.key
         }))
         
-        Thread.onMainThread {
+        Thread.onMainThreadSync {
             if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
@@ -1004,30 +1004,52 @@ class LexiconIndexViewController : UIViewController
             return
         }
 
-        Globals.shared.queue.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
-
-            NotificationCenter.default.addObserver(self, selector: #selector(self.sortingChanged), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.wordsTableViewController)
-        }
+//        Globals.shared.queue.async {
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
+////
+////            NotificationCenter.default.addObserver(self, selector: #selector(self.sortingChanged), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.wordsTableViewController)
+//        }
     }
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
 
+        lexicon?.start = {
+            self.started()
+        }
+        lexicon?.update = {
+            self.updated()
+        }
+        lexicon?.complete = {
+            self.completed()
+        }
+
         addNotifications()
         
         navigationItem.hidesBackButton = false
-        
-        if  let count = lexicon?.entries?.count,
-            let total = lexicon?.eligible?.count {
-            self.navigationItem.title = "Lexicon Index \(count) of \(total)"
+
+        DispatchQueue.global(qos: .userInteractive).async {
+            // entries property is computationally expensive
+            // eligible property is computationally expensive if not cached in shadow.
+            if let count = self.lexicon?.entries?.count,
+                let total = self.lexicon?.eligible?.count {
+                Thread.onMainThread {
+                    self.navigationItem.title = "Lexicon Index \(count) of \(total)"
+                }
+            }
         }
 
         wordsTableViewController.selectedText = searchText
-
+        
+        wordsTableViewController.section.stringsAction = { (strings:[String]?) in
+            Thread.onMainThread {
+                self.updateActionMenu()
+            }
+        }
+        
         updateSearchResults()
     }
     
@@ -1042,15 +1064,16 @@ class LexiconIndexViewController : UIViewController
         
         // Necessary to get the token word list to extend fully.
         setTableViewHeightConstraint(change:0)
-        
-        // must be done after PTVC is loaded
-        updateActionMenu()
     }
-    
+
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
         
+        lexicon?.start = nil
+        lexicon?.update = nil
+        lexicon?.complete = nil
+
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -1550,7 +1573,7 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-        operationQueue.addOperation {
+//        operationQueue.addOperation {
             // Need to block while waiting for the tableView to be hidden.
             Thread.onMainThreadSync {
                 self.wordsTableViewController.segmentedControl.isEnabled = false
@@ -1563,38 +1586,40 @@ class LexiconIndexViewController : UIViewController
             
             self.wordsTableViewController.updateSearchResults()
             
-            Thread.onMainThread {
+            Thread.onMainThreadSync {
                 self.wordsTableViewController.tableView.reloadData()
 //                self.wordsTableViewController.tableView.isHidden = false
+            }
+        
+            self.updateSearchResults()
                 
-                self.updateSearchResults()
-                
+            Thread.onMainThreadSync {
                 self.wordsTableViewController.segmentedControl.isEnabled = true
 
                 self.wordsTableViewController.section.sorting = false
             }
             
             // Why?
-            if self.operationQueue.operationCount > 1 {
-                Thread.sleep(forTimeInterval: 5) // Does this block since maxConcurrent is 1?
-            }
-        }
+//            if self.operationQueue.operationCount > 1 {
+//                Thread.sleep(forTimeInterval: 5) // Does this block since maxConcurrent is 1?
+//            }
+//        }
     }
     
     @objc func completed()
     {
-        if self.operationQueue.operationCount > 0 {
-            operationQueue.cancelAllOperations()
-//            operationQueue.waitUntilAllOperationsAreFinished()
-        }
+//        if self.operationQueue.operationCount > 0 {
+//            operationQueue.cancelAllOperations()
+////            operationQueue.waitUntilAllOperationsAreFinished()
+//        }
         
         updated()
         
-        operationQueue.addOperation {
+//        operationQueue.addOperation {
             Thread.onMainThread {
                 self.wordsTableViewController.activityIndicator.stopAnimating()
             }
-        }
+//        }
     }
     
     @objc func index(_ object:AnyObject?)

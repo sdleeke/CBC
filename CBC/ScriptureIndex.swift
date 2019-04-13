@@ -10,6 +10,10 @@ import Foundation
 
 class ScriptureIndex
 {
+    var start : (()->())?
+    var update : (()->())?
+    var complete : (()->())?
+    
     var creating : Bool // = false
     {
         get {
@@ -237,9 +241,10 @@ class ScriptureIndex
     func build()
     {
         guard !completed else {
-            Globals.shared.queue.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-            }
+            complete?()
+//            Globals.shared.queue.async {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
+//            }
             return
         }
         
@@ -255,9 +260,10 @@ class ScriptureIndex
 //            self?.creating = true
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
-                Globals.shared.queue.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
-                }
+                self?.start?()
+//                Globals.shared.queue.async {
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
+//                }
                 
                 for mediaItem in mediaList {
                     if Globals.shared.isRefreshing || Globals.shared.isLoading {
@@ -383,9 +389,10 @@ class ScriptureIndex
                 }
             }
             
-            Globals.shared.queue.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-            }
+            self?.complete?()
+//            Globals.shared.queue.async {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
+//            }
             
 //            let end = Date().timeIntervalSince1970
 //

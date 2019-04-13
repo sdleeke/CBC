@@ -173,33 +173,35 @@ class OnNilGet<T>
     }
 }
 
-class Sync<T>
-{
-    lazy var queue : DispatchQueue = { [weak self] in
-        return DispatchQueue(label: UUID().uuidString)
-    }()
-    
-    private var _value:T?
-    {
-        didSet {
-            
-        }
-    }
-    
-    var value:T?
-    {
-        set {
-            queue.sync {
-                _value = newValue
-            }
-        }
-        get {
-            return queue.sync {
-                return _value
-            }
-        }
-    }
-}
+// Duplicate of ThreadSafe<T>
+//
+//class Sync<T>
+//{
+//    lazy var queue : DispatchQueue = { [weak self] in
+//        return DispatchQueue(label: UUID().uuidString)
+//    }()
+//
+//    private var _value:T?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//
+//    var value:T?
+//    {
+//        get {
+//            return queue.sync {
+//                return _value
+//            }
+//        }
+//        set {
+//            queue.sync {
+//                _value = newValue
+//            }
+//        }
+//    }
+//}
 
 class Setting<T>
 {
@@ -504,6 +506,30 @@ class BoundsCheckedArray<T>
             
             if key == storage.count {
                 storage.append(newValue)
+            }
+        }
+    }
+}
+
+class ThreadSafe<T>
+{
+    // Make it thread safe
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+
+    var _value : T?
+    
+    var value : T?
+    {
+        get {
+            return queue.sync {
+                return _value
+            }
+        }
+        set {
+            queue.sync {
+                _value = newValue
             }
         }
     }
