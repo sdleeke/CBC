@@ -533,6 +533,11 @@ class ThreadSafe<T>
             }
         }
     }
+    
+    init(_ value:(()->(T))? = nil)
+    {
+        self.value = value?()
+    }
 }
 
 class ThreadSafeArray<T>

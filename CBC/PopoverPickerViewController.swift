@@ -402,11 +402,9 @@ class PopoverPickerViewController : UIViewController
     var action : ((String?)->())?
     var actionTitle : String?
     
-    lazy var pickerSelections : ThreadSafe<[Int:Int]> = {
-        let ps = ThreadSafe<[Int:Int]>()
-        ps.value = [Int:Int]()
-        return ps
-    }()
+    var pickerSelections = ThreadSafe<[Int:Int]>() {
+        return [Int:Int]()
+    }
     
     var stringsFunction:(()->[String]?)?
     var strings:[String]?
@@ -933,6 +931,8 @@ class PopoverPickerViewController : UIViewController
         string = wordFromPicker()
         
         delegate?.stringPicked(string,purpose:purpose)
+
+        dismiss(animated: false, completion: nil)
     }
     
     @objc func doAction()
