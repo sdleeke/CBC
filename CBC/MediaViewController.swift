@@ -2552,7 +2552,8 @@ class MediaViewController: UIViewController
         if let state = selectedMediaItem.audioDownload?.state {
             switch state {
             case .none:
-                if (self.mediaItems?.audioDownloads > 1) {
+                
+                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaItems?.audioDownloading > 0) {
@@ -2564,7 +2565,7 @@ class MediaViewController: UIViewController
                 break
                 
             case .downloading:
-                if (self.mediaItems?.audioDownloads > 0) {
+                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaItems?.audioDownloading > 1) {
@@ -2576,7 +2577,7 @@ class MediaViewController: UIViewController
                 break
                 
             case .downloaded:
-                if (self.mediaItems?.audioDownloads > 0) {
+                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaItems?.audioDownloading > 0) {

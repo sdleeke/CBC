@@ -460,6 +460,13 @@ class MediaList // : Sequence
         }).count
     }
     
+    func downloadingAll(name:String) -> Bool
+    {
+        return mediaQueue.operations.filter({ (operation:Operation) -> Bool in
+            return (operation as? CancelableOperation)?.tag == Constants.Strings.Download_All + Constants.SINGLE_SPACE + name
+        }).count > 0
+    }
+    
     var audioDownloads : Int?
     {
         get {
@@ -884,6 +891,8 @@ class MediaList // : Sequence
             
             mediaQueue.addOperation(operation)
         }
+        
+        monitorOperation.tag = Constants.Strings.Download_All + Constants.SINGLE_SPACE + name
         
         mediaQueue.addOperation(monitorOperation)
     }
