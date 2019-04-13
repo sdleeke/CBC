@@ -248,7 +248,7 @@ class Section
             }
             
             // Assumption is that strings are a strict superset
-            guard newStrings.count >= strings?.count else {
+            guard newStrings.count > strings?.count else {
                 return
             }
             

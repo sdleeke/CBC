@@ -1042,7 +1042,7 @@ class VoiceBase
     {
         get {
             if let id = mediaItem?.id, let purpose = purpose {
-                return id + ".\(purpose).transcript"
+                return id + "." + purpose + Constants.FILENAME_EXTENSION.transcript
             } else {
                 return nil
             }
@@ -1053,7 +1053,7 @@ class VoiceBase
     {
         get {
             if let id = mediaItem?.id, let purpose = purpose {
-                return id + ".\(purpose)"
+                return id + "." + purpose
             } else {
                 return nil
             }
@@ -1619,7 +1619,7 @@ class VoiceBase
                 return
             }
 
-            guard let destinationURL = "\(filename).media".fileSystemURL else {
+            guard let destinationURL = (filename + Constants.FILENAME_EXTENSION.media).fileSystemURL else {
                 print("failed to get destinationURL")
                 return
             }
@@ -3649,7 +3649,7 @@ class VoiceBase
             }
 
             //Legacy
-            _transcriptSegments = "\(filename).srt".fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
+            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
             
 //            if let url = "\(filename).srt".fileSystemURL {
 //                do {
@@ -3664,7 +3664,7 @@ class VoiceBase
 //                }
 //            }
 
-            _transcriptSegments = "\(filename).segments".fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
+            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
             
 //            if let url = "\(filename).segments".fileSystemURL {
 //                do {
@@ -3742,7 +3742,7 @@ class VoiceBase
 //                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
 //                        let filename = filename + ".segments"
 //                        filename.fileSystemURL?.delete(block:true)
-                    self?._transcriptSegments?.save16(filename:filename + ".segments") // Keep in mind that this is being saved in the cache folder where it could disappear.
+                    self?._transcriptSegments?.save16(filename:filename + Constants.FILENAME_EXTENSION.segments) // Keep in mind that this is being saved in the cache folder where it could disappear.
 //                        do {
 //                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
 //                        } catch let error {
@@ -3760,7 +3760,7 @@ class VoiceBase
 ////                        print("failed to get destinationURL")
 ////                    }
                 } else {
-                    (filename + ".segments").fileSystemURL?.delete(block:true)
+                    (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.delete(block:true)
 //                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
 //                        destinationURL.delete(block:true)
 //                    } else {
@@ -3777,7 +3777,7 @@ class VoiceBase
                 }
 
                 //Legacy clean-up
-                (filename + ".srt").fileSystemURL?.delete(block:true)
+                (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.delete(block:true)
 //                if let filename = self?.filename {
 //                    (filename + ".srt").fileSystemURL?.delete(block:true)
 //                } else {

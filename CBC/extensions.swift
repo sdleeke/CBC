@@ -4953,6 +4953,17 @@ extension String
 
 extension String
 {
+    func isFileType(_ fileType:String) -> Bool
+    {
+        let file = self
+        
+        if let range = file.range(of: fileType), file[range.lowerBound...] == fileType {
+            return true
+        } else {
+            return false
+        }
+    }
+    
     var url : URL?
     {
         get {

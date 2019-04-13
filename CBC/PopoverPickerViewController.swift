@@ -362,7 +362,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
             default:
                 if string == actionTitle {
-                    dismiss(animated: true) {
+                    popover?.dismiss(animated: true) {
                         self.action?(string)
                     }
                 }

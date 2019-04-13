@@ -51,17 +51,39 @@ class SettingsViewController: UIViewController
                 self?.cacheSizeLabel.text = "Updating..."
             }
             
+            guard let cachesURL = FileManager.default.cachesURL else {
+                return
+            }
+            
+            // Really should delete anything that matches what comes before "." in lastPathComponent,
+            // which in this case is id (which is mediaCode)
+            // BUT all we're doing is looking for files that START with id, lots more could follow, not just "."
+            
+
             // This really should be looking at what is in the directory as well.
             // E.g. what if a sermon is no longer in the list but its slides or notes
             // were downloaded previously?
-            Globals.shared.mediaRepository.clearCache(block:false)
             
-            //                if let mediaItems = Globals.shared.mediaRepository.list {
-            //                    for mediaItem in mediaItems {
-            //                        mediaItem.clearCache()
-            //                    }
-            //                }
-            
+            // Too slow
+//            Globals.shared.mediaRepository.clearCache(block:false)
+
+            try? autoreleasepool {
+                let files = try FileManager.default.contentsOfDirectory(atPath: cachesURL.path)
+
+                // It would be safer if our filenames had the APP_ID in them or we had our own folder in the caches directory
+                // If some other app has files w/ these filename extensions (really just filenames that end with these strings)
+                // in the cache, we will be deleting them.
+                for file in files {
+                    for fileType in Constants.cacheFileTypes {
+                        if file.isFileType(fileType) {
+                            var fileURL = cachesURL
+                            fileURL.appendPathComponent(file)
+                            fileURL.delete(block: true)
+                        }
+                    }
+                }
+            }
+
             self?.updateCacheSize(sender)
         }
     }

@@ -564,8 +564,12 @@ class CloudViewController: UIViewController
                     return "\(word) (\(count))"
                 })
 
+                self?.wordsTableViewController.section.sorting = true
+                
                 self?.wordsTableViewController.section.strings = self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method,self?.wordsTableViewController.section.strings)
 
+                self?.wordsTableViewController.section.sorting = false
+                
                 return nil
             }, completion: { [weak self] (data:Any?) in
                 self?.cancelAndRelayoutCloudWords()
@@ -732,7 +736,9 @@ class CloudViewController: UIViewController
                     }
                     wordsTableViewController.segments = true
                     
-                    wordsTableViewController.section.function = sort
+                    wordsTableViewController.section.function = { (method:String?,strings:[String]?) in
+                        return strings?.sort(method: method)
+                    }
                     
                     var segmentActions = [SegmentAction]()
                     

@@ -3425,7 +3425,7 @@ func debug(_ any:Any...)
 //                }
 //            }
 //            
-//            if let title = mediaItem.title, let slidesURLString = mediaItem.slidesURLString, let slidesURL = mediaItem.slidesURL {
+//            if let title = mediaItem.title, let slidesURLString = mediaItem.slides.urlString, let slidesURL = mediaItem.slides.url {
 //                if ((try? Data(contentsOf: slidesURL)) == nil) {
 //                    print("Slides DO NOT exist for: \(title) PDF: \(slidesURLString)")
 //                } else {
@@ -3461,7 +3461,7 @@ func debug(_ any:Any...)
 //                    }
 //                }
 //                
-//                if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slidesURL {
+//                if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slides.url {
 //                    if ((try? Data(contentsOf: slidesURL)) != nil) {
 //                        print("Slides DO exist for: \(title) ID: \(id)")
 //                    } else {
@@ -3726,10 +3726,10 @@ func debug(_ any:Any...)
 //}
 
 //Needed as popover sort function
-func sort(method:String?,strings:[String]?) -> [String]?
-{
-    return strings?.sort(method: method)
-}
+//func sort(method:String?,strings:[String]?) -> [String]?
+//{
+//    return strings?.sort(method: method)
+//}
 
 //Needed as popover sort function
 //func sort(method:String?,strings:[String]?) -> [String]?

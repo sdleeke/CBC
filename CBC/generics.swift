@@ -1524,10 +1524,24 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
         fileSystemURL?.delete(block:block)
     }
     
+//    @objc func clearCache()
+//    {
+//        fileSize = nil
+//        fileSystemURL?.delete(block:true)
+//    }
+//
+//    deinit {
+//
+//    }
+    
     // name MUST be unique to ever INSTANCE, not just the class!
     override init(name: String?, fetch: (() -> (T?))? = nil)
     {
         super.init(name: name, fetch: fetch)
+
+//        Globals.shared.queue.async {
+//            NotificationCenter.default.addObserver(self, selector: #selector(self.clearCache), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+//        }
 
         store = { [weak self] (t:T?) in
             guard Globals.shared.cacheDownloads else {

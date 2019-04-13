@@ -390,6 +390,10 @@ class MediaItem : NSObject
     
     func clearCache(block:Bool)
     {
+        guard let id = id else {
+            return
+        }
+        
         guard let cachesURL = FileManager.default.cachesURL else {
             return
         }
@@ -398,31 +402,47 @@ class MediaItem : NSObject
         // which in this case is id (which is mediaCode)
         // BUT all we're doing is looking for files that START with id, lots more could follow, not just "."
   
-        autoreleasepool {
-            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
-                if let audioTranscript = audioTranscript, let filename = audioTranscript.filename, string.range(of: filename) != nil {
-                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
-                    if !audioTranscript.completed {
-                        audioTranscript.fileSystemURL?.delete(block: block)
+        try? autoreleasepool {
+            let files = try FileManager.default.contentsOfDirectory(atPath: cachesURL.path)
+            
+            // It would be safer if our filenames had the APP_ID in them or we had our own folder in the caches directory
+            // If some other app has files w/ these filename extensions (really just filenames that end with these strings)
+            // in the cache, we will be deleting them.
+            for file in files {
+                for fileType in Constants.cacheFileTypes {
+                    // This assumes all filename use a common patter: id + fileType
+                    if file.isFileType(id + fileType) {
+                        var fileURL = cachesURL
+                        fileURL.appendPathComponent(file)
+                        fileURL.delete(block: true)
                     }
-                } else
-                
-                if let videoTranscript = videoTranscript, let filename = videoTranscript.filename, string.range(of: filename) != nil {
-                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
-                    if !videoTranscript.completed {
-                        videoTranscript.fileSystemURL?.delete(block: block)
-                    }
-                } else
-                 
-                if let audioDownload = audioDownload, let filename = audioDownload.fileSystemURL?.lastPathComponent, string.range(of: filename) != nil {
-                    // DO NOT DELETE AUDIO FILES
-                } else {
-                    // DELETE EVERYTHING ELSE.  THIS COULD BE FILES FROM A FETCH VARIABLE.
-                    var fileURL = cachesURL
-                    fileURL.appendPathComponent(string)
-                    fileURL.delete(block: block)
                 }
-            })
+            }
+
+//            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
+//                if let audioTranscript = audioTranscript, let filename = audioTranscript.filename, string.range(of: filename) != nil {
+//                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
+//                    if !audioTranscript.completed {
+//                        audioTranscript.fileSystemURL?.delete(block: block)
+//                    }
+//                } else
+//
+//                if let videoTranscript = videoTranscript, let filename = videoTranscript.filename, string.range(of: filename) != nil {
+//                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
+//                    if !videoTranscript.completed {
+//                        videoTranscript.fileSystemURL?.delete(block: block)
+//                    }
+//                } else
+//
+//                if let audioDownload = audioDownload, let filename = audioDownload.fileSystemURL?.lastPathComponent, string.range(of: filename) != nil {
+//                    // DO NOT DELETE AUDIO FILES
+//                } else {
+//                    // DELETE EVERYTHING ELSE.  THIS COULD BE FILES FROM A FETCH VARIABLE.
+//                    var fileURL = cachesURL
+//                    fileURL.appendPathComponent(string)
+//                    fileURL.delete(block: block)
+//                }
+//            })
         }
         
 //        _ = deleteFilesOfNameInCache(id,block:block)
@@ -593,7 +613,7 @@ class MediaItem : NSObject
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self?.audioURL) // ,fileSystemURL:self.audioFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self?.audio?.url) // ,fileSystemURL:self.audioFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self?.downloads[Purpose.audio] = download
         return download
@@ -606,7 +626,7 @@ class MediaItem : NSObject
             return nil
         }
 
-        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self?.videoURL) // ,fileSystemURL:self.videoFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self?.video?.url) // ,fileSystemURL:self.videoFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self?.downloads[Purpose.video] = download
         return download
@@ -619,7 +639,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self?.slidesURL) // ,fileSystemURL:self.slidesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self?.slides?.url) // ,fileSystemURL:self.slidesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self?.downloads[Purpose.slides] = download
         return download
@@ -632,7 +652,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self?.notesURL) // ,fileSystemURL:self.notesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self?.notes?.url) // ,fileSystemURL:self.notesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self?.downloads[Purpose.notes] = download
         return download
@@ -645,7 +665,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self?.outlineURL) // ,fileSystemURL:self.outlineFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self?.outline?.url) // ,fileSystemURL:self.outlineFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
         self?.downloads[Purpose.outline] = download
         return download
@@ -846,16 +866,16 @@ class MediaItem : NSObject
 
             switch playing {
             case Playing.audio:
-                url = audioURL
-                if let path = audioFileSystemURL?.path, FileManager.default.fileExists(atPath: path) {
-                    url = audioFileSystemURL
+                url = audio?.url
+                if let path = audioFilename?.url?.path, FileManager.default.fileExists(atPath: path) {
+                    url = audioFilename?.url
                 }
                 break
                 
             case Playing.video:
-                url = videoURL
-                if let path = videoFileSystemURL?.path, FileManager.default.fileExists(atPath: path){
-                    url = videoFileSystemURL
+                url = video?.url
+                if let path = videoFilename?.url?.path, FileManager.default.fileExists(atPath: path){
+                    url = videoFilename?.url
                 }
                 break
                 
@@ -1240,6 +1260,17 @@ class MediaItem : NSObject
         }
     }
     
+    var notesHTMLFilename : String?
+    {
+        get {
+            guard let mediaCode = self.mediaCode else {
+                return nil
+            }
+            
+            return mediaCode + Constants.FILENAME_EXTENSION.HTMLTranscript
+        }
+    }
+    
     lazy var notesHTML:FetchCodable<String>? = { [weak self] in
         guard hasNotesHTML else {
             return nil
@@ -1249,7 +1280,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<String>(name: mediaCode + "." + "HTMLTranscript")
+        let fetch = FetchCodable<String>(name: notesHTMLFilename)
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -1279,12 +1310,23 @@ class MediaItem : NSObject
         return fetch
     }()
     
+    var notesTokensMarkMismatchesFilename : String?
+    {
+        get {
+            guard let mediaCode = mediaCode else {
+                return nil
+            }
+            
+            return mediaCode + Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches
+        }
+    }
+
     lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = { [weak self] in
         guard let mediaCode = mediaCode else {
             return nil
         }
         
-        let fetch = FetchCodable<[String]>(name: mediaCode + "." + "NotesTokensMarkMismatches")
+        let fetch = FetchCodable<[String]>(name: notesTokensMarkMismatchesFilename)
 
         fetch.didSet = { (strings:[String]?) in
             guard let strings = strings, strings.count > 0 else {
@@ -1439,6 +1481,17 @@ class MediaItem : NSObject
 //    }
     //////////////////////////////////////////////
 
+    var notesParagraphLengthsFilename : String?
+    {
+        get {
+            guard let mediaCode = mediaCode else {
+                return nil
+            }
+            
+            return mediaCode + Constants.FILENAME_EXTENSION.NotesParagraphLengths
+        }
+    }
+    
     lazy var notesParagraphLengths : FetchCodable<[Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
@@ -1448,7 +1501,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[Int]>(name: mediaCode + "." + "NotesParagraphLengths")
+        let fetch = FetchCodable<[Int]>(name: notesParagraphLengthsFilename)
         
         fetch.fetch = {
             guard let paragraphs = self?.notesParagraphs else {
@@ -1467,6 +1520,17 @@ class MediaItem : NSObject
         return fetch
     }()
     
+    var notesParagraphWordsFilename : String?
+    {
+        get {
+            guard let mediaCode = mediaCode else {
+                return nil
+            }
+            
+            return mediaCode + Constants.FILENAME_EXTENSION.NotesParagraphWords
+        }
+    }
+
     lazy var notesParagraphWords : FetchCodable<[String:Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
@@ -1476,7 +1540,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "NotesParagraphWords")
+        let fetch = FetchCodable<[String:Int]>(name: notesParagraphWordsFilename)
         
         fetch.fetch = {
             guard let paragraphs = self?.notesParagraphs else {
@@ -1553,6 +1617,16 @@ class MediaItem : NSObject
         operationQueue.cancelAllOperations()
     }
     
+    var notesHTMLTokensFilename : String?
+    {
+        get {
+            guard let mediaCode = self.mediaCode else {
+                return nil
+            }
+            return mediaCode + Constants.FILENAME_EXTENSION.NotesHTMLTokens
+        }
+    }
+    
     lazy var notesHTMLTokens : FetchCodable<[String:Int]>? = { [weak self] in
         guard hasNotesText else {
             return nil
@@ -1562,7 +1636,7 @@ class MediaItem : NSObject
             return nil
         }
         
-        let fetch = FetchCodable<[String:Int]>(name: mediaCode + "." + "NotesHTMLTokens")
+        let fetch = FetchCodable<[String:Int]>(name: notesHTMLTokensFilename)
         
         fetch.fetch = {
             guard !Globals.shared.isRefreshing else {
@@ -2272,18 +2346,6 @@ class MediaItem : NSObject
         }
     }
     
-    var audio:String?
-    {
-        
-        get {
-            if (self[Field.audio] == nil) && hasAudio, let year = year, let id = id {
-                self[Field.audio] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.MP3
-            }
-            
-            return self[Field.audio]
-        }
-    }
-    
     var hasPosterImage : Bool
     {
         return posterImageURL != nil
@@ -2401,11 +2463,15 @@ class MediaItem : NSObject
         }
     }
     
-    var notesURLString:String?
+    var notes:String?
     {
         get {
-            if (self[Field.notes] == nil), hasNotes, let year = year, let id = id {
-                self[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.notes + Constants.FILENAME_EXTENSION.PDF
+            guard let notesFilename = notesFilename else {
+                return nil
+            }
+            
+            if (self[Field.notes] == nil), hasNotes, let year = year {
+                self[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/" + notesFilename
             }
             
             return self[Field.notes]
@@ -2590,11 +2656,15 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var slidesURLString:String?
+    var slides:String?
     {
         get {
-            if (self[Field.slides] == nil) && hasSlides, let year = year, let id = id {
-                self[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.slides + Constants.FILENAME_EXTENSION.PDF
+            guard let slidesFilename = slidesFilename else {
+                return nil
+            }
+            
+            if (self[Field.slides] == nil) && hasSlides, let year = year {
+                self[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/" + slidesFilename
             }
 
             return self[Field.slides]
@@ -2602,11 +2672,15 @@ class MediaItem : NSObject
     }
     
     // this supports set values that are saved in defaults between sessions
-    var outlineURLString:String?
+    var outline:String?
     {
         get {
-            if (self[Field.outline] == nil), hasSlides, let year = year, let id = id {
-                self[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Field.outline + Constants.FILENAME_EXTENSION.PDF
+            guard let outlineFilename = outlineFilename else {
+                return nil
+            }
+            
+            if (self[Field.outline] == nil), hasSlides, let year = year {
+                self[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/" + outlineFilename
             }
             
             return self[Field.outline]
@@ -2701,133 +2775,157 @@ class MediaItem : NSObject
         }
     }
     
-    var audioURL:URL?
+    var audio:String?
     {
+        
         get {
-//            if let audio = audio {
-//                return URL(string: audio)
-//            } else {
-//                return nil
-//            }
-            return audio?.url
+            if (self[Field.audio] == nil) && hasAudio, let year = year, let id = id {
+                self[Field.audio] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.MP3
+            }
+            
+            return self[Field.audio]
         }
     }
     
-    var videoURL:URL?
+//    var audioURL:URL?
+//    {
+//        get {
+////            if let audio = audio {
+////                return URL(string: audio)
+////            } else {
+////                return nil
+////            }
+//            return audio?.url
+//        }
+//    }
+//
+//    var videoURL:URL?
+//    {
+//        get {
+////            if let video = video {
+////                return URL(string: video)
+////            } else {
+////                return nil
+////            }
+//            return video?.url
+//        }
+//    }
+//
+//    var notesURL:URL?
+//    {
+//        get {
+//            return notesURLString?.url
+////            if let notes = notes {
+////                return URL(string: notes)
+////            } else {
+////                return nil
+////            }
+//        }
+//    }
+//
+//    var slidesURL:URL?
+//    {
+//        get {
+//            return slidesURLString?.url
+////            if let slides = slides {
+////                return URL(string: slides)
+////            } else {
+////                return nil
+////            }
+//        }
+//    }
+//
+//    var outlineURL:URL?
+//    {
+//        get {
+//            return outlineURLString?.url
+////            if let outline = outline {
+////                return URL(string: outline)
+////            } else {
+////                return nil
+////            }
+//        }
+//    }
+    
+    var audioFilename:String?
     {
         get {
-//            if let video = video {
-//                return URL(string: video)
-//            } else {
-//                return nil
-//            }
-            return video?.url
+            return mp3Filename
         }
     }
     
-    var notesURL:URL?
-    {
-        get {
-            return notesURLString?.url
-//            if let notes = notes {
-//                return URL(string: notes)
-//            } else {
-//                return nil
-//            }
-        }
-    }
-    
-    var slidesURL:URL?
-    {
-        get {
-            return slidesURLString?.url
-//            if let slides = slides {
-//                return URL(string: slides)
-//            } else {
-//                return nil
-//            }
-        }
-    }
-    
-    var outlineURL:URL?
-    {
-        get {
-            return outlineURLString?.url
-//            if let outline = outline {
-//                return URL(string: outline)
-//            } else {
-//                return nil
-//            }
-        }
-    }
-    
-    var audioFileSystemURL:URL?
+    var mp3Filename:String?
     {
         get {
             if let id = id {
-                return (id + Constants.FILENAME_EXTENSION.MP3).fileSystemURL
+                return id + Constants.FILENAME_EXTENSION.MP3
             } else {
                 return nil
             }
         }
     }
     
-    var mp4FileSystemURL:URL?
+    var mp4Filename:String?
     {
         get {
             if let id = id {
-                return (id + Constants.FILENAME_EXTENSION.MP4).fileSystemURL
+                return id + Constants.FILENAME_EXTENSION.MP4
             } else {
                 return nil
             }
         }
     }
     
-    var m3u8FileSystemURL:URL?
+    var m3u8Filename:String?
     {
         get {
             if let id = id {
-                return (id + Constants.FILENAME_EXTENSION.M3U8).fileSystemURL
+                return id + Constants.FILENAME_EXTENSION.M3U8
             } else {
                 return nil
             }
         }
     }
     
-    var videoFileSystemURL:URL?
+    var videoFilename:String?
     {
         get {
-            return m3u8FileSystemURL
+            return m3u8Filename
         }
     }
     
-    var slidesFileSystemURL:URL?
+    var slidesFilename:String?
     {
         get {
             if let id = id {
-                return (id + "." + Field.slides + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
+                return id + Constants.FILENAME_EXTENSION.slides
             } else {
                 return nil
             }
         }
     }
     
-    var notesFileSystemURL:URL?
+    var notesFilename : String?
     {
-        get {
-            if let id = id {
-                return (id + "." + Field.notes + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
-            } else {
-                return nil
-            }
+        guard let id = id else {
+            return nil
         }
+
+        return id + Constants.FILENAME_EXTENSION.notes
     }
     
-    var outlineFileSystemURL:URL?
+//    var notesFileSystemURL:URL?
+//    {
+//        get {
+//            return notesFilename?.fileSystemURL
+//        }
+//    }
+    
+    var outlineFilename:String?
     {
         get {
             if let id = id {
-                return (id + "." + Field.outline + Constants.FILENAME_EXTENSION.PDF).fileSystemURL
+                return id + Constants.FILENAME_EXTENSION.outline
             } else {
                 return nil
             }
@@ -3599,7 +3697,7 @@ class MediaItem : NSObject
             return false
         }
         
-        guard let notesURL = notesURL else {
+        guard let notesURL = notes?.url else {
             return false
         }
         
@@ -3621,7 +3719,7 @@ class MediaItem : NSObject
             return false
         }
         
-        guard let slidesURL = slidesURL else {
+        guard let slidesURL = slides?.url else {
             return false
         }
         
@@ -4046,7 +4144,9 @@ class MediaItem : NSObject
                     
                     popover.segments = true
                     
-                    popover.section.function = sort
+                    popover.section.function = { (method:String?,strings:[String]?) in
+                        return strings?.sort(method: method)
+                    }
                     popover.section.method = Constants.Sort.Alphabetical
                     
                     var segmentActions = [SegmentAction]()
@@ -4055,7 +4155,10 @@ class MediaItem : NSObject
                         let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 0 {
                             popover.section.method = Constants.Sort.Alphabetical
+                            popover.section.sorting = true
                             popover.section.strings = strings
+                            popover.section.sorting = false
+                            popover.section.stringsAction?(strings)
                             popover.section.showIndex = true
                             popover.tableView?.reloadData()
                         }
@@ -4065,7 +4168,10 @@ class MediaItem : NSObject
                         let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 1 {
                             popover.section.method = Constants.Sort.Frequency
+                            popover.section.sorting = true
                             popover.section.strings = strings
+                            popover.section.sorting = false
+                            popover.section.stringsAction?(strings)
                             popover.section.showIndex = false
                             popover.tableView?.reloadData()
                         }

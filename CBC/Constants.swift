@@ -874,7 +874,29 @@ enum Constants {
         static let M3U8 = ".m3u8"
         static let TMP  = ".tmp"
         static let PDF  = ".pdf"
+        static let JSON = ".json"
+        static let notes = Field.notes + PDF
+        static let slides = Field.slides + PDF
+        static let outline = Field.outline + PDF
+        static let HTMLTranscript = ".HTMLTranscript"
+        static let NotesTokensMarkMismatches = ".NotesTokensMarkMismatches"
+        static let NotesParagraphLengths = ".NotesParagraphLengths"
+        static let NotesParagraphWords = ".NotesParagraphWords"
+        static let NotesHTMLTokens = ".NotesHTMLTokens"
+        static let transcript = ".transcript"
+        static let media = ".media"
+        static let srt = ".srt"
+        static let segments = ".segments"
     }
+
+    static let cacheFileTypes = [Constants.FILENAME_EXTENSION.notes,
+                                 Constants.FILENAME_EXTENSION.slides,
+                                 Constants.FILENAME_EXTENSION.outline,
+                                 Constants.FILENAME_EXTENSION.HTMLTranscript,
+                                 Constants.FILENAME_EXTENSION.NotesHTMLTokens,
+                                 Constants.FILENAME_EXTENSION.NotesParagraphWords,
+                                 Constants.FILENAME_EXTENSION.NotesParagraphLengths,
+                                 Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches]
 
     enum SCRIPTURE_INDEX {
         static let BASE         = "SCRIPTURE INDEX"

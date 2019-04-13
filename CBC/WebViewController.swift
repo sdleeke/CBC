@@ -534,7 +534,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.segments = true
                 
-                popover.section.function = sort
+                popover.section.function = { (method:String?,strings:[String]?) in
+                    return strings?.sort(method: method)
+                }
                 popover.section.method = Constants.Sort.Alphabetical
                 
                 var segmentActions = [SegmentAction]()
@@ -543,7 +545,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                     if popover.segmentedControl.selectedSegmentIndex == 0 {
                         popover.section.method = Constants.Sort.Alphabetical
+                        popover.section.sorting = true
                         popover.section.strings = strings
+                        popover.section.sorting = false
+                        popover.section.stringsAction?(strings)
                         popover.section.showIndex = true
                         popover.tableView?.reloadData()
                     }
@@ -553,7 +558,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                     if popover.segmentedControl.selectedSegmentIndex == 1 {
                         popover.section.method = Constants.Sort.Frequency
+                        popover.section.sorting = true
                         popover.section.strings = strings
+                        popover.section.sorting = false
+                        popover.section.stringsAction?(strings)
                         popover.section.showIndex = false
                         popover.tableView?.reloadData()
                     }

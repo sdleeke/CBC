@@ -1990,7 +1990,7 @@ class MediaList // : Sequence
                     //                    print(".", terminator: Constants.EMPTY_STRING)
                 }
                 
-                if let title = mediaItem.title, let notesURLString = mediaItem.notesURLString, let notesURL = mediaItem.notesURL {
+                if let title = mediaItem.title, let notesURLString = mediaItem.notes, let notesURL = mediaItem.notes?.url {
                     if ((try? Data(contentsOf: notesURL)) == nil) {
                         print("Transcript DOES NOT exist for: \(title) PDF: \(notesURLString)")
                     } else {
@@ -1998,7 +1998,7 @@ class MediaList // : Sequence
                     }
                 }
                 
-                if let title = mediaItem.title, let slidesURLString = mediaItem.slidesURLString, let slidesURL = mediaItem.slidesURL {
+                if let title = mediaItem.title, let slidesURLString = mediaItem.slides, let slidesURL = mediaItem.slides?.url {
                     if ((try? Data(contentsOf: slidesURL)) == nil) {
                         print("Slides DO NOT exist for: \(title) PDF: \(slidesURLString)")
                     } else {
@@ -2026,7 +2026,7 @@ class MediaList // : Sequence
                 if (mediaItem.audio == nil) {
                     print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
                 } else {
-                    if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notesURL {
+                    if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notes?.url {
                         if ((try? Data(contentsOf: notesURL)) != nil) {
                             print("Transcript DOES exist for: \(title) ID:\(id)")
                         } else {
@@ -2034,7 +2034,7 @@ class MediaList // : Sequence
                         }
                     }
                     
-                    if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slidesURL {
+                    if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slides?.url {
                         if ((try? Data(contentsOf: slidesURL)) != nil) {
                             print("Slides DO exist for: \(title) ID: \(id)")
                         } else {
