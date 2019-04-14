@@ -8,7 +8,8 @@
 
 import Foundation
 
-class StringNode {
+class StringNode
+{
     var string:String?
     
     init(_ string:String?)
@@ -22,10 +23,29 @@ class StringNode {
     
     var wordEnding = false
     
-    // Make thread safe?
-    var stringNodes:[StringNode]?
+    // Can't use a thread safe class object or the recursion in depthsBelow blows up due to locking
+    // since the recursion is outside the object rather than within it as it is now w/ the queue at
+    // this level.
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+    var _stringNodes : [StringNode]?
+    var stringNodes : [StringNode]? // ThreadSafe<[StringNode]>()
+    {
+        get {
+            return queue.sync { [weak self] in
+                return self?._stringNodes
+            }
+        }
+        set {
+            queue.sync { [weak self] in
+                self?._stringNodes = newValue
+            }
+        }
+    }
     
-    var isLeaf:Bool {
+    var isLeaf:Bool
+    {
         get {
             return stringNodes == nil
         }
@@ -36,16 +56,20 @@ class StringNode {
         if isLeaf {
             return cumulative
         } else {
-            guard let stringNodes = stringNodes else {
-                return 0
-            }
+//            guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
+//                return 0
+//            }
             
             var depthsBelow = [Int]()
             
-            for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
+            stringNodes?.sorted(by: { $0.string < $1.string }).forEach { (stringNode:StringNode) in
                 depthsBelow.append(stringNode.depthBelow(cumulative + 1))
             }
-            
+
+//            for stringNode in stringNodes {
+//                depthsBelow.append(stringNode.depthBelow(cumulative + 1))
+//            }
+
             if let last = depthsBelow.sorted().last {
                 return last
             } else {
@@ -70,11 +94,11 @@ class StringNode {
             }
         }
         
-        guard let stringNodes = stringNodes else {
+        guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
             return
         }
         
-        for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
+        for stringNode in stringNodes {
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     stringNode.printWords(cumulativeString + string + "-")
@@ -112,11 +136,11 @@ class StringNode {
             }
         }
         
-        guard let stringNodes = stringNodes else {
+        guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
             return html.count > 0 ? html : nil
         }
         
-        for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
+        for stringNode in stringNodes {
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     if let words = stringNode.htmlWords(cumulativeString + string + "</td><td>") {
@@ -163,11 +187,11 @@ class StringNode {
             }
         }
         
-        guard let stringNodes = stringNodes else {
+        guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
             return words.count > 0 ? words : nil
         }
         
-        for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
+        for stringNode in stringNodes {
             if let cumulativeString = cumulativeString {
                 if let string = string {
                     if let nodeWords = stringNode.words(cumulativeString + string) {
@@ -259,7 +283,7 @@ class StringNode {
             
             var found = false
             
-            if var stringNodes = stringNodes {
+            if let stringNodes = stringNodes {
                 for stringNode in stringNodes {
                     if stringNode.string == Constants.WORD_ENDING {
                         found = true
@@ -268,10 +292,10 @@ class StringNode {
                 }
                 
                 if !found {
-                    stringNodes.append(StringNode(Constants.WORD_ENDING))
+                    self.stringNodes?.append(StringNode(Constants.WORD_ENDING))
                 }
             } else {
-                stringNodes = [StringNode(Constants.WORD_ENDING)]
+                self.stringNodes = [StringNode(Constants.WORD_ENDING)]
             }
             
             return
@@ -310,7 +334,7 @@ class StringNode {
                 wordEnding = false
                 
                 self.string = fragment
-                stringNodes = [newNode]
+                self.stringNodes = [newNode]
             }
             
             if !newStringRemainder.isEmpty {
