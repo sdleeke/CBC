@@ -861,6 +861,10 @@ class ScriptureIndexViewController : UIViewController
     
     deinit {
         operationQueue.cancelAllOperations()
+    
+        scriptureIndex?.start = nil
+        scriptureIndex?.update = nil
+        scriptureIndex?.complete = nil
     }
     
     func updateSearchResults()
@@ -1111,10 +1115,6 @@ class ScriptureIndexViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
-        scriptureIndex?.start = nil
-        scriptureIndex?.update = nil
-        scriptureIndex?.complete = nil
-
         NotificationCenter.default.removeObserver(self)
     }
     

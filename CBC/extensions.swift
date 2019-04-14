@@ -4251,6 +4251,24 @@ extension String
         return nil
     }
     
+    var log : String?
+    {
+        let strings = self.components(separatedBy: " ")
+        
+        guard strings.count > 1 else {
+            return nil
+        }
+        
+        let string = strings[1].trimmingCharacters(in: CharacterSet(charactersIn: "()"))
+        
+        if let number = Double(string) {
+            let value = Int(log10(number))
+            return pow(10,value+1).description
+        }
+        
+        return nil
+    }
+    
     var firstName : String?
     {
 //        guard let name = name else {

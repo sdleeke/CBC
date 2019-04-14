@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol PopoverTableViewControllerDelegate
+protocol PopoverTableViewControllerDelegate : class
 {
     var popover : PopoverTableViewController? { get set }
 
@@ -63,6 +63,14 @@ extension PopoverTableViewController: UISearchBarDelegate
             if tableView.isValid(indexPath) {
                 tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
             }
+        }
+    }
+    
+    @objc func bottomButtonAction(_ sender:UIBarButtonItem)
+    {
+        let indexPath = IndexPath(row: tableView.numberOfRows(inSection: tableView.numberOfSections - 1) - 1, section: tableView.numberOfSections - 1)
+        if tableView.isValid(indexPath) {
+            tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.bottom, animated: true)
         }
     }
     
@@ -669,7 +677,7 @@ class PopoverTableViewController : UIViewController
     var segments = false
     var segmentActions:[SegmentAction]?
     
-    var delegate : PopoverTableViewControllerDelegate?
+    weak var delegate : PopoverTableViewControllerDelegate?
     var purpose : PopoverPurpose?
     
     var selectedMediaItem:MediaItem?
@@ -748,6 +756,8 @@ class PopoverTableViewController : UIViewController
     }
     
     var sectionBarButtons = false
+    
+    var bottomBarButton = false
     
     var parser:((String)->([String]))?
     
@@ -1122,68 +1132,99 @@ class PopoverTableViewController : UIViewController
                 return selectedText.uppercased() == string.uppercased()
             }
         }) {
-            if let method = section.method {
-                switch method {
-                case Constants.Sort.Alphabetical:
-                    var i = 0
-                    
-                    repeat {
-                        i += 1
-                    } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
-                    
-                    let section = i - 1
-                    
-                    if let base = self.section.indexes?[section] {
-                        let row = index - base
-                        
-                        if self.section.strings?.count > 0 {
-                            Thread.onMainThread {
-                                if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
-                                    let indexPath = IndexPath(row: row,section: section)
-                                    
-                                    if self.tableView.isValid(indexPath) {
-                                        if scroll {
-                                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                        }
-                                        if select {
-                                            self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                                        }
-                                    }
-                                } else {
-
+            var i = 0
+            
+            repeat {
+                i += 1
+            } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
+            
+            let section = i - 1
+            
+            if let base = self.section.indexes?[section] {
+                let row = index - base
+                
+                if self.section.strings?.count > 0 {
+                    Thread.onMainThread {
+                        if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
+                            let indexPath = IndexPath(row: row,section: section)
+                            
+                            if self.tableView.isValid(indexPath) {
+                                if scroll {
+                                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                }
+                                if select {
+                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
                                 }
                             }
+                        } else {
+                            
                         }
                     }
-                    break
-                    
-                case Constants.Sort.Frequency:
-                    let section = 0
-                    let row = index
-
-                    if self.section.strings?.count > 0 {
-                        Thread.onMainThread {
-                            if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
-                                let indexPath = IndexPath(row: row,section: section)
-                                
-                                if self.tableView.isValid(indexPath) {
-                                    if scroll {
-                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                                    }
-                                    if select {
-                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                                    }
-                                }
-                            } else {
-
-                            }
-                        }
-                    }
-                    break
-                default:
-                    break
                 }
             }
+
+//            if let method = section.method {
+//                switch method {
+//                case Constants.Sort.Alphabetical:
+//                    var i = 0
+//                    
+//                    repeat {
+//                        i += 1
+//                    } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
+//                    
+//                    let section = i - 1
+//                    
+//                    if let base = self.section.indexes?[section] {
+//                        let row = index - base
+//                        
+//                        if self.section.strings?.count > 0 {
+//                            Thread.onMainThread {
+//                                if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
+//                                    let indexPath = IndexPath(row: row,section: section)
+//                                    
+//                                    if self.tableView.isValid(indexPath) {
+//                                        if scroll {
+//                                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//                                        }
+//                                        if select {
+//                                            self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                        }
+//                                    }
+//                                } else {
+//
+//                                }
+//                            }
+//                        }
+//                    }
+//                    break
+//                    
+//                case Constants.Sort.Frequency:
+//                    let section = 0
+//                    let row = index
+//
+//                    if self.section.strings?.count > 0 {
+//                        Thread.onMainThread {
+//                            if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
+//                                let indexPath = IndexPath(row: row,section: section)
+//                                
+//                                if self.tableView.isValid(indexPath) {
+//                                    if scroll {
+//                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//                                    }
+//                                    if select {
+//                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                    }
+//                                }
+//                            } else {
+//
+//                            }
+//                        }
+//                    }
+//                    break
+//                default:
+//                    break
+//                }
+//            }
         } else {
             if let selectedText = selectedText {
                 self.alert(title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
@@ -1555,8 +1596,20 @@ class PopoverTableViewController : UIViewController
             }
         }
         
+        if bottomBarButton {
+            // Set the toobar button for bottom access
+            let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+            
+            barButtonItems.append(spaceButton)
+            barButtonItems.append(UIBarButtonItem(title: "Bottom", style: .plain, target: self, action: #selector(self.bottomButtonAction(_:))))
+            
+            if barButtonItems.count == 2 {
+                barButtonItems.append(spaceButton)
+            }
+        }
+        
         // This prevents the toolbarItems from being set if this is an embedded viewController.
-        if self == navigationController?.visibleViewController {
+        if (self == navigationController?.visibleViewController) {
             Thread.onMainThread {
                 self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
                 self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)

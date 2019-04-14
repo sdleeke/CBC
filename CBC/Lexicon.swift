@@ -12,6 +12,8 @@ class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
+//    var stringTree : StringTree? // For future use
+    
     var start : (()->())?
     var update : (()->())?
     var complete : (()->())?

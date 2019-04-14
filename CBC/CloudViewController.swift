@@ -740,6 +740,8 @@ class CloudViewController: UIViewController
                         return strings?.sort(method: method)
                     }
                     
+                    wordsTableViewController.bottomBarButton = true
+                    
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
@@ -773,8 +775,16 @@ class CloudViewController: UIViewController
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
                                     self?.wordsTableViewController.section.method = Constants.Sort.Alphabetical
+                                    self?.wordsTableViewController.section.showHeaders = false
                                     self?.wordsTableViewController.section.showIndex = true
+                                    self?.wordsTableViewController.section.indexStringsTransform = nil
+                                    self?.wordsTableViewController.section.indexHeadersTransform = nil
+                                    self?.wordsTableViewController.section.indexSort = nil
+                                    
+                                    self?.wordsTableViewController.section.sorting = true
                                     self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.section.sorting = false
+                                    self?.wordsTableViewController.section.stringsAction?(strings)
                                     self?.wordsTableViewController.tableView.reloadData()
                                 }
                                 
@@ -816,8 +826,28 @@ class CloudViewController: UIViewController
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
                                     self?.wordsTableViewController.section.method = Constants.Sort.Frequency
-                                    self?.wordsTableViewController.section.showIndex = false
+                                    self?.wordsTableViewController.section.showHeaders = false
+                                    self?.wordsTableViewController.section.showIndex = true
+                                    self?.wordsTableViewController.section.indexStringsTransform = { (string:String?) -> String? in
+                                        return string?.log
+                                    }
+                                    self?.wordsTableViewController.section.indexHeadersTransform = { (string:String?) -> String? in
+                                        return string
+                                    }
+                                    self?.wordsTableViewController.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                        guard let first = first else {
+                                            return false
+                                        }
+                                        guard let second = second else {
+                                            return true
+                                        }
+                                        return Int(first) > Int(second)
+                                    }
+                                    
+                                    self?.wordsTableViewController.section.sorting = true
                                     self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.section.sorting = false
+                                    self?.wordsTableViewController.section.stringsAction?(strings)
                                     self?.wordsTableViewController.tableView.reloadData()
                                 }
 
@@ -835,9 +865,25 @@ class CloudViewController: UIViewController
                     
                     wordsTableViewController.search = false
                     
-                    wordsTableViewController.section.showIndex = false
+//                    wordsTableViewController.section.showIndex = false
 
                     wordsTableViewController.section.method = Constants.Sort.Frequency
+                    wordsTableViewController.section.showIndex = true
+                    wordsTableViewController.section.indexStringsTransform = { (string:String?) -> String? in
+                        return string?.log
+                    }
+                    wordsTableViewController.section.indexHeadersTransform = { (string:String?) -> String? in
+                        return string
+                    }
+                    wordsTableViewController.section.indexSort = { (first:String?,second:String?) -> Bool in
+                        guard let first = first else {
+                            return false
+                        }
+                        guard let second = second else {
+                            return true
+                        }
+                        return Int(first) > Int(second)
+                    }
 
                     wordsTableViewController.section.strings = self.cloudWordDicts?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"
@@ -881,7 +927,8 @@ class CloudViewController: UIViewController
                             
                         default:
                             break
-                        }                    }
+                        }
+                    }
                 }
                 break
                 

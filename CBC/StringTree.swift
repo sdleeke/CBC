@@ -118,19 +118,23 @@ class StringTree
 
         if incremental {
 //            DispatchQueue.global(qos: .background).async { [weak self] in
-            operationQueue.addOperation { [weak self] in
+            let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
                 self?.root = StringNode(nil)
-
+                
                 var date : Date?
                 
                 for string in strings {
+                    if test?() == true {
+                        break
+                    }
+                    
                     self?.root.addString(string)
                     
                     if (date == nil) || (date?.timeIntervalSinceNow <= -3) { // Any more frequent and the UI becomes unresponsive.
                         self?.update?()
-//                        Globals.shared.queue.async {
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-//                        }
+                        //                        Globals.shared.queue.async {
+                        //                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+                        //                        }
                         
                         date = Date()
                     }
@@ -140,10 +144,12 @@ class StringTree
                 self?.completed = true
                 
                 self?.update?()
-//                Globals.shared.queue.async {
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-//                }
+                //                Globals.shared.queue.async {
+                //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+                //                }
             }
+            
+            operationQueue.addOperation(op)
         } else {
             // This blocks
             self.root = StringNode(nil)

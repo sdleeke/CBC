@@ -750,7 +750,7 @@ class MediaList // : Sequence
                 continue
             }
             
-            if operation.tag == purpose {
+            if (operation.tag == purpose) || (operation.tag == Constants.Strings.Download_All + Constants.SINGLE_SPACE + name) {
                 notifyOperation.addDependency(operation)
                 operation.cancel()
             }

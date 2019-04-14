@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-protocol CloudLayoutOperationDelegate
+protocol CloudLayoutOperationDelegate : class
 {
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     func insertBoundingRect(boundingRect:CGRect) -> CALayer
@@ -25,7 +25,9 @@ class CloudLayoutOperation : Operation
     var containerSize : CGSize?
     var containerScale : CGFloat = 0.0
     var orientation:Int = 2
-    var delegate:CloudLayoutOperationDelegate?
+    
+    weak var delegate : CloudLayoutOperationDelegate?
+    
     var boundingRects : QuadTree?
     
     var placedCloudWords : [CloudWord]?

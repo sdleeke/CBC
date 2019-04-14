@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol PopoverPickerControllerDelegate
+protocol PopoverPickerControllerDelegate : class
 {
     // MARK: PopoverPickerControllerDelegate Protocol
     
@@ -253,7 +253,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             }
             
             string = strings?[row]
-            print(row, string as Any)
+//            print(row, string as Any)
             
             return
         }
@@ -268,6 +268,8 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         }
 
         spinner.startAnimating()
+        
+        toolbarItems?[1].isEnabled = false
         
         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
 //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
@@ -362,8 +364,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
             default:
                 if string == actionTitle {
-                    popover?.dismiss(animated: true) {
-                        self.action?(string)
+                    popover?.dismiss(animated: true) { [weak self] in
+                        self?.action?(string)
                     }
                 }
                 break
@@ -388,16 +390,40 @@ class PopoverPickerViewController : UIViewController
     
     deinit {
         operationQueue.cancelAllOperations()
+    
+        stringTree?.start = nil
+        stringTree?.update = nil
+        stringTree?.complete = nil
     }
     
     var popover : PopoverTableViewController?
     
-    var delegate : PopoverPickerControllerDelegate?
+    weak var delegate : PopoverPickerControllerDelegate?
     
     var purpose : PopoverPurpose?
     
+//    var _stringTree : StringTree?
     var stringTree : StringTree?
+//    {
+//        get {
+//            if let lexicon = lexicon {
+//                return lexicon.stringTree
+//            } else {
+//                return _stringTree
+//            }
+//        }
+//        set {
+//            if let lexicon = lexicon {
+//                lexicon.stringTree = newValue
+//            } else {
+//                _stringTree = newValue
+//            }
+//        }
+//    }
+    
     var incremental = false
+    
+//    var lexicon : Lexicon?
     
     var action : ((String?)->())?
     var actionTitle : String?
@@ -407,7 +433,24 @@ class PopoverPickerViewController : UIViewController
     }
     
     var stringsFunction:(()->[String]?)?
+    
+//    var _strings:[String]?
     var strings:[String]?
+//    {
+//        get {
+//            if let lexicon = lexicon {
+//                return lexicon.strings // Problem - this takes a snapshot as arrays are passed by value, i.e. copies
+//            } else {
+//                return _strings
+//            }
+//        }
+//        set {
+//            if lexicon != nil {
+//                _strings = newValue
+//            }
+//        }
+//    }
+  
     var string:String?
     
     @IBOutlet weak var spinner: UIActivityIndicatorView!
@@ -522,7 +565,9 @@ class PopoverPickerViewController : UIViewController
     
     func updateActionButton()
     {
-        navigationItem.rightBarButtonItem?.isEnabled = stringTree?.root.depthBelow(0) > 0
+        Thread.onMainThread { [weak self] in
+            self?.navigationItem.rightBarButtonItem?.isEnabled = self?.stringTree?.root.depthBelow(0) > 0
+        }
     }
     
     func setupActionButton()
@@ -848,15 +893,18 @@ class PopoverPickerViewController : UIViewController
         addNotifications()
         
         updateActionButton()
-        
-        if stringTree?.incremental == true {
-            if stringTree?.completed == false {
-                spinner.isHidden = false
-                spinner.startAnimating()
-            }
 
-            stringTree?.update = {
-                self.updated()
+        spinner.isHidden = false
+        spinner.startAnimating()
+
+        if stringTree?.incremental == true {
+//            if stringTree?.completed == false {
+//                spinner.isHidden = false
+//                spinner.startAnimating()
+//            }
+
+            stringTree?.update = { [weak self] in
+                self?.updated()
             }
             
 //            Globals.shared.queue.async {
@@ -875,15 +923,20 @@ class PopoverPickerViewController : UIViewController
             
         if (stringTree != nil) {
             if (strings != nil) {
-                self.process(work: { [weak self] () -> (Any?) in
-                    self?.stringTree?.build(strings: self?.strings)
-                    
-                    return nil
-                }, completion: { [weak self] (data:Any?) in
-                    self?.updateActionButton()
-                    self?.updatePickerSelections()
-                    self?.updatePicker()
-                })
+                // This must be changed to be in a cancellable operation in an op queue
+                // otherwise the string tree keeps going forever
+                self.stringTree?.build(strings: self.strings)
+//                self.process(work: { [weak self] () -> (Any?) in
+//                    self?.stringTree?.build(strings: self?.strings)
+//
+//                    return nil
+//                }, completion: { [weak self] (data:Any?) in
+//                    self?.operationQueue.addOperation {
+//                        self?.updateActionButton()
+//                        self?.updatePickerSelections()
+//                        self?.updatePicker()
+//                    }
+//                })
             } else
             
             if stringsFunction != nil {
@@ -896,9 +949,11 @@ class PopoverPickerViewController : UIViewController
 
                     return nil
                 }, completion: { [weak self] (data:Any?) in
-                    self?.updateActionButton()
-                    self?.updatePickerSelections()
-                    self?.updatePicker()
+                    self?.operationQueue.addOperation {
+                        self?.updateActionButton()
+                        self?.updatePickerSelections()
+                        self?.updatePicker()
+                    }
                 })
             }
         }
@@ -922,6 +977,13 @@ class PopoverPickerViewController : UIViewController
         toolbarItems = barButtons.count > 0 ? barButtons : nil
         
         navigationController?.isToolbarHidden = toolbarItems == nil
+        toolbarItems?[1].isEnabled = false
+
+        self.operationQueue.addOperation {
+            self.updateActionButton()
+            self.updatePickerSelections()
+            self.updatePicker()
+        }
 
         setPreferredContentSize() // = CGSize(width: 300, height: 300)
     }
@@ -948,10 +1010,6 @@ class PopoverPickerViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-        stringTree?.start = nil
-        stringTree?.update = nil
-        stringTree?.complete = nil
 
         if Alerts.shared.topViewController.last == navigationController {
             Alerts.shared.topViewController.removeLast()
@@ -1026,13 +1084,13 @@ class PopoverPickerViewController : UIViewController
         
         var index = i
         
-        Thread.onMainThread {
-            while index < self.picker.numberOfComponents {
-                self.pickerSelections.value?[index] = nil
+        Thread.onMainThread { [weak self] in
+            while index < self?.picker.numberOfComponents {
+                self?.pickerSelections.value?[index] = nil
                 index += 1
             }
             
-            self.picker.setNeedsLayout()
+            self?.picker.setNeedsLayout()
         }
     }
     
@@ -1073,25 +1131,27 @@ class PopoverPickerViewController : UIViewController
     
     func updatePicker()
     {
-        Thread.onMainThread {
-            self.picker.reloadAllComponents()
+        Thread.onMainThread { [weak self] in
+            self?.picker.reloadAllComponents()
 
             var i = 0
             
-            while i < self.picker.numberOfComponents, i < self.pickerSelections.value?.count, self.pickerSelections.value?[i] != nil {
-                if let row = self.pickerSelections.value?[i] {
-                    self.picker.selectRow(row,inComponent: i, animated: true)
+            while i < self?.picker.numberOfComponents, i < self?.pickerSelections.value?.count, self?.pickerSelections.value?[i] != nil {
+                if let row = self?.pickerSelections.value?[i], row < self?.picker.numberOfRows(inComponent: i) {
+                    self?.picker.selectRow(row,inComponent: i, animated: true)
                 }
                 
                 i += 1
             }
 
-            self.setPreferredContentSize()
+            self?.setPreferredContentSize()
 
-            self.string = self.wordFromPicker()
+            self?.string = self?.wordFromPicker()
             
-            if self.stringTree?.completed == true {
-                self.spinner.stopAnimating()
+            self?.toolbarItems?[1].isEnabled = true
+            
+            if self?.stringTree?.completed == true {
+                self?.spinner.stopAnimating()
             }
         }
     }
@@ -1101,8 +1161,8 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread {
-            self.updateActionButton()
+        Thread.onMainThread { [weak self] in
+            self?.updateActionButton()
         }
     }
     
@@ -1111,11 +1171,11 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
         
-        Thread.onMainThread {
-            self.updateActionButton()
+        Thread.onMainThread { [weak self] in
+            self?.updateActionButton()
             
-            if self.stringTree?.completed == true {
-                self.spinner.stopAnimating()
+            if self?.stringTree?.completed == true {
+                self?.spinner.stopAnimating()
             }
         }
     }
@@ -1125,8 +1185,8 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread {
-            self.updateActionButton()
+        Thread.onMainThread { [weak self] in
+            self?.updateActionButton()
         }
     }
 }

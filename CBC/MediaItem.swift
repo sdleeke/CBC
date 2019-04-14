@@ -4149,17 +4149,25 @@ class MediaItem : NSObject
                     }
                     popover.section.method = Constants.Sort.Alphabetical
                     
+                    popover.bottomBarButton = true
+                    popover.updateToolbar()
+                    
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
                         let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 0 {
                             popover.section.method = Constants.Sort.Alphabetical
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            popover.section.indexStringsTransform = nil
+                            popover.section.indexHeadersTransform = nil
+                            popover.section.indexSort = nil
+                            
                             popover.section.sorting = true
                             popover.section.strings = strings
                             popover.section.sorting = false
                             popover.section.stringsAction?(strings)
-                            popover.section.showIndex = true
                             popover.tableView?.reloadData()
                         }
                     }))
@@ -4168,11 +4176,28 @@ class MediaItem : NSObject
                         let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 1 {
                             popover.section.method = Constants.Sort.Frequency
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                return string?.log
+                            }
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
                             popover.section.sorting = true
                             popover.section.strings = strings
                             popover.section.sorting = false
                             popover.section.stringsAction?(strings)
-                            popover.section.showIndex = false
                             popover.tableView?.reloadData()
                         }
                     }))

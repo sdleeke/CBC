@@ -119,15 +119,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 
                 popover.actionTitle = Constants.Strings.Expanded_View
-                popover.action = { (String) in
-                    popover.process(work: { [weak self] () -> (Any?) in
-                        return popover.stringTree?.html
+                
+                ////////////////////////////////////////////////////////////////////////////////////////
+                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
+                ////////////////////////////////////////////////////////////////////////////////////////
+                popover.action = { [weak popover] (String) in
+                    popover?.process(work: { [weak self] () -> (Any?) in
+                        return popover?.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
-                        popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     })
                 }
 
+                // Future use?
+//                popover.lexicon = self.lexicon
+//                if lexicon?.stringTree == nil {
+//                    lexicon?.stringTree = StringTree(incremental: true)
+//                }
+
                 popover.stringTree = StringTree(incremental: true)
+                
                 // mediaListGroupSort?.lexicon?.tokens
                 popover.strings = activeWords
                 
@@ -812,6 +823,8 @@ class LexiconIndexViewController : UIViewController
                         
                     wordsTableViewController.section.method = Constants.Sort.Alphabetical
                     
+//                    wordsTableViewController.bottomBarButton = true
+                    
                     var segmentActions = [SegmentAction]()
                     
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
@@ -835,10 +848,18 @@ class LexiconIndexViewController : UIViewController
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
                                     self?.wordsTableViewController.section.method = Constants.Sort.Alphabetical
+                                    self?.wordsTableViewController.section.showHeaders = false
                                     self?.wordsTableViewController.section.showIndex = true
-                                    self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.section.indexStringsTransform = nil
+                                    self?.wordsTableViewController.section.indexHeadersTransform = nil
+                                    self?.wordsTableViewController.section.indexSort = nil
                                 }
                                 
+                                self?.wordsTableViewController.section.sorting = true
+                                self?.wordsTableViewController.section.strings = strings
+                                self?.wordsTableViewController.section.sorting = false
+                                self?.wordsTableViewController.section.stringsAction?(strings)
+
                                 self?.wordsTableViewController.tableView.isHidden = false
                                 self?.wordsTableViewController.tableView.reloadData()
                                 
@@ -875,10 +896,30 @@ class LexiconIndexViewController : UIViewController
                             Thread.onMainThread {
                                 if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
                                     self?.wordsTableViewController.section.method = Constants.Sort.Frequency
-                                    self?.wordsTableViewController.section.showIndex = false
-                                    self?.wordsTableViewController.section.strings = strings
+                                    self?.wordsTableViewController.section.showHeaders = false
+                                    self?.wordsTableViewController.section.showIndex = true
+                                    self?.wordsTableViewController.section.indexStringsTransform = { (string:String?) -> String? in
+                                        return string?.log
+                                    }
+                                    self?.wordsTableViewController.section.indexHeadersTransform = { (string:String?) -> String? in
+                                        return string
+                                    }
+                                    self?.wordsTableViewController.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                        guard let first = first else {
+                                            return false
+                                        }
+                                        guard let second = second else {
+                                            return true
+                                        }
+                                        return Int(first) > Int(second)
+                                    }
                                 }
-                                
+
+                                self?.wordsTableViewController.section.sorting = true
+                                self?.wordsTableViewController.section.strings = strings
+                                self?.wordsTableViewController.section.sorting = false
+                                self?.wordsTableViewController.section.stringsAction?(strings)
+
                                 self?.wordsTableViewController.tableView.isHidden = false
                                 self?.wordsTableViewController.tableView.reloadData()
                                 
@@ -1047,6 +1088,7 @@ class LexiconIndexViewController : UIViewController
         wordsTableViewController.section.stringsAction = { (strings:[String]?) in
             Thread.onMainThread {
                 self.updateActionMenu()
+                self.wordsTableViewController.segmentedControl.isEnabled = (strings != nil) && !self.wordsTableViewController.section.sorting
             }
         }
         
@@ -1070,10 +1112,6 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
-        lexicon?.start = nil
-        lexicon?.update = nil
-        lexicon?.complete = nil
-
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -1560,6 +1598,10 @@ class LexiconIndexViewController : UIViewController
 
     deinit {
         operationQueue.cancelAllOperations()
+    
+        lexicon?.start = nil
+        lexicon?.update = nil
+        lexicon?.complete = nil
     }
     
     @objc func started()
@@ -1742,9 +1784,9 @@ class LexiconIndexViewController : UIViewController
     
     func updateToolbar()
     {
-        guard tableView.numberOfSections > 1  else {
+        guard tableView.numberOfSections > 1 else {
             if self.navigationController?.visibleViewController == self {
-                self.navigationController?.isToolbarHidden = true //, animated: true)
+                self.navigationController?.isToolbarHidden = true
             }
             return
         }
