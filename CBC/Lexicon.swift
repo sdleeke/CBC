@@ -8,16 +8,61 @@
 
 import Foundation
 
+struct CallBack
+{
+    var start : (()->())?
+    var update : (()->())?
+    var complete : (()->())?
+}
+
+class CallBacks
+{
+    deinit {
+        
+    }
+    
+    private var callbacks = [String:CallBack]()
+    
+    func register(id:String,callBack:CallBack)
+    {
+        callbacks[id] = callBack
+    }
+    
+    func unregister(id:String)
+    {
+        callbacks[id] = nil
+    }
+    
+    func start()
+    {
+        callbacks.values.forEach { (callBack:CallBack) in
+            callBack.start?()
+        }
+    }
+    
+    func update()
+    {
+        callbacks.values.forEach { (callBack:CallBack) in
+            callBack.update?()
+        }
+    }
+    
+    func complete()
+    {
+        callbacks.values.forEach { (callBack:CallBack) in
+            callBack.complete?()
+        }
+    }
+}
+
 class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
 //    var stringTree : StringTree? // For future use
     
-    var start : (()->())?
-    var update : (()->())?
-    var complete : (()->())?
-
+    var callBacks = CallBacks()
+    
     var selected:String?
     
     init(_ mediaListGroupSort:MediaListGroupSort?)
@@ -455,7 +500,7 @@ class Lexicon : NSObject
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
 //            }
 
-            self?.start?()
+            self?.callBacks.start()
             
             repeat {
                 guard let mediaItem = list.first else { // One chance to load tokens per media item
@@ -526,7 +571,7 @@ class Lexicon : NSObject
 //                self?.update()
 
                 if firstUpdate || (date.timeIntervalSinceNow <= -5) {
-                    self?.update?()
+                    self?.callBacks.update()
 
                     date = Date()
 
@@ -562,7 +607,7 @@ class Lexicon : NSObject
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
 //            }
             
-            self?.complete?()
+            self?.callBacks.complete()
         }
 
         operationQueue.addOperation(operation)

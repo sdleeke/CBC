@@ -34,6 +34,10 @@ extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
 
 class MediaTableViewCell: UITableViewCell
 {
+    deinit {
+        
+    }
+    
     weak var vc:UIViewController?
     
     @IBOutlet weak var countLabel: UILabel!

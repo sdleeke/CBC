@@ -111,6 +111,11 @@ extension CloudViewController : UIScrollViewDelegate
 
 extension CloudViewController : PopoverTableViewControllerDelegate
 {
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard let cloudWordDicts = cloudWordDicts else {
@@ -700,12 +705,12 @@ class CloudViewController: UIViewController
                     wordsTableViewController = destination
                     
                     wordsTableViewController.allowsMultipleSelection = true
-                    wordsTableViewController.selection = { (index:Int) -> Bool in
-                        guard let cloudWordDicts = self.cloudWordDicts else {
+                    wordsTableViewController.selection = { [weak self] (index:Int) -> Bool in
+                        guard let cloudWordDicts = self?.cloudWordDicts else {
                             return false
                         }
                         
-                        guard let string = self.wordsTableViewController.section.strings?[index] else {
+                        guard let string = self?.wordsTableViewController.section.strings?[index] else {
                             return false
                         }
                         
@@ -744,12 +749,12 @@ class CloudViewController: UIViewController
                     
                     var segmentActions = [SegmentAction]()
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self] in
                         // Cancel or wait?
-                        self.operationQueue.cancelAllOperations()
+                        self?.operationQueue.cancelAllOperations()
                         
 //                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        self.operationQueue.addOperation { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
@@ -795,12 +800,12 @@ class CloudViewController: UIViewController
                         }
                     }))
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self] in
                         // Cancel or wait?
-                        self.operationQueue.cancelAllOperations()
+                        self?.operationQueue.cancelAllOperations()
                         
 //                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        self.operationQueue.addOperation { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()

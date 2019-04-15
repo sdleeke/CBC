@@ -23,6 +23,10 @@ typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
+    deinit {
+        
+    }
+    
     var sorting = Default<String>({ return Globals.shared.sorting })
     
 //    var _sorting : String?

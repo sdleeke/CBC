@@ -276,6 +276,10 @@ extension AppDelegate : UISplitViewControllerDelegate
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
 {
+    deinit {
+        
+    }
+    
     var window: UIWindow?
     
     func downloadFailed()

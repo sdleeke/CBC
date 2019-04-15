@@ -23,6 +23,10 @@ class Alerts
 {
     static var shared = Alerts()
         
+    deinit {
+        
+    }
+    
     var topViewController = [UIViewController]()
     
     init()

@@ -12,6 +12,8 @@ protocol PopoverTableViewControllerDelegate : class
 {
     var popover : PopoverTableViewController? { get set }
 
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
@@ -245,6 +247,11 @@ extension PopoverTableViewController: UISearchBarDelegate
 
 extension PopoverTableViewController : PopoverTableViewControllerDelegate
 {
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -369,7 +376,7 @@ class PopoverTableViewController : UIViewController
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
-    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
+//    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
     
 //    lazy var sort = { [weak self] in
 //        return Sort(self)
@@ -951,6 +958,8 @@ class PopoverTableViewController : UIViewController
         }
     }
     
+    var completion:(()->())?
+    
     @objc func done()
     {
         dismiss(animated: true, completion: nil)
@@ -1242,6 +1251,8 @@ class PopoverTableViewController : UIViewController
             Alerts.shared.topViewController.removeLast()
         }
         
+        completion?()
+
         trackingTimer?.invalidate()
         trackingTimer = nil
     }
@@ -2293,7 +2304,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         // Otherwise
-        return editActionsAtIndexPath?(self,tableView,indexPath) != nil
+        return delegate?.rowActions(popover: self,tableView: tableView,indexPath: indexPath) != nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
@@ -2303,12 +2314,12 @@ extension PopoverTableViewController : UITableViewDelegate
         if let transcript = self.transcript {
             alertActions = transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
         } else {
-            alertActions = self.editActionsAtIndexPath?(self,tableView,indexPath)
+            alertActions = delegate?.rowActions(popover: self,tableView: tableView,indexPath: indexPath)
         }
         
-        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] rowAction, indexPath in
             let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                            message: self.section.string(from: indexPath),
+                                            message: self?.section.string(from: indexPath),
                                             preferredStyle: .alert)
             alert.makeOpaque()
             
@@ -2326,8 +2337,8 @@ extension PopoverTableViewController : UITableViewDelegate
             })
             alert.addAction(okayAction)
             
-            self.present(alert, animated: true, completion: {
-                self.alertController = alert
+            self?.present(alert, animated: true, completion: {
+                self?.alertController = alert
             })
         }
         action.backgroundColor = UIColor.controlBlue()
@@ -2462,7 +2473,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 
                 popover.search = false // This keeps it to one level deep.
                 
-                popover.editActionsAtIndexPath = self.editActionsAtIndexPath
+//                popover.editActionsAtIndexPath = self.editActionsAtIndexPath
                 
                 popover.delegate = self.delegate // as? PopoverTableViewControllerDelegate
                 popover.purpose = self.purpose

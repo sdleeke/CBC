@@ -10,6 +10,10 @@ import Foundation
 
 class MediaTeacher
 {
+    deinit {
+        
+    }
+    
     var name : String?
     var title : String?
     

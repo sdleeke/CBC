@@ -10,6 +10,10 @@ import Foundation
 
 class Display
 {
+    deinit {
+        
+    }
+    
     var mediaItems:[MediaItem]?
     var section = Section(tableView:nil, stringsAction:nil)
     

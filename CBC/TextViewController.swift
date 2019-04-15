@@ -482,6 +482,11 @@ extension TextViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -489,7 +494,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            self.alert(title: "Not Main Thread", message: "TextViewController:rowClickedAtIndex",completion:nil)
             return
         }
         

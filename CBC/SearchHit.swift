@@ -8,7 +8,8 @@
 
 import Foundation
 
-class SearchHit {
+class SearchHit
+{
     var mediaItem:MediaItem?
     
     var searchText:String?

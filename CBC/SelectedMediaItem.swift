@@ -10,6 +10,10 @@ import Foundation
 
 class SelectedMediaItem
 {
+    deinit {
+        
+    }
+    
     var master:MediaItem?
     {
         get {

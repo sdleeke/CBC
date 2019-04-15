@@ -10,6 +10,10 @@ import Foundation
 
 class StringIndex : NSObject
 {
+    deinit {
+        
+    }
+    
     // Make thread safe?
     var dict : [String:[[String:Any]]]?
     

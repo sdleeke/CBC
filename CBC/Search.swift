@@ -10,6 +10,10 @@ import Foundation
 
 class Search
 {
+    deinit {
+        
+    }
+    
     var complete:Bool = true
     
     var isActive:Bool = false

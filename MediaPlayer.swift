@@ -21,7 +21,12 @@ enum PlayerState {
     case seekingBackward
 }
 
-class PlayerStateTime {
+class PlayerStateTime
+{
+    deinit {
+        
+    }
+    
     var mediaItem:MediaItem?
     {
         willSet {
@@ -72,10 +77,6 @@ class PlayerStateTime {
         startTime = mediaItem?.currentTime
     }
     
-    deinit {
-        
-    }
-    
     func log()
     {
         var stateName:String?
@@ -117,7 +118,8 @@ enum PIP {
     case stopped
 }
 
-class MediaPlayer : NSObject {
+class MediaPlayer : NSObject
+{
     var isSeeking = false
     {
         didSet {

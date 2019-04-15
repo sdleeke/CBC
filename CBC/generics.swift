@@ -76,6 +76,10 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool
 
 class Default<T>
 {
+    deinit {
+        
+    }
+    
     private var _value : T?
     {
         didSet {
@@ -104,6 +108,10 @@ class Default<T>
 
 class OnNil<T>
 {
+    deinit {
+        
+    }
+    
     private var _value : T?
     {
         didSet {
@@ -139,6 +147,10 @@ class OnNil<T>
 // Like a blocking Fetch
 class OnNilGet<T>
 {
+    deinit {
+        
+    }
+    
     private var _value : T?
     {
         didSet {
@@ -205,6 +217,10 @@ class OnNilGet<T>
 
 class Setting<T>
 {
+    deinit {
+        
+    }
+    
     var isSetting : Bool = false
     
     var value:T?
@@ -238,6 +254,10 @@ class Setting<T>
 // if used for large numbers of shadowed scalars
 class Shadowed<T>
 {
+    deinit {
+        
+    }
+    
     private var _value : T?
     {
         didSet {
@@ -358,7 +378,12 @@ class Shadowed<T>
 ////    }
 //}
 
-class Cached<T> {
+class Cached<T>
+{
+    deinit {
+        
+    }
+    
     @objc func freeMemory()
     {
         cache.clear() // = [String:T]()
@@ -420,14 +445,14 @@ class Cached<T> {
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
-    
-    deinit {
-        
-    }
 }
 
 class BoundsCheckedArray<T>
 {
+    deinit {
+        
+    }
+    
     private var storage = [T]()
     
     func sorted(_ sort:((T,T)->Bool)) -> [T]
@@ -513,6 +538,10 @@ class BoundsCheckedArray<T>
 
 class ThreadSafe<T>
 {
+    deinit {
+        
+    }
+    
     // Make it thread safe
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: UUID().uuidString)
@@ -542,6 +571,10 @@ class ThreadSafe<T>
 
 class ThreadSafeArray<T>
 {
+    deinit {
+        
+    }
+    
     private var storage = [T]()
     
     func sorted(sort:((T,T)->Bool)) -> [T]
@@ -750,6 +783,10 @@ class ThreadSafeArray<T>
 
 class ThreadSafeDN<T>
 {
+    deinit {
+        
+     }
+    
     // Make it thread safe
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: self?.name ?? UUID().uuidString)
@@ -1505,6 +1542,10 @@ protocol Size
 
 class FetchCodable<T:Codable> : Fetch<T>, Size
 {
+    deinit {
+        
+    }
+    
     var fileSystemURL : URL?
     {
         get {

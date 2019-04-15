@@ -10,6 +10,10 @@ import Foundation
 
 class Selected
 {
+    deinit {
+        
+    }
+    
     var testament:String?
 
     var book:String?

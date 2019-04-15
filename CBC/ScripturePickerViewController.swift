@@ -322,7 +322,11 @@ extension ScripturePickerViewController : UIPickerViewDelegate
 
 class ScripturePickerViewController : UIViewController
 {
-    var scripture:Scripture?
+    deinit {
+        
+    }
+    
+    weak var scripture:Scripture?
     var includeVerses = false
 
     @IBOutlet weak var scripturePicker: UIPickerView!

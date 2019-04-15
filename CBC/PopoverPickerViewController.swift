@@ -292,6 +292,11 @@ extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
 
 extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 {
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -391,9 +396,11 @@ class PopoverPickerViewController : UIViewController
     deinit {
         operationQueue.cancelAllOperations()
     
-        stringTree?.start = nil
-        stringTree?.update = nil
-        stringTree?.complete = nil
+        stringTree?.callBacks.unregister(id: "PPVC")
+
+//        stringTree?.start = nil
+//        stringTree?.update = nil
+//        stringTree?.complete = nil
     }
     
     var popover : PopoverTableViewController?
@@ -423,7 +430,7 @@ class PopoverPickerViewController : UIViewController
     
     var incremental = false
     
-//    var lexicon : Lexicon?
+//    weak var lexicon : Lexicon?
     
     var action : ((String?)->())?
     var actionTitle : String?
@@ -558,6 +565,10 @@ class PopoverPickerViewController : UIViewController
             popover.section.strings = actionMenu()
             
             self.popover = popover
+            
+            popover.completion = { [weak self] in
+                self?.popover = nil
+            }
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -903,9 +914,23 @@ class PopoverPickerViewController : UIViewController
 //                spinner.startAnimating()
 //            }
 
-            stringTree?.update = { [weak self] in
-                self?.updated()
-            }
+            stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
+                    start: { [weak self] in
+                        self?.started()
+                        
+                    },
+                    update:{ [weak self] in
+                        self?.updated()
+                    },
+                    complete:{ [weak self] in
+                        self?.completed()
+                    }
+                )
+            )
+            
+//            stringTree?.update = { [weak self] in
+//                self?.updated()
+//            }
             
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
@@ -1148,7 +1173,7 @@ class PopoverPickerViewController : UIViewController
 
             self?.string = self?.wordFromPicker()
             
-            self?.toolbarItems?[1].isEnabled = true
+            self?.toolbarItems?[1].isEnabled = (self?.stringTree?.incremental == true) ? true : (self?.stringTree?.completed == true)
             
             if self?.stringTree?.completed == true {
                 self?.spinner.stopAnimating()
@@ -1158,6 +1183,7 @@ class PopoverPickerViewController : UIViewController
     
     func started()
     {
+        self.spinner.startAnimating()
         self.updatePickerSelections()
         self.updatePicker()
 
@@ -1168,6 +1194,10 @@ class PopoverPickerViewController : UIViewController
     
     @objc func updated()
     {
+        Thread.onMainThreadSync {
+            self.spinner.startAnimating()
+        }
+        
         self.updatePickerSelections()
         self.updatePicker()
         
@@ -1182,6 +1212,7 @@ class PopoverPickerViewController : UIViewController
     
     func completed()
     {
+        self.spinner.startAnimating()
         self.updatePickerSelections()
         self.updatePicker()
 

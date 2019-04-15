@@ -101,6 +101,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
 
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -263,8 +268,8 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         
                         popover.cloudString = self.webViewController?.bodyHTML?.html2String
                         
-                        popover.cloudWordDictsFunction = {
-                            let words:[[String:Any]]? = self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
+                        popover.cloudWordDictsFunction = { [weak self] in
+                            let words:[[String:Any]]? = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
                                 return ["word":key,"count":value,"selected":true]
                             })
                             
@@ -274,8 +279,8 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.cloudTitle = navigationItem.title
                     
-                    popover.cloudWordDictsFunction = {
-                        let words = self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
+                    popover.cloudWordDictsFunction = { [weak self] in
+                        let words = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
                             return ["word":word,"count":count,"selected":true]
                         })
                         
@@ -313,37 +318,37 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     var segmentActions = [SegmentAction]()
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            popover.section.method = Constants.Sort.Alphabetical
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            popover.section.indexStringsTransform = nil
-                            popover.section.indexHeadersTransform = nil
-                            popover.section.indexSort = nil
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
+                        let strings = popover?.section.function?(Constants.Sort.Alphabetical,popover?.section.strings)
+                        if popover?.segmentedControl.selectedSegmentIndex == 0 {
+                            popover?.section.method = Constants.Sort.Alphabetical
+                            popover?.section.showHeaders = false
+                            popover?.section.showIndex = true
+                            popover?.section.indexStringsTransform = nil
+                            popover?.section.indexHeadersTransform = nil
+                            popover?.section.indexSort = nil
                             
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            popover.section.stringsAction?(strings)
-                            popover.tableView?.reloadData()
+                            popover?.section.sorting = true
+                            popover?.section.strings = strings
+                            popover?.section.sorting = false
+                            popover?.section.stringsAction?(strings)
+                            popover?.tableView?.reloadData()
                         }
                     }))
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            popover.section.method = Constants.Sort.Frequency
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
+                        let strings = popover?.section.function?(Constants.Sort.Frequency,popover?.section.strings)
+                        if popover?.segmentedControl.selectedSegmentIndex == 1 {
+                            popover?.section.method = Constants.Sort.Frequency
+                            popover?.section.showHeaders = false
+                            popover?.section.showIndex = true
+                            popover?.section.indexStringsTransform = { (string:String?) -> String? in
                                 return string?.log
                             }
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                            popover?.section.indexHeadersTransform = { (string:String?) -> String? in
                                 return string
                             }
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                            popover?.section.indexSort = { (first:String?,second:String?) -> Bool in
                                 guard let first = first else {
                                     return false
                                 }
@@ -353,11 +358,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                                 return Int(first) > Int(second)
                             }
                             
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            popover.section.stringsAction?(strings)
-                            popover.tableView?.reloadData()
+                            popover?.section.sorting = true
+                            popover?.section.strings = strings
+                            popover?.section.sorting = false
+                            popover?.section.stringsAction?(strings)
+                            popover?.tableView?.reloadData()
                         }
                     }))
                     
@@ -367,14 +372,18 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.search = true
                     
-                    popover.stringsFunction = {
+                    popover.stringsFunction = { [weak self] in
                         // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                             return "\(word) (\(count))"
                         }).sorted()
                     }
                     
                     self.popover = popover
+                    
+                    popover.completion = { [weak self] in
+                        self?.popover = nil
+                    }
                     
                     present(navigationController, animated: true, completion: nil)
                 }
@@ -829,10 +838,10 @@ class ScriptureViewController : UIViewController
                     scripturePickerViewController = spvc
                     scripturePickerViewController?.scripture = scripture
 //                    scripturePickerViewController?.includeVerses = true
-                    scripturePickerViewController?.show = {
-                        self.showScripture()
-                        self.setupBarButtons()
-                        self.updateReferenceLabel()
+                    scripturePickerViewController?.show = { [weak self] in
+                        self?.showScripture()
+                        self?.setupBarButtons()
+                        self?.updateReferenceLabel()
                     }
                 }
                 break
@@ -884,6 +893,10 @@ class ScriptureViewController : UIViewController
             popover.section.strings = webViewController?.actionMenu()
 
             self.popover = popover
+            
+            popover.completion = { [weak self] in
+                self?.popover = nil
+            }
             
             self.present(navigationController, animated: true, completion:  nil)
         }

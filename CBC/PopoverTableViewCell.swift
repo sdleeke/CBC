@@ -10,6 +10,10 @@ import UIKit
 
 class PopoverTableViewCell: UITableViewCell
 {
+    deinit {
+        
+    }
+    
     @IBOutlet weak var title: UILabel!
 
     override func awakeFromNib()

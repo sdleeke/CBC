@@ -1121,7 +1121,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Jkf-Jd-3pS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3165" y="-16"/>
+            <point key="canvasLocation" x="3254" y="429"/>
         </scene>
         <!--Text View Controller-->
         <scene sceneID="uXh-bu-1UA">
@@ -2246,7 +2246,7 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="2ws-5f-m41">
-                                        <rect key="frame" x="194" y="53" width="279" height="72"/>
+                                        <rect key="frame" x="325.5" y="81" width="16" height="16"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>

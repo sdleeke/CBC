@@ -11,7 +11,12 @@ import WebKit
 import MessageUI
 import MobileCoreServices
 
-class HTML {
+class HTML
+{
+    deinit {
+        
+    }
+    
     weak var webViewController: WebViewController?
     
 //    private lazy var operationQueue : OperationQueue! = {
@@ -277,6 +282,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     @objc func showFullScreen()
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
@@ -329,8 +339,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
             if let string = html.string, string.contains(" href=") {
                 self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
-                    firstAction: {
-                        self.process(work: { [weak self] () -> (Any?) in
+                    firstAction: { [weak self] in
+                        self?.process(work: { [weak self] () -> (Any?) in
                             return self?.html.string?.stripLinks
                         }, completion: { [weak self] (data:Any?) in
                             if let vc = self {
@@ -339,8 +349,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         })
                 }, firstStyle: .default,
                    secondTitle: Constants.Strings.No,
-                   secondAction: {
-                    self.printHTML(htmlString: self.html.string)
+                   secondAction: { [weak self] in
+                    self?.printHTML(htmlString: self?.html.string)
                 }, secondStyle: .default)
             } else {
                 self.printHTML(htmlString: self.html.string)
@@ -361,77 +371,77 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 textField.placeholder = self.searchText ?? "search string"
             })
             
-            let search = UIAlertAction(title: "Search", style: UIAlertAction.Style.default, handler: {
+            let search = UIAlertAction(title: "Search", style: UIAlertAction.Style.default, handler: { [weak self]
                 (action : UIAlertAction!) -> Void in
-                self.searchText = alert.textFields?[0].text
+                self?.searchText = alert.textFields?[0].text
                 
-                self.wkWebView?.isHidden = true
+                self?.wkWebView?.isHidden = true
                 
-                self.activityIndicator.isHidden = false
-                self.activityIndicator.startAnimating()
+                self?.activityIndicator.isHidden = false
+                self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
+                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                 } else {
-                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     }
                 }
                 
-                if let url = self.html.fileURL {
-                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                if let url = self?.html.fileURL {
+                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
             })
             alert.addAction(search)
             
-            let searchWhole = UIAlertAction(title: "Search - Whole Words Only", style: UIAlertAction.Style.default, handler: {
+            let searchWhole = UIAlertAction(title: "Search - Whole Words Only", style: UIAlertAction.Style.default, handler: { [weak self]
                 (action : UIAlertAction!) -> Void in
-                self.searchText = alert.textFields?[0].text
+                self?.searchText = alert.textFields?[0].text
                 
-                self.wkWebView?.isHidden = true
+                self?.wkWebView?.isHidden = true
                 
-                self.activityIndicator.isHidden = false
-                self.activityIndicator.startAnimating()
+                self?.activityIndicator.isHidden = false
+                self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
+                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                 } else {
-                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: true, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: true, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: true, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: true, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     }
                 }
                 
-                if let url = self.html.fileURL {
-                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                if let url = self?.html.fileURL {
+                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
             })
             alert.addAction(searchWhole)
             
-            let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: {
+            let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: { [weak self]
                 (action : UIAlertAction!) -> Void in
-                self.searchText = ""
+                self?.searchText = ""
                 
-                self.wkWebView?.isHidden = true
+                self?.wkWebView?.isHidden = true
                 
-                self.activityIndicator.isHidden = false
-                self.activityIndicator.startAnimating()
+                self?.activityIndicator.isHidden = false
+                self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self.searchText?.isEmpty, isEmpty {
-                    self.html.string = self.html.original?.stripHead.insertHead(fontSize: self.html.fontSize)
+                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                 } else {
-                    if self.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self.html.string = self.bodyHTML?.markHTML(headerHTML: self.headerHTML, searchText:self.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self.html.string = self.html.original?.markHTML(searchText:self.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.html.fontSize)
+                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     }
                 }
                 
-                if let url = self.html.fileURL {
-                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                if let url = self?.html.fileURL {
+                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
             })
             alert.addAction(clear)
@@ -456,11 +466,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
 
                 popover.actionTitle = Constants.Strings.Expanded_View
-                popover.action = { (String) in
-                    self.process(work: { [weak self] () -> (Any?) in
-                        return popover.stringTree?.html
-                    }, completion: { [weak self] (data:Any?) in
-                        popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                popover.action = { [weak self, weak popover] (String) in
+                    self?.process(work: { [weak self, weak popover] () -> (Any?) in
+                        return popover?.stringTree?.html
+                    }, completion: { [weak self, weak popover] (data:Any?) in
+                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     })
                 }
                 
@@ -468,9 +478,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
                 
-                popover.stringsFunction = {
+                popover.stringsFunction = { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                    return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                    return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return word
                     }).sorted()
                 }
@@ -504,8 +514,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    return words
 //                }
 
-                popover.cloudWordDictsFunction = {
-                    let words = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
+                popover.cloudWordDictsFunction = { [weak self] in
+                    let words = self?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
                         return ["word":word,"count":count,"selected":true]
                     })
                     
@@ -543,37 +553,37 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 var segmentActions = [SegmentAction]()
                 
-                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
-                    let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                    if popover.segmentedControl.selectedSegmentIndex == 0 {
-                        popover.section.method = Constants.Sort.Alphabetical
-                        popover.section.showHeaders = false
-                        popover.section.showIndex = true
-                        popover.section.indexStringsTransform = nil
-                        popover.section.indexHeadersTransform = nil
-                        popover.section.indexSort = nil
+                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
+                    let strings = popover?.section.function?(Constants.Sort.Alphabetical,popover?.section.strings)
+                    if popover?.segmentedControl.selectedSegmentIndex == 0 {
+                        popover?.section.method = Constants.Sort.Alphabetical
+                        popover?.section.showHeaders = false
+                        popover?.section.showIndex = true
+                        popover?.section.indexStringsTransform = nil
+                        popover?.section.indexHeadersTransform = nil
+                        popover?.section.indexSort = nil
                         
-                        popover.section.sorting = true
-                        popover.section.strings = strings
-                        popover.section.sorting = false
-                        popover.section.stringsAction?(strings)
-                        popover.tableView?.reloadData()
+                        popover?.section.sorting = true
+                        popover?.section.strings = strings
+                        popover?.section.sorting = false
+                        popover?.section.stringsAction?(strings)
+                        popover?.tableView?.reloadData()
                     }
                 }))
                 
-                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
-                    let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                    if popover.segmentedControl.selectedSegmentIndex == 1 {
-                        popover.section.method = Constants.Sort.Frequency
-                        popover.section.showHeaders = false
-                        popover.section.showIndex = true
-                        popover.section.indexStringsTransform = { (string:String?) -> String? in
+                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
+                    let strings = popover?.section.function?(Constants.Sort.Frequency,popover?.section.strings)
+                    if popover?.segmentedControl.selectedSegmentIndex == 1 {
+                        popover?.section.method = Constants.Sort.Frequency
+                        popover?.section.showHeaders = false
+                        popover?.section.showIndex = true
+                        popover?.section.indexStringsTransform = { (string:String?) -> String? in
                             return string?.log
                         }
-                        popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                        popover?.section.indexHeadersTransform = { (string:String?) -> String? in
                             return string
                         }
-                        popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                        popover?.section.indexSort = { (first:String?,second:String?) -> Bool in
                             guard let first = first else {
                                 return false
                             }
@@ -583,11 +593,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                             return Int(first) > Int(second)
                         }
                         
-                        popover.section.sorting = true
-                        popover.section.strings = strings
-                        popover.section.sorting = false
-                        popover.section.stringsAction?(strings)
-                        popover.tableView?.reloadData()
+                        popover?.section.sorting = true
+                        popover?.section.strings = strings
+                        popover?.section.sorting = false
+                        popover?.section.stringsAction?(strings)
+                        popover?.tableView?.reloadData()
                     }
                 }))
 
@@ -597,11 +607,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.search = true
 
-                popover.stringsFunction = {
+                popover.stringsFunction = { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                     
-                    return self.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                        if let mismatches = self.mediaItem?.notesTokensMarkMismatches?.cache {
+                    return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                        if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
                             var dict = [String:(String,String)]()
                             for mismatch in mismatches {
                                 let parts = mismatch.components(separatedBy: " ")
@@ -619,6 +629,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 }
 
                 self.popover = popover
+                
+                popover.completion = { [weak self] in
+                    self?.popover = nil
+                }
                 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -1185,6 +1199,10 @@ class WebViewController: UIViewController
             popover.section.strings = actionMenu()
             
             self.popover = popover
+            
+            popover.completion = { [weak self] in
+                self?.popover = nil
+            }
             
             present(navigationController, animated: true, completion: nil)
         }

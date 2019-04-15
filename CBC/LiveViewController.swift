@@ -13,6 +13,10 @@ import AVKit
 
 class LiveViewController: UIViewController
 {
+    deinit {
+        
+    }
+    
     var streamEntry:StreamEntry?
     {
         didSet {

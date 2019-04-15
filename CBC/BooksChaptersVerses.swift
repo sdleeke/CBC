@@ -10,6 +10,10 @@ import Foundation
 
 class BooksChaptersVerses : Swift.Comparable
 {
+    deinit {
+        
+    }
+    
     // Make thread safe?
     private var data:[String:[Int:[Int]]]?
     {

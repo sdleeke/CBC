@@ -17,9 +17,10 @@ import Foundation
 
 class StringTree
 {
-    var start : (()->())?
-    var update : (()->())?
-    var complete : (()->())?
+    var callBacks = CallBacks()
+//    var start : (()->())?
+//    var update : (()->())?
+//    var complete : (()->())?
     
     lazy var root:StringNode! = { [weak self] in
         return StringNode(nil)
@@ -33,6 +34,25 @@ class StringTree
 //        }
 //    }
     var completed = false
+    
+    weak var lexicon : Lexicon?
+    {
+        didSet {
+            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
+                start: { [weak self] in
+                
+                },
+                update: { [weak self] in
+                    self?.operationQueue.cancelAllOperations()
+                    self?.build(strings: self?.lexicon?.strings)
+                },
+                complete: { [weak self] in
+                    self?.operationQueue.cancelAllOperations()
+                    self?.build(strings: self?.lexicon?.strings)
+                }
+            ))
+        }
+    }
     
     convenience init(incremental: Bool)
     {
@@ -101,6 +121,7 @@ class StringTree
     }()
     
     deinit {
+        lexicon?.callBacks.unregister(id: "STRINGTREE")
         operationQueue.cancelAllOperations()
     }
     
@@ -131,7 +152,7 @@ class StringTree
                     self?.root.addString(string)
                     
                     if (date == nil) || (date?.timeIntervalSinceNow <= -3) { // Any more frequent and the UI becomes unresponsive.
-                        self?.update?()
+                        self?.callBacks.update()
                         //                        Globals.shared.queue.async {
                         //                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                         //                        }
@@ -140,10 +161,15 @@ class StringTree
                     }
                 }
                 
+                if test?() == true {
+                    self?.building = false
+                    return
+                }
+                
                 self?.building = false
                 self?.completed = true
                 
-                self?.update?()
+                self?.callBacks.update()
                 //                Globals.shared.queue.async {
                 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                 //                }

@@ -32,6 +32,10 @@ extension ScriptureIndexViewController : UIAdaptivePresentationControllerDelegat
 extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
@@ -223,7 +227,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -862,9 +866,7 @@ class ScriptureIndexViewController : UIViewController
     deinit {
         operationQueue.cancelAllOperations()
     
-        scriptureIndex?.start = nil
-        scriptureIndex?.update = nil
-        scriptureIndex?.complete = nil
+        scriptureIndex?.callBacks.unregister(id: "SIVC")
     }
     
     func updateSearchResults()
@@ -1088,15 +1090,17 @@ class ScriptureIndexViewController : UIViewController
         
         addNotifications()
         
-        scriptureIndex?.start = {
-            self.started()
-        }
-        scriptureIndex?.update = {
-            self.updated()
-        }
-        scriptureIndex?.complete = {
-            self.completed()
-        }
+        scriptureIndex?.callBacks.register(id: "SIVC", callBack: CallBack(
+            start: { [weak self] in
+                self?.started()
+            },
+            update: { [weak self] in
+                self?.updated()
+            },
+            complete: { [weak self] in
+                self?.completed()
+            }
+        ))
 
         navigationItem.hidesBackButton = false
         

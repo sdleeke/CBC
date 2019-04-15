@@ -10,9 +10,11 @@ import Foundation
 
 class ScriptureIndex
 {
-    var start : (()->())?
-    var update : (()->())?
-    var complete : (()->())?
+    var callBacks = CallBacks()
+    
+//    var start : (()->())?
+//    var update : (()->())?
+//    var complete : (()->())?
     
     var creating : Bool // = false
     {
@@ -241,7 +243,7 @@ class ScriptureIndex
     func build()
     {
         guard !completed else {
-            complete?()
+            callBacks.complete()
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
 //            }
@@ -260,7 +262,7 @@ class ScriptureIndex
 //            self?.creating = true
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
-                self?.start?()
+                self?.callBacks.start()
 //                Globals.shared.queue.async {
 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
 //                }
@@ -389,7 +391,7 @@ class ScriptureIndex
                 }
             }
             
-            self?.complete?()
+            self?.callBacks.complete()
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
 //            }

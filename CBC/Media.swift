@@ -18,6 +18,10 @@ struct MediaNeed
 // Problems went away when I switched to class
 class Media
 {
+    deinit {
+        
+    }
+    
     var goto:String?
     
     var need = MediaNeed()

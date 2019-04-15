@@ -14,6 +14,10 @@ class Tags
 {
 //    weak var globals:Globals!
     
+    deinit {
+        
+    }
+    
     var showing:String?
     {
         get {

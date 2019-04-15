@@ -100,6 +100,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func actionMenu(action:String?,mediaItem:MediaItem?)
     {
         guard let action = action else {
@@ -548,7 +553,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -675,7 +680,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -2649,6 +2654,10 @@ class MediaViewController: UIViewController
             
             popover.section.strings = actionMenu()
             
+            popover.completion = { [weak self] in
+                self?.popover = nil
+            }
+            
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
                     self.popover = popover
@@ -3950,6 +3959,10 @@ class MediaViewController: UIViewController
             
             popover.allowsSelection = false
             popover.selectedMediaItem = selectedMediaItem
+            
+            popover.completion = { [weak self] in
+                self?.popover = nil
+            }
             
             present(navigationController, animated: true, completion: {
                 self.popover = popover

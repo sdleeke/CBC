@@ -10,6 +10,10 @@ import Foundation
 
 class StreamEntry
 {
+    deinit {
+        
+    }
+    
     init?(_ storage:[String:Any]?)
     {
         guard storage != nil else {

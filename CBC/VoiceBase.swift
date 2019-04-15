@@ -6817,7 +6817,7 @@ class VoiceBase
         
         var edit:AlertAction!
         
-        edit = AlertAction(title: "Edit", style: .default) {
+        edit = AlertAction(title: "Edit", style: .default) { // [weak popover] in
             self.editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath)
         }
         
@@ -6935,7 +6935,7 @@ class VoiceBase
 
                     popover.search = true
                     
-                    popover.editActionsAtIndexPath = self.rowActions
+//                    popover.editActionsAtIndexPath = self.rowActions
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
                     popover.purpose = .selectingTime

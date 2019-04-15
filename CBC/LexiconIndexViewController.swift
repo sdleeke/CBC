@@ -51,7 +51,12 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 {
     //  MARK: PopoverTableViewControllerDelegate
 
-    func actionMenu(action: String?,mediaItem:MediaItem?)
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
+   func actionMenu(action: String?,mediaItem:MediaItem?)
     {
         guard self.isViewLoaded else {
             return
@@ -138,6 +143,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 //                }
 
                 popover.stringTree = StringTree(incremental: true)
+                popover.stringTree?.lexicon = self.lexicon
                 
                 // mediaListGroupSort?.lexicon?.tokens
                 popover.strings = activeWords
@@ -155,9 +161,9 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
 //                return self?.lexicon?.wordsHTML
                 return self?.activeWordsHTML
-            }, completion: { (data:Any?) in
+            }, completion: { [weak self] (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
-                self.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+                self?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
             })
             break
             
@@ -424,7 +430,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
             }
@@ -728,9 +734,9 @@ class LexiconIndexViewController : UIViewController
     {
         guard let searchText = searchText else {
             results = nil
-            Thread.onMainThreadSync {
-                self.tableView.reloadData()
-                self.updateUI()
+            Thread.onMainThreadSync { [weak self] in
+                self?.tableView.reloadData()
+                self?.updateUI()
             }
             return
         }
@@ -740,14 +746,14 @@ class LexiconIndexViewController : UIViewController
             return mediaItemFrequency.key
         }))
         
-        Thread.onMainThreadSync {
-            if !self.tableView.isEditing {
-                self.tableView.reloadData()
+        Thread.onMainThreadSync { [weak self] in
+            if self?.tableView.isEditing == false {
+                self?.tableView.reloadData()
             } else {
-                self.changesPending = true
+                self?.changesPending = true
             }
             
-            self.updateUI()
+            self?.updateUI()
         }
     }
     
@@ -772,7 +778,7 @@ class LexiconIndexViewController : UIViewController
                     
                     wordsTableViewController.segments = true
                     
-                    wordsTableViewController.section.function = { (method:String?,strings:[String]?) -> [String]? in
+                    wordsTableViewController.section.function = { [weak self] (method:String?,strings:[String]?) -> [String]? in
                         guard let strings = strings else {
                             return nil
                         }
@@ -784,7 +790,7 @@ class LexiconIndexViewController : UIViewController
                         var occurrences = [String:Int]()
                         
                         strings.forEach({ (string:String) in
-                            occurrences[string] = self.lexicon?.occurrences(string)
+                            occurrences[string] = self?.lexicon?.occurrences(string)
                         })
                         
                         var sortedStrings:[String]? = nil
@@ -827,12 +833,12 @@ class LexiconIndexViewController : UIViewController
                     
                     var segmentActions = [SegmentAction]()
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self] in
                         // Cancel or wait?
-                        self.operationQueue.cancelAllOperations()
+                        self?.operationQueue.cancelAllOperations()
                         
 //                        DispatchQueue.global(qos: .background).async { [weak self] in
-                        self.operationQueue.addOperation { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
@@ -875,12 +881,12 @@ class LexiconIndexViewController : UIViewController
                         }
                     }))
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self] in
                         // Cancel or wait?
-                        self.operationQueue.cancelAllOperations()
+                        self?.operationQueue.cancelAllOperations()
                         
 //                        DispatchQueue.global(qos: .background).async { [weak self] in
-                        self.operationQueue.addOperation { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
@@ -946,11 +952,11 @@ class LexiconIndexViewController : UIViewController
                     wordsTableViewController.section.showIndex = true
                     
                     // Need to use this now that lexicon.strings is a computed variable and for large lexicons it can take a while.
-                    wordsTableViewController.stringsFunction = {
+                    wordsTableViewController.stringsFunction = { [weak self] in
 //                        return self.mediaListGroupSort?.lexicon?.strings
 
-                        return self.mediaListGroupSort?.lexicon?.strings?.sorted().map({ (string:String) -> String in
-                            if let count = self.lexicon?.occurrences(string) {
+                        return self?.mediaListGroupSort?.lexicon?.strings?.sorted().map({ (string:String) -> String in
+                            if let count = self?.lexicon?.occurrences(string) {
                                 return string + " (\(count))"
                             } else {
                                 return string
@@ -1058,37 +1064,31 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        lexicon?.start = {
-            self.started()
-        }
-        lexicon?.update = {
-            self.updated()
-        }
-        lexicon?.complete = {
-            self.completed()
-        }
+        lexicon?.callBacks.register(id: "LIVC", callBack: CallBack(start:{[weak self] in self?.started()},
+                                                                   update:{[weak self] in self?.updated()},
+                                                                   complete:{[weak self] in self?.completed()}))
 
         addNotifications()
         
         navigationItem.hidesBackButton = false
 
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
             // entries property is computationally expensive
             // eligible property is computationally expensive if not cached in shadow.
-            if let count = self.lexicon?.entries?.count,
-                let total = self.lexicon?.eligible?.count {
+            if let count = self?.lexicon?.entries?.count,
+                let total = self?.lexicon?.eligible?.count {
                 Thread.onMainThread {
-                    self.navigationItem.title = "Lexicon Index \(count) of \(total)"
+                    self?.navigationItem.title = "Lexicon Index \(count) of \(total)"
                 }
             }
         }
 
         wordsTableViewController.selectedText = searchText
         
-        wordsTableViewController.section.stringsAction = { (strings:[String]?) in
+        wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?) in
             Thread.onMainThread {
-                self.updateActionMenu()
-                self.wordsTableViewController.segmentedControl.isEnabled = (strings != nil) && !self.wordsTableViewController.section.sorting
+                self?.updateActionMenu()
+                self?.wordsTableViewController.segmentedControl.isEnabled = (strings != nil) && (self?.wordsTableViewController.section.sorting == false)
             }
         }
         
@@ -1599,9 +1599,7 @@ class LexiconIndexViewController : UIViewController
     deinit {
         operationQueue.cancelAllOperations()
     
-        lexicon?.start = nil
-        lexicon?.update = nil
-        lexicon?.complete = nil
+        lexicon?.callBacks.unregister(id: "LIVC")
     }
     
     @objc func started()
@@ -1615,32 +1613,75 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-//        operationQueue.addOperation {
-            // Need to block while waiting for the tableView to be hidden.
+        let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
             Thread.onMainThreadSync {
-                self.wordsTableViewController.segmentedControl.isEnabled = false
-//                self.wordsTableViewController.tableView.isHidden = true
+                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                //                self.wordsTableViewController.tableView.isHidden = true
             }
             
-            self.wordsTableViewController.section.sorting = self.wordsTableViewController.section.function != nil
+            self?.wordsTableViewController.section.sorting = self?.wordsTableViewController.section.function != nil
             
-            self.wordsTableViewController.unfilteredSection.strings = (self.wordsTableViewController.section.function == nil) ? self.lexicon?.strings : self.wordsTableViewController.section.function?(self.wordsTableViewController.section.method,self.lexicon?.strings)
+            if test?() == true {
+                return
+            }
             
-            self.wordsTableViewController.updateSearchResults()
+            self?.wordsTableViewController.unfilteredSection.strings = (self?.wordsTableViewController.section.function == nil) ? self?.lexicon?.strings : self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method, self?.lexicon?.strings)
+            
+            if test?() == true {
+                return
+            }
+            
+            self?.wordsTableViewController.updateSearchResults()
+            
+            if test?() == true {
+                return
+            }
             
             Thread.onMainThreadSync {
-                self.wordsTableViewController.tableView.reloadData()
-//                self.wordsTableViewController.tableView.isHidden = false
+                self?.wordsTableViewController.tableView.reloadData()
+                //                self.wordsTableViewController.tableView.isHidden = false
             }
-        
-            self.updateSearchResults()
+            
+            if test?() == true {
+                return
+            }
+            
+            self?.updateSearchResults()
+            
+            Thread.onMainThreadSync {
+                self?.wordsTableViewController.segmentedControl.isEnabled = true
                 
-            Thread.onMainThreadSync {
-                self.wordsTableViewController.segmentedControl.isEnabled = true
-
-                self.wordsTableViewController.section.sorting = false
+                self?.wordsTableViewController.section.sorting = false
             }
-            
+        }
+        operationQueue.addOperation(op)
+        
+//        operationQueue.addOperation { [weak self] in
+            // Need to block while waiting for the tableView to be hidden.
+//            Thread.onMainThreadSync {
+//                self.wordsTableViewController.segmentedControl.isEnabled = false
+////                self.wordsTableViewController.tableView.isHidden = true
+//            }
+//
+//            self.wordsTableViewController.section.sorting = self.wordsTableViewController.section.function != nil
+//
+//            self.wordsTableViewController.unfilteredSection.strings = (self.wordsTableViewController.section.function == nil) ? self.lexicon?.strings : self.wordsTableViewController.section.function?(self.wordsTableViewController.section.method,self.lexicon?.strings)
+//
+//            self.wordsTableViewController.updateSearchResults()
+//
+//            Thread.onMainThreadSync {
+//                self.wordsTableViewController.tableView.reloadData()
+////                self.wordsTableViewController.tableView.isHidden = false
+//            }
+//
+//            self.updateSearchResults()
+//
+//            Thread.onMainThreadSync {
+//                self.wordsTableViewController.segmentedControl.isEnabled = true
+//
+//                self.wordsTableViewController.section.sorting = false
+//            }
+        
             // Why?
 //            if self.operationQueue.operationCount > 1 {
 //                Thread.sleep(forTimeInterval: 5) // Does this block since maxConcurrent is 1?

@@ -41,6 +41,11 @@ extension AboutViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate Method
     
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        return nil
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -159,6 +164,14 @@ extension AboutViewController : UIActivityItemSource
 
 class AboutViewController: UIViewController
 {
+    lazy var geocoder:CLGeocoder? = {
+        return CLGeocoder()
+    }()
+    
+    deinit {
+        
+    }
+    
     var popover : PopoverTableViewController?
     
     override var canBecomeFirstResponder : Bool
@@ -287,8 +300,7 @@ class AboutViewController: UIViewController
             return
         }
         
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(Constants.CBC.FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
+        geocoder?.geocodeAddressString(Constants.CBC.FULL_ADDRESS, completionHandler:{[weak self] (placemarks, error) -> Void in
             if let placemark = placemarks?[0], let location = placemark.location {
                 let coordinates:CLLocationCoordinate2D = location.coordinate
                 
@@ -296,22 +308,22 @@ class AboutViewController: UIViewController
                 pointAnnotation.coordinate = coordinates
                 pointAnnotation.title = Constants.CBC.LONG
                 
-                self.mapView?.addAnnotation(pointAnnotation)
-                self.mapView?.setCenter(coordinates, animated: false)
-                self.mapView?.selectAnnotation(pointAnnotation, animated: false)
+                self?.mapView?.addAnnotation(pointAnnotation)
+                self?.mapView?.setCenter(coordinates, animated: false)
+                self?.mapView?.selectAnnotation(pointAnnotation, animated: false)
                 
                 let mkPlacemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
-                self.item = MKMapItem(placemark: mkPlacemark)
+                self?.item = MKMapItem(placemark: mkPlacemark)
                 
                 let viewRegion = MKCoordinateRegion.init(center: coordinates, latitudinalMeters: 50000, longitudinalMeters: 50000)
-                if let adjustedRegion = self.mapView?.regionThatFits(viewRegion) {
-                    self.mapView?.setRegion(adjustedRegion, animated: false)
+                if let adjustedRegion = self?.mapView?.regionThatFits(viewRegion) {
+                    self?.mapView?.setRegion(adjustedRegion, animated: false)
                 }
                 
-                self.mapView?.isZoomEnabled = false
-                self.mapView?.isUserInteractionEnabled = false
+                self?.mapView?.isZoomEnabled = false
+                self?.mapView?.isUserInteractionEnabled = false
                 
-                self.mapView?.isHidden = false
+                self?.mapView?.isHidden = false
             }
         })
     }
@@ -376,12 +388,12 @@ class AboutViewController: UIViewController
         
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
-        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if self.navigationController?.visibleViewController == self {
-                self.navigationController?.isToolbarHidden = true
+        }) { [weak self] (UIViewControllerTransitionCoordinatorContext) -> Void in
+            if self?.navigationController?.visibleViewController == self {
+                self?.navigationController?.isToolbarHidden = true
             }
             
-            self.setDVCLeftBarButton()
+            self?.setDVCLeftBarButton()
         }
     }
 }
