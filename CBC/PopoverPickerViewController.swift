@@ -1156,7 +1156,7 @@ class PopoverPickerViewController : UIViewController
     
     func updatePicker()
     {
-        Thread.onMainThread { [weak self] in
+        Thread.onMainThreadSync { [weak self] in
             self?.picker.reloadAllComponents()
 
             var i = 0
@@ -1187,7 +1187,7 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread { [weak self] in
+        Thread.onMainThreadSync { [weak self] in
             self?.updateActionButton()
         }
     }
@@ -1201,10 +1201,10 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
         
-        Thread.onMainThread { [weak self] in
+        Thread.onMainThreadSync { [weak self] in
             self?.updateActionButton()
             
-            if self?.stringTree?.completed == true {
+            if self?.stringTree?.completed == true { // , (self?.stringTree?.lexicon == nil) || (self?.stringTree?.lexicon?.completed == true)
                 self?.spinner.stopAnimating()
             }
         }
@@ -1216,7 +1216,7 @@ class PopoverPickerViewController : UIViewController
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread { [weak self] in
+        Thread.onMainThreadSync { [weak self] in
             self?.updateActionButton()
         }
     }

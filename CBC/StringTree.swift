@@ -44,10 +44,12 @@ class StringTree
                 },
                 update: { [weak self] in
                     self?.operationQueue.cancelAllOperations()
+                    self?.operationQueue.waitUntilAllOperationsAreFinished()
                     self?.build(strings: self?.lexicon?.strings)
                 },
                 complete: { [weak self] in
                     self?.operationQueue.cancelAllOperations()
+                    self?.operationQueue.waitUntilAllOperationsAreFinished()
                     self?.build(strings: self?.lexicon?.strings)
                 }
             ))
@@ -140,7 +142,13 @@ class StringTree
         if incremental {
 //            DispatchQueue.global(qos: .background).async { [weak self] in
             let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
-                self?.root = StringNode(nil)
+//                self?.root = StringNode(nil)
+
+                // Walking the tree over and over again is slower than recreating it each time?
+                // No and starting over each time is visually awful, the wheels empty each time.
+                if self?.root == nil {
+                    self?.root = StringNode(nil)
+                }
                 
                 var date : Date?
                 
@@ -163,6 +171,7 @@ class StringTree
                 
                 if test?() == true {
                     self?.building = false
+                    self?.completed = false
                     return
                 }
                 

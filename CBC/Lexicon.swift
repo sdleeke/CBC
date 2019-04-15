@@ -17,6 +17,11 @@ struct CallBack
 
 class CallBacks
 {
+    // Make it thread safe
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+    
     deinit {
         
     }
@@ -25,32 +30,42 @@ class CallBacks
     
     func register(id:String,callBack:CallBack)
     {
-        callbacks[id] = callBack
+        queue.sync {
+            callbacks[id] = callBack
+        }
     }
     
     func unregister(id:String)
     {
-        callbacks[id] = nil
+        queue.sync {
+            callbacks[id] = nil
+        }
     }
-    
+
     func start()
     {
-        callbacks.values.forEach { (callBack:CallBack) in
-            callBack.start?()
+        queue.sync {
+            callbacks.values.forEach { (callBack:CallBack) in
+                callBack.start?()
+            }
         }
     }
     
     func update()
     {
-        callbacks.values.forEach { (callBack:CallBack) in
-            callBack.update?()
+        queue.sync {
+            callbacks.values.forEach { (callBack:CallBack) in
+                callBack.update?()
+            }
         }
     }
     
     func complete()
     {
-        callbacks.values.forEach { (callBack:CallBack) in
-            callBack.complete?()
+        queue.sync {
+            callbacks.values.forEach { (callBack:CallBack) in
+                callBack.complete?()
+            }
         }
     }
 }

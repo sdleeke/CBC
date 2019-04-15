@@ -130,9 +130,17 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 ////////////////////////////////////////////////////////////////////////////////////////
                 popover.action = { [weak popover] (String) in
                     popover?.process(work: { [weak self] () -> (Any?) in
+                        Thread.onMainThread {
+                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
+                        }
+                        
                         return popover?.stringTree?.html
                     }, completion: { [weak self] (data:Any?) in
                         popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+
+                        Thread.onMainThread {
+                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
+                        }
                     })
                 }
 
@@ -1699,7 +1707,7 @@ class LexiconIndexViewController : UIViewController
         updated()
         
 //        operationQueue.addOperation {
-            Thread.onMainThread {
+            Thread.onMainThreadSync {
                 self.wordsTableViewController.activityIndicator.stopAnimating()
             }
 //        }
