@@ -169,7 +169,9 @@ class AboutViewController: UIViewController
     }()
     
     deinit {
-        
+        // Breakpoint won't work without something here.
+        // Strange.  Other breakpoints in other empty deinit's work fine.
+        print("deinit:About")
     }
     
     var popover : PopoverTableViewController?
