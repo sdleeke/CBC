@@ -8,73 +8,11 @@
 
 import Foundation
 
-struct CallBack
-{
-    var start : (()->())?
-    var update : (()->())?
-    var complete : (()->())?
-}
-
-class CallBacks
-{
-    // Make it thread safe
-    lazy var queue : DispatchQueue = { [weak self] in
-        return DispatchQueue(label: UUID().uuidString)
-    }()
-    
-    deinit {
-        
-    }
-    
-    private var callbacks = [String:CallBack]()
-    
-    func register(id:String,callBack:CallBack)
-    {
-        queue.sync {
-            callbacks[id] = callBack
-        }
-    }
-    
-    func unregister(id:String)
-    {
-        queue.sync {
-            callbacks[id] = nil
-        }
-    }
-
-    func start()
-    {
-        queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.start?()
-            }
-        }
-    }
-    
-    func update()
-    {
-        queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.update?()
-            }
-        }
-    }
-    
-    func complete()
-    {
-        queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.complete?()
-            }
-        }
-    }
-}
-
 class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
-//    var stringTree : StringTree? // For future use
+    var stringTree : StringTree?
     
     var callBacks = CallBacks()
     

@@ -144,14 +144,11 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     })
                 }
 
-                // Future use?
-//                popover.lexicon = self.lexicon
-//                if lexicon?.stringTree == nil {
-//                    lexicon?.stringTree = StringTree(incremental: true)
-//                }
+                popover.lexicon = self.lexicon
 
-                popover.stringTree = StringTree(incremental: true)
-                popover.stringTree?.lexicon = self.lexicon
+//                popover.stringTree?.lexicon = self.lexicon
+                
+                popover.stringTree = self.lexicon?.stringTree ?? StringTree(incremental: true)
                 
                 // mediaListGroupSort?.lexicon?.tokens
                 popover.strings = activeWords

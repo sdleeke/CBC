@@ -144,6 +144,8 @@ class StringTree
             let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
 //                self?.root = StringNode(nil)
 
+                self?.callBacks.start()
+
                 // Walking the tree over and over again is slower than recreating it each time?
                 // No and starting over each time is visually awful, the wheels empty each time.
                 if self?.root == nil {
@@ -178,7 +180,7 @@ class StringTree
                 self?.building = false
                 self?.completed = true
                 
-                self?.callBacks.update()
+                self?.callBacks.complete()
                 //                Globals.shared.queue.async {
                 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                 //                }

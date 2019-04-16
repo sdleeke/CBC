@@ -409,28 +409,33 @@ class PopoverPickerViewController : UIViewController
     
     var purpose : PopoverPurpose?
     
-//    var _stringTree : StringTree?
+    weak var lexicon : Lexicon?
+    
+    var _stringTree : StringTree?
+    {
+        didSet {
+            _stringTree?.lexicon = self.lexicon
+        }
+    }
     var stringTree : StringTree?
-//    {
-//        get {
-//            if let lexicon = lexicon {
-//                return lexicon.stringTree
-//            } else {
-//                return _stringTree
-//            }
-//        }
-//        set {
-//            if let lexicon = lexicon {
-//                lexicon.stringTree = newValue
-//            } else {
-//                _stringTree = newValue
-//            }
-//        }
-//    }
+    {
+        get {
+            if let lexicon = lexicon {
+                return lexicon.stringTree
+            } else {
+                return _stringTree
+            }
+        }
+        set {
+            if let lexicon = lexicon {
+                lexicon.stringTree = newValue
+            } else {
+                _stringTree = newValue
+            }
+        }
+    }
     
     var incremental = false
-    
-//    weak var lexicon : Lexicon?
     
     var action : ((String?)->())?
     var actionTitle : String?
@@ -1183,7 +1188,12 @@ class PopoverPickerViewController : UIViewController
     
     func started()
     {
-        self.spinner.startAnimating()
+        complete = false
+        
+        Thread.onMainThreadSync {
+            self.spinner.startAnimating()
+        }
+        
         self.updatePickerSelections()
         self.updatePicker()
 
@@ -1203,16 +1213,23 @@ class PopoverPickerViewController : UIViewController
         
         Thread.onMainThreadSync { [weak self] in
             self?.updateActionButton()
-            
-            if self?.stringTree?.completed == true { // , (self?.stringTree?.lexicon == nil) || (self?.stringTree?.lexicon?.completed == true)
-                self?.spinner.stopAnimating()
-            }
+//            
+//            if self?.complete == true { // self?.stringTree?.completed == true, (self?.stringTree?.lexicon == nil) || (self?.stringTree?.lexicon?.completed == true)
+//                self?.spinner.stopAnimating()
+//            }
         }
     }
     
+    var complete = false
+    
     func completed()
     {
-        self.spinner.startAnimating()
+        complete = true
+        
+        Thread.onMainThreadSync {
+            self.spinner.startAnimating()
+        }
+        
         self.updatePickerSelections()
         self.updatePicker()
 

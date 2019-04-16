@@ -103,7 +103,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.View_Scripture:
-                if let reference = scripture?.selected.reference {
+                if let reference = scriptureIndex?.scripture.selected.reference {
                     scripture?.reference = reference
                     if scripture?.html?[reference] != nil {
                         self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
@@ -281,46 +281,46 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             switch row {
             case 0:
                 if (scriptureIndex?.byTestament[Constants.Old_Testament] == nil) {
-                    scriptureIndex?.selectedTestament = Constants.NT
+                    scriptureIndex?.scripture.selected.testament = Constants.NT
                     break
                 }
                 
                 if (scriptureIndex?.byTestament[Constants.New_Testament] == nil) {
-                    scriptureIndex?.selectedTestament = Constants.OT
+                    scriptureIndex?.scripture.selected.testament = Constants.OT
                     break
                 }
                 
-                scriptureIndex?.selectedTestament = Constants.OT
+                scriptureIndex?.scripture.selected.testament = Constants.OT
                 break
                 
             case 1:
-                scriptureIndex?.selectedTestament = Constants.NT
+                scriptureIndex?.scripture.selected.testament = Constants.NT
                 break
                 
             default:
                 break
             }
 
-            if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
-                scriptureIndex?.selectedBook = scripture?.picker.books?[0]
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, bookSwitch.isOn {
+                scriptureIndex?.scripture.selected.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+                scriptureIndex?.scripture.selected.book = scriptureIndex?.scripture.selected.picker.books?[0]
             } else {
-                scriptureIndex?.selectedBook = nil
+                scriptureIndex?.scripture.selected.book = nil
             }
             
             updateSwitches()
             
-            if let selectedTestament = scriptureIndex?.selectedTestament, chapterSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, chapterSwitch.isOn, let selectedBook = scriptureIndex?.scripture.selected.book {
+                scriptureIndex?.scripture.selected.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
                 
-                if let chapter = scripture?.picker.chapters?[0] {
-                    scriptureIndex?.selectedChapter = chapter
+                if let chapter = scriptureIndex?.scripture.selected.picker.chapters?[0] {
+                    scriptureIndex?.scripture.selected.chapter = chapter
                 }
             } else {
-                scriptureIndex?.selectedChapter = 0
+                scriptureIndex?.scripture.selected.chapter = 0
             }
             
-            scriptureIndex?.selectedVerse = 0
+            scriptureIndex?.scripture.selected.verse = 0
             
             pickerView.reloadAllComponents()
             
@@ -332,23 +332,23 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             break
             
         case 1: // Book
-            if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
-                scriptureIndex?.selectedBook = scripture?.picker.books?[row]
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, bookSwitch.isOn {
+                scriptureIndex?.scripture.selected.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+                scriptureIndex?.scripture.selected.book = scriptureIndex?.scripture.selected.picker.books?[row]
                 
                 updateSwitches()
                 
-                if chapterSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook {
-                    scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
+                if chapterSwitch.isOn, let selectedBook = scriptureIndex?.scripture.selected.book {
+                    scriptureIndex?.scripture.selected.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
 
-                    if let chapter = scripture?.picker.chapters?[0] {
-                        scriptureIndex?.selectedChapter = chapter
+                    if let chapter = scriptureIndex?.scripture.selected.picker.chapters?[0] {
+                        scriptureIndex?.scripture.selected.chapter = chapter
                     }
                 } else {
-                    scriptureIndex?.selectedChapter = 0
+                    scriptureIndex?.scripture.selected.chapter = 0
                 }
                 
-                scriptureIndex?.selectedVerse = 0
+                scriptureIndex?.scripture.selected.verse = 0
                 
                 pickerView.reloadAllComponents()
                 
@@ -359,15 +359,15 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             break
             
         case 2: // Chapter
-            if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn, let selectedBook = scriptureIndex?.selectedBook, chapterSwitch.isOn {
-                if let chapter = scripture?.picker.chapters?[row] {
-                    scriptureIndex?.selectedChapter = chapter
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, bookSwitch.isOn, let selectedBook = scriptureIndex?.scripture.selected.book, chapterSwitch.isOn {
+                if let chapter = scriptureIndex?.scripture.selected.picker.chapters?[row] {
+                    scriptureIndex?.scripture.selected.chapter = chapter
                 }
                 
-                scriptureIndex?.selectedVerse = 0
+                scriptureIndex?.scripture.selected.verse = 0
                 
-                if let selectedChapter = scriptureIndex?.selectedChapter {
-                    scripture?.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
+                if let selectedChapter = scriptureIndex?.scripture.selected.chapter {
+                    scriptureIndex?.scripture.selected.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
                 }
                 
                 pickerView.reloadAllComponents()
@@ -381,8 +381,8 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             break
             
         case 3: // Verse
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && (scriptureIndex?.selectedChapter > 0) && bookSwitch.isOn && chapterSwitch.isOn {
-                scriptureIndex?.selectedVerse = row + 1
+            if (scriptureIndex?.scripture.selected.testament != nil) && (scriptureIndex?.scripture.selected.book != nil) && (scriptureIndex?.scripture.selected.chapter > 0) && bookSwitch.isOn && chapterSwitch.isOn {
+                scriptureIndex?.scripture.selected.verse = row + 1
                 
                 pickerView.reloadAllComponents()
                 
@@ -421,7 +421,7 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             break
             
         case 1:
-            guard scriptureIndex?.selectedTestament != nil else {
+            guard scriptureIndex?.scripture.selected.testament != nil else {
                 numberOfRows = 0 // number of books
                 break
             }
@@ -431,13 +431,13 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
                 break
             }
             
-            if let count = scripture?.picker.books?.count {
+            if let count = scriptureIndex?.scripture.selected.picker.books?.count {
                 numberOfRows = count // number of books
             }
             break
             
         case 2:
-            guard scriptureIndex?.selectedTestament != nil else {
+            guard scriptureIndex?.scripture.selected.testament != nil else {
                 numberOfRows = 0 // number of chapters in book
                 break
             }
@@ -447,7 +447,7 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
                 break
             }
             
-            guard scriptureIndex?.selectedBook != nil else {
+            guard scriptureIndex?.scripture.selected.book != nil else {
                 numberOfRows = 0 // number of chapters in book
                 break
             }
@@ -457,7 +457,7 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
                 break
             }
 
-            if let count = scripture?.picker.chapters?.count {
+            if let count = scriptureIndex?.scripture.selected.picker.chapters?.count {
                 numberOfRows = count
             }
             break
@@ -468,12 +468,12 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
                 break
             }
             
-            guard scriptureIndex?.selectedChapter > 0 else {
+            guard scriptureIndex?.scripture.selected.chapter > 0 else {
                 numberOfRows = 0 // number of verses in chapter
                 break
             }
             
-            if let count = scripture?.picker.verses?.count {
+            if let count = scriptureIndex?.scripture.selected.picker.verses?.count {
                 numberOfRows = count // number of verses in chapter
             }
             break
@@ -514,16 +514,16 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             break
             
         case 1:
-            if (scriptureIndex?.selectedTestament != nil) {
-                if let book = scripture?.picker.books?[row] {
+            if (scriptureIndex?.scripture.selected.testament != nil) {
+                if let book = scriptureIndex?.scripture.selected.picker.books?[row] {
                     return book
                 }
             }
             break
             
         case 2:
-            if (scriptureIndex?.selectedTestament != nil) {
-                if let num = scripture?.picker.chapters?[row] {
+            if (scriptureIndex?.scripture.selected.testament != nil) {
+                if let num = scriptureIndex?.scripture.selected.picker.chapters?[row] {
                     return num.description
                 }
             }
@@ -534,8 +534,8 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
                 break
             }
 
-            if scriptureIndex?.selectedChapter > 0 {
-                if let num = scripture?.picker.verses?[row] {
+            if scriptureIndex?.scripture.selected.chapter > 0 {
+                if let num = scriptureIndex?.scripture.selected.picker.verses?[row] {
                     return num.description
                 }
             }
@@ -606,9 +606,9 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
-    lazy var scripture:Scripture? = { [weak self] in
-        return Scripture(reference: nil)
-    }()
+//    lazy var scripture:Scripture? = { [weak self] in
+//        return Scripture(reference: nil)
+//    }()
     
     var mediaListGroupSort:MediaListGroupSort?
     {
@@ -627,6 +627,13 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
+    var scripture:Scripture?
+    {
+        get {
+            return scriptureIndex?.scripture
+        }
+    }
+    
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
@@ -635,16 +642,16 @@ class ScriptureIndexViewController : UIViewController
 
     @IBAction func bookSwitchAction(_ sender: UISwitch)
     {
-        if let selectedTestament = scriptureIndex?.selectedTestament, bookSwitch.isOn {
-            scripture?.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+        if let selectedTestament = scriptureIndex?.scripture.selected.testament, bookSwitch.isOn {
+            scriptureIndex?.scripture.selected.picker.books = scriptureIndex?.byBook[selectedTestament.translateTestament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
             
-            scriptureIndex?.selectedBook = scripture?.picker.books?[0]
+            scriptureIndex?.scripture.selected.book = scriptureIndex?.scripture.selected.picker.books?[0]
 
-            if let book = scriptureIndex?.selectedBook {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[book]?.keys.sorted()
+            if let book = scriptureIndex?.scripture.selected.book {
+                scriptureIndex?.scripture.selected.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[book]?.keys.sorted()
             }
         } else {
-            scriptureIndex?.selectedBook = nil
+            scriptureIndex?.scripture.selected.book = nil
         }
 
         updateSwitches()
@@ -661,19 +668,19 @@ class ScriptureIndexViewController : UIViewController
     
     @IBAction func chapterSwitchAction(_ sender: UISwitch) {
         if chapterSwitch.isOn {
-            if let selectedTestament = scriptureIndex?.selectedTestament, let selectedBook = scriptureIndex?.selectedBook {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, let selectedBook = scriptureIndex?.scripture.selected.book {
+                scriptureIndex?.scripture.selected.picker.chapters = scriptureIndex?.byChapter[selectedTestament.translateTestament]?[selectedBook]?.keys.sorted()
             }
 
-            if let num = scripture?.picker.chapters?[0] {
-                scriptureIndex?.selectedChapter = num
+            if let num = scriptureIndex?.scripture.selected.picker.chapters?[0] {
+                scriptureIndex?.scripture.selected.chapter = num
             }
             
-            if let selectedTestament = scriptureIndex?.selectedTestament, let selectedBook = scriptureIndex?.selectedBook, let selectedChapter = scriptureIndex?.selectedChapter {
-                scripture?.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
+            if let selectedTestament = scriptureIndex?.scripture.selected.testament, let selectedBook = scriptureIndex?.scripture.selected.book, let selectedChapter = scriptureIndex?.scripture.selected.chapter {
+                scriptureIndex?.scripture.selected.picker.verses = scriptureIndex?.byVerse[selectedTestament.translateTestament]?[selectedBook]?[selectedChapter]?.keys.sorted()
             }
         } else {
-            scriptureIndex?.selectedChapter = 0
+            scriptureIndex?.scripture.selected.chapter = 0
         }
         
         updatePicker()
@@ -737,7 +744,7 @@ class ScriptureIndexViewController : UIViewController
 //                for mediaItem in mediaItems {
 //                    if let books = mediaItem.books {
 //                        for book in books {
-//                            if let selectedTestament = scriptureIndex?.selectedTestament {
+//                            if let selectedTestament = scriptureIndex?.scripture.selected.testament {
 //                                if selectedTestament.translateTestament == book.testament {
 //                                    if sections[book] == nil {
 //                                        sections[book] = [mediaItem]
@@ -824,31 +831,31 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        scripture?.selected.testament   = scriptureIndex.selectedTestament
-        scripture?.selected.book        = scriptureIndex.selectedBook
+//        scripture?.selected.testament   = scriptureIndex.scripture.selectedTestament
+//        scripture?.selected.book        = scriptureIndex.scripture.selectedBook
+//
+//        scripture?.selected.chapter     = scriptureIndex.scripture.selected.chapter
+//        scripture?.selected.verse       = scriptureIndex.scripture.selected.verse
         
-        scripture?.selected.chapter     = scriptureIndex.selectedChapter
-        scripture?.selected.verse       = scriptureIndex.selectedVerse
-        
-        guard let selectedTestament = scriptureIndex.selectedTestament else {
+        guard let selectedTestament = scriptureIndex.scripture.selected.testament else {
             mediaItems = nil
             return
         }
 
         let testament = selectedTestament.translateTestament
 
-        guard let selectedBook = scriptureIndex.selectedBook else {
+        guard let selectedBook = scriptureIndex.scripture.selected.book else {
             mediaItems = scriptureIndex.byTestament[testament]
             return
         }
         
-        guard scriptureIndex.selectedChapter > 0 else {
+        guard scriptureIndex.scripture.selected.chapter > 0 else {
             mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
             return
         }
         
-        guard scriptureIndex.selectedVerse > 0 else {
-            self.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
+        guard scriptureIndex.scripture.selected.verse > 0 else {
+            self.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter]
             return
         }
         
@@ -875,13 +882,13 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        scripture?.selected.testament   = scriptureIndex.selectedTestament
-        scripture?.selected.book        = scriptureIndex.selectedBook
+//        scripture?.selected.testament   = scriptureIndex.scripture.selectedTestament
+//        scripture?.selected.book        = scriptureIndex.scripture.selectedBook
+//
+//        scripture?.selected.chapter     = scriptureIndex.scripture.selected.chapter
+//        scripture?.selected.verse       = scriptureIndex.scripture.selected.verse
         
-        scripture?.selected.chapter     = scriptureIndex.selectedChapter
-        scripture?.selected.verse       = scriptureIndex.selectedVerse
-        
-        guard let selectedTestament = scriptureIndex.selectedTestament else {
+        guard let selectedTestament = scriptureIndex.scripture.selected.testament else {
             mediaItems = nil
             
             Thread.onMainThread {
@@ -894,7 +901,7 @@ class ScriptureIndexViewController : UIViewController
 
         let testament = selectedTestament.translateTestament
 
-        guard let selectedBook = scriptureIndex.selectedBook else {
+        guard let selectedBook = scriptureIndex.scripture.selected.book else {
 //            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             operationQueue.cancelAllOperations()
             
@@ -931,7 +938,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
 
-        guard scriptureIndex.selectedChapter > 0 else {
+        guard scriptureIndex.scripture.selected.chapter > 0 else {
             let index = testament + selectedBook
 
             operationQueue.cancelAllOperations()
@@ -970,8 +977,8 @@ class ScriptureIndexViewController : UIViewController
             return
         }
 
-        guard scriptureIndex.selectedVerse > 0 else {
-            let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)"
+        guard scriptureIndex.scripture.selected.verse > 0 else {
+            let index = testament + selectedBook + "\(scriptureIndex.scripture.selected.chapter)"
 
             operationQueue.cancelAllOperations()
             
@@ -985,18 +992,18 @@ class ScriptureIndexViewController : UIViewController
                 }
                 
                 if scriptureIndex.sorted[index] == nil {
-                    let mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
-                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = mediaItems?.sort(book:selectedBook)
+                    let mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter]
+                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter] = mediaItems?.sort(book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
-                self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
+                self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter]
                 
                 Thread.onMainThread {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
-                    if scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?.count > 0 {
+                    if scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter]?.count > 0 {
                         let indexPath = IndexPath(row: 0,section: 0)
                         
                         if self?.tableView.isValid(indexPath) == true {
@@ -1009,7 +1016,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
 
-        let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)" + "\(scriptureIndex.selectedVerse)"
+        let index = testament + selectedBook + "\(scriptureIndex.scripture.selected.chapter)" + "\(scriptureIndex.scripture.selected.verse)"
 
         operationQueue.cancelAllOperations()
         
@@ -1032,7 +1039,7 @@ class ScriptureIndexViewController : UIViewController
                 self?.enableBarButtons()
                 self?.updateUI()
                 self?.tableView.reloadData()
-                if scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?[scriptureIndex.selectedVerse]?.count > 0 {
+                if scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.scripture.selected.chapter]?[scriptureIndex.scripture.selected.verse]?.count > 0 {
                     let indexPath = IndexPath(row: 0,section: 0)
                     
                     if self?.tableView.isValid(indexPath) == true {
@@ -1102,6 +1109,51 @@ class ScriptureIndexViewController : UIViewController
             }
         ))
 
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItem.Style.plain, target: self, action: #selector(index(_:)))
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+        
+        setToolbarItems([spaceButton,indexButton], animated: false)
+        
+        navigationController?.toolbar.isTranslucent = false
+        
+        if let selectedTestament = scriptureIndex?.scripture.selected.testament {
+            let testament = selectedTestament.translateTestament
+            
+            if scriptureIndex?.scripture.selected.picker.books == nil {
+                scriptureIndex?.scripture.selected.picker.books = scriptureIndex?.byBook[testament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
+            }
+            
+            if let book = scriptureIndex?.scripture.selected.book {
+                if scriptureIndex?.scripture.selected.picker.chapters == nil {
+                    scriptureIndex?.scripture.selected.picker.chapters = scriptureIndex?.byChapter[testament]?[book]?.keys.sorted()
+                }
+                
+                if scriptureIndex?.scripture.selected.picker.verses == nil {
+                    if let chapter = scriptureIndex?.scripture.selected.chapter {
+                        scriptureIndex?.scripture.selected.picker.verses = scriptureIndex?.byVerse[testament]?[book]?[chapter]?.keys.sorted()
+                    }
+                }
+            }
+        }
+        
+        progressIndicator.isHidden = true
+        
+        numberOfMediaItems.text = Constants.EMPTY_STRING
+        
+        //Eliminates blank cells at end.
+        tableView.tableFooterView = UIView()
+        
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+        
+        navigationItem.setRightBarButton(actionButton, animated: true) //
+        
+        isHiddenUI(false)
+        disableBarButtons()
+        spinner.isHidden = false
+        spinner.startAnimating()
+        isHiddenNumberAndTableUI(true)
+        
         navigationItem.hidesBackButton = false
         
         navigationController?.isToolbarHidden = true
@@ -1113,6 +1165,8 @@ class ScriptureIndexViewController : UIViewController
             updateUI()
             scripturePicker.isUserInteractionEnabled = true
         }
+
+        scriptureIndex?.build()
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1192,16 +1246,16 @@ class ScriptureIndexViewController : UIViewController
 //        
 //        bodyString = bodyString + "</div>"
 //
-//        if let selectedTestament = self.scriptureIndex?.selectedTestament {
+//        if let selectedTestament = self.scriptureIndex?.scripture.selected.testament {
 //            var indexFor = selectedTestament.translateTestament
 //
-//            if let selectedBook = self.scriptureIndex?.selectedBook {
+//            if let selectedBook = self.scriptureIndex?.scripture.selected.book {
 //                indexFor = selectedBook
 //                
-//                if let chapter = self.scriptureIndex?.selectedChapter, chapter > 0 {
+//                if let chapter = self.scriptureIndex?.scripture.selected.chapter, chapter > 0 {
 //                    indexFor = indexFor + " \(chapter)"
 //                    
-//                    if let verse = self.scriptureIndex?.selectedVerse, verse > 0 {
+//                    if let verse = self.scriptureIndex?.scripture.selected.verse, verse > 0 {
 //                        indexFor = indexFor + ":\(verse)"
 //                    }
 //                }
@@ -1317,7 +1371,7 @@ class ScriptureIndexViewController : UIViewController
             actionMenu.append(Constants.Strings.View_List)
         }
         
-        if let scriptureReference = scripture?.selected.reference, scriptureReference != scriptureIndex?.selectedBook {
+        if let scriptureReference = scriptureIndex?.scripture.selected.reference, scriptureReference != scriptureIndex?.scripture.selected.book {
             actionMenu.append(Constants.Strings.View_Scripture)
         }
 
@@ -1473,52 +1527,6 @@ class ScriptureIndexViewController : UIViewController
     {
         super.viewDidLoad()
         
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItem.Style.plain, target: self, action: #selector(index(_:)))
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
-
-        setToolbarItems([spaceButton,indexButton], animated: false)
-
-        navigationController?.toolbar.isTranslucent = false
-
-        if let selectedTestament = scriptureIndex?.selectedTestament {
-            let testament = selectedTestament.translateTestament
-            
-            if scripture?.picker.books == nil {
-                scripture?.picker.books = scriptureIndex?.byBook[testament]?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
-            }
-
-            if let book = scriptureIndex?.selectedBook {
-                if scripture?.picker.chapters == nil {
-                    scripture?.picker.chapters = scriptureIndex?.byChapter[testament]?[book]?.keys.sorted()
-                }
-                
-                if scripture?.picker.verses == nil {
-                    if let chapter = scriptureIndex?.selectedChapter {
-                        scripture?.picker.verses = scriptureIndex?.byVerse[testament]?[book]?[chapter]?.keys.sorted()
-                    }
-                }
-            }
-        }
-        
-        progressIndicator.isHidden = true
-  
-        numberOfMediaItems.text = Constants.EMPTY_STRING
-        
-        //Eliminates blank cells at end.
-        tableView.tableFooterView = UIView()
-
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
-
-        navigationItem.setRightBarButton(actionButton, animated: true) //
-
-        isHiddenUI(false)
-        disableBarButtons()
-        spinner.isHidden = false
-        spinner.startAnimating()
-        isHiddenNumberAndTableUI(true)
-        
-        scriptureIndex?.build()
     }
     
 //    func sortMediaItems(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
@@ -1566,14 +1574,14 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        guard let selectedTestament = scriptureIndex.selectedTestament else {
+        guard let selectedTestament = scriptureIndex.scripture.selected.testament else {
             return
         }
         
         let testament = selectedTestament.translateTestament
-        let book = scriptureIndex.selectedBook
-        let chapter = scriptureIndex.selectedChapter
-        let verse = scriptureIndex.selectedVerse
+        let book = scriptureIndex.scripture.selected.book
+        let chapter = scriptureIndex.scripture.selected.chapter
+        let verse = scriptureIndex.scripture.selected.verse
         
         if let book = book, let count = self.mediaItems?.count {
             if verse > 0 {
@@ -1654,7 +1662,7 @@ class ScriptureIndexViewController : UIViewController
         
         scripturePicker.reloadAllComponents()
         
-        guard let selectedTestament = scriptureIndex?.selectedTestament else {
+        guard let selectedTestament = scriptureIndex?.scripture.selected.testament else {
             return
         }
         
@@ -1662,11 +1670,11 @@ class ScriptureIndexViewController : UIViewController
             scripturePicker.selectRow(index, inComponent: 0, animated: false)
         }
         
-        if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
+        if let selectedBook = scriptureIndex?.scripture.selected.book, let index = scriptureIndex?.scripture.selected.picker.books?.firstIndex(of: selectedBook) {
             scripturePicker.selectRow(index, inComponent: 1, animated: false)
         }
         
-        if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: selectedChapter) {
+        if let selectedChapter = scriptureIndex?.scripture.selected.chapter, selectedChapter > 0, let index = scriptureIndex?.scripture.selected.picker.chapters?.firstIndex(of: selectedChapter) {
             scripturePicker.selectRow(index, inComponent: 2, animated: false)
         }
 
@@ -1674,7 +1682,7 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.firstIndex(of: selectedVerse) {
+        if let selectedVerse = scriptureIndex?.scripture.selected.verse, selectedVerse > 0, let index = scriptureIndex?.scripture.selected.picker.verses?.firstIndex(of: selectedVerse) {
             scripturePicker.selectRow(index, inComponent: 3, animated: false)
         }
     }
@@ -1690,18 +1698,18 @@ class ScriptureIndexViewController : UIViewController
             return
         }
         
-        bookSwitch.isOn = scriptureIndex?.selectedBook != nil
+        bookSwitch.isOn = scriptureIndex?.scripture.selected.book != nil
         
-        if let selectedTestament = scriptureIndex?.selectedTestament {
+        if let selectedTestament = scriptureIndex?.scripture.selected.testament {
             bookSwitch.isEnabled = (scriptureIndex?.byTestament[selectedTestament.translateTestament] != nil)
         } else {
             bookSwitch.isEnabled = false
         }
 
-        chapterSwitch.isOn = scriptureIndex?.selectedChapter > 0
+        chapterSwitch.isOn = scriptureIndex?.scripture.selected.chapter > 0
         chapterSwitch.isEnabled = bookSwitch.isOn
 
-//        if let book = scriptureIndex?.selectedBook, Constants.NO_CHAPTER_BOOKS.contains(book) {
+//        if let book = scriptureIndex?.scripture.selected.book, Constants.NO_CHAPTER_BOOKS.contains(book) {
 //            chapterSwitch.isOn = false
 //            chapterSwitch.isEnabled = false
 //        }
@@ -1714,7 +1722,7 @@ class ScriptureIndexViewController : UIViewController
     
     func updateToolbar()
     {
-        navigationController?.setToolbarHidden(scriptureIndex?.selectedBook != nil, animated: true)
+        navigationController?.setToolbarHidden(scriptureIndex?.scripture.selected.book != nil, animated: true)
         
         // Why are we doing both of the following?
         
@@ -1777,7 +1785,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             return 0
         } else {
             return Constants.HEADER_HEIGHT
@@ -1798,7 +1806,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
             return nil
         }
 
-        guard scriptureIndex?.selectedBook == nil else {
+        guard scriptureIndex?.scripture.selected.book == nil else {
             return nil
         }
 
@@ -1810,7 +1818,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             return 1
         } else {
             return sectionTitles?.count ?? 0
@@ -1822,7 +1830,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             return mediaItems?.count ?? 0
         } else {
             if let sectionTitle = sectionTitles?[section], let rows = sections?[sectionTitle] {
@@ -1841,7 +1849,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
         
         cell.vc = self
         
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             cell.mediaItem = mediaItems?[indexPath.row]
         } else {
             if let sectionTitle = sectionTitles?[indexPath.section] {
@@ -1861,7 +1869,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
     {
         var mediaItem : MediaItem?
         
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             mediaItem = mediaItems?[indexPath.row]
         } else {
             if let sectionTitle = sectionTitles?[indexPath.section] {
@@ -1907,7 +1915,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        if let _ = scriptureIndex?.selectedBook {
+        if let _ = scriptureIndex?.scripture.selected.book {
             selectedMediaItem = mediaItems?[indexPath.row]
         } else {
             if let sectionTitle = sectionTitles?[indexPath.section] {

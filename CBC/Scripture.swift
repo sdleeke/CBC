@@ -8,13 +8,22 @@
 
 import Foundation
 
+struct Picker
+{
+    var books:[String]?
+    var chapters:[Int]?
+    var verses:[Int]?
+}
+
 class Selected
 {
+    var picker = Picker()
+    
     deinit {
         
     }
     
-    var testament:String?
+    var testament:String? = Constants.OT
 
     var book:String?
     
@@ -54,13 +63,6 @@ class Selected
         chapter = 0
         verse = 0
     }
-}
-
-struct Picker
-{
-    var books:[String]?
-    var chapters:[Int]?
-    var verses:[Int]?
 }
 
 //struct XML {
@@ -198,8 +200,6 @@ class Scripture : NSObject
 {
 //    var passages : [[String:Any]]?
     
-    var picker = Picker()
-
     var selected = Selected()
 
 //    lazy var xml = { [weak self] in

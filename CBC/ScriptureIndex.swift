@@ -78,20 +78,20 @@ class ScriptureIndex
         get {
             var index:String?
             
-            if let selectedTestament = self.selectedTestament {
+            if let selectedTestament = scripture.selected.testament {
                 index = selectedTestament
             }
             
-            if index != nil, let selectedBook = self.selectedBook {
+            if index != nil, let selectedBook = scripture.selected.book {
                 index = index! + ":" + selectedBook
             }
             
-            if index != nil, selectedChapter > 0 {
-                index = index! + ":\(selectedChapter)"
+            if index != nil, scripture.selected.chapter > 0 {
+                index = index! + ":\(scripture.selected.chapter)"
             }
             
-            if index != nil, selectedVerse > 0 {
-                index = index! + ":\(selectedVerse)"
+            if index != nil, scripture.selected.verse > 0 {
+                index = index! + ":\(scripture.selected.verse)"
             }
             
             return index
@@ -115,34 +115,39 @@ class ScriptureIndex
     //Test  //Book  //Ch#/Verse#
     var byVerse = [String:[String:[Int:[Int:[MediaItem]]]]]()
     
-    var selectedTestament:String? = Constants.OT
-    
-    var selectedBook:String?
-    {
-        willSet {
-            
-        }
-        didSet {
-            if selectedBook == nil {
-                selectedChapter = 0
-                selectedVerse = 0
-            }
-        }
-    }
-    
-    var selectedChapter:Int = 0
-    {
-        willSet {
-            
-        }
-        didSet {
-            if selectedChapter == 0 {
-                selectedVerse = 0
-            }
-        }
-    }
-    
-    var selectedVerse:Int = 0
+    lazy var scripture:Scripture! = { [weak self] in
+        return Scripture(reference: nil)
+    }()
+//    var selected = Selected()
+
+//    var selectedTestament:String? = Constants.OT
+//    
+//    var selectedBook:String?
+//    {
+//        willSet {
+//            
+//        }
+//        didSet {
+//            if selectedBook == nil {
+//                selectedChapter = 0
+//                selectedVerse = 0
+//            }
+//        }
+//    }
+//    
+//    var selectedChapter:Int = 0
+//    {
+//        willSet {
+//            
+//        }
+//        didSet {
+//            if selectedChapter == 0 {
+//                selectedVerse = 0
+//            }
+//        }
+//    }
+//    
+//    var selectedVerse:Int = 0
 
 //    lazy var eligible:Shadowed<[MediaItem]> = { [weak self] in
 //        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
@@ -204,7 +209,7 @@ class ScriptureIndex
                 for mediaItem in mediaItems {
                     if let books = mediaItem.scripture?.books {
                         for book in books {
-                            if let selectedTestament = selectedTestament {
+                            if let selectedTestament = scripture.selected.testament {
                                 if selectedTestament.translateTestament == book.testament {
                                     if sections[book] == nil {
                                         sections[book] = [mediaItem]
@@ -364,25 +369,27 @@ class ScriptureIndex
                             }
                         }
                     }
+                    
+                    self?.callBacks.update()
                 }
             }
             
 //            self?.creating = false
             self?.completed = true
             
-            if let selectedTestament = self?.selectedTestament {
+            if let selectedTestament = self?.scripture.selected.testament {
                 let testament = selectedTestament.translateTestament
                 
                 switch selectedTestament {
                 case Constants.OT:
                     if (self?.byTestament[testament] == nil) {
-                        self?.selectedTestament = Constants.NT
+                        self?.scripture.selected.testament = Constants.NT
                     }
                     break
                     
                 case Constants.NT:
                     if (self?.byTestament[testament] == nil) {
-                        self?.selectedTestament = Constants.OT
+                        self?.scripture.selected.testament = Constants.OT
                     }
                     break
                     
@@ -462,17 +469,17 @@ class ScriptureIndex
         
         bodyString = bodyString + "</div>"
         
-        if let selectedTestament = selectedTestament {
+        if let selectedTestament = scripture?.selected.testament {
             var indexFor = selectedTestament.translateTestament
             
-            if let selectedBook = selectedBook {
+            if let selectedBook = scripture?.selected.book {
                 indexFor = selectedBook
                 
-                if selectedChapter > 0 {
-                    indexFor = indexFor + " \(selectedChapter)"
+                if let chapter = scripture?.selected.chapter, chapter > 0 {
+                    indexFor = indexFor + " \(chapter)"
                     
-                    if selectedVerse > 0 {
-                        indexFor = indexFor + ":\(selectedVerse)"
+                    if let verse = scripture?.selected.verse, verse > 0 {
+                        indexFor = indexFor + ":\(verse)"
                     }
                 }
             }

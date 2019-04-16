@@ -28,7 +28,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
             break
             
         case 1:
-            if scripture?.selected.testament != nil, let books = scripture?.picker.books {
+            if scripture?.selected.testament != nil, let books = scripture?.selected.picker.books {
                 numberOfRows = books.count
             } else {
                 numberOfRows = 0 // number of books in testament
@@ -46,7 +46,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
                 break
             }
             
-            if let chapters = scripture?.picker.chapters {
+            if let chapters = scripture?.selected.picker.chapters {
                 numberOfRows = chapters.count
             }
             break
@@ -72,7 +72,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
                 break
             }
             
-            if let verses = scripture?.picker.verses {
+            if let verses = scripture?.selected.picker.verses {
                 numberOfRows = verses.count
             }
             break
@@ -112,7 +112,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
                 break
             }
             
-            if let book = scripture?.picker.books?[row] {
+            if let book = scripture?.selected.picker.books?[row] {
                 return book
             }
             break
@@ -126,7 +126,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
                 break
             }
             
-            if let chapters = scripture?.picker.chapters {
+            if let chapters = scripture?.selected.picker.chapters {
                 return "\(chapters[row])"
             }
             break
@@ -144,7 +144,7 @@ extension ScripturePickerViewController : UIPickerViewDataSource
             //                return "1"
             //            }
             
-            if let verses = scripture?.picker.verses {
+            if let verses = scripture?.selected.picker.verses {
                 return "\(verses[row])"
             }
             break
@@ -207,11 +207,11 @@ extension ScripturePickerViewController : UIPickerViewDelegate
             if let testament = scripture?.selected.testament {
                 switch testament {
                 case Constants.OT:
-                    scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
+                    scripture?.selected.picker.books = Constants.OLD_TESTAMENT_BOOKS
                     break
                     
                 case Constants.NT:
-                    scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
+                    scripture?.selected.picker.books = Constants.NEW_TESTAMENT_BOOKS
                     break
                     
                 default:
@@ -219,11 +219,11 @@ extension ScripturePickerViewController : UIPickerViewDelegate
                 }
             }
             
-            scripture?.selected.book = scripture?.picker.books?[0]
+            scripture?.selected.book = scripture?.selected.picker.books?[0]
             
             updatePicker()
             
-            if let chapter = scripture?.picker.chapters?[0] {
+            if let chapter = scripture?.selected.picker.chapters?[0] {
                 scripture?.selected.chapter = chapter
             }
             
@@ -245,11 +245,11 @@ extension ScripturePickerViewController : UIPickerViewDelegate
                 break
             }
             
-            scripture?.selected.book = scripture?.picker.books?[row]
+            scripture?.selected.book = scripture?.selected.picker.books?[row]
             
             updatePicker()
             
-            if let chapter = scripture?.picker.chapters?[0] {
+            if let chapter = scripture?.selected.picker.chapters?[0] {
                 scripture?.selected.chapter = chapter
             }
             
@@ -271,13 +271,13 @@ extension ScripturePickerViewController : UIPickerViewDelegate
                 break
             }
             
-            if let chapter = scripture?.picker.chapters?[row] {
+            if let chapter = scripture?.selected.picker.chapters?[row] {
                 scripture?.selected.chapter = chapter
             }
             
             updatePicker()
             
-            if let verse = scripture?.picker.verses?[0] {
+            if let verse = scripture?.selected.picker.verses?[0] {
                 scripture?.selected.verse = verse
             }
             
@@ -303,7 +303,7 @@ extension ScripturePickerViewController : UIPickerViewDelegate
                 break
             }
             
-            if let verse = scripture?.picker.verses?[row] {
+            if let verse = scripture?.selected.picker.verses?[row] {
                 scripture?.selected.verse = verse
             }
             
@@ -351,11 +351,11 @@ class ScripturePickerViewController : UIViewController
         
         switch selectedTestament {
         case Constants.OT:
-            scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
+            scripture?.selected.picker.books = Constants.OLD_TESTAMENT_BOOKS
             break
             
         case Constants.NT:
-            scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
+            scripture?.selected.picker.books = Constants.NEW_TESTAMENT_BOOKS
             break
             
         default:
@@ -363,7 +363,7 @@ class ScripturePickerViewController : UIViewController
         }
         
         if scripture?.selected.book == nil {
-            scripture?.selected.book = scripture?.picker.books?[0]
+            scripture?.selected.book = scripture?.selected.picker.books?[0]
         }
         
         var maxChapters = 0
@@ -390,9 +390,9 @@ class ScripturePickerViewController : UIViewController
                 chapters.append(i)
             }
         }
-        scripture?.picker.chapters = chapters
+        scripture?.selected.picker.chapters = chapters
         
-        if scripture?.selected.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
+        if scripture?.selected.chapter == 0, let chapter = scripture?.selected.picker.chapters?[0] {
             scripture?.selected.chapter = chapter
         }
         
@@ -416,9 +416,9 @@ class ScripturePickerViewController : UIViewController
                     verses.append(i)
                 }
             }
-            scripture?.picker.verses = verses
+            scripture?.selected.picker.verses = verses
             
-            if scripture?.selected.verse == 0, let verse = scripture?.picker.verses?[0] {
+            if scripture?.selected.verse == 0, let verse = scripture?.selected.picker.verses?[0] {
                 scripture?.selected.verse = verse
             }
         }
@@ -433,11 +433,11 @@ class ScripturePickerViewController : UIViewController
             scripturePicker.selectRow(index, inComponent: 0, animated: false)
         }
         
-        if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
+        if let selectedBook = scripture?.selected.book, let index = scripture?.selected.picker.books?.firstIndex(of: selectedBook) {
             scripturePicker.selectRow(index, inComponent: 1, animated: false)
         }
         
-        if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
+        if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.selected.picker.chapters?.firstIndex(of: chapter) {
             scripturePicker.selectRow(index, inComponent: 2, animated: false)
         }
         
@@ -445,7 +445,7 @@ class ScripturePickerViewController : UIViewController
             return
         }
         
-        if let verse = scripture?.selected.verse, verse > 0, let index = scripture?.picker.verses?.firstIndex(of: verse) {
+        if let verse = scripture?.selected.verse, verse > 0, let index = scripture?.selected.picker.verses?.firstIndex(of: verse) {
             scripturePicker.selectRow(index, inComponent: 3, animated: false)
         }
     }
