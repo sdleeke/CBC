@@ -34,7 +34,14 @@ extension PopoverPickerViewController : UIPickerViewDataSource
 {
     // MARK: UIPickerViewDataSource
     
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+    func numberOfComponents(in pickerView: UIPickerView) -> Int
+    {
+        // This allows the window to open quickly, otherwise it computes all the components and their rows
+        // which can take seconds for a large stringTree.  If this is 0 numberOfRowsInComponent isn't called.
+        guard didAppear else {
+            return 0
+        }
+        
         if stringTree != nil {
             var depth = 0
             
@@ -50,6 +57,11 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
     {
+        // But just in case.
+        guard didAppear else {
+            return 0
+        }
+        
         guard stringTree != nil else {
             return strings?.count ?? 0
         }
@@ -199,7 +211,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                     
                     if let selection = pickerSelections.value?[i] {
                         if selection < stringNodes.count {
-                            stringNode = stringNodes[selection]
+                            stringNode = stringNodes.sorted(by: { $0.string < $1.string })[selection]
                         }
                     }
                 }
@@ -211,7 +223,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
         
-        if let stringNodes = stringNode?.stringNodes {
+        if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
             switch stringNodes.count {
                 
             default:
@@ -229,7 +241,9 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         }
         
         if  component < pickerSelections.value?.count, let index = pickerSelections.value?[component], index < stringNode?.stringNodes?.count,
-            let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
+            let string = stringNode?.stringNodes?.sorted(by: {
+                $0.string < $1.string
+            })[index].string, string == Constants.WORD_ENDING {
             return width + 20
         } else {
             return width + 10
@@ -409,33 +423,33 @@ class PopoverPickerViewController : UIViewController
     
     var purpose : PopoverPurpose?
     
-    weak var lexicon : Lexicon?
+//    weak var lexicon : Lexicon?
     
-    var _stringTree : StringTree?
-    {
-        didSet {
-            _stringTree?.lexicon = self.lexicon
-        }
-    }
+//    var _stringTree : StringTree?
+//    {
+//        didSet {
+//            _stringTree?.lexicon = self.lexicon
+//        }
+//    }
     var stringTree : StringTree?
-    {
-        get {
-            if let lexicon = lexicon {
-                return lexicon.stringTree
-            } else {
-                return _stringTree
-            }
-        }
-        set {
-            if let lexicon = lexicon {
-                lexicon.stringTree = newValue
-            } else {
-                _stringTree = newValue
-            }
-        }
-    }
+//    {
+//        get {
+//            if let lexicon = lexicon {
+//                return lexicon.stringTree
+//            } else {
+//                return _stringTree
+//            }
+//        }
+//        set {
+//            if let lexicon = lexicon {
+//                lexicon.stringTree = newValue
+//            } else {
+//                _stringTree = newValue
+//            }
+//        }
+//    }
     
-    var incremental = false
+//    var incremental = false
     
     var action : ((String?)->())?
     var actionTitle : String?
@@ -896,9 +910,15 @@ class PopoverPickerViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
+    var didAppear = false
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        didAppear = false
+        
+//        picker.isHidden = true
         
         if let navigationController = navigationController, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
@@ -922,7 +942,6 @@ class PopoverPickerViewController : UIViewController
             stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
                     start: { [weak self] in
                         self?.started()
-                        
                     },
                     update:{ [weak self] in
                         self?.updated()
@@ -955,7 +974,14 @@ class PopoverPickerViewController : UIViewController
             if (strings != nil) {
                 // This must be changed to be in a cancellable operation in an op queue
                 // otherwise the string tree keeps going forever
-                self.stringTree?.build(strings: self.strings)
+                if stringTree?.completed == false {
+                    self.stringTree?.build(strings: self.strings)
+                } else {
+                    self.complete = true
+                    self.operationQueue.addOperation { [weak self] in
+                        self?.updatePicker()
+                    }
+                }
 //                self.process(work: { [weak self] () -> (Any?) in
 //                    self?.stringTree?.build(strings: self?.strings)
 //
@@ -1035,6 +1061,14 @@ class PopoverPickerViewController : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
+        didAppear = true
+
+        self.operationQueue.addOperation {
+            self.updateActionButton()
+            self.updatePickerSelections()
+            self.updatePicker()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1100,10 +1134,14 @@ class PopoverPickerViewController : UIViewController
                 
             if let count = stringNode?.stringNodes?.count, pickerSelections.value?[i] >= count {
                 pickerSelections.value?[i] = 0
-                stringNode = stringNode?.stringNodes?[0]
+                stringNode = stringNode?.stringNodes?.sorted(by: {
+                    $0.string < $1.string
+                })[0]
             } else {
                 if let index = pickerSelections.value?[i] {
-                    stringNode = stringNode?.stringNodes?[index]
+                    stringNode = stringNode?.stringNodes?.sorted(by: {
+                        $0.string < $1.string
+                    })[index]
                 } else {
                     stringNode = nil
                 }
@@ -1178,9 +1216,13 @@ class PopoverPickerViewController : UIViewController
 
             self?.string = self?.wordFromPicker()
             
-            self?.toolbarItems?[1].isEnabled = (self?.stringTree?.incremental == true) ? true : (self?.stringTree?.completed == true)
+            self?.toolbarItems?[1].isEnabled = (self?.didAppear == true) && ((self?.stringTree?.incremental == true) ? true : (self?.stringTree?.completed == true))
             
-            if self?.stringTree?.completed == true {
+            if self?.stringTree?.incremental == true { // stringTree?.
+                if self?.complete == true, self?.didAppear == true {
+                    self?.spinner.stopAnimating()
+                }
+            } else {
                 self?.spinner.stopAnimating()
             }
         }

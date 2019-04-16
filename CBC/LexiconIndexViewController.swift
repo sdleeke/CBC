@@ -144,15 +144,15 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     })
                 }
 
-                popover.lexicon = self.lexicon
+//                popover.lexicon = self.lexicon
 
 //                popover.stringTree?.lexicon = self.lexicon
                 
-                popover.stringTree = self.lexicon?.stringTree ?? StringTree(incremental: true)
+                popover.stringTree = self.lexicon?.stringTree
                 
                 // mediaListGroupSort?.lexicon?.tokens
                 popover.strings = activeWords
-                
+
                 present(navigationController, animated: true, completion: nil)
             }
             break
@@ -1585,7 +1585,7 @@ class LexiconIndexViewController : UIViewController
     
     func updateTitle()
     {
-        Thread.onMainThread {
+        Thread.onMainThreadSync {
             if  let count = self.lexicon?.entries?.count,
                 let total = self.lexicon?.eligible?.count {
                 self.navigationItem.title = "Lexicon Index \(count) of \(total)"

@@ -38,27 +38,32 @@ class StringTree
     weak var lexicon : Lexicon?
     {
         didSet {
-            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
-                start: { [weak self] in
-                
-                },
-                update: { [weak self] in
-                    self?.operationQueue.cancelAllOperations()
-                    self?.operationQueue.waitUntilAllOperationsAreFinished()
-                    self?.build(strings: self?.lexicon?.strings)
-                },
-                complete: { [weak self] in
-                    self?.operationQueue.cancelAllOperations()
-                    self?.operationQueue.waitUntilAllOperationsAreFinished()
-                    self?.build(strings: self?.lexicon?.strings)
-                }
-            ))
+
         }
     }
     
-    convenience init(incremental: Bool)
+    convenience init(lexicon: Lexicon?, incremental: Bool)
     {
         self.init()
+        
+        self.lexicon = lexicon
+        
+        lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
+            start: { [weak self] in
+                
+            },
+            update: { [weak self] in
+                self?.operationQueue.cancelAllOperations()
+                self?.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.build(strings: self?.lexicon?.strings)
+            },
+            complete: { [weak self] in
+                self?.operationQueue.cancelAllOperations()
+                self?.operationQueue.waitUntilAllOperationsAreFinished()
+                self?.build(strings: self?.lexicon?.strings)
+            }
+        ))
+
         self.incremental = incremental
     }
     

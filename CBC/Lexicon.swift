@@ -12,7 +12,9 @@ class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
-    var stringTree : StringTree?
+    lazy var stringTree : StringTree? = {
+        return StringTree(lexicon:self, incremental:true)
+    }()
     
     var callBacks = CallBacks()
     
