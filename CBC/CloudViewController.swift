@@ -441,7 +441,7 @@ class CloudViewController: UIViewController
             if let words = self.cloudString?.nlTokenTypes {
                 for word in words {
                     if let cloudWord = cloudDict[word.0.uppercased()] {
-                        print(cloudWord.wordText)
+//                        print(cloudWord.wordText)
                         Thread.onMainThread {
                             if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect {
                                 let layer = self.insertBoundingRect(boundingRect: overallGlyphBoundingRect)
