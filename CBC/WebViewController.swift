@@ -14,7 +14,7 @@ import MobileCoreServices
 class HTML
 {
     deinit {
-        
+        debug(self)
     }
     
     weak var webViewController: WebViewController?
@@ -945,6 +945,7 @@ class WebViewController: UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

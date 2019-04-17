@@ -23,7 +23,7 @@ class CallBacks
     }()
     
     deinit {
-        
+        debug(self)
     }
 
     private var callbacks = [String:CallBack]()

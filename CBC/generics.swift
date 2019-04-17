@@ -77,7 +77,7 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool
 class Default<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var _value : T?
@@ -109,7 +109,7 @@ class Default<T>
 class OnNil<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var _value : T?
@@ -148,7 +148,7 @@ class OnNil<T>
 class OnNilGet<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var _value : T?
@@ -218,7 +218,7 @@ class OnNilGet<T>
 class Setting<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     var isSetting : Bool = false
@@ -255,7 +255,7 @@ class Setting<T>
 class Shadowed<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var _value : T?
@@ -381,7 +381,7 @@ class Shadowed<T>
 class Cached<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     @objc func freeMemory()
@@ -450,7 +450,7 @@ class Cached<T>
 class BoundsCheckedArray<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var storage = [T]()
@@ -539,7 +539,7 @@ class BoundsCheckedArray<T>
 class ThreadSafe<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     // Make it thread safe
@@ -572,7 +572,7 @@ class ThreadSafe<T>
 class ThreadSafeArray<T>
 {
     deinit {
-        
+        debug(self)
     }
     
     private var storage = [T]()
@@ -784,6 +784,7 @@ class ThreadSafeArray<T>
 class ThreadSafeDN<T>
 {
     deinit {
+        debug(self)
         
      }
     
@@ -1458,6 +1459,7 @@ class Fetch<T>
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     
@@ -1543,7 +1545,7 @@ protocol Size
 class FetchCodable<T:Codable> : Fetch<T>, Size
 {
     deinit {
-        
+        debug(self)
     }
     
     var fileSystemURL : URL?
@@ -1603,6 +1605,7 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
 //    }
 //
 //    deinit {
+//        print(self)
 //
 //    }
     

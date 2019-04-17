@@ -24,7 +24,7 @@ enum PlayerState {
 class PlayerStateTime
 {
     deinit {
-        
+        debug(self)
     }
     
     var mediaItem:MediaItem?
@@ -984,6 +984,7 @@ class MediaPlayer : NSObject
     }()
 
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

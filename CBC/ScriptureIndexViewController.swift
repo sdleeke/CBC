@@ -871,6 +871,7 @@ class ScriptureIndexViewController : UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     
         scriptureIndex?.callBacks.unregister(id: "SIVC")

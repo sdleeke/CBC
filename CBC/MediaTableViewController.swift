@@ -1941,7 +1941,7 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 class MediaTableViewController : UIViewController
 {
     deinit {
-        
+        debug(self)
     }
     
     var display = Display()

@@ -11,7 +11,7 @@ import Foundation
 class StringIndex : NSObject
 {
     deinit {
-        
+        debug(self)
     }
     
     // Make thread safe?

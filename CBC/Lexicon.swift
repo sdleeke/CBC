@@ -401,6 +401,7 @@ class Lexicon : NSObject
     }()
 
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

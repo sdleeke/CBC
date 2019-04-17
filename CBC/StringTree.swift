@@ -128,6 +128,7 @@ class StringTree
     }()
     
     deinit {
+        debug(self)
         lexicon?.callBacks.unregister(id: "STRINGTREE")
         operationQueue.cancelAllOperations()
     }

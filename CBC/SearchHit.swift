@@ -21,7 +21,7 @@ class SearchHit
     }
     
     deinit {
-        
+        debug(self)
     }
     
     var title:Bool {

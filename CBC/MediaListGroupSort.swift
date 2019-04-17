@@ -24,7 +24,7 @@ typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
 class MediaListGroupSort
 {
     deinit {
-        
+        debug(self)
     }
     
     var sorting = Default<String>({ return Globals.shared.sorting })
@@ -519,6 +519,7 @@ class MediaListGroupSort
         }
         
         deinit {
+        debug(self)
             
         }
         

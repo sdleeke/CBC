@@ -277,7 +277,7 @@ extension AppDelegate : UISplitViewControllerDelegate
 class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
 {
     deinit {
-        
+        debug(self)
     }
     
     var window: UIWindow?

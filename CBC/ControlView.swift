@@ -12,7 +12,7 @@ import UIKit
 class ControlView : UIView
 {
     deinit {
-        
+        debug(self)
     }
     
     var sliding = false

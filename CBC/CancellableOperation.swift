@@ -30,7 +30,7 @@ class CancelableOperation : Operation
     }
     
     deinit {
-        
+        debug(self)
     }
     
     override func cancel()

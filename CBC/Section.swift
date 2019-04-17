@@ -50,7 +50,7 @@ class Section
     }
     
     deinit {
-        
+        debug(self)
     }
     
     func indexPath(from string:String?) -> IndexPath?

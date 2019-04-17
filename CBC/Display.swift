@@ -11,7 +11,7 @@ import Foundation
 class Display
 {
     deinit {
-        
+        debug(self)
     }
     
     var mediaItems:[MediaItem]?

@@ -169,6 +169,7 @@ class AboutViewController: UIViewController
     }()
     
     deinit {
+        debug(self)
         // Breakpoint won't work without something here.
         // Strange.  Other breakpoints in other empty deinit's work fine.
         print("deinit:About")

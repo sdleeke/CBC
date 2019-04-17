@@ -344,6 +344,7 @@ class CloudViewController: UIViewController
     }
     
     deinit {
+        debug(self)
         cancelAllOperations()
     }
     
@@ -399,7 +400,7 @@ class CloudViewController: UIViewController
         cancelAndRelayoutCloudWords()
     }
     
-    let debug = false
+    let cloudDebug = false
     
     var cloudString : String?
     
@@ -621,7 +622,7 @@ class CloudViewController: UIViewController
             label.removeFromSuperview()
         }
         
-        if debug {
+        if cloudDebug {
             // Remove bounding boxes
             var removableLayers = [CALayer]()
             

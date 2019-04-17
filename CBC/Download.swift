@@ -308,7 +308,7 @@ class Download : NSObject, Size
     }
     
     deinit {
-        
+        debug(self)
     }
     
     weak var mediaItem:MediaItem?

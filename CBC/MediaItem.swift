@@ -22,7 +22,7 @@ class MultiPartSettings
     }
     
     deinit {
-        
+        debug(self)
     }
     
     subscript(key:String) -> String?
@@ -64,7 +64,7 @@ class MediaItemSettings
     }
     
     deinit {
-        
+        debug(self)
     }
     
     subscript(key:String) -> String?
@@ -1614,6 +1614,7 @@ class MediaItem : NSObject
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

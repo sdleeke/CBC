@@ -1611,6 +1611,7 @@ class LexiconIndexViewController : UIViewController
     }()
 
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     
         lexicon?.callBacks.unregister(id: "LIVC")

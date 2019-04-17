@@ -11,7 +11,7 @@ import Foundation
 class StreamEntry
 {
     deinit {
-        
+        debug(self)
     }
     
     init?(_ storage:[String:Any]?)

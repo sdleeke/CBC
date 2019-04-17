@@ -1898,6 +1898,7 @@ class VoiceBase
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

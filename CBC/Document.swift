@@ -147,7 +147,7 @@ class Document : NSObject
     }
     
     deinit {
-        
+        debug(self)
     }
     
     func showing(_ mediaItem:MediaItem?) -> Bool

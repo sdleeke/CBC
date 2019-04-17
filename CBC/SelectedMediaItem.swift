@@ -11,7 +11,7 @@ import Foundation
 class SelectedMediaItem
 {
     deinit {
-        
+        debug(self)
     }
     
     var master:MediaItem?

@@ -253,6 +253,7 @@ class SettingsViewController: UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

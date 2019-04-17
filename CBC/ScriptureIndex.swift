@@ -242,6 +242,7 @@ class ScriptureIndex
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

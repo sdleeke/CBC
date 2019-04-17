@@ -12,7 +12,7 @@ import UIKit
 class FetchImage : Size
 {
     deinit {
-        
+        debug(self)
     }
     
     var url : URL?
@@ -196,7 +196,7 @@ class FetchImage : Size
 class FetchCachedImage : FetchImage
 {
     deinit {
-        
+        debug(self)
     }
     
     private static var cache : ThreadSafeDN<UIImage>! = { // ictionary

@@ -91,7 +91,7 @@ class QuadTree
     }
     
     deinit {
-        
+        debug(self)
     }
     
     func debugDescription()

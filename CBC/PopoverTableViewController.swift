@@ -1639,6 +1639,7 @@ class PopoverTableViewController : UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

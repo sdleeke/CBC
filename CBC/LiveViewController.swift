@@ -14,7 +14,7 @@ import AVKit
 class LiveViewController: UIViewController
 {
     deinit {
-        
+        debug(self)
     }
     
     var streamEntry:StreamEntry?

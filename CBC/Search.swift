@@ -11,7 +11,7 @@ import Foundation
 class Search
 {
     deinit {
-        
+        debug(self)
     }
     
     var complete:Bool = true

@@ -11,7 +11,7 @@ import Foundation
 class MediaTeacher
 {
     deinit {
-        
+        debug(self)
     }
     
     var name : String?

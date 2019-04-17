@@ -134,6 +134,7 @@ public class Reachability
     }
     
     deinit {
+        debug(self)
         stopNotifier()
         
         reachabilityRef = nil

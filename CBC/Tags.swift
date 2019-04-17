@@ -15,7 +15,7 @@ class Tags
 //    weak var globals:Globals!
     
     deinit {
-        
+        debug(self)
     }
     
     var showing:String?

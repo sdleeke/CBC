@@ -35,7 +35,7 @@ extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
 class MediaTableViewCell: UITableViewCell
 {
     deinit {
-        
+        debug(self)
     }
     
     weak var vc:UIViewController?

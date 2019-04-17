@@ -19,6 +19,7 @@ class MediaStream
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

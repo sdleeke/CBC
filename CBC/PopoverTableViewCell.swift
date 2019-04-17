@@ -11,7 +11,7 @@ import UIKit
 class PopoverTableViewCell: UITableViewCell
 {
     deinit {
-        
+        debug(self)
     }
     
     @IBOutlet weak var title: UILabel!

@@ -1438,6 +1438,7 @@ class MediaViewController: UIViewController
     }()
     
     deinit {
+        debug(self)
         webQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
         operationQueue.cancelAllOperations()

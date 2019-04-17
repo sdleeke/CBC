@@ -74,6 +74,6 @@ class CachedString
     }
     
     deinit {
-        
+        debug(self)
     }
 }

@@ -796,6 +796,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

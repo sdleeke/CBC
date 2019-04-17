@@ -18,7 +18,7 @@ class StringNode
     }
     
     deinit {
-        
+        debug(self)
     }
     
     var wordEnding = false

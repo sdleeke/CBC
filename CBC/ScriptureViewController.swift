@@ -1448,6 +1448,7 @@ class ScriptureViewController : UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

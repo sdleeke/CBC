@@ -19,7 +19,7 @@ struct MediaNeed
 class Media
 {
     deinit {
-        
+        debug(self)
     }
     
     var goto:String?

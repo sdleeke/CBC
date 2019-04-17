@@ -408,6 +408,7 @@ class PopoverPickerViewController : UIViewController
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     
         stringTree?.callBacks.unregister(id: "PPVC")

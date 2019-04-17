@@ -66,7 +66,7 @@ class CloudWord : NSObject
     }
     
     deinit {
-        
+        debug(self)
     }
     
     override var description : String

@@ -99,6 +99,7 @@ class MediaCategory
     }()
     
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
     }
     

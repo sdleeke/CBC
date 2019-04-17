@@ -76,7 +76,7 @@ class CloudLayoutOperation : Operation
     }
     
     deinit {
-        
+        debug(self)
     }
     
     override func main()
@@ -573,7 +573,7 @@ class CloudLayoutOperation : Operation
                 
             _ = boundingRects?.insertBoundingRect(boundingRect: overallGlyphRect)
             
-            if let debug = (delegate as? CloudViewController)?.debug, debug {
+            if let debug = (delegate as? CloudViewController)?.cloudDebug, debug {
                 Thread.onMainThread {
                     _ = self.delegate?.insertBoundingRect(boundingRect: overallGlyphRect)
                 }
@@ -587,7 +587,7 @@ class CloudLayoutOperation : Operation
 
         _ = boundingRects?.insertBoundingRect(boundingRect: wordRect)
         
-        if let debug = (delegate as? CloudViewController)?.debug, debug {
+        if let debug = (delegate as? CloudViewController)?.cloudDebug, debug {
             Thread.onMainThread {
                 _ = self.delegate?.insertBoundingRect(boundingRect: wordRect)
             }

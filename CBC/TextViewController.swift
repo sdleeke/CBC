@@ -1406,6 +1406,7 @@ class TextViewController : UIViewController
     }()
     
     deinit {
+        debug(self)
         searchQueue.cancelAllOperations()
         editingQueue.cancelAllOperations()
 //        operationQueue.cancelAllOperations()

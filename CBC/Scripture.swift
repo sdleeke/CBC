@@ -20,7 +20,7 @@ class Selected
     var picker = Picker()
     
     deinit {
-        
+        debug(self)
     }
     
     var testament:String? = Constants.OT
@@ -353,7 +353,7 @@ class Scripture : NSObject
     }
     
     deinit {
-        
+        debug(self)
     }
     
     lazy var html:CachedString? = { [weak self] in

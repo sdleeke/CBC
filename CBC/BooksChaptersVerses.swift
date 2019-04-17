@@ -11,7 +11,7 @@ import Foundation
 class BooksChaptersVerses : Swift.Comparable
 {
     deinit {
-        
+        debug(self)
     }
     
     // Make thread safe?

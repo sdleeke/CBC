@@ -12,7 +12,7 @@ import UIKit
 class CheckIn
 {
     deinit {
-        
+        debug(self)
     }
     
     lazy var queue : DispatchQueue = { [weak self] in
@@ -1089,6 +1089,7 @@ class MediaList // : Sequence
 
     // ALL operations stop on dealloc, including DOWNLOADING.
     deinit {
+        debug(self)
         operationQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
     }

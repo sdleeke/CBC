@@ -13,6 +13,11 @@ import MessageUI
 import UserNotifications
 import NaturalLanguage
 
+func debug(_ any:Any...)
+{
+//    print(any)
+}
+
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromAVAudioSessionCategory(_ input: AVAudioSession.Category) -> String {
     return input.rawValue
@@ -1237,11 +1242,6 @@ func verifyNASB()
 //    
 //    return verses.count > 0 ? verses : nil
 //}
-
-func debug(_ any:Any...)
-{
-//    print(any)
-}
 
 //func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
 //{
