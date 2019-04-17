@@ -90,8 +90,8 @@ class StringTree
             bodyHTML += "<table><tr>"
             
             for root in roots {
-                if let string = root.string {
-                    bodyHTML += "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
+                if let string = root.string, let tag = root.string?.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) {
+                    bodyHTML += "<td>" + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=#\(tag)>" + string + "</a>" + "</td>"
                 }
             }
             
@@ -101,8 +101,8 @@ class StringTree
             
             for root in roots {
                 if let rows = root.htmlWords(nil) {
-                    if let string = root.string {
-                        bodyHTML += "<tr><td>" + "<br/>" +  "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
+                    if let string = root.string, let tag = root.string?.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) {
+                        bodyHTML += "<tr><td>" + "<br/>" +  "<a id=\"\(tag)\" name=\"\(tag)\" href=#index\(tag)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
                     }
                     
                     for row in rows {

@@ -46,7 +46,7 @@ extension MediaViewController : UIActivityItemSource
 
             }
 
-            activityViewController = UIActivityViewController(activityItems: [self.document?.fetchData.result,self.selectedMediaItem?.text,self], applicationActivities: nil)
+            activityViewController = UIActivityViewController(activityItems: [self.document?.fetchData.result, self.selectedMediaItem], applicationActivities: nil)
 
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
@@ -78,7 +78,31 @@ extension MediaViewController : UIActivityItemSource
             MediaViewController.cases.append(.markupAsPDF)
         }
         
-        return selectedMediaItem?.text
+        return selectedMediaItem?.activityViewController(activityViewController,itemForActivityType: activityType)
+        
+//        guard let text = selectedMediaItem?.text else {
+//            return nil
+//        }
+//
+//        guard let series = selectedMediaItem?.multiPartMediaItems?.html() else {
+//            return nil
+//        }
+//
+//        if activityType == UIActivity.ActivityType.mail {
+//            return series
+//        } else if activityType == UIActivity.ActivityType.print {
+//            return series
+//        }
+//
+//        var string : String!
+//
+//        if let path = selectedMediaItem?.websiteURL?.absoluteString {
+//            string = text + "\n\n" + path
+//        } else {
+//            string = text
+//        }
+//
+//        return string
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String

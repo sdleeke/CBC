@@ -1069,9 +1069,18 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        lexicon?.callBacks.register(id: "LIVC", callBack: CallBack(start:{[weak self] in self?.started()},
-                                                                   update:{[weak self] in self?.updated()},
-                                                                   complete:{[weak self] in self?.completed()}))
+        lexicon?.callBacks.register(id: "LIVC", callBack: CallBack(
+                start:{[weak self] in
+                    self?.started()
+                },
+                update:{[weak self] in
+                    self?.updated()
+                },
+                complete:{[weak self] in
+                    self?.completed()
+                }
+            )
+        )
 
         addNotifications()
         
@@ -1703,11 +1712,11 @@ class LexiconIndexViewController : UIViewController
         
         updated()
         
-//        operationQueue.addOperation {
+        operationQueue.addOperation {
             Thread.onMainThreadSync {
                 self.wordsTableViewController.activityIndicator.stopAnimating()
             }
-//        }
+        }
     }
     
     @objc func index(_ object:AnyObject?)

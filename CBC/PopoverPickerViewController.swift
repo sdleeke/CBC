@@ -979,6 +979,8 @@ class PopoverPickerViewController : UIViewController
                 } else {
                     self.complete = true
                     self.operationQueue.addOperation { [weak self] in
+                        self?.updateActionButton()
+                        self?.updatePickerSelections()
                         self?.updatePicker()
                     }
                 }
@@ -1035,10 +1037,12 @@ class PopoverPickerViewController : UIViewController
         navigationController?.isToolbarHidden = toolbarItems == nil
         toolbarItems?[1].isEnabled = false
 
-        self.operationQueue.addOperation {
-            self.updateActionButton()
-            self.updatePickerSelections()
-            self.updatePicker()
+        if !complete {
+            self.operationQueue.addOperation {
+                self.updateActionButton()
+                self.updatePickerSelections()
+                self.updatePicker()
+            }
         }
 
         setPreferredContentSize() // = CGSize(width: 300, height: 300)

@@ -2029,30 +2029,33 @@ class WebViewController: UIViewController
             case .document:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-                
-                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
+//
+//                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
                 break
-                
+
             case .pdf:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-
-                loadPDF(urlString: pdfURLString)
+//
+//                loadPDF(urlString: pdfURLString)
                 break
-                
+
             case .html:
-                if html.string != nil {
-                    html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
-  
-                    if let url = html.fileURL {
-                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                    }
-                }
+                activityIndicator.isHidden = false
+                activityIndicator.startAnimating()
+//
+//                if html.string != nil {
+//                    html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
+//
+//                    if let url = html.fileURL {
+//                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+//                    }
+//                }
                 break
             }
-            
+
             preferredContentSize = CGSize(width: 0,height: 44)
-            
+
             barButtonItems(isEnabled: false)
         } else {
             barButtonItems(isEnabled: true)
@@ -2084,6 +2087,39 @@ class WebViewController: UIViewController
     {
         super.viewDidAppear(animated)
 
+        if let isHidden = wkWebView?.isHidden, isHidden {
+            switch content {
+            case .document:
+//                activityIndicator.isHidden = false
+//                activityIndicator.startAnimating()
+//
+                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
+                break
+                
+            case .pdf:
+//                activityIndicator.isHidden = false
+//                activityIndicator.startAnimating()
+//
+                loadPDF(urlString: pdfURLString)
+                break
+                
+            case .html:
+                if html.string != nil {
+                    html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
+                    
+                    if let url = html.fileURL {
+                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                    }
+                }
+                break
+            }
+//
+//            preferredContentSize = CGSize(width: 0,height: 44)
+//
+//            barButtonItems(isEnabled: false)
+        } else {
+//            barButtonItems(isEnabled: true)
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
