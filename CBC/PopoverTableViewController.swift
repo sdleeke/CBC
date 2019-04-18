@@ -51,7 +51,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             return false
         }
         
-        return search
+        return search && !section.sorting
     }
     
     @objc func barButtonAction(_ sender:UIBarButtonItem)
@@ -78,6 +78,10 @@ extension PopoverTableViewController: UISearchBarDelegate
     
     func updateSearchResults()
     {
+        guard !section.sorting else {
+            return
+        }
+        
         guard searchActive else {
             return
         }
@@ -237,9 +241,9 @@ extension PopoverTableViewController: UISearchBarDelegate
             self.follow()
         }
         
-        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?) in
+        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?,sorting:Bool) in
             Thread.onMainThread {
-                self.segmentedControl?.isEnabled = strings != nil
+                self.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         })
     }
@@ -724,9 +728,9 @@ class PopoverTableViewController : UIViewController
     lazy var filteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
         
-        section.stringsAction = { (strings:[String]?) in
+        section.stringsAction = { (strings:[String]?,sorting:Bool) in
             Thread.onMainThread {
-                self?.segmentedControl?.isEnabled = (strings != nil) && !section.sorting
+                self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
         
@@ -735,9 +739,9 @@ class PopoverTableViewController : UIViewController
     lazy var unfilteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
         
-        section.stringsAction = { (strings:[String]?) in
+        section.stringsAction = { (strings:[String]?,sorting:Bool) in
             Thread.onMainThread {
-                self?.segmentedControl?.isEnabled = (strings != nil) && !section.sorting
+                self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
         

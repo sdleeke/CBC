@@ -653,37 +653,62 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     var segmentActions = [SegmentAction]()
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        guard let section = popover.section else {
+                            return
+                        }
+
                         let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                         if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            popover.section.method = Constants.Sort.Alphabetical
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            popover.section.indexStringsTransform = nil
-                            popover.section.indexHeadersTransform = nil
-                            popover.section.indexSort = nil
+                            section.method = Constants.Sort.Alphabetical
                             
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            popover.section.stringsAction?(strings)
+                            section.showHeaders = false
+                            section.showIndex = true
+                            
+                            section.indexStringsTransform = nil
+                            section.indexHeadersTransform = nil
+                            section.indexSort = nil
+                            
+                            section.sorting = true
+                            section.strings = strings
+                            section.sorting = false
+                            
+                            section.stringsAction?(strings,section.sorting)
+                            
                             popover.tableView?.reloadData()
                         }
                     }))
                     
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        guard let section = popover.section else {
+                            return
+                        }
+                        
                         let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+                        
                         if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            popover.section.method = Constants.Sort.Frequency
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                            section.method = Constants.Sort.Frequency
+                            
+                            section.showHeaders = false
+                            section.showIndex = true
+                            
+                            section.indexStringsTransform = { (string:String?) -> String? in
                                 return string?.log
                             }
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                            
+                            section.indexHeadersTransform = { (string:String?) -> String? in
                                 return string
                             }
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                            
+                            section.indexSort = { (first:String?,second:String?) -> Bool in
                                 guard let first = first else {
                                     return false
                                 }
@@ -693,10 +718,12 @@ extension TextViewController : PopoverTableViewControllerDelegate
                                 return Int(first) > Int(second)
                             }
                             
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            popover.section.stringsAction?(strings)
+                            section.sorting = true
+                            section.strings = strings
+                            section.sorting = false
+                            
+                            section.stringsAction?(strings,section.sorting)
+                            
                             popover.tableView?.reloadData()
                         }
                     }))

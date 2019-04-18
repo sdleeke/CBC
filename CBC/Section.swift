@@ -18,6 +18,9 @@ class Section
 //            Thread.onMainThread {
 //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.tableView)
 //            }
+            if !sorting {
+                stringsAction?(strings,sorting)
+            }
         }
     }
     
@@ -33,9 +36,9 @@ class Section
         }
     }
     
-    var stringsAction : (([String]?) -> (Void))?
+    var stringsAction : (([String]?,Bool) -> (Void))?
     
-    init(tableView : UITableView?,stringsAction : (([String]?) -> (Void))?)
+    init(tableView : UITableView?,stringsAction : (([String]?,Bool) -> (Void))?)
     {
         self.tableView = tableView
         self.stringsAction = stringsAction
@@ -234,7 +237,7 @@ class Section
     }
     
     // Make thread safe?
-    var strings:[String]?
+    var _strings:[String]?
     {
         willSet {
             guard !sorting else {
@@ -274,7 +277,7 @@ class Section
         }
         
         didSet {
-            stringsAction?(strings)
+            stringsAction?(strings,sorting)
             
             guard let strings = strings else {
                 counts = nil
@@ -296,6 +299,25 @@ class Section
         }
     }
     
+    // Make it thread safe
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+    
+    var strings:[String]?
+    {
+        get {
+            return queue.sync {
+                return _strings
+            }
+        }
+        set {
+            queue.sync {
+                _strings = newValue
+            }
+        }
+    }
+
     var showIndex = false
     {
         didSet {

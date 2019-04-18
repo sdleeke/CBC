@@ -280,17 +280,23 @@ class Lexicon : NSObject
     var entries:[MediaItem]?
     {
         get {
-            guard let words = words else {
-                return nil
-            }
+//            guard let words = words else {
+//                return nil
+//            }
             
-            return words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: Any)) -> [MediaItem] in
-                if let keys = (mediaItemFrequency.value as? [MediaItem:Int])?.keys {
-                    return Set(keys).array
-                } else {
-                    return []
-                }
+            let entries = words?.values()?.flatMap({ (dict:[MediaItem : Int]) -> [MediaItem] in
+                return Set(dict.keys).array
             }).set.array
+            
+            return entries
+            
+//            flatMap({ (mediaItemFrequency:(key: String, value: Any)) -> [MediaItem] in
+//                if let keys = (mediaItemFrequency.value as? [MediaItem:Int])?.keys {
+//                    return Set(keys).array
+//                } else {
+//                    return []
+//                }
+//            }).set.array
             
 //            return Array(Set(
 //                words.copy?.flatMap({ (mediaItemFrequency:(key: String, value: )) -> [MediaItem] in
@@ -480,7 +486,7 @@ class Lexicon : NSObject
                         list.removeFirst()
                         
                         if purge {
-                            mediaItem.notesTokens?.cache = nil // Save memory - load on demand.
+                            mediaItem.notesTokens?.clear() // Save memory - load on demand.
                         }
                         
 //                        print("notesTokens to add: \(notesTokens.count)")
@@ -551,6 +557,7 @@ class Lexicon : NSObject
                 return
             }
 
+            self?.callBacks.update() // Not necessary
 //            self?.update?()
             
             self?.creating = false

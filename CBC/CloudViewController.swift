@@ -779,24 +779,31 @@ class CloudViewController: UIViewController
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
-                                if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
-                                    self?.wordsTableViewController.section.method = Constants.Sort.Alphabetical
-                                    self?.wordsTableViewController.section.showHeaders = false
-                                    self?.wordsTableViewController.section.showIndex = true
-                                    self?.wordsTableViewController.section.indexStringsTransform = nil
-                                    self?.wordsTableViewController.section.indexHeadersTransform = nil
-                                    self?.wordsTableViewController.section.indexSort = nil
-                                    
-                                    self?.wordsTableViewController.section.sorting = true
-                                    self?.wordsTableViewController.section.strings = strings
-                                    self?.wordsTableViewController.section.sorting = false
-                                    self?.wordsTableViewController.section.stringsAction?(strings)
-                                    self?.wordsTableViewController.tableView.reloadData()
+                                guard let wordsTableViewController = self?.wordsTableViewController else {
+                                    return
                                 }
                                 
-                                self?.wordsTableViewController.tableView.isHidden = false
-                                self?.wordsTableViewController.activityIndicator.stopAnimating()
-                                self?.wordsTableViewController.segmentedControl.isEnabled = true
+                                if wordsTableViewController.segmentedControl.selectedSegmentIndex == 0 {
+                                    if let section = wordsTableViewController.section {
+                                        section.method = Constants.Sort.Alphabetical
+                                        section.showHeaders = false
+                                        section.showIndex = true
+                                        section.indexStringsTransform = nil
+                                        section.indexHeadersTransform = nil
+                                        section.indexSort = nil
+                                        
+                                        section.sorting = true
+                                        section.strings = strings
+                                        section.sorting = false
+                                        section.stringsAction?(strings,section.sorting)
+                                    }
+                                    
+                                    wordsTableViewController.tableView.reloadData()
+                                }
+                                
+                                wordsTableViewController.tableView.isHidden = false
+                                wordsTableViewController.activityIndicator.stopAnimating()
+                                wordsTableViewController.segmentedControl.isEnabled = true
                             }
                         }
                     }))
@@ -830,36 +837,43 @@ class CloudViewController: UIViewController
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
 
                             Thread.onMainThread {
-                                if self?.wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
-                                    self?.wordsTableViewController.section.method = Constants.Sort.Frequency
-                                    self?.wordsTableViewController.section.showHeaders = false
-                                    self?.wordsTableViewController.section.showIndex = true
-                                    self?.wordsTableViewController.section.indexStringsTransform = { (string:String?) -> String? in
-                                        return string?.log
-                                    }
-                                    self?.wordsTableViewController.section.indexHeadersTransform = { (string:String?) -> String? in
-                                        return string
-                                    }
-                                    self?.wordsTableViewController.section.indexSort = { (first:String?,second:String?) -> Bool in
-                                        guard let first = first else {
-                                            return false
+                                guard let wordsTableViewController = self?.wordsTableViewController else {
+                                    return
+                                }
+                                
+                                if wordsTableViewController.segmentedControl.selectedSegmentIndex == 1 {
+                                    if let section = wordsTableViewController.section {
+                                        section.method = Constants.Sort.Frequency
+                                        section.showHeaders = false
+                                        section.showIndex = true
+                                        section.indexStringsTransform = { (string:String?) -> String? in
+                                            return string?.log
                                         }
-                                        guard let second = second else {
-                                            return true
+                                        section.indexHeadersTransform = { (string:String?) -> String? in
+                                            return string
                                         }
-                                        return Int(first) > Int(second)
+                                        section.indexSort = { (first:String?,second:String?) -> Bool in
+                                            guard let first = first else {
+                                                return false
+                                            }
+                                            guard let second = second else {
+                                                return true
+                                            }
+                                            return Int(first) > Int(second)
+                                        }
+                                        
+                                        section.sorting = true
+                                        section.strings = strings
+                                        section.sorting = false
+                                        section.stringsAction?(strings,section.sorting)
                                     }
                                     
-                                    self?.wordsTableViewController.section.sorting = true
-                                    self?.wordsTableViewController.section.strings = strings
-                                    self?.wordsTableViewController.section.sorting = false
-                                    self?.wordsTableViewController.section.stringsAction?(strings)
-                                    self?.wordsTableViewController.tableView.reloadData()
+                                    wordsTableViewController.tableView.reloadData()
                                 }
 
-                                self?.wordsTableViewController.tableView.isHidden = false
-                                self?.wordsTableViewController.activityIndicator.stopAnimating()
-                                self?.wordsTableViewController.segmentedControl.isEnabled = true
+                                wordsTableViewController.tableView.isHidden = false
+                                wordsTableViewController.activityIndicator.stopAnimating()
+                                wordsTableViewController.segmentedControl.isEnabled = true
                             }
                         }
                     }))
@@ -872,6 +886,12 @@ class CloudViewController: UIViewController
                     wordsTableViewController.search = false
                     
 //                    wordsTableViewController.section.showIndex = false
+                    
+                    wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
+                        Thread.onMainThread {
+                            self?.wordsTableViewController.segmentedControl?.isEnabled = (strings != nil) && (sorting == false)
+                        }
+                    }
 
                     wordsTableViewController.section.method = Constants.Sort.Frequency
                     wordsTableViewController.section.showIndex = true

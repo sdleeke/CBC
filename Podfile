@@ -9,8 +9,8 @@ target 'CBC' do
   pod 'Firebase/Core'
   pod 'Firebase/Performance'
 
-  pod 'Fabric' #, '~> 1.9.0'
-  pod 'Crashlytics' #, '~> 3.12.0'
+  pod 'Fabric' , '~> 1.9.0'
+  pod 'Crashlytics' , '~> 3.12.0'
 
   target 'CBCTests' do
     inherit! :search_paths

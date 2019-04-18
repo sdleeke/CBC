@@ -4332,8 +4332,8 @@ extension String
                 if let endRange = String(bodyString[startRange.lowerBound...]).range(of: stop) {
                     let to = String(bodyString[..<startRange.lowerBound])
                     
-                    let snippet = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-                    print(snippet)
+//                    let snippet = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+//                    print(snippet)
                     
 //                    bodyString = to + String(bodyString[(to + from).endIndex...])
                     

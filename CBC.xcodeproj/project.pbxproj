@@ -20,7 +20,6 @@
 		1742C6891F1127F00096B150 /* TextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1742C6881F1127F00096B150 /* TextViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
-		174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A61E02122100736CEC /* MediaPlayer.swift */; };
 		174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A81E02128700736CEC /* MediaListGroupSort.swift */; };
 		174A14AB1E02A6F100736CEC /* Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14AA1E02A6F100736CEC /* Download.swift */; };
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
@@ -58,6 +57,7 @@
 		17A952682158FE830033903C /* generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A952672158FE830033903C /* generics.swift */; };
 		17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */; };
 		17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */; };
+		17C6CF852269168100F7BFC1 /* MediaPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C6CF842269168100F7BFC1 /* MediaPlayer.swift */; };
 		17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17CDEF0D2167762900B21C87 /* FetchImage.swift */; };
 		17D44587223D2337005D6681 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 17D44586223D2337005D6681 /* GoogleService-Info.plist */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
@@ -124,7 +124,6 @@
 		1742C6881F1127F00096B150 /* TextViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
-		174A14A61E02122100736CEC /* MediaPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MediaPlayer.swift; path = ../MediaPlayer.swift; sourceTree = "<group>"; };
 		174A14A81E02128700736CEC /* MediaListGroupSort.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaListGroupSort.swift; sourceTree = "<group>"; };
 		174A14AA1E02A6F100736CEC /* Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Download.swift; sourceTree = "<group>"; };
 		174EEE601B74C0DD004F6942 /* CBC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CBC.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,6 +168,7 @@
 		17A952672158FE830033903C /* generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generics.swift; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
 		17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScripturePickerViewController.swift; sourceTree = "<group>"; };
+		17C6CF842269168100F7BFC1 /* MediaPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaPlayer.swift; sourceTree = "<group>"; };
 		17CDEF0D2167762900B21C87 /* FetchImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchImage.swift; sourceTree = "<group>"; };
 		17D21A2D2134914600CA5F57 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		17D21A2F2134914600CA5F57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -266,6 +266,7 @@
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
 				17174D01216268AC00D9DE5B /* Alerts.swift */,
 				17FF988E2030DBC9002AD442 /* Media.swift */,
+				17C6CF842269168100F7BFC1 /* MediaPlayer.swift */,
 				17FF98902030DC84002AD442 /* Tags.swift */,
 				17FF988C2030DB8C002AD442 /* MediaList.swift */,
 				17FF988A2030DB01002AD442 /* MediaStream.swift */,
@@ -280,7 +281,6 @@
 				17CDEF0D2167762900B21C87 /* FetchImage.swift */,
 				17FF98802030D9DB002AD442 /* StreamEntry.swift */,
 				172B7FCC1F41FBD200C714C0 /* Section.swift */,
-				174A14A61E02122100736CEC /* MediaPlayer.swift */,
 				17763BE21BEA329400BB5556 /* Constants.swift */,
 				174A14A81E02128700736CEC /* MediaListGroupSort.swift */,
 				177A74B81EF5770B00D36BE2 /* BooksChaptersVerses.swift */,
@@ -726,7 +726,6 @@
 				17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
-				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
 				17A952682158FE830033903C /* generics.swift in Sources */,
 				17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */,
 				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
@@ -740,6 +739,7 @@
 				177A74B71EF576EA00D36BE2 /* Lexicon.swift in Sources */,
 				177A74B31EF576A500D36BE2 /* StringNode.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
+				17C6CF852269168100F7BFC1 /* MediaPlayer.swift in Sources */,
 				17FF98852030DA3E002AD442 /* Search.swift in Sources */,
 				17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */,
 				175DF54A203B2EB10087CF0B /* Document.swift in Sources */,
