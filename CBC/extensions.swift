@@ -4624,9 +4624,9 @@ extension String
         
         bodyString = bodyString.replacingOccurrences(of: "</i>", with: "")
         
-        bodyString = bodyString.replacingOccurrences(of: "<p>", with: "\n\n")
+        bodyString = bodyString.replacingOccurrences(of: "<p>", with: "")
         
-        bodyString = bodyString.replacingOccurrences(of: "</p>", with: "")
+        bodyString = bodyString.replacingOccurrences(of: "</p>", with: "\n\n")
         
         bodyString = bodyString.replacingOccurrences(of: "<p/>", with: "\n\n")
         
