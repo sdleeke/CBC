@@ -25,6 +25,14 @@ class Section
     }
     
     var function : ((String?,[String]?)->[String]?)?
+    {
+        willSet {
+            
+        }
+        didSet {
+            
+        }
+    }
     
     var method : String? = Constants.Sort.Alphabetical
     {
@@ -129,9 +137,15 @@ class Section
     
     weak var tableView : UITableView?
     
+    // Can probably be commented out.
+    var useInsertions = false
     var insertions : [IndexPath]?
     {
         didSet {
+            guard useInsertions else { // This is probably never true.
+                return
+            }
+            
             guard let insertions = insertions else {
                 return
             }
@@ -237,7 +251,7 @@ class Section
     }
     
     // Make thread safe?
-    var _strings:[String]?
+    var strings:[String]?
     {
         willSet {
             guard !sorting else {
@@ -300,23 +314,23 @@ class Section
     }
     
     // Make it thread safe
-    lazy var queue : DispatchQueue = { [weak self] in
-        return DispatchQueue(label: UUID().uuidString)
-    }()
+//    lazy var queue : DispatchQueue = { [weak self] in
+//        return DispatchQueue(label: UUID().uuidString)
+//    }()
     
-    var strings:[String]?
-    {
-        get {
-            return queue.sync {
-                return _strings
-            }
-        }
-        set {
-            queue.sync {
-                _strings = newValue
-            }
-        }
-    }
+//    var strings:[String]?
+//    {
+//        get {
+//            return queue.sync {
+//                return _strings
+//            }
+//        }
+//        set {
+//            queue.sync {
+//                _strings = newValue
+//            }
+//        }
+//    }
 
     var showIndex = false
     {

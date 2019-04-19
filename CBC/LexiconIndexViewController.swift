@@ -781,6 +781,7 @@ class LexiconIndexViewController : UIViewController
                 if let destination = dvc as? PopoverTableViewController {
                     wordsTableViewController = destination
                     
+//                    wordsTableViewController.section.useInsertions = true
                     wordsTableViewController.segments = true
                     
                     wordsTableViewController.section.function = { [weak self] (method:String?,strings:[String]?) -> [String]? in
@@ -795,7 +796,7 @@ class LexiconIndexViewController : UIViewController
                         var occurrences = [String:Int]()
                         
                         strings.forEach({ (string:String) in
-                            occurrences[string] = self?.lexicon?.occurrences(string)
+                            occurrences[string] = self?.lexicon?.occurrences(string) // .components(separatedBy: Constants.SINGLE_SPACE).first
                         })
                         
                         var sortedStrings:[String]? = nil
@@ -852,7 +853,7 @@ class LexiconIndexViewController : UIViewController
                                 self?.updateLocateButton()
                             }
                             
-                            self?.wordsTableViewController.section.sorting = true
+//                            self?.wordsTableViewController.section.sorting = true
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
 
@@ -877,12 +878,14 @@ class LexiconIndexViewController : UIViewController
                                     section.indexSort = nil
                                 }
                                 
-                                section.sorting = true
-                                section.strings = strings
-                                section.sorting = false
+                                wordsTableViewController.unfilteredSection.sorting = true
+                                wordsTableViewController.unfilteredSection.strings = strings
+                                wordsTableViewController.unfilteredSection.sorting = false
+
+                                wordsTableViewController.updateSearchResults()
                                 
                                 section.stringsAction?(strings,section.sorting)
-
+                                
                                 wordsTableViewController.tableView.isHidden = false
                                 wordsTableViewController.tableView.reloadData()
                                 
@@ -891,7 +894,7 @@ class LexiconIndexViewController : UIViewController
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true
-                                section.sorting = false
+//                                section.sorting = false
 
                                 self?.updateLocateButton()
                             }
@@ -912,7 +915,7 @@ class LexiconIndexViewController : UIViewController
                                 self?.updateLocateButton()
                             }
                             
-                            self?.wordsTableViewController.section.sorting = true
+//                            self?.wordsTableViewController.section.sorting = true
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
                             
@@ -950,12 +953,14 @@ class LexiconIndexViewController : UIViewController
                                     }
                                 }
 
-                                section.sorting = true
-                                section.strings = strings
-                                section.sorting = false
+                                wordsTableViewController.unfilteredSection.sorting = true
+                                wordsTableViewController.unfilteredSection.strings = strings
+                                wordsTableViewController.unfilteredSection.sorting = false
+                                
+                                wordsTableViewController.updateSearchResults()
                                 
                                 section.stringsAction?(strings,section.sorting)
-
+                                
                                 wordsTableViewController.tableView.isHidden = false
                                 wordsTableViewController.tableView.reloadData()
                                 
@@ -964,7 +969,7 @@ class LexiconIndexViewController : UIViewController
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true
-                                section.sorting = false
+//                                section.sorting = false
 
                                 self?.updateLocateButton()
                             }
@@ -976,7 +981,7 @@ class LexiconIndexViewController : UIViewController
                     wordsTableViewController.delegate = self
                     wordsTableViewController.purpose = .selectingLexicon
                     
-                    wordsTableViewController.search = true
+                    wordsTableViewController.search = true // lexicon?.completed ?? false
                     wordsTableViewController.segments = true
 
                     wordsTableViewController.section.showIndex = true
@@ -1656,42 +1661,40 @@ class LexiconIndexViewController : UIViewController
         let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
             Thread.onMainThreadSync {
                 self?.wordsTableViewController.segmentedControl.isEnabled = false
-                //                self.wordsTableViewController.tableView.isHidden = true
+                //                self.wordsTableViewController.tableView.isHidden = true // Turned out getting rid of this was the big innovation, NOT insertions!
             }
-            
-            self?.wordsTableViewController.section.sorting = self?.wordsTableViewController.section.function != nil
             
             if test?() == true {
                 return
             }
             
+            self?.wordsTableViewController.unfilteredSection.sorting = self?.wordsTableViewController.section.function != nil
             self?.wordsTableViewController.unfilteredSection.strings = (self?.wordsTableViewController.section.function == nil) ? self?.lexicon?.strings : self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method, self?.lexicon?.strings)
-            
-            if test?() == true {
-                return
-            }
-            
-            self?.wordsTableViewController.updateSearchResults()
-            
+            self?.wordsTableViewController.unfilteredSection.sorting = false
+
             if test?() == true {
                 return
             }
             
             Thread.onMainThreadSync {
                 self?.wordsTableViewController.tableView.reloadData()
-                //                self.wordsTableViewController.tableView.isHidden = false
+                //                self.wordsTableViewController.tableView.isHidden = false // Turned out getting rid of this was the big innovation, NOT insertions!
             }
             
             if test?() == true {
                 return
             }
             
+            self?.wordsTableViewController.updateSearchResults()
+
+            if test?() == true {
+                return
+            }
+
             self?.updateSearchResults()
-            
+
             Thread.onMainThreadSync {
                 self?.wordsTableViewController.segmentedControl.isEnabled = true
-                
-                self?.wordsTableViewController.section.sorting = false
             }
         }
         operationQueue.addOperation(op)

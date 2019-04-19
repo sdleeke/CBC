@@ -86,7 +86,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        guard let text = searchText else {
+        guard let searchText = searchText else {
             return
         }
         
@@ -97,7 +97,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             for key in keys {
                 if let values = unfilteredSection.stringIndex?[key] {
                     for value in values {
-                        if value.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ").range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                        if value.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ").range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
                             if filteredStringIndex[key] == nil {
                                 filteredStringIndex[key] = [String]()
                             }
@@ -110,17 +110,19 @@ extension PopoverTableViewController: UISearchBarDelegate
             filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
         } else
             
-        if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-            return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-        }) {
-            filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
+                return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }) {
+                filteredSection.sorting = true
+                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+                filteredSection.sorting = false
         }
 
         updateToolbar()
         
-//        Thread.onMainThread {
-//            self.tableView.reloadData()
-//        }
+        Thread.onMainThread {
+            self.tableView.reloadData()
+        }
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
@@ -136,6 +138,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         // To make sure we start out right
         if !searchActive {
+            filteredSection.function = unfilteredSection.function
+
             filteredSection.showIndex = unfilteredSection.showIndex
             filteredSection.showHeaders = unfilteredSection.showHeaders
 
@@ -144,12 +148,12 @@ extension PopoverTableViewController: UISearchBarDelegate
             filteredSection.indexHeadersTransform = unfilteredSection.indexHeadersTransform
         }
         
+        searchText = searchBar.text
+        
         searchActive = true
         
         searchBar.showsCancelButton = true
         
-        searchText = searchBar.text
-
         updateSearchResults()
     }
     
@@ -218,16 +222,27 @@ extension PopoverTableViewController: UISearchBarDelegate
         searchActive = false
 
         if purpose == .selectingWord {
-            // In case they've changed: alpha vs. freq sorting.
-            unfilteredSection.showIndex = filteredSection.showIndex
-            unfilteredSection.showHeaders = filteredSection.showHeaders
-            
-            // In case the method changed
-            if let function = section.function {
-                section.strings = function(section.method,section.strings)
-            }
         }
+
+        // In case they've changed: alpha vs. freq sorting.
+        unfilteredSection.showIndex = filteredSection.showIndex
+        unfilteredSection.showHeaders = filteredSection.showHeaders
+
+        unfilteredSection.indexSort = filteredSection.indexSort
+        unfilteredSection.indexHeadersTransform = filteredSection.indexHeadersTransform
+        unfilteredSection.indexStringsTransform = filteredSection.indexStringsTransform
+
+        unfilteredSection.method = filteredSection.method
         
+        // In case the method changed
+        if let function = section.function {
+            unfilteredSection.sorting = true
+            unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings?.compactMap({ (string:String) -> String? in
+                return string.components(separatedBy: Constants.SINGLE_SPACE).first
+            }))
+            unfilteredSection.sorting = false
+        }
+
         searchBar.showsCancelButton = false
        
         searchBar.resignFirstResponder()
@@ -241,11 +256,13 @@ extension PopoverTableViewController: UISearchBarDelegate
             self.follow()
         }
         
-        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?,sorting:Bool) in
-            Thread.onMainThread {
-                self.segmentedControl?.isEnabled = (strings != nil) && !sorting
-            }
-        })
+        section.stringsAction?(section.strings,section.sorting)
+        
+//        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?,sorting:Bool) in
+//            Thread.onMainThread {
+//                self.segmentedControl?.isEnabled = (strings != nil) && !sorting
+//            }
+//        })
     }
 }
 
@@ -621,6 +638,8 @@ class PopoverTableViewController : UIViewController
     {
         didSet {
             if searchActive != oldValue {
+                section.useInsertions = !searchActive
+                
                 if searchActive {
                     removeTracking()
                 } else {
@@ -718,24 +737,82 @@ class PopoverTableViewController : UIViewController
             
         }
         didSet {
-            filteredSection.indexStringsTransform = indexStringsTransform
+//            filteredSection.indexStringsTransform = indexStringsTransform
             unfilteredSection.indexStringsTransform = indexStringsTransform
         }
     }
     
     var stringSelected : String?
+
+//    var filteredSections = [String:Section]()
+//    var filteredSection : Section!
+//    {
+//        get {
+//            guard let searchText = searchText else {
+//                return nil
+//            }
+//
+//            if filteredSections[searchText] == nil {
+//                let section = Section(tableView:tableView, stringsAction: nil)
+//
+//                section.showIndex = unfilteredSection.showIndex
+//                section.showHeaders = unfilteredSection.showHeaders
+//
+//                section.indexSort = unfilteredSection.indexSort
+//                section.indexStringsTransform = unfilteredSection.indexStringsTransform
+//                section.indexHeadersTransform = unfilteredSection.indexHeadersTransform
+//
+//                section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
+//                    Thread.onMainThread {
+//                        self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
+//                    }
+//                }
+//
+//                filteredSections[searchText] = section
+//            }
+//
+//            return filteredSections[searchText]
+//        }
+//        set {
+//            guard let searchText = searchText else {
+//                return
+//            }
+//
+//            filteredSections[searchText] = newValue
+//        }
+//    }
     
     lazy var filteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
-        
+
         section.stringsAction = { (strings:[String]?,sorting:Bool) in
             Thread.onMainThread {
                 self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
-        
+
         return section
     }()
+    
+//    // Make it thread safe
+//    lazy var filteredQueue : DispatchQueue = { [weak self] in
+//        return DispatchQueue(label: UUID().uuidString)
+//    }()
+//
+//    var filteredSection:Section!
+//    {
+//        get {
+//            return filteredQueue.sync {
+//                return _filteredSection
+//            }
+//        }
+//        set {
+//            filteredQueue.sync {
+//                _filteredSection = newValue
+//            }
+//        }
+//    }
+
     lazy var unfilteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
         
@@ -747,6 +824,25 @@ class PopoverTableViewController : UIViewController
         
         return section
     }()
+    
+//    // Make it thread safe
+//    lazy var unfilteredQueue : DispatchQueue = { [weak self] in
+//        return DispatchQueue(label: UUID().uuidString)
+//    }()
+//
+//    var unfilteredSection:Section!
+//    {
+//        get {
+//            return unfilteredQueue.sync {
+//                return _unfilteredSection
+//            }
+//        }
+//        set {
+//            unfilteredQueue.sync {
+//                _unfilteredSection = newValue
+//            }
+//        }
+//    }
     
     var section:Section!
     {
