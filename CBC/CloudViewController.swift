@@ -834,7 +834,7 @@ class CloudViewController: UIViewController
                                 }
                             })
                             
-                            let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.section.strings)
+                            let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.unfilteredSection.strings)
 
                             Thread.onMainThread {
                                 guard let wordsTableViewController = self?.wordsTableViewController else {

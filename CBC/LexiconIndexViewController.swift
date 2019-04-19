@@ -784,6 +784,16 @@ class LexiconIndexViewController : UIViewController
 //                    wordsTableViewController.section.useInsertions = true
                     wordsTableViewController.segments = true
                     
+                    wordsTableViewController.section.cancelSearchfunction = { [weak self] (method:String?,strings:[String]?) -> [String]? in
+                        return self?.wordsTableViewController.section.function?(method,
+                            strings?.compactMap({ (string:String) -> String? in
+                                return string.components(separatedBy: Constants.SINGLE_SPACE).first
+                            })
+                        )
+                    }
+                    
+                    // This is not just strings.sort(method) because we have to pull from the lexicon in real time as it is being updated.
+                    // If we knew the lexicon was complete we could use the much simpler strings.sort(method) as mediaItem words AlertAction does.
                     wordsTableViewController.section.function = { [weak self] (method:String?,strings:[String]?) -> [String]? in
                         guard let strings = strings else {
                             return nil

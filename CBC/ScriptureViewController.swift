@@ -326,23 +326,21 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                         
                         if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            if let section = popover.section {
-                                section.method = Constants.Sort.Alphabetical
-                                
-                                section.showHeaders = false
-                                section.showIndex = true
-                                
-                                section.indexStringsTransform = nil
-                                section.indexHeadersTransform = nil
-                                section.indexSort = nil
-                                
-                                section.sorting = true
-                                section.strings = strings
-                                section.sorting = false
-                                
-                                section.stringsAction?(strings, section.sorting)
-                            }
+                            popover.section.method = Constants.Sort.Alphabetical
                             
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = nil
+                            popover.section.indexHeadersTransform = nil
+                            popover.section.indexSort = nil
+                            
+                            popover.section.sorting = true
+                            popover.section.strings = strings
+                            popover.section.sorting = false
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+
                             popover.tableView?.reloadData()
                         }
                     }))
@@ -355,36 +353,34 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
                         
                         if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            if let section = popover.section {
-                                section.method = Constants.Sort.Frequency
-                                
-                                section.showHeaders = false
-                                section.showIndex = true
-                                
-                                section.indexStringsTransform = { (string:String?) -> String? in
-                                    return string?.log
-                                }
-                                
-                                section.indexHeadersTransform = { (string:String?) -> String? in
-                                    return string
-                                }
-                                
-                                section.indexSort = { (first:String?,second:String?) -> Bool in
-                                    guard let first = first else {
-                                        return false
-                                    }
-                                    guard let second = second else {
-                                        return true
-                                    }
-                                    return Int(first) > Int(second)
-                                }
-                                
-                                section.sorting = true
-                                section.strings = strings
-                                section.sorting = false
-                                
-                                popover.section.stringsAction?(strings,section.sorting)
+                            popover.section.method = Constants.Sort.Frequency
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                return string?.log
                             }
+                            
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
+                            popover.section.sorting = true
+                            popover.section.strings = strings
+                            popover.section.sorting = false
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
                             
                             popover.tableView?.reloadData()
                         }

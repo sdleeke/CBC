@@ -24,6 +24,16 @@ class Section
         }
     }
     
+    var cancelSearchfunction : ((String?,[String]?)->[String]?)?
+    {
+        willSet {
+            
+        }
+        didSet {
+            
+        }
+    }
+    
     var function : ((String?,[String]?)->[String]?)?
     {
         willSet {

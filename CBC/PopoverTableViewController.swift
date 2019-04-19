@@ -139,6 +139,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         // To make sure we start out right
         if !searchActive {
             filteredSection.function = unfilteredSection.function
+            filteredSection.cancelSearchfunction = unfilteredSection.cancelSearchfunction
 
             filteredSection.showIndex = unfilteredSection.showIndex
             filteredSection.showHeaders = unfilteredSection.showHeaders
@@ -235,11 +236,13 @@ extension PopoverTableViewController: UISearchBarDelegate
         unfilteredSection.method = filteredSection.method
         
         // In case the method changed
-        if let function = section.function {
+        if let function = section.cancelSearchfunction {
             unfilteredSection.sorting = true
-            unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings?.compactMap({ (string:String) -> String? in
-                return string.components(separatedBy: Constants.SINGLE_SPACE).first
-            }))
+            unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
+            unfilteredSection.sorting = false
+        } else {
+            unfilteredSection.sorting = true
+            unfilteredSection.strings = section.function?(unfilteredSection.method,unfilteredSection.strings)
             unfilteredSection.sorting = false
         }
 

@@ -557,28 +557,28 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     guard let popover = popover else {
                         return
                     }
-                    
-                    guard let section = popover.section else {
-                        return
-                    }
+
+//                    guard let section = popover.section else {
+//                        return
+//                    }
                     
                     let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
                     
                     if popover.segmentedControl.selectedSegmentIndex == 0 {
-                        section.method = Constants.Sort.Alphabetical
+                        popover.section.method = Constants.Sort.Alphabetical
                         
-                        section.showHeaders = false
-                        section.showIndex = true
+                        popover.section.showHeaders = false
+                        popover.section.showIndex = true
                         
-                        section.indexStringsTransform = nil
-                        section.indexHeadersTransform = nil
-                        section.indexSort = nil
+                        popover.section.indexStringsTransform = nil
+                        popover.section.indexHeadersTransform = nil
+                        popover.section.indexSort = nil
                         
-                        section.sorting = true
-                        section.strings = strings
-                        section.sorting = false
+                        popover.section.sorting = true
+                        popover.section.strings = strings
+                        popover.section.sorting = false
                         
-                        section.stringsAction?(strings,section.sorting)
+                        popover.section.stringsAction?(strings, popover.section.sorting)
                         
                         popover.tableView?.reloadData()
                     }
@@ -589,26 +589,27 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         return
                     }
                     
-                    guard let section = popover.section else {
-                        return
-                    }
+//                    guard let section = popover.section else {
+//                        return
+//                    }
                     
                     let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+                    
                     if popover.segmentedControl.selectedSegmentIndex == 1 {
-                        section.method = Constants.Sort.Frequency
+                        popover.section.method = Constants.Sort.Frequency
                         
-                        section.showHeaders = false
-                        section.showIndex = true
+                        popover.section.showHeaders = false
+                        popover.section.showIndex = true
                         
-                        section.indexStringsTransform = { (string:String?) -> String? in
+                        popover.section.indexStringsTransform = { (string:String?) -> String? in
                             return string?.log
                         }
                         
-                        section.indexHeadersTransform = { (string:String?) -> String? in
+                        popover.section.indexHeadersTransform = { (string:String?) -> String? in
                             return string
                         }
                         
-                        section.indexSort = { (first:String?,second:String?) -> Bool in
+                        popover.section.indexSort = { (first:String?,second:String?) -> Bool in
                             guard let first = first else {
                                 return false
                             }
@@ -618,11 +619,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                             return Int(first) > Int(second)
                         }
                         
-                        section.sorting = true
-                        section.strings = strings
-                        section.sorting = false
+                        popover.section.sorting = true
+                        popover.section.strings = strings
+                        popover.section.sorting = false
                         
-                        section.stringsAction?(strings,section.sorting)
+                        popover.section.stringsAction?(strings, popover.section.sorting)
                         
                         popover.tableView?.reloadData()
                     }
