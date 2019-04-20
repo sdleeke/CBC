@@ -65,7 +65,7 @@ class Document : NSObject
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {
-                                if let pdf = data?.pdf, let page = pageImage.pdf {
+                                if let pdf = data?.pdf, let page = pageImage.page {
                                     pdf.insert(page, at: 0)
                                     
                                     if let pdfData = pdf.data {

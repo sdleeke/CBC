@@ -33,6 +33,26 @@ extension Array where Element : Hashable
     }
 }
 
+extension UIView
+{
+    var image : UIImage?
+    {
+        var snapShotImage : UIImage?
+        
+        UIGraphicsBeginImageContextWithOptions(bounds.size, true, 0.0)
+        
+        let success = drawHierarchy(in: bounds, afterScreenUpdates: false)
+        
+        if (success) {
+            snapShotImage = UIGraphicsGetImageFromCurrentImageContext()
+        }
+        
+        UIGraphicsEndImageContext()
+        
+        return snapShotImage
+    }
+}
+
 extension UIApplication
 {
     func open(scheme: String?,cannotOpen:(()->(Void))?)
@@ -3270,41 +3290,64 @@ extension UIViewController
             self.present(mailComposeViewController, animated: true, completion: nil)
         }
     }
-    
-    func printTextJob(data:Data?,string:String?,orientation:UIPrintInfo.Orientation)
+
+    func printJob(data:Data?)
     {
-        guard UIPrintInteractionController.isPrintingAvailable, !((string != nil) && (data != nil)), (string != nil) || (data != nil) else {
+        guard UIPrintInteractionController.isPrintingAvailable, let data = data else {
             return
         }
         
         let pi = UIPrintInfo.printInfo()
+        
         pi.outputType = UIPrintInfo.OutputType.general
         pi.jobName = Constants.Strings.Print;
         pi.duplex = UIPrintInfo.Duplex.longEdge
         
         let pic = UIPrintInteractionController.shared
+
         pic.printInfo = pi
         pic.showsPaperSelectionForLoadedPapers = true
         
-        if let string = string {
-            let formatter = UISimpleTextPrintFormatter(text: string)
-            let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
-            formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-            //        pic.printFormatter = formatter
-            
-            let renderer = UIPrintPageRenderer()
-            renderer.headerHeight = margin
-            renderer.footerHeight = margin
-            renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
-            pic.printPageRenderer = renderer
-            
-            pi.orientation = orientation
+        pic.printingItem = data // Causes orientation to be ignored
+        
+        Thread.onMainThread {
+            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+            }
+        }
+    }
+    
+    func printTextJob(string:String?,orientation:UIPrintInfo.Orientation)
+    {
+        guard UIPrintInteractionController.isPrintingAvailable, let string = string else {
+            return
         }
         
-        if data != nil {
-            pic.printingItem = data
-        }
+        let pi = UIPrintInfo.printInfo()
         
+        pi.outputType = UIPrintInfo.OutputType.general
+        pi.jobName = Constants.Strings.Print;
+        pi.duplex = UIPrintInfo.Duplex.longEdge
+        pi.orientation = orientation
+
+        let pic = UIPrintInteractionController.shared
+
+        pic.printInfo = pi
+        pic.showsPaperSelectionForLoadedPapers = true
+        
+        let formatter = UISimpleTextPrintFormatter(text: string)
+        let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
+        formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
+        // use printFormatter or pageRenderer (below)
+        //        pic.printFormatter = formatter
+        
+        let renderer = UIPrintPageRenderer()
+        renderer.headerHeight = margin
+        renderer.footerHeight = margin
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        pic.printPageRenderer = renderer
+
         Thread.onMainThread {
             if let barButtonItem = self.navigationItem.rightBarButtonItem {
                 pic.present(from: barButtonItem, animated: true, completionHandler: nil)
@@ -3319,19 +3362,19 @@ extension UIViewController
         }
         
         pageOrientation(portrait: ({
-                            self.printTextJob(data:nil,string:string,orientation:.portrait)
-                        }),
+            self.printTextJob(string:string,orientation:.portrait)
+        }),
                         landscape: ({
-                            self.printTextJob(data:nil,string:string,orientation:.landscape)
+                            self.printTextJob(string:string,orientation:.landscape)
                         }),
                         cancel: ({
                         })
         )
     }
     
-    func printHTMLJob(data:Data?,html:String?,orientation:UIPrintInfo.Orientation)
+    func printImageJob(image:UIImage?,orientation:UIPrintInfo.Orientation)
     {
-        guard UIPrintInteractionController.isPrintingAvailable, !((html != nil) && (data != nil)), (html != nil) || (data != nil) else {
+        guard UIPrintInteractionController.isPrintingAvailable, let image = image else {
             return
         }
         
@@ -3345,23 +3388,77 @@ extension UIViewController
         pic.printInfo = pi
         pic.showsPaperSelectionForLoadedPapers = true
         
-        if let html = html {
-            let formatter = UIMarkupTextPrintFormatter(markupText: html)
-            let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
-            formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
-            //        pic.printFormatter = formatter
-            
-            let renderer = UIPrintPageRenderer()
-            renderer.headerHeight = margin
-            renderer.footerHeight = margin
-            renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
-            pic.printPageRenderer = renderer
+        let imageView = UIImageView(image: image)
+        
+        let formatter = imageView.viewPrintFormatter()
+        
+        let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
+        
+        formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
+        // use printFormatter or pageRenderer (below)
+        //        pic.printFormatter = formatter
+        
+        let renderer = UIPrintPageRenderer()
+        renderer.headerHeight = margin
+        renderer.footerHeight = margin
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        pic.printPageRenderer = renderer
+
+        Thread.onMainThread {
+            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+            }
+        }
+    }
+    
+    func printImage(image:UIImage?)
+    {
+        guard UIPrintInteractionController.isPrintingAvailable && (image != nil) else {
+            return
+        }
+
+        pageOrientation(
+            portrait: ({
+                self.printImageJob(image:image,orientation:.portrait)
+            }),
+            landscape: ({
+                self.printImageJob(image:image,orientation:.landscape)
+            }),
+            cancel: ({
+            })
+        )
+    }
+    
+    func printHTMLJob(html:String?,orientation:UIPrintInfo.Orientation)
+    {
+        guard UIPrintInteractionController.isPrintingAvailable, let html = html else {
+            return
         }
         
-        if data != nil {
-            pic.printingItem = data
-        }
+        let pi = UIPrintInfo.printInfo()
+        pi.outputType = UIPrintInfo.OutputType.general
+        pi.jobName = Constants.Strings.Print;
+        pi.duplex = UIPrintInfo.Duplex.longEdge
+        pi.orientation = orientation
         
+        let pic = UIPrintInteractionController.shared
+        pic.printInfo = pi
+        pic.showsPaperSelectionForLoadedPapers = true
+        
+        let formatter = UIMarkupTextPrintFormatter(markupText: html)
+        let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
+        formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
+        // use printFormatter or pageRenderer (below)
+        //        pic.printFormatter = formatter
+        
+        let renderer = UIPrintPageRenderer()
+        renderer.headerHeight = margin
+        renderer.footerHeight = margin
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        pic.printPageRenderer = renderer
+
         Thread.onMainThread {
             if let barButtonItem = self.navigationItem.rightBarButtonItem {
                 pic.present(from: barButtonItem, animated: true, completionHandler: nil)
@@ -3375,14 +3472,15 @@ extension UIViewController
             return
         }
         
-        self.pageOrientation(portrait: ({
-                            self.printHTMLJob(data:nil,html:htmlString,orientation:.portrait)
-                        }),
-                        landscape: ({
-                            self.printHTMLJob(data:nil,html:htmlString,orientation:.landscape)
-                        }),
-                        cancel: ({
-                        })
+        self.pageOrientation(
+            portrait: ({
+                self.printHTMLJob(html:htmlString,orientation:.portrait)
+            }),
+            landscape: ({
+                self.printHTMLJob(html:htmlString,orientation:.landscape)
+            }),
+            cancel: ({
+            })
         )
     }
     
@@ -3395,7 +3493,7 @@ extension UIViewController
         self.process(work: {
             return NSData(contentsOf: documentURL)
         }, completion: { (data:Any?) in
-            self.printHTMLJob(data: data as? Data, html: nil, orientation: .portrait)
+            self.printJob(data: data as? Data)
         })
     }
     
@@ -3408,7 +3506,7 @@ extension UIViewController
         self.process(work: {
             return mediaItem?.contentsHTML
         }, completion: { (data:Any?) in
-            self.printHTMLJob(data:nil,html:(data as? String),orientation:.portrait)
+            self.printHTMLJob(html:(data as? String),orientation:.portrait)
         })
     }
     
@@ -3431,7 +3529,7 @@ extension UIViewController
             viewController.process(work: {
                 return stringFunction?(mediaItems,links,columns)
             }, completion: { (data:Any?) in
-                self.printHTMLJob(data:nil,html:(data as? String),orientation:orientation)
+                self.printHTMLJob(html:(data as? String),orientation:orientation)
             })
         }
         
@@ -6239,12 +6337,29 @@ extension UIImage
     }
     
     @available(iOS 11.0, *)
-    var pdf : PDFPage?
+    var page : PDFPage?
     {
         get {
             return PDFPage(image: self)
         }
     }
+    
+    @available(iOS 11.0, *)
+    var pdf : PDFDocument?
+    {
+        get {
+            guard let page = page else {
+                return nil
+            }
+            
+            let pdf = PDFDocument()
+            pdf.insert(page, at: 0)
+            
+            return pdf
+        }
+    }
+    
+
 }
 
 extension Data

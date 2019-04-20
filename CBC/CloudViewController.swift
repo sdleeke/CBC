@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import PDFKit
 
 enum CloudColors {
     static let BlueGreen = [
@@ -71,6 +72,14 @@ enum CloudColors {
     static let White = [UIColor.white]
 }
 
+extension CloudViewController : UIPopoverPresentationControllerDelegate
+{
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
+}
+
 extension CloudViewController : UIScrollViewDelegate
 {
     func viewForZooming(in scrollView: UIScrollView) -> UIView?
@@ -118,44 +127,70 @@ extension CloudViewController : PopoverTableViewControllerDelegate
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
-        guard let cloudWordDicts = cloudWordDicts else {
-            return
-        }
-        
-        guard let string = strings?[index] else {
-            return
-        }
-        
-        guard let startRange = string.range(of: " (") else {
-            return
-        }
-        
-        let word = String(string[..<startRange.lowerBound])
-        let remainder = String(string[startRange.upperBound...])
-        
-        guard let endRange = remainder.range(of: ")") else {
-            return
-        }
-        
-        let count = String(remainder[..<endRange.lowerBound])
-        
-        var index = 0
-        
-        for cloudWordDict in cloudWordDicts {
-            if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
-                if let selected = self.cloudWordDicts?[index]["selected"] as? Bool, selected {
-                    self.cloudWordDicts?[index]["selected"] = false
-                } else {
-                    self.cloudWordDicts?[index]["selected"] = true
-                }
+        switch purpose {
+        case .selectingAction:
+            dismiss(animated: true, completion: nil)
+            
+            guard let string = strings?[index] else {
+                return
+            }
+            
+            switch string {
+            case Constants.Strings.Share:
+                share()
+                break
+                
+            case Constants.Strings.Print:
+                printJob(data: cloudView.image?.jpegData(compressionQuality: 1.0))
+                break
+                
+            default:
                 break
             }
             
-            index += 1
-        }
-        
-        Thread.onMainThread {
-            self.cancelAndRelayoutCloudWords()
+        case .selectingWordCloud:
+            guard let cloudWordDicts = cloudWordDicts else {
+                return
+            }
+            
+            guard let string = strings?[index] else {
+                return
+            }
+            
+            guard let startRange = string.range(of: " (") else {
+                return
+            }
+            
+            let word = String(string[..<startRange.lowerBound])
+            let remainder = String(string[startRange.upperBound...])
+            
+            guard let endRange = remainder.range(of: ")") else {
+                return
+            }
+            
+            let count = String(remainder[..<endRange.lowerBound])
+            
+            var index = 0
+            
+            for cloudWordDict in cloudWordDicts {
+                if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
+                    if let selected = self.cloudWordDicts?[index]["selected"] as? Bool, selected {
+                        self.cloudWordDicts?[index]["selected"] = false
+                    } else {
+                        self.cloudWordDicts?[index]["selected"] = true
+                    }
+                    break
+                }
+                
+                index += 1
+            }
+            
+            Thread.onMainThread {
+                self.cancelAndRelayoutCloudWords()
+            }
+
+        default:
+            break
         }
     }
 }
@@ -238,7 +273,21 @@ extension CloudViewController : UIActivityItemSource
 {
     @objc func share()
     {
-        let activityViewController = UIActivityViewController(activityItems: [self,image,title], applicationActivities: nil)
+//        guard let image = self.cloudView.image else {
+//            return
+//        }
+        
+//        let print = cloudView.viewPrintFormatter()
+//        let margin:CGFloat = 0.5 * 72
+//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+
+        var activityItems:[Any] = [self]
+
+        if #available(iOS 11.0, *) {
+            activityItems.append(cloudView.image?.pdf?.data)
+        }
+
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
         
         // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
         activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
@@ -255,7 +304,7 @@ extension CloudViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.message,.mail,.print,.openInIBooks]
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
@@ -267,10 +316,36 @@ extension CloudViewController : UIActivityItemSource
             CloudViewController.cases.append(.markupAsPDF)
         }
         
-        if CloudViewController.cases.contains(activityType) {
-            return image
+        switch activityType {
+        case .message:
+            return cloudView.image
+            
+        case .mail:
+            return cloudView.image
+            
+        case .print:
+            return nil
+//            if #available(iOS 11.0, *) {
+//                return nil //cloudView.viewPrintFormatter() //?.pdf?.data
+//            } else {
+//                // Fallback on earlier versions
+//                return cloudView.viewPrintFormatter()
+//            } // cloudView.viewPrintFormatter()
+
+        default:
+            if CloudViewController.cases.contains(activityType) {
+                return self.cloudView.image
+            }
         }
         
+//        if #available(iOS 11.0, *) {
+//            if let data = self.cloudView.image?.jpegData(compressionQuality: 1.0) {
+//                return PDFDocument(data: data)?.data
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
+
         return nil
     }
     
@@ -285,7 +360,7 @@ extension CloudViewController : UIActivityItemSource
             return "public.plain-text"
         }
         
-        if WebViewController.cases.contains(activityType) {
+        if CloudViewController.cases.contains(activityType) {
             return "public.text"
         } else {
             return "public.plain-text"
@@ -386,6 +461,7 @@ class CloudViewController: UIViewController
         cancelAndRelayoutCloudWords()
     }
     
+    @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var cloudView: UIView!
     
     @IBOutlet weak var wordOrientation: UISegmentedControl!
@@ -462,22 +538,22 @@ class CloudViewController: UIViewController
         }
     }
     
-    var image : UIImage?
-    {
-        var snapShotImage : UIImage?
-        
-        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
-        
-        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
-        
-        if (success) {
-            snapShotImage = UIGraphicsGetImageFromCurrentImageContext()
-        }
-        
-        UIGraphicsEndImageContext()
-        
-        return snapShotImage
-    }
+//    var image : UIImage?
+//    {
+//        var snapShotImage : UIImage?
+//        
+//        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
+//        
+//        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
+//        
+//        if (success) {
+//            snapShotImage = UIGraphicsGetImageFromCurrentImageContext()
+//        }
+//        
+//        UIGraphicsEndImageContext()
+//        
+//        return snapShotImage
+//    }
     
     override func viewDidLoad()
     {
@@ -546,6 +622,42 @@ class CloudViewController: UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryDidChange), name: UIContentSizeCategory.didChangeNotification, object: nil)
     }
     
+    func actionMenuItems() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        actionMenu.append(Constants.Strings.Share)
+        
+        if UIPrintInteractionController.isPrintingAvailable {
+            actionMenu.append(Constants.Strings.Print)
+        }
+
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
+    @objc func actionMenu()
+    {
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+            
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+            
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            popover.section.strings = actionMenuItems()
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -558,7 +670,11 @@ class CloudViewController: UIViewController
 
         navigationItem.title = cloudTitle
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
-        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(share)), animated: true)
+        
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
+        navigationItem.setRightBarButton(actionButton, animated: true)
 
         if cloudWordDictsFunction != nil {
             self.process(work: { [weak self] () -> (Any?) in

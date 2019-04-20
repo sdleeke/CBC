@@ -428,7 +428,7 @@ extension TextViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.message, .mail,.print,.openInIBooks]
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
