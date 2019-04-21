@@ -34,6 +34,11 @@ class StringTree
 //        }
 //    }
     var completed = false
+    {
+        didSet {
+            
+        }
+    }
     
     weak var lexicon : Lexicon?
     {
@@ -42,27 +47,36 @@ class StringTree
         }
     }
     
-    convenience init(lexicon: Lexicon?, incremental: Bool)
+    var stringsFunction:(()->[String]?)?
+    {
+        didSet {
+            
+        }
+    }
+    
+    convenience init(lexicon: Lexicon?, stringsFunction:(()->[String]?)?, incremental: Bool)
     {
         self.init()
         
         self.lexicon = lexicon
         
-        lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
-            start: { [weak self] in
-                
-            },
-            update: { [weak self] in
-                self?.operationQueue.cancelAllOperations()
-                self?.operationQueue.waitUntilAllOperationsAreFinished()
-                self?.build(strings: self?.lexicon?.strings)
-            },
-            complete: { [weak self] in
-                self?.operationQueue.cancelAllOperations()
-                self?.operationQueue.waitUntilAllOperationsAreFinished()
-                self?.build(strings: self?.lexicon?.strings)
-            }
-        ))
+        self.stringsFunction = stringsFunction
+        
+        if incremental {
+            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
+                start: { [weak self] in
+                    
+                },
+                update: { [weak self] in
+                    self?.completed = false
+                    self?.build(strings: self?.stringsFunction?())
+                },
+                complete: { [weak self] in
+                    self?.completed = false
+                    self?.build(strings: self?.stringsFunction?())
+                }
+            ))
+        }
 
         self.incremental = incremental
     }
@@ -250,28 +264,38 @@ class StringTree
     
     func build(strings:[String]?)
     {
-        guard !building else {
-            return
-        }
+//        guard !building else {
+//            return
+//        }
         
         guard let strings = strings?.sorted(), strings.count > 0 else {
             return
         }
-        
-        building = true
 
         if incremental {
+            operationQueue.cancelAllOperations()
+            operationQueue.waitUntilAllOperationsAreFinished()
+
 //            DispatchQueue.global(qos: .background).async { [weak self] in
             let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
-//                self?.root = StringNode(nil)
-
                 self?.callBacks.start()
+                
+//                self?.root = StringNode(nil) // Faster?
 
                 // Walking the tree over and over again is slower than recreating it each time?
                 // No and starting over each time is visually awful, the wheels empty each time.
+                
                 if self?.root == nil {
                     self?.root = StringNode(nil)
                 }
+
+                // BUT we're losing words somewhere if Lexicon updates picker incrementally
+                // in this case the lexicon updating is updating the stringTree which is updating the picker
+                
+                // If lexicon is allowed to finish and then the picker is opened no words are lost
+                // in this case stringTree build is NEVER updated (i.e. restarted) but the stringTree still udpates the picker.
+                
+                // Is activeWords in LIVC to blame?
                 
                 var date : Date?
                 
@@ -309,13 +333,17 @@ class StringTree
             
             operationQueue.addOperation(op)
         } else {
-            // This blocks
-            self.root = StringNode(nil)
-            
-            self.root.addStrings(strings)
-            
-            self.building = false
-            self.completed = true
+            if !building {
+                building = true
+                
+                // This blocks
+                self.root = StringNode(nil)
+                
+                self.root.addStrings(strings)
+                
+                self.building = false
+                self.completed = true
+            }
         }
     }
 }

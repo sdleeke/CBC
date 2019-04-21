@@ -12,10 +12,17 @@ class Lexicon : NSObject
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
-    lazy var stringTree : StringTree? = {
-        return StringTree(lexicon:self, incremental:true)
-    }()
+    // Not much use since user can search words table in LIVC and this is supposed to
+    // reflect only the words in search result.  => stringTree s/b in LIVC, not lexicon
+    // and change whenever activeWords changes.
+//    lazy var stringTree : StringTree? = { [weak self] in
+//        return StringTree(lexicon:self, stringsFunction: { [weak self] in
+//            return self?.stringsFunction?()
+//        }, incremental:true)
+//    }()
     
+    var incremental = false // FUTURE USE
+
     var callBacks = CallBacks()
     
     var selected:String?
@@ -379,6 +386,13 @@ class Lexicon : NSObject
         }
         
         return words?[word]?.values.reduce(0, +)
+    }
+    
+    var stringsFunction:(()->[String]?)?
+    {
+        didSet {
+            
+        }
     }
     
     // thread safe?

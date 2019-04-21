@@ -15,25 +15,25 @@ class HTML
 {
     deinit {
         debug(self)
-        operationQueue.cancelAllOperations()
+//        operationQueue.cancelAllOperations()
     }
     
     weak var webViewController: WebViewController?
     
-    private lazy var operationQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "HTML"
-        operationQueue.qualityOfService = .userInteractive
-        operationQueue.maxConcurrentOperationCount = 1
-        return operationQueue
-    }()
+//    private lazy var operationQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = "HTML"
+//        operationQueue.qualityOfService = .userInteractive
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
 
-    var text : String?
-    {
-        didSet {
-
-        }
-    }
+//    var text : String?
+//    {
+//        didSet {
+//
+//        }
+//    }
     
     var original:String?
     {
@@ -64,11 +64,13 @@ class HTML
             if _string != previousString, let isEmpty = _string?.isEmpty, !isEmpty {
                 _string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
                 
-                // This can take some time.
-                operationQueue.cancelAllOperations()
-                operationQueue.addOperation { [weak self] in
-                    self?.text = self?._string?.stripHTML
-                }
+                // This can take some time.  JUST TOO EXPENSIVE.
+//                operationQueue.cancelAllOperations()
+//
+//                let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
+//                    self?.text = self?._string?.stripHTML(test)
+//                }
+//                operationQueue.addOperation(op)
             }
         }
     }
@@ -196,9 +198,9 @@ extension WebViewController : UIActivityItemSource
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
-        if self.html.text == nil {
-            activityViewController.excludedActivityTypes?.append(.message)
-        }
+//        if self.html.text == nil {
+//            activityViewController.excludedActivityTypes?.append(.message)
+//        }
         
         // present the view controller
         Thread.onMainThread {
@@ -224,16 +226,16 @@ extension WebViewController : UIActivityItemSource
         }
         
         switch activityType {
-        case .message:
-            guard let title = self.navigationItem.title else {
-                return self.html.text
-            }
-            
-            guard let text = self.html.text else {
-                return self.navigationItem.title
-            }
-
-            return title + "\n\n" + text
+//        case .message:
+//            guard let title = self.navigationItem.title else {
+//                return self.html.text
+//            }
+//            
+//            guard let text = self.html.text else {
+//                return self.navigationItem.title
+//            }
+//
+//            return title + "\n\n" + text
 
         default:
             if WebViewController.cases.contains(activityType) {
@@ -1209,7 +1211,7 @@ class WebViewController: UIViewController
             return
         }
 
-        dismiss(animated: true, completion: nil)
+        self.dismiss(animated: true, completion: nil)
     }
     
     var activityViewController:UIActivityViewController?

@@ -4542,13 +4542,13 @@ extension String
     
     var stripHTML : String
     {
-//        guard let string = string else {
-//            return nil
-//        }
+        //        guard let string = string else {
+        //            return nil
+        //        }
         
-//        guard var bodyString = self.stripHead.stripLinks else {
-//            return nil
-//        }
+        //        guard var bodyString = self.stripHead.stripLinks else {
+        //            return nil
+        //        }
         
         var bodyString = self.stripHead.stripLinks
         
@@ -4560,121 +4560,121 @@ extension String
         
         bodyString = bodyString.snip("<p class=\"copyright\">","</p>")
         
-//        while bodyString.range(of: "<p class=\"copyright\">") != nil {
-//            if let startRange = bodyString.range(of: "<p class=\"copyright\">") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</p>") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<p class=\"copyright\">") != nil {
+        //            if let startRange = bodyString.range(of: "<p class=\"copyright\">") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</p>") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<script>","</script>")
         
-//        while bodyString.range(of: "<script>") != nil {
-//            if let startRange = bodyString.range(of: "<script>") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</script>") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<script>") != nil {
+        //            if let startRange = bodyString.range(of: "<script>") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</script>") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<noscript>","</noscript>")
         
-//        while bodyString.range(of: "<noscript>") != nil {
-//            if let startRange = bodyString.range(of: "<noscript>") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</noscript>") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<noscript>") != nil {
+        //            if let startRange = bodyString.range(of: "<noscript>") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</noscript>") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<p ",">")
         
-//        while bodyString.range(of: "<p ") != nil {
-//            if let startRange = bodyString.range(of: "<p ") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + "\n\n" + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
-
+        //        while bodyString.range(of: "<p ") != nil {
+        //            if let startRange = bodyString.range(of: "<p ") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + "\n\n" + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
+        
         bodyString = bodyString.snip("<br ",">")
         
-//        while bodyString.range(of: "<br ") != nil {
-//            if let startRange = bodyString.range(of: "<br ") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<br ") != nil {
+        //            if let startRange = bodyString.range(of: "<br ") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<span ",">")
         
-//        while bodyString.range(of: "<span ") != nil {
-//            if let startRange = bodyString.range(of: "<span ") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<span ") != nil {
+        //            if let startRange = bodyString.range(of: "<span ") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<font ",">")
         
-//        while bodyString.range(of: "<font") != nil {
-//            if let startRange = bodyString.range(of: "<font") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<font") != nil {
+        //            if let startRange = bodyString.range(of: "<font") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<sup>","</sup>")
         
-//        while bodyString.range(of: "<sup>") != nil {
-//            if let startRange = bodyString.range(of: "<sup>") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</sup>") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<sup>") != nil {
+        //            if let startRange = bodyString.range(of: "<sup>") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</sup>") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<sup ", "</sup>")
         
-//        while string.range(of: "<sup ") != nil {
-//            if let startRange = string.range(of: "<sup ") {
-//                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
-//                    let to = String(string[..<startRange.lowerBound])
-//                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    string = to + String(string[(to + from).endIndex...])
-//                }
-//            }
-//        }
+        //        while string.range(of: "<sup ") != nil {
+        //            if let startRange = string.range(of: "<sup ") {
+        //                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
+        //                    let to = String(string[..<startRange.lowerBound])
+        //                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    string = to + String(string[(to + from).endIndex...])
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.snip("<h3", "</h3>")
-
+        
         
         bodyString = bodyString.replacingOccurrences(of: "&rsquo;", with: "'")
         
@@ -4705,21 +4705,21 @@ extension String
         bodyString = bodyString.replacingOccurrences(of: "<tr>", with: "")
         
         bodyString = bodyString.snipLinks("<td",">")
-//        while bodyString.range(of: "<td") != nil {
-//            if let startRange = bodyString.range(of: "<td") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    let string = to + from
-//                    if let range = string.range(of: string) {
-//                        let from = String(bodyString[range.upperBound...])
-//
-//                        bodyString = to + from
-//                    }
-//                }
-//            }
-//        }
+        //        while bodyString.range(of: "<td") != nil {
+        //            if let startRange = bodyString.range(of: "<td") {
+        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
+        //                    let to = String(bodyString[..<startRange.lowerBound])
+        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
+        //
+        //                    let string = to + from
+        //                    if let range = string.range(of: string) {
+        //                        let from = String(bodyString[range.upperBound...])
+        //
+        //                        bodyString = to + from
+        //                    }
+        //                }
+        //            }
+        //        }
         
         bodyString = bodyString.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
         
@@ -4775,6 +4775,337 @@ extension String
         
         return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
     }
+    
+//    func stripHTML(_ test:(()->Bool)?) -> String
+//    {
+//        var bodyString = self.stripHead.stripLinks
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<html>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<body>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<p class=\"copyright\">","</p>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<script>","</script>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<noscript>","</noscript>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<p ",">")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<br ",">")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<span ",">")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<font ",">")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<sup>","</sup>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<sup ", "</sup>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snip("<h3", "</h3>")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&rsquo;", with: "'")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&rdquo;", with: "\"")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&lsquo;", with: "'")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&ldquo;", with: "\"")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&mdash;", with: "-")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&ndash;", with: "-")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&nbsp;", with: " ")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "&ccedil;", with: "C")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<br/>", with: "\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</br>", with: "\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<span>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<table>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<center>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<tr>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.snipLinks("<td",">")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</tr>", with: "\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</table>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</center>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</span>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</font>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</body>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</html>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<em>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</em>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<div>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</div>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<mark>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</mark>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<i>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</i>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<p>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</p>", with: "\n\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<p/>", with: "\n\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "\n\n\n", with: "\n\n")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "• ", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "–", with: "-")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "—", with: "-")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "…", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "<b>", with: "")
+//        
+//        if test?() == true {
+//            return bodyString
+//        }
+//        
+//        bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
+//        
+//        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
+//    }
     
     func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)
     {

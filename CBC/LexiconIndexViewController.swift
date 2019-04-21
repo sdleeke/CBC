@@ -148,11 +148,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 
 //                popover.stringTree?.lexicon = self.lexicon
                 
-                popover.stringTree = self.lexicon?.stringTree
+                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+                    return self?.lexicon?.stringsFunction?()
+                }, incremental:true)
+
+//                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
+                // This really defeats the purpose of saving the stringTree in the lexicon.
+                // But it covers over the lost words problem of incremental updates by forcing a new stringTree each
+                // time it is opened.  Which is also slow!
+                
+                // AND because LIVC words table activeWords may be FEWER than last time we can't keep anything from
+                // past string trees!
                 
                 // mediaListGroupSort?.lexicon?.tokens
-                popover.strings = activeWords
+//                popover.strings = activeWords
 
+                popover.stringsFunction = lexicon?.stringsFunction
+//                { [weak self] in
+//                    return self?.activeWords
+//                }
+                
                 present(navigationController, animated: true, completion: nil)
             }
             break
@@ -639,6 +654,13 @@ class LexiconIndexViewController : UIViewController
     }
     
     var mediaListGroupSort:MediaListGroupSort?
+    {
+        didSet {
+            lexicon?.stringsFunction = { [weak self] in
+                return self?.activeWords
+            }
+        }
+    }
     
     var root:StringNode?
     
@@ -648,6 +670,39 @@ class LexiconIndexViewController : UIViewController
             return mediaListGroupSort?.lexicon
         }
     }
+    
+//    lazy var stringTree : StringTree? = { [weak self] in
+//        return StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+//            return self?.lexicon?.stringsFunction?()
+//            }, incremental:true)
+//    }()
+
+    // Doesn't help during lexicon building because activeWordsString may change during lexicon updates
+//    var stringTrees = [String:StringTree]()
+//
+//    var stringTree : StringTree?
+//    {
+//        get {
+//            guard let activeWordsString = activeWordsString else {
+//                return nil
+//            }
+//
+//            if stringTrees[activeWordsString] == nil {
+//                stringTrees[activeWordsString] = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+//                    return self?.lexicon?.stringsFunction?()
+//                }, incremental:true)
+//            }
+//
+//            return stringTrees[activeWordsString]
+//        }
+//        set {
+//            guard let activeWordsString = activeWordsString else {
+//                return
+//            }
+//
+//            stringTrees[activeWordsString] = newValue
+//        }
+//    }
     
     var searchText:String?
     {
@@ -1424,6 +1479,13 @@ class LexiconIndexViewController : UIViewController
                     return nil
                 }
             })
+        }
+    }
+    
+    var activeWordsString : String?
+    {
+        get {
+            return activeWords?.sorted().joined()
         }
     }
     

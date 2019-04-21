@@ -323,11 +323,11 @@ class Section
         }
     }
     
-    // Make it thread safe
+    // Make it thread safeLO
 //    lazy var queue : DispatchQueue = { [weak self] in
 //        return DispatchQueue(label: UUID().uuidString)
 //    }()
-    
+//    
 //    var strings:[String]?
 //    {
 //        get {
