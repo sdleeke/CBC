@@ -230,14 +230,14 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.delegate = webViewController
                     
-                    popover.actionTitle = Constants.Strings.Expanded_View
-                    popover.action = { (String) in
-                        self.process(work: { [weak self] () -> (Any?) in
-                            return popover.stringTree?.html
-                        }, completion: { [weak self] (data:Any?) in
-                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                        })
-                    }
+//                    popover.actionTitle = Constants.Strings.Expanded_View
+//                    popover.action = { (String) in
+//                        self.process(work: { [weak self] () -> (Any?) in
+//                            return popover.stringTree?.html
+//                        }, completion: { [weak self] (data:Any?) in
+//                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//                        })
+//                    }
 
                     popover.stringTree = StringTree()
                     

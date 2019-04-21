@@ -381,12 +381,59 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 //                })
 //                break
 
-            default:
-                if string == actionTitle {
-                    popover?.dismiss(animated: true) { [weak self] in
-                        self?.action?(string)
+            case Constants.Strings.Expanded_View:
+                self.popover?.dismiss(animated: true, completion: { [weak self] in
+                    self?.popover = nil
+                })
+                
+                process(work: { [weak self] () -> (Any?) in
+                    Thread.onMainThread {
+                        self?.navigationItem.rightBarButtonItem?.isEnabled = false
                     }
-                }
+                    
+                    return self?.stringTree?.expandedHTML
+                }, completion: { [weak self] (data:Any?) in
+                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    
+                    Thread.onMainThread {
+                        self?.navigationItem.rightBarButtonItem?.isEnabled = true
+                    }
+                })
+                break
+
+            case Constants.Strings.View_Words:
+                self.popover?.dismiss(animated: true, completion: { [weak self] in
+                    self?.popover = nil
+                })
+                
+                self.process(work: { [weak self] () -> (Any?) in
+                    Thread.onMainThread {
+                        self?.navigationItem.rightBarButtonItem?.isEnabled = false
+                    }
+                    
+                    // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
+                    // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
+                    
+                    // SHOULD ONLY BE activeWords
+                    
+                    //                return self?.lexicon?.wordsHTML
+                    return self?.stringTree?.wordsHTML
+                }, completion: { [weak self] (data:Any?) in
+                    // preferredModalPresentationStyle(viewController: self)
+                    self?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Words", htmlString: data as? String)
+                    
+                    Thread.onMainThread {
+                        self?.navigationItem.rightBarButtonItem?.isEnabled = true
+                    }
+                })
+                break
+
+            default:
+//                if string == actionTitle {
+//                    popover?.dismiss(animated: true) { [weak self] in
+//                        self?.action?(string)
+//                    }
+//                }
                 break
             }
             break
@@ -452,8 +499,8 @@ class PopoverPickerViewController : UIViewController
     
 //    var incremental = false
     
-    var action : ((String?)->())?
-    var actionTitle : String?
+    var barButtonAction : ((String?)->())?
+    var barButtonActionTitle : String?
     
     var pickerSelections = ThreadSafe<[Int:Int]>() {
         return [Int:Int]()
@@ -557,10 +604,12 @@ class PopoverPickerViewController : UIViewController
     {
         var actionMenu = [String]()
         
-        if let actionTitle = actionTitle {
-            actionMenu.append(actionTitle)
-        }
-//        actionMenu.append(Constants.Strings.Expanded_View)
+//        if let actionTitle = actionTitle {
+//            actionMenu.append(actionTitle)
+//        }
+        
+        actionMenu.append(Constants.Strings.Expanded_View)
+        actionMenu.append(Constants.Strings.View_Words)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -1021,17 +1070,14 @@ class PopoverPickerViewController : UIViewController
 
         var barButtons = [UIBarButtonItem]()
         
-//        if action != nil {
-//            barButtons.append(spaceButton)
-//            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
-//            barButtons.append(spaceButton)
-//            barButtons.append(UIBarButtonItem(title: actionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doAction)))
-//            barButtons.append(spaceButton)
-//        } else {
+        barButtons.append(spaceButton)
+        barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
+        barButtons.append(spaceButton)
+
+        if barButtonAction != nil {
+            barButtons.append(UIBarButtonItem(title: barButtonActionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doBarButtonAction)))
             barButtons.append(spaceButton)
-            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
-            barButtons.append(spaceButton)
-//        }
+        }
 
         toolbarItems = barButtons.count > 0 ? barButtons : nil
         
@@ -1058,9 +1104,9 @@ class PopoverPickerViewController : UIViewController
         dismiss(animated: false, completion: nil)
     }
     
-    @objc func doAction()
+    @objc func doBarButtonAction()
     {
-        self.action?(self.wordFromPicker())
+        self.barButtonAction?(self.wordFromPicker())
     }
     
     override func viewDidAppear(_ animated: Bool)

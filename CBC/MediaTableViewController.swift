@@ -520,7 +520,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 if mediaItems.count == 1, let mediaItem = mediaItems.first {
                     actions.append(AlertAction(title: "Locate", style: .default) { [weak self] in
-                        self?.dismiss(animated: true, completion: {
+                        self?.dismiss(animated: true, completion: { [weak self] in
                             self?.presentingVC = nil
                         })
                         self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
@@ -764,8 +764,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
-            self.dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            self.dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
         })
         alert.addAction(yesAction)
@@ -782,8 +782,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     
     func done()
     {
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
     }
     
@@ -1210,8 +1210,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingCategory:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
@@ -1344,8 +1344,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingCellAction:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             switch string {
@@ -1398,8 +1398,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingHistory:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             if let history = Globals.shared.relevantHistory {
@@ -1436,8 +1436,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTags:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             // Should we be showing Globals.shared.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
@@ -1508,8 +1508,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSection:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             if let section = Globals.shared.media.active?.section?.headerStrings?.firstIndex(of: strings[index]) {
@@ -1539,8 +1539,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingGrouping:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             Globals.shared.grouping = Globals.shared.groupings[index]
@@ -1572,8 +1572,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSorting:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             Globals.shared.sorting = Constants.sortings[index]
@@ -1607,16 +1607,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingShow:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             showMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         case .selectingAction:
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             switch string {
@@ -1958,8 +1958,8 @@ class MediaTableViewController : UIViewController
             self.popover?.activityIndicator?.stopAnimating()
             
             if self.stringIndex?.dict == nil {
-                self.dismiss(animated: true, completion: {
-                    self.presentingVC = nil
+                self.dismiss(animated: true, completion: { [weak self] in
+                    self?.presentingVC = nil
                 })
                 Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
             } else {
@@ -1993,8 +1993,8 @@ class MediaTableViewController : UIViewController
         
         let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
             (action : UIAlertAction!) -> Void in
-            self.dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            self.dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
             
             VoiceBase.bulkDelete(alert:true)
@@ -2123,8 +2123,8 @@ class MediaTableViewController : UIViewController
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             // In case one is already showing
-            dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
       
             popover.navigationItem.title = "Select"
@@ -2341,8 +2341,8 @@ class MediaTableViewController : UIViewController
         }
         
         //In case we have one already showing
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
 
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
@@ -2434,8 +2434,8 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
@@ -2482,8 +2482,8 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
@@ -3370,8 +3370,8 @@ class MediaTableViewController : UIViewController
         }
         
         //In case we have one already showing
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -3501,8 +3501,8 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -3936,8 +3936,8 @@ class MediaTableViewController : UIViewController
     
     @objc func liveView()
     {
-        self.dismiss(animated: true, completion: {
-            self.presentingVC = nil
+        self.dismiss(animated: true, completion: { [weak self] in
+            self?.presentingVC = nil
         })
         performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
     }
@@ -4166,8 +4166,8 @@ class MediaTableViewController : UIViewController
         super.viewWillTransition(to: size, with: coordinator)
 
         if self.presentingVC?.popoverPresentationController?.presentationStyle == .popover {
-            self.dismiss(animated: true, completion: {
-                self.presentingVC = nil
+            self.dismiss(animated: true, completion: { [weak self] in
+                self?.presentingVC = nil
             })
         }
 

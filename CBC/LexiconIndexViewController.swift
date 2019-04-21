@@ -123,26 +123,26 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.delegate = self
                 
-                popover.actionTitle = Constants.Strings.Expanded_View
-                
-                ////////////////////////////////////////////////////////////////////////////////////////
-                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
-                ////////////////////////////////////////////////////////////////////////////////////////
-                popover.action = { [weak popover] (String) in
-                    popover?.process(work: { [weak self] () -> (Any?) in
-                        Thread.onMainThread {
-                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
-                        }
-                        
-                        return popover?.stringTree?.html
-                    }, completion: { [weak self] (data:Any?) in
-                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-
-                        Thread.onMainThread {
-                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
-                        }
-                    })
-                }
+//                popover.actionTitle = Constants.Strings.Expanded_View
+//                
+//                ////////////////////////////////////////////////////////////////////////////////////////
+//                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
+//                ////////////////////////////////////////////////////////////////////////////////////////
+//                popover.action = { [weak popover] (String) in
+//                    popover?.process(work: { [weak self] () -> (Any?) in
+//                        Thread.onMainThread {
+//                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
+//                        }
+//                        
+//                        return popover?.stringTree?.html
+//                    }, completion: { [weak self] (data:Any?) in
+//                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//
+//                        Thread.onMainThread {
+//                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
+//                        }
+//                    })
+//                }
 
 //                popover.lexicon = self.lexicon
 
@@ -1463,6 +1463,10 @@ class LexiconIndexViewController : UIViewController
                 //                    bodyHTML += "<p>Index to \(words.count) Words</p>"
                 bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
                 
+                if let searchText = wordsTableViewController.searchText?.uppercased() {
+                    bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+                }
+                
                 //                    indexHTML = "<table>"
                 //
                 //                    indexHTML += "<tr>"
@@ -1537,7 +1541,12 @@ class LexiconIndexViewController : UIViewController
                     
                     //                        wordsHTML += "<li>" + word + "</li>"
                     wordsHTML += "<li>"
-                    wordsHTML += word
+
+                    if let searchText = wordsTableViewController.searchText {
+                        wordsHTML += word.markSearchHTML(searchText)
+                    } else {
+                        wordsHTML += word
+                    }
                     
                     // Word Frequency and Links Back to Documents
                     //                        if let entries = words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in

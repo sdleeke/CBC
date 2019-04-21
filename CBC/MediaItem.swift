@@ -4064,8 +4064,8 @@ class MediaItem : NSObject
             if let searchStrings = self?.searchStrings(),
                 let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                viewController.dismiss(animated: true, completion: {
-                    mtvc.presentingVC = nil
+                viewController.dismiss(animated: true, completion: { [weak mtvc] in
+                    mtvc?.presentingVC = nil
                 })
                 
                 navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
@@ -4118,8 +4118,8 @@ class MediaItem : NSObject
                 
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    mtvc.dismiss(animated: true, completion: {
-                        mtvc.presentingVC = nil
+                    mtvc.dismiss(animated: true, completion: { [weak mtvc] in
+                        mtvc?.presentingVC = nil
                     })
                     
                     navigationController.modalPresentationStyle = .overCurrentContext
@@ -4235,12 +4235,12 @@ class MediaItem : NSObject
                     
                     popover.search = popover.section.strings?.count > 10
                     
-                    popover.completion = {
-                        mtvc.presentingVC = nil
+                    popover.completion = { [weak mtvc] in
+                        mtvc?.presentingVC = nil
                     }
                     
-                    mtvc.present(navigationController, animated: true, completion: {
-                        mtvc.presentingVC = navigationController
+                    mtvc.present(navigationController, animated: true, completion: { [weak mtvc] in
+                        mtvc?.presentingVC = navigationController
                     })
                 }
             }

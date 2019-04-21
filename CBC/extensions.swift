@@ -3021,6 +3021,21 @@ extension Dictionary
 
 extension String
 {
+    func markSearchHTML(_ searchText:String?) -> String
+    {
+        guard let searchText = searchText?.uppercased() else {
+            return self
+        }
+        
+        var string = self.uppercased()
+        
+        if let range = string.range(of: searchText) {
+            string = String(string[..<range.lowerBound]) + "<mark>" + searchText + "</mark>" + String(string[range.upperBound...])
+        }
+        
+        return string
+    }
+    
     var stripHead : String
     {
 //        guard let string = string else {
@@ -3631,7 +3646,7 @@ extension UIViewController
         navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
         
         popover.navigationItem.title = title
-        
+
         popover.search = true
         popover.mediaItem = mediaItem
         
@@ -4645,6 +4660,22 @@ extension String
 //            }
 //        }
         
+        bodyString = bodyString.snip("<sup ", "</sup>")
+        
+//        while string.range(of: "<sup ") != nil {
+//            if let startRange = string.range(of: "<sup ") {
+//                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
+//                    let to = String(string[..<startRange.lowerBound])
+//                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
+//
+//                    string = to + String(string[(to + from).endIndex...])
+//                }
+//            }
+//        }
+        
+        bodyString = bodyString.snip("<h3", "</h3>")
+
+        
         bodyString = bodyString.replacingOccurrences(of: "&rsquo;", with: "'")
         
         bodyString = bodyString.replacingOccurrences(of: "&rdquo;", with: "\"")
@@ -4742,7 +4773,7 @@ extension String
         
         bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
         
-        return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
+        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
     }
     
     func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)

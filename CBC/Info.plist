@@ -38,7 +38,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1685</string>
+	<string>1687</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -55,6 +55,8 @@
 	</dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Images will be saved to the Camera Roll.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CBC Media would like to save the word cloud image.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Speech recognition will be used to convert spoken audio to text.</string>
 	<key>UIAppFonts</key>

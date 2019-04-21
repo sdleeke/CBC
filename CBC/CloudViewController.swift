@@ -141,7 +141,12 @@ extension CloudViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Print:
-                printJob(data: cloudView.image?.jpegData(compressionQuality: 1.0))
+                if #available(iOS 11.0, *) {
+                    printJob(data: cloudView.image?.pdf?.data)
+                } else {
+                    // Fallback on earlier versions
+                    printJob(data: cloudView.image?.jpegData(compressionQuality: 1.0))
+                }
                 break
                 
             default:
@@ -277,14 +282,16 @@ extension CloudViewController : UIActivityItemSource
 //            return
 //        }
         
-//        let print = cloudView.viewPrintFormatter()
-//        let margin:CGFloat = 0.5 * 72
-//        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        let print = cloudView.viewPrintFormatter()
+        let margin:CGFloat = 0.5 * 72
+        print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
         var activityItems:[Any] = [self]
 
         if #available(iOS 11.0, *) {
             activityItems.append(cloudView.image?.pdf?.data)
+        } else {
+            activityItems.append(cloudView.image)
         }
 
         let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
@@ -325,11 +332,12 @@ extension CloudViewController : UIActivityItemSource
             
         case .print:
             return nil
+            
 //            if #available(iOS 11.0, *) {
 //                return nil //cloudView.viewPrintFormatter() //?.pdf?.data
 //            } else {
 //                // Fallback on earlier versions
-//                return cloudView.viewPrintFormatter()
+//                return cloudView.image
 //            } // cloudView.viewPrintFormatter()
 
         default:

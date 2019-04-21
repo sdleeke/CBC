@@ -549,14 +549,14 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.delegate = self
                     
-                    popover.actionTitle = Constants.Strings.Expanded_View
-                    popover.action = { (String) in
-                        self.process(work: { [weak self] () -> (Any?) in
-                            return popover.stringTree?.html
-                        }, completion: { [weak self] (data:Any?) in
-                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                        })
-                    }
+//                    popover.actionTitle = Constants.Strings.Expanded_View
+//                    popover.action = { (String) in
+//                        self.process(work: { [weak self] () -> (Any?) in
+//                            return popover.stringTree?.html
+//                        }, completion: { [weak self] (data:Any?) in
+//                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//                        })
+//                    }
                     
                     popover.purpose = .selectingWord
                     
@@ -1716,21 +1716,21 @@ class TextViewController : UIViewController
                                     
                                     popover.delegate = vc
                                     
-                                    popover.actionTitle = Constants.Strings.Expanded_View
-                                    popover.action = { (String) in
-                                        self?.process(work: { [weak self] () -> (Any?) in
-                                            return popover.stringTree?.html
-                                        }, completion: { [weak self] (data:Any?) in
-                                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                                        })
-                                    }
+//                                    popover.actionTitle = Constants.Strings.Expanded_View
+//                                    popover.action = { (String) in
+//                                        self?.process(work: { [weak self] () -> (Any?) in
+//                                            return popover.stringTree?.html
+//                                        }, completion: { [weak self] (data:Any?) in
+//                                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//                                        })
+//                                    }
 
                                     popover.purpose = .selectingGapTime
                                     
                                     popover.stringTree = StringTree()
                                     
-                                    popover.actionTitle = "Show"
-                                    popover.action = { (gapThresholdString:String?) in
+                                    popover.barButtonActionTitle = "Show"
+                                    popover.barButtonAction = { (gapThresholdString:String?) in
                                         guard let gapThresholdString = gapThresholdString, let gapThreshold = Double(gapThresholdString) else {
                                             return
                                         }

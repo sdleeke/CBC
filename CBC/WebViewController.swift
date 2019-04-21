@@ -15,24 +15,25 @@ class HTML
 {
     deinit {
         debug(self)
+        operationQueue.cancelAllOperations()
     }
     
     weak var webViewController: WebViewController?
     
-//    private lazy var operationQueue : OperationQueue! = {
-//        let operationQueue = OperationQueue()
-//        operationQueue.name = "HTML"
-//        operationQueue.qualityOfService = .userInteractive
-//        operationQueue.maxConcurrentOperationCount = 1
-//        return operationQueue
-//    }()
-//
-//    var text : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
+    private lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "HTML"
+        operationQueue.qualityOfService = .userInteractive
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+
+    var text : String?
+    {
+        didSet {
+
+        }
+    }
     
     var original:String?
     {
@@ -43,21 +44,11 @@ class HTML
     
     var previousString:String?
     
-    var string:String?
+    var _string:String?
     {
         didSet {
-            // Why are we doing this?
-            
-            string = string?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
-            string = string?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
-            
-            string = string?.replacingOccurrences(of: Constants.LEFT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
-            string = string?.replacingOccurrences(of: Constants.RIGHT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
-            
-            string = string?.replacingOccurrences(of: Constants.EM_DASH, with: Constants.DASH)
-            
             if original == nil {
-                original = string
+                original = _string
             }
             
             if previousString == nil {
@@ -65,15 +56,52 @@ class HTML
                     previousString = oldValue
                 }
             } else {
-                if previousString != oldValue, string != oldValue {
+                if previousString != oldValue, _string != oldValue {
                     previousString = oldValue
                 }
             }
             
-            if string != previousString, let isEmpty = string?.isEmpty, !isEmpty {
-                string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
+            if _string != previousString, let isEmpty = _string?.isEmpty, !isEmpty {
+                _string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
+                
+                // This can take some time.
+                operationQueue.cancelAllOperations()
+                operationQueue.addOperation { [weak self] in
+                    self?.text = self?._string?.stripHTML
+                }
             }
         }
+    }
+    var string:String?
+    {
+        get {
+            return _string
+        }
+        set {
+            var newString = newValue
+            
+            // Why are we doing this?
+            newString = newString?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+            newString = newString?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+            
+            newString = newString?.replacingOccurrences(of: Constants.LEFT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+            newString = newString?.replacingOccurrences(of: Constants.RIGHT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+            
+            newString = newString?.replacingOccurrences(of: Constants.EM_DASH, with: Constants.DASH)
+
+            _string = newString
+        }
+//        didSet {
+//            // Why are we doing this?
+//            string = string?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+//            string = string?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+//
+//            string = string?.replacingOccurrences(of: Constants.LEFT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+//            string = string?.replacingOccurrences(of: Constants.RIGHT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+//
+//            string = string?.replacingOccurrences(of: Constants.EM_DASH, with: Constants.DASH)
+//
+//        }
     }
 
 //                if let url = fileURL {
@@ -168,6 +196,10 @@ extension WebViewController : UIActivityItemSource
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
+        if self.html.text == nil {
+            activityViewController.excludedActivityTypes?.append(.message)
+        }
+        
         // present the view controller
         Thread.onMainThread {
             self.present(activityViewController, animated: true, completion: nil)
@@ -179,7 +211,7 @@ extension WebViewController : UIActivityItemSource
         return ""
     }
     
-    static var cases : [UIActivity.ActivityType] = [.message, .mail,.print,.openInIBooks]
+    static var cases : [UIActivity.ActivityType] = [.mail,.print,.openInIBooks]
     
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any?
     {
@@ -190,9 +222,23 @@ extension WebViewController : UIActivityItemSource
         if #available(iOS 11.0, *) {
             WebViewController.cases.append(.markupAsPDF)
         }
+        
+        switch activityType {
+        case .message:
+            guard let title = self.navigationItem.title else {
+                return self.html.text
+            }
+            
+            guard let text = self.html.text else {
+                return self.navigationItem.title
+            }
 
-        if WebViewController.cases.contains(activityType) {
-            return self.html.string
+            return title + "\n\n" + text
+
+        default:
+            if WebViewController.cases.contains(activityType) {
+                return self.html.string
+            }
         }
         
         return nil
@@ -289,6 +335,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
     
     @objc func showFullScreen()
     {
+        let vc = presentingViewController
+        
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? WebViewController {
             dismiss(animated: false, completion: nil)
@@ -311,7 +359,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
+            vc?.present(navigationController, animated: true, completion: nil) // Globals.shared.splitViewController
         }
     }
 
@@ -465,14 +513,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
 
-                popover.actionTitle = Constants.Strings.Expanded_View
-                popover.action = { [weak self, weak popover] (String) in
-                    self?.process(work: { [weak self, weak popover] () -> (Any?) in
-                        return popover?.stringTree?.html
-                    }, completion: { [weak self, weak popover] (data:Any?) in
-                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                    })
-                }
+//                popover.actionTitle = Constants.Strings.Expanded_View
+//                popover.action = { [weak self, weak popover] (String) in
+//                    self?.process(work: { [weak self, weak popover] () -> (Any?) in
+//                        return popover?.stringTree?.html
+//                    }, completion: { [weak self, weak popover] (data:Any?) in
+//                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+//                    })
+//                }
                 
                 popover.stringTree = StringTree()
 
@@ -1321,12 +1369,18 @@ class WebViewController: UIViewController
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
 
-                                                                                // To Keep WEB VIEWS over other Forms from failing.
-                    if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
+                    if presentingViewController?.modalPresentationStyle == .popover {
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                     }
+
+//                                                                                // To Keep WEB VIEWS over other Forms from failing.
+//                    if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
+//                        navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
+//                    } else {
+//                        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
+//                    }
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
                         navigationItem.rightBarButtonItems?.append(actionButton)

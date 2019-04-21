@@ -299,15 +299,15 @@ class Scripture : NSObject
             return nil
         }
         
-        guard var string = html?[reference]?.stripHTML else {
+        guard let string = html?[reference]?.stripHTML else {
             return nil
         }
 
-        if let startRange = string.range(of: "</sup>") {
-            string = String(string[startRange.upperBound...])
-        }
+//        if let startRange = string.range(of: "</sup>") {
+//            string = String(string[startRange.upperBound...])
+//        }
 
-        string = string.snip("<sup ", "</sup>")
+//        string = string.snip("<sup ", "</sup>")
 //        while string.range(of: "<sup ") != nil {
 //            if let startRange = string.range(of: "<sup ") {
 //                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
@@ -319,7 +319,7 @@ class Scripture : NSObject
 //            }
 //        }
         
-        string = string.snip("<h3", "</h3>")
+//        string = string.snip("<h3", "</h3>")
 //        while string.range(of: "<h3") != nil {
 //            if let startRange = string.range(of: "<h3") {
 //                if let endRange = String(string[startRange.lowerBound...]).range(of: "</h3>") {

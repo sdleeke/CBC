@@ -115,6 +115,58 @@ class StringNode
         }
     }
     
+    func hyphenWords(_ cumulativeString:String?) -> [String]?
+    {
+        var hyphenWords = [String]()
+        
+        if wordEnding {
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    let word = cumulativeString + string
+                    hyphenWords.append(word)
+                } else {
+                    let word = cumulativeString
+                    hyphenWords.append(word)
+                }
+            } else {
+                if let string = string {
+                    let word = string
+                    hyphenWords.append(word)
+                }
+            }
+        }
+        
+        guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
+            return hyphenWords.count > 0 ? hyphenWords : nil
+        }
+        
+        for stringNode in stringNodes {
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    if let words = stringNode.hyphenWords(cumulativeString + string + "-") {
+                        hyphenWords.append(contentsOf: words)
+                    }
+                } else {
+                    if let words = stringNode.hyphenWords(cumulativeString + "-") {
+                        hyphenWords.append(contentsOf: words)
+                    }
+                }
+            } else {
+                if let string = string {
+                    if let words = stringNode.hyphenWords(string + "-") {
+                        hyphenWords.append(contentsOf: words)
+                    }
+                } else {
+                    if let words = stringNode.hyphenWords(nil) {
+                        hyphenWords.append(contentsOf: words)
+                    }
+                }
+            }
+        }
+        
+        return hyphenWords.count > 0 ? hyphenWords : nil
+    }
+    
     func htmlWords(_ cumulativeString:String?) -> [String]?
     {
         var html = [String]()
