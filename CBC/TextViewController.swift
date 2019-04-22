@@ -560,7 +560,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.purpose = .selectingWord
                     
-                    popover.stringTree = StringTree()
+//                    popover.stringTree = StringTree()
                     
                     if let mediaItem = mediaItem {
                         popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
@@ -1727,7 +1727,7 @@ class TextViewController : UIViewController
 
                                     popover.purpose = .selectingGapTime
                                     
-                                    popover.stringTree = StringTree()
+//                                    popover.stringTree = StringTree()
                                     
                                     popover.barButtonActionTitle = "Show"
                                     popover.barButtonAction = { (gapThresholdString:String?) in

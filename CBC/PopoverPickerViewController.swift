@@ -393,7 +393,13 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     return self?.stringTree?.expandedHTML
                 }, completion: { [weak self] (data:Any?) in
-                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    var style:UIModalPresentationStyle = .overCurrentContext
+                    
+                    if self?.lexicon != nil {
+                        style = .fullScreen
+                    }
+                    
+                    self?.presentHTMLModal(mediaItem: nil, style: style, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     
                     Thread.onMainThread {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = true
@@ -401,7 +407,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 })
                 break
 
-            case Constants.Strings.View_Words:
+            case Constants.Strings.View_Strings:
                 self.popover?.dismiss(animated: true, completion: { [weak self] in
                     self?.popover = nil
                 })
@@ -458,6 +464,7 @@ class PopoverPickerViewController : UIViewController
         debug(self)
         operationQueue.cancelAllOperations()
     
+        lexicon?.callBacks.unregister(id: "PPVC")
         stringTree?.callBacks.unregister(id: "PPVC")
 
 //        stringTree?.start = nil
@@ -471,7 +478,46 @@ class PopoverPickerViewController : UIViewController
     
     var purpose : PopoverPurpose?
     
-//    weak var lexicon : Lexicon?
+    weak var lexicon : Lexicon?
+    {
+        didSet {
+            lexicon?.callBacks.register(id: "PPVC", callBack: CallBack(
+                start: { [weak self] in
+
+                },
+                update:{ [weak self] in
+                    let strings = self?.stringsFunction?()
+                    self?.stringTree?.build(strings: strings)
+                },
+                complete:{ [weak self] in
+                    let strings = self?.stringsFunction?()
+                    self?.stringTree?.build(strings: strings)
+                }
+                )
+            )
+
+            if stringTree == nil {
+                stringTree = lexicon?.stringTreeFunction?()
+                
+//                stringTree = StringTree(stringsFunction: { [weak self] in
+//                    return self?.lexicon?.stringsFunction?()
+//                    }, incremental:true)
+
+                stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
+                    start: { [weak self] in
+                        self?.started()
+                    },
+                    update:{ [weak self] in
+                        self?.updated()
+                    },
+                    complete:{ [weak self] in
+                        self?.completed()
+                    }
+                    )
+                )
+            }
+        }
+    }
     
 //    var _stringTree : StringTree?
 //    {
@@ -479,7 +525,7 @@ class PopoverPickerViewController : UIViewController
 //            _stringTree?.lexicon = self.lexicon
 //        }
 //    }
-    var stringTree : StringTree?
+    private var stringTree : StringTree?
 //    {
 //        get {
 //            if let lexicon = lexicon {
@@ -614,7 +660,7 @@ class PopoverPickerViewController : UIViewController
 //        }
         
         actionMenu.append(Constants.Strings.Expanded_View)
-        actionMenu.append(Constants.Strings.View_Words)
+        actionMenu.append(Constants.Strings.View_Strings)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -680,27 +726,6 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewDidLoad()
 
-        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
-        
-        if let presentationStyle = navigationController?.modalPresentationStyle {
-            switch presentationStyle {
-            case .overCurrentContext:
-                fallthrough
-            case .fullScreen:
-                fallthrough
-            case .overFullScreen:
-                if navigationItem.leftBarButtonItems != nil {
-                    navigationItem.leftBarButtonItems?.append(doneButton)
-                } else {
-                    navigationItem.leftBarButtonItem = doneButton
-                }
-                
-            default:
-                break
-            }
-        }
-
-        setupActionButton()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
@@ -972,7 +997,33 @@ class PopoverPickerViewController : UIViewController
         super.viewWillAppear(animated)
         
         didAppear = false
+
+        if stringTree == nil {
+            stringTree = StringTree()
+        }
         
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
+        
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                if navigationItem.leftBarButtonItems != nil {
+                    navigationItem.leftBarButtonItems?.append(doneButton)
+                } else {
+                    navigationItem.leftBarButtonItem = doneButton
+                }
+                
+            default:
+                break
+            }
+        }
+        
+        setupActionButton()
+
 //        picker.isHidden = true
         
         if let navigationController = navigationController, modalPresentationStyle != .popover {
@@ -983,7 +1034,7 @@ class PopoverPickerViewController : UIViewController
         
         addNotifications()
         
-        updateActionButton()
+//        updateActionButton()
 
         spinner.isHidden = false
         spinner.startAnimating()
@@ -993,19 +1044,19 @@ class PopoverPickerViewController : UIViewController
 //                spinner.isHidden = false
 //                spinner.startAnimating()
 //            }
-
-            stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
-                    start: { [weak self] in
-                        self?.started()
-                    },
-                    update:{ [weak self] in
-                        self?.updated()
-                    },
-                    complete:{ [weak self] in
-                        self?.completed()
-                    }
-                )
-            )
+//
+//            stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
+//                    start: { [weak self] in
+//                        self?.started()
+//                    },
+//                    update:{ [weak self] in
+//                        self?.updated()
+//                    },
+//                    complete:{ [weak self] in
+//                        self?.completed()
+//                    }
+//                )
+//            )
             
 //            stringTree?.update = { [weak self] in
 //                self?.updated()
@@ -1039,10 +1090,12 @@ class PopoverPickerViewController : UIViewController
 
                     return nil
                 }, completion: { [weak self] (data:Any?) in
-                    self?.operationQueue.addOperation {
-                        self?.updateActionButton()
-                        self?.updatePickerSelections()
-                        self?.updatePicker()
+                    if self?.didAppear == true  {
+                        self?.operationQueue.addOperation {
+                            self?.updateActionButton()
+                            self?.updatePickerSelections()
+                            self?.updatePicker()
+                        }
                     }
                 })
             } else
@@ -1060,10 +1113,12 @@ class PopoverPickerViewController : UIViewController
                     
                     return nil
                 }, completion: { [weak self] (data:Any?) in
-                    self?.operationQueue.addOperation {
-                        self?.updateActionButton()
-                        self?.updatePickerSelections()
-                        self?.updatePicker()
+                    if self?.didAppear == true {
+                        self?.operationQueue.addOperation {
+                            self?.updateActionButton()
+                            self?.updatePickerSelections()
+                            self?.updatePicker()
+                        }
                     }
                 })
             }
@@ -1087,11 +1142,11 @@ class PopoverPickerViewController : UIViewController
         navigationController?.isToolbarHidden = toolbarItems == nil
         toolbarItems?[1].isEnabled = false
 
-        self.operationQueue.addOperation {
-            self.updateActionButton()
-            self.updatePickerSelections()
-            self.updatePicker()
-        }
+//        self.operationQueue.addOperation {
+//            self.updateActionButton()
+//            self.updatePickerSelections()
+//            self.updatePicker()
+//        }
 
         setPreferredContentSize() // = CGSize(width: 300, height: 300)
     }
@@ -1301,7 +1356,7 @@ class PopoverPickerViewController : UIViewController
         Thread.onMainThread {
             self.spinner.startAnimating()
         }
-        
+
         self.updatePickerSelections()
         self.updatePicker()
         
@@ -1323,7 +1378,7 @@ class PopoverPickerViewController : UIViewController
         Thread.onMainThread {
             self.spinner.startAnimating()
         }
-        
+
         self.updatePickerSelections()
         self.updatePicker()
 

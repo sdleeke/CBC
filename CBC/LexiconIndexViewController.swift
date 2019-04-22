@@ -144,13 +144,13 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 //                    })
 //                }
 
-//                popover.lexicon = self.lexicon
+                popover.lexicon = self.lexicon
 
 //                popover.stringTree?.lexicon = self.lexicon
                 
-                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
-                    return self?.lexicon?.stringsFunction?()
-                }, incremental:true)
+//                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+//                    return self?.lexicon?.stringsFunction?()
+//                }, incremental:true)
 
 //                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
                 // This really defeats the purpose of saving the stringTree in the lexicon.
@@ -659,12 +659,15 @@ class LexiconIndexViewController : UIViewController
             lexicon?.stringsFunction = { [weak self] in
                 return self?.activeWords
             }
+            lexicon?.stringTreeFunction = { [weak self] in
+                return self?.lexicon?.stringTree(self?.wordsTableViewController.searchText)
+            }
         }
     }
     
     var root:StringNode?
     
-    var lexicon:Lexicon?
+    private var lexicon:Lexicon?
     {
         get {
             return mediaListGroupSort?.lexicon
@@ -1472,180 +1475,193 @@ class LexiconIndexViewController : UIViewController
     var activeWords : [String]?
     {
         get {
-            return wordsTableViewController.section.strings?.compactMap({ (string:String) -> String? in
-                if let range = string.range(of: " (") {
-                    return String(string[..<range.lowerBound])
-                } else {
-                    return nil
-                }
-            })
+            return lexicon?.activeWords(wordsTableViewController.searchText)
+            
+//            guard let searchText = wordsTableViewController.searchText else {
+//                return lexicon?.words?.keys()?.sorted()
+//            }
+//
+//            return lexicon?.words?.keys()?.filter({ (string:String) -> Bool in
+//                return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+//            }).sorted()
+
+//            return wordsTableViewController.section.strings?.compactMap({ (string:String) -> String? in
+//                if let range = string.range(of: " (") {
+//                    return String(string[..<range.lowerBound])
+//                } else {
+//                    return nil
+//                }
+//            })
         }
     }
-    
+
     var activeWordsString : String?
     {
         get {
-            return activeWords?.sorted().joined()
+            return lexicon?.activeWordsString(wordsTableViewController.searchText)
+//            return activeWords?.sorted().joined()
         }
     }
     
     var activeWordsHTML : String?
     {
         get{
-            var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</body></html>", with: "") //
-            
-            bodyHTML += "<html><body>"
-            
-            var wordsHTML = ""
-            var indexHTML = ""
-            
-            if let words = activeWords?.sorted(by: { (lhs:String, rhs:String) -> Bool in
-                return lhs < rhs
-            }) {
-                var roots = [String:Int]()
-                
-                var keys : [String] {
-                    get {
-                        return roots.keys.sorted()
-                    }
-                }
-                
-                words.forEach({ (word:String) in
-                    let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
-                    //                    let key = String(word[..<String.Index(encodedOffset: 1)])
-                    if let count = roots[key] {
-                        roots[key] = count + 1
-                    } else {
-                        roots[key] = 1
-                    }
-                })
-                
-                bodyHTML += "<br/>"
-                
-                //                    bodyHTML += "<p>Index to \(words.count) Words</p>"
-                bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-                
-                if let searchText = wordsTableViewController.searchText?.uppercased() {
-                    bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-                }
-                
-                //                    indexHTML = "<table>"
-                //
-                //                    indexHTML += "<tr>"
-                
-                var index : String?
-                
-                for root in roots.keys.sorted() {
-                    let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
-
-                    let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
-                    index = ((index != nil) ? index! + " " : "") + link
-                }
-                
-                indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
-                
-                if let index = index {
-                    indexHTML += index + "<br/>"
-                }
-                
-                //                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
-                //                    for root in roots.keys.sorted() {
-                //                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
-                //                    }
-                
-                //                    indexHTML += "</tr>"
-                //
-                //                    indexHTML += "</table>"
-                
-                indexHTML += "<br/>"
-                
-                wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
-                
-                wordsHTML += "<div class=\"index\">"
-                
-                wordsHTML += "<ul class=\"words\">"
-                
-                //                    wordsHTML += "<tr><td></td></tr>"
-                
-                //                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
-                
-                var section = 0
-                
-                //                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-                
-                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
-
-                wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-                
-                for word in words {
-                    let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
-                    //                    let first = String(word[..<String.Index(encodedOffset: 1)])
-                    
-                    if first != keys[section] {
-                        // New Section
-                        section += 1
-                        //                            wordsHTML += "<tr><td></td></tr>"
-                        
-                        //                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
-                        
-                        wordsHTML += "</ul>"
-                        
-                        wordsHTML += "<br/>"
-                        
-                        wordsHTML += "<ul class=\"words\">"
-                        
-                        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
-                        
-                        wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-                    }
-                    
-                    //                        wordsHTML += "<tr><td>" + word + "</td></tr>"
-                    
-                    //                        wordsHTML += "<li>" + word + "</li>"
-                    wordsHTML += "<li>"
-
-                    if let searchText = wordsTableViewController.searchText {
-                        wordsHTML += word.markSearchHTML(searchText)
-                    } else {
-                        wordsHTML += word
-                    }
-                    
-                    // Word Frequency and Links Back to Documents
-                    //                        if let entries = words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
-                    //                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
-                    //                        }) {
-                    //                            var count = 0
-                    //                            for entry in entries {
-                    //                                count += entry.value
-                    //                            }
-                    //                            wordsHTML += " (\(count))"
-                    //
-                    //                            wordsHTML += "<ul>"
-                    //                            var i = 1
-                    //                            for entry in entries {
-                    //                                if let tag = entry.key.title?.asTag {
-                    //                                    wordsHTML += "<li class\"back\">"
-                    //                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
-                    //                                    wordsHTML += "</li>"
-                    //                                }
-                    //                                i += 1
-                    //                            }
-                    //                            wordsHTML += "</ul>"
-                    //                        }
-                    
-                    wordsHTML += "</li>"
-                }
-                
-                wordsHTML += "</ul>"
-                
-                wordsHTML += "</div>"
-                
-                wordsHTML += "</div>"
-            }
-            
-            bodyHTML += indexHTML + wordsHTML + "</body></html>"
-            
-            return bodyHTML
+            return lexicon?.activeWordsHTML(wordsTableViewController.searchText)
+//
+//            var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</body></html>", with: "") //
+//
+//            bodyHTML += "<html><body>"
+//
+//            var wordsHTML = ""
+//            var indexHTML = ""
+//
+//            if let words = activeWords?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+//                return lhs < rhs
+//            }) {
+//                var roots = [String:Int]()
+//
+//                var keys : [String] {
+//                    get {
+//                        return roots.keys.sorted()
+//                    }
+//                }
+//
+//                words.forEach({ (word:String) in
+//                    let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                    //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+//                    if let count = roots[key] {
+//                        roots[key] = count + 1
+//                    } else {
+//                        roots[key] = 1
+//                    }
+//                })
+//
+//                bodyHTML += "<br/>"
+//
+//                //                    bodyHTML += "<p>Index to \(words.count) Words</p>"
+//                bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+//
+//                if let searchText = wordsTableViewController.searchText?.uppercased() {
+//                    bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+//                }
+//
+//                //                    indexHTML = "<table>"
+//                //
+//                //                    indexHTML += "<tr>"
+//
+//                var index : String?
+//
+//                for root in roots.keys.sorted() {
+//                    let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+//
+//                    let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
+//                    index = ((index != nil) ? index! + " " : "") + link
+//                }
+//
+//                indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
+//
+//                if let index = index {
+//                    indexHTML += index + "<br/>"
+//                }
+//
+//                //                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
+//                //                    for root in roots.keys.sorted() {
+//                //                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
+//                //                    }
+//
+//                //                    indexHTML += "</tr>"
+//                //
+//                //                    indexHTML += "</table>"
+//
+//                indexHTML += "<br/>"
+//
+//                wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
+//
+//                wordsHTML += "<div class=\"index\">"
+//
+//                wordsHTML += "<ul class=\"words\">"
+//
+//                //                    wordsHTML += "<tr><td></td></tr>"
+//
+//                //                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
+//
+//                var section = 0
+//
+//                //                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+//
+//                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+//
+//                wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+//
+//                for word in words {
+//                    let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                    //                    let first = String(word[..<String.Index(encodedOffset: 1)])
+//
+//                    if first != keys[section] {
+//                        // New Section
+//                        section += 1
+//                        //                            wordsHTML += "<tr><td></td></tr>"
+//
+//                        //                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+//
+//                        wordsHTML += "</ul>"
+//
+//                        wordsHTML += "<br/>"
+//
+//                        wordsHTML += "<ul class=\"words\">"
+//
+//                        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+//
+//                        wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+//                    }
+//
+//                    //                        wordsHTML += "<tr><td>" + word + "</td></tr>"
+//
+//                    //                        wordsHTML += "<li>" + word + "</li>"
+//                    wordsHTML += "<li>"
+//
+//                    if let searchText = wordsTableViewController.searchText {
+//                        wordsHTML += word.markSearchHTML(searchText)
+//                    } else {
+//                        wordsHTML += word
+//                    }
+//
+//                    // Word Frequency and Links Back to Documents
+//                    //                        if let entries = words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
+//                    //                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
+//                    //                        }) {
+//                    //                            var count = 0
+//                    //                            for entry in entries {
+//                    //                                count += entry.value
+//                    //                            }
+//                    //                            wordsHTML += " (\(count))"
+//                    //
+//                    //                            wordsHTML += "<ul>"
+//                    //                            var i = 1
+//                    //                            for entry in entries {
+//                    //                                if let tag = entry.key.title?.asTag {
+//                    //                                    wordsHTML += "<li class\"back\">"
+//                    //                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
+//                    //                                    wordsHTML += "</li>"
+//                    //                                }
+//                    //                                i += 1
+//                    //                            }
+//                    //                            wordsHTML += "</ul>"
+//                    //                        }
+//
+//                    wordsHTML += "</li>"
+//                }
+//
+//                wordsHTML += "</ul>"
+//
+//                wordsHTML += "</div>"
+//
+//                wordsHTML += "</div>"
+//            }
+//
+//            bodyHTML += indexHTML + wordsHTML + "</body></html>"
+//
+//            return bodyHTML
         }
     }
 

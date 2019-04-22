@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Lexicon : NSObject
+class Lexicon : NSObject // Why an NSObject?
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
     
@@ -21,7 +21,36 @@ class Lexicon : NSObject
 //        }, incremental:true)
 //    }()
     
-    var incremental = false // FUTURE USE
+    @objc func freeMemory()
+    {
+        words = nil
+        eligible = nil
+        stringTrees = [String:StringTree]()
+    }
+    
+    private var stringTrees = [String:StringTree]()
+    func stringTree(_ searchText:String?) -> StringTree?
+    {
+        guard let activeWordsString = activeWordsString(searchText) else {
+            return nil
+        }
+        
+        if stringTrees[activeWordsString] == nil {
+            stringTrees[activeWordsString] = StringTree(stringsFunction: { [weak self] in
+                return self?.stringsFunction?()
+                }, incremental:true)
+        }
+        
+        return stringTrees[activeWordsString]
+    }
+    var stringTreeFunction:(()->StringTree?)?
+    {
+        didSet {
+            
+        }
+    }
+    
+    private var incremental = false // FUTURE USE
 
     var callBacks = CallBacks()
     
@@ -32,6 +61,10 @@ class Lexicon : NSObject
         super.init()
 
         self.mediaListGroupSort = mediaListGroupSort
+        
+        Thread.onMainThread {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
     }
     
     var tokens:[String]?
@@ -673,6 +706,180 @@ class Lexicon : NSObject
             
             return string
         }
+    }
+    
+    func activeWords(_ searchText:String?) -> [String]?
+    {
+        guard let searchText = searchText else {
+            return words?.keys()?.sorted()
+        }
+        
+        return words?.keys()?.filter({ (string:String) -> Bool in
+            return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }).sorted()
+    }
+    
+    func activeWordsString(_ searchText:String?) -> String?
+    {
+        return activeWords(searchText)?.sorted().joined()
+    }
+    
+    func activeWordsHTML(_ searchText:String?) -> String?
+    {
+        var bodyHTML:String! = "<!DOCTYPE html>" //setupMediaItemsHTML(self?.mediaListGroupSort?.mediaItems, includeURLs: true, includeColumns: true)?.replacingOccurrences(of: "</body></html>", with: "") //
+        
+        bodyHTML += "<html><body>"
+        
+        var wordsHTML = ""
+        var indexHTML = ""
+        
+        if let words = activeWords(searchText)?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+            return lhs < rhs
+        }) {
+            var roots = [String:Int]()
+            
+            var keys : [String] {
+                get {
+                    return roots.keys.sorted()
+                }
+            }
+            
+            words.forEach({ (word:String) in
+                let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+                //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+                if let count = roots[key] {
+                    roots[key] = count + 1
+                } else {
+                    roots[key] = 1
+                }
+            })
+            
+            bodyHTML += "<br/>"
+            
+            //                    bodyHTML += "<p>Index to \(words.count) Words</p>"
+            bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+            
+            if let searchText = searchText?.uppercased() {
+                bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+            }
+            
+            //                    indexHTML = "<table>"
+            //
+            //                    indexHTML += "<tr>"
+            
+            var index : String?
+            
+            for root in roots.keys.sorted() {
+                let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+                
+                let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
+                index = ((index != nil) ? index! + " " : "") + link
+            }
+            
+            indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
+            
+            if let index = index {
+                indexHTML += index + "<br/>"
+            }
+            
+            //                    indexHTML = indexHTML + "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a></div>"
+            //                    for root in roots.keys.sorted() {
+            //                        indexHTML += "<a id=\"wordIndex\(root)\" name=\"wordIndex\(root)\" href=#words\(root)>" + root + "</a>" // "<td>" + + "</td>"
+            //                    }
+            
+            //                    indexHTML += "</tr>"
+            //
+            //                    indexHTML += "</table>"
+            
+            indexHTML += "<br/>"
+            
+            wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
+            
+            wordsHTML += "<div class=\"index\">"
+            
+            wordsHTML += "<ul class=\"words\">"
+            
+            //                    wordsHTML += "<tr><td></td></tr>"
+            
+            //                    indexHTML += "<style>.word{ float: left; margin: 5px; padding: 5px; width:300px; } .wrap{ width:1000px; column-count: 3; column-gap:20px; }</style>"
+            
+            var section = 0
+            
+            //                    wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+            
+            let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+            
+            wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+            
+            for word in words {
+                let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+                //                    let first = String(word[..<String.Index(encodedOffset: 1)])
+                
+                if first != keys[section] {
+                    // New Section
+                    section += 1
+                    //                            wordsHTML += "<tr><td></td></tr>"
+                    
+                    //                            wordsHTML += "<tr><td>" + "<a id=\"\(keys[section])\" name=\"\(keys[section])\" href=#index\(keys[section])>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))</td></tr>"
+                    
+                    wordsHTML += "</ul>"
+                    
+                    wordsHTML += "<br/>"
+                    
+                    wordsHTML += "<ul class=\"words\">"
+                    
+                    let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+                    
+                    wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+                }
+                
+                //                        wordsHTML += "<tr><td>" + word + "</td></tr>"
+                
+                //                        wordsHTML += "<li>" + word + "</li>"
+                wordsHTML += "<li>"
+                
+                if let searchText = searchText {
+                    wordsHTML += word.markSearchHTML(searchText)
+                } else {
+                    wordsHTML += word
+                }
+                
+                // Word Frequency and Links Back to Documents
+                //                        if let entries = words?[word]?.sorted(by: { (first:(key: MediaItem, value: Int), second:(key: MediaItem, value: Int)) -> Bool in
+                //                            first.key.title?.withoutPrefixes < second.key.title?.withoutPrefixes
+                //                        }) {
+                //                            var count = 0
+                //                            for entry in entries {
+                //                                count += entry.value
+                //                            }
+                //                            wordsHTML += " (\(count))"
+                //
+                //                            wordsHTML += "<ul>"
+                //                            var i = 1
+                //                            for entry in entries {
+                //                                if let tag = entry.key.title?.asTag {
+                //                                    wordsHTML += "<li class\"back\">"
+                //                                    wordsHTML += "<a href=#\(tag)>\(entry.key.title!)</a> (\(entry.value))"
+                //                                    wordsHTML += "</li>"
+                //                                }
+                //                                i += 1
+                //                            }
+                //                            wordsHTML += "</ul>"
+                //                        }
+                
+                wordsHTML += "</li>"
+            }
+            
+            wordsHTML += "</ul>"
+            
+            wordsHTML += "</div>"
+            
+            wordsHTML += "</div>"
+        }
+        
+        bodyHTML += indexHTML + wordsHTML + "</body></html>"
+        
+        return bodyHTML
     }
 }
 

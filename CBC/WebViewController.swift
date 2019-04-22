@@ -524,7 +524,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    })
 //                }
                 
-                popover.stringTree = StringTree()
+//                popover.stringTree = StringTree()
 
                 popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
                 

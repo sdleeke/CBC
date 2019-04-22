@@ -54,31 +54,70 @@ class StringTree
         }
     }
     
-    convenience init(lexicon: Lexicon?, stringsFunction:(()->[String]?)?, incremental: Bool)
+    // lexicon: Lexicon?,
+    convenience init(stringsFunction:(()->[String]?)?, incremental: Bool)
     {
         self.init()
         
-        self.lexicon = lexicon
+//        self.lexicon = lexicon
         
         self.stringsFunction = stringsFunction
         
-        if incremental {
-            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
-                start: { [weak self] in
-                    
-                },
-                update: { [weak self] in
-                    self?.completed = false
-                    self?.build(strings: self?.stringsFunction?())
-                },
-                complete: { [weak self] in
-                    self?.completed = false
-                    self?.build(strings: self?.stringsFunction?())
-                }
-            ))
-        }
+//        if incremental {
+//            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
+//                start: { [weak self] in
+//
+//                },
+//                update: { [weak self] in
+//                    self?.completed = false
+//                    self?.build(strings: self?.stringsFunction?())
+//                },
+//                complete: { [weak self] in
+//                    self?.completed = false
+//                    self?.build(strings: self?.stringsFunction?())
+//                }
+//            ))
+//        }
 
         self.incremental = incremental
+    }
+
+    var words : [String]?
+    {
+        get {
+            guard let wordRoots = root?.stringNodes else {
+                return nil
+            }
+            
+            var words = [String]()
+            
+            for wordRoot in wordRoots {
+                if let rootWords = wordRoot.words(nil) {
+                    words.append(contentsOf: rootWords)
+                }
+            }
+            
+            return words.count > 0 ? words : nil
+        }
+    }
+    
+    var hyphenWords : [String]?
+    {
+        get {
+            guard let wordRoots = root?.stringNodes else {
+                return nil
+            }
+            
+            var hyphenWords = [String]()
+            
+            for wordRoot in wordRoots {
+                if let rootHyphenWords = wordRoot.hyphenWords(nil) {
+                    hyphenWords.append(contentsOf: rootHyphenWords)
+                }
+            }
+            
+            return hyphenWords.count > 0 ? hyphenWords : nil
+        }
     }
     
     var wordsHTML : String?
@@ -88,25 +127,25 @@ class StringTree
             
             bodyHTML += "<html><body>"
             
-            guard let wordRoots = root?.stringNodes else {
+            guard let words = hyphenWords?.sorted() else {
                 bodyHTML += "</body></html>"
                 return bodyHTML
             }
             
-            var hyphenWords = [String]()
-            
-            for wordRoot in wordRoots {
-                if let words = wordRoot.hyphenWords(nil) {
-                    hyphenWords.append(contentsOf: words)
-                }
-            }
+//            var hyphenWords = [String]()
+//
+//            for wordRoot in wordRoots {
+//                if let words = wordRoot.hyphenWords(nil) {
+//                    hyphenWords.append(contentsOf: words)
+//                }
+//            }
             
             var wordsHTML = ""
             var indexHTML = ""
             
-            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
-                return lhs < rhs
-            })
+//            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
+//                return lhs < rhs
+//            })
             
             var roots = [String:Int]()
             

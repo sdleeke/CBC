@@ -110,12 +110,12 @@ extension PopoverTableViewController: UISearchBarDelegate
             filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
         } else
             
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }) {
-                filteredSection.sorting = true
-                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                filteredSection.sorting = false
+        if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
+            return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }) {
+            filteredSection.sorting = true
+            filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+            filteredSection.sorting = false
         }
 
         updateToolbar()
@@ -169,7 +169,9 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        searchText = searchBar.text
+        if searchActive {
+            searchText = searchBar.text
+        }
 
         updateSearchResults()
     }

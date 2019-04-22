@@ -806,6 +806,7 @@ enum Constants {
         static let Expanded_View = "Expanded View"
         
         static let View_Words = "View Words"
+        static let View_Strings = "View Strings"
 //        static let Word_List = "Word List
 
         static let View_List = "View List"
