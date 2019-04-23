@@ -502,12 +502,13 @@ extension TextViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        popover?.dismiss(animated: true, completion: nil)
         
         let string = strings[index]
         
         switch purpose {
         case .selectingWord:
+            popover?["WORD"]?.dismiss(animated: true, completion: nil)
+
             var searchText = string
             
             if let range = searchText.range(of: " (") {
@@ -525,6 +526,8 @@ extension TextViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
+            popover?["ACTION"]?.dismiss(animated: true, completion: nil)
+            
             switch string {
             case Constants.Strings.Full_Screen:
                 showFullScreen()
@@ -773,7 +776,11 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    self.popover = popover
+                    self.popover?["WORD"] = popover
+                    
+                    popover.completion = { [weak self]  in
+                        self?.popover?["WORD"] = nil
+                    }
                     
                     present(navigationController, animated: true, completion: nil)
                 }
@@ -815,7 +822,9 @@ class TextViewController : UIViewController
 {
     @IBOutlet weak var bottomLayoutConstraint: NSLayoutConstraint!
     
-    var popover: PopoverTableViewController?
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
     
     var lastRange : Range<String.Index>?
     
@@ -2229,7 +2238,11 @@ class TextViewController : UIViewController
             
             popover.section.strings = actionMenu
             
-            self.popover = popover
+            self.popover?["ACTION"] = popover
+            
+            popover.completion = { [weak self] in
+                self?.popover?["ACTION"] = popover
+            }
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -2421,7 +2434,8 @@ class TextViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // In case it is embedded
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         

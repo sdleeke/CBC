@@ -460,7 +460,8 @@ class ScripturePickerViewController : UIViewController
     {
         super.viewWillAppear(animated)
         
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // In case it is embedded
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         

@@ -2214,6 +2214,7 @@ class MediaItem : NSObject
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }
     }
     
@@ -2264,6 +2265,7 @@ class MediaItem : NSObject
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }
     }
     
@@ -4064,8 +4066,12 @@ class MediaItem : NSObject
             if let searchStrings = self?.searchStrings(),
                 let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                viewController.dismiss(animated: true, completion: { [weak mtvc] in
-                    mtvc?.presentingVC = nil
+//                viewController.dismiss(animated: true, completion: { [weak mtvc] in
+//                    mtvc?.presentingVC = nil
+//                })
+
+                mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
+                    popover.dismiss(animated: true, completion: nil)
                 })
                 
                 navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
@@ -4086,14 +4092,20 @@ class MediaItem : NSObject
                 popover.selectedMediaItem = self
                 
                 popover.section.strings = searchStrings
+
+                mtvc.popover?["CELLSEARCH"] = popover
+                
+                popover.completion = { [weak mtvc] in
+                    mtvc?.popover?["CELLSEARCH"] = nil
+                }
                 
                 mtvc.present(navigationController, animated: true, completion:{
-                    mtvc.presentingVC = navigationController
+//                    mtvc.presentingVC = navigationController
                 })
             }
         }
         
-        words = AlertAction(title: Constants.Strings.Words, style: .default) { [weak self] in
+        words = AlertAction(title: Constants.Strings.Word_Search, style: .default) { [weak self] in
             guard self?.hasNotesText == true else { // HTML
                 return
             }
@@ -4118,8 +4130,12 @@ class MediaItem : NSObject
                 
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    mtvc.dismiss(animated: true, completion: { [weak mtvc] in
-                        mtvc?.presentingVC = nil
+//                    mtvc.dismiss(animated: true, completion: { [weak mtvc] in
+//                        mtvc?.presentingVC = nil
+//                    })
+
+                    mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
+                        popover.dismiss(animated: true, completion: nil)
                     })
                     
                     navigationController.modalPresentationStyle = .overCurrentContext
@@ -4234,13 +4250,19 @@ class MediaItem : NSObject
                     popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                     
                     popover.search = popover.section.strings?.count > 10
+
+                    mtvc.popover?["WORDSEARCH"] = popover
                     
                     popover.completion = { [weak mtvc] in
-                        mtvc?.presentingVC = nil
+                        mtvc?.popover?["WORDSEARCH"] = nil
                     }
                     
+//                    popover.completion = { [weak mtvc] in
+//                        mtvc?.presentingVC = nil
+//                    }
+                    
                     mtvc.present(navigationController, animated: true, completion: { [weak mtvc] in
-                        mtvc?.presentingVC = navigationController
+//                        mtvc?.presentingVC = navigationController
                     })
                 }
             }
@@ -4312,16 +4334,16 @@ class MediaItem : NSObject
             
             // At most, only ONE of the following TWO will be added.
             if  var vc = viewController as? PopoverTableViewControllerDelegate,
-                let actions = self?.audioTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
-                vc.popover = popover
+                let actions = self?.audioTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController,name:String)->(Void) in
+                vc.popover?[name] = popover
             }) {
                 if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.audio, self?.audioTranscript?.keywords != nil {
                     alertActions.append(actions)
                 }
             }
             if  var vc = viewController as? PopoverTableViewControllerDelegate,
-                let actions = self?.videoTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController)->(Void) in
-                vc.popover = popover
+                let actions = self?.videoTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController,name:String)->(Void) in
+                vc.popover?[name] = popover
             }) {
                 if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.video, self?.videoTranscript?.keywords != nil {
                     alertActions.append(actions)
@@ -4360,8 +4382,8 @@ class MediaItem : NSObject
                 popover.section.strings = self?.audioTranscript?.topics?.sorted()
                 
                 viewController.present(navigationController, animated: true, completion: {
-                    (viewController as? MediaTableViewController)?.popover = popover
-                    (viewController as? MediaViewController)?.popover = popover
+                    (viewController as? MediaTableViewController)?.popover?["TOPICS"] = popover
+                    (viewController as? MediaViewController)?.popover?["TOPICS"] = popover
                 })
             }
         }

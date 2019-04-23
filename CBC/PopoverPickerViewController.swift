@@ -382,8 +382,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 //                break
 
             case Constants.Strings.Expanded_View:
-                self.popover?.dismiss(animated: true, completion: { [weak self] in
-                    self?.popover = nil
+                self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
+                    self?.popover?["ACTION"] = nil
                 })
                 
                 process(work: { [weak self] () -> (Any?) in
@@ -408,8 +408,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 break
 
             case Constants.Strings.View_Strings:
-                self.popover?.dismiss(animated: true, completion: { [weak self] in
-                    self?.popover = nil
+                self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
+                    self?.popover?["ACTION"] = nil
                 })
                 
                 self.process(work: { [weak self] () -> (Any?) in
@@ -472,8 +472,10 @@ class PopoverPickerViewController : UIViewController
 //        stringTree?.complete = nil
     }
     
-    var popover : PopoverTableViewController?
-    
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
+
     weak var delegate : PopoverPickerControllerDelegate?
     
     var purpose : PopoverPurpose?
@@ -684,10 +686,10 @@ class PopoverPickerViewController : UIViewController
             
             popover.section.strings = actionMenu()
             
-            self.popover = popover
+            self.popover?["ACTION"] = popover
             
             popover.completion = { [weak self] in
-                self?.popover = nil
+                self?.popover?["ACTION"] = nil
             }
             
             present(navigationController, animated: true, completion: nil)
@@ -743,246 +745,248 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-    var orientation : UIDeviceOrientation?
+//    var orientation : UIDeviceOrientation?
 
     @objc func deviceOrientationDidChange()
     {
-        // Dismiss any popover
-        func action()
-        {
-            popover?.dismiss(animated: false, completion: nil)
-        }
-        
-        guard let orientation = orientation else {
-            return
-        }
-        
-        switch orientation {
-        case .faceUp:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .faceDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeLeft:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeRight:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portrait:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portraitUpsideDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .unknown:
-            break
-
-        @unknown default:
-            break
-        }
-        
-        switch UIDevice.current.orientation {
-        case .faceUp:
-            break
-            
-        case .faceDown:
-            break
-            
-        case .landscapeLeft:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .landscapeRight:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .portrait:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .portraitUpsideDown:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .unknown:
-            break
-
-        @unknown default:
-            break
-        }
+//        // Dismiss any popover
+//        func action()
+//        {
+//            popover?.values.forEach({ (popover:PopoverTableViewController) in
+//                popover.dismiss(animated: false, completion: nil)
+//            })
+//        }
+//
+//        guard let orientation = orientation else {
+//            return
+//        }
+//
+//        switch orientation {
+//        case .faceUp:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .faceDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeLeft:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeRight:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portrait:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portraitUpsideDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .unknown:
+//            break
+//
+//        @unknown default:
+//            break
+//        }
+//
+//        switch UIDevice.current.orientation {
+//        case .faceUp:
+//            break
+//
+//        case .faceDown:
+//            break
+//
+//        case .landscapeLeft:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .landscapeRight:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .portrait:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .portraitUpsideDown:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .unknown:
+//            break
+//
+//        @unknown default:
+//            break
+//        }
     }
     
     func addNotifications()
@@ -1026,11 +1030,12 @@ class PopoverPickerViewController : UIViewController
 
 //        picker.isHidden = true
         
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // In case it is embedded
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
 
-        orientation = UIDevice.current.orientation
+//        orientation = UIDevice.current.orientation
         
         addNotifications()
         

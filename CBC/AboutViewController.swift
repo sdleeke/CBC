@@ -175,8 +175,10 @@ class AboutViewController: UIViewController
         print("deinit:About")
     }
     
-    var popover : PopoverTableViewController?
-    
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
+
     override var canBecomeFirstResponder : Bool
     {
         return true

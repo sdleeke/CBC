@@ -123,115 +123,117 @@ class StringTree
     var wordsHTML : String?
     {
         get{
-            var bodyHTML:String! = "<!DOCTYPE html>"
+            return hyphenWords?.sorted().tableHTML
             
-            bodyHTML += "<html><body>"
-            
-            guard let words = hyphenWords?.sorted() else {
-                bodyHTML += "</body></html>"
-                return bodyHTML
-            }
-            
-//            var hyphenWords = [String]()
-//
-//            for wordRoot in wordRoots {
-//                if let words = wordRoot.hyphenWords(nil) {
-//                    hyphenWords.append(contentsOf: words)
+//            var bodyHTML:String! = "<!DOCTYPE html>"
+//            
+//            bodyHTML += "<html><body>"
+//            
+//            guard let words = hyphenWords?.sorted() else {
+//                bodyHTML += "</body></html>"
+//                return bodyHTML
+//            }
+//            
+////            var hyphenWords = [String]()
+////
+////            for wordRoot in wordRoots {
+////                if let words = wordRoot.hyphenWords(nil) {
+////                    hyphenWords.append(contentsOf: words)
+////                }
+////            }
+//            
+//            var wordsHTML = ""
+//            var indexHTML = ""
+//            
+////            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
+////                return lhs < rhs
+////            })
+//            
+//            var roots = [String:Int]()
+//            
+//            var keys : [String] {
+//                get {
+//                    return roots.keys.sorted()
 //                }
 //            }
-            
-            var wordsHTML = ""
-            var indexHTML = ""
-            
-//            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
-//                return lhs < rhs
+//            
+//            words.forEach({ (word:String) in
+//                let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+//                if let count = roots[key] {
+//                    roots[key] = count + 1
+//                } else {
+//                    roots[key] = 1
+//                }
 //            })
-            
-            var roots = [String:Int]()
-            
-            var keys : [String] {
-                get {
-                    return roots.keys.sorted()
-                }
-            }
-            
-            words.forEach({ (word:String) in
-                let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
-                //                    let key = String(word[..<String.Index(encodedOffset: 1)])
-                if let count = roots[key] {
-                    roots[key] = count + 1
-                } else {
-                    roots[key] = 1
-                }
-            })
-            
-            bodyHTML += "<br/>"
-            
-            bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-            
-            var index : String?
-            
-            for root in roots.keys.sorted() {
-                let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
-                
-                let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
-                index = ((index != nil) ? index! + " " : "") + link
-            }
-            
-            indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
-            
-            if let index = index {
-                indexHTML += index + "<br/>"
-            }
-            
-            indexHTML += "<br/>"
-            
-            wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
-            
-            wordsHTML += "<div class=\"index\">"
-            
-            wordsHTML += "<ul class=\"words\">"
-            
-            var section = 0
-            
-            let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
-            
-            wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-            
-            for word in words {
-                let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
-                
-                if first != keys[section] {
-                    // New Section
-                    section += 1
-                    
-                    wordsHTML += "</ul>"
-                    
-                    wordsHTML += "<br/>"
-                    
-                    wordsHTML += "<ul class=\"words\">"
-                    
-                    let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
-                    
-                    wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
-                }
-                
-                wordsHTML += "<li>"
-                
-                wordsHTML += word
-                
-                wordsHTML += "</li>"
-            }
-            
-            wordsHTML += "</ul>"
-            
-            wordsHTML += "</div>"
-            
-            wordsHTML += "</div>"
-            
-            bodyHTML += indexHTML + wordsHTML + "</body></html>"
-            
-            return bodyHTML
+//            
+//            bodyHTML += "<br/>"
+//            
+//            bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+//            
+//            var index : String?
+//            
+//            for root in roots.keys.sorted() {
+//                let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+//                
+//                let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
+//                index = ((index != nil) ? index! + " " : "") + link
+//            }
+//            
+//            indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
+//            
+//            if let index = index {
+//                indexHTML += index + "<br/>"
+//            }
+//            
+//            indexHTML += "<br/>"
+//            
+//            wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
+//            
+//            wordsHTML += "<div class=\"index\">"
+//            
+//            wordsHTML += "<ul class=\"words\">"
+//            
+//            var section = 0
+//            
+//            let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+//            
+//            wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+//            
+//            for word in words {
+//                let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+//                
+//                if first != keys[section] {
+//                    // New Section
+//                    section += 1
+//                    
+//                    wordsHTML += "</ul>"
+//                    
+//                    wordsHTML += "<br/>"
+//                    
+//                    wordsHTML += "<ul class=\"words\">"
+//                    
+//                    let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+//                    
+//                    wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+//                }
+//                
+//                wordsHTML += "<li>"
+//                
+//                wordsHTML += word
+//                
+//                wordsHTML += "</li>"
+//            }
+//            
+//            wordsHTML += "</ul>"
+//            
+//            wordsHTML += "</div>"
+//            
+//            wordsHTML += "</div>"
+//            
+//            bodyHTML += indexHTML + wordsHTML + "</body></html>"
+//            
+//            return bodyHTML
         }
     }
 

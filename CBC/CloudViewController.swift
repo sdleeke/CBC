@@ -389,8 +389,10 @@ class CloudViewController: UIViewController
         }
     }
     
-    var popover : PopoverTableViewController?
-    
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
+
     var wordsTableViewController:PopoverTableViewController!
     
     private lazy var operationQueue : OperationQueue! = {
@@ -670,7 +672,8 @@ class CloudViewController: UIViewController
     {
         super.viewWillAppear(animated)
 
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // In case it is embedded
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         

@@ -163,8 +163,8 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -229,7 +229,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 
 //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -584,7 +584,9 @@ extension ScriptureIndexViewController : UIPopoverPresentationControllerDelegate
 
 class ScriptureIndexViewController : UIViewController
 {
-    var popover : PopoverTableViewController?
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
 
     var includeVerses = false
     

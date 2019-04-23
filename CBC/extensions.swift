@@ -209,6 +209,17 @@ extension Set where Element == String
 
 extension Array where Element == MediaItem
 {
+    var voiceBaseMediaItems : Int
+    {
+        get {
+            return self.reduce(0, { (count, mediaItem) -> Int in
+                return count + mediaItem.transcripts.values.reduce(0, { (count, transcript) -> Int in
+                    return count + (transcript.mediaID != nil ? 1 : 0)
+                })
+            })
+        }
+    }
+    
     func sort(book:String?) -> [MediaItem]?
     {
         var list:[MediaItem]?
@@ -1108,6 +1119,134 @@ extension Array where Element == String
 //        }
         
         return self.count > 0 ? self.joined(separator: Constants.SEPARATOR) : nil
+    }
+    
+    var tableHTML : String?
+    {
+        return tableHTML()
+    }
+    
+    func tableHTML(_ searchText:String? = nil) -> String?
+    {
+        var bodyHTML:String! = "<!DOCTYPE html>"
+        
+        bodyHTML += "<html><body>"
+
+        let words = self.sorted()
+        
+//            guard let words = self.sorted() else {
+//                bodyHTML += "</body></html>"
+//                return bodyHTML
+//            }
+        
+        //            var hyphenWords = [String]()
+        //
+        //            for wordRoot in wordRoots {
+        //                if let words = wordRoot.hyphenWords(nil) {
+        //                    hyphenWords.append(contentsOf: words)
+        //                }
+        //            }
+        
+        var wordsHTML = ""
+        var indexHTML = ""
+        
+        //            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
+        //                return lhs < rhs
+        //            })
+        
+        var roots = [String:Int]()
+        
+        var keys : [String] {
+            get {
+                return roots.keys.sorted()
+            }
+        }
+        
+        words.forEach({ (word:String) in
+            let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
+            //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+            if let count = roots[key] {
+                roots[key] = count + 1
+            } else {
+                roots[key] = 1
+            }
+        })
+        
+        bodyHTML += "<br/>"
+        
+        bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+    
+        if let searchText = searchText?.uppercased() {
+            bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+        }
+    
+        var index : String?
+        
+        for root in roots.keys.sorted() {
+            let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+            
+            let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
+            index = ((index != nil) ? index! + " " : "") + link
+        }
+        
+        indexHTML += "<div><a id=\"wordSections\" name=\"wordSections\">Sections</a> "
+        
+        if let index = index {
+            indexHTML += index + "<br/>"
+        }
+        
+        indexHTML += "<br/>"
+        
+        wordsHTML = "<style>.index { margin: 0 auto; } .words { list-style: none; column-count: 2; margin: 0 auto; padding: 0; } .back { list-style: none; font-size: 10px; margin: 0 auto; padding: 0; }</style>"
+        
+        wordsHTML += "<div class=\"index\">"
+        
+        wordsHTML += "<ul class=\"words\">"
+        
+        var section = 0
+        
+        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+        
+        wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+        
+        for word in words {
+            let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
+            
+            if first != keys[section] {
+                // New Section
+                section += 1
+                
+                wordsHTML += "</ul>"
+                
+                wordsHTML += "<br/>"
+                
+                wordsHTML += "<ul class=\"words\">"
+                
+                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+                
+                wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
+            }
+            
+            wordsHTML += "<li>"
+            
+            if let searchText = searchText {
+                wordsHTML += word.markSearchHTML(searchText)
+            } else {
+                wordsHTML += word
+            }
+
+            wordsHTML += "</li>"
+        }
+        
+        wordsHTML += "</ul>"
+        
+        wordsHTML += "</div>"
+        
+        wordsHTML += "</div>"
+        
+        bodyHTML += indexHTML + wordsHTML + "</body></html>"
+        
+        return bodyHTML
     }
 }
 
@@ -5834,6 +5973,7 @@ extension String
         let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         
         tagger.string = self
+//        tagger.setLanguage(.english, range: self.startIndex..<self.endIndex)
         
         let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
         
@@ -6165,6 +6305,10 @@ extension String
         for lexicalType in lexicalTypes {
             lexicalTypeColors[lexicalType] = colors[count % colors.count]
             count += 1
+        }
+        
+        guard lexicalTypes.count > 1 else {
+            return nil
         }
         
 //        htmlString += "<table>"

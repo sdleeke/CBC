@@ -578,7 +578,31 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.Words:
+        case Constants.Strings.Word_List:
+            self.process(work: { [weak self] () -> (Any?) in
+                return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                        var dict = [String:(String,String)]()
+                        for mismatch in mismatches {
+                            let parts = mismatch.components(separatedBy: " ")
+                            dict[parts[0]] = (parts[1],parts[2])
+                        }
+                        if let tuple = dict[word] {
+                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+                        } else {
+                            return "\(word) (\(count))"
+                        }
+                    } else {
+                        return "\(word) (\(count))"
+                    }
+                }).sorted().tableHTML
+            }, completion: { [weak self] (data:Any?) in
+                // preferredModalPresentationStyle(viewController: self)
+                self?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+            })
+            break
+            
+        case Constants.Strings.Word_Search:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -587,7 +611,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
-                popover.navigationItem.title = navigationItem.title
+                popover.navigationItem.title = Constants.Strings.Search // navigationItem.title
                 
                 popover.delegate = self
                 popover.purpose = .selectingWord
@@ -706,10 +730,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     }).sorted()
                 }
 
-                self.popover = popover
+                self.popover?["WORDSEARCH"] = popover
                 
                 popover.completion = { [weak self] in
-                    self?.popover = nil
+                    self?.popover?["WORDSEARCH"] = nil
                 }
                 
                 present(navigationController, animated: true, completion: nil)
@@ -747,6 +771,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     return self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true)
                 }
             }) { (data:Any?) in
+                guard let data = data else {
+                    Alerts.shared.alert(title:"Lexical Analysis Not Available.")
+                    return
+                }
+                
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
                     
@@ -793,12 +822,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
             return
         }
 
-        popover?.dismiss(animated: true, completion: nil)
-        
         let string = strings[index]
         
         switch purpose {
         case .selectingWord:
+            popover?["WORDSEARCH"]?.dismiss(animated: true, completion: nil)
+            
             self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
             
             var searchText = string
@@ -832,6 +861,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
+            popover?["ACTION"]?.dismiss(animated: true, completion: nil)
             selectingAction(action: string, mediaItem:mediaItem)
             break
             
@@ -1027,7 +1057,9 @@ class WebViewController: UIViewController
         operationQueue.cancelAllOperations()
     }
     
-    var popover : PopoverTableViewController?
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
 
     var search = false
     var searchText:String?
@@ -1214,7 +1246,7 @@ class WebViewController: UIViewController
         self.dismiss(animated: true, completion: nil)
     }
     
-    var activityViewController:UIActivityViewController?
+//    var activityViewController:UIActivityViewController?
     
     func actionMenu() -> [String]?
     {
@@ -1224,7 +1256,8 @@ class WebViewController: UIViewController
             actionMenu.append(Constants.Strings.Search)
             
             if (bodyHTML != nil) {
-                actionMenu.append(Constants.Strings.Words)
+                actionMenu.append(Constants.Strings.Word_Search)
+                actionMenu.append(Constants.Strings.Word_List)
                 actionMenu.append(Constants.Strings.Word_Picker)
             }
         }
@@ -1277,10 +1310,10 @@ class WebViewController: UIViewController
             
             popover.section.strings = actionMenu()
             
-            self.popover = popover
+            self.popover?["ACTION"] = popover
             
             popover.completion = { [weak self] in
-                self?.popover = nil
+                self?.popover?["ACTION"] = nil
             }
             
             present(navigationController, animated: true, completion: nil)
@@ -1371,7 +1404,7 @@ class WebViewController: UIViewController
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
 
-                    if presentingViewController?.modalPresentationStyle == .popover {
+                    if Globals.shared.splitViewController?.isCollapsed == false { // presentingViewController?.modalPresentationStyle == .popover
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
@@ -1824,247 +1857,250 @@ class WebViewController: UIViewController
         }
     }
     
-    var orientation : UIDeviceOrientation?
+//    var orientation : UIDeviceOrientation?
     
     @objc func deviceOrientationDidChange()
     {
-        guard let orientation = orientation else {
-            return
-        }
-        
-        func action()
-        {
-            popover?.dismiss(animated: false, completion: nil)
-            activityViewController?.dismiss(animated: false, completion: nil)
-        }
-        
-        // Dismiss any popover
-        switch orientation {
-        case .faceUp:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .faceDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeLeft:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeRight:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                break
-                
-            case .portrait:
-                action()
-                break
-                
-            case .portraitUpsideDown:
-                action()
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portrait:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portraitUpsideDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                action()
-                break
-                
-            case .landscapeRight:
-                action()
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                action()
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .unknown:
-            break
-
-        @unknown default:
-            break
-        }
-        
-        switch UIDevice.current.orientation {
-        case .faceUp:
-            break
-            
-        case .faceDown:
-            break
-            
-        case .landscapeLeft:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .landscapeRight:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .portrait:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .portraitUpsideDown:
-            self.orientation = UIDevice.current.orientation
-            break
-            
-        case .unknown:
-            break
-
-        @unknown default:
-            break
-        }
+//        guard let orientation = orientation else {
+//            return
+//        }
+//
+//        func action()
+//        {
+//            popover?.values.forEach({ (popover:PopoverTableViewController) in
+//                popover.dismiss(animated: false, completion: nil)
+//            })
+////            popover.values.dismiss(animated: false, completion: nil)
+//            activityViewController?.dismiss(animated: false, completion: nil)
+//        }
+//
+//        // Dismiss any popover
+//        switch orientation {
+//        case .faceUp:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .faceDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeLeft:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeRight:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                break
+//
+//            case .portrait:
+//                action()
+//                break
+//
+//            case .portraitUpsideDown:
+//                action()
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portrait:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portraitUpsideDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                action()
+//                break
+//
+//            case .landscapeRight:
+//                action()
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                action()
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .unknown:
+//            break
+//
+//        @unknown default:
+//            break
+//        }
+//
+//        switch UIDevice.current.orientation {
+//        case .faceUp:
+//            break
+//
+//        case .faceDown:
+//            break
+//
+//        case .landscapeLeft:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .landscapeRight:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .portrait:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .portraitUpsideDown:
+//            self.orientation = UIDevice.current.orientation
+//            break
+//
+//        case .unknown:
+//            break
+//
+//        @unknown default:
+//            break
+//        }
     }
     
     @objc func willResignActive()
@@ -2085,7 +2121,8 @@ class WebViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
-        if let navigationController = navigationController, modalPresentationStyle != .popover {
+                                                            // In case it is embedded
+        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
             Alerts.shared.topViewController.append(navigationController)
         }
         
@@ -2103,7 +2140,7 @@ class WebViewController: UIViewController
         
         progressIndicator.isHidden = content == .html
 
-        orientation = UIDevice.current.orientation
+//        orientation = UIDevice.current.orientation
 
         if let title = mediaItem?.title {
             navigationItem.title = title
@@ -2195,6 +2232,9 @@ class WebViewController: UIViewController
                     if let url = html.fileURL {
                         wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
+                } else {
+                    activityIndicator.stopAnimating()
+                    barButtonItems(isEnabled: true)
                 }
                 break
             }

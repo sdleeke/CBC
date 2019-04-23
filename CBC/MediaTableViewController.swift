@@ -448,8 +448,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             
             actions.append(AlertAction(title: "Information", style: .default) { [weak self] in
-                self?.popover?.activityIndicator.isHidden = false
-                self?.popover?.activityIndicator.startAnimating()
+                self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = false
+                self?.popover?["VOICEBASE"]?.activityIndicator.startAnimating()
                 
                 VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
                     if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
@@ -465,23 +465,23 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         popover.content = .html
                         
                         Thread.onMainThread {
-                            self?.popover?.activityIndicator.stopAnimating()
-                            self?.popover?.activityIndicator.isHidden = true
+                            self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+                            self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
                             
-                            self?.popover?.present(navigationController, animated: true, completion: nil)
+                            self?.popover?["VOICEBASE"]?.present(navigationController, animated: true, completion: nil)
                         }
                     }
                 }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                    self?.popover?.activityIndicator.stopAnimating()
-                    self?.popover?.activityIndicator.isHidden = true
+                    self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+                    self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
                     
                     Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                 })
             })
             
             actions.append(AlertAction(title: "Inspector", style: .default) { [weak self] in
-                self?.popover?.activityIndicator.isHidden = false
-                self?.popover?.activityIndicator.startAnimating()
+                self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = false
+                self?.popover?["VOICEBASE"]?.activityIndicator.startAnimating()
                 
                 VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
                     print(json as Any)
@@ -495,16 +495,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         popover.navigationItem.title = "Inspector"
                         
                         Thread.onMainThread {
-                            self?.popover?.activityIndicator.stopAnimating()
-                            self?.popover?.activityIndicator.isHidden = true
+                            self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+                            self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
                             
                             // Present works reliably for subsequent pushes. Push DOES NOT I HAVE NO IDEA WHY
-                            self?.popover?.present(navigationController, animated: true, completion: nil)
+                            self?.popover?["VOICEBASE"]?.present(navigationController, animated: true, completion: nil)
                         }
                     }
                 }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                    self?.popover?.activityIndicator.stopAnimating()
-                    self?.popover?.activityIndicator.isHidden = true
+                    self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+                    self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
                     
                     Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
                 })
@@ -520,8 +520,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 if mediaItems.count == 1, let mediaItem = mediaItems.first {
                     actions.append(AlertAction(title: "Locate", style: .default) { [weak self] in
-                        self?.dismiss(animated: true, completion: { [weak self] in
-                            self?.presentingVC = nil
+                        self?.popover?["VOICEBASE"]?.dismiss(animated: true, completion: { [weak self] in
+//                            self?.presentingVC = nil
                         })
                         self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     })
@@ -585,172 +585,172 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         return false
     }
     
-    func detailAction(tableView:UITableView,indexPath:IndexPath)
-    {
-        var value : [String:Any]?
-
-        if let keys = self.stringIndex?.keys?.sorted() {
-            let key = keys[indexPath.section]
-
-            if let values = self.stringIndex?[key] {
-                value = values[indexPath.row]
-
-                if let mediaID = value?["mediaId"] as? String,let title = value?["title"] as? String {
-                    var actions = [AlertAction]()
-
-                    actions.append(AlertAction(title: "Delete", style: .destructive, handler: {
-                        let alert = UIAlertController(  title: "Confirm Removal From VoiceBase",
-                                                        message: title,
-                            preferredStyle: .alert)
-                        
-                        alert.makeOpaque()
-
-                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                            (action : UIAlertAction) -> Void in
-                            VoiceBase.delete(alert:true,mediaID: mediaID)
-
-                            self.stringIndex?[key]?.remove(at: indexPath.row)
-
-                            if self.stringIndex?[key]?.count == 0 {
-                                self.stringIndex?[key] = nil
-                            }
-
-                            var strings = [String]()
-
-                            if let keys = self.stringIndex?.keys?.sorted() {
-                                for key in keys {
-                                    if let values = self.stringIndex?[key] {
-                                        for value in values {
-                                            if let string = value["title"] as? String {
-                                                strings.append(string)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            var counter = 0
-
-                            var counts = [Int]()
-                            var indexes = [Int]()
-
-                            if let keys = self.stringIndex?.keys?.sorted() {
-                                for key in keys {
-                                    indexes.append(counter)
-
-                                    if let count = self.stringIndex?[key]?.count {
-                                        counts.append(count)
-                                        counter += count
-                                    }
-                                }
-                            }
-
-                            self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
-                            self.popover?.section.strings = strings.count > 0 ? strings : nil
-
-                            self.popover?.section.counts = counts.count > 0 ? counts : nil
-                            self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
-
-                            self.popover?.updateToolbar()
-                            
-                            self.popover?.tableView?.isEditing = false
-                            
-                            self.popover?.tableView?.reloadData()
-                            self.popover?.tableView?.reloadData()
-                        })
-                        alert.addAction(yesAction)
-
-                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                            (action : UIAlertAction) -> Void in
-
-                        })
-                        alert.addAction(noAction)
-
-                        self.present(alert, animated: true, completion: nil)
-                    }))
-
-                    actions.append(AlertAction(title: "Media ID", style: .default, handler: {
-                        let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                        message: title,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
-
-                        alert.addTextField(configurationHandler: { (textField:UITextField) in
-                            textField.text = mediaID
-                        })
-
-                        let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                            (action : UIAlertAction) -> Void in
-                        })
-                        alert.addAction(okayAction)
-
-                        self.present(alert, animated: true, completion: nil)
-                    }))
-
-                    self.popover?.activityIndicator.isHidden = false
-                    self.popover?.activityIndicator.startAnimating()
-                    
-                    actions.append(AlertAction(title: "Details", style: .default, handler: {
-                        VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
-                            if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                                let popover = navigationController.viewControllers[0] as? WebViewController {
-                                
-                                popover.html.fontSize = 12
-                                popover.html.string = VoiceBase.html(json)?.insertHead(fontSize: popover.html.fontSize)
-                                
-                                popover.search = true
-                                popover.content = .html
-                                
-                                Thread.onMainThread {
-                                    self?.popover?.activityIndicator.stopAnimating()
-                                    self?.popover?.activityIndicator.isHidden = true
-                                    
-                                    popover.navigationItem.title = "VoiceBase Media Item"
-                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
-                                }
-                            }
-                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                            self?.popover?.activityIndicator.stopAnimating()
-                            self?.popover?.activityIndicator.isHidden = true
-                            
-                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                    }))
-                    
-                    actions.append(AlertAction(title: "Inspector", style: .default, handler: {
-                        self.popover?.activityIndicator.isHidden = false
-                        self.popover?.activityIndicator.startAnimating()
-                        
-                        VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
-                            if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                                popover.search = true
-                                popover.stringsAny = json
-                                popover.purpose = .showingVoiceBaseMediaItem
-                                
-                                Thread.onMainThread {
-                                    self?.popover?.activityIndicator.stopAnimating()
-                                    self?.popover?.activityIndicator.isHidden = true
-                                    
-                                    popover.navigationItem.title = "VoiceBase Media Item"
-                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
-                                }
-                            }
-                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-                            self?.popover?.activityIndicator.stopAnimating()
-                            self?.popover?.activityIndicator.isHidden = true
-                            
-                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                    }))
-
-                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
-
-                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions)
-                }
-            }
-        }
-    }
+//    func detailAction(tableView:UITableView,indexPath:IndexPath)
+//    {
+//        var value : [String:Any]?
+//
+//        if let keys = self.stringIndex?.keys?.sorted() {
+//            let key = keys[indexPath.section]
+//
+//            if let values = self.stringIndex?[key] {
+//                value = values[indexPath.row]
+//
+//                if let mediaID = value?["mediaId"] as? String,let title = value?["title"] as? String {
+//                    var actions = [AlertAction]()
+//
+//                    actions.append(AlertAction(title: "Delete", style: .destructive, handler: {
+//                        let alert = UIAlertController(  title: "Confirm Removal From VoiceBase",
+//                                                        message: title,
+//                            preferredStyle: .alert)
+//
+//                        alert.makeOpaque()
+//
+//                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                            (action : UIAlertAction) -> Void in
+//                            VoiceBase.delete(alert:true,mediaID: mediaID)
+//
+//                            self.stringIndex?[key]?.remove(at: indexPath.row)
+//
+//                            if self.stringIndex?[key]?.count == 0 {
+//                                self.stringIndex?[key] = nil
+//                            }
+//
+//                            var strings = [String]()
+//
+//                            if let keys = self.stringIndex?.keys?.sorted() {
+//                                for key in keys {
+//                                    if let values = self.stringIndex?[key] {
+//                                        for value in values {
+//                                            if let string = value["title"] as? String {
+//                                                strings.append(string)
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//
+//                            var counter = 0
+//
+//                            var counts = [Int]()
+//                            var indexes = [Int]()
+//
+//                            if let keys = self.stringIndex?.keys?.sorted() {
+//                                for key in keys {
+//                                    indexes.append(counter)
+//
+//                                    if let count = self.stringIndex?[key]?.count {
+//                                        counts.append(count)
+//                                        counter += count
+//                                    }
+//                                }
+//                            }
+//
+//                            self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
+//                            self.popover?.section.strings = strings.count > 0 ? strings : nil
+//
+//                            self.popover?.section.counts = counts.count > 0 ? counts : nil
+//                            self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
+//
+//                            self.popover?.updateToolbar()
+//
+//                            self.popover?.tableView?.isEditing = false
+//
+//                            self.popover?.tableView?.reloadData()
+//                            self.popover?.tableView?.reloadData()
+//                        })
+//                        alert.addAction(yesAction)
+//
+//                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                            (action : UIAlertAction) -> Void in
+//
+//                        })
+//                        alert.addAction(noAction)
+//
+//                        self.present(alert, animated: true, completion: nil)
+//                    }))
+//
+//                    actions.append(AlertAction(title: "Media ID", style: .default, handler: {
+//                        let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                        message: title,
+//                                                        preferredStyle: .alert)
+//                        alert.makeOpaque()
+//
+//                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                            textField.text = mediaID
+//                        })
+//
+//                        let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                            (action : UIAlertAction) -> Void in
+//                        })
+//                        alert.addAction(okayAction)
+//
+//                        self.present(alert, animated: true, completion: nil)
+//                    }))
+//
+//                    self.popover?.activityIndicator.isHidden = false
+//                    self.popover?.activityIndicator.startAnimating()
+//
+//                    actions.append(AlertAction(title: "Details", style: .default, handler: {
+//                        VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+//                            if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                                let popover = navigationController.viewControllers[0] as? WebViewController {
+//
+//                                popover.html.fontSize = 12
+//                                popover.html.string = VoiceBase.html(json)?.insertHead(fontSize: popover.html.fontSize)
+//
+//                                popover.search = true
+//                                popover.content = .html
+//
+//                                Thread.onMainThread {
+//                                    self?.popover?.activityIndicator.stopAnimating()
+//                                    self?.popover?.activityIndicator.isHidden = true
+//
+//                                    popover.navigationItem.title = "VoiceBase Media Item"
+//                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                                }
+//                            }
+//                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+//                            self?.popover?.activityIndicator.stopAnimating()
+//                            self?.popover?.activityIndicator.isHidden = true
+//
+//                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                        })
+//                    }))
+//
+//                    actions.append(AlertAction(title: "Inspector", style: .default, handler: {
+//                        self.popover?.activityIndicator.isHidden = false
+//                        self.popover?.activityIndicator.startAnimating()
+//
+//                        VoiceBase.details(mediaID: mediaID, completion: { [weak self] (json:[String : Any]?) -> (Void) in
+//                            if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                                popover.search = true
+//                                popover.stringsAny = json
+//                                popover.purpose = .showingVoiceBaseMediaItem
+//
+//                                Thread.onMainThread {
+//                                    self?.popover?.activityIndicator.stopAnimating()
+//                                    self?.popover?.activityIndicator.isHidden = true
+//
+//                                    popover.navigationItem.title = "VoiceBase Media Item"
+//                                    self?.popover?.navigationController?.pushViewController(popover, animated: true)
+//                                }
+//                            }
+//                        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+//                            self?.popover?.activityIndicator.stopAnimating()
+//                            self?.popover?.activityIndicator.isHidden = true
+//
+//                            Alerts.shared.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+//                        })
+//                    }))
+//
+//                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
+//
+//                    Alerts.shared.alert(title:"VoiceBase Media Item\nNot in Use", message:nil, actions:actions)
+//                }
+//            }
+//        }
+//    }
     
     @objc func historyActions()
     {
@@ -764,8 +764,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
-            self.dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["HISTORY"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
         })
         alert.addAction(yesAction)
@@ -780,13 +780,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
     }
     
-    func done()
-    {
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
-        })
-    }
-    
+//    func done()
+//    {
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
+//    }
 
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
@@ -871,10 +870,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
                 popover.purpose = .selectingHistory
+
+                self.popover?["HISTORY"] = popover
                 
                 popover.completion = { [weak self] in
-                    self?.presentingVC = nil
+                    self?.popover?["HISTORY"] = nil
                 }
+                
+//                popover.completion = { [weak self] in
+//                    self?.presentingVC = nil
+//                }
 
                 popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
                     let strings = Globals.shared.relevantHistoryList
@@ -888,7 +893,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 }
                 
                 present(navigationController, animated: true, completion: {
-                    self.presentingVC = navigationController
+//                    self.presentingVC = navigationController
                 })
             }
             break
@@ -918,9 +923,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 return false
             }
 
+            self.popover?["LIVE"] = popover
+            
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["LIVE"] = nil
             }
+            
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
             
             // An alternative to rowClickedAt
             popover.didSelect = { [weak self, weak popover] (indexPath:IndexPath) -> Void in
@@ -930,8 +941,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     let key = sortedKeys[indexPath.section]
                     
                     if key == Constants.Strings.Playing {
-                        self?.dismiss(animated: true, completion: { [weak self] in
-                            self?.presentingVC = nil
+                        self?.popover?["LIVE"]?.dismiss(animated: true, completion: { [weak self] in
+//                            self?.presentingVC = nil
                         })
                         
                         if let streamEntry = StreamEntry(Globals.shared.mediaStream.streamEntryIndex?[key]?[indexPath.row]) {
@@ -986,7 +997,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     popover?.activityIndicator.isHidden = true
                 }
 
-                self?.presentingVC = navigationController
+//                self?.presentingVC = navigationController
             })
             break
             
@@ -1031,6 +1042,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.VoiceBase_Delete_All:
+            guard Globals.shared.mediaRepository.list?.voiceBaseMediaItems > 0 else {
+                break
+            }
+
             var alertActions = [AlertAction]()
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
@@ -1045,7 +1060,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             alertActions.append(noAction)
             
-            Alerts.shared.alert(title: "Confirm Deletion of All VoiceBase Media", message: nil, actions: alertActions)
+            Alerts.shared.alert(title: "Confirm Deletion of All VoiceBase Media", message: "This will delete all VoiceBase media for the machine generated transcripts on this device.  If the same VoiceBase API key is used on multiple devices any VoiceBase media for those transcripts will not be deleted.", actions: alertActions)
             break
             
         case Constants.Strings.VoiceBase_Bulk_Delete:
@@ -1078,78 +1093,21 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                 navigationController.popoverPresentationController?.delegate = self
 
-                self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+                self.popover?["VOICEBASE"] = navigationController.viewControllers[0] as? PopoverTableViewController
                 
-                self.popover?.sectionBarButtons = true
+                self.popover?["VOICEBASE"]?.sectionBarButtons = true
                 
-                self.popover?.navigationItem.title = Constants.Strings.VoiceBase_Media
+                self.popover?["VOICEBASE"]?.navigationItem.title = Constants.Strings.VoiceBase_Media
                 
-                self.popover?.refresh = { [weak self] in
-                    self?.popover?.navigationController?.isToolbarHidden = true
+                self.popover?["VOICEBASE"]?.refresh = { [weak self] in
+                    self?.popover?["VOICEBASE"]?.navigationController?.isToolbarHidden = true
 
-                    self?.popover?.section.strings = nil
-                    self?.popover?.section.headerStrings = nil
-                    self?.popover?.section.counts = nil
-                    self?.popover?.section.indexes = nil
+                    self?.popover?["VOICEBASE"]?.section.strings = nil
+                    self?.popover?["VOICEBASE"]?.section.headerStrings = nil
+                    self?.popover?["VOICEBASE"]?.section.counts = nil
+                    self?.popover?["VOICEBASE"]?.section.indexes = nil
                     
-                    self?.popover?.tableView?.reloadData()
-                    
-//                    VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
-//                        guard let mediaItems = json?["media"] as? [[String:Any]] else {
-//                            return
-//                        }
-//                        
-//                        self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
-//                            if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
-//                                let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
-//                                return Date(string: date0) < Date(string: date1)
-//                            } else {
-//                                return false // arbitrary
-//                            }
-//                        })
-//                        
-//                        self?.popover?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
-//
-//                        Thread.onMainThread {
-//                            self?.popover?.updateSearchResults()
-//                            
-//                            self?.popover?.updateToolbar()
-//                            
-//                            self?.popover?.tableView?.reloadData()
-//                            
-//                            if #available(iOS 10.0, *) {
-//                                if let isRefreshing = self?.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
-//                                    self?.popover?.refreshControl?.endRefreshing()
-//                                }
-//                            } else {
-//                                // Fallback on earlier versions
-//                                if let isRefreshing = self?.popover?.isRefreshing, isRefreshing {
-//                                    self?.popover?.refreshControl?.endRefreshing()
-//                                    self?.popover?.isRefreshing = false
-//                                }
-//                            }
-//                        }
-//                    },onError: nil)
-                }
-
-                self.popover?.delegate = self
-
-                self.popover?.completion = { [weak self] in
-                    self?.popover = nil
-                    self?.presentingVC = nil
-                }
-                
-//                self.popover?.editActionsAtIndexPath = self.rowActions
-                
-                self.popover?.purpose = .showingVoiceBaseMediaItems
-                self.popover?.allowsSelection = false
-                
-                self.popover?.section.showHeaders = true
-                
-                self.popover?.search = true
-                
-                self.present(navigationController, animated: true, completion: { [weak self] in
-                    self?.popover?.activityIndicator.startAnimating()
+                    self?.popover?["VOICEBASE"]?.tableView?.reloadData()
                     
                     VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
                         guard let mediaItems = json?["media"] as? [[String:Any]] else {
@@ -1165,20 +1123,118 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                         })
                         
-                        self?.popover?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
-                        
-                        self?.popover?.updateToolbar()
-                        
-                        self?.popover?.updateSearchResults()
+                        self?.popover?["VOICEBASE"]?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
 
                         Thread.onMainThread {
-                            self?.popover?.tableView?.reloadData()
-                            self?.popover?.activityIndicator.stopAnimating()
+                            self?.popover?["VOICEBASE"]?.updateSearchResults()
+                            
+                            self?.popover?["VOICEBASE"]?.updateToolbar()
+                            
+                            self?.popover?["VOICEBASE"]?.tableView?.reloadData()
+                            
+                            if #available(iOS 10.0, *) {
+                                if let isRefreshing = self?.popover?["VOICEBASE"]?.tableView?.refreshControl?.isRefreshing, isRefreshing {
+                                    self?.popover?["VOICEBASE"]?.refreshControl?.endRefreshing()
+                                }
+                            } else {
+                                // Fallback on earlier versions
+                                if let isRefreshing = self?.popover?["VOICEBASE"]?.isRefreshing, isRefreshing {
+                                    self?.popover?["VOICEBASE"]?.refreshControl?.endRefreshing()
+                                    self?.popover?["VOICEBASE"]?.isRefreshing = false
+                                }
+                            }
                         }
                     },onError: nil)
+                }
+
+                self.popover?["VOICEBASE"]?.delegate = self
+
+                self.popover?["VOICEBASE"]?.completion = { [weak self] in
+                    self?.popover?["VOICEBASE"] = nil
+//                    self?.presentingVC = nil
+                }
+                
+//                self.popover?["VOICEBASE"]?.editActionsAtIndexPath = self.rowActions
+                
+                self.popover?["VOICEBASE"]?.purpose = .showingVoiceBaseMediaItems
+                self.popover?["VOICEBASE"]?.allowsSelection = false
+                
+                self.popover?["VOICEBASE"]?.section.showHeaders = true
+                
+                self.popover?["VOICEBASE"]?.search = true
+                
+                self.startAnimating()
+                
+                VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
+                    guard let mediaItems = json?["media"] as? [[String:Any]] else {
+                        return
+                    }
                     
-                    self?.presentingVC = navigationController
-                })
+                    self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                        if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
+                            let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
+                            return Date(string: date0) < Date(string: date1)
+                        } else {
+                            return false // arbitrary
+                        }
+                    })
+                    
+                    self?.popover?["VOICEBASE"]?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
+                    
+                    self?.stopAnimating()
+
+                    Thread.onMainThread {
+                        if self?.stringIndex?.keys == nil {
+                            Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
+                        } else {
+                            self?.present(navigationController, animated: true, completion: {
+                                self?.popover?["VOICEBASE"]?.updateToolbar()
+                                self?.popover?["VOICEBASE"]?.updateSearchResults()
+                                self?.popover?["VOICEBASE"]?.tableView?.reloadData()
+                                self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+                            })
+                        }
+                    }
+                },onError: nil)
+
+//                self.present(navigationController, animated: true, completion: { [weak self] in
+//                    self?.popover?["VOICEBASE"]?.activityIndicator.startAnimating()
+//
+//                    VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
+//                        guard let mediaItems = json?["media"] as? [[String:Any]] else {
+//                            return
+//                        }
+//
+//                        self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+//                            if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
+//                                let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
+//                                return Date(string: date0) < Date(string: date1)
+//                            } else {
+//                                return false // arbitrary
+//                            }
+//                        })
+//
+//                        self?.popover?["VOICEBASE"]?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
+//
+//                        self?.popover?["VOICEBASE"]?.updateToolbar()
+//
+//                        self?.popover?["VOICEBASE"]?.updateSearchResults()
+//
+//                        Thread.onMainThread {
+//                            if self?.stringIndex?.keys == nil {
+//                                Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
+//                                self?.popover?["VOICEBASE"]?.dismiss(animated: true, completion: { [weak self] in
+//                                    self?.popover?["VOICEBASE"] = nil
+//                                })
+//                            } else {
+//                                self?.popover?["VOICEBASE"]?.tableView?.reloadData()
+//                                self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
+//                            }
+//                        }
+//                    },onError: nil)
+//
+////                    self?.presentingVC = navigationController
+//                })
             }
             break
             
@@ -1210,8 +1266,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingCategory:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["CATEGORY"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
@@ -1323,9 +1379,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingCellSearch:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            popover?.values.forEach({ (popover:PopoverTableViewController) in
+                popover.dismiss(animated: true, completion: nil)
             })
+//            dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
+//            })
             
             var searchText = strings[index].uppercased()
             
@@ -1344,9 +1403,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingCellAction:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            popover?.values.forEach({ (popover:PopoverTableViewController) in
+                popover.dismiss(animated: true, completion: nil)
             })
+//            dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
+//            })
             
             switch string {
             case Constants.Strings.Download_Audio:
@@ -1369,37 +1431,37 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case .selectingLexicon: // No longer in use.  Replaced by .selectingCellSearch
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
-            })
-            
-            _ = navigationController?.popViewController(animated: true)
-            
-            if let range = string.range(of: " (") {
-                let searchText = String(string[..<range.lowerBound]).uppercased()
-                
-                Globals.shared.search.isActive = true
-                Globals.shared.search.text = searchText
-                
-                Thread.onMainThread {
-                    self.searchBar.text = searchText
-                    self.searchBar.showsCancelButton = true
-                }
-                
-                // Show the results directly rather than by executing a search
-                if let list:[MediaItem]? = Globals.shared.media.toSearch?.lexicon?.words?[searchText]?.map({ (mediaItemFrequency:(key: MediaItem,value: Int)) -> MediaItem in
-                    return mediaItemFrequency.key
-                }) {
-                    updateSearches(searchText:searchText,mediaItems: list)
-                    updateDisplay(searchText:searchText)
-                }
-            }
-            break
+//        case .selectingLexicon: // No longer in use.  Replaced by .selectingCellSearch
+//            self.popover?[""]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
+//            })
+//
+//            _ = navigationController?.popViewController(animated: true)
+//
+//            if let range = string.range(of: " (") {
+//                let searchText = String(string[..<range.lowerBound]).uppercased()
+//
+//                Globals.shared.search.isActive = true
+//                Globals.shared.search.text = searchText
+//
+//                Thread.onMainThread {
+//                    self.searchBar.text = searchText
+//                    self.searchBar.showsCancelButton = true
+//                }
+//
+//                // Show the results directly rather than by executing a search
+//                if let list:[MediaItem]? = Globals.shared.media.toSearch?.lexicon?.words?[searchText]?.map({ (mediaItemFrequency:(key: MediaItem,value: Int)) -> MediaItem in
+//                    return mediaItemFrequency.key
+//                }) {
+//                    updateSearches(searchText:searchText,mediaItems: list)
+//                    updateDisplay(searchText:searchText)
+//                }
+//            }
+//            break
             
         case .selectingHistory:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["HISTORY"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             if let history = Globals.shared.relevantHistory {
@@ -1436,8 +1498,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTags:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["TAGS"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             // Should we be showing Globals.shared.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
@@ -1508,8 +1570,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSection:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["INDEX"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             if let section = Globals.shared.media.active?.section?.headerStrings?.firstIndex(of: strings[index]) {
@@ -1539,8 +1601,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingGrouping:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["GROUPING"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             Globals.shared.grouping = Globals.shared.groupings[index]
@@ -1572,8 +1634,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSorting:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?["SORTING"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             Globals.shared.sorting = Constants.sortings[index]
@@ -1607,16 +1669,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingShow:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            popover?["SHOW"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             showMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         case .selectingAction:
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
             })
             
             switch string {
@@ -1696,8 +1758,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -1762,7 +1824,192 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
 //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTimingIndexPhrase:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXPHRASE"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXPHRASE"]?.transcript
+                
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+                
+                popover.search = true
+                popover.searchInteractive = false
+                popover.searchActive = true
+                popover.searchText = string
+                popover.wholeWordsOnly = true
+                
+                popover.section.showIndex = true
+                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    return string?.century
+                } // century
+                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                    return string
+                }
+                
+                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+                popover.stringsFunction = {
+                    guard let times = popover.transcript?.keywordTimes?[string], let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else { // (token: string)
+                        return nil
+                    }
+                    
+                    var strings = [String]()
+                    
+                    for time in times {
+                        var found = false
+                        var gap : Double?
+                        var closest : String?
+                        
+                        for transcriptSegmentComponent in transcriptSegmentComponents {
+                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                            
+                            if transcriptSegmentArray.count > 2  {
+                                let count = transcriptSegmentArray.removeFirst()
+                                let timeWindow = transcriptSegmentArray.removeFirst()
+                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                                
+                                if  let start = times.first,
+                                    let end = times.last,
+                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+                                    let string = "\(count)\n\(start) to \(end)\n" + text
+                                    
+                                    if (start.hmsToSeconds <= time.hmsToSeconds) && (time.hmsToSeconds <= end.hmsToSeconds) {
+                                        strings.append(string)
+                                        found = true
+                                        gap = nil
+                                        break
+                                    } else {
+                                        guard let time = time.hmsToSeconds else {
+                                            continue
+                                        }
+                                        
+                                        guard let start = start.hmsToSeconds else {
+                                            continue
+                                        }
+                                        
+                                        guard let end = end.hmsToSeconds else { //
+                                            continue
+                                        }
+                                        
+                                        var currentGap = 0.0
+                                        
+                                        if time < start {
+                                            currentGap = start - time
+                                        }
+                                        if time > end {
+                                            currentGap = time - end
+                                        }
+                                        
+                                        if gap != nil {
+                                            if currentGap < gap {
+                                                gap = currentGap
+                                                closest = string
+                                            }
+                                        } else {
+                                            gap = currentGap
+                                            closest = string
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // We have to deal w/ the case where the keyword time isn't found in a segment which is probably due to a rounding error in the milliseconds, e.g. 1.
+                        if !found {
+                            if let closest = closest {
+                                strings.append(closest)
+                            } else {
+                                // ??
+                            }
+                        }
+                    }
+                    
+                    return strings
+                }
+                
+                //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+                
+                self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTimingIndexTopic:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXTOPIC"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXTOPIC"]?.transcript
+                
+                popover.delegate = self
+                popover.purpose = .selectingTimingIndexTopicKeyword
+                
+                popover.section.strings = popover.transcript?.topicKeywords(topic: string)
+                
+                self.popover?["TIMINGINDEXTOPIC"]?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTimingIndexTopicKeyword:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXKEYWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXKEYWORD"]?.transcript
+                
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+                
+                if let topic = self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.visibleViewController?.navigationItem.title {
+                    popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
+                        return string.secondsToHMS ?? "ERROR"
+                    })
+                }
+                
+                self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -1946,31 +2193,34 @@ class MediaTableViewController : UIViewController
     
     var display = Display()
 
-    var popover : PopoverTableViewController?
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
 
     var actionsButton : UIBarButtonItem?
     
     var stringIndex : StringIndex? // [String:[String]]()
 
-    @objc func finish()
-    {
-        Thread.onMainThread {
-            self.popover?.activityIndicator?.stopAnimating()
-            
-            if self.stringIndex?.dict == nil {
-                self.dismiss(animated: true, completion: { [weak self] in
-                    self?.presentingVC = nil
-                })
-                Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
-            } else {
-                self.actionsButton?.isEnabled = true
-            }
-        }
-    }
+//    @objc func finish()
+//    {
+//        Thread.onMainThread {
+//            self.popover?["VOICEBASE"]?.activityIndicator?.stopAnimating()
+//
+//            if self.stringIndex?.dict == nil {
+////                self.dismiss(animated: true, completion: { [weak self] in
+////                    self?.presentingVC = nil
+////                })
+//                Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
+//            } else {
+//                self.actionsButton?.isEnabled = true
+//            }
+//        }
+//    }
     
     var changesPending = false
     
-    var presentingVC : UIViewController?
+    // THIS NEEDS TO GO AWAY?
+//    var presentingVC : UIViewController?
     
     var jsonSource:JSONSource = .direct
     
@@ -1986,28 +2236,45 @@ class MediaTableViewController : UIViewController
 
     func bulkDeleteMedia()
     {
-        let alert = UIAlertController(  title: "Confirm Bulk Deletion of VoiceBase Media",
-                                        message: nil,
-                                        preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-            (action : UIAlertAction!) -> Void in
-            self.dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+        VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
+            guard let mediaItems = json?["media"] as? [[String:Any]] else {
+                return
+            }
+            
+            self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
+                    let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
+                    return Date(string: date0) < Date(string: date1)
+                } else {
+                    return false // arbitrary
+                }
             })
-            
-            VoiceBase.bulkDelete(alert:true)
-        })
-        alert.addAction(yesAction)
-        
-        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
-        alert.addAction(noAction)
-        
-        present(alert, animated: true, completion: nil)
+
+            Thread.onMainThread {
+                if self?.stringIndex?.keys == nil {
+                    Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
+                } else {
+                    let alert = UIAlertController(  title: "Confirm Bulk Deletion of VoiceBase Media",
+                                                    message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.",
+                                                    preferredStyle: .alert)
+                    alert.makeOpaque()
+                    
+                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        VoiceBase.bulkDelete(alert:true)
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        
+                    })
+                    alert.addAction(noAction)
+                    
+                    self?.present(alert, animated: true, completion: nil)
+                }
+            }
+            },onError: nil)
     }
     
     @objc func downloadFailed(_ notification:NSNotification)
@@ -2064,13 +2331,19 @@ class MediaTableViewController : UIViewController
             if let categories = Globals.shared.mediaCategory.names {
                 popover.section.strings?.append(contentsOf: categories)
             }
+
+            self.popover?["CATEGORY"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["CATEGORY"] = nil
             }
             
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
+            
             present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -2123,9 +2396,12 @@ class MediaTableViewController : UIViewController
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             // In case one is already showing
-            dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
+            self.popover?.values.forEach({ (popover:PopoverTableViewController) in
+                popover.dismiss(animated: true, completion: nil)
             })
+//            dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
+//            })
       
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
@@ -2139,10 +2415,16 @@ class MediaTableViewController : UIViewController
             
             popover.delegate = self
             popover.purpose = .selectingShow
+
+            self.popover?["SHOW"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["SHOW"] = nil
             }
+            
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
             
             var showMenu = [String]()
             
@@ -2242,13 +2524,16 @@ class MediaTableViewController : UIViewController
             if Globals.shared.isVoiceBaseAvailable ?? false {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
                 showMenu.append(Constants.Strings.VoiceBase_Bulk_Delete)
-                showMenu.append(Constants.Strings.VoiceBase_Delete_All)
+                
+                if Globals.shared.mediaRepository.list?.voiceBaseMediaItems > 0 {
+                    showMenu.append(Constants.Strings.VoiceBase_Delete_All)
+                }
             }
             
             popover.section.strings = showMenu
 
             present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -2341,9 +2626,12 @@ class MediaTableViewController : UIViewController
         }
         
         //In case we have one already showing
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
+        self.popover?.values.forEach({ (popover:PopoverTableViewController) in
+            popover.dismiss(animated: true, completion: nil)
         })
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
 
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2363,9 +2651,9 @@ class MediaTableViewController : UIViewController
             
             popover.delegate = self
             
-            popover.completion = { [weak self] in
-                self?.presentingVC = nil
-            }
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
             
             popover.purpose = .selectingSection
 
@@ -2415,9 +2703,15 @@ class MediaTableViewController : UIViewController
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
                 break
             }
+
+            self.popover?["INDEX"] = popover
+
+            popover.completion = { [weak self] in
+                self?.popover?["INDEX"] = nil
+            }
             
             present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -2434,9 +2728,12 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
+        self.popover?.values.forEach({ (popover:PopoverTableViewController) in
+            popover.dismiss(animated: true, completion: nil)
         })
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2455,17 +2752,23 @@ class MediaTableViewController : UIViewController
             popover.navigationItem.title = Constants.Strings.Options_Title.Grouping
             
             popover.delegate = self
+
+            self.popover?["GROUPING"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["GROUPING"] = nil
             }
+            
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
             
             popover.purpose = .selectingGrouping
             popover.section.strings = Globals.shared.groupingTitles
             popover.stringSelected = Globals.shared.grouping?.translate
             
             present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -2482,9 +2785,12 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
+        popover?.values.forEach({ (popover:PopoverTableViewController) in
+            popover.dismiss(animated: true, completion: nil)
         })
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2503,17 +2809,23 @@ class MediaTableViewController : UIViewController
             popover.navigationItem.title = Constants.Strings.Options_Title.Sorting
             
             popover.delegate = self
+
+            self.popover?["SORTING"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["SORTING"] = nil
             }
+            
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
             
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
             popover.stringSelected = Globals.shared.sorting?.translate
 
             present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -3273,7 +3585,7 @@ class MediaTableViewController : UIViewController
     {
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
@@ -3370,9 +3682,13 @@ class MediaTableViewController : UIViewController
         }
         
         //In case we have one already showing
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
+        popover?.values.forEach({ (popover:PopoverTableViewController) in
+            popover.dismiss(animated: true, completion: nil)
         })
+
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3392,13 +3708,19 @@ class MediaTableViewController : UIViewController
             popover.selectedMediaItem = selectedMediaItem
             
             popover.section.strings = actionMenu()
+
+            self.popover?["ACTION"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["ACTION"] = nil
             }
             
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
+            
             self.present(navigationController, animated: true, completion:  {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -3501,9 +3823,12 @@ class MediaTableViewController : UIViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
+        self.popover?.values.forEach({ (popover:PopoverTableViewController) in
+            popover.dismiss(animated: true, completion: nil)
         })
+//        dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3531,13 +3856,19 @@ class MediaTableViewController : UIViewController
             popover.section.strings = tagsMenu()
             
             popover.search = popover.section.strings?.count > 10
+
+            self.popover?["TAGS"] = popover
             
             popover.completion = { [weak self] in
-                self?.presentingVC = nil
+                self?.popover?["TAGS"] = nil
             }
             
+//            popover.completion = { [weak self] in
+//                self?.presentingVC = nil
+//            }
+            
             self.present(navigationController, animated: true, completion: {
-                self.presentingVC = navigationController
+//                self.presentingVC = navigationController
             })
         }
     }
@@ -3936,9 +4267,11 @@ class MediaTableViewController : UIViewController
     
     @objc func liveView()
     {
-        self.dismiss(animated: true, completion: { [weak self] in
-            self?.presentingVC = nil
-        })
+        popover?["LIVE"]?.dismiss(animated: true, completion: nil)
+
+            //        self.dismiss(animated: true, completion: { [weak self] in
+//            self?.presentingVC = nil
+//        })
         performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
     }
     
@@ -4165,16 +4498,29 @@ class MediaTableViewController : UIViewController
     {
         super.viewWillTransition(to: size, with: coordinator)
 
-        if self.presentingVC?.popoverPresentationController?.presentationStyle == .popover {
-            self.dismiss(animated: true, completion: { [weak self] in
-                self?.presentingVC = nil
-            })
-        }
+        let popover = self.popover?["SHOW"]
+            
+        popover?.dismiss(animated: false, completion: nil)
+        
+//        popover?.values.forEach({ (popover:PopoverTableViewController) in
+//            if popover.navigationController?.popoverPresentationController?.presentationStyle == .popover {
+//                self.dismiss(animated: true, completion: nil)
+//            }
+//        })
+        
+//        if self.presentingVC?.popoverPresentationController?.presentationStyle == .popover {
+//            self.dismiss(animated: true, completion: { [weak self] in
+//                self?.presentingVC = nil
+//            })
+//        }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
-        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            self.setupTitle()
+        }) { [weak self] (UIViewControllerTransitionCoordinatorContext) -> Void in
+            self?.setupTitle()
+            if popover != nil, let showButton = self?.showButton {
+                self?.show(showButton)
+            }
         }
     }
 }

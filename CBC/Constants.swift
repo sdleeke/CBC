@@ -193,7 +193,7 @@ enum Constants {
         
         static let DONE_SEEKING             = "DONE SEEKING"
         
-        static let VOICE_BASE_FINISHED      = "VOICE BASE FINISHED"
+//        static let VOICE_BASE_FINISHED      = "VOICE BASE FINISHED"
         
         static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
         
@@ -635,6 +635,8 @@ enum Constants {
         static let Words = "Words"
         static let Word_Picker = "Word Picker"
         static let Word_Cloud = "Word Cloud"
+        static let Word_Search = "Word Search"
+        static let Word_List = "Word List"
 
         static let Segments = "Segments"
         
@@ -807,7 +809,7 @@ enum Constants {
         
         static let View_Words = "View Words"
         static let View_Strings = "View Strings"
-//        static let Word_List = "Word List
+//        static let Word_List = "Word List"
 
         static let View_List = "View List"
         static let List = "List"

@@ -513,8 +513,8 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -579,7 +579,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
 //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -594,8 +594,8 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXPHRASE"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXPHRASE"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -706,7 +706,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
 //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -721,15 +721,15 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXTOPIC"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXTOPIC"]?.transcript
 
                 popover.delegate = self
                 popover.purpose = .selectingTimingIndexTopicKeyword
                 
                 popover.section.strings = popover.transcript?.topicKeywords(topic: string)
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXTOPIC"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -744,8 +744,8 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXKEYWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXKEYWORD"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -758,13 +758,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
 
-                if let topic = self.popover?.navigationController?.visibleViewController?.navigationItem.title {
+                if let topic = self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.visibleViewController?.navigationItem.title {
                     popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
                         return string.secondsToHMS ?? "ERROR"
                     })
                 }
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
 
@@ -1100,8 +1100,10 @@ enum VideoLocation {
 
 class MediaViewController: UIViewController
 {
-    var popover : PopoverTableViewController?
-    
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
+
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
@@ -2680,12 +2682,12 @@ class MediaViewController: UIViewController
             popover.section.strings = actionMenu()
             
             popover.completion = { [weak self] in
-                self?.popover = nil
+                self?.popover?["ACTION"] = nil
             }
             
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
-                    self.popover = popover
+                    self.popover?["ACTION"] = popover
                 })
             }
         }
@@ -3986,11 +3988,11 @@ class MediaViewController: UIViewController
             popover.selectedMediaItem = selectedMediaItem
             
             popover.completion = { [weak self] in
-                self?.popover = nil
+                self?.popover?["TAGS"] = nil
             }
             
             present(navigationController, animated: true, completion: {
-                self.popover = popover
+                self.popover?["TAGS"] = popover
             })
         }
     }
@@ -4015,7 +4017,9 @@ class MediaViewController: UIViewController
         var barButtons = [UIBarButtonItem]()
         
         if actionMenu()?.count > 0 {
-            actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
+            if actionButton == nil {
+                actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
+            }
             actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
             if let actionButton = actionButton {
@@ -4024,10 +4028,18 @@ class MediaViewController: UIViewController
         }
     
         if selectedMediaItem.hasTags {
-            if (selectedMediaItem.tagsSet?.count > 1) {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItem.Style.plain, target: self, action: #selector(tags(_:)))
+            if tagsButton == nil {
+                if (selectedMediaItem.tagsSet?.count > 1) {
+                    tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItem.Style.plain, target: self, action: #selector(tags(_:)))
+                } else {
+                    tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItem.Style.plain, target: self, action: #selector(tags(_:)))
+                }
             } else {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItem.Style.plain, target: self, action: #selector(tags(_:)))
+                if (selectedMediaItem.tagsSet?.count > 1) {
+                    tagsButton?.title = Constants.FA.TAGS
+                } else {
+                    tagsButton?.title = Constants.FA.TAG
+                }
             }
             
             tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
@@ -4040,7 +4052,9 @@ class MediaViewController: UIViewController
         }
 
         if barButtons.count > 0 {
-            navigationItem.setRightBarButtonItems(barButtons, animated: true)
+            if navigationItem.rightBarButtonItems == nil {
+                navigationItem.setRightBarButtonItems(barButtons, animated: true)
+            }
         } else {
             navigationItem.rightBarButtonItems = nil
         }
@@ -4551,246 +4565,253 @@ class MediaViewController: UIViewController
         print("DONE SEEKING")
     }
     
-    var orientation : UIDeviceOrientation?
+//    var orientation : UIDeviceOrientation?
     
     @objc func deviceOrientationDidChange()
     {
-        defer {
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                self.orientation = UIDevice.current.orientation
-                break
-                
-            case .landscapeRight:
-                self.orientation = UIDevice.current.orientation
-                break
-                
-            case .portrait:
-                self.orientation = UIDevice.current.orientation
-                break
-                
-            case .portraitUpsideDown:
-                self.orientation = UIDevice.current.orientation
-                break
-                
-            case .unknown:
-                break
-
-            @unknown default:
-                break
-            }
-        }
-        
-        guard popover?.popoverPresentationController?.presentationStyle == .popover else {
-            return
-        }
-        
-        guard let orientation = orientation else {
-            return
-        }
-        
-        switch orientation {
-        case .faceUp:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .landscapeRight:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            @unknown default:
-                break
-            }
-            break
-            
-        case .faceDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .landscapeRight:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portrait:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portraitUpsideDown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeLeft:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portrait:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portraitUpsideDown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .landscapeRight:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                break
-                
-            case .landscapeRight:
-                break
-                
-            case .portrait:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portraitUpsideDown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portrait:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .landscapeRight:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-
-            @unknown default:
-                break
-            }
-            break
-            
-        case .portraitUpsideDown:
-            switch UIDevice.current.orientation {
-            case .faceUp:
-                break
-                
-            case .faceDown:
-                break
-                
-            case .landscapeLeft:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .landscapeRight:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            case .portrait:
-                break
-                
-            case .portraitUpsideDown:
-                break
-                
-            case .unknown:
-                popover?.dismiss(animated: true, completion: nil)
-                break
-                
-            @unknown default:
-                break
-            }
-            break
-            
-        case .unknown:
-            break
-            
-        @unknown default:
-            break
-        }
+//        guard let popover:PopoverTableViewController? = popover?.values.first else {
+//            return
+//        }
+////        popover?.values.forEach({ (popover:PopoverTableViewController) in
+////            popover.dismiss(animated: true, completion: nil)
+////        })
+//
+//        defer {
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                self.orientation = UIDevice.current.orientation
+//                break
+//
+//            case .landscapeRight:
+//                self.orientation = UIDevice.current.orientation
+//                break
+//
+//            case .portrait:
+//                self.orientation = UIDevice.current.orientation
+//                break
+//
+//            case .portraitUpsideDown:
+//                self.orientation = UIDevice.current.orientation
+//                break
+//
+//            case .unknown:
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//        }
+//
+//        guard popover?.popoverPresentationController?.presentationStyle == .popover else {
+//            return
+//        }
+//
+//        guard let orientation = orientation else {
+//            return
+//        }
+//
+//        switch orientation {
+//        case .faceUp:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .landscapeRight:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .faceDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .landscapeRight:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portrait:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portraitUpsideDown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeLeft:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portrait:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portraitUpsideDown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .landscapeRight:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                break
+//
+//            case .landscapeRight:
+//                break
+//
+//            case .portrait:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portraitUpsideDown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portrait:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .landscapeRight:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .portraitUpsideDown:
+//            switch UIDevice.current.orientation {
+//            case .faceUp:
+//                break
+//
+//            case .faceDown:
+//                break
+//
+//            case .landscapeLeft:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .landscapeRight:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            case .portrait:
+//                break
+//
+//            case .portraitUpsideDown:
+//                break
+//
+//            case .unknown:
+//                popover?.dismiss(animated: true, completion: nil)
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//            break
+//
+//        case .unknown:
+//            break
+//
+//        @unknown default:
+//            break
+//        }
     }
     
     @objc func stopEditing()
@@ -4851,7 +4872,9 @@ class MediaViewController: UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: nil)
+
         if let isCollapsed = self.splitViewController?.isCollapsed, !isCollapsed {
             NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
@@ -4862,7 +4885,7 @@ class MediaViewController: UIViewController
     {
         super.viewWillAppear(animated)
         
-        orientation = UIDevice.current.orientation
+//        orientation = UIDevice.current.orientation
         
         addNotifications()
 

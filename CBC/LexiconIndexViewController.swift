@@ -72,28 +72,28 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case Constants.Strings.Sorting:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
-                popover.navigationItem.title = "Select"
-                navigationController.isNavigationBarHidden = false
-                
-                popover.delegate = self
-                popover.purpose = .selectingSorting
-                popover.stringSelected = self.wordsTableViewController.section.method
-                
-                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
-                
-                present(navigationController, animated: true, completion: nil)
-            }
-            break
+//        case Constants.Strings.Sorting:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//
+//                navigationController.popoverPresentationController?.delegate = self
+//
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//
+//                popover.navigationItem.title = "Select"
+//                navigationController.isNavigationBarHidden = false
+//
+//                popover.delegate = self
+//                popover.purpose = .selectingSorting
+//                popover.stringSelected = self.wordsTableViewController.section.method
+//
+//                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+//
+//                present(navigationController, animated: true, completion: nil)
+//            }
+//            break
             
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
@@ -172,7 +172,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.View_Words:
+        case Constants.Strings.Word_List:
             self.process(work: { [weak self] () -> (Any?) in
                 // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
                 // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
@@ -386,8 +386,8 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationItem.title = string
                 
-                popover.selectedMediaItem = self.popover?.selectedMediaItem
-                popover.transcript = self.popover?.transcript
+                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
                 
                 popover.delegate = self
                 popover.purpose = .selectingTime
@@ -452,7 +452,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
 //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -497,7 +497,9 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
 
 class LexiconIndexViewController : UIViewController
 {
-    var popover : PopoverTableViewController?
+    lazy var popover : [String:PopoverTableViewController]? = {
+        return [String:PopoverTableViewController]()
+    }()
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
@@ -1671,7 +1673,7 @@ class LexiconIndexViewController : UIViewController
 
         if activeWords?.count > 0 {
             actionMenu.append(Constants.Strings.Word_Picker)
-            actionMenu.append(Constants.Strings.View_Words)
+            actionMenu.append(Constants.Strings.Word_List)
         }
 
         if results?.mediaList?.list?.count > 0 {

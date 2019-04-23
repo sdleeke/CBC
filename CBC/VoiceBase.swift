@@ -552,18 +552,18 @@ extension VoiceBase // Class Methods
                     bulkDelete(alert:alert,alertNone:false) // alertNone == false => Don't tell when we've stopped.
                 } else {
                     if alertNone {
-                        Alerts.shared.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
+                        Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
                     }
                 }
             } else {
                 // No mediaItems
                 if alertNone {
-                    Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                    Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library", message: nil)
                 }
             }
         }, onError:  { (json:[String : Any]?) -> (Void) in
             if alertNone {
-                Alerts.shared.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library", message: nil)
             }
         })
     }
@@ -6827,7 +6827,7 @@ class VoiceBase
         return actions.count > 0 ? actions : nil
     }
 
-    func timingIndexAlertActions(viewController:UIViewController,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
+    func timingIndexAlertActions(viewController:UIViewController,completion:((PopoverTableViewController,String)->(Void))?) -> AlertAction?
     {
         var action : AlertAction!
         
@@ -6867,7 +6867,7 @@ class VoiceBase
                     }
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
-                    completion?(popover)
+                    completion?(popover,"TIMINGINDEXWORD")
                     
 //                    viewController.present(navigationController, animated: true, completion:  {
 //                        completion?(popover)
@@ -6908,7 +6908,7 @@ class VoiceBase
                     }
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
-                    completion?(popover)
+                    completion?(popover,"TIMINGINDEXPHRASE")
                     
 //                    viewController.present(navigationController, animated: true, completion:  {
 //                        completion?(popover)
@@ -6988,7 +6988,7 @@ class VoiceBase
                     popover.assist = true
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
-                    completion?(popover)
+                    completion?(popover,"TIMINGINDEXTIMEDSEGMENT")
                     
 //                    viewController.present(navigationController, animated: true, completion: {
 //                        completion?(popover)
@@ -7068,7 +7068,7 @@ class VoiceBase
                     }
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
-                    completion?(popover)
+                    completion?(popover,"TIMINGINDEXTIMEDWORD")
                     
 //                    viewController.present(navigationController, animated: true, completion: {
 //                        completion?(popover)
