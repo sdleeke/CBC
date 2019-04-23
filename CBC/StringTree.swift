@@ -260,7 +260,7 @@ class StringTree
             bodyHTML += "<table><tr>"
             
             for root in roots {
-                if let string = root.string, let tag = root.string?.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) {
+                if let string = root.string, let tag = root.string?.asTag {
                     bodyHTML += "<td>" + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=#\(tag)>" + string + "</a>" + "</td>"
                 }
             }
@@ -271,7 +271,7 @@ class StringTree
             
             for root in roots {
                 if let rows = root.htmlWords(nil) {
-                    if let string = root.string, let tag = root.string?.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) {
+                    if let string = root.string, let tag = root.string?.asTag {
                         bodyHTML += "<tr><td>" + "<br/>" +  "<a id=\"\(tag)\" name=\"\(tag)\" href=#index\(tag)>" + string + "</a>" + " (\(rows.count))" + "</td></tr>"
                     }
                     

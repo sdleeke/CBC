@@ -1183,7 +1183,7 @@ extension Array where Element == String
         var index : String?
         
         for root in roots.keys.sorted() {
-            let tag = root.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? root
+            let tag = root.asTag
             
             let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
             index = ((index != nil) ? index! + " " : "") + link
@@ -1205,7 +1205,7 @@ extension Array where Element == String
         
         var section = 0
         
-        let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+        let tag = keys[section].asTag
         
         wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
         
@@ -1222,7 +1222,7 @@ extension Array where Element == String
                 
                 wordsHTML += "<ul class=\"words\">"
                 
-                let tag = keys[section].addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? keys[section]
+                let tag = keys[section].asTag
                 
                 wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
             }
@@ -4138,15 +4138,17 @@ extension String
     var asTag : String
     {
         get {
-            var string = String()
+            return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? self
             
-            for char in self {
-                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet.alphanumerics.contains(unicodeScalar) { // !CharacterSet(charactersIn:
-                    string.append(char)
-                }
-            }
-
-            return string
+//            var string = String()
+//
+//            for char in self {
+//                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet.alphanumerics.contains(unicodeScalar) { // !CharacterSet(charactersIn:
+//                    string.append(char)
+//                }
+//            }
+//
+//            return string
         }
     }
         

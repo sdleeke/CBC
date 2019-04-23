@@ -772,7 +772,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 }
             }) { (data:Any?) in
                 guard let data = data else {
-                    Alerts.shared.alert(title:"Lexical Analysis Not Available.")
+                    Alerts.shared.alert(title:"Lexical Analysis Not Available")
                     return
                 }
                 
