@@ -679,13 +679,13 @@ class CloudViewController: UIViewController
         
         addNotifications()
 
-        navigationItem.title = cloudTitle
-        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
+        self.navigationItem.title = cloudTitle
+        self.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
         
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        navigationItem.setRightBarButton(actionButton, animated: true)
+        self.navigationItem.setRightBarButton(actionButton, animated: true)
 
         if cloudWordDictsFunction != nil {
             self.process(work: { [weak self] () -> (Any?) in

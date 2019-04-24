@@ -607,7 +607,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Word_Cloud:
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? CloudViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
+                    navigationController.modalPresentationStyle = .fullScreen
                     
                     navigationController.popoverPresentationController?.delegate = self
                     
@@ -2217,8 +2217,8 @@ class TextViewController : UIViewController
                 }
                 
                 if Globals.shared.splitViewController?.isCollapsed == false {
-                    let vClass = traitCollection.verticalSizeClass
-                    let hClass = traitCollection.horizontalSizeClass
+                    let vClass = Globals.shared.splitViewController?.traitCollection.verticalSizeClass
+                    let hClass = Globals.shared.splitViewController?.traitCollection.horizontalSizeClass
                     
                     if vClass != .compact, hClass != .compact {
                         actionMenu.append(Constants.Strings.Word_Cloud)

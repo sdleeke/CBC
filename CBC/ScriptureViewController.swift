@@ -260,7 +260,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Word_Cloud:
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? CloudViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
+                    navigationController.modalPresentationStyle = .fullScreen
                     
                     navigationController.popoverPresentationController?.delegate = self
                     
@@ -280,7 +280,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    popover.cloudTitle = navigationItem.title
+                    popover.cloudTitle =  (self.scripture?.reference ?? "") // navigationItem.title
                     
                     popover.cloudWordDictsFunction = { [weak self] in
                         let words = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in

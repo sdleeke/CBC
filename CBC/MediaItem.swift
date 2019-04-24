@@ -4285,7 +4285,7 @@ class MediaItem : NSObject
 //                }
 //            } else {
                 if self.hasNotesHTML {
-                    transcript = AlertAction(title: "HTML Transcript", style: .default) { [weak self] in
+                    transcript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) { [weak self] in
                         viewController.process(work: { [weak self] () -> (Any?) in
                             self?.notesHTML?.load()
                         }, completion: { [weak self] (data:Any?) in

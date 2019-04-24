@@ -5102,7 +5102,8 @@ class MediaViewController: UIViewController
             Globals.shared.mediaPlayer.view?.removeFromSuperview()
         }
         
-        navigationItem.rightBarButtonItem = nil
+        // WHY WAS THIS HERE?
+//        navigationItem.rightBarButtonItem = nil
         
         if videoLocation == .withTableView {
             videoLocation = .withDocuments // Critical for plus size phones since MVC doesn't deallocate

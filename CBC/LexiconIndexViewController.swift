@@ -183,7 +183,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 return self?.activeWordsHTML
             }, completion: { [weak self] (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
-                self?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
             })
             break
             
@@ -342,10 +342,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             Thread.onMainThread {
                 self.tableView.setEditing(false, animated: true)
             }
-            
-            if tableViewHeightConstraint.constant == bounds.height {
-                tableViewHeightConstraint.constant = bounds.height - tableView.rowHeight
-            }
+//
+//            if tableViewHeightConstraint.constant == 0 {
+//                tableViewHeightConstraint.constant = tableView.rowHeight + (tableView.headerView(forSection: 0)?.bounds.height ?? 0) // + ((navigationController?.isToolbarHidden ?? true) ? 0 : (navigationController?.toolbar.bounds.height ?? 0))
+//            }
             break
             
         case .selectingAction:
@@ -558,7 +558,11 @@ class LexiconIndexViewController : UIViewController
         
         let resultsOverhead = searchText != nil ? locateView.frame.height : 0
         
-        let resultsMinimum = searchText != nil ? tableView.rowHeight : 0
+        let resultsMinimum = searchText != nil ? (tableView.rowHeight  + (tableView.headerView(forSection: 0)?.bounds.height ?? 0)) : 0
+        
+        
+//        tableViewHeightConstraint.constant = tableView.rowHeight + (tableView.headerView(forSection: 0)?.bounds.height ?? 0) // + ((navigationController?.isToolbarHidden ?? true) ? 0 : (navigationController?.toolbar.bounds.height ?? 0))
+
         
         let resultsTableViewSpace = bounds.height - resultsOverhead
         

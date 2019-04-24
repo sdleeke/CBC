@@ -1174,8 +1174,10 @@ extension Array where Element == String
         
         bodyHTML += "<br/>"
         
-        bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-    
+        bodyHTML += "<p>Index to \(words.count.formatted) Words</p>"
+
+//        bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+
         if let searchText = searchText?.uppercased() {
             bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
         }
@@ -4073,7 +4075,21 @@ extension UIColor
     }
 }
 
-extension Double {
+extension Int
+{
+    var formatted : String
+    {
+        get {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            return formatter.string(from: self as NSNumber) ?? self.description
+        }
+    }
+}
+
+extension Double
+{
     var secondsToHMS : String?
     {
         get {

@@ -255,7 +255,10 @@ class StringTree
                     total += count
                 }
             }
-            bodyHTML += "<p>Index to \(total) Words</p>"
+            
+            bodyHTML += "<p>Index to \(total.formatted) Words</p>"
+
+//            bodyHTML += "<p>Index to \(total) Words</p>"
             
             bodyHTML += "<table><tr>"
             
