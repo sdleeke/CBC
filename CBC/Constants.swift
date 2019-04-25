@@ -329,6 +329,7 @@ enum Constants {
     enum Sort {
         static let Alphabetical = "Alphabetical"
         static let Frequency    = "Frequency"
+        static let Length       = "Length"
     }
     
     enum SCRIPTURE_URL {

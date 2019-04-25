@@ -383,7 +383,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
         switch action {
         case Constants.Strings.Full_Screen:
             showFullScreen()
-            break
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
@@ -405,11 +404,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             } else {
                 self.printHTML(htmlString: self.html.string)
             }
-            break
             
         case Constants.Strings.Share:
             share()
-            break
             
         case Constants.Strings.Search:
             let alert = UIAlertController(  title: Constants.Strings.Search,
@@ -502,7 +499,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             alert.addAction(cancel)
             
             present(alert, animated: true, completion: nil)
-            break
             
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
@@ -515,6 +511,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
 
+                popover.allowsSelection = search
+                
 //                popover.actionTitle = Constants.Strings.Expanded_View
 //                popover.action = { [weak self, weak popover] (String) in
 //                    self?.process(work: { [weak self, weak popover] () -> (Any?) in
@@ -537,7 +535,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 present(navigationController, animated: true, completion: nil)
             }
-            break
             
         case Constants.Strings.Word_Cloud:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
@@ -576,7 +573,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 present(navigationController, animated: true, completion:  nil)
             }
-            break
             
         case Constants.Strings.Word_List:
             self.process(work: { [weak self] () -> (Any?) in
@@ -600,151 +596,55 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 // preferredModalPresentationStyle(viewController: self)
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
             })
-            break
             
-        case Constants.Strings.Word_Search:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
+        case Constants.Strings.Words:
+            self.selectWord(title:navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction:{ [weak self] in
+                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                 
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = Constants.Strings.Search // navigationItem.title
-                
-                popover.delegate = self
-                popover.purpose = .selectingWord
-                
-                popover.segments = true
-                
-                popover.section.function = { (method:String?,strings:[String]?) in
-                    return strings?.sort(method: method)
-                }
-                popover.section.method = Constants.Sort.Alphabetical
-
-                popover.bottomBarButton = true
-
-                var segmentActions = [SegmentAction]()
-                
-                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
-                    guard let popover = popover else {
-                        return
-                    }
-
-//                    guard let section = popover.section else {
-//                        return
-//                    }
-                    
-                    let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                    
-                    if popover.segmentedControl.selectedSegmentIndex == 0 {
-                        popover.section.method = Constants.Sort.Alphabetical
-                        
-                        popover.section.showHeaders = false
-                        popover.section.showIndex = true
-                        
-                        popover.section.indexStringsTransform = nil
-                        popover.section.indexHeadersTransform = nil
-                        popover.section.indexSort = nil
-                        
-                        popover.section.sorting = true
-                        popover.section.strings = strings
-                        popover.section.sorting = false
-                        
-                        popover.section.stringsAction?(strings, popover.section.sorting)
-                        
-                        popover.tableView?.reloadData()
-                    }
-                }))
-                
-                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
-                    guard let popover = popover else {
-                        return
-                    }
-                    
-//                    guard let section = popover.section else {
-//                        return
-//                    }
-                    
-                    let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                    
-                    if popover.segmentedControl.selectedSegmentIndex == 1 {
-                        popover.section.method = Constants.Sort.Frequency
-                        
-                        popover.section.showHeaders = false
-                        popover.section.showIndex = true
-                        
-                        popover.section.indexStringsTransform = { (string:String?) -> String? in
-                            return string?.log
+                return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                        var dict = [String:(String,String)]()
+                        for mismatch in mismatches {
+                            let parts = mismatch.components(separatedBy: " ")
+                            dict[parts[0]] = (parts[1],parts[2])
                         }
-                        
-                        popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                            return string
-                        }
-                        
-                        popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-                            guard let first = first else {
-                                return false
-                            }
-                            guard let second = second else {
-                                return true
-                            }
-                            return Int(first) > Int(second)
-                        }
-                        
-                        popover.section.sorting = true
-                        popover.section.strings = strings
-                        popover.section.sorting = false
-                        
-                        popover.section.stringsAction?(strings, popover.section.sorting)
-                        
-                        popover.tableView?.reloadData()
-                    }
-                }))
-
-                popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-                
-                popover.section.showIndex = true
-                
-                popover.search = true
-
-                popover.stringsFunction = { [weak self] in
-                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                    
-                    return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
-                        if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
-                            var dict = [String:(String,String)]()
-                            for mismatch in mismatches {
-                                let parts = mismatch.components(separatedBy: " ")
-                                dict[parts[0]] = (parts[1],parts[2])
-                            }
-                            if let tuple = dict[word] {
-                                return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
-                            } else {
-                                return "\(word) (\(count))"
-                            }
+                        if let tuple = dict[word] {
+                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
                         } else {
                             return "\(word) (\(count))"
                         }
-                    }).sorted()
-                }
-
-                self.popover?["WORDSEARCH"] = popover
-                
-                popover.completion = { [weak self] in
-                    self?.popover?["WORDSEARCH"] = nil
-                }
-                
-                present(navigationController, animated: true, completion: nil)
-            }
-            break
+                    } else {
+                        return "\(word) (\(count))"
+                    }
+                }).sorted()
+            })
             
+        case Constants.Strings.Word_Search:
+            self.selectWord(title:Constants.Strings.Search, purpose:.selectingWord, stringsFunction:{ [weak self] in
+                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                
+                return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                        var dict = [String:(String,String)]()
+                        for mismatch in mismatches {
+                            let parts = mismatch.components(separatedBy: " ")
+                            dict[parts[0]] = (parts[1],parts[2])
+                        }
+                        if let tuple = dict[word] {
+                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+                        } else {
+                            return "\(word) (\(count))"
+                        }
+                    } else {
+                        return "\(word) (\(count))"
+                    }
+                }).sorted()
+            })
+
         case Constants.Strings.Email_One:
             if let title = navigationItem.title, let htmlString = html.string {
                 self.mailHTML(to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, htmlString: htmlString)
             }
-            break
             
         case Constants.Strings.Refresh_Document:
             mediaItem?.download?.delete(block:true)
@@ -760,7 +660,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             setupWKWebView()
             
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
-            break
             
         case Constants.Strings.Lexical_Analysis:
             self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
@@ -796,7 +695,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.present(navigationController, animated: true, completion: nil)
                 }
             }
-            break
 
         default:
             break
@@ -826,7 +724,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingWord:
-            popover?["WORDSEARCH"]?.dismiss(animated: true, completion: nil)
+            guard search else {
+                return
+            }
+            
+            popover?["WORD"]?.dismiss(animated: true, completion: nil)
             
             self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
             
@@ -858,12 +760,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     }
                 }
             }
-            break
             
         case .selectingAction:
             popover?["ACTION"]?.dismiss(animated: true, completion: nil)
             selectingAction(action: string, mediaItem:mediaItem)
-            break
             
         default:
             break
@@ -953,15 +853,12 @@ extension WebViewController : WKNavigationDelegate
                 UIApplication.shared.open(scheme: navigationAction.request.url?.absoluteString) {}
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
-            break
             
         case .other: // loading html string
             decisionHandler(WKNavigationActionPolicy.allow)
-            break
             
         default:
             decisionHandler(WKNavigationActionPolicy.cancel)
-            break
         }
     }
 }
@@ -979,12 +876,12 @@ extension WebViewController: UIScrollViewDelegate
             switch content {
             case .document:
                 captureContentOffsetAndZoomScale()
-                break
+    
             case .pdf:
                 break
+
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
-                break
             }
         }
     }
@@ -1000,12 +897,12 @@ extension WebViewController: UIScrollViewDelegate
             switch content {
             case .document:
                 captureContentOffsetAndZoomScale()
-                break
+    
             case .pdf:
                 break
+                
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
-                break
             }
         }
     }
@@ -1016,12 +913,12 @@ extension WebViewController: UIScrollViewDelegate
             switch content {
             case .document:
                 captureContentOffsetAndZoomScale()
-                break
+    
             case .pdf:
                 break
+                
             case .html:
                 captureHTMLContentOffsetAndZoomScale()
-                break
             }
         }
     }
@@ -1108,7 +1005,6 @@ class WebViewController: UIViewController
                 
             case .downloading:
                 progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                break
                 
             case .downloaded:
                 break
@@ -1140,7 +1036,6 @@ class WebViewController: UIViewController
                     // Can't prevent this from getting called twice in succession.
                     self.networkUnavailable("Document could not be loaded.")
                 }
-                break
                 
             case .downloaded:
                 break
@@ -1257,11 +1152,17 @@ class WebViewController: UIViewController
             
             if (bodyHTML != nil) {
                 actionMenu.append(Constants.Strings.Word_Search)
-                actionMenu.append(Constants.Strings.Word_List)
-                actionMenu.append(Constants.Strings.Word_Picker)
             }
         }
         
+        if (bodyHTML != nil) {
+            if !search {
+                actionMenu.append(Constants.Strings.Words)
+            }
+            actionMenu.append(Constants.Strings.Word_List)
+            actionMenu.append(Constants.Strings.Word_Picker)
+        }
+
         if (bodyHTML != nil) {
             if Globals.shared.splitViewController?.isCollapsed == false {
                 let vClass = Globals.shared.splitViewController?.traitCollection.verticalSizeClass
@@ -1435,7 +1336,6 @@ class WebViewController: UIViewController
                 
             default:
                 navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
-                break
             }
         }
     }
@@ -1642,14 +1542,12 @@ class WebViewController: UIViewController
         switch self.content {
         case .document:
             captureContentOffsetAndZoomScale()
-            break
 
         case .pdf:
             break
             
         case .html:
             captureHTMLContentOffsetAndZoomScale()
-            break
         }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -1658,14 +1556,12 @@ class WebViewController: UIViewController
             switch self.content {
             case .document:
                 self.setupWKContentOffset(self.wkWebView)
-                break
                 
             case .pdf:
                 break
                 
             case .html:
                 self.setupHTMLWKZoomScaleAndContentOffset(self.wkWebView)
-                break
             }
             
             // only works for popover
@@ -1703,11 +1599,9 @@ class WebViewController: UIViewController
         switch content {
         case .document:
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
-            break
             
         case .pdf:
             loadPDF(urlString: pdfURLString)
-            break
             
         default:
             break
@@ -2153,15 +2047,13 @@ class WebViewController: UIViewController
                 activityIndicator.startAnimating()
 //
 //                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
-                break
-
+    
             case .pdf:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
 //
 //                loadPDF(urlString: pdfURLString)
-                break
-
+    
             case .html:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
@@ -2173,8 +2065,7 @@ class WebViewController: UIViewController
 //                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
 //                    }
 //                }
-                break
-            }
+                }
 
             preferredContentSize = CGSize(width: 0,height: 44)
 
@@ -2216,14 +2107,12 @@ class WebViewController: UIViewController
 //                activityIndicator.startAnimating()
 //
                 loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
-                break
                 
             case .pdf:
 //                activityIndicator.isHidden = false
 //                activityIndicator.startAnimating()
 //
                 loadPDF(urlString: pdfURLString)
-                break
                 
             case .html:
                 if html.string != nil {
@@ -2236,7 +2125,6 @@ class WebViewController: UIViewController
                     activityIndicator.stopAnimating()
                     barButtonItems(isEnabled: true)
                 }
-                break
             }
 //
 //            preferredContentSize = CGSize(width: 0,height: 44)

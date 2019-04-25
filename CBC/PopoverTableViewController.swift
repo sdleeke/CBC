@@ -1825,6 +1825,10 @@ class PopoverTableViewController : UIViewController
                 segmentedControl.selectedSegmentIndex = 1
                 break
                 
+            case Constants.Sort.Length:
+                segmentedControl.selectedSegmentIndex = 2
+                break
+
             default:
                 break
             }

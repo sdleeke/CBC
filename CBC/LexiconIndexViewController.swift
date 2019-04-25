@@ -876,6 +876,23 @@ class LexiconIndexViewController : UIViewController
                         var sortedStrings:[String]? = nil
                         
                         switch method {
+                        case Constants.Sort.Length:
+                            sortedStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
+                                guard let firstCount = first.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
+                                    return false
+                                }
+                                
+                                guard let secondCount = second.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
+                                    return true
+                                }
+                                
+                                if firstCount == secondCount {
+                                    return first < second
+                                } else {
+                                    return firstCount > secondCount
+                                }
+                            })
+
                         case Constants.Sort.Alphabetical:
                             sortedStrings = strings.sorted()
                             
@@ -979,7 +996,7 @@ class LexiconIndexViewController : UIViewController
                         // Cancel or wait?
                         self?.operationQueue.cancelAllOperations()
                         
-//                        DispatchQueue.global(qos: .background).async { [weak self] in
+                        //                        DispatchQueue.global(qos: .background).async { [weak self] in
                         self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
@@ -989,7 +1006,7 @@ class LexiconIndexViewController : UIViewController
                                 self?.updateLocateButton()
                             }
                             
-//                            self?.wordsTableViewController.section.sorting = true
+                            //                            self?.wordsTableViewController.section.sorting = true
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
                             
@@ -1026,7 +1043,7 @@ class LexiconIndexViewController : UIViewController
                                         return Int(first) > Int(second)
                                     }
                                 }
-
+                                
                                 wordsTableViewController.unfilteredSection.sorting = true
                                 wordsTableViewController.unfilteredSection.strings = strings
                                 wordsTableViewController.unfilteredSection.sorting = false
@@ -1043,8 +1060,83 @@ class LexiconIndexViewController : UIViewController
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true
-//                                section.sorting = false
-
+                                //                                section.sorting = false
+                                
+                                self?.updateLocateButton()
+                            }
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self] in
+                        // Cancel or wait?
+                        self?.operationQueue.cancelAllOperations()
+                        
+                        //                        DispatchQueue.global(qos: .background).async { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
+                            Thread.onMainThread {
+                                self?.wordsTableViewController.tableView.isHidden = true
+                                self?.wordsTableViewController.activityIndicator.startAnimating()
+                                self?.wordsTableViewController.segmentedControl.isEnabled = false
+                                
+                                self?.updateLocateButton()
+                            }
+                            
+                            //                            self?.wordsTableViewController.section.sorting = true
+                            
+                            let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Length,self?.lexicon?.words?.keys()) // self?.wordsTableViewController.section.strings
+                            
+                            Thread.onMainThread {
+                                guard let wordsTableViewController = self?.wordsTableViewController else {
+                                    return
+                                }
+                                
+                                guard let section = wordsTableViewController.section else {
+                                    return
+                                }
+                                
+                                if wordsTableViewController.segmentedControl.selectedSegmentIndex == 2 {
+                                    section.method = Constants.Sort.Length
+                                    
+                                    section.showHeaders = false
+                                    section.showIndex = true
+                                    
+                                    section.indexStringsTransform = { (string:String?) -> String? in
+                                        return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
+                                    }
+                                    
+                                    section.indexHeadersTransform = { (string:String?) -> String? in
+                                        return string
+                                    }
+                                    
+                                    section.indexSort = { (first:String?,second:String?) -> Bool in
+                                        guard let first = first else {
+                                            return false
+                                        }
+                                        guard let second = second else {
+                                            return true
+                                        }
+                                        return Int(first) > Int(second)
+                                    }
+                                }
+                                
+                                wordsTableViewController.unfilteredSection.sorting = true
+                                wordsTableViewController.unfilteredSection.strings = strings
+                                wordsTableViewController.unfilteredSection.sorting = false
+                                
+                                wordsTableViewController.updateSearchResults()
+                                
+                                section.stringsAction?(strings,section.sorting)
+                                
+                                wordsTableViewController.tableView.isHidden = false
+                                wordsTableViewController.tableView.reloadData()
+                                
+                                if self?.lexicon?.creating == false {
+                                    wordsTableViewController.activityIndicator.stopAnimating()
+                                }
+                                
+                                wordsTableViewController.segmentedControl.isEnabled = true
+                                //                                section.sorting = false
+                                
                                 self?.updateLocateButton()
                             }
                         }

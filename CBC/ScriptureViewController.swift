@@ -181,6 +181,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true)
                     }
                 }) { (data:Any?) in
+                    guard let data = data else {
+                        Alerts.shared.alert(title:"Lexical Analysis Not Available")
+                        return
+                    }
+                    
                     if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? WebViewController {
                         popover.navigationItem.title = (self.scripture?.reference ?? "") +  " Lexical Analysis"
@@ -296,120 +301,138 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
+            case Constants.Strings.Word_List:
+                self.process(work: { [weak self] () -> (Any?) in
+                    return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return "\(word) (\(count))"
+                    }).sorted().tableHTML
+                }, completion: { [weak self] (data:Any?) in
+                    // preferredModalPresentationStyle(viewController: self)
+                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                })
+                break
+                
             case Constants.Strings.Words:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.navigationItem.title = navigationItem.title
-                    
-                    popover.delegate = self
-                    popover.purpose = .selectingWord
-                    
-                    popover.segments = true
-                    
-                    popover.section.function = { (method:String?,strings:[String]?) in
-                        return strings?.sort(method: method)
-                    }
-                    popover.section.method = Constants.Sort.Alphabetical
-                    
-                    popover.bottomBarButton = true
-                    
-                    var segmentActions = [SegmentAction]()
-                    
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
-                        guard let popover = popover else {
-                            return
-                        }
-                        
-                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                        
-                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            popover.section.method = Constants.Sort.Alphabetical
-                            
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            
-                            popover.section.indexStringsTransform = nil
-                            popover.section.indexHeadersTransform = nil
-                            popover.section.indexSort = nil
-                            
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            
-                            popover.section.stringsAction?(strings, popover.section.sorting)
+                self.selectWord(title:navigationItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
+                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                    return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return "\(word) (\(count))"
+                    }).sorted()
+                })
 
-                            popover.tableView?.reloadData()
-                        }
-                    }))
-                    
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
-                        guard let popover = popover else {
-                            return
-                        }
-                        
-                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                        
-                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            popover.section.method = Constants.Sort.Frequency
-                            
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-                                return string?.log
-                            }
-                            
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                                return string
-                            }
-                            
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-                                guard let first = first else {
-                                    return false
-                                }
-                                guard let second = second else {
-                                    return true
-                                }
-                                return Int(first) > Int(second)
-                            }
-                            
-                            popover.section.sorting = true
-                            popover.section.strings = strings
-                            popover.section.sorting = false
-                            
-                            popover.section.stringsAction?(strings, popover.section.sorting)
-                            
-                            popover.tableView?.reloadData()
-                        }
-                    }))
-                    
-                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-                    
-                    popover.section.showIndex = true
-                    
-                    popover.search = true
-                    
-                    popover.stringsFunction = { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return "\(word) (\(count))"
-                        }).sorted()
-                    }
-                    
-                    self.popover?["WORD"] = popover
-                    
-                    popover.completion = { [weak self] in
-                        self?.popover?["WORD"] = nil
-                    }
-                    
-                    present(navigationController, animated: true, completion: nil)
-                }
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//
+//                    navigationController.popoverPresentationController?.delegate = self
+//
+//                    popover.navigationController?.isNavigationBarHidden = false
+//
+//                    popover.navigationItem.title = navigationItem.title
+//
+//                    popover.delegate = self
+//                    popover.purpose = .selectingWord
+//
+//                    popover.segments = true
+//
+//                    popover.section.function = { (method:String?,strings:[String]?) in
+//                        return strings?.sort(method: method)
+//                    }
+//                    popover.section.method = Constants.Sort.Alphabetical
+//
+//                    popover.bottomBarButton = true
+//
+//                    var segmentActions = [SegmentAction]()
+//
+//                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
+//                        guard let popover = popover else {
+//                            return
+//                        }
+//
+//                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
+//
+//                        if popover.segmentedControl.selectedSegmentIndex == 0 {
+//                            popover.section.method = Constants.Sort.Alphabetical
+//
+//                            popover.section.showHeaders = false
+//                            popover.section.showIndex = true
+//
+//                            popover.section.indexStringsTransform = nil
+//                            popover.section.indexHeadersTransform = nil
+//                            popover.section.indexSort = nil
+//
+//                            popover.section.sorting = true
+//                            popover.section.strings = strings
+//                            popover.section.sorting = false
+//
+//                            popover.section.stringsAction?(strings, popover.section.sorting)
+//
+//                            popover.tableView?.reloadData()
+//                        }
+//                    }))
+//
+//                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
+//                        guard let popover = popover else {
+//                            return
+//                        }
+//
+//                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+//
+//                        if popover.segmentedControl.selectedSegmentIndex == 1 {
+//                            popover.section.method = Constants.Sort.Frequency
+//
+//                            popover.section.showHeaders = false
+//                            popover.section.showIndex = true
+//
+//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+//                                return string?.log
+//                            }
+//
+//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                                return string
+//                            }
+//
+//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+//                                guard let first = first else {
+//                                    return false
+//                                }
+//                                guard let second = second else {
+//                                    return true
+//                                }
+//                                return Int(first) > Int(second)
+//                            }
+//
+//                            popover.section.sorting = true
+//                            popover.section.strings = strings
+//                            popover.section.sorting = false
+//
+//                            popover.section.stringsAction?(strings, popover.section.sorting)
+//
+//                            popover.tableView?.reloadData()
+//                        }
+//                    }))
+//
+//                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+//
+//                    popover.section.showIndex = true
+//
+//                    popover.search = true
+//
+//                    popover.stringsFunction = { [weak self] in
+//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+//                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+//                            return "\(word) (\(count))"
+//                        }).sorted()
+//                    }
+//
+//                    self.popover?["WORD"] = popover
+//
+//                    popover.completion = { [weak self] in
+//                        self?.popover?["WORD"] = nil
+//                    }
+//
+//                    present(navigationController, animated: true, completion: nil)
+//                }
                 break
                 
             case Constants.Strings.Share:
@@ -895,7 +918,7 @@ class ScriptureViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
+            self.alert(title: "Not Main Thread", message: "ScriptureViewController:actions", completion: nil)
             return
         }
 
@@ -1022,6 +1045,8 @@ class ScriptureViewController : UIViewController
             if let string = self.scripture?.html?[reference] {
                 self.webViewController?.html.string = string.stripHead.insertHead(fontSize:webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                 
+                self.webViewController?.bodyHTML = self.webViewController?.html.string
+                
                 if let url = self.webViewController?.html.fileURL {
                     self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
@@ -1037,6 +1062,8 @@ class ScriptureViewController : UIViewController
 //                        self?.webViewController?.html.string = string
 
                     self?.webViewController?.html.string = string.stripHead.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                    
+                    self?.webViewController?.bodyHTML = self?.webViewController?.html.string
                     
                     if let url = self?.webViewController?.html.fileURL {
                         self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
@@ -1057,6 +1084,8 @@ class ScriptureViewController : UIViewController
 
                     self?.webViewController?.html.string = bodyString.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                     
+                    self?.webViewController?.bodyHTML = self?.webViewController?.html.string
+
                     if let url = self?.webViewController?.html.fileURL {
                         self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }

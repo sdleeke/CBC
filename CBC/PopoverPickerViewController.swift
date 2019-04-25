@@ -283,7 +283,9 @@ extension PopoverPickerViewController : UIPickerViewDelegate
 
         spinner.startAnimating()
         
-        toolbarItems?[1].isEnabled = false
+        if allowsSelection {
+            toolbarItems?[1].isEnabled = false
+        }
         
         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
 //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
@@ -407,7 +409,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 })
                 break
 
-            case Constants.Strings.View_Strings:
+            case Constants.Strings.View_Words:
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
                     self?.popover?["ACTION"] = nil
                 })
@@ -547,6 +549,8 @@ class PopoverPickerViewController : UIViewController
     
 //    var incremental = false
     
+    var allowsSelection = true
+    
     var barButtonAction : ((String?)->())?
     var barButtonActionTitle : String?
     
@@ -662,7 +666,7 @@ class PopoverPickerViewController : UIViewController
 //        }
         
         actionMenu.append(Constants.Strings.Expanded_View)
-        actionMenu.append(Constants.Strings.View_Strings)
+        actionMenu.append(Constants.Strings.View_Words)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -1133,11 +1137,17 @@ class PopoverPickerViewController : UIViewController
 
         var barButtons = [UIBarButtonItem]()
         
-        barButtons.append(spaceButton)
-        barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
-        barButtons.append(spaceButton)
+        if allowsSelection {
+            barButtons.append(spaceButton)
+            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
+            barButtons.append(spaceButton)
+        }
 
         if barButtonAction != nil {
+            if !allowsSelection {
+                barButtons.append(spaceButton)
+            }
+            
             barButtons.append(UIBarButtonItem(title: barButtonActionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doBarButtonAction)))
             barButtons.append(spaceButton)
         }
@@ -1145,8 +1155,11 @@ class PopoverPickerViewController : UIViewController
         toolbarItems = barButtons.count > 0 ? barButtons : nil
         
         navigationController?.isToolbarHidden = toolbarItems == nil
-        toolbarItems?[1].isEnabled = false
 
+        if allowsSelection {
+            toolbarItems?[1].isEnabled = false
+        }
+        
 //        self.operationQueue.addOperation {
 //            self.updateActionButton()
 //            self.updatePickerSelections()
@@ -1328,8 +1341,10 @@ class PopoverPickerViewController : UIViewController
 
             self?.string = self?.wordFromPicker()
             
-            self?.toolbarItems?[1].isEnabled = (self?.didAppear == true) && ((self?.stringTree?.incremental == true) ? true : (self?.stringTree?.completed == true))
-
+            if self?.allowsSelection == true {
+                self?.toolbarItems?[1].isEnabled = (self?.didAppear == true) && ((self?.stringTree?.incremental == true) ? true : (self?.stringTree?.completed == true))
+            }
+            
             if self?.stringTree?.incremental == true { // stringTree?.
                 if self?.complete == true, self?.didAppear == true {
                     self?.spinner.stopAnimating()
