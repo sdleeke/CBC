@@ -159,7 +159,7 @@ extension TextViewController: UISearchBarDelegate
         if let changedText = changedText {
             searchQueue.cancelAllOperations()
             
-            let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+            let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
             
             searchQueue.addOperation {
                 Thread.onMainThread {
@@ -225,8 +225,8 @@ extension TextViewController : UITextViewDelegate
             searchActive = false
         }
         
-        if let changedText = changedText, self.textView.attributedText != NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal) {
-            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        if let changedText = changedText, self.textView.attributedText != NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body) {
+            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
         }
         
         return true
@@ -338,7 +338,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.normal)
+                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
                                                             }
                                                         })
                             
@@ -357,7 +357,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.normal)
+                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
                                                             }
                                                         })
                             
@@ -635,25 +635,27 @@ extension TextViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-            case Constants.Strings.Word_List:
+            case Constants.Strings.Word_Index:
                 if let mediaItem = mediaItem, mediaItem.hasNotesText {
                     self.process(work: { [weak self] () -> (Any?) in
                         return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
-                        }).sorted().tableHTML
+                        }).sorted().tableHTML(title:mediaItem.title)
                     }, completion: { [weak self] (data:Any?) in
-                            // preferredModalPresentationStyle(viewController: self)
-                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                        // preferredModalPresentationStyle(viewController: self)
+                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                        self?.updateBarButtons()
                     })
                 } else
                 if let transcript = transcript {
                     self.process(work: { [weak self] () -> (Any?) in
                         return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                             return "\(word) (\(count))"
-                        }).sorted().tableHTML
+                        }).sorted().tableHTML(title:transcript.title)
                     }, completion: { [weak self] (data:Any?) in
                         // preferredModalPresentationStyle(viewController: self)
-                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                        self?.updateBarButtons()
                     })
                 } else {
                     self.process(work: { [weak self] () -> (Any?) in
@@ -661,8 +663,9 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             return "\(string) (\(count))"
                         }).sorted().tableHTML
                     }, completion: { [weak self] (data:Any?) in
-                            // preferredModalPresentationStyle(viewController: self)
-                            self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                        // preferredModalPresentationStyle(viewController: self)
+                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                        self?.updateBarButtons()
                     })
                 }
                 break
@@ -1322,7 +1325,7 @@ class TextViewController : UIViewController
         trackingTimer = nil
         
         if let changedText = changedText {
-            textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+            textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
         }
     }
     
@@ -1376,9 +1379,9 @@ class TextViewController : UIViewController
                     let before = String(changedText[..<range.lowerBound])
                     let text = String(changedText[range])
                     let after = String(changedText[range.upperBound...])
-                    let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.normal)
+                    let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.body)
                     let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
-                    let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
+                    let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.body)
                     
                     beforeAttr.append(textAttr)
                     beforeAttr.append(afterAttr)
@@ -1621,7 +1624,7 @@ class TextViewController : UIViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                                                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                                                                     }
                                                                 })
 
@@ -1638,7 +1641,7 @@ class TextViewController : UIViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                        self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                     }
                                                                 })
 
@@ -1723,7 +1726,7 @@ class TextViewController : UIViewController
                         self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                         })
                         
                         self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1753,7 +1756,7 @@ class TextViewController : UIViewController
                     self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                         self?.updateBarButtons()
                         self?.changedText = string
-                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                     })
 
                     self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1824,18 +1827,22 @@ class TextViewController : UIViewController
 //                                    popover.stringTree = StringTree()
                                     
                                     popover.barButtonActionTitle = "Show"
-                                    popover.barButtonAction = { (gapThresholdString:String?) in
+                                    popover.barButtonAction = { [weak popover] (gapThresholdString:String?) in
                                         guard let gapThresholdString = gapThresholdString, let gapThreshold = Double(gapThresholdString) else {
                                             return
                                         }
                                         
-                                        if var words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
-                                            if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
-                                                return first > second
+                                        popover?.process(work: { () -> (Any?) in
+                                            guard var words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
+                                                if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
+                                                    return first > second
+                                                }
+                                                
+                                                return first["gap"] != nil
+                                            }), words.count > 0, var newText = self?.text else {
+                                                return nil
                                             }
                                             
-                                            return first["gap"] != nil
-                                        }), words.count > 0, var newText = self?.text {
                                             repeat {
                                                 let first = words.removeFirst()
                                                 
@@ -1876,6 +1883,12 @@ class TextViewController : UIViewController
                                                 }
                                             } while words.count > 0
                                             
+                                            return newText
+                                        }, completion: { (data:Any?) in
+                                            guard var newText = data as? String else {
+                                                return
+                                            }
+                                            
                                             if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                                                 let webView = navigationController.viewControllers[0] as? WebViewController {
                                                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -1890,10 +1903,10 @@ class TextViewController : UIViewController
                                                 Thread.onMainThread {
                                                     webView.navigationItem.title = self?.navigationItem.title
                                                     
-                                                    popover.present(navigationController, animated: true)
+                                                    popover?.present(navigationController, animated: true)
                                                 }
                                             }
-                                        }
+                                        })
                                     }
                                     
                                     popover.stringsFunction = {
@@ -1924,7 +1937,7 @@ class TextViewController : UIViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                         }
                                                                     })
                                         
@@ -1945,7 +1958,7 @@ class TextViewController : UIViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.normal)
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                         }
                                                                     })
                                         
@@ -2051,7 +2064,7 @@ class TextViewController : UIViewController
                             self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
-                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                             })
                             
                             self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -2096,7 +2109,7 @@ class TextViewController : UIViewController
                         self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                         })
                         
                         self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -2304,7 +2317,7 @@ class TextViewController : UIViewController
                 
                 actionMenu.append(Constants.Strings.Word_Picker)
 
-                actionMenu.append(Constants.Strings.Word_List)
+                actionMenu.append(Constants.Strings.Word_Index)
 
                 if Globals.shared.splitViewController?.isCollapsed == false {
                     let vClass = Globals.shared.splitViewController?.traitCollection.verticalSizeClass
@@ -2537,7 +2550,7 @@ class TextViewController : UIViewController
         searchBar.isUserInteractionEnabled = searchInteractive
 
         if let changedText = changedText {
-            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
         }
         
         if track {
@@ -2821,9 +2834,9 @@ class TextViewController : UIViewController
 
         let fullAttributedString = NSMutableAttributedString()
         
-        fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.normal))
+        fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.body))
         fullAttributedString.append(NSAttributedString(string: stringFull,attributes: Constants.Fonts.Attributes.highlighted))
-        fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.normal))
+        fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.body))
         
         if interactive {
             Thread.onMainThread {
@@ -2835,9 +2848,9 @@ class TextViewController : UIViewController
             let string = String(text[range])
             let after = String(String(text[range.upperBound...]).dropLast(max(String(text[range.upperBound...]).count - 10,0))) + "..."
             
-            let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.normal)
+            let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.body)
             let stringAttr = NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.highlighted)
-            let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
+            let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.body)
             
             let snippet = NSMutableAttributedString()
             
@@ -3157,9 +3170,9 @@ class TextViewController : UIViewController
             let stringFull = String(text[range])
             let afterFull = String(text[range.upperBound...])
             
-            fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.normal))
+            fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.body))
             fullAttributedString.append(NSAttributedString(string: stringFull,attributes: Constants.Fonts.Attributes.highlighted))
-            fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.normal))
+            fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.body))
             
             let attributedString = NSMutableAttributedString()
             
@@ -3167,9 +3180,9 @@ class TextViewController : UIViewController
             let string = String(text[range])
             let after = String(String(text[range.upperBound...]).dropLast(max(String(text[range.upperBound...]).count - 10,0))) + "..."
             
-            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.body))
             attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
-            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.body))
             
             let prior = String(text[..<range.lowerBound]).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
@@ -3185,9 +3198,9 @@ class TextViewController : UIViewController
                     let string = String(text[range])
                     let after = String(text[range.upperBound...])
 
-                    fullAttributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+                    fullAttributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.body))
                     fullAttributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
-                    fullAttributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+                    fullAttributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.body))
 
                     Thread.onMainThread {
                         self.textView.attributedText = fullAttributedString
@@ -3226,7 +3239,7 @@ class TextViewController : UIViewController
                         
                         text.replaceSubrange(range, with: newText)
                         
-                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
+                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.body)
                         
                         completion?(text)
                         
@@ -3253,7 +3266,7 @@ class TextViewController : UIViewController
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
                         let vc = self
-                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
+                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.body)
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         
                         // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
@@ -3270,7 +3283,7 @@ class TextViewController : UIViewController
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
-                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.normal)
+                        self.textView.attributedText = NSAttributedString(string: text,attributes: Constants.Fonts.Attributes.body)
                     }))
                     
                     Alerts.shared.alert(category:nil,title:"Change \"\(string)\" to \"\(newText)\"?",message:nil,attributedText:attributedString,actions:actions)
@@ -3380,7 +3393,7 @@ class TextViewController : UIViewController
                 
                 self?.changeText(interactive: self?.automaticInteractive == true, makeVisible:self?.automaticVisible == true, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                     self?.changedText = string
-                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                 })
                 
                 self?.editingQueue.waitUntilAllOperationsAreFinished()

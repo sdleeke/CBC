@@ -1441,6 +1441,7 @@ class MediaViewController: UIViewController
     
     deinit {
         debug(self)
+        swapVideoButton?.removeFromSuperview()
         webQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
         operationQueue.cancelAllOperations()
@@ -1603,10 +1604,8 @@ class MediaViewController: UIViewController
                         Globals.shared.mediaPlayer.view?.isHidden = true
                         
                         videoLocation = .withDocuments
-                        self.view.bringSubviewToFront(tableView)
-                        self.view.bringSubviewToFront(vSlideView)
-                        self.view.bringSubviewToFront(hSlideView)
-                        tableView.isScrollEnabled = true
+
+                        setupVideoLocation()
 
                         setupSpinner()
                         
@@ -1626,7 +1625,7 @@ class MediaViewController: UIViewController
 
                     setupSegmentControls()
                     
-                    setupToolbar()
+                    setupSwapVideoButton()
                     break
                     
                 default:
@@ -2875,9 +2874,9 @@ class MediaViewController: UIViewController
     
     func setupVideoLocation()
     {
-        guard let tableView = tableView else {
-            return
-        }
+//        guard let tableView = tableView else {
+//            return
+//        }
         
         switch videoLocation {
         case .withDocuments:
@@ -3128,7 +3127,7 @@ class MediaViewController: UIViewController
         setupPlayPauseButton()
 
         setupSegmentControls()
-        setupToolbar()
+        setupSwapVideoButton()
     }
     
     @objc func paused()
@@ -4480,24 +4479,79 @@ class MediaViewController: UIViewController
         }
     }
     
-    func setupToolbar()
+    var swapVideoButton : UIButton!
+
+    func setupSwapVideoButton()
     {
-        let swapVideoButton = UIBarButtonItem(title: Constants.Strings.Swap_Video_Location, style: UIBarButtonItem.Style.plain, target: self, action: #selector(swapVideoLocation))
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+//        let swapVideoButton = UIBarButtonItem(title: Constants.Strings.Swap_Video_Location, style: UIBarButtonItem.Style.plain, target: self, action: #selector(swapVideoLocation))
+//        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+//
+//        var barButtons = [UIBarButtonItem]()
         
-        var barButtons = [UIBarButtonItem]()
-        
-        if canSwapVideo {
-            barButtons.append(spaceButton)
-            barButtons.append(swapVideoButton)
-            barButtons.append(spaceButton)
-            
-            navigationController?.toolbar.isTranslucent = false
+        guard canSwapVideo else {
+            return
         }
         
-        setToolbarItems(barButtons, animated: true)
+//            barButtons.append(spaceButton)
+//            barButtons.append(swapVideoButton)
+//            barButtons.append(spaceButton)
+        
+        guard let bounds = Globals.shared.mediaPlayer.controller?.view.bounds else {
+            return
+        }
+        
+        if swapVideoButton == nil {
+            swapVideoButton = UIButton(type: .roundedRect)
+        }
+        
+        var title = "Swap Video Location"
+        
+        switch videoLocation {
+        case .withDocuments:
+            title = "Video to Bottom"
+            break
+            
+        case .withTableView:
+            title = "Video to Top"
+            break
+        }
+        
+//                let heightSize: CGSize = CGSize(width: bounds.width, height: .greatestFiniteMagnitude)
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
 
-        self.navigationController?.isToolbarHidden = !canSwapVideo
+        let boundingRect = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil)
+
+//        swapVideoButton.frame = CGRect(x: bounds.width/2 - boundingRect.width/2, y: bounds.height - boundingRect.height, width: boundingRect.width, height: boundingRect.height)
+        swapVideoButton.frame = CGRect(x: bounds.width - boundingRect.width - 10, y: 20, width: boundingRect.width, height: boundingRect.height)
+        
+        swapVideoButton.addTarget(self, action: #selector(swapVideoLocation), for: .touchUpInside)
+        
+        swapVideoButton.setTitle(title)
+//        swapVideoButton.setAttributedTitle(NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.callout), for: .normal)
+        
+        swapVideoButton.removeFromSuperview()
+        
+        Globals.shared.mediaPlayer.controller?.contentOverlayView?.addSubview(swapVideoButton)
+
+        swapVideoButton.translatesAutoresizingMaskIntoConstraints = false
+
+        let top = NSLayoutConstraint(item: swapVideoButton, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: swapVideoButton.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+        swapVideoButton.superview?.addConstraint(top)
+        
+//        let leading = NSLayoutConstraint(item: swapVideoButton, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: swapVideoButton.superview, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1.0, constant: 0.0)
+//        swapVideoButton.superview?.addConstraint(leading)
+        
+        let trailing = NSLayoutConstraint(item: swapVideoButton, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: swapVideoButton.superview, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1.0, constant: -10.0)
+        swapVideoButton.superview?.addConstraint(trailing)
+        
+//        let bottom = NSLayoutConstraint(item: swapVideoButton, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: swapVideoButton.superview, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
+//        swapVideoButton.superview?.addConstraint(bottom)
+
+//            navigationController?.toolbar.isTranslucent = false
+        
+//        setToolbarItems(barButtons, animated: true)
+
+//        self.navigationController?.isToolbarHidden = !canSwapVideo
     }
     
     @objc func updateUI()
@@ -4547,7 +4601,7 @@ class MediaViewController: UIViewController
 
         setupSegmentControls()
         
-        setupToolbar()
+        setupSwapVideoButton()
         
         scrollToMediaItem(selectedMediaItem, select: true, position: .none)
     }
@@ -5602,7 +5656,7 @@ class MediaViewController: UIViewController
         setupActionAndTagsButtons()
 
         setupSegmentControls()
-        setupToolbar()
+        setupSwapVideoButton()
     }
     
     func setupSpinner()

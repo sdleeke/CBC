@@ -238,6 +238,8 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.delegate = webViewController
                     
+                    popover.allowsSelection = false
+                    
 //                    popover.actionTitle = Constants.Strings.Expanded_View
 //                    popover.action = { (String) in
 //                        self.process(work: { [weak self] () -> (Any?) in
@@ -301,19 +303,19 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-            case Constants.Strings.Word_List:
+            case Constants.Strings.Word_Index:
                 self.process(work: { [weak self] () -> (Any?) in
                     return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
-                    }).sorted().tableHTML
+                    }).sorted().tableHTML(title:self?.scripture?.reference)
                 }, completion: { [weak self] (data:Any?) in
                     // preferredModalPresentationStyle(viewController: self)
-                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                 })
                 break
                 
             case Constants.Strings.Words:
-                self.selectWord(title:navigationItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
+                self.selectWord(title:navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                     return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
@@ -576,7 +578,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //        let label = (view as? UILabel) ?? UILabel()
 //
 //        if let title = title(forRow: row, forComponent: component) {
-//            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
+//            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.body)
 //        }
 //
 //        return label

@@ -103,7 +103,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         
         if stringTree != nil {
             if let title = title(forRow: row, forComponent: component) {
-                label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
+                label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.body)
             }
             
             label.textAlignment = .left
@@ -114,7 +114,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             }
             
             if let string = strings?[row] {
-                label.attributedText = NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+                label.attributedText = NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
             }
             
             label.textAlignment = .center
@@ -185,7 +185,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             
             if let strings = strings {
                 for string in strings {
-                    let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
+                    let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width
                     
                     if stringWidth > width {
                         width = stringWidth
@@ -228,7 +228,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                 
             default:
                 for stringNode in stringNodes {
-                    if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width {
+                    if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width {
                         if stringWidth > width {
                             width = stringWidth
                         }
@@ -409,7 +409,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 })
                 break
 
-            case Constants.Strings.View_Words:
+            case Constants.Strings.Word_Index:
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
                     self?.popover?["ACTION"] = nil
                 })
@@ -428,7 +428,13 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     return self?.stringTree?.wordsHTML
                 }, completion: { [weak self] (data:Any?) in
                     // preferredModalPresentationStyle(viewController: self)
-                    self?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: "Words", htmlString: data as? String)
+                    var style:UIModalPresentationStyle = .overCurrentContext
+
+                    if self?.lexicon != nil {
+                        style = .fullScreen
+                    }
+
+                    self?.presentHTMLModal(mediaItem: nil, style: style, title: "Words", htmlString: data as? String)
                     
                     Thread.onMainThread {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = true
@@ -666,7 +672,7 @@ class PopoverPickerViewController : UIViewController
 //        }
         
         actionMenu.append(Constants.Strings.Expanded_View)
-        actionMenu.append(Constants.Strings.View_Words)
+        actionMenu.append(Constants.Strings.Word_Index)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -732,6 +738,7 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewDidLoad()
 
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
@@ -1000,6 +1007,36 @@ class PopoverPickerViewController : UIViewController
     
     var didAppear = false
     
+    func setupBarButtonItems()
+    {
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+        
+        var barButtons = [UIBarButtonItem]()
+        
+        if allowsSelection {
+            barButtons.append(spaceButton)
+            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
+            barButtons.append(spaceButton)
+        }
+        
+        if barButtonAction != nil {
+            if !allowsSelection {
+                barButtons.append(spaceButton)
+            }
+            
+            barButtons.append(UIBarButtonItem(title: barButtonActionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doBarButtonAction)))
+            barButtons.append(spaceButton)
+        }
+        
+        toolbarItems = barButtons.count > 0 ? barButtons : nil
+        
+        navigationController?.isToolbarHidden = toolbarItems == nil
+        
+        if allowsSelection {
+            toolbarItems?[1].isEnabled = false
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -1010,8 +1047,6 @@ class PopoverPickerViewController : UIViewController
             stringTree = StringTree()
         }
         
-        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
-        
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
@@ -1019,11 +1054,14 @@ class PopoverPickerViewController : UIViewController
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
-                if navigationItem.leftBarButtonItems != nil {
-                    navigationItem.leftBarButtonItems?.append(doneButton)
-                } else {
-                    navigationItem.leftBarButtonItem = doneButton
-                }
+                navigationItem.leftBarButtonItem = doneButton
+                
+//                if navigationItem.leftBarButtonItems != nil {
+//                    // When would this have been necessary?
+//                    navigationItem.leftBarButtonItems?.append(doneButton)
+//                } else {
+//                    navigationItem.leftBarButtonItem = doneButton
+//                }
                 
             default:
                 break
@@ -1048,7 +1086,7 @@ class PopoverPickerViewController : UIViewController
         spinner.isHidden = false
         spinner.startAnimating()
 
-        if stringTree?.incremental == true {
+//        if stringTree?.incremental == true {
 //            if stringTree?.completed == false {
 //                spinner.isHidden = false
 //                spinner.startAnimating()
@@ -1074,7 +1112,7 @@ class PopoverPickerViewController : UIViewController
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
 //            }
-        }
+//        }
         
         if let string = string, let index = strings?.firstIndex(of:string), picker.numberOfComponents == 1 {
             // THIS IS FINE IF THERE IS ONE COMPONENT TO THE PICKER!
@@ -1133,32 +1171,7 @@ class PopoverPickerViewController : UIViewController
             }
         }
         
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
-
-        var barButtons = [UIBarButtonItem]()
-        
-        if allowsSelection {
-            barButtons.append(spaceButton)
-            barButtons.append(UIBarButtonItem(title: "Select", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doSelect)))
-            barButtons.append(spaceButton)
-        }
-
-        if barButtonAction != nil {
-            if !allowsSelection {
-                barButtons.append(spaceButton)
-            }
-            
-            barButtons.append(UIBarButtonItem(title: barButtonActionTitle ?? "Action", style: UIBarButtonItem.Style.plain, target: self, action: #selector(doBarButtonAction)))
-            barButtons.append(spaceButton)
-        }
-
-        toolbarItems = barButtons.count > 0 ? barButtons : nil
-        
-        navigationController?.isToolbarHidden = toolbarItems == nil
-
-        if allowsSelection {
-            toolbarItems?[1].isEnabled = false
-        }
+        setupBarButtonItems()
         
 //        self.operationQueue.addOperation {
 //            self.updateActionButton()

@@ -574,7 +574,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 present(navigationController, animated: true, completion:  nil)
             }
             
-        case Constants.Strings.Word_List:
+        case Constants.Strings.Word_Index:
             self.process(work: { [weak self] () -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
@@ -591,10 +591,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     } else {
                         return "\(word) (\(count))"
                     }
-                }).sorted().tableHTML
+                }).sorted().tableHTML(title:self?.navigationItem.title)
             }, completion: { [weak self] (data:Any?) in
                 // preferredModalPresentationStyle(viewController: self)
-                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: "Word List", htmlString: data as? String)
+                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
             })
             
         case Constants.Strings.Words:
@@ -1159,7 +1159,7 @@ class WebViewController: UIViewController
             if !search {
                 actionMenu.append(Constants.Strings.Words)
             }
-            actionMenu.append(Constants.Strings.Word_List)
+            actionMenu.append(Constants.Strings.Word_Index)
             actionMenu.append(Constants.Strings.Word_Picker)
         }
 
@@ -1999,7 +1999,7 @@ class WebViewController: UIViewController
     
     @objc func willResignActive()
     {
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
     }
     
     func addNotifications()

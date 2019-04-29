@@ -740,6 +740,17 @@ class VoiceBase
     
     static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
     
+    var title:String?
+    {
+        get {
+            guard let title = mediaItem?.title else {
+                return nil
+            }
+            
+            return title + " (\(transcriptPurpose))"
+        }
+    }
+    
     var purpose:String?
     
     var transcriptPurpose:String
@@ -5035,18 +5046,23 @@ class VoiceBase
                 }
                 
                 if masterKeyChanges.count > 0 {
-                    changes.append(contentsOf: masterKeyChanges.sorted(by: { (first, second) -> Bool in
-                        guard first.0.endIndex != second.0.endIndex else {
-                            return first.0 < second.0
-                        }
-                        
-                        return first.0.endIndex > second.0.endIndex
-                    }))
+                    changes.append(contentsOf: masterKeyChanges)
                 }
             }
         }
         
-        return changes.count > 0 ? changes : nil
+        return changes.count > 0 ? changes.sorted(by: { (first, second) -> Bool in
+            guard first.0.endIndex != second.0.endIndex else {
+                if  Constants.singleNumbers.keys.contains(first.0), let first = Constants.singleNumbers[first.0],
+                    Constants.singleNumbers.keys.contains(second.0), let second = Constants.singleNumbers[second.0] {
+                    return Int(first) > Int(second)
+                }
+                
+                return first.0 < second.0
+            }
+            
+            return first.0.endIndex > second.0.endIndex
+        }) : nil
     }
     
     func masterChanges(interactive:Bool, longFormat:Bool) -> [String:[String:String]]?
@@ -5526,9 +5542,9 @@ class VoiceBase
 //            let stringFull = String(text[range])
 //            let afterFull = String(text[range.upperBound...])
 //
-//            fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.normal))
+//            fullAttributedString.append(NSAttributedString(string: beforeFull,attributes: Constants.Fonts.Attributes.body))
 //            fullAttributedString.append(NSAttributedString(string: stringFull,attributes: Constants.Fonts.Attributes.highlighted))
-//            fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.normal))
+//            fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.body))
 //
 //            let attributedString = NSMutableAttributedString()
 //
@@ -5536,9 +5552,9 @@ class VoiceBase
 //            let string = String(text[range])
 //            let after = String(String(text[range.upperBound...]).dropLast(max(String(text[range.upperBound...]).count - 10,0))) + "..."
 //
-//            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+//            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.body))
 //            attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
-//            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+//            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.body))
             
             let prior = String(text[..<range.lowerBound]).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
@@ -5879,6 +5895,10 @@ class VoiceBase
                 // THIS IS NOT THE RIGHT WAY TO SORT CHANGES - WHY?
                 changes.sort(by: { (first, second) -> Bool in
                     guard first.0.endIndex != second.0.endIndex else {
+                        if Constants.singleNumbers.values.contains(first.0), Constants.singleNumbers.values.contains(second.0) {
+                            return Constants.singleNumbers[first.0] > Constants.singleNumbers[second.0]
+                        }
+                        
                         return first.0 < second.0
                     }
                     

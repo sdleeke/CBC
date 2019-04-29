@@ -490,11 +490,11 @@ func stopAudio()
 //    }
 //
 //    guard let searchText = searchText, !searchText.isEmpty else {
-//        return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+//        return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
 //    }
 //
 //    guard wholeWordsOnly else {
-//        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+//        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
 //
 //        var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
 //
@@ -595,7 +595,7 @@ func stopAudio()
 //                foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
 //            }
 //
-//            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+//            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
 //
 //            newAttrString.append(foundAttrString)
 //
@@ -607,10 +607,10 @@ func stopAudio()
 //        }
 //    }
 //
-//    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+//    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
 //
 //    if newAttrString.string.isEmpty, let string = string {
-//        newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
+//        newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.body))
 //    }
 //
 //    return newAttrString

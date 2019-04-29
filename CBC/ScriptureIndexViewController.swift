@@ -553,7 +553,7 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
         let label = (view as? UILabel) ?? UILabel()
         
         if let title = title(forRow: row, forComponent: component) {
-            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
+            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.body)
         }
         
         return label

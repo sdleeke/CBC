@@ -154,7 +154,7 @@ class MediaPlayer : NSObject
     }
     
     var controller:AVPlayerViewController?
-    
+
     var stateTime:PlayerStateTime?
     
     var showsPlaybackControls:Bool{
@@ -489,19 +489,15 @@ class MediaPlayer : NSObject
             return
         }
         
-        guard let start = Double(startTime) else {
+        guard let start = Double(startTime), !start.isNaN, !start.isInfinite else {
             return
         }
         
-        guard !start.isNaN else {
+        guard let timeElapsed = stateTime?.timeElapsed, !timeElapsed.isNaN, !timeElapsed.isInfinite else {
             return
         }
         
-        guard let timeElapsed = stateTime?.timeElapsed else {
-            return
-        }
-        
-        guard let currentTime = currentTime?.seconds else {
+        guard let currentTime = currentTime?.seconds, !currentTime.isNaN, !currentTime.isInfinite else {
             return
         }
         
@@ -593,7 +589,11 @@ class MediaPlayer : NSObject
             return
         }
         
-        guard let duration = duration else {
+        guard time.isValid else {
+            return
+        }
+        
+        guard let duration = duration, duration.isValid else {
             return
         }
         
@@ -812,15 +812,18 @@ class MediaPlayer : NSObject
         
         unobserve()
         
+        // Timer that runs all the time.  Is this still needed?
         self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(playerObserver), userInfo: nil, repeats: true)
         
         if #available(iOS 10.0, *) {
+            // Observer when media is playing
             player?.addObserver( self,
                                  forKeyPath: #keyPath(AVPlayer.timeControlStatus),
                                  options: [.old, .new],
                                  context: nil) // &GlobalPlayerContext
         }
         
+        // Observer when media changes
         currentItem?.addObserver(self,
                                  forKeyPath: #keyPath(AVPlayerItem.status),
                                  options: [.old, .new],
@@ -828,6 +831,7 @@ class MediaPlayer : NSObject
         observerActive = true
         observedItem = currentItem
         
+        // Timer when media is playing
         playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,preferredTimescale: Constants.CMTime_Resolution), queue: DispatchQueue.global(qos: .background), using: { [weak self] (time:CMTime) in //
             self?.playerTimer(time:time)
         })

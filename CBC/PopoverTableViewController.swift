@@ -939,20 +939,20 @@ class PopoverTableViewController : UIViewController
             
             if let left = navigationItem.leftBarButtonItem?.title {
                 let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width + 20
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
             }
             
             if let right = navigationItem.rightBarButtonItem?.title {
                 let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width + 20
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
             }
         }
         
         for string in strings {
             if let strings = parser != nil ? parser?(string) : [string] {
                 for stringInStrings in strings {
-                    let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
-                    let maxWidth = stringInStrings.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
+                    let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil)
+                    let maxWidth = stringInStrings.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil)
                     
                     if maxWidth.width > width {
                         width = maxWidth.width
@@ -1614,8 +1614,8 @@ class PopoverTableViewController : UIViewController
     
     @objc func willResignActive()
     {
-        self.alertController?.dismiss(animated: true, completion: nil)
-        self.dismiss(animated: true, completion: nil)
+//        self.alertController?.dismiss(animated: true, completion: nil)
+//        self.dismiss(animated: true, completion: nil)
     }
     
     @objc func stopped()
@@ -2251,13 +2251,13 @@ extension PopoverTableViewController : UITableViewDataSource
                     titleString = NSMutableAttributedString()
                     
                     if let before = before {
-                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
                     }
                     if let during = during {
                         titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
                     }
                     if let after = after {
-                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
                     }
                 } else {
                     break
@@ -2289,7 +2289,7 @@ extension PopoverTableViewController : UITableViewDataSource
             cell.title.attributedText = titleString
         } else {
             cell.title.text = string
-            cell.title.attributedText = NSAttributedString(string:string,attributes:Constants.Fonts.Attributes.normal)
+            cell.title.attributedText = NSAttributedString(string:string,attributes:Constants.Fonts.Attributes.body)
         }
         
         guard purpose != nil else {

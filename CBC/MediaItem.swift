@@ -4054,6 +4054,12 @@ class MediaItem : NSObject
                 popover.section.strings = self?.tagsArray
                 popover.section.strings?.insert(Constants.Strings.All,at: 0)
                 
+                mtvc.popover?["TAGS"] = popover
+                
+                popover.completion = { [weak mtvc] in
+                    mtvc?.popover?["TAGS"] = nil
+                }
+
                 mtvc.present(navigationController, animated: true, completion: nil)
             }
         }
@@ -4361,12 +4367,12 @@ class MediaItem : NSObject
                 viewController.process(work: { [weak self] () -> (Any?) in
                     self?.scripture?.load()
                     return self?.scripture?.html?[reference]
-                    }, completion: { [weak self] (data:Any?) in
-                        if let htmlString = data as? String {
-                            viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
-                        } else {
-                            Alerts.shared.alert(title:"Scripture Unavailable")
-                        }
+                }, completion: { [weak self] (data:Any?) in
+                    if let htmlString = data as? String {
+                        viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
+                    } else {
+                        Alerts.shared.alert(title:"Scripture Unavailable")
+                    }
                 })
             }
         }

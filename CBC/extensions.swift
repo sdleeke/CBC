@@ -1143,7 +1143,7 @@ extension Array where Element == String
         return tableHTML()
     }
     
-    func tableHTML(_ searchText:String? = nil) -> String?
+    func tableHTML(title:String? = nil, searchText:String? = nil) -> String?
     {
         var bodyHTML:String! = "<!DOCTYPE html>"
         
@@ -1188,8 +1188,11 @@ extension Array where Element == String
                 roots[key] = 1
             }
         })
-        
-        bodyHTML += "<br/>"
+
+        if let title = title {
+            bodyHTML += title
+            bodyHTML += "<br/>"
+        }
         
         bodyHTML += "<p>Index to \(words.count.formatted) Words</p>"
 
@@ -2983,30 +2986,52 @@ extension NSAttributedString
         }
         
         guard let searchText = searchText, !searchText.isEmpty else {
-            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
         }
         
         guard wholeWordsOnly else {
-            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.normal)
+            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
             
-            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
+//            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
             
-            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-                if let test = test, test() {
-                    break
+            let range = NSRange(location: 0, length: workingString.utf16.count)
+
+            if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+                regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
+                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                 range: $0.range)
                 }
-                
-                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
-                
-                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
-                
-                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
-                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
             }
+            
+//            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+//                if let test = test, test() {
+//                    break
+//                }
+//
+//                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
+//
+//                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+//
+//                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
+//                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+//            }
             
             return attributedText
         }
         
+        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+        
+        let range = NSRange(location: 0, length: workingString.utf16.count)
+        
+        if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
+            regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
+                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                             range: $0.range)
+            }
+        }
+        
+        return attributedText
+
         let newAttrString       = NSMutableAttributedString()
         var foundAttrString     = NSAttributedString()
         
@@ -3088,7 +3113,7 @@ extension NSAttributedString
                     foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
                 }
                 
-                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
                 
                 newAttrString.append(foundAttrString)
                 
@@ -3100,10 +3125,10 @@ extension NSAttributedString
             }
         }
         
-        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
         
         if newAttrString.string.isEmpty, let string = string {
-            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal))
+            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.body))
         }
         
         return newAttrString
@@ -4576,11 +4601,11 @@ extension String
     func highlighted(_ searchText:String?) -> NSAttributedString
     {
         guard let searchText = searchText else {
-            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.normal)
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
         }
         
         guard let range = self.lowercased().range(of: searchText.lowercased()) else {
-            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.normal)
+            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
         }
         
         let highlightedString = NSMutableAttributedString()
@@ -4589,9 +4614,9 @@ extension String
         let string = String(self[range])
         let after = String(self[range.upperBound...])
         
-        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
         highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
         
         return highlightedString
     }
@@ -5454,7 +5479,7 @@ extension String
     {
         let html = self
         
-        guard (html.stripHead != nil) else {
+        guard !html.stripHead.isEmpty else {
             return (nil,0)
         }
         
@@ -5494,6 +5519,52 @@ extension String
             }
             
             var string = input
+            
+            guard wholeWordsOnly else {
+                if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+                    let range = NSRange(location: 0, length: input.utf16.count)
+                    
+                    let matches = regex.matches(in: input, options: .withTransparentBounds, range: range).sorted(by: { (first:NSTextCheckingResult, second:NSTextCheckingResult) -> Bool in
+                        return first.range.lowerBound > second.range.lowerBound
+                    })
+                    
+                    markCounter += matches.count
+                    
+                    matches.forEach { result in
+                        let foundString = "<mark>" + String(string[String.Index(utf16Offset: result.range.lowerBound, in: string)..<String.Index(utf16Offset: result.range.upperBound, in: string)]) + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                        string = String(string[..<String.Index(utf16Offset: result.range.lowerBound, in: string)]) + foundString + String(string[String.Index(utf16Offset: result.range.upperBound, in: string)...])
+                        markCounter -= 1
+                   }
+
+                    markCounter += matches.count
+
+                    return string
+                }
+                
+                return ""
+            }
+            
+            if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
+                let range = NSRange(location: 0, length: input.utf16.count)
+                
+                let matches = regex.matches(in: input, options: .withTransparentBounds, range: range).sorted(by: { (first:NSTextCheckingResult, second:NSTextCheckingResult) -> Bool in
+                    return first.range.lowerBound > second.range.lowerBound
+                })
+                
+                markCounter += matches.count
+                
+                matches.forEach { result in
+                    let foundString = "<mark>" + String(string[String.Index(utf16Offset: result.range.lowerBound, in: string)..<String.Index(utf16Offset: result.range.upperBound, in: string)]) + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                    string = String(string[..<String.Index(utf16Offset: result.range.lowerBound, in: string)]) + foundString + String(string[String.Index(utf16Offset: result.range.upperBound, in: string)...])
+                    markCounter -= 1
+                }
+                
+                markCounter += matches.count
+                
+                return string
+            }
+            
+            return ""
             
             var stringBefore:String = Constants.EMPTY_STRING
             var stringAfter:String = Constants.EMPTY_STRING
@@ -5626,9 +5697,9 @@ extension String
         var indexString:String!
         
         if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)" //
+            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)\(wholeWordsOnly ? "<br/>(whole words only)" : "")" //
         } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>" // <br/> needed since markCounter == 0 so the below div isn't added.
+            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.\(wholeWordsOnly ? "<br/>(whole words only)" : "")<br/><br/>" // <br/> needed since markCounter == 0 so the below div isn't added.
         }
         
         // If we want an index of links to the occurrences of the searchText.
@@ -5699,6 +5770,12 @@ extension String
     {
         guard !Globals.shared.isRefreshing else {
             return nil
+        }
+        
+        if #available(iOS 12.0, *) {
+            return nlTaggerTokensAndCounts
+        } else {
+            return nsTaggerTokensAndCounts
         }
         
 //        guard let string = string else {
@@ -6167,9 +6244,8 @@ extension String
         let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         
         tagger.string = self
-//        tagger.setLanguage(.english, range: self.startIndex..<self.endIndex)
         
-        let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
+        let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther]
         
         var tokens = [(String,String,Range<String.Index>)]()
         
@@ -6192,6 +6268,36 @@ extension String
 //        }
 //    }
 
+    // Make thread safe?
+    @available(iOS 12.0, *)
+    var nlTaggerTokensAndCounts : [String:Int]?
+    {
+        //        guard let string = string else {
+        //            return nil
+        //        }
+        
+        var tokens = [String:Int]()
+        
+        let tagger = NLTagger(tagSchemes: [.tokenType])
+        let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinContractions]
+
+        tagger.string = self
+        
+        tagger.enumerateTags(in: self.startIndex..<self.endIndex, unit: .word, scheme: .tokenType, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
+            let token = String(self[range]).uppercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
+            
+            if let count = tokens[token] {
+                tokens[token] = count + 1
+            } else {
+                tokens[token] = 1
+            }
+
+            return true
+        }
+
+        return tokens.count > 0 ? tokens : nil
+    }
+    
     // Make thread safe?
     var nsTaggerTokensAndCounts : [String:Int]?
     {
@@ -6216,15 +6322,17 @@ extension String
         var index = 0
         tags.forEach() { (tag:String) in
             if let range = ranges?[index] as? NSRange {
-                let token = (self as NSString).substring(with: range).uppercased()
+                let token = (self as NSString).substring(with: range).uppercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
                 
-                if CharacterSet.letters.intersection(CharacterSet(charactersIn: token)) == CharacterSet(charactersIn: token) {
-                    if let count = tokens[token] {
-                        tokens[token] = count + 1
-                    } else {
-                        tokens[token] = 1
-                    }
+                if let count = tokens[token] {
+                    tokens[token] = count + 1
+                } else {
+                    tokens[token] = 1
                 }
+
+                // Why do we only want words and not numbers?
+//                if CharacterSet.letters.intersection(CharacterSet(charactersIn: token)) == CharacterSet(charactersIn: token) {
+//                }
             }
             index += 1
         }

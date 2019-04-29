@@ -482,12 +482,20 @@ enum Constants {
     }
     
     enum Fonts {
+        static let callout = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.callout)
+        
+        static let footnote = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.footnote)
+        
         static let body = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
         
         static let bold = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         
         enum Attributes {
-            static let normal = [ NSAttributedString.Key.font: Fonts.body ]
+            static let callout = [ NSAttributedString.Key.font: Fonts.callout ]
+            
+            static let footnote = [ NSAttributedString.Key.font: Fonts.footnote ]
+            
+            static let body = [ NSAttributedString.Key.font: Fonts.body ]
             
             static let bold = [ NSAttributedString.Key.font: Fonts.bold ]
             
@@ -637,7 +645,7 @@ enum Constants {
         static let Word_Picker = "Word Picker"
         static let Word_Cloud = "Word Cloud"
         static let Word_Search = "Word Search"
-        static let Word_List = "Word List"
+        static let Word_Index = "Word Index"
 
         static let Segments = "Segments"
         
@@ -808,9 +816,7 @@ enum Constants {
         
         static let Expanded_View = "Expanded View"
         
-        static let View_Words = "View Words"
-        static let View_Strings = "View Strings"
-//        static let Word_List = "Word List"
+//        static let View_Words = "View Words"
 
         static let View_List = "View List"
         static let List = "List"
