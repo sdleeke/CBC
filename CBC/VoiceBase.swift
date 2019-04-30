@@ -3629,7 +3629,36 @@ class VoiceBase
     private var _transcriptSegments:String?
     {
         didSet {
-            transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator)
+            guard var transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator) else {
+                self.transcriptSegmentComponents = nil
+                return
+            }
+            
+            var secondsOffset = 0.0
+            
+//            if  let first = transcriptSegmentComponents.first?.components(separatedBy: "\n")[1],
+//                let start = first.components(separatedBy: " --> ").first {
+//                secondsOffset = start.hmsToSeconds ?? 0.0
+//            }
+
+            guard secondsOffset > 0 else {
+                self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
+                return
+            }
+            
+            for index in transcriptSegmentComponents.indices {
+                var segmentComponents = transcriptSegmentComponents[index].components(separatedBy: "\n")
+                
+                let times = segmentComponents[1].components(separatedBy: " --> ")
+                
+                if let start = times[0].hmsToSeconds, let end = times[1].hmsToSeconds {
+                    segmentComponents[1] = ((start - secondsOffset).secondsToHMSms ?? "") + " --> " + ((end - secondsOffset).secondsToHMSms ?? "")
+                }
+                
+                transcriptSegmentComponents[index]  = segmentComponents.joined(separator: "\n")
+            }
+
+            self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
         }
     }
     var transcriptSegments:String?
@@ -7056,21 +7085,26 @@ class VoiceBase
                     }
                     
                     // Must use stringsFunction with .selectingTime.
-                    popover.stringsFunction = { () -> [String]? in
+                    popover.stringsFunction = { [weak self] () -> [String]? in
                         var strings = [String]()
                         
-                        if let words = self.words?.filter({ (dict:[String:Any]) -> Bool in
+                        if let words = self?.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }) {
 //                            var lastEnd : Int?
+                            var secondsOffset = 0
+                            
+//                            if let firstStart = words.first?["s"] as? Int {
+//                                secondsOffset = firstStart
+//                            }
                             
                             for i in 0..<words.count {
                                 if  let position = words[i]["p"] as? Int,
                                     let start = words[i]["s"] as? Int,
                                     let end = words[i]["e"] as? Int,
                                     let word = words[i]["w"] as? String,
-                                    let startHMS = (Double(start)/1000.0).secondsToHMSms,
-                                    let endHMS = (Double(end)/1000.0).secondsToHMSms {
+                                    let startHMS = (Double(start - secondsOffset)/1000.0).secondsToHMSms,
+                                    let endHMS = (Double(end - secondsOffset)/1000.0).secondsToHMSms {
                                     strings.append("\(position+1)\n")
                                     
 //                                    if let lastEnd = lastEnd {

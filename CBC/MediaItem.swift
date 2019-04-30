@@ -388,7 +388,20 @@ class MediaItem : NSObject
         return downloads[purpose]?.fileSize ?? 0
     }
     
-    func clearCache(block:Bool)
+    var hasCacheFiles : Bool
+    {
+        get {
+            for fileType in Constants.cacheFileTypes {
+                if (id + fileType).fileSystemURL?.exists ?? false {
+                    return true
+                }
+            }
+            
+            return false
+        }
+    }
+    
+    func clearCache(block:Bool,completion:(()->())? = nil)
     {
         guard let id = id else {
             return
@@ -444,6 +457,8 @@ class MediaItem : NSObject
 //                }
 //            })
         }
+        
+        completion?()
         
 //        _ = deleteFilesOfNameInCache(id,block:block)
         
@@ -2366,7 +2381,7 @@ class MediaItem : NSObject
             }
             
             if (self[Field.poster] == nil) {
-                self[Field.poster] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + "poster.jpg"
+                self[Field.poster] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.poster // "poster.jpg"
             }
             
             return self[Field.poster]?.url
@@ -3902,8 +3917,12 @@ class MediaItem : NSObject
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { [weak self]
                 () -> Void in
-                self?.clearCache(block:true)
-                Alerts.shared.alert(title:Constants.Strings.Cache_Cleared, message: self?.text)
+                viewController.process(work: { () -> (Any?) in
+                    self?.clearCache(block:true)
+                    return nil
+                }, completion: { (data:Any?) in
+                    Alerts.shared.alert(title:Constants.Strings.Cache_Cleared, message: self?.text)
+                })
             })
             alertActions.append(yesAction)
             
@@ -3913,7 +3932,7 @@ class MediaItem : NSObject
             })
             alertActions.append(noAction)
             
-            Alerts.shared.alert(title: Constants.Strings.Confirm_Clear_Cache, message: self.text, actions: alertActions)
+            Alerts.shared.alert(title: Constants.Strings.Confirm_Clear_Cache, message: (self.text ?? "") + "\n\nThis deletes files that can be downloaded or recreated again when needed.", actions: alertActions)
         }
         
         if hasAudio, let audioDownload = audioDownload {
@@ -4490,7 +4509,9 @@ class MediaItem : NSObject
 //        if cacheSize > 0 {
 //            actions.append(clearCache)
 //        }
-        actions.append(clearCache)
+        if hasCacheFiles {
+            actions.append(clearCache)
+        }
 
         return actions.count > 0 ? actions : nil
     }

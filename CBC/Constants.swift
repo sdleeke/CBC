@@ -886,9 +886,11 @@ enum Constants {
         static let TMP  = ".tmp"
         static let PDF  = ".pdf"
         static let JSON = ".json"
+        static let JPEG = ".jpg"
         static let notes = Field.notes + PDF
         static let slides = Field.slides + PDF
         static let outline = Field.outline + PDF
+        static let poster = "poster" + JPEG
         static let HTMLTranscript = ".HTMLTranscript"
         static let NotesTokensMarkMismatches = ".NotesTokensMarkMismatches"
         static let NotesParagraphLengths = ".NotesParagraphLengths"
@@ -903,6 +905,7 @@ enum Constants {
     static let cacheFileTypes = [Constants.FILENAME_EXTENSION.notes,
                                  Constants.FILENAME_EXTENSION.slides,
                                  Constants.FILENAME_EXTENSION.outline,
+                                 Constants.FILENAME_EXTENSION.poster,
                                  Constants.FILENAME_EXTENSION.HTMLTranscript,
                                  Constants.FILENAME_EXTENSION.NotesHTMLTokens,
                                  Constants.FILENAME_EXTENSION.NotesParagraphWords,

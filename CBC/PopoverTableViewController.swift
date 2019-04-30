@@ -486,11 +486,14 @@ class PopoverTableViewController : UIViewController
                     let end = timeWindow.components(separatedBy: " to ").last,
                     let startSeconds = start.hmsToSeconds,
                     let endSeconds = end.hmsToSeconds {
-
+//                    print(seconds,seconds.secondsToHMSms ?? "")
+//                    print(start,end)
+//                    print(startSeconds,endSeconds)
+                    
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
-                        if (seconds >= startSeconds) && (seconds <= (endSeconds - 0.5)) { // 
+                        if (seconds >= startSeconds) && (seconds <= (endSeconds)) { //  - 0.5
                             timeWindowFound = true
                             break
                         } else {
@@ -2547,12 +2550,13 @@ extension PopoverTableViewController : UITableViewDelegate
             }
             
             // This is a hack because it is being done because we know the delegate call makes a seek.
-            Globals.shared.mediaPlayer.seekingCompletion = {
+            Globals.shared.mediaPlayer.seekingCompletion = { [weak self] in
                 Thread.onMainThread {
-                    self.activityIndicator.stopAnimating()
-                    if self.isTracking {
-                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.follow), userInfo: nil, repeats: true)
-                    }
+                    self?.activityIndicator.stopAnimating()
+                    self?.startTracking()
+//                    if self.isTracking {
+//                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.follow), userInfo: nil, repeats: true)
+//                    }
                 }
             }
         }

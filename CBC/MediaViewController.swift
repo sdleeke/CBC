@@ -4560,9 +4560,9 @@ class MediaViewController: UIViewController
             return
         }
         
-//        if navigationController?.visibleViewController == self {
-//            navigationController?.isToolbarHidden = true
-//        }
+        if navigationController?.visibleViewController == self {
+            navigationController?.isToolbarHidden = true
+        }
         
         if (selectedMediaItem != nil) && (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
             if (Globals.shared.mediaPlayer.url != selectedMediaItem?.playingURL) {
@@ -4947,6 +4947,8 @@ class MediaViewController: UIViewController
             Globals.shared.mediaPlayer.seek(to: Double(currentTime))
         }
 
+        
+        
         updateUI()
 
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.

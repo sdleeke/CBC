@@ -79,6 +79,8 @@ class SettingsViewController: UIViewController
                             var fileURL = cachesURL
                             fileURL.appendPathComponent(file)
                             fileURL.delete(block: true)
+                        } else {
+                            print(file)
                         }
                     }
                 }
