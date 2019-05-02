@@ -224,9 +224,10 @@ extension PopoverTableViewController: UISearchBarDelegate
         searchText = nil
         searchActive = false
 
+        // What was this for?
         if purpose == .selectingWord {
         }
-
+        
         // In case they've changed: alpha vs. freq sorting.
         unfilteredSection.showIndex = filteredSection.showIndex
         unfilteredSection.showHeaders = filteredSection.showHeaders
@@ -242,9 +243,11 @@ extension PopoverTableViewController: UISearchBarDelegate
             unfilteredSection.sorting = true
             unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
             unfilteredSection.sorting = false
-        } else {
+        } else
+        
+        if let function = section.function {
             unfilteredSection.sorting = true
-            unfilteredSection.strings = section.function?(unfilteredSection.method,unfilteredSection.strings)
+            unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
             unfilteredSection.sorting = false
         }
 
@@ -1182,8 +1185,9 @@ class PopoverTableViewController : UIViewController
         
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
         
-        if navigationController?.viewControllers.count == 1, let presentationStyle = navigationController?.modalPresentationStyle {
-            switch presentationStyle {
+//        if navigationController?.viewControllers.count == 1, let presentationStyle = navigationController?.modalPresentationStyle {
+        if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.containsBelow(navigationController) == false {
+            switch navigationController.modalPresentationStyle {
             case .formSheet:
                 fallthrough
             case .overCurrentContext:
@@ -1752,7 +1756,7 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.contains(navigationController) == false {
+        if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.containsBelow(navigationController) == false {
             switch navigationController.modalPresentationStyle {
             case .formSheet:
                 fallthrough

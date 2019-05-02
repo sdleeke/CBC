@@ -483,6 +483,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
     
     func targetDisplayModeForAction(in svc: UISplitViewController) -> UISplitViewController.DisplayMode
     {
+        guard UIApplication.shared.applicationState == .active else {
+            return UISplitViewController.DisplayMode.automatic
+        }
+        
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
         }

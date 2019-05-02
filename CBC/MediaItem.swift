@@ -882,15 +882,16 @@ class MediaItem : NSObject
             switch playing {
             case Playing.audio:
                 url = audio?.url
-                if let path = audioFilename?.url?.path, FileManager.default.fileExists(atPath: path) {
-                    url = audioFilename?.url
+                if let path = audioFilename?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path) {
+                    url = audioFilename?.fileSystemURL
                 }
+//                _ = url?.isVBR
                 break
                 
             case Playing.video:
                 url = video?.url
-                if let path = videoFilename?.url?.path, FileManager.default.fileExists(atPath: path){
-                    url = videoFilename?.url
+                if let path = videoFilename?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path){
+                    url = videoFilename?.fileSystemURL
                 }
                 break
                 

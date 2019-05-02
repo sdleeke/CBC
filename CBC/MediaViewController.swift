@@ -889,12 +889,13 @@ extension MediaViewController : WKNavigationDelegate
         webQueue.addOperation {
 //        DispatchQueue.global(qos: .background).async {
             // Delay has to be longest to deal with cold start delays
-            Thread.sleep(forTimeInterval: 0.4)
+            Thread.sleep(forTimeInterval: 0.5)
 
             Thread.onMainThread {
                 self.setDocumentZoomScale(self.document)
                 self.setDocumentContentOffset(self.document)
             }
+//        }
         }
     }
     
@@ -1403,6 +1404,7 @@ class MediaViewController: UIViewController
 
                     if let url = self?.download?.downloadURL {
                         self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
+
 //
 //                        if let activityIndicator = self?.activityIndicator {
 //                            // Don't want to show it just because it is already (down)loaded!
@@ -4885,11 +4887,11 @@ class MediaViewController: UIViewController
     @objc func willEnterForeground()
     {
         // Player is refreshed in AppDelegate
-        
     }
     
     @objc func didBecomeActive()
     {
+//        updateView()
         setDVCLeftBarButton()
     }
     

@@ -11,10 +11,29 @@ import UIKit
 import PDFKit
 import MessageUI
 import NaturalLanguage
+import AVFoundation
+import AudioToolbox
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
     return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
+}
+
+extension FourCharCode
+{
+    // Create a String representation of a FourCC
+    func toString() -> String {
+        let bytes: [CChar] = [
+            CChar((self >> 24) & 0xff),
+            CChar((self >> 16) & 0xff),
+            CChar((self >> 8) & 0xff),
+            CChar(self & 0xff),
+            0
+        ]
+        let result = String(cString: bytes)
+        let characterSet = CharacterSet.whitespaces
+        return result.trimmingCharacters(in: characterSet)
+    }
 }
 
 extension Set
@@ -1018,6 +1037,26 @@ extension Array where Element == MediaItem
 //        
 //        return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
 //    }
+}
+
+extension Array where Element == UIViewController
+{
+    func containsBelow(_ containedViewController:UIViewController) -> Bool
+    {
+        for viewController in self {
+            if viewController == containedViewController {
+                return true
+            }
+            
+            if let navCon = (viewController as? UINavigationController) {
+                if navCon.viewControllers.containsBelow(containedViewController) == true {
+                    return true
+                }
+            }
+        }
+        
+        return false
+    }
 }
 
 extension Array where Element == String
@@ -5877,6 +5916,12 @@ extension String
 //            return nil
 //        }
         
+        if #available(iOS 12.0, *) {
+            return nlTaggerTokens
+        } else {
+            return nsTaggerTokens
+        }
+
         var tokens = Set<String>()
         
         var str = self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
@@ -6280,7 +6325,7 @@ extension String
         
         let tagger = NLTagger(tagSchemes: [.tokenType])
         let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinContractions]
-
+        
         tagger.string = self
         
         tagger.enumerateTags(in: self.startIndex..<self.endIndex, unit: .word, scheme: .tokenType, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
@@ -6291,10 +6336,36 @@ extension String
             } else {
                 tokens[token] = 1
             }
-
+            
             return true
         }
+        
+        return tokens.count > 0 ? tokens : nil
+    }
+    
+    // Make thread safe?
+    @available(iOS 12.0, *)
+    var nlTaggerTokens : [String]?
+    {
+        //        guard let string = string else {
+        //            return nil
+        //        }
+        
+        var tokens = [String]()
+        
+        let tagger = NLTagger(tagSchemes: [.tokenType])
+        let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinContractions]
+        
+        tagger.string = self
+        
+        tagger.enumerateTags(in: self.startIndex..<self.endIndex, unit: .word, scheme: .tokenType, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
+            let token = String(self[range]).uppercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
 
+            tokens.append(token)
+            
+            return true
+        }
+        
         return tokens.count > 0 ? tokens : nil
     }
     
@@ -6329,10 +6400,44 @@ extension String
                 } else {
                     tokens[token] = 1
                 }
-
+                
                 // Why do we only want words and not numbers?
-//                if CharacterSet.letters.intersection(CharacterSet(charactersIn: token)) == CharacterSet(charactersIn: token) {
-//                }
+                //                if CharacterSet.letters.intersection(CharacterSet(charactersIn: token)) == CharacterSet(charactersIn: token) {
+                //                }
+            }
+            index += 1
+        }
+        
+        return tokens.count > 0 ? tokens : nil
+    }
+    
+    // Make thread safe?
+    var nsTaggerTokens : [String]?
+    {
+        //        guard let string = string else {
+        //            return nil
+        //        }
+        
+        var tokens = [String]()
+        
+        let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
+        let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther] //, .joinNames
+        
+        let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
+        tagger.string = self
+        
+        let range = NSRange(location: 0, length: (self as NSString).length) // string.utf16.count
+        
+        var ranges : NSArray?
+        
+        let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.tokenType.rawValue, options: options, tokenRanges: &ranges)
+        
+        var index = 0
+        tags.forEach() { (tag:String) in
+            if let range = ranges?[index] as? NSRange {
+                let token = (self as NSString).substring(with: range).uppercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
+
+                tokens.append(token)
             }
             index += 1
         }
@@ -6742,6 +6847,80 @@ extension URLSession
 
 extension URL
 {
+    var isVBR : Bool
+    {
+        get {
+            var audioFile = AudioFileID(bitPattern: 0)
+            
+            var result = OSStatus()
+            
+            result = AudioFileOpenURL(self as CFURL, .readPermission, kAudioFileMP3Type, &audioFile)
+
+            var audioFormat = AudioStreamBasicDescription()
+            
+            var size = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
+            
+            guard let audioFileID = audioFile else {
+                return false
+            }
+            
+            result = AudioFileGetProperty(audioFileID, kAudioFilePropertyDataFormat, &size, &audioFormat)
+            
+            var vbrSize = UInt32(MemoryLayout<AudioFormatPropertyID>.size) // UInt32(MemoryLayout<[AudioValueRange]>.size)
+
+            // kAudioFormatProperty_FormatIsVBR
+//            result = AudioFormatGetPropertyInfo(kAudioFormatProperty_AvailableEncodeBitRates, UInt32(MemoryLayout<AudioFormatID>.size), &audioFormat.mFormatID, &vbrSize);
+
+            var vbrInfo = AudioFormatPropertyID(bitPattern: 0) // [AudioValueRange]()
+            
+//            vbrInfo.reserveCapacity(100)
+//            vbrInfo.append(AudioValueRange())
+
+            // UInt32(MemoryLayout<AudioFormatID>.size)
+            // audioFormat.mFormatID
+            result = AudioFormatGetProperty(kAudioFormatProperty_FormatIsVBR, size, &audioFormat, &vbrSize, &vbrInfo);
+            
+            return result == noErr ? vbrInfo != 0 : false //
+            
+//            OSStatus result = noErr;
+//            UInt32 size;
+//
+//
+//            AudioFileID audioFile;
+//            AudioStreamBasicDescription audioFormat;
+//            AudioFormatPropertyID vbrInfo;
+//
+//            // Open audio file.
+//            let result = AudioFileOpenURL( (__bridge CFURLRef)originalURL, kAudioFileReadPermission, 0, &audioFile );
+//            if( result != noErr )
+//            {
+//                NSLog( @"Error in AudioFileOpenURL: %d", (int)result );
+//                return;
+//            }
+//
+//            // Get data format
+//            size = sizeof( audioFormat );
+//            result = AudioFileGetProperty( audioFile, kAudioFilePropertyDataFormat, &size, &audioFormat );
+//            if( result != noErr )
+//            {
+//                NSLog( @"Error in AudioFileGetProperty: %d", (int)result );
+//                return;
+//            }
+//
+//            // Get vbr info
+//            size = sizeof( vbrInfo );
+//            result = AudioFormatGetProperty( kAudioFormatProperty_FormatIsVBR, sizeof(audioFormat), &audioFormat, &size, &vbrInfo);
+//
+//            if( result != noErr )
+//            {
+//                NSLog( @"Error getting vbr info: %d", (int)result );
+//                return;
+//            }
+//
+//            NSLog(@"%@ is VBR: %d", originalURL.lastPathComponent, vbrInfo);
+        }
+    }
+
 //    func files(ofType fileType:String) -> [String]?
 //    {
 //        //        guard let path = self.path else {
