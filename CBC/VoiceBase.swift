@@ -6231,63 +6231,96 @@ class VoiceBase
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, handler: {
-                        viewController.process(work: { [weak self] () -> (Any?) in
-                            var htmlString = "<!DOCTYPE html><html><body>"
-                            
-                            var transcriptSegmentHTML = String()
-                            
-                            transcriptSegmentHTML = transcriptSegmentHTML + "<table>"
-                            
-                            transcriptSegmentHTML = transcriptSegmentHTML + "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Gap</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Span</b></td><td><b>Recognized Speech</b></td></tr>"
-                            
-                            if let transcriptSegmentComponents = self?.transcriptSegmentComponents {
-                                var priorEndTime : Double?
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "By Word", style: .default, handler: {
+                            viewController.process(work: { [weak self] () -> (Any?) in
+                                var strings = [String]()
                                 
-                                for transcriptSegmentComponent in transcriptSegmentComponents {
-                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                                    
-                                    if transcriptSegmentArray.count > 2  {
-                                        let count = transcriptSegmentArray.removeFirst()
-                                        let timeWindow = transcriptSegmentArray.removeFirst()
-                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
-                                        
-                                        if  let start = times.first,
-                                            let end = times.last,
-                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                            let text = String(transcriptSegmentComponent[range.upperBound...])
-                                            
-                                            var gap = String()
-                                            var duration = String()
-
-                                            if let startTime = start.hmsToSeconds, let endTime = end.hmsToSeconds {
-                                                let durationTime = endTime - startTime
-                                                duration = String(format:"%.3f",durationTime)
-
-                                                if let peTime = priorEndTime {
-                                                    let gapTime = startTime - peTime
-                                                    gap = String(format:"%.3f",gapTime)
-                                                }
-                                            }
-
-                                            priorEndTime = end.hmsToSeconds
-
-                                            let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(gap)</td><td>\(start)</td><td>\(end)</td><td>\(duration)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
-                                            transcriptSegmentHTML = transcriptSegmentHTML + row
-                                        }
+                                self?.words?.forEach({ (dict:[String : Any]) in
+                                    if  let position = dict["p"] as? Int,
+                                        let start = dict["s"] as? Int,
+                                        let end = dict["e"] as? Int,
+                                        let word = dict["w"] as? String,
+                                        let startHMS = (Double(start)/1000.0).secondsToHMSms,
+                                        let endHMS = (Double(end)/1000.0).secondsToHMSms {
+                                        strings.append("\(position+1)\n\(startHMS) --> \(endHMS)\n\(word)")
                                     }
+                                })
+                                
+                                return strings.timingHTML(self?.headerHTML)
+                            }, completion: { [weak self] (data:Any?) in
+                                if let htmlString = data as? String {
+                                    viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
                                 }
-                            }
-                            
-                            transcriptSegmentHTML = transcriptSegmentHTML + "</table>"
+                            })
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "By Segment", style: .default, handler: {
+                            viewController.process(work: { [weak self] () -> (Any?) in
+                                return self?.transcriptSegmentComponents?.timingHTML(self?.headerHTML) as Any
+                            }, completion: { [weak self] (data:Any?) in
+                                if let htmlString = data as? String {
+                                    viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
+                                }
+                            })
+                        }))
+                        
+                        viewController.alertActionsCancel(  title: "Transcript with Timing",
+                                                            message: "\(text) (\(self.transcriptPurpose))",
+                                                            alertActions: alertActions,
+                                                            cancelAction:nil)
 
-                            htmlString = htmlString + (self?.headerHTML ?? "") + transcriptSegmentHTML + "</body></html>"
-
-                            return htmlString as Any
-                        }, completion: { [weak self] (data:Any?) in
-                            if let htmlString = data as? String {
-                                viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
-                            }
-                        })
+//                            var htmlString = "<!DOCTYPE html><html><body>"
+//
+//                            var transcriptSegmentHTML = String()
+//
+//                            transcriptSegmentHTML += "<table>"
+//
+//                            transcriptSegmentHTML += "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Gap</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Span</b></td><td><b>Recognized Speech</b></td></tr>"
+//
+//                            if let transcriptSegmentComponents = self?.transcriptSegmentComponents {
+//                                var priorEndTime : Double?
+//
+//                                for transcriptSegmentComponent in transcriptSegmentComponents {
+//                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//
+//                                    if transcriptSegmentArray.count > 2  {
+//                                        let count = transcriptSegmentArray.removeFirst()
+//                                        let timeWindow = transcriptSegmentArray.removeFirst()
+//                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+//
+//                                        if  let start = times.first,
+//                                            let end = times.last,
+//                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                            let text = String(transcriptSegmentComponent[range.upperBound...])
+//
+//                                            var gap = String()
+//                                            var duration = String()
+//
+//                                            if let startTime = start.hmsToSeconds, let endTime = end.hmsToSeconds {
+//                                                let durationTime = endTime - startTime
+//                                                duration = String(format:"%.3f",durationTime)
+//
+//                                                if let peTime = priorEndTime {
+//                                                    let gapTime = startTime - peTime
+//                                                    gap = String(format:"%.3f",gapTime)
+//                                                }
+//                                            }
+//
+//                                            priorEndTime = end.hmsToSeconds
+//
+//                                            let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(gap)</td><td>\(start)</td><td>\(end)</td><td>\(duration)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
+//                                            transcriptSegmentHTML = transcriptSegmentHTML + row
+//                                        }
+//                                    }
+//                                }
+//                            }
+//
+//                            transcriptSegmentHTML = transcriptSegmentHTML + "</table>"
+//
+//                            htmlString = htmlString + (self?.headerHTML ?? "") + transcriptSegmentHTML + "</body></html>"
+//
                     }))
 
                     viewController.alertActionsCancel(  title: "View",

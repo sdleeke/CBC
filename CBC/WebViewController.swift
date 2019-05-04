@@ -662,7 +662,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             
         case Constants.Strings.Lexical_Analysis:
-            self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
+            self.process(disableEnable: false, work: { () -> (Any?) in // , hideSubviews: false
                 if #available(iOS 12.0, *) {
                     return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true)
                 } else {
@@ -2075,26 +2075,26 @@ class WebViewController: UIViewController
         }
     }
 
-    func barButtonItems(isEnabled:Bool)
-    {
-        if let toolbarItems = self.navigationItem.rightBarButtonItems {
-            for toolbarItem in toolbarItems {
-                toolbarItem.isEnabled = isEnabled
-            }
-        }
-        
-        if let toolbarItems = self.navigationItem.leftBarButtonItems {
-            for toolbarItem in toolbarItems {
-                toolbarItem.isEnabled = isEnabled
-            }
-        }
-        
-        if let toolbarItems = self.toolbarItems {
-            for toolbarItem in toolbarItems {
-                toolbarItem.isEnabled = isEnabled
-            }
-        }
-    }
+//    func barButtonItems(isEnabled:Bool)
+//    {
+//        if let toolbarItems = self.navigationItem.rightBarButtonItems {
+//            for toolbarItem in toolbarItems {
+//                toolbarItem.isEnabled = isEnabled
+//            }
+//        }
+//        
+//        if let toolbarItems = self.navigationItem.leftBarButtonItems {
+//            for toolbarItem in toolbarItems {
+//                toolbarItem.isEnabled = isEnabled
+//            }
+//        }
+//        
+//        if let toolbarItems = self.toolbarItems {
+//            for toolbarItem in toolbarItems {
+//                toolbarItem.isEnabled = isEnabled
+//            }
+//        }
+//    }
     
     override func viewDidAppear(_ animated: Bool)
     {

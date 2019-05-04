@@ -509,7 +509,7 @@ extension Array where Element == MediaItem
 //                    })
     }
 
-    func html(includeURLs:Bool = true,includeColumns:Bool = true) -> String?
+    func html(includeURLs:Bool = true,includeColumns:Bool = true, test:(()->(Bool))? = nil) -> String?
     {
 //        guard let mediaItems = mediaItems else {
 //            return nil
@@ -1061,6 +1061,59 @@ extension Array where Element == UIViewController
 
 extension Array where Element == String
 {
+    func timingHTML(_ headerHTML:String?) -> String?
+    {
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        var transcriptSegmentHTML = String()
+        
+        transcriptSegmentHTML += "<table>"
+        
+        transcriptSegmentHTML += "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Gap</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Span</b></td><td><b>Recognized Speech</b></td></tr>"
+        
+            var priorEndTime : Double?
+            
+            for transcriptSegmentComponent in self {
+                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                
+                if transcriptSegmentArray.count > 2  {
+                    let count = transcriptSegmentArray.removeFirst()
+                    let timeWindow = transcriptSegmentArray.removeFirst()
+                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+                    
+                    if  let start = times.first,
+                        let end = times.last,
+                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                        let text = String(transcriptSegmentComponent[range.upperBound...])
+                        
+                        var gap = String()
+                        var duration = String()
+                        
+                        if let startTime = start.hmsToSeconds, let endTime = end.hmsToSeconds {
+                            let durationTime = endTime - startTime
+                            duration = String(format:"%.3f",durationTime)
+                            
+                            if let peTime = priorEndTime {
+                                let gapTime = startTime - peTime
+                                gap = String(format:"%.3f",gapTime)
+                            }
+                        }
+                        
+                        priorEndTime = end.hmsToSeconds
+                        
+                        let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(gap)</td><td>\(start)</td><td>\(end)</td><td>\(duration)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
+                        transcriptSegmentHTML = transcriptSegmentHTML + row
+                    }
+                }
+            }
+        
+        transcriptSegmentHTML = transcriptSegmentHTML + "</table>"
+        
+        htmlString = htmlString + (headerHTML ?? "") + transcriptSegmentHTML + "</body></html>"
+
+        return htmlString
+    }
+    
     func additions(to array1:[String]?) -> [(Int,String)]?
     {
         guard let array1 = array1 else {
@@ -3973,8 +4026,89 @@ extension UIViewController
         }
     }
 
-    // This also works as a stand alone function w/ the view controller passed in as a parameter.
-    func process(disableEnable:Bool = true,hideSubviews:Bool = false,work:(()->(Any?))?,completion:((Any?)->())?)
+    func process(disableEnable:Bool = true, work:(((()->Bool)?)->(Any?))?, completion:((Any?)->())?) // , hideSubviews:Bool = false
+    {
+        guard let cancelButton = self.loadingButton else {
+            return
+        }
+        
+        self.startAnimating()
+        
+//        guard let view = self.view else {
+//            return
+//        }
+        
+//        let operationQueue = OperationQueue()
+//
+//        operationQueue.name = UUID().uuidString // Assumes there is only one globally
+//        operationQueue.qualityOfService = .background
+//        operationQueue.maxConcurrentOperationCount = 1
+//
+//        let operation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
+
+        Thread.onMainThread {
+            // Brute force disable
+            if disableEnable {
+                self.barButtonItems(isEnabled: false)
+            }
+            
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                let data = work?({
+                    return DispatchQueue.main.sync {
+                        return cancelButton.tag == 1
+                    }
+                })
+                
+                Thread.onMainThread {
+                    // Brute force enable => need to be set according to state in completion.
+                    if disableEnable {
+                        self?.barButtonItems(isEnabled: true)
+                    }
+                    
+                    completion?(data)
+                    
+                    self?.stopAnimating()
+                }
+            }
+        }
+
+//        let monitorOperation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
+//            while operation.isExecuting {
+//                Thread.sleep(forTimeInterval: 1.0)
+//            }
+//        }
+//
+//        monitorOperation.addDependency(operation)
+
+//        operationQueue.addOperation(operation)
+        
+//        operationQueue.addOperation(monitorOperation)
+    }
+    
+    func barButtonItems(isEnabled:Bool)
+    {
+        Thread.onMainThread {
+            if let buttons = self.navigationItem.rightBarButtonItems {
+                for button in buttons {
+                    button.isEnabled = isEnabled
+                }
+            }
+            
+            if let buttons = self.navigationItem.leftBarButtonItems {
+                for button in buttons {
+                    button.isEnabled = isEnabled
+                }
+            }
+            
+            if let buttons = self.toolbarItems {
+                for button in buttons {
+                    button.isEnabled = isEnabled
+                }
+            }
+        }
+    }
+    
+    func process(disableEnable:Bool = true,work:(()->(Any?))?,completion:((Any?)->())?) // ,hideSubviews:Bool = false
     {
         guard (work != nil) && (completion != nil) else {
             return
@@ -3984,80 +4118,87 @@ extension UIViewController
 //            return
 //        }
         
-        guard let container = Globals.shared.loadingViewController?.view else {
-            return
-        }
-        
-        guard let view = self.view else {
-            return
-        }
+//        guard let container = self.loadingContainer else {
+//            return
+//        }
 
-        Thread.onMainThread {
+        self.startAnimating()
+        
+//        guard let view = self.view else {
+//            return
+//        }
+
+        Thread.onMainThread { [weak self] in
             // Brute force disable
             if disableEnable {
-                if let buttons = self.navigationItem.rightBarButtonItems {
-                    for button in buttons {
-                        button.isEnabled = false
-                    }
-                }
-                
-                if let buttons = self.navigationItem.leftBarButtonItems {
-                    for button in buttons {
-                        button.isEnabled = false
-                    }
-                }
-                
-                if let buttons = self.toolbarItems {
-                    for button in buttons {
-                        button.isEnabled = false
-                    }
-                }
+                self?.barButtonItems(isEnabled: false)
+//                if let buttons = self.navigationItem.rightBarButtonItems {
+//                    for button in buttons {
+//                        button.isEnabled = false
+//                    }
+//                }
+//
+//                if let buttons = self.navigationItem.leftBarButtonItems {
+//                    for button in buttons {
+//                        button.isEnabled = false
+//                    }
+//                }
+//
+//                if let buttons = self.toolbarItems {
+//                    for button in buttons {
+//                        button.isEnabled = false
+//                    }
+//                }
             }
             
-            container.frame = view.frame
-            container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+//            container.frame = view.frame
+//            container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+//
+//            container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
             
-            container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+//            if hideSubviews {
+//                for view in container.subviews {
+//                    view.isHidden = true
+//                }
+//            }
             
-            if hideSubviews {
-                for view in container.subviews {
-                    view.isHidden = true
-                }
-            }
-            
-            view.addSubview(container)
+//            view.addSubview(container)
             
             // Should be an OperationQueue and work should be a CancelableOperation
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 let data = work?()
                 
                 Thread.onMainThread {
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
-                        if let buttons = self.navigationItem.rightBarButtonItems {
-                            for button in buttons {
-                                button.isEnabled = true
-                            }
-                        }
-                        
-                        if let buttons = self.navigationItem.leftBarButtonItems {
-                            for button in buttons {
-                                button.isEnabled = true
-                            }
-                        }
-                        
-                        if let buttons = self.toolbarItems {
-                            for button in buttons {
-                                button.isEnabled = true
-                            }
-                        }
+                        self?.barButtonItems(isEnabled: true)
+
+//                        if let buttons = self.navigationItem.rightBarButtonItems {
+//                            for button in buttons {
+//                                button.isEnabled = true
+//                            }
+//                        }
+//
+//                        if let buttons = self.navigationItem.leftBarButtonItems {
+//                            for button in buttons {
+//                                button.isEnabled = true
+//                            }
+//                        }
+//
+//                        if let buttons = self.toolbarItems {
+//                            for button in buttons {
+//                                button.isEnabled = true
+//                            }
+//                        }
                     }
                     
                     completion?(data)
+
+                    self?.stopAnimating()
                     
-                    if container.superview != nil { //  != viewController.view
-                        container.removeFromSuperview()
-                    }
+//                    if container.superview != nil { //  != viewController.view
+//                        container.removeFromSuperview()
+//                    }
                 }
             }
         }
@@ -4592,6 +4733,186 @@ extension UIViewController
             navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem            
         }
     }
+
+//    var loadingViewController:UIViewController?
+//    {
+//        if let loadingView = storyboard?.instantiateViewController(withIdentifier: "Loading View Controller").view {
+//            self.view.addSubview(loadingView)
+//        }
+//    }
+    
+    var loadingContainer:UIView?
+    {
+        get {
+            guard let loadingContainer = view.subviews.filter({ (view:UIView) in
+                return view.tag > 100
+            }).first else {
+                if let loadingContainer = storyboard?.instantiateViewController(withIdentifier: "Loading View Controller").view {
+                    loadingContainer.tag = 101
+
+                    loadingContainer.frame = self.view.frame
+                    loadingContainer.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
+                    
+                    loadingContainer.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+                    
+                    self.view.addSubview(loadingContainer)
+
+//                    loadingView?.isUserInteractionEnabled = false
+//                    loadingActivity?.isUserInteractionEnabled = false
+
+                    return loadingContainer
+                }
+                
+                return nil
+            }
+            
+            return loadingContainer
+        }
+    }
+    
+    var loadingView:UIView?
+    {
+        get {
+            return loadingContainer?.subviews[0]
+        }
+    }
+    
+    @objc func cancelWork(_ sender:UIButton)
+    {
+        if sender.tag == 0 {
+            sender.tag = 1
+        }
+    }
+    
+    var loadingButton:UIButton?
+    {
+        get {
+            guard let button = loadingView?.subviews.filter({ (view:UIView) -> Bool in
+                return (view as? UIButton) != nil
+            }).first as? UIButton else {
+                return nil
+            }
+
+            button.isHidden = false
+            self.loadingContainer?.tag = 102
+//            button.tag = 0
+            
+            button.addTarget(self, action: #selector(cancelWork(_:)), for: .touchUpInside)
+            
+            return button
+        }
+    }
+    
+    var loadingLabel:UILabel?
+    {
+        get {
+            return loadingView?.subviews.filter({ (view:UIView) -> Bool in
+                return (view as? UILabel) != nil
+            }).first as? UILabel
+        }
+    }
+    
+    var loadingActivity:UIActivityIndicatorView?
+    {
+        get {
+            return loadingView?.subviews.filter({ (view:UIView) -> Bool in
+                return (view as? UIActivityIndicatorView) != nil
+            }).first as? UIActivityIndicatorView
+        }
+    }
+    
+    func stopAnimating()
+    {
+//        guard loadingContainer != nil else {
+//            return
+//        }
+//
+//        guard loadingView != nil else {
+//            return
+//        }
+//
+//        guard loadingActivity != nil else {
+//            return
+//        }
+        
+        Thread.onMainThread {
+//            self.loadingActivity?.stopAnimating()
+//            self.loadingView?.isHidden = true
+//            self.loadingContainer?.isHidden = true
+            self.loadingContainer?.removeFromSuperview()
+        }
+    }
+    
+    func startAnimating(allowTouches:Bool = false)
+    {
+//        setupLoadingView()
+        
+        //        if container == nil { // loadingView
+        //            setupLoadingView()
+        //        }
+        
+//        guard loadingContainer != nil else {
+//            return
+//        }
+//        
+//        guard loadingView != nil else {
+//            return
+//        }
+//        
+//        guard loadingActivity != nil else {
+//            return
+//        }
+        
+        Thread.onMainThread {
+            if allowTouches {
+                self.loadingContainer?.backgroundColor = UIColor.clear
+                self.loadingContainer?.tag = 102
+//                self.loadingContainer?.isUserInteractionEnabled = false
+            }
+            
+            self.loadingContainer?.isHidden = false
+            self.loadingView?.isHidden = false
+            self.loadingActivity?.startAnimating()
+        }
+    }
+    
+//    func setupLoadingView()
+//    {
+//        guard let loadingContainer = loadingContainer, !view.subviews.contains(loadingContainer) else {
+//            return
+//        }
+//
+//        //        guard (loadingView == nil) else {
+//        //            return
+//        //        }
+//
+//        //        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+//        //            return
+//        //        }
+//
+//        //        if let view = Globals.shared.loadingViewController?.view {
+//        //            container = view
+//        //        }
+//
+//        loadingContainer.backgroundColor = UIColor.clear
+//
+//        loadingContainer.frame = view.frame
+//        loadingContainer.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+//
+//        loadingContainer.isUserInteractionEnabled = false
+//
+//        //        loadingView = loadingViewController.view.subviews[0]
+//
+//        loadingView?.isUserInteractionEnabled = false
+//
+//        //        if let view = loadingView.subviews[0] as? UIActivityIndicatorView {
+//        //            actInd = view
+//        //        }
+//
+//        loadingActivity?.isUserInteractionEnabled = false
+//
+//        view.addSubview(loadingContainer)
+//    }
 }
 
 extension NSLayoutConstraint
@@ -4643,21 +4964,34 @@ extension String
             return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
         }
         
-        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
-            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
+        let attributedText = NSMutableAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
+        
+        let range = NSRange(location: 0, length: self.utf16.count)
+        
+        if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+            regex.matches(in: self, options: .withTransparentBounds, range: range).forEach {
+                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                             range: $0.range)
+            }
         }
         
-        let highlightedString = NSMutableAttributedString()
-        
-        let before = String(self[..<range.lowerBound])
-        let string = String(self[range])
-        let after = String(self[range.upperBound...])
-        
-        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
-        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
-        
-        return highlightedString
+        return attributedText
+
+//        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
+//            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
+//        }
+//
+//        let highlightedString = NSMutableAttributedString()
+//
+//        let before = String(self[..<range.lowerBound])
+//        let string = String(self[range])
+//        let after = String(self[range.upperBound...])
+//
+//        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
+//        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+//        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
+//
+//        return highlightedString
     }
     
     func boldHighlighted(_ searchText:String?) -> NSAttributedString
@@ -4666,21 +5000,35 @@ extension String
             return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
         }
         
-        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
-            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
+        let attributedText = NSMutableAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
+        
+        let range = NSRange(location: 0, length: self.utf16.count)
+
+        if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+            regex.matches(in: self, options: .withTransparentBounds, range: range).forEach {
+                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                             range: $0.range)
+            }
         }
-        
-        let highlightedString = NSMutableAttributedString()
-        
-        let before = String(self[..<range.lowerBound])
-        let string = String(self[range])
-        let after = String(self[range.upperBound...])
-        
-        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
-        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
-        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
-        
-        return highlightedString
+
+        return attributedText
+
+//
+//        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
+//            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
+//        }
+//
+//        let highlightedString = NSMutableAttributedString()
+//
+//        let before = String(self[..<range.lowerBound])
+//        let string = String(self[range])
+//        let after = String(self[range.upperBound...])
+//
+//        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
+//        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
+//        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
+//
+//        return highlightedString
     }
 }
 

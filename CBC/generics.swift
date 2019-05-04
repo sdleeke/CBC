@@ -83,7 +83,7 @@ class Default<T>
     private var _value : T?
     {
         didSet {
-            
+
         }
     }
     
@@ -98,9 +98,9 @@ class Default<T>
         }
     }
     
-    var defaultValue : (()->T?)?
+    var defaultValue : (()->(T?))?
     
-    init(_ defaultValue:(()->T?)? = nil)
+    init(_ defaultValue:(()->(T?))? = nil)
     {
         self.defaultValue = defaultValue
     }

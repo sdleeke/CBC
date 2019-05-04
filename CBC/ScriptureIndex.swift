@@ -412,7 +412,7 @@ class ScriptureIndex
         operationQueue.addOperation(op)
     }
 
-    func html(includeURLs:Bool, includeColumns:Bool) -> String?
+    func html(includeURLs:Bool, includeColumns:Bool, test:(()->(Bool))? = nil) -> String?
     {
         guard let mediaItems = mediaItems else {
             return nil
@@ -421,8 +421,16 @@ class ScriptureIndex
         var bodyItems = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {
+            guard test?() != true else {
+                return nil
+            }
+            
             if let books = mediaItem.scripture?.books {
                 for book in books {
+                    guard test?() != true else {
+                        return nil
+                    }
+                    
                     if let okay = sectionTitles?.contains(book) {
                         if okay {
                             if bodyItems[book] == nil {
@@ -504,6 +512,10 @@ class ScriptureIndex
         }
         
         for book in books {
+            guard test?() != true else {
+                return nil
+            }
+            
             let tag = book.asTag
             
             if includeColumns {
@@ -521,6 +533,10 @@ class ScriptureIndex
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
+                    guard test?() != true else {
+                        return nil
+                    }
+                    
                     if let speaker = mediaItem.speaker {
                         guard let count = speakerCounts[speaker] else {
                             speakerCounts[speaker] = 1
@@ -547,6 +563,10 @@ class ScriptureIndex
                 }
                 
                 for mediaItem in mediaItems {
+                    guard test?() != true else {
+                        return nil
+                    }
+                    
                     var order = ["scripture","title","date"]
                     
                     if speakerCount > 1 {
@@ -574,6 +594,10 @@ class ScriptureIndex
             bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
             
             for book in books {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 if let count = bodyItems[book]?.count {
                     bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
                 }

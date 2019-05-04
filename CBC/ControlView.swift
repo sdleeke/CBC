@@ -9,6 +9,24 @@
 import Foundation
 import UIKit
 
+class LoadingContainerView : UIView
+{
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool
+    {
+        guard tag == 102 else {
+            return false
+        }
+        
+        for view in subviews {
+            if view.frame.contains(point) && view.isUserInteractionEnabled && !view.isHidden {
+                return true
+            }
+        }
+        
+        return false
+    }
+}
+
 class ControlView : UIView
 {
     deinit {

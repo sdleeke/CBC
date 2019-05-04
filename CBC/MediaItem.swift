@@ -3790,7 +3790,7 @@ class MediaItem : NSObject
             } else
                 
             if let _ = viewController as? MediaTableViewController, Globals.shared.search.isActive, Globals.shared.search.transcripts {
-                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: true, index: true).0
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, index: true).0
             }
             
             return htmlString

@@ -20,6 +20,60 @@ typealias MediaGroupNames = ThreadSafeDN<String> // ictionaryOfDictionaries
 
 typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
 
+class MLGSSection
+{
+    private weak var mediaListGroupSort:MediaListGroupSort?
+    
+    var sorting : String?
+    {
+        get {
+            return mediaListGroupSort?.sorting.value
+        }
+    }
+    
+    var grouping : String?
+    {
+        get {
+            return mediaListGroupSort?.grouping.value
+        }
+    }
+    
+    init(_ mediaListGroupSort:MediaListGroupSort?)
+    {
+        self.mediaListGroupSort = mediaListGroupSort
+    }
+    
+    deinit {
+        debug(self)
+    }
+    
+    // thread safe?
+    lazy var headerStrings:[String]? =
+        {
+            return mediaListGroupSort?.sectionTitles(grouping: grouping,sorting: sorting)
+    }()
+    
+    lazy var counts:[Int]? =
+        {
+            return mediaListGroupSort?.sectionCounts(grouping: grouping,sorting: sorting)
+    }()
+    
+    lazy var indexes:[Int]? =
+        {
+            return mediaListGroupSort?.sectionIndexes(grouping: grouping,sorting: sorting)
+    }()
+    
+    lazy var indexStrings:[String]? =
+        {
+            return mediaListGroupSort?.sectionIndexTitles(grouping: grouping,sorting: sorting)
+    }()
+    
+    lazy var mediaItems:[MediaItem]? =
+        {
+            return mediaListGroupSort?.mediaItems(grouping: grouping,sorting: sorting)
+    }()
+}
+
 // This needs to be broken up into simpler components and reviewed for threadsafety
 class MediaListGroupSort
 {
@@ -27,7 +81,10 @@ class MediaListGroupSort
         debug(self)
     }
     
-    var sorting = Default<String>({ return Globals.shared.sorting })
+    var complete = false
+    var cancelled = false
+
+    lazy var sorting = Default<String>({ return Globals.shared.sorting })
     
 //    var _sorting : String?
 //    {
@@ -45,7 +102,7 @@ class MediaListGroupSort
 //        }
 //    }
     
-    var grouping = Default<String>({ return Globals.shared.grouping })
+    lazy var grouping = Default<String>({ return Globals.shared.grouping })
     
 //    var _grouping : String?
 //    {
@@ -223,17 +280,8 @@ class MediaListGroupSort
     }()
     
     var groupSort:MediaGroupSort?
-    {
-        didSet {
-            
-        }
-    }
+
     var groupNames:MediaGroupNames?
-    {
-        didSet {
-            
-        }
-    }
     
     var tagMediaItems : ThreadSafeDN<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem // ictionary
     {
@@ -305,14 +353,6 @@ class MediaListGroupSort
                     return "ERROR"
                 }
             })
-        }
-    }
-    
-    // thread safe?
-    var mediaItems:[MediaItem]?
-    {
-        get {
-            return mediaItems(grouping: grouping.value,sorting: sorting.value)
         }
     }
     
@@ -495,65 +535,8 @@ class MediaListGroupSort
         return groupedSortedMediaItems
     }
     
-    class Section
-    {
-        private weak var mediaListGroupSort:MediaListGroupSort?
-        
-        var sorting : String?
-        {
-            get {
-                return mediaListGroupSort?.sorting.value
-            }
-        }
-        
-        var grouping : String?
-        {
-            get {
-                return mediaListGroupSort?.grouping.value
-            }
-        }
-        
-        init(_ mediaListGroupSort:MediaListGroupSort?)
-        {
-            self.mediaListGroupSort = mediaListGroupSort
-        }
-        
-        deinit {
-        debug(self)
-            
-        }
-        
-        var headerStrings:[String]?
-        {
-            get {
-                return mediaListGroupSort?.sectionTitles(grouping: grouping,sorting: sorting)
-            }
-        }
-        
-        var counts:[Int]?
-        {
-            get {
-                return mediaListGroupSort?.sectionCounts(grouping: grouping,sorting: sorting)
-            }
-        }
-        
-        var indexes:[Int]?
-        {
-            get {
-                return mediaListGroupSort?.sectionIndexes(grouping: grouping,sorting: sorting)
-            }
-        }
-        
-        var indexStrings:[String]?
-        {
-            get {
-                return mediaListGroupSort?.sectionIndexTitles(grouping: grouping,sorting: sorting)
-            }
-        }
-    }
-    
-    lazy var section:Section? = { [weak self] in
-        return Section(self) // section
+    lazy var section:MLGSSection? = { [weak self] in
+        return MLGSSection(self) // section
     }()
     
     func sectionIndexTitles(grouping:String?,sorting:String?) -> [String]?
@@ -646,12 +629,12 @@ class MediaListGroupSort
         })
     }
     
-    var sectionIndexes:[Int]?
-    {
-        get {
-            return sectionIndexes(grouping: grouping.value,sorting: sorting.value)
-        }
-    }
+//    var sectionIndexes:[Int]?
+//    {
+//        get {
+//            return sectionIndexes(grouping: grouping.value,sorting: sorting.value)
+//        }
+//    }
     
     func sectionIndexes(grouping:String?,sorting:String?) -> [Int]?
     {
@@ -788,7 +771,7 @@ class MediaListGroupSort
 //        }
     }
 
-    func html(includeURLs:Bool,includeColumns:Bool) -> String?
+    func html(includeURLs:Bool,includeColumns:Bool,test:(()->(Bool))? = nil) -> String?
     {
         //        guard (Globals.shared.media.active?.mediaList?.list != nil) else {
         //            return nil
@@ -802,49 +785,53 @@ class MediaListGroupSort
             return nil
         }
         
+        guard test?() != true else {
+            return nil
+        }
+        
         var bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString + "The following media "
+        bodyString += "The following media "
         
-        if mediaItems?.count > 1 {
-            bodyString = bodyString + "are"
+        if section?.mediaItems?.count > 1 {
+            bodyString += "are"
         } else {
-            bodyString = bodyString + "is"
+            bodyString += "is"
         }
         
         if includeURLs {
-            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
-            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
         if let category = category.value {
-            bodyString = bodyString + "Category: \(category)<br/>"
+            bodyString += "Category: \(category)<br/>"
         }
         
 //                if let category = Globals.shared.mediaCategory.selected {
-//                    bodyString = bodyString + "Category: \(category)<br/>"
+//                    bodyString += "Category: \(category)<br/>"
 //                }
         
         if let tag = tagSelected.value {
-            bodyString = bodyString + "Collection: \(tag)<br/>"
+            bodyString += "Collection: \(tag)<br/>"
         }
         
         //        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-        //            bodyString = bodyString + "Collection: \(tag)<br/>"
+        //            bodyString += "Collection: \(tag)<br/>"
         //        }
         
         if let searchText = search.value?.text {
-            bodyString = bodyString + "Search: \(searchText)<br/>"
+            bodyString += "Search: \(searchText)<br/>"
         }
         
         //        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
-        //            bodyString = bodyString + "Search: \(searchText)<br/>"
+        //            bodyString += "Search: \(searchText)<br/>"
         //        }
         
-        bodyString = bodyString + "Grouped: By \(grouping.translate)<br/>"
+        bodyString += "Grouped: By \(grouping.translate)<br/>"
 
-        bodyString = bodyString + "Sorted: \(sorting.translate)<br/>"
+        bodyString += "Sorted: \(sorting.translate)<br/>"
         
         if let keys = section?.indexStrings { // Globals.shared.media.active?.
             var count = 0
@@ -854,23 +841,31 @@ class MediaListGroupSort
                 }
             }
             
-            bodyString = bodyString + "Total: \(count)<br/>"
+            bodyString += "Total: \(count)<br/>"
             
             if includeURLs, (keys.count > 1) {
-                bodyString = bodyString + "<br/>"
-                bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+                bodyString += "<br/>"
+                bodyString += "<a href=\"#index\">Index</a><br/>"
             }
             
             if includeColumns {
-                bodyString = bodyString + "<table>"
+                bodyString += "<table>"
             }
             
             for key in keys {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 if  let name = groupNames?[grouping,key], // ]?[
                     let mediaItems = groupSort?[grouping,key,sorting] { // ]?[
                     var speakerCounts = [String:Int]()
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         if let speaker = mediaItem.speaker {
                             if let count = speakerCounts[speaker] {
                                 speakerCounts[speaker] = count + 1
@@ -886,27 +881,27 @@ class MediaListGroupSort
                     
                     if includeColumns {
                         if includeURLs {
-                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
                         } else {
-                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
                         }
                     } else {
                         if includeURLs {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                         } else {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                         }
                     }
                     
                     if includeColumns {
-                        bodyString = bodyString + "<tr>"
-                        bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
+                        bodyString += "<tr>"
+                        bodyString += "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                     }
                     
                     if includeURLs, (keys.count > 1) {
-                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
+                        bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
                     } else {
-                        bodyString = bodyString + name + " (\(mediaItems.count))"
+                        bodyString += name + " (\(mediaItems.count))"
                     }
                     
                     if speakerCount == 1 {
@@ -914,15 +909,15 @@ class MediaListGroupSort
                             if let speakerTitle = mediaItems[0].speakerTitle {
                                 speaker += ", \(speakerTitle)"
                             }
-                            bodyString = bodyString + " by " + speaker
+                            bodyString += " by " + speaker
                         }
                     }
                     
                     if includeColumns {
-                        bodyString = bodyString + "</td>"
-                        bodyString = bodyString + "</tr>"
+                        bodyString += "</td>"
+                        bodyString += "</tr>"
                     } else {
-                        bodyString = bodyString + "<br/>"
+                        bodyString += "<br/>"
                     }
                     
                     for mediaItem in mediaItems {
@@ -945,24 +940,24 @@ class MediaListGroupSort
                         }
                         
                         if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                            bodyString = bodyString + string
+                            bodyString += string
                         }
                         
                         if !includeColumns {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                         }
                     }
                 }
             }
             
             if includeColumns {
-                bodyString = bodyString + "</table>"
+                bodyString += "</table>"
             }
             
-            bodyString = bodyString + "<br/>"
+            bodyString += "<br/>"
             
             if includeURLs, keys.count > 1 {
-                bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+                bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
                 
                 switch grouping {
                 case GROUPING.CLASS:
@@ -1002,33 +997,33 @@ class MediaListGroupSort
                             index = ((index != nil) ? index! + " " : "") + link
                         }
                         
-                        bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+                        bodyString += "<div><a id=\"sections\" name=\"sections\">Sections</a> "
                         
                         if let index = index {
-                            bodyString = bodyString + index + "<br/>"
+                            bodyString += index + "<br/>"
                         }
                         
                         for title in titles {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                             if let count = stringIndex[title]?.count { // Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count
-                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
+                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
                             } else {
-                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
                             }
                             
                             if let keys = stringIndex[title] {
                                 for key in keys {
                                     if let title = groupNames?[grouping,key] { // ]?[
                                         let tag = key.asTag
-                                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
+                                        bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
                                     }
                                 }
                             }
                             
-                            bodyString = bodyString + "</div>"
+                            bodyString += "</div>"
                         }
                         
-                        bodyString = bodyString + "</div>"
+                        bodyString += "</div>"
                     }
                     break
                     
@@ -1037,17 +1032,17 @@ class MediaListGroupSort
                         if let title = groupNames?[grouping,key], // ]?[
                             let count = groupSort?[grouping,key,sorting]?.count { // ]?[
                             let tag = key.asTag
-                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                         }
                     }
                     break
                 }
                 
-                bodyString = bodyString + "</div>"
+                bodyString += "</div>"
             }
         }
         
-        bodyString = bodyString + "</body></html>"
+        bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
     }

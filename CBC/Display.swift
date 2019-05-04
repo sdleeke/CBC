@@ -36,7 +36,9 @@ class Display
             Globals.shared.grouping = GROUPING.YEAR
         }
 
-        mediaItems = active?.mediaItems
+        active?.section = MLGSSection(active)
+        
+        mediaItems = active?.section?.mediaItems
 
         section.showHeaders = true
         

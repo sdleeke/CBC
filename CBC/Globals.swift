@@ -68,10 +68,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    lazy var loadingViewController:UIViewController? = {
-        return storyboard?.instantiateViewController(withIdentifier: "Loading View Controller")
-    }()
-    
     var splitViewController : UISplitViewController?
     {
         get {

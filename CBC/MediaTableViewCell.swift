@@ -48,7 +48,7 @@ class MediaTableViewCell: UITableViewCell
             Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
             return
         }
-        
+
         self.title.attributedText = nil
         self.detail.attributedText = nil
     }
@@ -111,8 +111,6 @@ class MediaTableViewCell: UITableViewCell
             titleString.append(speaker)
         }
         
-        self.title.attributedText = titleString
-        
         let detailString = NSMutableAttributedString()
         
         var title:String?
@@ -166,6 +164,7 @@ class MediaTableViewCell: UITableViewCell
             detailString.append(NSAttributedString(string: category))
         }
 
+        self.title.attributedText = titleString
         self.detail.attributedText = detailString
     }
     
@@ -201,9 +200,7 @@ class MediaTableViewCell: UITableViewCell
         }
         
         setupProgressBarForAudio()
-
         setupIcons()
-
         setupText()
     }
     
@@ -369,7 +366,7 @@ class MediaTableViewCell: UITableViewCell
         
         if mediaItem.hasAudio, mediaItem.audioDownload?.exists == true {
         }
-        
+
         self.icons.attributedText = attrString
     }
     

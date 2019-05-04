@@ -13,9 +13,86 @@ class Search
     deinit {
         debug(self)
     }
+
+    var current:MediaListGroupSort?
+    {
+        get {
+            guard let text = text else {
+                return nil
+            }
+            
+            return Globals.shared.media.toSearch?.searches?[text]
+        }
+        
+        set {
+            guard let text = text else {
+                return
+            }
+            
+            Globals.shared.media.toSearch?.searches?[text] = newValue
+        }
+    }
+
+//    var complete:Bool
+//    {
+//        get {
+//            guard let text = text else {
+//                return false
+//            }
+//
+//            return Globals.shared.media.toSearch?.searches?[text]?.complete ?? false
+//        }
+//
+//        set {
+//            guard let text = text else {
+//                return
+//            }
+//
+//            Globals.shared.media.toSearch?.searches?[text]?.complete = newValue
+//        }
+//    }
     
-    var complete:Bool = true
+//    var cancelled:Bool
+//    {
+//        get {
+//            guard let text = text else {
+//                return false
+//            }
+//
+//            return Globals.shared.media.toSearch?.searches?[text]?.cancelled ?? false
+//        }
+//
+//        set {
+//            guard let text = text else {
+//                return
+//            }
+//
+//            Globals.shared.media.toSearch?.searches?[text]?.cancelled = newValue
+//        }
+//    }
     
+//    var results:MediaListGroupSort?
+//    {
+//        get {
+//            guard let text = text else {
+//                return nil
+//            }
+//            
+//            return Globals.shared.media.toSearch?.searches?[text]
+//        }
+//        
+//        set {
+//            guard let text = text else {
+//                return
+//            }
+//            
+//            Globals.shared.media.toSearch?.searches?[text] = newValue
+//        }
+//    }
+
+//    var complete:Bool = true
+//    var cancelled:Bool = false
+
     var isActive:Bool = false
     {
         willSet {
@@ -23,7 +100,7 @@ class Search
         }
         didSet {
             if !isActive {
-                complete = true
+//                complete = true
             }
         }
     }

@@ -89,9 +89,9 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
             switch strings[index] {
             case Constants.Strings.View_List:
-                self.process(work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                     if self?.scriptureIndex?.html?.string == nil {
-                        self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true)
+                        self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true, test:test)
                     }
                     
                     return self?.scriptureIndex?.html?.string

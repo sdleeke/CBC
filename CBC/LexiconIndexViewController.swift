@@ -742,7 +742,12 @@ class LexiconIndexViewController : UIViewController
     }
     
     var results:MediaListGroupSort?
-
+    {
+        didSet {
+            
+        }
+    }
+    
     var changesPending = false
 
     var selectedMediaItem:MediaItem?
@@ -1342,7 +1347,7 @@ class LexiconIndexViewController : UIViewController
 
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
     {
-        guard let mediaItems = results?.mediaItems else {
+        guard let mediaItems = results?.section?.mediaItems else {
             return nil
         }
         
@@ -2191,8 +2196,8 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         if (indexPath.section >= 0) && (indexPath.section < results?.section?.indexes?.count) {
             if let section = results?.section?.indexes?[indexPath.section] {
-                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.mediaItems?.count {
-                    mediaItem = results?.mediaItems?[section + indexPath.row]
+                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.section?.mediaItems?.count {
+                    mediaItem = results?.section?.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")
@@ -2283,8 +2288,8 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         if (indexPath.section >= 0) && (indexPath.section < results?.section?.indexes?.count) {
             if let section = results?.section?.indexes?[indexPath.section] {
-                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.mediaItems?.count {
-                    cell.mediaItem = results?.mediaItems?[section + indexPath.row]
+                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.section?.mediaItems?.count {
+                    cell.mediaItem = results?.section?.mediaItems?[section + indexPath.row]
                 }
             } else {
                 print("No mediaItem for cell!")

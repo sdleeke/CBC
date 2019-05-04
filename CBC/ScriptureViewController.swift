@@ -173,7 +173,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Lexical_Analysis:
-                self.process(disableEnable: false, hideSubviews: false, work: { () -> (Any?) in
+                self.process(disableEnable: false, work: { () -> (Any?) in // , hideSubviews: false
                     if #available(iOS 12.0, *) {
                         return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true)
                     } else {

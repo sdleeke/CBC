@@ -418,7 +418,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 
                 mtvc.startAnimating()
                 
-                mtvc.disableBarButtons()
+                mtvc.barButtonItems(isEnabled: false)
             }
             
             if (Globals.shared.search.isActive) {
