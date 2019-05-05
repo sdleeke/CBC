@@ -933,7 +933,7 @@ class MediaListGroupSort
                     if includeURLs, (keys.count > 1) {
                         bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
                     } else {
-                        bodyString += name + " (\(mediaItems.count))"
+                        bodyString += name // + " (\(mediaItems.count))"
                     }
                     
                     if speakerCount == 1 {

@@ -452,35 +452,35 @@ class ScriptureIndex
         
         bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString + "<div>"
+        bodyString += "<div>"
         
-        bodyString = bodyString + "The following media "
+        bodyString += "The following media "
         
         if mediaItems.count > 1 {
-            bodyString = bodyString + "are"
+            bodyString += "are"
         } else {
-            bodyString = bodyString + "is"
+            bodyString += "is"
         }
         
         if includeURLs {
-            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
-            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
         if let category = mediaListGroupSort?.category.value {
-            bodyString = bodyString + "Category: \(category)<br/><br/>"
+            bodyString += "Category: \(category)<br/><br/>"
         }
         
         if let tag = mediaListGroupSort?.tagSelected.value {
-            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
+            bodyString += "Collection: \(tag)<br/><br/>"
         }
         
         if let text = mediaListGroupSort?.search.value?.text {
-            bodyString = bodyString + "Search: \(text)<br/><br/>"
+            bodyString += "Search: \(text)<br/><br/>"
         }
         
-        bodyString = bodyString + "</div>"
+        bodyString += "</div>"
         
         if let selectedTestament = scripture?.selected.testament {
             var indexFor = selectedTestament.translateTestament
@@ -497,18 +497,18 @@ class ScriptureIndex
                 }
             }
             
-            bodyString = bodyString + "\(indexFor) Scripture Index<br/>"
+            bodyString += "\(indexFor) Scripture Index<br/>"
         }
         
-        bodyString = bodyString + "Items are grouped and sorted by Scripture reference.<br/>"
+        bodyString += "Items are grouped and sorted by Scripture reference.<br/>"
         
-        bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
+        bodyString += "Total: \(mediaItems.count)<br/>"
         
         let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
         
         if includeURLs, (books.count > 1) {
-            bodyString = bodyString + "<br/>"
-            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+            bodyString += "<br/>"
+            bodyString += "<a href=\"#index\">Index</a><br/>"
         }
         
         if includeColumns {
@@ -523,15 +523,15 @@ class ScriptureIndex
             let tag = book.asTag
             
             if includeColumns {
-                bodyString  = bodyString + "<tr><td><br/></td></tr>"
-                bodyString  = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
+                bodyString += "<tr><td><br/></td></tr>"
+                bodyString += "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
             }
             
             if let mediaItems = bodyItems[book] {
                 if includeURLs && (books.count > 1) {
-                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
+                    bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + "</a>" //  + " (\(mediaItems.count))"
                 } else {
-                    bodyString = bodyString + book
+                    bodyString += book
                 }
                 
                 var speakerCounts = [String:Int]()
@@ -556,14 +556,18 @@ class ScriptureIndex
                 let speakers = Array(speakerCounts.keys)
                 
                 if speakerCount == 1{
-                    bodyString = bodyString + " by \(speakers[0])"
+                    bodyString += " by \(speakers[0])"
+                }
+                
+                if mediaItems.count > 1 {
+                    bodyString += " (\(mediaItems.count))"
                 }
                 
                 if includeColumns {
                     bodyString  = bodyString + "</td>"
                     bodyString  = bodyString + "</tr>"
                 } else {
-                    bodyString = bodyString + "<br/>"
+                    bodyString += "<br/>"
                 }
                 
                 for mediaItem in mediaItems {
@@ -578,11 +582,11 @@ class ScriptureIndex
                     }
                     
                     if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                        bodyString = bodyString + string
+                        bodyString += string
                     }
                     
                     if !includeColumns {
-                        bodyString = bodyString + "<br/>"
+                        bodyString += "<br/>"
                     }
                 }
             }
@@ -592,10 +596,10 @@ class ScriptureIndex
             bodyString  = bodyString + "</table>"
         }
         
-        bodyString = bodyString + "<br/>"
+        bodyString += "<br/>"
         
         if includeURLs, (books.count > 1) {
-            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+            bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
             
             for book in books {
                 guard test?() != true else {
@@ -603,14 +607,14 @@ class ScriptureIndex
                 }
                 
                 if let count = bodyItems[book]?.count {
-                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book)</a> (\(count))<br/>"
+                    bodyString += "<a href=\"#\(book.asTag)\">\(book)</a> (\(count))<br/>"
                 }
             }
             
-            bodyString = bodyString + "</div>"
+            bodyString += "</div>"
         }
         
-        bodyString = bodyString + "</body></html>"
+        bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
     }
