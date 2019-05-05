@@ -3823,7 +3823,7 @@ class MediaTableViewController : UIViewController
                 if !Globals.shared.search.isActive {
                     actionButton.isEnabled = true
                 } else {
-                    actionButton.isEnabled = (Globals.shared.search.current?.complete == true)
+                    actionButton.isEnabled = (Globals.shared.search.current?.complete == true) || (Globals.shared.search.current?.cancelled == true)
                 }
             }
             barButtons.append(actionButton)
@@ -3847,7 +3847,7 @@ class MediaTableViewController : UIViewController
                 if !Globals.shared.search.isActive {
                     tagsButton.isEnabled = true
                 } else {
-                    tagsButton.isEnabled = (Globals.shared.search.current?.complete == true)
+                    tagsButton.isEnabled = (Globals.shared.search.current?.complete == true) || (Globals.shared.search.current?.cancelled == true)
                 }
             }
             barButtons.append(tagsButton)
@@ -4036,29 +4036,53 @@ class MediaTableViewController : UIViewController
         
 //        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
         let op = CancelableOperation { [weak self] (test:(()->Bool)?) in
-//            Thread.onMainThreadSync {
-//                if self?.loadingButton?.tag == 1 {
-//                    cancel = true
-//                }
-//            }
-//
-//            if cancel {
-//                return
-//            }
+            Thread.onMainThreadSync {
+                _ = self?.loadingButton
+            }
             
             var searchMediaItems:[MediaItem]?
             
+            defer {
+                if abort {
+                    Globals.shared.media.toSearch?.searches?[searchText] = nil
+                } else {
+                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
+                    self?.updateDisplay(searchText:searchText)
+                }
+                
+                Thread.onMainThread {
+                    completion?()
+                    
+                    Globals.shared.media.toSearch?.searches?[searchText]?.complete = true
+                    Globals.shared.media.toSearch?.searches?[searchText]?.cancelled = cancel
+                    
+                    self?.setupListActivityIndicator()
+                    
+                    self?.setupBarButtons()
+                }
+            }
+            
+            Thread.onMainThreadSync {
+                if self?.loadingButton?.tag == 1 {
+                    cancel = true
+                }
+            }
+
+            if cancel {
+                return
+            }
+            
             if let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
                 for mediaItem in mediaItems {
-//                    Thread.onMainThreadSync {
-//                        if self?.loadingButton?.tag == 1 {
-//                            cancel = true
-//                        }
-//                    }
-//
-//                    if cancel {
-//                        return
-//                    }
+                    Thread.onMainThreadSync {
+                        if self?.loadingButton?.tag == 1 {
+                            cancel = true
+                        }
+                    }
+
+                    if cancel {
+                        return
+                    }
 
                     Globals.shared.media.toSearch?.searches?[searchText]?.complete = false
                     
@@ -4101,17 +4125,6 @@ class MediaTableViewController : UIViewController
                     
                     self?.setupListActivityIndicator(allowTouches:true)
                     
-                    Thread.onMainThread {
-                        _ = self?.loadingButton
-//                        if let cancelButton = self?.loadingButton {
-//                            cancelButton.tag = 0
-//
-//                            cancelButton.addTarget(self, action: #selector(self?.cancelWork(_:)), for: .touchUpInside)
-//
-//                            cancelButton.isHidden = false
-//                        }
-                    }
-
                     for mediaItem in mediaItems {
                         var searchHit = false
                         
@@ -4128,7 +4141,7 @@ class MediaTableViewController : UIViewController
                         }
                         
                         if cancel {
-                            break
+                            return
                         }
                         
                         if abort {
@@ -4157,24 +4170,6 @@ class MediaTableViewController : UIViewController
             // Final search update since we're only doing them in batches of Constants.SEARCH_RESULTS_BETWEEN_UPDATES
             
             abort = abort || shouldAbort()
-            
-            if abort {
-                Globals.shared.media.toSearch?.searches?[searchText] = nil
-            } else {
-                self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                self?.updateDisplay(searchText:searchText)
-            }
-
-            Thread.onMainThread {
-                completion?()
-                
-                Globals.shared.media.toSearch?.searches?[searchText]?.complete = true
-                Globals.shared.media.toSearch?.searches?[searchText]?.cancelled = cancel
-
-                self?.setupListActivityIndicator()
-                
-                self?.setupBarButtons()
-            }
         }
         operationQueue.addOperation(op)
     }

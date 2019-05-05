@@ -547,32 +547,32 @@ extension Array where Element == MediaItem
         
         var bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString + "The following media "
+        bodyString += "The following media "
         
         if mediaItems.count > 1 {
-            bodyString = bodyString + "are"
+            bodyString += "are"
         } else {
-            bodyString = bodyString + "is"
+            bodyString += "is"
         }
         
         if includeURLs {
-            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
             
-            //        bodyString = bodyString + " from <a target=\"_blank\" href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            //        bodyString += " from <a target=\"_blank\" href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
-            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
         //    if let category = Globals.shared.mediaCategory.selected {
-        //        bodyString = bodyString + "Category: \(category)<br/><br/>"
+        //        bodyString += "Category: \(category)<br/><br/>"
         //    }
         //
         //    if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-        //        bodyString = bodyString + "Collection: \(tag)<br/><br/>"
+        //        bodyString += "Collection: \(tag)<br/><br/>"
         //    }
         //
         //    if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
-        //        bodyString = bodyString + "Search: \(searchText)<br/><br/>"
+        //        bodyString += "Search: \(searchText)<br/><br/>"
         //    }
         
         let keys = mediaListSort.keys.sorted() {
@@ -580,7 +580,7 @@ extension Array where Element == MediaItem
         }
         
         if includeURLs, (keys.count > 1) {
-            bodyString = bodyString + "<a href=\"#index\">Index</a><br/><br/>"
+            bodyString += "<a href=\"#index\">Index</a><br/><br/>"
         }
         
         //    var lastKey:String?
@@ -602,7 +602,7 @@ extension Array where Element == MediaItem
                     bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                 }
                 
-                bodyString = bodyString + "<br/>"
+                bodyString += "<br/>"
                 
                 if includeColumns {
                     bodyString  = bodyString + "</td>"
@@ -617,11 +617,11 @@ extension Array where Element == MediaItem
                             if includeURLs, keys.count > 1 {
                                 bodyString  = bodyString + "<tr>"
                                 bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
-                                bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + key + "</a>"
+                                bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + key + "</a>"
                                 bodyString  = bodyString + "</td>"
                                 bodyString  = bodyString + "</tr>"
                             }
-                            bodyString = bodyString + string
+                            bodyString += string
                         }
                     }
                     break
@@ -630,6 +630,10 @@ extension Array where Element == MediaItem
                     var speakerCounts = [String:Int]()
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         if let speaker = mediaItem.speaker {
                             if let count = speakerCounts[speaker] {
                                 speakerCounts[speaker] = count + 1
@@ -648,20 +652,24 @@ extension Array where Element == MediaItem
                     
                     if includeURLs, keys.count > 1 {
                         let tag = key.asTag
-                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + key + "</a>"
+                        bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + key + "</a>"
                     } else {
-                        bodyString = bodyString + key
+                        bodyString += key
                     }
                     
                     if speakerCount == 1, let speaker = mediaItems[0].speaker, key != speaker {
-                        bodyString = bodyString + " by " + speaker
+                        bodyString += " by " + speaker
                     }
                     
+                    if mediaItems.count > 1 {
+                        bodyString += " (\(mediaItems.count))"
+                    }
+
                     if includeColumns {
-                        bodyString  = bodyString + "</td>"
-                        bodyString  = bodyString + "</tr>"
+                        bodyString += "</td>"
+                        bodyString += "</tr>"
                     } else {
-                        bodyString = bodyString + "<br/>"
+                        bodyString += "<br/>"
                     }
                     
                     for mediaItem in mediaItems {
@@ -676,16 +684,16 @@ extension Array where Element == MediaItem
                         }
                         
                         if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                            bodyString = bodyString + string
+                            bodyString += string
                         }
                         
                         if !includeColumns {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                         }
                     }
                     
                     if !includeColumns {
-                        bodyString = bodyString + "<br/>"
+                        bodyString += "<br/>"
                     }
                     
                     //                if let lastKey = lastKey, let count = mediaListSort[lastKey]?.count, count == 1 {
@@ -694,7 +702,7 @@ extension Array where Element == MediaItem
                     //                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
                     //                    }
                     //
-                    //                    bodyString = bodyString + "<br/>"
+                    //                    bodyString += "<br/>"
                     //
                     //                    if includeColumns {
                     //                        bodyString  = bodyString + "</td>"
@@ -712,7 +720,7 @@ extension Array where Element == MediaItem
             bodyString  = bodyString + "</table>"
         }
         
-        bodyString = bodyString + "<br/>"
+        bodyString += "<br/>"
         
         if includeURLs, (keys.count > 1) {
             //        if let indexTitles = keys {
@@ -743,8 +751,8 @@ extension Array where Element == MediaItem
                 stringIndex[key]?.append(string)
             }
             
-            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
-            //        bodyString = bodyString + "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
+            bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+            //        bodyString += "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
             
             var index:String?
             
@@ -753,10 +761,10 @@ extension Array where Element == MediaItem
                 index = ((index != nil) ? index! + " " : "") + link
             }
             
-            bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+            bodyString += "<div><a id=\"sections\" name=\"sections\">Sections</a> "
             
             if let index = index {
-                bodyString = bodyString + index + "<br/>"
+                bodyString += index + "<br/>"
             }
             
             for title in titles {
@@ -764,38 +772,38 @@ extension Array where Element == MediaItem
                     return nil
                 }
                 
-                bodyString = bodyString + "<br/>"
+                bodyString += "<br/>"
                 
                 let tag = title.asTag
                 if let count = stringIndex[title]?.count {
-                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">\(title) (\(count))</a><br/>"
+                    bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">\(title)</a> (\(count))<br/>"
                 } else {
-                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">\(title)</a><br/>"
+                    bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">\(title)</a><br/>"
                 }
                 
                 if let entries = stringIndex[title] {
                     for entry in entries {
                         let tag = entry.asTag
-                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(entry)</a><br/>"
+                        bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(entry)</a><br/>"
                     }
                 }
                 
-                bodyString = bodyString + "</div>"
+                bodyString += "</div>"
             }
             
-            bodyString = bodyString + "</div>"
+            bodyString += "</div>"
             //        }
             
-            //        bodyString = bodyString + "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
+            //        bodyString += "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
             //
             //        for key in keys {
-            //            bodyString = bodyString + "<a href=\"#\(key.asTag)\">\(key)</a><br/>"
+            //            bodyString += "<a href=\"#\(key.asTag)\">\(key)</a><br/>"
             //        }
             //
-            //        bodyString = bodyString + "</div>"
+            //        bodyString += "</div>"
         }
         
-        bodyString = bodyString + "</body></html>"
+        bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
     }
@@ -816,45 +824,45 @@ extension Array where Element == MediaItem
 //        
 //        var bodyString = "<!DOCTYPE html><html><body>"
 //        
-//        bodyString = bodyString + "The following media "
+//        bodyString += "The following media "
 //        
 //        if self.count > 1 {
-//            bodyString = bodyString + "are"
+//            bodyString += "are"
 //        } else {
-//            bodyString = bodyString + "is"
+//            bodyString += "is"
 //        }
 //        
 //        if includeURLs {
-//            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+//            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
 //        } else {
-//            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+//            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
 //        }
 //
-//        bodyString = bodyString + "Category: \(category)<br/>"
+//        bodyString += "Category: \(category)<br/>"
 //
 ////        if let category = Globals.shared.mediaCategory.selected {
-////            bodyString = bodyString + "Category: \(category)<br/>"
+////            bodyString += "Category: \(category)<br/>"
 ////        }
 //        
 //        if let tag = tag {
-//            bodyString = bodyString + "Collection: \(tag)<br/>"
+//            bodyString += "Collection: \(tag)<br/>"
 //        }
 //        
 ////        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-////            bodyString = bodyString + "Collection: \(tag)<br/>"
+////            bodyString += "Collection: \(tag)<br/>"
 ////        }
 //        
 //        if let searchText = search {
-//            bodyString = bodyString + "Search: \(searchText)<br/>"
+//            bodyString += "Search: \(searchText)<br/>"
 //        }
 //        
 ////        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
-////            bodyString = bodyString + "Search: \(searchText)<br/>"
+////            bodyString += "Search: \(searchText)<br/>"
 ////        }
 //        
-//        bodyString = bodyString + "Grouped: By \(grouping.translate)<br/>"
+//        bodyString += "Grouped: By \(grouping.translate)<br/>"
 //        
-//        bodyString = bodyString + "Sorted: \(sorting.translate)<br/>"
+//        bodyString += "Sorted: \(sorting.translate)<br/>"
 //        
 //        if let keys = Globals.shared.media.active?.section?.indexStrings {
 //            var count = 0
@@ -864,15 +872,15 @@ extension Array where Element == MediaItem
 //                }
 //            }
 //            
-//            bodyString = bodyString + "Total: \(count)<br/>"
+//            bodyString += "Total: \(count)<br/>"
 //            
 //            if includeURLs, (keys.count > 1) {
-//                bodyString = bodyString + "<br/>"
-//                bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+//                bodyString += "<br/>"
+//                bodyString += "<a href=\"#index\">Index</a><br/>"
 //            }
 //            
 //            if includeColumns {
-//                bodyString = bodyString + "<table>"
+//                bodyString += "<table>"
 //            }
 //            
 //            for key in keys {
@@ -896,27 +904,27 @@ extension Array where Element == MediaItem
 //                    
 //                    if includeColumns {
 //                        if includeURLs {
-//                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+//                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
 //                        } else {
-//                            bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
+//                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
 //                        }
 //                    } else {
 //                        if includeURLs {
-//                            bodyString = bodyString + "<br/>"
+//                            bodyString += "<br/>"
 //                        } else {
-//                            bodyString = bodyString + "<br/>"
+//                            bodyString += "<br/>"
 //                        }
 //                    }
 //                    
 //                    if includeColumns {
-//                        bodyString = bodyString + "<tr>"
-//                        bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
+//                        bodyString += "<tr>"
+//                        bodyString += "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
 //                    }
 //                    
 //                    if includeURLs, (keys.count > 1) {
-//                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
+//                        bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
 //                    } else {
-//                        bodyString = bodyString + name + " (\(mediaItems.count))"
+//                        bodyString += name + " (\(mediaItems.count))"
 //                    }
 //                    
 //                    if speakerCount == 1 {
@@ -924,15 +932,15 @@ extension Array where Element == MediaItem
 //                            if let speakerTitle = mediaItems[0].speakerTitle {
 //                                speaker += ", \(speakerTitle)"
 //                            }
-//                            bodyString = bodyString + " by " + speaker
+//                            bodyString += " by " + speaker
 //                        }
 //                    }
 //                    
 //                    if includeColumns {
-//                        bodyString = bodyString + "</td>"
-//                        bodyString = bodyString + "</tr>"
+//                        bodyString += "</td>"
+//                        bodyString += "</tr>"
 //                    } else {
-//                        bodyString = bodyString + "<br/>"
+//                        bodyString += "<br/>"
 //                    }
 //                    
 //                    for mediaItem in mediaItems {
@@ -955,24 +963,24 @@ extension Array where Element == MediaItem
 //                        }
 //                        
 //                        if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-//                            bodyString = bodyString + string
+//                            bodyString += string
 //                        }
 //                        
 //                        if !includeColumns {
-//                            bodyString = bodyString + "<br/>"
+//                            bodyString += "<br/>"
 //                        }
 //                    }
 //                }
 //            }
 //            
 //            if includeColumns {
-//                bodyString = bodyString + "</table>"
+//                bodyString += "</table>"
 //            }
 //            
-//            bodyString = bodyString + "<br/>"
+//            bodyString += "<br/>"
 //            
 //            if includeURLs, keys.count > 1 {
-//                bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+//                bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
 //                
 //                switch grouping {
 //                case GROUPING.CLASS:
@@ -1012,33 +1020,33 @@ extension Array where Element == MediaItem
 //                            index = ((index != nil) ? index! + " " : "") + link
 //                        }
 //                        
-//                        bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+//                        bodyString += "<div><a id=\"sections\" name=\"sections\">Sections</a> "
 //                        
 //                        if let index = index {
-//                            bodyString = bodyString + index + "<br/>"
+//                            bodyString += index + "<br/>"
 //                        }
 //                        
 //                        for title in titles {
-//                            bodyString = bodyString + "<br/>"
+//                            bodyString += "<br/>"
 //                            if let count = stringIndex[title]?.count { // Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count
-//                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
+//                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
 //                            } else {
-//                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+//                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
 //                            }
 //                            
 //                            if let keys = stringIndex[title] {
 //                                for key in keys {
 //                                    if let title = Globals.shared.media.active?.groupNames?[grouping]?[key] {
 //                                        let tag = key.asTag
-//                                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
+//                                        bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
 //                                    }
 //                                }
 //                            }
 //                            
-//                            bodyString = bodyString + "</div>"
+//                            bodyString += "</div>"
 //                        }
 //                        
-//                        bodyString = bodyString + "</div>"
+//                        bodyString += "</div>"
 //                    }
 //                    break
 //                    
@@ -1047,17 +1055,17 @@ extension Array where Element == MediaItem
 //                        if let title = Globals.shared.media.active?.groupNames?[grouping]?[key],
 //                            let count = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
 //                            let tag = key.asTag
-//                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+//                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
 //                        }
 //                    }
 //                    break
 //                }
 //                
-//                bodyString = bodyString + "</div>"
+//                bodyString += "</div>"
 //            }
 //        }
 //        
-//        bodyString = bodyString + "</body></html>"
+//        bodyString += "</body></html>"
 //        
 //        return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
 //    }

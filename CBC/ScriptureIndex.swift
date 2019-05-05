@@ -603,7 +603,7 @@ class ScriptureIndex
                 }
                 
                 if let count = bodyItems[book]?.count {
-                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
+                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book)</a> (\(count))<br/>"
                 }
             }
             

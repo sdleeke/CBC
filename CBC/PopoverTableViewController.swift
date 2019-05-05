@@ -1005,7 +1005,7 @@ class PopoverTableViewController : UIViewController
             width += indexSpace
         }
 
-        if self.section.showIndex || self.section.showHeaders, let count = self.section.headers?.count, (count > 1) {
+        if self.section.showIndex || self.section.showHeaders, let count = self.section.headers?.count, (count > 0) {
             height += CGFloat(40 * count)
         }
         
@@ -2008,16 +2008,17 @@ class PopoverTableViewController : UIViewController
         } else
             
         if section.strings != nil {
-            if section.showIndex {
-                if (self.section.indexStrings?.count <= 1) {
-                    // This can be a problem if this PTVC will appear because we are coming back to it and it was in search mode w/ 0 or 1 result.
-                    // If then we get out of search mode and showIndex is copied from the filteredSection to the unfiltereSection and the unfilteredSection
-                    // started w/ showIndex true then it will be set to false.  Right now we're trying avoid this by doing the copy back only for purpose == .selectingWord
-                    // and in those case there is never a push or a back and the copy back is to reflect changes in alpha vs. freq sorting of the words.
-                    section.showIndex = false
-                    tableView.reloadData()
-                }
-            }
+            // DOESN'T work if strings are computed in stringsFunction!
+//            if section.showIndex {
+//                if (self.section.indexStrings?.count <= 1) {
+//                    // This can be a problem if this PTVC will appear because we are coming back to it and it was in search mode w/ 0 or 1 result.
+//                    // If then we get out of search mode and showIndex is copied from the filteredSection to the unfiltereSection and the unfilteredSection
+//                    // started w/ showIndex true then it will be set to false.  Right now we're trying avoid this by doing the copy back only for purpose == .selectingWord
+//                    // and in those case there is never a push or a back and the copy back is to reflect changes in alpha vs. freq sorting of the words.
+//                    section.showIndex = false
+//                    tableView.reloadData()
+//                }
+//            }
             
             setPreferredContentSize()
             

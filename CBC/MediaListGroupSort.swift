@@ -917,6 +917,10 @@ class MediaListGroupSort
                         }
                     }
                     
+                    if mediaItems.count > 1 {
+                        bodyString += " (\(mediaItems.count))"
+                    }
+                    
                     if includeColumns {
                         bodyString += "</td>"
                         bodyString += "</tr>"
@@ -1048,7 +1052,7 @@ class MediaListGroupSort
                         if let title = groupNames?[grouping,key], // ]?[
                             let count = groupSort?[grouping,key,sorting]?.count { // ]?[
                             let tag = key.asTag
-                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a> (\(count))<br/>"
                         }
                     }
                     break

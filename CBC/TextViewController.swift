@@ -1854,7 +1854,7 @@ class TextViewController : UIViewController
                                                     continue
                                                 }
                                                 
-                                                if gap > gapThreshold {
+                                                if gap >= gapThreshold {
                                                     let gapString = " <\(gap)><br/><br/>"
                                                     
                                                     newText.insert(contentsOf:gapString, at: range.lowerBound)

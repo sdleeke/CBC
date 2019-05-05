@@ -1363,7 +1363,7 @@ class LexiconIndexViewController : UIViewController
         var bodyString = "<!DOCTYPE html><html><body>"
         
         if let searchText = searchText {
-            bodyString = bodyString + "Lexicon Index For \(searchText):"
+            bodyString += "Lexicon Index For \(searchText):"
             
             var appearances = 0
 
@@ -1377,51 +1377,51 @@ class LexiconIndexViewController : UIViewController
                 }
             }
             
-            bodyString = bodyString + " \(appearances) Occurrences in \(mediaItems.count) Documents<br/><br/>"
+            bodyString += " \(appearances) Occurrences in \(mediaItems.count) Documents<br/><br/>"
         }
         
-        bodyString = bodyString + "The following media "
+        bodyString += "The following media "
         
         if results?.mediaList?.list?.count > 1 {
-            bodyString = bodyString + "are"
+            bodyString += "are"
         } else {
-            bodyString = bodyString + "is"
+            bodyString += "is"
         }
         
         if includeURLs {
-            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
-            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
+            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
         if let category = Globals.shared.mediaCategory.selected {
-            bodyString = bodyString + "Category: \(category)<br/>"
+            bodyString += "Category: \(category)<br/>"
         }
         
         if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-            bodyString = bodyString + "Collection: \(tag)<br/>"
+            bodyString += "Collection: \(tag)<br/>"
         }
         
         if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
-            bodyString = bodyString + "Search: \(searchText)<br/>"
+            bodyString += "Search: \(searchText)<br/>"
         }
         
         if let grouping = Globals.shared.grouping?.translate {
-            bodyString = bodyString + "Grouped: By \(grouping)<br/>"
+            bodyString += "Grouped: By \(grouping)<br/>"
         }
         
         if let sorting = Globals.shared.sorting?.translate {
-            bodyString = bodyString + "Sorted: \(sorting)<br/>"
+            bodyString += "Sorted: \(sorting)<br/>"
         }
         
         if let keys = results?.section?.indexStrings {
             if includeURLs, (keys.count > 1) {
-                bodyString = bodyString + "<br/>"
-                bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
+                bodyString += "<br/>"
+                bodyString += "<a href=\"#index\">Index</a><br/>"
             }
             
             if includeColumns {
-                bodyString = bodyString + "<table>"
+                bodyString += "<table>"
             }
             
             for key in keys {
@@ -1453,27 +1453,31 @@ class LexiconIndexViewController : UIViewController
                     let tag = key.asTag
 
                     if includeColumns {
-                        bodyString = bodyString + "<tr><td><br/></td></tr>"
-                        bodyString = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" // valign=\"baseline\" 
+                        bodyString += "<tr><td><br/></td></tr>"
+                        bodyString += "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" // valign=\"baseline\"
                     }
                     
                     if includeURLs, (keys.count > 1) {
-                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                        bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>"
                     } else {
-                        bodyString = bodyString + name + " (\(mediaItems.count))"
+                        bodyString += name
                     }
                     
                     if speakerCount == 1 {
                         if let speaker = mediaItems[0].speaker, name != speaker {
-                            bodyString = bodyString + " by " + speaker
+                            bodyString += " by " + speaker
                         }
                     }
                     
+                    if mediaItems.count > 1 {
+                        bodyString += " (\(mediaItems.count))"
+                    }
+                    
                     if includeColumns {
-                        bodyString = bodyString + "</td>"
-                        bodyString = bodyString + "</tr>"
+                        bodyString += "</td>"
+                        bodyString += "</tr>"
                     } else {
-                        bodyString = bodyString + "<br/>"
+                        bodyString += "<br/>"
                     }
                     
                     for mediaItem in mediaItems {
@@ -1500,24 +1504,24 @@ class LexiconIndexViewController : UIViewController
                         }
                         
                         if let string = mediaItem.bodyHTML(order: order, token: searchText, includeURLs: includeURLs, includeColumns: includeColumns) {
-                            bodyString = bodyString + string
+                            bodyString += string
                         }
                         
                         if !includeColumns {
-                            bodyString = bodyString + "<br/>"
+                            bodyString += "<br/>"
                         }
                     }
                 }
             }
             
             if includeColumns {
-                bodyString = bodyString + "</table>"
+                bodyString += "</table>"
             }
             
-            bodyString = bodyString + "<br/>"
+            bodyString += "<br/>"
             
             if includeURLs, keys.count > 1 {
-                bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
+                bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
                 
                 if let grouping = Globals.shared.grouping {
                     switch grouping {
@@ -1567,10 +1571,10 @@ class LexiconIndexViewController : UIViewController
                                 index = ((index != nil) ? index! + " " : "") + link
                             }
                             
-                            bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+                            bodyString += "<div><a id=\"sections\" name=\"sections\">Sections</a> "
                             
                             if let index = index {
-                                bodyString = bodyString + index + "<br/><br/>"
+                                bodyString += index + "<br/><br/>"
                             }
                             
                             for title in titles {
@@ -1578,21 +1582,21 @@ class LexiconIndexViewController : UIViewController
                                     return nil
                                 }
                                 
-                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
                                 
                                 if let keys = stringIndex[title] {
                                     for key in keys {
                                         if let title = results?.groupNames?[grouping,key], // ]?[
                                             let count = results?.groupSort?[grouping,key,sorting]?.count { // ]?[
                                             let tag = key.asTag
-                                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a> (\(count))<br/>"
                                         }
                                     }
-                                    bodyString = bodyString + "<br/>"
+                                    bodyString += "<br/>"
                                 }
                             }
                             
-                            bodyString = bodyString + "</div>"
+                            bodyString += "</div>"
                         }
                         break
                         
@@ -1605,18 +1609,18 @@ class LexiconIndexViewController : UIViewController
                             if let title = results?.groupNames?[grouping,key], // ]?[
                                 let count = results?.groupSort?[grouping,key,sorting]?.count { // ]?[
                                 let tag = key.asTag
-                                bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                                bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a> (\(count))<br/>"
                             }
                         }
                         break
                     }
                 }
                 
-                bodyString = bodyString + "</div>"
+                bodyString += "</div>"
             }
         }
         
-        bodyString = bodyString + "</body></html>"
+        bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
     }
