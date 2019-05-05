@@ -2273,7 +2273,8 @@ class MediaItem : NSObject
 //
 //        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         
-        if Globals.shared.media.tags.selected == tag {
+        
+        if (Globals.shared.media.tags.selected == tag) {
             Thread.onMainThread {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
             }

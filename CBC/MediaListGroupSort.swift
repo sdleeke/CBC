@@ -178,6 +178,34 @@ class MediaListGroupSort
 //        }
 //    }
     
+    func addTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+    {
+        // Tag added but no point in updating unless...
+        
+        if tagMediaItems?[sortTag] != nil {
+            if tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
+                tagMediaItems?[sortTag]?.append(mediaItem)
+                tagNames?[sortTag] = tag
+            }
+        } else {
+            tagMediaItems?[sortTag] = [mediaItem]
+            tagNames?[sortTag] = tag
+        }
+    }
+    
+    func removeTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+    {
+        // Tag removed but no point in updating unless...
+        
+        if let index = tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
+            tagMediaItems?[sortTag]?.remove(at: index)
+        }
+        
+        if tagMediaItems?[sortTag]?.count == 0 {
+            _ = tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+        }
+    }
+
     var orderString:String?
     {
         get {

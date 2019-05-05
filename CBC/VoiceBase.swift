@@ -6954,7 +6954,7 @@ class VoiceBase
                             return nil
                         }
                         
-                        return Array(transcriptSegmentTokens).sorted()
+                        return transcriptSegmentTokens.sorted()
                     }
 
                     viewController.navigationController?.pushViewController(popover, animated: true)

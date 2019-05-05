@@ -26,19 +26,22 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        queue.sync {
-            if media.all?.tagMediaItems?[sortTag] != nil {
-                if media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
-                    media.all?.tagMediaItems?[sortTag]?.append(mediaItem)
-                    media.all?.tagNames?[sortTag] = tag
-                }
-            } else {
-                media.all?.tagMediaItems?[sortTag] = [mediaItem]
-                media.all?.tagNames?[sortTag] = tag
-            }
+        media.all?.addTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
+        media.active?.addTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
+
+//        queue.sync {
+//            if media.all?.tagMediaItems?[sortTag] != nil {
+//                if media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
+//                    media.all?.tagMediaItems?[sortTag]?.append(mediaItem)
+//                    media.all?.tagNames?[sortTag] = tag
+//                }
+//            } else {
+//                media.all?.tagMediaItems?[sortTag] = [mediaItem]
+//                media.all?.tagNames?[sortTag] = tag
+//            }
             
             media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
-        }
+//        }
     }
     
     func removeTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
@@ -48,17 +51,20 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        queue.sync {
-            if let index = media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
-                media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-            }
-            
-            if media.all?.tagMediaItems?[sortTag]?.count == 0 {
-                _ = media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
-            }
-            
+        media.all?.removeTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
+        media.active?.removeTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
+
+//        queue.sync {
+//            if let index = media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
+//                media.all?.tagMediaItems?[sortTag]?.remove(at: index)
+//            }
+//
+//            if media.all?.tagMediaItems?[sortTag]?.count == 0 {
+//                _ = media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+//            }
+//
             media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
-        }
+//        }
     }
     
     var rootViewController : UIViewController?

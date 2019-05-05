@@ -48,18 +48,18 @@ class Media
     var toSearch:MediaListGroupSort?
     {
         get {
-            var mediaItems:MediaListGroupSort?
+            var toSearch:MediaListGroupSort?
             
             if let showing = tags.showing {
                 switch showing {
                 case Constants.TAGGED:
                     if let selected = tags.selected {
-                        mediaItems = tagged[selected]
+                        toSearch = tagged[selected]
                     }
                     break
                     
                 case Constants.ALL:
-                    mediaItems = all
+                    toSearch = all
                     break
                     
                 default:
@@ -67,25 +67,25 @@ class Media
                 }
             }
             
-            return mediaItems
+            return toSearch
         }
     }
     
     var active:MediaListGroupSort?
     {
         get {
-            var mediaItems:MediaListGroupSort?
+            var active:MediaListGroupSort?
             
             if let showing = tags.showing {
                 switch showing {
                 case Constants.TAGGED:
                     if let selected = tags.selected {
-                        mediaItems = tagged[selected]
+                        active = tagged[selected]
                     }
                     break
                     
                 case Constants.ALL:
-                    mediaItems = all
+                    active = all
                     break
                     
                 default:
@@ -95,11 +95,11 @@ class Media
             
             if Globals.shared.search.isActive {
                 if let searchText = Globals.shared.search.text?.uppercased() {
-                    mediaItems = mediaItems?.searches?[searchText]
+                    active = active?.searches?[searchText]
                 }
             }
             
-            return mediaItems
+            return active
         }
     }
 }

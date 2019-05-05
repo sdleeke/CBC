@@ -3795,7 +3795,7 @@ class MediaTableViewController : UIViewController
             strings.append(contentsOf: mediaItemTags)
         }
         
-        return strings.count > 1 ? strings.sorted(by: {
+        return strings.count > 0 ? strings.sorted(by: {
             return $0.withoutPrefixes < $1.withoutPrefixes
         }) : nil
     }
@@ -3834,13 +3834,15 @@ class MediaTableViewController : UIViewController
             tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
         }
 
-        if (Globals.shared.media.active?.mediaItemTags?.count > 1) {
+        let tagsMenu = self.tagsMenu()
+        
+        if (tagsMenu?.count > 1) {
             tagsButton?.title = Constants.FA.TAGS
         } else {
             tagsButton?.title = Constants.FA.TAG
         }
 
-        if tagsMenu()?.count > 0, let tagsButton = tagsButton {
+        if tagsMenu?.count > 0, let tagsButton = tagsButton {
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
                 tagsButton.isEnabled = false
             } else {
@@ -3904,13 +3906,13 @@ class MediaTableViewController : UIViewController
             return
         }
         
-        guard (Globals.shared.media.all?.mediaItemTags != nil) else {
-            return
-        }
-        
-        guard (storyboard != nil) else {
-            return
-        }
+//        guard (Globals.shared.media.active?.mediaItemTags != nil) else { // all
+//            return
+//        }
+//
+//        guard (storyboard != nil) else {
+//            return
+//        }
 
         //In case we have one already showing
         self.popover?.values.forEach({ (popover:PopoverTableViewController) in
