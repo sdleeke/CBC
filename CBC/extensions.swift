@@ -515,11 +515,19 @@ extension Array where Element == MediaItem
 //            return nil
 //        }
 
+        guard test?() != true else {
+            return nil
+        }
+        
         let mediaItems = self
         
         var mediaListSort = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {
+            guard test?() != true else {
+                return nil
+            }
+            
             if let multiPartName = mediaItem.multiPartName?.withoutPrefixes {
                 if mediaListSort[multiPartName] == nil {
                     mediaListSort[multiPartName] = [mediaItem]
@@ -582,6 +590,10 @@ extension Array where Element == MediaItem
         }
         
         for key in keys {
+            guard test?() != true else {
+                return nil
+            }
+            
             if let mediaItems = mediaListSort[key]?.sorted(by: { (first, second) -> Bool in
                 return first.date < second.date
             }) {
@@ -653,6 +665,10 @@ extension Array where Element == MediaItem
                     }
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         var order = ["date","title","scripture"]
                         
                         if speakerCount > 1 {
@@ -714,6 +730,10 @@ extension Array where Element == MediaItem
             var stringIndex = [String:[String]]()
             
             for string in keys {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 let key = String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
                 
                 if stringIndex[key] == nil {
@@ -740,6 +760,10 @@ extension Array where Element == MediaItem
             }
             
             for title in titles {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 bodyString = bodyString + "<br/>"
                 
                 let tag = title.asTag
@@ -1061,7 +1085,7 @@ extension Array where Element == UIViewController
 
 extension Array where Element == String
 {
-    func timingHTML(_ headerHTML:String?) -> String?
+    func timingHTML(_ headerHTML:String?, test:(()->(Bool))? = nil) -> String?
     {
         var htmlString = "<!DOCTYPE html><html><body>"
         
@@ -1074,6 +1098,10 @@ extension Array where Element == String
             var priorEndTime : Double?
             
             for transcriptSegmentComponent in self {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
                 
                 if transcriptSegmentArray.count > 2  {
@@ -1235,8 +1263,12 @@ extension Array where Element == String
         return tableHTML()
     }
     
-    func tableHTML(title:String? = nil, searchText:String? = nil) -> String?
+    func tableHTML(title:String? = nil, searchText:String? = nil, test:(()->(Bool))? = nil) -> String?
     {
+        guard test?() != true else {
+            return nil
+        }
+        
         var bodyHTML:String! = "<!DOCTYPE html>"
         
         bodyHTML += "<html><body>"
@@ -1270,8 +1302,13 @@ extension Array where Element == String
                 return roots.keys.sorted()
             }
         }
-        
-        words.forEach({ (word:String) in
+
+        for word in words {
+//        words.forEach({ (word:String) in
+            guard test?() != true else {
+                return nil
+            }
+            
             let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
             //                    let key = String(word[..<String.Index(encodedOffset: 1)])
             if let count = roots[key] {
@@ -1279,7 +1316,7 @@ extension Array where Element == String
             } else {
                 roots[key] = 1
             }
-        })
+        }
 
         if let title = title {
             bodyHTML += title
@@ -1297,6 +1334,10 @@ extension Array where Element == String
         var index : String?
         
         for root in roots.keys.sorted() {
+            guard test?() != true else {
+                return nil
+            }
+            
             let tag = root.asTag
             
             let link = "<a id=\"wordIndex\(tag)\" name=\"wordIndex\(tag)\" href=\"#words\(tag)\">\(root)</a>"
@@ -1324,6 +1365,10 @@ extension Array where Element == String
         wordsHTML += "<a id=\"words\(tag)\" name=\"words\(tag)\" href=#wordIndex\(tag)>" + keys[section] + "</a>" + " (\(roots[keys[section]]!))"
         
         for word in words {
+            guard test?() != true else {
+                return nil
+            }
+            
             let first = String(word[..<String.Index(utf16Offset: 1, in: word)])
             
             if first != keys[section] {
@@ -3834,7 +3879,7 @@ extension UIViewController
         )
     }
     
-    func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,attachments:Bool)
+    func mailMediaItems(viewController:UIViewController, mediaItems:[MediaItem]?, stringFunction:(([MediaItem]?,Bool,Bool)->String?)?, links:Bool, columns:Bool, attachments:Bool)
     {
         guard (mediaItems != nil) && (stringFunction != nil) && MFMailComposeViewController.canSendMail() else {
             self.showSendMailErrorAlert()
@@ -4026,7 +4071,7 @@ extension UIViewController
         }
     }
 
-    func process(disableEnable:Bool = true, work:(((()->Bool)?)->(Any?))?, completion:((Any?)->())?) // , hideSubviews:Bool = false
+    func process(disableEnable:Bool = true, work:(((()->Bool)?)->(Any?))?, completion:((Any?,(()->Bool)?)->())?) // , hideSubviews:Bool = false
     {
         guard let cancelButton = self.loadingButton else {
             return
@@ -4065,7 +4110,9 @@ extension UIViewController
                         self?.barButtonItems(isEnabled: true)
                     }
                     
-                    completion?(data)
+                    completion?(data) {
+                        return cancelButton.tag == 1
+                    }
                     
                     self?.stopAnimating()
                 }
@@ -5852,7 +5899,7 @@ extension String
 //        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
 //    }
     
-    func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)
+    func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
     {
         if let headerHTML = headerHTML {
             let markedHTML = self.markHTML(searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index)
@@ -5862,7 +5909,7 @@ extension String
         }
     }
 
-    func markHTML(searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool) -> (String?,Int)
+    func markHTML(searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
     {
         let html = self
         
@@ -6953,8 +7000,12 @@ extension String
         return tokens.count > 0 ? tokens : nil
     }
     
-    func nsNameAndLexicalTypesMarkup(annotated:Bool) -> String?
+    func nsNameAndLexicalTypesMarkup(annotated:Bool, test:(()->(Bool))? = nil) -> String?
     {
+        guard test?() != true else {
+            return nil
+        }
+        
         guard let nameAndLexicalTypes = self.nsNameTypesAndLexicalClasses else {
             return nil
         }
@@ -6964,6 +7015,10 @@ extension String
         var types = Set<String>()
         
         for nameAndLexicalType in nameAndLexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             types.insert(nameAndLexicalType.1)
         }
         
@@ -6973,11 +7028,19 @@ extension String
         
         var count = 0
         for lexicalType in lexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             lexicalTypeColors[lexicalType] = colors[count % colors.count]
             count += 1
         }
         
         for lexicalType in lexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             if let color = lexicalTypeColors[lexicalType] {
                 htmlString += "<table style=\"display:inline;\">"
                 htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
@@ -6993,6 +7056,10 @@ extension String
         var text = self
         
         for nameAndLexicalType in nameAndLexicalTypes.reversed() {
+            guard test?() != true else {
+                return nil
+            }
+            
             let token = nameAndLexicalType.0
             let nameOrLexicalType = nameAndLexicalType.1
             let nsRange = nameAndLexicalType.2
@@ -7038,8 +7105,12 @@ extension String
     }
     
     @available(iOS 12.0, *)
-    func nlNameAndLexicalTypesMarkup(annotated:Bool) -> String?
+    func nlNameAndLexicalTypesMarkup(annotated:Bool, test:(()->(Bool))? = nil) -> String?
     {
+        guard test?() != true else {
+            return nil
+        }
+        
         guard let nameAndLexicalTypes = self.nlNameTypesAndLexicalClasses else {
             return nil
         }
@@ -7049,6 +7120,10 @@ extension String
         var types = Set<String>()
         
         for nameAndLexicalType in nameAndLexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             types.insert(nameAndLexicalType.1)
         }
         
@@ -7058,6 +7133,10 @@ extension String
         
         var count = 0
         for lexicalType in lexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             lexicalTypeColors[lexicalType] = colors[count % colors.count]
             count += 1
         }
@@ -7070,6 +7149,11 @@ extension String
 //        htmlString += "<tr>"
         for lexicalType in lexicalTypes {
 //            htmlString += "<td>"
+            
+            guard test?() != true else {
+                return nil
+            }
+            
             if let color = lexicalTypeColors[lexicalType] {
                 htmlString += "<table style=\"display:inline;\">"
                 htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
@@ -7091,6 +7175,10 @@ extension String
         var last = self.startIndex
         
         for nameAndLexicalType in nameAndLexicalTypes {
+            guard test?() != true else {
+                return nil
+            }
+            
             let token = nameAndLexicalType.0
             let nameOrLexicalType = nameAndLexicalType.1
             let range = nameAndLexicalType.2

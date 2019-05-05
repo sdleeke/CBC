@@ -575,7 +575,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             
         case Constants.Strings.Word_Index:
-            self.process(work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
                         var dict = [String:(String,String)]()
@@ -591,8 +591,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     } else {
                         return "\(word) (\(count))"
                     }
-                }).sorted().tableHTML(title:self?.navigationItem.title)
-            }, completion: { [weak self] (data:Any?) in
+                }).sorted().tableHTML(title:self?.navigationItem.title, test:test)
+            }, completion: { [weak self] (data:Any?,test:(()->(Bool))?) in
                 // preferredModalPresentationStyle(viewController: self)
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
             })
@@ -662,14 +662,18 @@ extension WebViewController : PopoverTableViewControllerDelegate
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             
         case Constants.Strings.Lexical_Analysis:
-            self.process(disableEnable: false, work: { () -> (Any?) in // , hideSubviews: false
+            self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in // , hideSubviews: false
                 if #available(iOS 12.0, *) {
-                    return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true)
+                    return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                 } else {
                     // Fallback on earlier versions
-                    return self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true)
+                    return self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
                 }
-            }) { (data:Any?) in
+            }) { (data:Any?,test:(()->(Bool))?) in
+                guard test?() != true else {
+                    return
+                }
+                
                 guard let data = data else {
                     Alerts.shared.alert(title:"Lexical Analysis Not Available")
                     return

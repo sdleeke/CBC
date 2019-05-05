@@ -95,7 +95,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     }
                     
                     return self?.scriptureIndex?.html?.string
-                }, completion: { [weak self] (data:Any?) in
+                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                     if let vc = self {
                         vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                     }

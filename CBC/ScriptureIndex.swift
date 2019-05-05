@@ -418,6 +418,10 @@ class ScriptureIndex
             return nil
         }
         
+        guard test?() != true else {
+            return nil
+        }
+        
         var bodyItems = [String:[MediaItem]]()
         
         for mediaItem in mediaItems {

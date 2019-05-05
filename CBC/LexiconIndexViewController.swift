@@ -173,15 +173,15 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Word_Index:
-            self.process(work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
                 // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
 
                 // SHOULD ONLY BE activeWords
                 
 //                return self?.lexicon?.wordsHTML
-                return self?.lexicon?.activeWords(searchText:self?.wordsTableViewController.searchText)?.sorted().tableHTML(searchText:self?.wordsTableViewController.searchText)
-            }, completion: { [weak self] (data:Any?) in
+                return self?.lexicon?.activeWords(searchText:self?.wordsTableViewController.searchText)?.sorted().tableHTML(searchText:self?.wordsTableViewController.searchText, test:test)
+            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                 // preferredModalPresentationStyle(viewController: self)
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
             })
@@ -213,13 +213,14 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.View_List:
-            self.process(work: { [weak self] () -> (Any?) in
+//            self.process(work: { [weak self] () -> (Any?) in
+            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 if self?.results?.html?.string == nil {
-                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true)
+                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true, test:test)
                 }
                 
                 return self?.results?.html?.string
-            }, completion: { [weak self] (data:Any?) in
+            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                 if let searchText = self?.searchText, let vc = self {
                     vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
                 }
@@ -1345,13 +1346,17 @@ class LexiconIndexViewController : UIViewController
         
     }
 
-    func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
+    func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool, test:(()->(Bool))? = nil) -> String?
     {
         guard let mediaItems = results?.section?.mediaItems else {
             return nil
         }
         
         guard let grouping = Globals.shared.grouping, let sorting = Globals.shared.sorting else {
+            return nil
+        }
+        
+        guard test?() != true else {
             return nil
         }
         
@@ -1363,6 +1368,10 @@ class LexiconIndexViewController : UIViewController
             var appearances = 0
 
             for mediaItem in mediaItems {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 if let count = mediaItem.notesTokens?.result?[searchText] {
                     appearances += count
                 }
@@ -1416,11 +1425,19 @@ class LexiconIndexViewController : UIViewController
             }
             
             for key in keys {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 if  let name = results?.groupNames?[grouping,key], // ]?[
                     let mediaItems = results?.groupSort?[grouping,key,sorting] { // ]?[
                     var speakerCounts = [String:Int]()
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         if let speaker = mediaItem.speaker {
                             guard let count = speakerCounts[speaker] else {
                                 speakerCounts[speaker] = 1
@@ -1460,6 +1477,10 @@ class LexiconIndexViewController : UIViewController
                     }
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         var order = ["date","title","count","scripture"]
                         
                         if speakerCount > 1 {
@@ -1522,6 +1543,10 @@ class LexiconIndexViewController : UIViewController
                             
                             if let indexStrings = results?.section?.indexStrings {
                                 for indexString in indexStrings {
+                                    guard test?() != true else {
+                                        return nil
+                                    }
+                                    
                                     let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
                                     
                                     if stringIndex[key] == nil {
@@ -1534,6 +1559,10 @@ class LexiconIndexViewController : UIViewController
                             var index:String?
                             
                             for title in titles {
+                                guard test?() != true else {
+                                    return nil
+                                }
+                                
                                 let link = "<a href=\"#\(title)\">\(title)</a>"
                                 index = ((index != nil) ? index! + " " : "") + link
                             }
@@ -1545,6 +1574,10 @@ class LexiconIndexViewController : UIViewController
                             }
                             
                             for title in titles {
+                                guard test?() != true else {
+                                    return nil
+                                }
+                                
                                 bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
                                 
                                 if let keys = stringIndex[title] {
@@ -1565,6 +1598,10 @@ class LexiconIndexViewController : UIViewController
                         
                     default:
                         for key in keys {
+                            guard test?() != true else {
+                                return nil
+                            }
+                            
                             if let title = results?.groupNames?[grouping,key], // ]?[
                                 let count = results?.groupSort?[grouping,key,sorting]?.count { // ]?[
                                 let tag = key.asTag

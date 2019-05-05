@@ -6234,10 +6234,19 @@ class VoiceBase
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "By Word", style: .default, handler: {
-                            viewController.process(work: { [weak self] () -> (Any?) in
+                            viewController.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                                 var strings = [String]()
+
+                                guard let dicts = self?.words else {
+                                    return nil
+                                }
                                 
-                                self?.words?.forEach({ (dict:[String : Any]) in
+//                                self?.words?.forEach({ (dict:[String : Any]) in
+                                for dict in dicts {
+                                    guard test?() != true else {
+                                        return nil
+                                    }
+                                    
                                     if  let position = dict["p"] as? Int,
                                         let start = dict["s"] as? Int,
                                         let end = dict["e"] as? Int,
@@ -6246,10 +6255,10 @@ class VoiceBase
                                         let endHMS = (Double(end)/1000.0).secondsToHMSms {
                                         strings.append("\(position+1)\n\(startHMS) --> \(endHMS)\n\(word)")
                                     }
-                                })
+                                } //)
                                 
                                 return strings.timingHTML(self?.headerHTML)
-                            }, completion: { [weak self] (data:Any?) in
+                            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                                 if let htmlString = data as? String {
                                     viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
                                 }
@@ -6257,9 +6266,9 @@ class VoiceBase
                         }))
                         
                         alertActions.append(AlertAction(title: "By Segment", style: .default, handler: {
-                            viewController.process(work: { [weak self] () -> (Any?) in
-                                return self?.transcriptSegmentComponents?.timingHTML(self?.headerHTML) as Any
-                            }, completion: { [weak self] (data:Any?) in
+                            viewController.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                                return self?.transcriptSegmentComponents?.timingHTML(self?.headerHTML, test:test) as Any
+                            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                                 if let htmlString = data as? String {
                                     viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
                                 }

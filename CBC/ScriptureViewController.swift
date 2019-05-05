@@ -173,14 +173,18 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Lexical_Analysis:
-                self.process(disableEnable: false, work: { () -> (Any?) in // , hideSubviews: false
+                self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in // , hideSubviews: false
                     if #available(iOS 12.0, *) {
-                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true)
+                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                     } else {
                         // Fallback on earlier versions
-                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true)
+                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
                     }
-                }) { (data:Any?) in
+                }) { (data:Any?, test:(()->(Bool))?) in
+                    guard test?() != true else {
+                        return
+                    }
+                    
                     guard let data = data else {
                         Alerts.shared.alert(title:"Lexical Analysis Not Available")
                         return
@@ -304,11 +308,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Word_Index:
-                self.process(work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                     return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
-                    }).sorted().tableHTML(title:self?.scripture?.reference)
-                }, completion: { [weak self] (data:Any?) in
+                    }).sorted().tableHTML(title:self?.scripture?.reference, test:test)
+                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                     // preferredModalPresentationStyle(viewController: self)
                     self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                 })

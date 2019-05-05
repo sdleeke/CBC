@@ -637,32 +637,32 @@ extension TextViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Word_Index:
                 if let mediaItem = mediaItem, mediaItem.hasNotesText {
-                    self.process(work: { [weak self] () -> (Any?) in
+                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                         return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
-                        }).sorted().tableHTML(title:mediaItem.title)
-                    }, completion: { [weak self] (data:Any?) in
+                        }).sorted().tableHTML(title:mediaItem.title, test:test)
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                         // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()
                     })
                 } else
                 if let transcript = transcript {
-                    self.process(work: { [weak self] () -> (Any?) in
+                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                         return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                             return "\(word) (\(count))"
-                        }).sorted().tableHTML(title:transcript.title)
-                    }, completion: { [weak self] (data:Any?) in
+                        }).sorted().tableHTML(title:transcript.title,test:test)
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                         // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()
                     })
                 } else {
-                    self.process(work: { [weak self] () -> (Any?) in
+                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                         return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
-                        }).sorted().tableHTML
-                    }, completion: { [weak self] (data:Any?) in
+                        }).sorted().tableHTML(test:test)
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                         // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()

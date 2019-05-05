@@ -1728,7 +1728,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         Globals.shared.media.active?.html?.string = Globals.shared.media.active?.html(includeURLs:true, includeColumns:true, test:test)
                     }
                     return Globals.shared.media.active?.html?.string
-                }, completion: { [weak self] (data:Any?) in
+                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                     if let vc = self {
                         vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                     }

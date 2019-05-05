@@ -836,6 +836,10 @@ class MediaListGroupSort
         if let keys = section?.indexStrings { // Globals.shared.media.active?.
             var count = 0
             for key in keys {
+                guard test?() != true else {
+                    return nil
+                }
+                
                 if let mediaItems = groupSort?[grouping,key,sorting] { // ]?[
                     count += mediaItems.count
                 }
@@ -921,6 +925,10 @@ class MediaListGroupSort
                     }
                     
                     for mediaItem in mediaItems {
+                        guard test?() != true else {
+                            return nil
+                        }
+                        
                         var order = ["date","title","scripture"]
                         
                         if speakerCount > 1 {
@@ -980,6 +988,10 @@ class MediaListGroupSort
                         
                         if let indexStrings = section?.indexStrings {
                             for indexString in indexStrings {
+                                guard test?() != true else {
+                                    return nil
+                                }
+                                
                                 let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
                                 
                                 if stringIndex[key] == nil {
@@ -1004,6 +1016,10 @@ class MediaListGroupSort
                         }
                         
                         for title in titles {
+                            guard test?() != true else {
+                                return nil
+                            }
+                            
                             bodyString += "<br/>"
                             if let count = stringIndex[title]?.count { // Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count
                                 bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
