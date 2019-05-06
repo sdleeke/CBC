@@ -5137,6 +5137,42 @@ extension String
 
 extension String
 {
+    var category : String?
+    {
+        get {
+            return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
+                return component.components(separatedBy: ":").first == "CATEGORY"
+            }).first?.components(separatedBy: ":").last
+        }
+    }
+    
+    var tag : String?
+    {
+        get {
+            return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
+                return component.components(separatedBy: ":").first == "TAG"
+            }).first?.components(separatedBy: ":").last
+        }
+    }
+    
+    var transcripts : Bool
+    {
+        get {
+            return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
+                return component.components(separatedBy: ":").first == "TRANSCRIPTS"
+            }).first != nil
+        }
+    }
+    
+    var searchText : String?
+    {
+        get {
+            return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
+                return component.components(separatedBy: ":").first == "SEARCH"
+            }).first?.components(separatedBy: ":").last
+        }
+    }
+    
     var lastName : String?
     {
         guard let firstName = self.firstName else {

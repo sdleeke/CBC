@@ -249,18 +249,18 @@ class MediaListGroupSort // : NSObject
                 return nil
             }
             
-            var string = category
+            var string = "CATEGORY:" + category
             
             if let tag = tag.value?.uppercased() {
-                string += ":" + tag
+                string += "|TAG:" + tag
             }
             
             if search.value?.transcripts == true {
-                string += ":transcripts"
+                string += "|TRANSCRIPTS:YES"
             }
-            
+
             if search.value?.isValid == true, let search = search.value?.text?.uppercased() {
-                string += ":" + search
+                string += "|SEARCH:" + search
             }
             
             return !string.isEmpty ? string : nil
@@ -791,6 +791,14 @@ class MediaListGroupSort // : NSObject
         if let tag = tag, self.name == Constants.Strings.All {
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
+            if let keys = Globals.shared.media.search.searches?.keys() {
+                for key in keys {
+                    if key.tag == tag.uppercased() {
+                        Globals.shared.media.search.searches?[key] = nil
+                    }
+                }
+            }
+            
             if (Globals.shared.media.tags.selected == tag) {
                 Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
@@ -817,6 +825,14 @@ class MediaListGroupSort // : NSObject
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
+            if let keys = Globals.shared.media.search.searches?.keys() {
+                for key in keys {
+                    if key.tag == tag.uppercased() {
+                        Globals.shared.media.search.searches?[key] = nil
+                    }
+                }
+            }
+            
             if (Globals.shared.media.tags.selected == tag) {
                 Thread.onMainThread {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)

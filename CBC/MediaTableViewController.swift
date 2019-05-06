@@ -4114,7 +4114,7 @@ class MediaTableViewController : UIViewController
                     
                     self?.setupListActivityIndicator()
                     
-                    let searchHit = mediaItem.search(context.components(separatedBy: ":").last)
+                    let searchHit = mediaItem.search(context.searchText)
                     
                     abort = abort || shouldAbort() || (test?() ?? false)
                     
@@ -4158,7 +4158,7 @@ class MediaTableViewController : UIViewController
                         var searchHit = false
                         
                         autoreleasepool {
-                            searchHit = mediaItem.searchNotes(context.components(separatedBy: ":").last)
+                            searchHit = mediaItem.searchNotes(context.searchText)
                         }
 
                         abort = abort || shouldAbort() || (test?() ?? false) || !Globals.shared.media.search.transcripts
