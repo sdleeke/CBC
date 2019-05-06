@@ -75,12 +75,13 @@ class MLGSSection
 }
 
 // This needs to be broken up into simpler components and reviewed for threadsafety
-class MediaListGroupSort
+class MediaListGroupSort // : NSObject
 {
     deinit {
         debug(self)
     }
     
+    var name : String?
     var complete = false
     var cancelled = false
 
@@ -178,9 +179,16 @@ class MediaListGroupSort
 //        }
 //    }
     
-    func addTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+    func addTagMediaItem(mediaItem:MediaItem,sortTag:String?,tag:String?)
     {
         // Tag added but no point in updating unless...
+        guard let tag = tag else {
+            return
+        }
+        
+        guard let sortTag = sortTag else {
+            return
+        }
         
         if tagMediaItems?[sortTag] != nil {
             if tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
@@ -192,15 +200,22 @@ class MediaListGroupSort
             tagNames?[sortTag] = tag
         }
     }
-    
-    func removeTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
+
+    func removeTagMediaItem(mediaItem:MediaItem,sortTag:String?,tag:String?)
     {
         // Tag removed but no point in updating unless...
+        guard let tag = tag else {
+            return
+        }
         
+        guard let sortTag = sortTag else {
+            return
+        }
+
         if let index = tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
             tagMediaItems?[sortTag]?.remove(at: index)
         }
-        
+
         if tagMediaItems?[sortTag]?.count == 0 {
             _ = tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
         }
@@ -313,15 +328,49 @@ class MediaListGroupSort
     
     var tagMediaItems : ThreadSafeDN<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem // ictionary
     {
+//        get {
+//            var tagMediaItems = [String:[MediaItem]]()
+//
+//            mediaList?.list?.forEach { (mediaItem:MediaItem) in
+//                mediaItem.tagsSet?.forEach({ (tag:String) in
+//                    let sortTag = tag.withoutPrefixes
+//
+//                    if !sortTag.isEmpty {
+//                        if tagMediaItems[sortTag] == nil {
+//                            tagMediaItems[sortTag] = [mediaItem]
+//                        } else {
+//                            tagMediaItems[sortTag]?.append(mediaItem)
+//                        }
+//                    }
+//                })
+//            }
+//
+//            return tagMediaItems.count > 0 ? tagMediaItems : nil
+//        }
         didSet {
-            
+
         }
     }
 
     var tagNames:ThreadSafeDN<String>? // [String:String]?//sortTag:tag // ictionary
     {
+//        get {
+//            var tagNames = [String:String]()
+//
+//            mediaList?.list?.forEach { (mediaItem:MediaItem) in
+//                mediaItem.tagsSet?.forEach({ (tag:String) in
+//                    let sortTag = tag.withoutPrefixes
+//
+//                    if !sortTag.isEmpty {
+//                        tagNames[sortTag] = tag
+//                    }
+//                })
+//            }
+//
+//            return tagNames.count > 0 ? tagNames : nil
+//        }
         didSet {
-            
+
         }
     }
     
@@ -712,12 +761,74 @@ class MediaListGroupSort
         })
     }
     
-    init(mediaItems:[MediaItem]?)
+    @objc func tagAdded(_ notification : NSNotification)
+    {
+        guard let mediaItem = notification.object as? MediaItem else {
+            return
+        }
+        
+        guard mediaList?.list?.contains(mediaItem) == true else {
+            return
+        }
+        
+        let tag = notification.userInfo?["TAG"] as? String
+     
+        addTagMediaItem(mediaItem:mediaItem,sortTag:tag?.withoutPrefixes,tag:tag)
+
+        // Seems like this should be done elsewhere, specific to all
+        if let tag = tag, self.name == Constants.Strings.All {
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+
+            if (Globals.shared.media.tags.selected == tag) {
+                Thread.onMainThread {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+                }
+            }
+        }
+    }
+    
+    @objc func tagRemoved(_ notification : NSNotification)
+    {
+        guard let mediaItem = notification.object as? MediaItem else {
+            return
+        }
+        
+        guard mediaList?.list?.contains(mediaItem) == true else {
+            return
+        }
+        
+        let tag = notification.userInfo?["TAG"] as? String
+
+        removeTagMediaItem(mediaItem:mediaItem,sortTag:tag?.withoutPrefixes,tag:tag)
+        
+        // Seems like this should be done elsewhere, specific to all
+        if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+
+            if (Globals.shared.media.tags.selected == tag) {
+                Thread.onMainThread {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+                }
+            }
+        }
+    }
+
+    init(name:String? = nil, mediaItems:[MediaItem]?)
     {
         Thread.onMainThread {
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         
+        Globals.shared.queue.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
+//            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: mediaItem, userInfo: ["TAG":"FOO"])
+
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
+//            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: mediaItem, userInfo: ["TAG":"FOO"])
+        }
+        
+        self.name = name
+
         mediaList = MediaList(mediaItems)
         
         mediaList?.listDidSet = { [weak self] in
@@ -770,7 +881,7 @@ class MediaListGroupSort
         mediaItems.forEach { (mediaItem:MediaItem) in
             mediaItem.tagsSet?.forEach({ (tag:String) in
                 let sortTag = tag.withoutPrefixes
-                
+
                 if !sortTag.isEmpty {
                     if tagMediaItems?[sortTag] == nil {
                         tagMediaItems?[sortTag] = [mediaItem]
@@ -781,6 +892,7 @@ class MediaListGroupSort
                 }
             })
         }
+        
 //        for mediaItem in mediaItems {
 //            if let tags =  mediaItem.tagsSet {
 //                for tag in tags {

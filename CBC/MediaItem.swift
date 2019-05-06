@@ -2203,7 +2203,12 @@ class MediaItem : NSObject
             return
         }
 
-        Globals.shared.addTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+//        Globals.shared.addTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+        
+        Globals.shared.queue.async {
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: self, userInfo: ["TAG":tag])
+        }
+
 //        lazy var queue : DispatchQueue = { [weak self] in
 //            return DispatchQueue(label: UUID().uuidString)
 //            }()
@@ -2222,11 +2227,11 @@ class MediaItem : NSObject
 //            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
 //        }
         
-        if (Globals.shared.media.tags.selected == tag) {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-            }
-        }
+//        if (Globals.shared.media.tags.selected == tag) {
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+//            }
+//        }
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
@@ -2262,7 +2267,12 @@ class MediaItem : NSObject
             return
         }
         
-        Globals.shared.removeTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+//        Globals.shared.removeTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
+        
+        Globals.shared.queue.async {
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: self, userInfo: ["TAG":tag])
+        }
+        
 //        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) {
 //            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
 //        }
@@ -2273,12 +2283,11 @@ class MediaItem : NSObject
 //
 //        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
         
-        
-        if (Globals.shared.media.tags.selected == tag) {
-            Thread.onMainThread {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-            }
-        }
+//        if (Globals.shared.media.tags.selected == tag) {
+//            Thread.onMainThread {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+//            }
+//        }
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)

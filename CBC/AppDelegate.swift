@@ -385,7 +385,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 mtvc.tagLabel.text = nil
             }
             
-            Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+            Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                 mediaItem.category == Globals.shared.mediaCategory.selected
             }))
             

@@ -186,6 +186,9 @@ enum Constants {
     enum NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
         
+        static let TAG_ADDED                = "TAG ADDED"
+        static let TAG_REMOVED              = "TAG REMOVED"
+
         static let REACHABLE                = "REACHABLE"
         static let NOT_REACHABLE            = "NOT REACHABLE"
         

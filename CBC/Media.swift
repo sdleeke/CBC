@@ -40,7 +40,19 @@ class Media
         }
     }
     
-    //The mediaItems with the selected tags, although now we only support one tag being selected
+    // Is tagged really necessary?
+    // It's the same as:
+    
+    func tagged(tag:String?) -> MediaListGroupSort?
+    {
+        guard let tag = tag else {
+            return nil
+        }
+
+        return MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+    }
+    
+    // The mediaItems with the selected tags, although now we only support one tag being selected
     var tagged = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]() // ictionary
     
     var tags = Tags()

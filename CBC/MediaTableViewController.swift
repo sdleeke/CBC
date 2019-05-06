@@ -1299,11 +1299,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     Globals.shared.media.all = Globals.shared.media.cache[selected]
                 } else {
                     if selected != Constants.Strings.All {
-                        Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                        Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                             mediaItem.category == Globals.shared.mediaCategory.selected
                         }))
                     } else {
-                        Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+                        Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list)
                     }
                     Globals.shared.media.cache[selected] = Globals.shared.media.all
                 }
@@ -3121,9 +3121,9 @@ class MediaTableViewController : UIViewController
             }
             
             if Globals.shared.mediaCategory.selected == Constants.Strings.All {
-                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list)
+                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list)
             } else {
-                Globals.shared.media.all = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
                     mediaItem.category == Globals.shared.mediaCategory.selected
                 }))
             }
