@@ -161,7 +161,7 @@ class Search
             // Globals.shared.media.toSearch?.
 //            searches = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]() // ictionary
             
-            searches?.clear()
+//            searches?.clear()
             
             UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
             UserDefaults.standard.synchronize()

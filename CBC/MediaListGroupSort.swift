@@ -164,7 +164,7 @@ class MediaListGroupSort // : NSObject
 //    }
 
     // In case we want different tags selected in different MLGS's some day?
-    var tagSelected = Default<String>({ return Globals.shared.media.tags.selected })
+    var tag = Default<String>({ return Globals.shared.media.tags.selected })
 
 //    var _tagSelected : String?
 //    {
@@ -251,8 +251,12 @@ class MediaListGroupSort // : NSObject
             
             var string = category
             
-            if let tag = tagSelected.value?.uppercased() {
+            if let tag = tag.value?.uppercased() {
                 string += ":" + tag
+            }
+            
+            if search.value?.transcripts == true {
+                string += ":transcripts"
             }
             
             if search.value?.isValid == true, let search = search.value?.text?.uppercased() {
@@ -961,8 +965,8 @@ class MediaListGroupSort // : NSObject
 //                    bodyString += "Category: \(category)<br/>"
 //                }
         
-        if let tag = tagSelected.value {
-            bodyString += "Collection: \(tag)<br/>"
+        if let tag = tag.value {
+            bodyString += "Tag: \(tag)<br/>"
         }
         
         //        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
@@ -970,9 +974,15 @@ class MediaListGroupSort // : NSObject
         //        }
         
         if let searchText = search.value?.text {
-            bodyString += "Search: \(searchText)<br/>"
+            bodyString += "Search: \(searchText)"
         }
         
+        if search.value?.transcripts == true {
+            bodyString += " (including transcripts)"
+        }
+
+        bodyString += "<br/>"
+
         //        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
         //            bodyString += "Search: \(searchText)<br/>"
         //        }

@@ -609,7 +609,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             if media.search.isValid, let search = media.search.text {
                 string += ", " + "\"\(search)\""  // Search:
             }
-
+            
+            if media.search.transcripts {
+                string += " (including transcripts)"  // Search:
+            }
+            
             return string
         }
     }

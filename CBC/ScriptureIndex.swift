@@ -469,16 +469,22 @@ class ScriptureIndex
         }
         
         if let category = mediaListGroupSort?.category.value {
-            bodyString += "Category: \(category)<br/><br/>"
+            bodyString += "Category: \(category)<br/>"
         }
         
-        if let tag = mediaListGroupSort?.tagSelected.value {
-            bodyString += "Collection: \(tag)<br/><br/>"
+        if let tag = mediaListGroupSort?.tag.value {
+            bodyString += "Tag: \(tag)<br/>"
         }
         
         if let text = mediaListGroupSort?.search.value?.text {
-            bodyString += "Search: \(text)<br/><br/>"
+            bodyString += "Search: \(text)"
         }
+        
+        if mediaListGroupSort?.search.value?.transcripts == true {
+            bodyString += " (including transcripts)"
+        }
+        
+        bodyString += "<br/><br/>"
         
         bodyString += "</div>"
         
