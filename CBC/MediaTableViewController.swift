@@ -2507,13 +2507,11 @@ class MediaTableViewController : UIViewController
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
-                if (Globals.shared.media.active?.scriptureIndex?.eligible != nil),
-                    Globals.shared.media.active?.context?.tag != Constants.Strings.Favorites.uppercased() {
+                if (Globals.shared.media.active?.scriptureIndex?.eligible != nil) {
                     showMenu.append(Constants.Strings.Scripture_Index)
                 }
                 
-                if (Globals.shared.media.active?.lexicon?.eligible != nil), Globals.shared.reachability.isReachable,
-                    Globals.shared.media.active?.context?.tag != Constants.Strings.Favorites.uppercased() {
+                if (Globals.shared.media.active?.lexicon?.eligible != nil), Globals.shared.reachability.isReachable {
                     showMenu.append(Constants.Strings.Lexicon_Index)
                 }
             } else {

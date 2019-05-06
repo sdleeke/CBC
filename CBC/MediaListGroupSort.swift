@@ -779,6 +779,7 @@ class MediaListGroupSort // : NSObject
             return
         }
         
+        // MEANS MLGS's OF EPHEMERAL TAGS AREN'T UPDATED - BUT ALL IS AND THEN THE EPHEMERAL TAG MLGS IS RECREATED
         guard mediaList?.list?.contains(mediaItem) == true else {
             return
         }
@@ -789,6 +790,7 @@ class MediaListGroupSort // : NSObject
 
         // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All {
+            // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
@@ -814,6 +816,7 @@ class MediaListGroupSort // : NSObject
             return
         }
         
+        // MEANS MLGS's OF EPHEMERAL TAGS AREN'T UPDATED - BUT ALL IS AND THEN THE EPHEMERAL TAG MLGS IS RECREATED
         guard mediaList?.list?.contains(mediaItem) == true else {
             return
         }
@@ -824,6 +827,7 @@ class MediaListGroupSort // : NSObject
         
         // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
+            // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
