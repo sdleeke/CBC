@@ -1243,7 +1243,7 @@ class ScriptureIndexViewController : UIViewController
 //            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
 //        }
 //        
-//        if Globals.shared.search.isValid, let text = Globals.shared.search.text {
+//        if Globals.shared.media.search.isValid, let text = Globals.shared.media.search.text {
 //            bodyString = bodyString + "Search: \(text)<br/><br/>"
 //        }
 //        

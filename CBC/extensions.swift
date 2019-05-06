@@ -571,7 +571,7 @@ extension Array where Element == MediaItem
         //        bodyString += "Collection: \(tag)<br/><br/>"
         //    }
         //
-        //    if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
+        //    if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
         //        bodyString += "Search: \(searchText)<br/><br/>"
         //    }
         
@@ -856,7 +856,7 @@ extension Array where Element == MediaItem
 //            bodyString += "Search: \(searchText)<br/>"
 //        }
 //        
-////        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
+////        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
 ////            bodyString += "Search: \(searchText)<br/>"
 ////        }
 //        

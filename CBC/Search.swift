@@ -14,22 +14,26 @@ class Search
         debug(self)
     }
 
+    lazy var searches : ThreadSafeDN<MediaListGroupSort>? = { // [String:MediaListGroupSort]? // ictionary
+        return ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString)
+    }()
+    
     var current:MediaListGroupSort?
     {
         get {
-            guard let text = text else {
+            guard let context = Globals.shared.media.active?.context else { // text
                 return nil
             }
             
-            return Globals.shared.media.toSearch?.searches?[text]
+            return searches?[context] // Globals.shared.media.toSearch?.
         }
         
         set {
-            guard let text = text else {
+            guard let context = Globals.shared.media.active?.context else { // text
                 return
             }
             
-            Globals.shared.media.toSearch?.searches?[text] = newValue
+            searches?[context] = newValue // Globals.shared.media.toSearch?.
         }
     }
 
@@ -154,7 +158,10 @@ class Search
         }
         set {
             // Setting to nil can cause a crash.
-            Globals.shared.media.toSearch?.searches = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]() // ictionary
+            // Globals.shared.media.toSearch?.
+//            searches = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]() // ictionary
+            
+            searches?.clear()
             
             UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
             UserDefaults.standard.synchronize()

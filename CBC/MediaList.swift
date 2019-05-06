@@ -1450,7 +1450,7 @@ class MediaList // : Sequence
 //            bodyString = bodyString + "Collection: \(tag)<br/>"
 //        }
 //        
-//        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
+//        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
 //            bodyString = bodyString + "Search: \(searchText)<br/>"
 //        }
 //        
@@ -1772,7 +1772,7 @@ class MediaList // : Sequence
 //        //        bodyString = bodyString + "Collection: \(tag)<br/><br/>"
 //        //    }
 //        //
-//        //    if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
+//        //    if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
 //        //        bodyString = bodyString + "Search: \(searchText)<br/><br/>"
 //        //    }
 //        

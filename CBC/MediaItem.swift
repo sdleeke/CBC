@@ -3799,8 +3799,8 @@ class MediaItem : NSObject
                 htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
             } else
                 
-            if let _ = viewController as? MediaTableViewController, Globals.shared.search.isActive, Globals.shared.search.transcripts {
-                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, index: true).0
+            if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, index: true).0
             }
             
             return htmlString
@@ -3855,8 +3855,8 @@ class MediaItem : NSObject
                     htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
                 } else
                     
-                    if let _ = viewController as? MediaTableViewController, Globals.shared.search.isActive, Globals.shared.search.transcripts {
-                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
+                    if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
+                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
                     } else {
                         htmlString = bodyHTML
                 }

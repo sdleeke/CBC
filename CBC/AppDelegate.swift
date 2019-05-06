@@ -421,8 +421,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 mtvc.barButtonItems(isEnabled: false)
             }
             
-            if (Globals.shared.search.isActive) {
-                mtvc.updateSearchResults(Globals.shared.search.text,completion: nil)
+            if (Globals.shared.media.search.isActive) {
+                mtvc.updateSearchResults(Globals.shared.media.active?.context,completion: nil)
             }
             
             mtvc.display.setup(Globals.shared.media.active)

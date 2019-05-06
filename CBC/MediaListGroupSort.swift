@@ -121,7 +121,8 @@ class MediaListGroupSort // : NSObject
 //        }
 //    }
     
-    var search = Default<Search>({ return Globals.shared.search })
+    // In case we want different search in different MLGS's some day?
+    var search = Default<Search>({ return Globals.shared.media.search })
     
 //    var _search : Search!
 //    {
@@ -143,6 +144,7 @@ class MediaListGroupSort // : NSObject
 //        }
 //    }
     
+    // In case we want different categories in different MLGS's some day?
     var category = Default<String>({ return Globals.shared.mediaCategory.selected })
 
 //    var _category : String?
@@ -161,6 +163,7 @@ class MediaListGroupSort // : NSObject
 //        }
 //    }
 
+    // In case we want different tags selected in different MLGS's some day?
     var tagSelected = Default<String>({ return Globals.shared.media.tags.selected })
 
 //    var _tagSelected : String?
@@ -217,65 +220,68 @@ class MediaListGroupSort // : NSObject
         }
 
         if tagMediaItems?[sortTag]?.count == 0 {
-            _ = tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+            tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
+            tagNames?[sortTag] = nil
         }
     }
 
-    var orderString:String?
+    var order:String?
     {
         get {
             var string:String?
-            
-            if let sorting = sorting.value {
+
+            if let sorting = sorting.value?.uppercased() {
                 string = ((string != nil) ? string! + ":" : "") + sorting
             }
-            
-            if let grouping = grouping.value {
+
+            if let grouping = grouping.value?.uppercased() {
                 string = ((string != nil) ? string! + ":" : "") + grouping
             }
-            
+
             return string
         }
     }
     
-    var contextString:String?
+    var context:String?
     {
         get {
-            guard let category = category.value else {
+            guard let category = category.value?.uppercased(), !category.isEmpty else {
                 return nil
             }
             
             var string = category
             
-            if let tag = tagSelected.value {
-                string = (!string.isEmpty ? string + ":" : "") + tag
+            if let tag = tagSelected.value?.uppercased() {
+                string += ":" + tag
             }
             
-            if search.value?.isValid == true, let search = search.value?.text {
-                string = (!string.isEmpty ? string + ":" : "") + search
+            if search.value?.isValid == true, let search = search.value?.text?.uppercased() {
+                string += ":" + search
             }
             
             return !string.isEmpty ? string : nil
         }
     }
     
-    func contextOrder() -> String?
+    var contextOrder : String?
     {
-        var string:String?
-        
-        if let context = contextString {
-            string = ((string != nil) ? string! + ":" : "") + context
+        get {
+            var string:String?
+            
+            if let context = context {
+                string = ((string != nil) ? string! + ":" : "") + context
+            }
+            
+            if let order = order {
+                string = ((string != nil) ? string! + ":" : "") + order
+            }
+            
+            return string
         }
-        
-        if let order = orderString {
-            string = ((string != nil) ? string! + ":" : "") + order
-        }
-        
-        return string
     }
     
     lazy var html:CachedString? = { [weak self] in
-        return CachedString(index: contextOrder)
+        return CachedString(index: { self?.contextOrder })
     }()
     
     @objc func freeMemory()
@@ -284,24 +290,26 @@ class MediaListGroupSort // : NSObject
         
         scriptureIndex = ScriptureIndex(self) // side effects?
         
-        guard searches != nil else {
-            return
-        }
-        
-        if let isActive = search.value?.isActive, !isActive {
-            searches = nil
-        } else {
-            // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
-            if let keys = searches?.keys() {
-                for key in keys {
-                    if key != search.value?.text {
-                        searches?[key] = nil
-                    } else {
-
-                    }
-                }
-            }
-        }
+//        searches = nil
+//        
+//        guard searches != nil else {
+//            return
+//        }
+//        
+//        if let isActive = search.value?.isActive, !isActive {
+//            searches = nil
+//        } else {
+//            // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
+//            if let keys = searches?.keys() {
+//                for key in keys {
+//                    if key != search.value?.text {
+//                        searches?[key] = nil
+//                    } else {
+//
+//                    }
+//                }
+//            }
+//        }
     }
     
     var mediaList:MediaList?
@@ -316,7 +324,7 @@ class MediaListGroupSort // : NSObject
     }()
     
     // Hierarchical means we could search within searches - but not right now.
-    var searches: ThreadSafeDN<MediaListGroupSort>? // [String:MediaListGroupSort]? // ictionary
+//    var searches: ThreadSafeDN<MediaListGroupSort>? // [String:MediaListGroupSort]? // ictionary
     
     lazy var scriptureIndex:ScriptureIndex? = { [weak self] in
         return ScriptureIndex(self)
@@ -965,7 +973,7 @@ class MediaListGroupSort // : NSObject
             bodyString += "Search: \(searchText)<br/>"
         }
         
-        //        if Globals.shared.search.isValid, let searchText = Globals.shared.search.text {
+        //        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
         //            bodyString += "Search: \(searchText)<br/>"
         //        }
         

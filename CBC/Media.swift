@@ -18,6 +18,8 @@ struct MediaNeed
 // Problems went away when I switched to class
 class Media
 {
+    var search = Search()
+    
     deinit {
         debug(self)
     }
@@ -105,10 +107,14 @@ class Media
                 }
             }
             
-            if Globals.shared.search.isActive {
-                if let searchText = Globals.shared.search.text?.uppercased() {
-                    active = active?.searches?[searchText]
+            // Globals.shared.
+            if search.isActive {
+                if let context = active?.context, let search = search.searches?[context] { // Globals.shared.
+                    active = search // active?
                 }
+//                if let searchText = search.text?.uppercased() { // Globals.shared.
+//                    active = search.searches?[searchText] // active?
+//                }
             }
             
             return active

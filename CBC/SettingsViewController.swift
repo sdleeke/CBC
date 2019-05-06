@@ -14,7 +14,7 @@ class SettingsViewController: UIViewController
     
     @IBAction func searchTranscriptsAction(_ sender: UISwitch)
     {
-        Globals.shared.search.transcripts = sender.isOn
+        Globals.shared.media.search.transcripts = sender.isOn
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
@@ -114,7 +114,7 @@ class SettingsViewController: UIViewController
             cacheSwitch.isEnabled = false
         }
         
-        searchTranscriptsSwitch.isOn = Globals.shared.search.transcripts
+        searchTranscriptsSwitch.isOn = Globals.shared.media.search.transcripts
         autoAdvanceSwitch.isOn = Globals.shared.autoAdvance
         cacheSwitch.isOn = Globals.shared.cacheDownloads
         

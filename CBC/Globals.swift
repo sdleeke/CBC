@@ -593,91 +593,89 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
     
-    var search = Search()
-    
     var contextTitle:String?
     {
         get {
-            var string:String?
-            
-            if let mediaCategory = mediaCategory.selected, !mediaCategory.isEmpty {
-                string = mediaCategory // Category:
-                
-                if let tag = media.tags.selected {
-                    string = (string != nil ? string! + ", " : "") + tag  // Collection:
-                }
-                
-                if self.search.isValid, let search = self.search.text {
-                    string = (string != nil ? string! + ", " : "") + "\"\(search)\""  // Search:
-                }
-            }
-            
-            return string
-        }
-    }
-    
-    func context() -> String?
-    {
-        return contextString
-    }
-    
-    func searchText() -> String?
-    {
-        return search.text
-    }
-    
-    var orderString:String?
-    {
-        get {
-            var string:String?
-            
-            if let sorting = sorting {
-                string = ((string != nil) ? string! + ":" : "") + sorting
-            }
-            
-            if let grouping = grouping {
-                string = ((string != nil) ? string! + ":" : "") + grouping
-            }
-            
-            return string
-        }
-    }
-    
-    var contextString:String?
-    {
-        get {
-            guard let mediaCategory = mediaCategory.selected else {
+            guard let mediaCategory = mediaCategory.selected, !mediaCategory.isEmpty else {
                 return nil
             }
             
-            var string = mediaCategory
-            
+            var string = mediaCategory // Category:
+                
             if let tag = media.tags.selected {
-                string = (!string.isEmpty ? string + ":" : "") + tag
+                string += ", " + tag  // Collection:
             }
             
-            if self.search.isValid, let search = self.search.text {
-                string = (!string.isEmpty ? string + ":" : "") + search
+            if media.search.isValid, let search = media.search.text {
+                string += ", " + "\"\(search)\""  // Search:
             }
 
-            return !string.isEmpty ? string : nil
+            return string
         }
     }
     
-    func contextOrder() -> String?
-    {
-        var string:String?
-        
-        if let context = contextString {
-            string = ((string != nil) ? string! + ":" : "") + context
-        }
-        
-        if let order = orderString {
-            string = ((string != nil) ? string! + ":" : "") + order
-        }
-        
-        return string
-    }
+//    func context() -> String?
+//    {
+//        return contextString
+//    }
+    
+//    func searchText() -> String?
+//    {
+//        return media.search.text
+//    }
+    
+//    var orderString:String?
+//    {
+//        get {
+//            var string:String?
+//
+//            if let sorting = sorting {
+//                string = ((string != nil) ? string! + ":" : "") + sorting
+//            }
+//
+//            if let grouping = grouping {
+//                string = ((string != nil) ? string! + ":" : "") + grouping
+//            }
+//
+//            return string
+//        }
+//    }
+    
+//    var contextString:String?
+//    {
+//        get {
+//            guard let mediaCategory = mediaCategory.selected else {
+//                return nil
+//            }
+//            
+//            var string = mediaCategory
+//
+//            if let tag = media.tags.selected {
+//                string = (!string.isEmpty ? string + ":" : "") + tag
+//            }
+//
+//            if media.search.isValid, let search = media.search.text {
+//                string = (!string.isEmpty ? string + ":" : "") + search
+//            }
+//
+//            return !string.isEmpty ? string : nil
+//        }
+//    }
+    
+//    func contextOrder() -> String?
+//    {
+//        var string:String?
+//
+//        if let context = contextString {
+//            string = ((string != nil) ? string! + ":" : "") + context
+//        }
+//
+//        if let order = orderString {
+//            string = ((string != nil) ? string! + ":" : "") + order
+//        }
+//
+//        return string
+//    }
 
     var mediaPlayer = MediaPlayer()
 
@@ -896,8 +894,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 }
             }
 
-            search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-            search.isActive = search.text != nil
+            media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
+            media.search.isActive = media.search.text != nil
 
             if let playing = mediaCategory.playing {
                 mediaPlayer.mediaItem = mediaRepository.index[playing]

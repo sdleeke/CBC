@@ -104,10 +104,10 @@ extension MediaTableViewController : UISearchBarDelegate
         
         let searchText = searchText.uppercased()
         
-        Globals.shared.search.text = searchText
+        Globals.shared.media.search.text = searchText
         
         if (searchText != Constants.EMPTY_STRING) { //
-            updateSearchResults(searchText,completion: nil)
+            updateSearchResults(Globals.shared.media.active?.context,completion: nil)
         } else {
             display.clear()
             
@@ -133,10 +133,10 @@ extension MediaTableViewController : UISearchBarDelegate
 
         let searchText = searchBar.text?.uppercased()
         
-        Globals.shared.search.text = searchText
+        Globals.shared.media.search.text = searchText
         
-        if Globals.shared.search.isValid {
-            updateSearchResults(searchBar.text,completion: nil)
+        if Globals.shared.media.search.isValid {
+            updateSearchResults(Globals.shared.media.active?.context,completion: nil)
         } else {
             display.clear()
             
@@ -172,16 +172,16 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
 
-        Globals.shared.search.isActive = true
+        Globals.shared.media.search.isActive = true
         
         searchBar.showsCancelButton = true
         
         let searchText = searchBar.text?.uppercased()
         
-        Globals.shared.search.text = searchText
+        Globals.shared.media.search.text = searchText
         
-        if Globals.shared.search.isValid { //
-            updateSearchResults(searchText,completion: nil)
+        if Globals.shared.media.search.isValid { //
+            updateSearchResults(Globals.shared.media.active?.context,completion: nil)
         } else {
             display.clear()
             
@@ -216,7 +216,7 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
         
-        Globals.shared.search.isActive = false
+        Globals.shared.media.search.isActive = false
         
         didDismissSearch()
     }
@@ -232,7 +232,7 @@ extension MediaTableViewController : UISearchBarDelegate
             return
         }
         
-        Globals.shared.search.text = nil
+        Globals.shared.media.search.text = nil
         
         searchBar.showsCancelButton = false
         searchBar.resignFirstResponder()
@@ -1321,8 +1321,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self?.updateUI()
 
                 Thread.onMainThread {
-                    if Globals.shared.search.isActive { //  && !Globals.shared.search.complete
-                        self?.updateSearchResults(Globals.shared.search.text,completion: {
+                    if Globals.shared.media.search.isActive { //  && !Globals.shared.media.search.complete
+                        self?.updateSearchResults(Globals.shared.media.active?.context,completion: {
                             // Delay so UI works correctly.
                             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                                 Thread.onMainThread {
@@ -1396,14 +1396,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 searchText = String(searchText[..<range.lowerBound])
             }
             
-            Globals.shared.search.isActive = true
-            Globals.shared.search.text = searchText
+            Globals.shared.media.search.isActive = true
+            Globals.shared.media.search.text = searchText
             
             tableView?.setEditing(false, animated: true)
             searchBar.text = searchText
             searchBar.showsCancelButton = true
             
-            updateSearchResults(searchText,completion: nil)
+            updateSearchResults(Globals.shared.media.active?.context,completion: nil)
             break
             
         case .selectingCellAction:
@@ -1445,8 +1445,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            if let range = string.range(of: " (") {
 //                let searchText = String(string[..<range.lowerBound]).uppercased()
 //
-//                Globals.shared.search.isActive = true
-//                Globals.shared.search.text = searchText
+//                Globals.shared.media.search.isActive = true
+//                Globals.shared.media.search.text = searchText
 //
 //                Thread.onMainThread {
 //                    self.searchBar.text = searchText
@@ -1553,8 +1553,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         self?.barButtonItems(isEnabled:false)
                     }
                     
-                    if (Globals.shared.search.isActive) {
-                        self?.updateSearchResults(Globals.shared.search.text,completion: nil)
+                    if (Globals.shared.media.search.isActive) {
+                        self?.updateSearchResults(Globals.shared.media.active?.context,completion: nil)
                     }
                     
                     Thread.onMainThread {
@@ -3128,13 +3128,13 @@ class MediaTableViewController : UIViewController
                 }))
             }
             
-            if Globals.shared.search.isValid {
+            if Globals.shared.media.search.isValid {
                 Thread.onMainThread {
-                    self?.searchBar.text = Globals.shared.search.text
+                    self?.searchBar.text = Globals.shared.media.search.text
                     self?.searchBar.showsCancelButton = true
                 }
 
-                Globals.shared.search.current?.complete = false
+                Globals.shared.media.search.current?.complete = false
             }
 
             self?.display.setup(Globals.shared.media.active)
@@ -3172,10 +3172,10 @@ class MediaTableViewController : UIViewController
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
                 self.mediaCategoryButton.isEnabled = false
             } else {
-                if !Globals.shared.search.isActive {
+                if !Globals.shared.media.search.isActive {
                     self.mediaCategoryButton.isEnabled = true
                 } else {
-                    self.mediaCategoryButton.isEnabled = Globals.shared.search.current?.complete ?? false
+                    self.mediaCategoryButton.isEnabled = Globals.shared.media.search.current?.complete ?? false
                 }
             }
         }
@@ -3187,10 +3187,10 @@ class MediaTableViewController : UIViewController
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
                 self.navigationItem.leftBarButtonItem?.isEnabled = false
             } else {
-                if !Globals.shared.search.isActive {
+                if !Globals.shared.media.search.isActive {
                     self.navigationItem.leftBarButtonItem?.isEnabled = true
                 } else {
-                    self.navigationItem.leftBarButtonItem?.isEnabled = Globals.shared.search.current?.complete ?? false
+                    self.navigationItem.leftBarButtonItem?.isEnabled = Globals.shared.media.search.current?.complete ?? false
                 }
             }
         }
@@ -3204,13 +3204,13 @@ class MediaTableViewController : UIViewController
                     button.isEnabled = Globals.shared.media.active?.mediaList?.list != nil
                 })
             } else {
-                if !Globals.shared.search.isActive {
+                if !Globals.shared.media.search.isActive {
                     self.toolbarItems?.forEach({ (button:UIBarButtonItem) in
                         button.isEnabled = Globals.shared.media.active?.mediaList?.list != nil
                     })
                 } else {
                     self.toolbarItems?.forEach({ (button:UIBarButtonItem) in
-                        button.isEnabled = (Globals.shared.search.current?.complete ?? false) && (self.display.mediaItems != nil)
+                        button.isEnabled = (Globals.shared.media.search.current?.complete ?? false) && (self.display.mediaItems != nil)
                     })
                 }
             }
@@ -3227,7 +3227,7 @@ class MediaTableViewController : UIViewController
     
     func setupListActivityIndicator(allowTouches:Bool = false)
     {
-        if Globals.shared.isLoading || (Globals.shared.search.isValid && ((Globals.shared.search.current?.complete ?? false) == false)) {
+        if Globals.shared.isLoading || (Globals.shared.media.search.isValid && ((Globals.shared.media.search.current?.complete ?? false) == false)) {
             if !Globals.shared.isRefreshing {
                 Thread.onMainThread {
                     self.startAnimating(allowTouches:allowTouches)
@@ -3324,11 +3324,11 @@ class MediaTableViewController : UIViewController
                     
                     self.display.clear()
                     
-                    if Globals.shared.search.isActive {
+                    if Globals.shared.media.search.isActive {
                         self.operationQueue.cancelAllOperations()
                     }
                     
-                    Globals.shared.search.isActive = false
+                    Globals.shared.media.search.isActive = false
                     
                     self.setupSearchBar()
                     
@@ -3538,8 +3538,8 @@ class MediaTableViewController : UIViewController
             
             self.selectedMediaItem = Globals.shared.selectedMediaItem.master
             
-            if Globals.shared.search.isValid, ((Globals.shared.search.current?.complete ?? false) == false) {
-                self.updateSearchResults(Globals.shared.search.text,completion: {
+            if Globals.shared.media.search.isValid, ((Globals.shared.media.search.current?.complete ?? false) == false) {
+                self.updateSearchResults(Globals.shared.media.active?.context,completion: {
                     // Delay so UI works correctly.
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         Thread.onMainThread {
@@ -3820,10 +3820,10 @@ class MediaTableViewController : UIViewController
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
                 actionButton.isEnabled = false
             } else {
-                if !Globals.shared.search.isActive {
+                if !Globals.shared.media.search.isActive {
                     actionButton.isEnabled = true
                 } else {
-                    actionButton.isEnabled = (Globals.shared.search.current?.complete == true) || (Globals.shared.search.current?.cancelled == true)
+                    actionButton.isEnabled = (Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true)
                 }
             }
             barButtons.append(actionButton)
@@ -3846,10 +3846,10 @@ class MediaTableViewController : UIViewController
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
                 tagsButton.isEnabled = false
             } else {
-                if !Globals.shared.search.isActive {
+                if !Globals.shared.media.search.isActive {
                     tagsButton.isEnabled = true
                 } else {
-                    tagsButton.isEnabled = (Globals.shared.search.current?.complete == true) || (Globals.shared.search.current?.cancelled == true)
+                    tagsButton.isEnabled = (Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true)
                 }
             }
             barButtons.append(tagsButton)
@@ -3965,13 +3965,19 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    func updateDisplay(searchText:String?)
+    func updateDisplay(context:String?)
     {
-        guard let searchText = searchText?.uppercased() else {
+        guard let context = context else {
             return
         }
         
-        if !Globals.shared.search.isActive || (Globals.shared.search.text?.uppercased() == searchText) {
+//        guard let searchText = searchText?.uppercased() else {
+//            return
+//        }
+
+        // s/b equal or not equal?
+        if (Globals.shared.media.active?.context == context) {
+//        if !Globals.shared.media.search.isActive || (Globals.shared.media.search.text?.uppercased() == searchText) {
             display.setup(Globals.shared.media.active)
         }
         
@@ -3984,31 +3990,44 @@ class MediaTableViewController : UIViewController
         }
     }
 
-    func updateSearches(searchText:String?,mediaItems: [MediaItem]?)
+    func updateSearches(context:String?,mediaItems: [MediaItem]?)
     {
-        guard let searchText = searchText?.uppercased() else {
+        guard let context = context else {
             return
         }
         
-        if Globals.shared.media.toSearch?.searches == nil {
-            Globals.shared.media.toSearch?.searches = ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]() // ictionary
-        }
+//        guard let searchText = searchText?.uppercased() else {
+//            return
+//        }
         
-        Globals.shared.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
+//        if Globals.shared.media.search.searches == nil { // toSearch?.
+//            Globals.shared.media.search.searches = ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]() // ictionary
+//        }
+        
+        Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: mediaItems)
     }
     
-    func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
+    func updateSearchResults(_ context:String?,completion: (() -> Void)?)
     {
-        guard let searchText = searchText?.uppercased() else {
+        guard let context = context else {
             return
         }
         
-        guard !searchText.isEmpty else {
+        guard !context.isEmpty else {
             return
         }
         
-        if (Globals.shared.media.toSearch?.searches?[searchText] != nil), (Globals.shared.media.toSearch?.searches?[searchText]?.cancelled == false) {
-            updateDisplay(searchText:searchText)
+//        guard let searchText = searchText?.uppercased() else {
+//            return
+//        }
+        
+//        guard !searchText.isEmpty else {
+//            return
+//        }
+        
+        // toSearch? // searchText
+        if let search = Globals.shared.media.search.searches?[context], search.cancelled == false {
+            updateDisplay(context:context)
             setupListActivityIndicator()
             
             setupBarButtons()
@@ -4021,10 +4040,12 @@ class MediaTableViewController : UIViewController
 
         func shouldAbort() -> Bool
         {
-            return !Globals.shared.search.isValid || (Globals.shared.search.text != searchText)
+            return !Globals.shared.media.search.isValid || (Globals.shared.media.active?.context != context)
+//            return !Globals.shared.media.search.isValid || (Globals.shared.media.search.text != searchText)
         }
         
-        Globals.shared.media.toSearch?.searches?[searchText]?.complete = false
+        // toSearch? // searchText
+        Globals.shared.media.search.searches?[context]?.complete = false
 
         display.clear()
 
@@ -4046,17 +4067,19 @@ class MediaTableViewController : UIViewController
             
             defer {
                 if abort {
-                    Globals.shared.media.toSearch?.searches?[searchText] = nil
+                    // toSearch? // searchText
+                    Globals.shared.media.search.searches?[context] = nil
                 } else {
-                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                    self?.updateDisplay(searchText:searchText)
+                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+                    self?.updateDisplay(context:context)
                 }
                 
                 Thread.onMainThread {
                     completion?()
                     
-                    Globals.shared.media.toSearch?.searches?[searchText]?.complete = true
-                    Globals.shared.media.toSearch?.searches?[searchText]?.cancelled = cancel
+                    // toSearch? // searchText
+                    Globals.shared.media.search.searches?[context]?.complete = true
+                    Globals.shared.media.search.searches?[context]?.cancelled = cancel
                     
                     self?.setupListActivityIndicator()
                     
@@ -4086,16 +4109,18 @@ class MediaTableViewController : UIViewController
                         return
                     }
 
-                    Globals.shared.media.toSearch?.searches?[searchText]?.complete = false
+                    // toSearch? // searchText
+                    Globals.shared.media.search.searches?[context]?.complete = false
                     
                     self?.setupListActivityIndicator()
                     
-                    let searchHit = mediaItem.search(searchText)
+                    let searchHit = mediaItem.search(context.components(separatedBy: ":").last)
                     
                     abort = abort || shouldAbort() || (test?() ?? false)
                     
                     if abort {
-                        Globals.shared.media.toSearch?.searches?[searchText] = nil
+                        // toSearch? // searchText
+                        Globals.shared.media.search.searches?[context] = nil
                         break
                     } else {
                         if searchHit {
@@ -4107,8 +4132,8 @@ class MediaTableViewController : UIViewController
                                 }
                                 
                                 if let count = searchMediaItems?.count, ((count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-                                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                                    self?.updateDisplay(searchText:searchText)
+                                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+                                    self?.updateDisplay(context:context)
                                 }
                             }
                         }
@@ -4116,14 +4141,16 @@ class MediaTableViewController : UIViewController
                 }
                 
                 if !abort {
-                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                    self?.updateDisplay(searchText:searchText)
+                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+                    self?.updateDisplay(context:context)
                 } else {
-                    Globals.shared.media.toSearch?.searches?[searchText] = nil
+                    // toSearch? // searchText
+                    Globals.shared.media.search.searches?[context] = nil
                 }
                 
-                if !abort, Globals.shared.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
-                    Globals.shared.media.toSearch?.searches?[searchText]?.complete = false
+                if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
+                    // toSearch?
+                    Globals.shared.media.search.searches?[context]?.complete = false
                     
                     self?.setupListActivityIndicator(allowTouches:true)
                     
@@ -4131,10 +4158,10 @@ class MediaTableViewController : UIViewController
                         var searchHit = false
                         
                         autoreleasepool {
-                            searchHit = mediaItem.searchNotes(searchText)
+                            searchHit = mediaItem.searchNotes(context.components(separatedBy: ":").last)
                         }
 
-                        abort = abort || shouldAbort() || (test?() ?? false) || !Globals.shared.search.transcripts
+                        abort = abort || shouldAbort() || (test?() ?? false) || !Globals.shared.media.search.transcripts
                         
                         Thread.onMainThreadSync {
                             if self?.loadingButton?.tag == 1 {
@@ -4147,7 +4174,8 @@ class MediaTableViewController : UIViewController
                         }
                         
                         if abort {
-                            Globals.shared.media.toSearch?.searches?[searchText] = nil
+                            // toSearch?
+                            Globals.shared.media.search.searches?[context] = nil
                             break
                         } else {
                             if searchHit {
@@ -4160,8 +4188,8 @@ class MediaTableViewController : UIViewController
                                             searchMediaItems?.append(mediaItem)
                                     }
                                     
-                                    self?.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
-                                    self?.updateDisplay(searchText:searchText)
+                                    self?.updateSearches(context:context, mediaItems: searchMediaItems)
+                                    self?.updateDisplay(context:context)
                                 }
                             }
                         }
@@ -4388,11 +4416,11 @@ class MediaTableViewController : UIViewController
     
     @objc func updateSearch()
     {
-        guard Globals.shared.search.isValid else {
+        guard Globals.shared.media.search.isValid else {
             return
         }
         
-        updateSearchResults(Globals.shared.search.text,completion: nil)
+        updateSearchResults(Globals.shared.media.active?.context,completion: nil)
     }
     
     @objc func liveView()
@@ -4711,7 +4739,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         cell.vc = self
         
-        cell.searchText = Globals.shared.search.isValid ? Globals.shared.search.text : nil
+        cell.searchText = Globals.shared.media.search.isValid ? Globals.shared.media.search.text : nil
         
         // Configure the cell
         if indexPath.section >= 0, indexPath.section < display.section.indexes?.count {
@@ -4843,7 +4871,7 @@ extension MediaTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        if Globals.shared.search.isValid, ((Globals.shared.search.current?.complete ?? false) == false) {
+        if Globals.shared.media.search.isValid, ((Globals.shared.media.search.current?.complete ?? false) == false) {
             return false
         }
         
