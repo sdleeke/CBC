@@ -4498,8 +4498,17 @@ class MediaItem : NSObject
                 }
 //            }
         }
-        
+
         actions.append(favorites)
+
+//        if Globals.shared.media.search.current?.context?.tag != Constants.Strings.Favorites.uppercased() {
+//        }
+//
+//        if Globals.shared.splitViewController?.isCollapsed == false {
+//
+//        } else {
+//            actions.append(favorites)
+//        }
         
         actions.append(openOnCBC)
 

@@ -791,6 +791,7 @@ class MediaListGroupSort // : NSObject
         if let tag = tag, self.name == Constants.Strings.All {
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
+            // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {
                 for key in keys {
                     if key.tag == tag.uppercased() {
@@ -825,6 +826,7 @@ class MediaListGroupSort // : NSObject
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
+            // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {
                 for key in keys {
                     if key.tag == tag.uppercased() {
