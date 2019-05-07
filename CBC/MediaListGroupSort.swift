@@ -47,30 +47,39 @@ class MLGSSection
         debug(self)
     }
     
+    lazy var queue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+    
     // thread safe?
-    lazy var headerStrings:[String]? =
-        {
+    lazy var headerStrings:[String]? = {
+        return queue.sync {
             return mediaListGroupSort?.sectionTitles(grouping: grouping,sorting: sorting)
+        }
     }()
     
-    lazy var counts:[Int]? =
-        {
+    lazy var counts:[Int]? = {
+        return queue.sync {
             return mediaListGroupSort?.sectionCounts(grouping: grouping,sorting: sorting)
+        }
     }()
     
-    lazy var indexes:[Int]? =
-        {
+    lazy var indexes:[Int]? = {
+        return queue.sync {
             return mediaListGroupSort?.sectionIndexes(grouping: grouping,sorting: sorting)
+        }
     }()
     
-    lazy var indexStrings:[String]? =
-        {
+    lazy var indexStrings:[String]? = {
+        return queue.sync {
             return mediaListGroupSort?.sectionIndexTitles(grouping: grouping,sorting: sorting)
+        }
     }()
     
-    lazy var mediaItems:[MediaItem]? =
-        {
+    lazy var mediaItems:[MediaItem]? = {
+        return queue.sync {
             return mediaListGroupSort?.mediaItems(grouping: grouping,sorting: sorting)
+        }
     }()
 }
 
@@ -542,9 +551,9 @@ class MediaListGroupSort // : NSObject
 //                if (groupSort?[grouping]?[string] == nil) {
 //                    groupSort?[grouping]?[string] = [String:[MediaItem]]()
 //                }
-                for sort in Constants.sortings {
-                    let array = groupedMediaItems[grouping,string]?.sortChronologically
+                let array = groupedMediaItems[grouping,string]?.sortChronologically
                     
+                for sort in Constants.sortings {
                     // Without the above blank dictionary assignments this would fail.
                     // ]?[ Not any more
                     switch sort {
@@ -791,6 +800,7 @@ class MediaListGroupSort // : NSObject
         // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All {
             // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
+            // SO SI/LI KEEP THE OLD IF THEY ARE USING IT AND RECREATE WHEN EXITED AND REENTERED!
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
@@ -828,6 +838,7 @@ class MediaListGroupSort // : NSObject
         // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
             // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
+            // SO SI/LI KEEP THE OLD IF THEY ARE USING IT AND RECREATE WHEN EXITED AND REENTERED!
             Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.

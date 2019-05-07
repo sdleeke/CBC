@@ -4789,6 +4789,31 @@ extension UIViewController
         }
     }
 
+    func titleWidth(lineHeight: CGFloat) -> CGFloat
+    {
+        var width:CGFloat = 0.0
+        
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: lineHeight)
+        
+        if let title = self.navigationItem.title, !title.isEmpty {
+            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+            
+            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
+            
+            if let left = navigationItem.leftBarButtonItem?.title {
+                let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+            }
+            
+            if let right = navigationItem.rightBarButtonItem?.title {
+                let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+            }
+        }
+        
+        return width
+    }
+    
 //    var loadingViewController:UIViewController?
 //    {
 //        if let loadingView = storyboard?.instantiateViewController(withIdentifier: "Loading View Controller").view {
@@ -4849,7 +4874,9 @@ extension UIViewController
             }
 
             button.isHidden = false
-            self.loadingContainer?.tag = 102
+            if self.loadingContainer?.tag < 100 {
+                self.loadingContainer?.tag = 101
+            }
 //            button.tag = 0
             
             button.addTarget(self, action: #selector(cancelWork(_:)), for: .touchUpInside)

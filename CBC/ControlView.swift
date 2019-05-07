@@ -13,17 +13,42 @@ class LoadingContainerView : UIView
 {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool
     {
-        guard tag == 102 else {
+        guard tag >= 100 else {
             return false
         }
         
-        for view in subviews {
-            if view.frame.contains(point) && view.isUserInteractionEnabled && !view.isHidden {
-                return true
+        switch tag {
+        case 101:
+            guard subviews.count > 0 else {
+                return true // Do not pass touches
             }
+            
+            let loadingView = subviews[0]
+            
+            for view in loadingView.subviews {
+                guard let button = view as? UIButton, button.isEnabled else {
+                    continue
+                }
+                
+                if view.frame.contains(self.convert(point, to: loadingView)), view.isUserInteractionEnabled, !view.isHidden {
+                    return true
+                }
+            }
+            break
+            
+        case 102:
+            for view in subviews {
+                if view.frame.contains(point), view.isUserInteractionEnabled, !view.isHidden {
+                    return true
+                }
+            }
+            break
+            
+        default:
+            break
         }
         
-        return false
+        return backgroundColor != UIColor.clear // pass touches if clear
     }
 }
 

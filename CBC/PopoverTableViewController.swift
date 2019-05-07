@@ -892,6 +892,7 @@ class PopoverTableViewController : UIViewController
         }
         
         guard let strings = section.strings else {
+            preferredContentSize = CGSize(width: self.titleWidth(lineHeight: Constants.Fonts.bold.lineHeight), height: 60)
             return
         }
         
@@ -937,22 +938,24 @@ class PopoverTableViewController : UIViewController
         
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
+
+        width = self.titleWidth(lineHeight: Constants.Fonts.bold.lineHeight)
         
-        if let title = self.navigationItem.title, !title.isEmpty {
-            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-            
-            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
-            
-            if let left = navigationItem.leftBarButtonItem?.title {
-                let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
-            }
-            
-            if let right = navigationItem.rightBarButtonItem?.title {
-                let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
-            }
-        }
+//        if let title = self.navigationItem.title, !title.isEmpty {
+//            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//
+//            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
+//
+//            if let left = navigationItem.leftBarButtonItem?.title {
+//                let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+//            }
+//
+//            if let right = navigationItem.rightBarButtonItem?.title {
+//                let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+//            }
+//        }
         
         for string in strings {
             if let strings = parser != nil ? parser?(string) : [string] {
@@ -1893,7 +1896,8 @@ class PopoverTableViewController : UIViewController
                     self?.tableView.reloadData()
                     
                     self?.setPreferredContentSize()
-                    
+                    self?.navigationController?.view.isHidden = false
+
                     if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
                         // If we can find the string, select it!
                         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.

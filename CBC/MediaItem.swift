@@ -4102,10 +4102,6 @@ class MediaItem : NSObject
             if let searchStrings = self?.searchStrings(),
                 let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                viewController.dismiss(animated: true, completion: { [weak mtvc] in
-//                    mtvc?.presentingVC = nil
-//                })
-
                 mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
                     popover.dismiss(animated: true, completion: nil)
                 })
@@ -4135,9 +4131,7 @@ class MediaItem : NSObject
                     mtvc?.popover?["CELLSEARCH"] = nil
                 }
                 
-                mtvc.present(navigationController, animated: true, completion:{
-//                    mtvc.presentingVC = navigationController
-                })
+                mtvc.present(navigationController, animated: true, completion:nil)
             }
         }
         

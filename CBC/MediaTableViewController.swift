@@ -19,6 +19,8 @@ enum PopoverPurpose {
     case selectingGrouping
     case selectingSection
     
+    case selectingSearch
+    
     case selectingHistory
     case selectingLexicon
     
@@ -91,6 +93,70 @@ extension MediaTableViewController : UISearchBarDelegate
 {
     // MARK: UISearchBarDelegate
 
+    @objc func searchActions()
+    {
+        var alertActions = [AlertAction]()
+        
+        let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { [weak self]
+            () -> Void in
+            Globals.shared.media.search.searches?.clear()
+            self?.popover?["SEARCH_HISTORY"]?.dismiss(animated: true, completion: nil)
+        })
+        alertActions.append(yesAction)
+        
+        let noAction = AlertAction(title: Constants.Strings.No, style: .default, handler: { [weak self]
+            () -> Void in
+            
+        })
+        alertActions.append(noAction)
+        
+        Alerts.shared.alert(title: "Delete All Searches?", actions: alertActions)
+    }
+    
+    func searchBarResultsListButtonClicked(_ searchBar: UISearchBar)
+    {
+        if  let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.sourceRect = searchBar.frame
+            navigationController.popoverPresentationController?.sourceView = view
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            
+            popover.navigationItem.title = "Search History"
+            
+            popover.delegate = self
+            popover.purpose = .selectingSearch
+            
+            self.popover?["SEARCH_HISTORY"] = popover
+            
+            popover.completion = { [weak self] in
+                self?.popover?["SEARCH_HISTORY"] = nil
+            }
+            
+            popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
+                let strings = Globals.shared.media.search.searches?.keys()?.filter({ (string:String) -> Bool in
+                    return Globals.shared.media.search.isActive ? string.searchText != Globals.shared.media.search.text?.uppercased() : true
+                }).map({ (string:String) -> String in
+                    return string.searchText ?? ""
+                }).sorted()
+                
+                Thread.onMainThread {
+                    popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
+                    popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
+                }
+                
+                return strings
+            }
+
+            navigationController.view.isHidden = true
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard self.isViewLoaded else {
@@ -524,9 +590,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 if mediaItems.count == 1, let mediaItem = mediaItems.first {
                     actions.append(AlertAction(title: "Locate", style: .default) { [weak self] in
-                        self?.popover?["VOICEBASE"]?.dismiss(animated: true, completion: { [weak self] in
-//                            self?.presentingVC = nil
-                        })
+                        self?.popover?["VOICEBASE"]?.dismiss(animated: true, completion: nil)
                         self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     })
                 } else {
@@ -768,9 +832,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
-            self.popover?["HISTORY"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["HISTORY"]?.dismiss(animated: true, completion: nil)
         })
         alert.addAction(yesAction)
 
@@ -786,9 +848,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     
 //    func done()
 //    {
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
+//        dismiss(animated: true, completion: nil)
 //    }
 
     func showMenu(action:String?,mediaItem:MediaItem?)
@@ -881,10 +941,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     self?.popover?["HISTORY"] = nil
                 }
                 
-//                popover.completion = { [weak self] in
-//                    self?.presentingVC = nil
-//                }
-
                 popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
                     let strings = Globals.shared.relevantHistoryList
 
@@ -896,9 +952,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     return strings
                 }
                 
-                present(navigationController, animated: true, completion: {
-//                    self.presentingVC = navigationController
-                })
+                present(navigationController, animated: true, completion: nil)
             }
             break
             
@@ -933,10 +987,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self?.popover?["LIVE"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
             // An alternative to rowClickedAt
             popover.didSelect = { [weak self, weak popover] (indexPath:IndexPath) -> Void in
                 if let keys = popover?.section.stringIndex?.keys {
@@ -945,9 +995,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     let key = sortedKeys[indexPath.section]
                     
                     if key == Constants.Strings.Playing {
-                        self?.popover?["LIVE"]?.dismiss(animated: true, completion: { [weak self] in
-//                            self?.presentingVC = nil
-                        })
+                        self?.popover?["LIVE"]?.dismiss(animated: true, completion: nil)
                         
                         if let streamEntry = StreamEntry(Globals.shared.mediaStream.streamEntryIndex?[key]?[indexPath.row]) {
                             self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
@@ -1000,8 +1048,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     popover?.activityIndicator.stopAnimating()
                     popover?.activityIndicator.isHidden = true
                 }
-
-//                self?.presentingVC = navigationController
             })
             break
             
@@ -1015,9 +1061,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.barButtonItem = showButton
                 
-                present(navigationController, animated: true, completion: { [weak self] in
-//                    self?.presentingVC = navigationController
-                })
+                present(navigationController, animated: true, completion: nil)
             }
             break
             
@@ -1155,7 +1199,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                 self.popover?["VOICEBASE"]?.completion = { [weak self] in
                     self?.popover?["VOICEBASE"] = nil
-//                    self?.presentingVC = nil
                 }
                 
 //                self.popover?["VOICEBASE"]?.editActionsAtIndexPath = self.rowActions
@@ -1270,9 +1313,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingCategory:
-            self.popover?["CATEGORY"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["CATEGORY"]?.dismiss(animated: true, completion: nil)
             
             guard (Globals.shared.mediaCategory.selected != string) || (Globals.shared.mediaRepository.list == nil) else {
                 return
@@ -1386,9 +1427,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             popover?.values.forEach({ (popover:PopoverTableViewController) in
                 popover.dismiss(animated: true, completion: nil)
             })
-//            dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-//            })
             
             var searchText = strings[index].uppercased()
             
@@ -1410,9 +1448,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             popover?.values.forEach({ (popover:PopoverTableViewController) in
                 popover.dismiss(animated: true, completion: nil)
             })
-//            dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-//            })
             
             switch string {
             case Constants.Strings.Download_Audio:
@@ -1463,10 +1498,23 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            }
 //            break
             
+        case .selectingSearch:
+            self.popover?["SEARCH_HISTORY"]?.dismiss(animated: true, completion: nil)
+            
+            let searchText = strings[index].uppercased()
+            
+            Globals.shared.media.search.isActive = true
+            Globals.shared.media.search.text = searchText
+            
+            tableView?.setEditing(false, animated: true)
+            searchBar.text = searchText
+            searchBar.showsCancelButton = true
+            
+            updateSearchResults(Globals.shared.media.active?.context,completion: nil)
+            break
+            
         case .selectingHistory:
-            self.popover?["HISTORY"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["HISTORY"]?.dismiss(animated: true, completion: nil)
             
             if let history = Globals.shared.relevantHistory {
                 var mediaItemID:String
@@ -1502,9 +1550,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingTags:
-            self.popover?["TAGS"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["TAGS"]?.dismiss(animated: true, completion: nil)
             
             // Should we be showing Globals.shared.media.active?.mediaItemTags instead?  That would be the equivalent of drilling down.
 //            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -1575,9 +1621,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSection:
-            self.popover?["INDEX"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["INDEX"]?.dismiss(animated: true, completion: nil)
             
             if let section = Globals.shared.media.active?.section?.headerStrings?.firstIndex(of: strings[index]) {
                 let indexPath = IndexPath(row: 0, section: section)
@@ -1606,9 +1650,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingGrouping:
-            self.popover?["GROUPING"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["GROUPING"]?.dismiss(animated: true, completion: nil)
             
             Globals.shared.grouping = Globals.shared.groupings[index]
             
@@ -1640,9 +1682,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSorting:
-            self.popover?["SORTING"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            self.popover?["SORTING"]?.dismiss(animated: true, completion: nil)
             
             Globals.shared.sorting = Constants.sortings[index]
             
@@ -1676,17 +1716,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingShow:
-            popover?["SHOW"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            popover?["SHOW"]?.dismiss(animated: true, completion: nil)
             
             showMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         case .selectingAction:
-            popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-            })
+            popover?["ACTION"]?.dismiss(animated: true, completion: nil)
             
             switch string {
 //            case "Download All Slides":
@@ -2226,9 +2262,6 @@ class MediaTableViewController : UIViewController
     
     var changesPending = false
     
-    // THIS NEEDS TO GO AWAY?
-//    var presentingVC : UIViewController?
-    
     var jsonSource:JSONSource = .direct
     
     override var canBecomeFirstResponder : Bool
@@ -2300,7 +2333,7 @@ class MediaTableViewController : UIViewController
     
     var refreshControl:UIRefreshControl?
 
-    var session:URLSession? // Used for JSON
+    var session:URLSession? // Used for JSON downloading
     
     @IBOutlet weak var mediaCategoryButton: UIButton!
     @IBAction func mediaCategoryButtonAction(_ button: UIButton)
@@ -2345,13 +2378,7 @@ class MediaTableViewController : UIViewController
                 self?.popover?["CATEGORY"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
-            present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -2406,9 +2433,6 @@ class MediaTableViewController : UIViewController
             self.popover?.values.forEach({ (popover:PopoverTableViewController) in
                 popover.dismiss(animated: true, completion: nil)
             })
-//            dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-//            })
       
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
@@ -2428,10 +2452,6 @@ class MediaTableViewController : UIViewController
             popover.completion = { [weak self] in
                 self?.popover?["SHOW"] = nil
             }
-            
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
             
             var showMenu = [String]()
             
@@ -2539,9 +2559,7 @@ class MediaTableViewController : UIViewController
             
             popover.section.strings = showMenu
 
-            present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -2636,9 +2654,6 @@ class MediaTableViewController : UIViewController
         self.popover?.values.forEach({ (popover:PopoverTableViewController) in
             popover.dismiss(animated: true, completion: nil)
         })
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
 
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2657,10 +2672,6 @@ class MediaTableViewController : UIViewController
             popover.navigationItem.title = Constants.Strings.Menu.Index
             
             popover.delegate = self
-            
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
             
             popover.purpose = .selectingSection
 
@@ -2717,9 +2728,7 @@ class MediaTableViewController : UIViewController
                 self?.popover?["INDEX"] = nil
             }
             
-            present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -2738,9 +2747,6 @@ class MediaTableViewController : UIViewController
         self.popover?.values.forEach({ (popover:PopoverTableViewController) in
             popover.dismiss(animated: true, completion: nil)
         })
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2766,17 +2772,11 @@ class MediaTableViewController : UIViewController
                 self?.popover?["GROUPING"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
             popover.purpose = .selectingGrouping
             popover.section.strings = Globals.shared.groupingTitles
             popover.stringSelected = Globals.shared.grouping?.translate
             
-            present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -2795,9 +2795,6 @@ class MediaTableViewController : UIViewController
         popover?.values.forEach({ (popover:PopoverTableViewController) in
             popover.dismiss(animated: true, completion: nil)
         })
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -2823,17 +2820,11 @@ class MediaTableViewController : UIViewController
                 self?.popover?["SORTING"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
             popover.stringSelected = Globals.shared.sorting?.translate
 
-            present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -3745,10 +3736,6 @@ class MediaTableViewController : UIViewController
             popover.dismiss(animated: true, completion: nil)
         })
 
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
-        
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
@@ -3774,13 +3761,7 @@ class MediaTableViewController : UIViewController
                 self?.popover?["ACTION"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
-            self.present(navigationController, animated: true, completion:  {
-//                self.presentingVC = navigationController
-            })
+            self.present(navigationController, animated: true, completion:  nil)
         }
     }
 
@@ -3918,9 +3899,6 @@ class MediaTableViewController : UIViewController
         self.popover?.values.forEach({ (popover:PopoverTableViewController) in
             popover.dismiss(animated: true, completion: nil)
         })
-//        dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3955,13 +3933,7 @@ class MediaTableViewController : UIViewController
                 self?.popover?["TAGS"] = nil
             }
             
-//            popover.completion = { [weak self] in
-//                self?.presentingVC = nil
-//            }
-            
-            self.present(navigationController, animated: true, completion: {
-//                self.presentingVC = navigationController
-            })
+            self.present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -3990,22 +3962,22 @@ class MediaTableViewController : UIViewController
         }
     }
 
-    func updateSearches(context:String?,mediaItems: [MediaItem]?)
-    {
-        guard let context = context else {
-            return
-        }
-        
-//        guard let searchText = searchText?.uppercased() else {
+//    func updateSearches(context:String?,mediaItems: [MediaItem]?)
+//    {
+//        guard let context = context else {
 //            return
 //        }
-        
-//        if Globals.shared.media.search.searches == nil { // toSearch?.
-//            Globals.shared.media.search.searches = ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]() // ictionary
-//        }
-        
-        Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: mediaItems)
-    }
+//
+////        guard let searchText = searchText?.uppercased() else {
+////            return
+////        }
+//
+////        if Globals.shared.media.search.searches == nil { // toSearch?.
+////            Globals.shared.media.search.searches = ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString) // [String:MediaListGroupSort]() // ictionary
+////        }
+//
+//        Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: mediaItems)
+//    }
     
     func updateSearchResults(_ context:String?,completion: (() -> Void)?)
     {
@@ -4066,11 +4038,23 @@ class MediaTableViewController : UIViewController
             var searchMediaItems:[MediaItem]?
             
             defer {
+                if let searchText = Globals.shared.media.active?.context?.searchText {
+                    if context.searchText == searchText {
+                        Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: searchMediaItems)
+                    } else {
+                        if let contextSearchText = context.searchText, let range = searchText.range(of: contextSearchText), range.lowerBound == searchText.startIndex, range.upperBound <= searchText.endIndex, Globals.shared.media.search.searches?[context]?.complete == false {
+                            // delete incremental searches
+                            Globals.shared.media.search.searches?[context] = nil
+                        }
+                    }
+                }
+
                 if abort {
+                    cancel = true
                     // toSearch? // searchText
-                    Globals.shared.media.search.searches?[context] = nil
+//                    Globals.shared.media.search.searches?[context] = nil
                 } else {
-                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+//                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
                     self?.updateDisplay(context:context)
                 }
                 
@@ -4112,7 +4096,7 @@ class MediaTableViewController : UIViewController
                     // toSearch? // searchText
                     Globals.shared.media.search.searches?[context]?.complete = false
                     
-                    self?.setupListActivityIndicator()
+                    self?.setupListActivityIndicator(allowTouches:true)
                     
                     let searchHit = mediaItem.search(context.searchText)
                     
@@ -4120,7 +4104,7 @@ class MediaTableViewController : UIViewController
                     
                     if abort {
                         // toSearch? // searchText
-                        Globals.shared.media.search.searches?[context] = nil
+//                        Globals.shared.media.search.searches?[context] = nil
                         break
                     } else {
                         if searchHit {
@@ -4132,7 +4116,8 @@ class MediaTableViewController : UIViewController
                                 }
                                 
                                 if let count = searchMediaItems?.count, ((count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-                                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+//                                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+                                    Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: searchMediaItems)
                                     self?.updateDisplay(context:context)
                                 }
                             }
@@ -4141,11 +4126,12 @@ class MediaTableViewController : UIViewController
                 }
                 
                 if !abort {
-                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+//                    self?.updateSearches(context:context,mediaItems: searchMediaItems)
+                    Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: searchMediaItems)
                     self?.updateDisplay(context:context)
                 } else {
                     // toSearch? // searchText
-                    Globals.shared.media.search.searches?[context] = nil
+//                    Globals.shared.media.search.searches?[context] = nil
                 }
                 
                 if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
@@ -4175,7 +4161,7 @@ class MediaTableViewController : UIViewController
                         
                         if abort {
                             // toSearch?
-                            Globals.shared.media.search.searches?[context] = nil
+//                            Globals.shared.media.search.searches?[context] = nil
                             break
                         } else {
                             if searchHit {
@@ -4188,7 +4174,8 @@ class MediaTableViewController : UIViewController
                                             searchMediaItems?.append(mediaItem)
                                     }
                                     
-                                    self?.updateSearches(context:context, mediaItems: searchMediaItems)
+//                                    self?.updateSearches(context:context, mediaItems: searchMediaItems)
+                                    Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: searchMediaItems)
                                     self?.updateDisplay(context:context)
                                 }
                             }
@@ -4427,9 +4414,6 @@ class MediaTableViewController : UIViewController
     {
         popover?["LIVE"]?.dismiss(animated: true, completion: nil)
 
-            //        self.dismiss(animated: true, completion: { [weak self] in
-//            self?.presentingVC = nil
-//        })
         performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
     }
     
@@ -4495,6 +4479,8 @@ class MediaTableViewController : UIViewController
         super.viewWillAppear(animated)
 
         addNotifications()
+        
+        searchBar.showsSearchResultsButton = true
         
         setupSortingAndGroupingOptions()
         setupShowMenu()
@@ -4665,12 +4651,6 @@ class MediaTableViewController : UIViewController
 //            }
 //        })
         
-//        if self.presentingVC?.popoverPresentationController?.presentationStyle == .popover {
-//            self.dismiss(animated: true, completion: { [weak self] in
-//                self?.presentingVC = nil
-//            })
-//        }
-
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }) { [weak self] (UIViewControllerTransitionCoordinatorContext) -> Void in
