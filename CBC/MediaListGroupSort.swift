@@ -93,6 +93,7 @@ class MediaListGroupSort // : NSObject
     var name : String?
     var complete = false
     var cancelled = false
+    var when : Date?
 
     lazy var sorting = Default<String>({ return Globals.shared.sorting })
     

@@ -315,7 +315,13 @@ class Lexicon : NSObject // Why an NSObject?
 //        }
 //    }
     
-    var creating = false
+    var building:Bool // = false
+    {
+        get {
+            return operationQueue.operationCount > 0
+        }
+    }
+
     var pauseUpdates = false
     var completed = false
     
@@ -463,7 +469,7 @@ class Lexicon : NSObject // Why an NSObject?
     func stop()
     {
         operationQueue.cancelAllOperations()
-        creating = false
+//        creating = false
     }
     
     var halt : Bool
@@ -476,16 +482,21 @@ class Lexicon : NSObject // Why an NSObject?
     func build()
     {
         guard !completed else {
+            callBacks.complete()
             return
         }
         
-        guard !creating else {
+        guard !building else {
             return
         }
-        
-        creating = true
         
         let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
+//            defer {
+//                self?.creating = false
+//            }
+            
+//            self?.creating = true
+            
             if let test = test, test() {
                 return
             }
@@ -606,10 +617,8 @@ class Lexicon : NSObject // Why an NSObject?
                 return
             }
 
-            self?.callBacks.update() // Not necessary
+//            self?.callBacks.update() // Not necessary
 //            self?.update?()
-            
-            self?.creating = false
             
             if !Globals.shared.isRefreshing && !Globals.shared.isLoading {
                 self?.completed = true

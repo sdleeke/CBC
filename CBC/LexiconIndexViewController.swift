@@ -995,8 +995,14 @@ class LexiconIndexViewController : UIViewController
                                 wordsTableViewController.tableView.isHidden = false
                                 wordsTableViewController.tableView.reloadData()
                                 
-                                if self?.lexicon?.creating == false {
-                                    self?.wordsTableViewController.activityIndicator.stopAnimating()
+                                if self?.lexicon?.completed == true {
+                                    // Need to throw this on the opQueue so it doesn't happen before
+                                    // the one in completed()
+                                    self?.operationQueue.addOperation {
+                                        Thread.onMainThread {
+                                            wordsTableViewController.activityIndicator.stopAnimating()
+                                        }
+                                    }
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true
@@ -1070,8 +1076,14 @@ class LexiconIndexViewController : UIViewController
                                 wordsTableViewController.tableView.isHidden = false
                                 wordsTableViewController.tableView.reloadData()
                                 
-                                if self?.lexicon?.creating == false {
-                                    wordsTableViewController.activityIndicator.stopAnimating()
+                                if self?.lexicon?.completed == true {
+                                    // Need to throw this on the opQueue so it doesn't happen before
+                                    // the one in completed()
+                                    self?.operationQueue.addOperation {
+                                        Thread.onMainThread {
+                                            wordsTableViewController.activityIndicator.stopAnimating()
+                                        }
+                                    }
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true
@@ -1145,8 +1157,14 @@ class LexiconIndexViewController : UIViewController
                                 wordsTableViewController.tableView.isHidden = false
                                 wordsTableViewController.tableView.reloadData()
                                 
-                                if self?.lexicon?.creating == false {
-                                    wordsTableViewController.activityIndicator.stopAnimating()
+                                if self?.lexicon?.completed == true {
+                                    // Need to throw this on the opQueue so it doesn't happen before
+                                    // the one in completed()
+                                    self?.operationQueue.addOperation {
+                                        Thread.onMainThread {
+                                            wordsTableViewController.activityIndicator.stopAnimating()
+                                        }
+                                    }
                                 }
                                 
                                 wordsTableViewController.segmentedControl.isEnabled = true

@@ -27,12 +27,12 @@ class StringTree
     }()
     
     var incremental = false
-    var building = false
-//    {
-//        get {
-//            return operationQueue.operationCount > 0
-//        }
-//    }
+    var building:Bool // = false
+    {
+        get {
+            return operationQueue.operationCount > 0
+        }
+    }
     var completed = false
     {
         didSet {
@@ -308,6 +308,12 @@ class StringTree
     
     func build(strings:[String]?)
     {
+        guard !completed else {
+            callBacks.complete()
+            return
+        }
+
+        // incremental stops prior build and starts a new one
 //        guard !building else {
 //            return
 //        }
@@ -322,6 +328,10 @@ class StringTree
 
 //            DispatchQueue.global(qos: .background).async { [weak self] in
             let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
+//                defer {
+//                    self?.building = false
+//                }
+                
                 self?.callBacks.start()
                 
 //                self?.root = StringNode(nil) // Faster?
@@ -345,7 +355,7 @@ class StringTree
                 
                 for string in strings {
                     if test?() == true {
-                        break
+                        return
                     }
                     
                     self?.root.addString(string)
@@ -361,12 +371,9 @@ class StringTree
                 }
                 
                 if test?() == true {
-                    self?.building = false
-                    self?.completed = false
                     return
                 }
                 
-                self?.building = false
                 self?.completed = true
                 
                 self?.callBacks.complete()
@@ -377,17 +384,17 @@ class StringTree
             
             operationQueue.addOperation(op)
         } else {
-            if !building {
-                building = true
-                
+//            if !building {
+//                building = true
+            
                 // This blocks
                 self.root = StringNode(nil)
                 
                 self.root.addStrings(strings)
                 
-                self.building = false
+//                self.building = false
                 self.completed = true
-            }
+//            }
         }
     }
 }

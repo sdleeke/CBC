@@ -16,7 +16,7 @@ class ScriptureIndex
 //    var update : (()->())?
 //    var complete : (()->())?
     
-    var creating : Bool // = false
+    var building : Bool // = false
     {
         get {
             return operationQueue.operationCount > 0
@@ -256,7 +256,7 @@ class ScriptureIndex
             return
         }
         
-        guard !creating else {
+        guard !building else {
             return
         }
         
@@ -265,7 +265,9 @@ class ScriptureIndex
 //        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
 //        operationQueue.addOperation {  [weak self] in
         let op = CancelableOperation { [weak self] (test:(() -> (Bool))?) in
-//            self?.creating = true
+//            defer {
+//                self?.creating = false
+//            }
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
                 self?.callBacks.start()
@@ -400,6 +402,7 @@ class ScriptureIndex
             }
             
             self?.callBacks.complete()
+            
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
 //            }
