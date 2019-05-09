@@ -3124,7 +3124,7 @@ class VoiceBase
                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
                         
                     }))
-                        
+                    
                     Alerts.shared.alert(title:"Perform " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
                 }
             }
@@ -4095,21 +4095,26 @@ class VoiceBase
                     message = text + " (\(self.transcriptPurpose))"
                 }
                 
-                let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                message: message,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                alert.addTextField(configurationHandler: { (textField:UITextField) in
-                    textField.text = self.mediaID
-                })
-                
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                })
-                alert.addAction(okayAction)
-                
-                viewController.present(alert, animated: true, completion: nil)
+                var alertItems = [AlertItem]()
+                alertItems.append(AlertItem.text(self.mediaID))
+                alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
+                Alerts.shared.alert(title: "VoiceBase Media ID", message: message, items: alertItems)
+
+//                let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                message: message,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//
+//                alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                    textField.text = self.mediaID
+//                })
+//
+//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                })
+//                alert.addAction(okayAction)
+//
+//                viewController.present(alert, animated: true, completion: nil)
             }))
             
             actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
@@ -6088,7 +6093,7 @@ class VoiceBase
             if self.transcript == nil {
                 guard Globals.shared.isVoiceBaseAvailable ?? false else {
                     if Globals.shared.voiceBaseAPIKey == nil {
-                        let alert = UIAlertController(  title: "Please add an API Key to use VoiceBase",
+                        let alert = CBCAlertController(  title: "Please add an API Key to use VoiceBase",
                                                         message: nil,
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
@@ -6159,7 +6164,12 @@ class VoiceBase
                         })
                         alert.addAction(cancel)
                         
-                        viewController.present(alert, animated: true, completion: nil)
+                        Alerts.shared.queue.async {
+                            Alerts.shared.semaphore.wait()
+                            Thread.onMainThread {
+                                viewController.present(alert, animated: true, completion: nil)
+                            }
+                        }
                     } else {
                         viewController.networkUnavailable("VoiceBase unavailable.")
                     }
@@ -6472,21 +6482,26 @@ class VoiceBase
 //                }
                 
                 alertActions.append(AlertAction(title: "Media ID", style: .default, handler: {
-                    let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                    message: text + " (\(self.transcriptPurpose))",
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    alert.addTextField(configurationHandler: { (textField:UITextField) in
-                        textField.text = self.mediaID
-                    })
-                    
-                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                        (action : UIAlertAction) -> Void in
-                    })
-                    alert.addAction(okayAction)
-                    
-                    viewController.present(alert, animated: true, completion: nil)
+                    var alertItems = [AlertItem]()
+                    alertItems.append(AlertItem.text(self.mediaID))
+                    alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
+                    Alerts.shared.alert(title: "VoiceBase Media ID", message: text + " (\(self.transcriptPurpose))", items: alertItems)
+
+//                    let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                    message: text + " (\(self.transcriptPurpose))",
+//                                                    preferredStyle: .alert)
+//                    alert.makeOpaque()
+//                    
+//                    alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                        textField.text = self.mediaID
+//                    })
+//                    
+//                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                        (action : UIAlertAction) -> Void in
+//                    })
+//                    alert.addAction(okayAction)
+//                    
+//                    viewController.present(alert, animated: true, completion: nil)
                 }))
                 
                 if Globals.shared.isVoiceBaseAvailable ?? false {

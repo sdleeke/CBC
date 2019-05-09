@@ -582,7 +582,7 @@ extension ScriptureIndexViewController : UIPopoverPresentationControllerDelegate
     }
 }
 
-class ScriptureIndexViewController : UIViewController
+class ScriptureIndexViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {
         return [String:PopoverTableViewController]()
@@ -1890,26 +1890,34 @@ extension ScriptureIndexViewController : UITableViewDelegate
         }
         
         let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
-            let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                            message: message,
-                                            preferredStyle: .alert)
-            alert.makeOpaque()
-            
-            if let alertActions = cell.mediaItem?.editActions(viewController: self) {
-                for alertAction in alertActions {
-                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.handler?()
-                    })
-                    alert.addAction(action)
-                }
+            guard var alertActions = cell.mediaItem?.editActions(viewController: self) else {
+                return
             }
             
-            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                (action : UIAlertAction) -> Void in
-            })
-            alert.addAction(okayAction)
+            alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
+
+            Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
             
-            self.present(alert, animated: true, completion: nil)
+//            let alert = UIAlertController(  title: Constants.Strings.Actions,
+//                                            message: message,
+//                                            preferredStyle: .alert)
+//            alert.makeOpaque()
+//            
+//            if let alertActions = cell.mediaItem?.editActions(viewController: self) {
+//                for alertAction in alertActions {
+//                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                        alertAction.handler?()
+//                    })
+//                    alert.addAction(action)
+//                }
+//            }
+//            
+//            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                (action : UIAlertAction) -> Void in
+//            })
+//            alert.addAction(okayAction)
+//            
+//            self.present(alert, animated: true, completion: nil)
         }
         action.backgroundColor = UIColor.controlBlue()
         

@@ -320,7 +320,7 @@ extension ScripturePickerViewController : UIPickerViewDelegate
     }
 }
 
-class ScripturePickerViewController : UIViewController
+class ScripturePickerViewController : CBCViewController
 {
     deinit {
         debug(self)
@@ -461,9 +461,9 @@ class ScripturePickerViewController : UIViewController
         super.viewWillAppear(animated)
         
                                                             // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
         
 //        orientation = UIDevice.current.orientation
 //
@@ -502,9 +502,9 @@ class ScripturePickerViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
         
         NotificationCenter.default.removeObserver(self)
     }

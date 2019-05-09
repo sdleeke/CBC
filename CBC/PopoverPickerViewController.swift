@@ -458,7 +458,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
     }
 }
 
-class PopoverPickerViewController : UIViewController
+class PopoverPickerViewController : CBCViewController
 {
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -1041,6 +1041,11 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewWillAppear(animated)
         
+        // In case it is embedded
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
+        
         didAppear = false
 
         if stringTree == nil {
@@ -1072,11 +1077,6 @@ class PopoverPickerViewController : UIViewController
 
 //        picker.isHidden = true
         
-                                                            // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
-
 //        orientation = UIDevice.current.orientation
         
         addNotifications()
@@ -1213,9 +1213,9 @@ class PopoverPickerViewController : UIViewController
     {
         super.viewWillDisappear(animated)
 
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
         
         NotificationCenter.default.removeObserver(self)
     }

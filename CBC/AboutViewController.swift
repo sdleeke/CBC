@@ -111,7 +111,7 @@ extension AboutViewController : UIActivityItemSource
     func share()
     {
         let url = URL(string: Constants.CBC.APP_URL)
-        let activityViewController = UIActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems: ["Countryside Bible Church App",url,self], applicationActivities: nil)
 
         // exclude some activity types from the list (optional)
         
@@ -120,9 +120,16 @@ extension AboutViewController : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
         // present the view controller
-        Thread.onMainThread {
-            self.present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(activityViewController, animated: true, completion: nil)
+            }
         }
+//        Thread.onMainThread {
+//            self.present(activityViewController, animated: true, completion: nil)
+//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -162,7 +169,7 @@ extension AboutViewController : UIActivityItemSource
     }
 }
 
-class AboutViewController: UIViewController
+class AboutViewController: CBCViewController
 {
     lazy var geocoder:CLGeocoder? = {
         return CLGeocoder()

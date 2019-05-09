@@ -11,7 +11,7 @@ import WebKit
 import AVFoundation
 import AVKit
 
-class LiveViewController: UIViewController
+class LiveViewController: CBCViewController
 {
     deinit {
         debug(self)

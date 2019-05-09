@@ -107,7 +107,9 @@ extension PopoverTableViewController: UISearchBarDelegate
                 }
             }
             
+            filteredSection.sorting = true
             filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
+            filteredSection.sorting = false
         } else
             
         if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
@@ -385,13 +387,13 @@ class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
     var label : UILabel?
 }
 
-class PopoverTableViewController : UIViewController
+class PopoverTableViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {
         return [String:PopoverTableViewController]()
     }()
     
-    var alertController : UIAlertController?
+//    var alertController : UIAlertController?
     
     var changesPending = false
     
@@ -646,7 +648,7 @@ class PopoverTableViewController : UIViewController
     {
         didSet {
             if searchActive != oldValue {
-                section.useInsertions = !searchActive
+//                section.useInsertions = !searchActive
                 
                 if searchActive {
                     removeTracking()
@@ -1359,9 +1361,9 @@ class PopoverTableViewController : UIViewController
         
         NotificationCenter.default.removeObserver(self)
         
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
         
         completion?()
 
@@ -1758,7 +1760,12 @@ class PopoverTableViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-
+        
+        // Because it is embedded in LexiconViewController
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
+        
         if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.containsBelow(navigationController) == false {
             switch navigationController.modalPresentationStyle {
             case .formSheet:
@@ -1775,11 +1782,6 @@ class PopoverTableViewController : UIViewController
             }
         }
 
-                                                            // Because it is embedded in LexiconViewController
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
-        
         if let state = Globals.shared.mediaPlayer.state {
             switch state {
             case .playing:
@@ -2453,28 +2455,31 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] rowAction, indexPath in
-            let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                            message: self?.section.string(from: indexPath),
-                                            preferredStyle: .alert)
-            alert.makeOpaque()
-            
-            if let alertActions = alertActions {
-                for alertAction in alertActions {
-                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                        alertAction.handler?()
-                    })
-                    alert.addAction(action)
-                }
-            }
-            
-            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                (action : UIAlertAction) -> Void in
-            })
-            alert.addAction(okayAction)
-            
-            self?.present(alert, animated: true, completion: {
-                self?.alertController = alert
-            })
+            alertActions?.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
+            Alerts.shared.alert(title: Constants.Strings.Actions, message: self?.section.string(from: indexPath), actions: alertActions)
+
+//            let alert = UIAlertController(  title: Constants.Strings.Actions,
+//                                            message: self?.section.string(from: indexPath),
+//                                            preferredStyle: .alert)
+//            alert.makeOpaque()
+//
+//            if let alertActions = alertActions {
+//                for alertAction in alertActions {
+//                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                        alertAction.handler?()
+//                    })
+//                    alert.addAction(action)
+//                }
+//            }
+//
+//            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                (action : UIAlertAction) -> Void in
+//            })
+//            alert.addAction(okayAction)
+//
+//            self?.present(alert, animated: true, completion: {
+//                self?.alertController = alert
+//            })
         }
         action.backgroundColor = UIColor.controlBlue()
         

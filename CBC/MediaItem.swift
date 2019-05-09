@@ -114,7 +114,7 @@ extension MediaItem : UIActivityItemSource
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
         
-        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -123,9 +123,16 @@ extension MediaItem : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
         // present the view controller
-        Thread.onMainThread {
-            viewController.present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                viewController.present(activityViewController, animated: true, completion: nil)
+            }
         }
+//        Thread.onMainThread {
+//            viewController.present(activityViewController, animated: true, completion: nil)
+//        }
     }
 
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -3811,75 +3818,75 @@ class MediaItem : NSObject
         })
     }
     
-    func editOrView(viewController: UIViewController, bodyText:String?, bodyHTML:String?)
-    {
-        let alert = UIAlertController(  title: "Edit or View?",
-                                        message: nil,
-                                        preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        let editAction = UIAlertAction(title: "Edit", style: UIAlertAction.Style.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
-                let textPopover = navigationController.viewControllers[0] as? TextViewController {
-                navigationController.modalPresentationStyle = viewController.preferredModalPresentationStyle
-                
-                if navigationController.modalPresentationStyle == .popover {
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                }
-                
-                textPopover.navigationController?.isNavigationBarHidden = false
-                
-                textPopover.navigationItem.title = self.title ?? ""
-                
-                textPopover.text = bodyText
-                textPopover.readOnly = true
-                
-                textPopover.search = true
-                
-                viewController.present(navigationController, animated: true, completion: nil)
-            } else {
-                print("ERROR")
-            }
-        })
-        alert.addAction(editAction)
-        
-        let viewAction = UIAlertAction(title: "View", style: UIAlertAction.Style.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-            viewController.process(work: { [weak self] () -> (Any?) in
-                var htmlString:String?
-                
-                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                    htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
-                } else
-                    
-                    if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
-                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
-                    } else {
-                        htmlString = bodyHTML
-                }
-                
-                return htmlString
-            }, completion: { [weak self] (data:Any?) in
-                if let _ = data as? String {
-                    viewController.popoverHTML(title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
-                } else {
-                    Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-                }
-            })
-        })
-        alert.addAction(viewAction)
-        
-        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
-        alert.addAction(cancel)
-        
-        viewController.present(alert, animated: true, completion: nil)
-    }
+//    func editOrView(viewController: UIViewController, bodyText:String?, bodyHTML:String?)
+//    {
+//        let alert = UIAlertController(  title: "Edit or View?",
+//                                        message: nil,
+//                                        preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        let editAction = UIAlertAction(title: "Edit", style: UIAlertAction.Style.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
+//                let textPopover = navigationController.viewControllers[0] as? TextViewController {
+//                navigationController.modalPresentationStyle = viewController.preferredModalPresentationStyle
+//
+//                if navigationController.modalPresentationStyle == .popover {
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+//                }
+//
+//                textPopover.navigationController?.isNavigationBarHidden = false
+//
+//                textPopover.navigationItem.title = self.title ?? ""
+//
+//                textPopover.text = bodyText
+//                textPopover.readOnly = true
+//
+//                textPopover.search = true
+//
+//                viewController.present(navigationController, animated: true, completion: nil)
+//            } else {
+//                print("ERROR")
+//            }
+//        })
+//        alert.addAction(editAction)
+//
+//        let viewAction = UIAlertAction(title: "View", style: UIAlertAction.Style.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//
+//            viewController.process(work: { [weak self] () -> (Any?) in
+//                var htmlString:String?
+//
+//                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
+//                    htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
+//                } else
+//
+//                    if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
+//                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
+//                    } else {
+//                        htmlString = bodyHTML
+//                }
+//
+//                return htmlString
+//            }, completion: { [weak self] (data:Any?) in
+//                if let _ = data as? String {
+//                    viewController.popoverHTML(title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
+//                } else {
+//                    Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
+//                }
+//            })
+//        })
+//        alert.addAction(viewAction)
+//
+//        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//            (action : UIAlertAction!) -> Void in
+//
+//        })
+//        alert.addAction(cancel)
+//
+//        viewController.present(alert, animated: true, completion: nil)
+//    }
     
     func addToFavorites(alert:Bool = true)
     {

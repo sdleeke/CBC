@@ -46,7 +46,7 @@ extension MediaViewController : UIActivityItemSource
 
             }
 
-            activityViewController = UIActivityViewController(activityItems: [self.document?.fetchData.result, self.selectedMediaItem], applicationActivities: nil)
+            activityViewController = CBCActivityViewController(activityItems: [self.document?.fetchData.result, self.selectedMediaItem], applicationActivities: nil)
 
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
@@ -56,7 +56,13 @@ extension MediaViewController : UIActivityItemSource
                 
                 popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
                 
-                self.present(activityViewController, animated: true, completion: nil)
+                Alerts.shared.queue.async {
+                    Alerts.shared.semaphore.wait()
+                    
+                    Thread.onMainThread {
+                        self.present(activityViewController, animated: true, completion: nil)
+                    }
+                }
             }
         }
     }
@@ -241,56 +247,80 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Delete_Audio_Download:
-            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                            message: nil,
-                                            preferredStyle: .alert)
-            alert.makeOpaque()
+            var actions = [AlertAction]()
             
-            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                (action : UIAlertAction!) -> Void in
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
                 self.selectedMediaItem?.audioDownload?.delete(block:true)
-            })
-            alert.addAction(yesAction)
+            }))
             
-            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                (action : UIAlertAction!) -> Void in
-                
-            })
-            alert.addAction(noAction)
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+
+            }))
             
-//            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+            Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
+            
+//            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                            message: nil,
+//                                            preferredStyle: .alert)
+//            alert.makeOpaque()
+//
+//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
 //                (action : UIAlertAction!) -> Void in
-//                
+//                self.selectedMediaItem?.audioDownload?.delete(block:true)
 //            })
-//            alert.addAction(cancel)
-            
-            self.present(alert, animated: true, completion: nil)
+//            alert.addAction(yesAction)
+//
+//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                (action : UIAlertAction!) -> Void in
+//
+//            })
+//            alert.addAction(noAction)
+//
+////            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+////                (action : UIAlertAction!) -> Void in
+////
+////            })
+////            alert.addAction(cancel)
+//
+//            self.present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Delete_All_Audio_Downloads:
-            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
-                                            message: mediaItems?.multiPartName,
-                                            preferredStyle: .alert)
-            alert.makeOpaque()
+            var actions = [AlertAction]()
             
-            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                (action : UIAlertAction) -> Void in
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
                 self.mediaItems?.deleteAllAudioDownloads()
-//                if let mediaItems = self.mediaItems?.list {
-//                    for mediaItem in mediaItems {
-//                        mediaItem.audioDownload?.delete()
-//                    }
-//                }
-            })
-            alert.addAction(yesAction)
+            }))
             
-            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                (action : UIAlertAction) -> Void in
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
                 
-            })
-            alert.addAction(noAction)
+            }))
             
-            self.present(alert, animated: true, completion: nil)
+            Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaItems?.multiPartName, actions: actions)
+
+//            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+//                                            message: mediaItems?.multiPartName,
+//                                            preferredStyle: .alert)
+//            alert.makeOpaque()
+//
+//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                (action : UIAlertAction) -> Void in
+//                self.mediaItems?.deleteAllAudioDownloads()
+////                if let mediaItems = self.mediaItems?.list {
+////                    for mediaItem in mediaItems {
+////                        mediaItem.audioDownload?.delete()
+////                    }
+////                }
+//            })
+//            alert.addAction(yesAction)
+//
+//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                (action : UIAlertAction) -> Void in
+//
+//            })
+//            alert.addAction(noAction)
+//
+//            self.present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Print:
@@ -1099,7 +1129,7 @@ enum VideoLocation {
     case withTableView
 }
 
-class MediaViewController: UIViewController
+class MediaViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {
         return [String:PopoverTableViewController]()
@@ -2431,10 +2461,19 @@ class MediaViewController: UIViewController
         messageComposeViewController.recipients = nil
         messageComposeViewController.subject = "Recommendation"
         messageComposeViewController.body = mediaItem?.contents
-        
-        Thread.onMainThread {
-            self.present(messageComposeViewController, animated: true, completion: nil)
+
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(messageComposeViewController, animated: true, completion: {
+                    Alerts.shared.semaphore.signal()
+                })
+            }
         }
+//        Thread.onMainThread {
+//            self.present(messageComposeViewController, animated: true, completion: nil)
+//        }
     }
     
     fileprivate func openMediaItemScripture(_ mediaItem:MediaItem?)
@@ -2689,7 +2728,7 @@ class MediaViewController: UIViewController
             popover.completion = { [weak self] in
                 self?.popover?["ACTION"] = nil
             }
-            
+
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: {
                     self.popover?["ACTION"] = popover
@@ -5906,26 +5945,34 @@ extension MediaViewController : UITableViewDataSource
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
             let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
-                let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                                message: message,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
-                    for alertAction in alertActions {
-                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                            alertAction.handler?()
-                        })
-                        alert.addAction(action)
-                    }
+                guard var alertActions = cell.mediaItem?.editActions(viewController: self) else {
+                    return
                 }
+
+                alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                })
-                alert.addAction(okayAction)
+                Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
                 
-                self.present(alert, animated: true, completion: nil)
+//                let alert = UIAlertController(  title: Constants.Strings.Actions,
+//                                                message: message,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//                
+//                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
+//                    for alertAction in alertActions {
+//                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                            alertAction.handler?()
+//                        })
+//                        alert.addAction(action)
+//                    }
+//                }
+//                
+//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                })
+//                alert.addAction(okayAction)
+//                
+//                self.present(alert, animated: true, completion: nil)
             }
             action.backgroundColor = UIColor.controlBlue()
             

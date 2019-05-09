@@ -3423,70 +3423,200 @@ extension String
     }
 }
 
+enum AlertItem {
+    case action(_ action:AlertAction)
+    case text(_ text:String?)
+}
+
 struct AlertAction
 {
-    let title : String
+    let title : String?
     let style : UIAlertAction.Style
     let handler : (()->(Void))?
 }
 
 extension UIViewController
 {
-    func alertActionsCancel(title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
+    func present(_ viewControllerToPresent: UINavigationController, animated flag: Bool, completion: (() -> Void)? = nil)
     {
-        let alert = UIAlertController(title: title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
+//        guard viewControllerToPresent.modalPresentationStyle != .popover else {
+//            Thread.onMainThread {
+//                self.present(viewControllerToPresent as UIViewController, animated: flag, completion: completion)
+//            }
+//            return
+//        }
+
+        // Critical that it be async to allow the presentedViewController from some other call to clear.
+//        Alerts.shared.queue.sync {
+//            Alerts.shared.semaphore.wait()
+//            while self.presentedViewController != nil {
+//
+//            }
         
-        if let alertActions = alertActions {
-            for alertAction in alertActions {
-                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                    alertAction.handler?()
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(viewControllerToPresent as UIViewController, animated: flag, completion: {
+                    //                    (viewControllerToPresent.viewControllers[0] as? CBCViewController)?.view.tag = 1000
+                    if viewControllerToPresent.modalPresentationStyle != .popover {
+                        Alerts.shared.semaphore.signal()
+                    }
+                    completion?()
                 })
-                alert.addAction(action)
             }
         }
         
-        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
-            cancelAction?()
-        })
-        alert.addAction(cancelAction)
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
+//        }
+    }
+
+    func alert(title:String?,message:String?,completion:(()->(Void))?)
+    {
+        Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { () -> (Void) in
+            completion?()
+        })])
+
+//        guard UIApplication.shared.applicationState == UIApplication.State.active else {
+//            return
+//        }
+//
+//        let alert = UIAlertController(title:title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
+//            completion?()
+//        })
+//        alert.addAction(action)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
+    }
+    
+
+    func alert(title:String?,message:String?,actions:[AlertAction]?)
+    {
+        guard let actions = actions else {
+            Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: nil)])
+            return
         }
+
+        Alerts.shared.alert(title: title, message: message, actions: actions)
+
+//        guard Thread.isMainThread else {
+//            print("Not Main Thread","functions:alert")
+//            return
+//        }
+//
+//        guard UIApplication.shared.applicationState == UIApplication.State.active else {
+//            return
+//        }
+//
+//        let alert = UIAlertController(title:title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        if let alertActions = actions {
+//            for alertAction in alertActions {
+//                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                    alertAction.handler?()
+//                })
+//                alert.addAction(action)
+//            }
+//        } else {
+//            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
+//
+//            })
+//            alert.addAction(action)
+//        }
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
+    }
+    
+    func alertActionsCancel(title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
+    {
+        guard var alertActions = alertActions else {
+            return
+        }
+        
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
+
+        Alerts.shared.alert(title: title, message: message, actions: alertActions)
+        
+//        let alert = UIAlertController(title: title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        if let alertActions = alertActions {
+//            for alertAction in alertActions {
+//                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                    alertAction.handler?()
+//                })
+//                alert.addAction(action)
+//            }
+//        }
+//
+//        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
+//            cancelAction?()
+//        })
+//        alert.addAction(cancelAction)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
     }
     
     func alertActionsOkay(title:String?,message:String?,alertActions:[AlertAction]?,okayAction:(()->(Void))?)
     {
-        let alert = UIAlertController(title: title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        if let alertActions = alertActions {
-            for alertAction in alertActions {
-                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                    alertAction.handler?()
-                })
-                alert.addAction(action)
-            }
+        guard var alertActions = alertActions else {
+            return
         }
         
-        let okayAlertAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { (UIAlertAction) -> Void in
-            okayAction?()
-        })
-        alert.addAction(okayAlertAction)
+        alertActions.append(AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: okayAction))
         
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
+        Alerts.shared.alert(title: title, message: message, actions: alertActions)
+
+//        let alert = UIAlertController(title: title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        if let alertActions = alertActions {
+//            for alertAction in alertActions {
+//                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                    alertAction.handler?()
+//                })
+//                alert.addAction(action)
+//            }
+//        }
+//
+//        let okayAlertAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { (UIAlertAction) -> Void in
+//            okayAction?()
+//        })
+//        alert.addAction(okayAlertAction)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
     }
     
     func searchAlert(title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
     {
-        let alert = UIAlertController(  title: title,
+//        var alertItems = [AlertItem]()
+//        alertItems.append(AlertItem.text(searchText ?? "search string"))
+//        alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Search, style: UIAlertAction.Style.default, handler: {
+//            searchAction?(alert)
+//        })))
+//        alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
+//        Alerts.shared.alert(title: title, message: message, items: alertItems)
+
+        let alert = CBCAlertController(  title: title,
                                         message: message,
                                         preferredStyle: .alert)
         alert.makeOpaque()
@@ -3512,34 +3642,44 @@ extension UIViewController
             (action : UIAlertAction!) -> Void in
         })
         alert.addAction(cancel)
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
+
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            Thread.onMainThread {
+                self.present(alert, animated: true, completion: nil)
+            }
         }
     }
-    
+
     func yesOrNo(title:String?,message:String?,
                  yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
                  noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
     {
-        let alert = UIAlertController(title: title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
+        var alertActions = [AlertAction]()
         
-        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: { (UIAlertAction) -> Void in
-            yesAction?()
-        })
-        alert.addAction(yesAction)
-        
-        let noAction = UIAlertAction(title: Constants.Strings.No, style: noStyle, handler: { (UIAlertAction) -> Void in
-            noAction?()
-        })
-        alert.addAction(noAction)
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
+        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: yesAction))
+        alertActions.append(AlertAction(title: Constants.Strings.No, style: noStyle, handler: noAction))
+
+        Alerts.shared.alert(title: title, message: message, actions: alertActions)
+//
+//        let alert = UIAlertController(title: title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: { (UIAlertAction) -> Void in
+//            yesAction?()
+//        })
+//        alert.addAction(yesAction)
+//
+//        let noAction = UIAlertAction(title: Constants.Strings.No, style: noStyle, handler: { (UIAlertAction) -> Void in
+//            noAction?()
+//        })
+//        alert.addAction(noAction)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
     }
 
     func firstSecondCancel(title:String?,message:String?,
@@ -3547,33 +3687,49 @@ extension UIViewController
                            secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
                            cancelAction:(()->(Void))? = nil)
     {
-        let alert = UIAlertController(title: title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        if firstTitle != nil {
-            let yesAction = UIAlertAction(title: firstTitle, style: firstStyle, handler: { (UIAlertAction) -> Void in
-                firstAction?()
-            })
-            alert.addAction(yesAction)
+        guard let firstTitle = firstTitle else {
+            return
         }
-        
-        if secondTitle != nil {
-            let noAction = UIAlertAction(title: secondTitle, style: secondStyle, handler: { (UIAlertAction) -> Void in
-                secondAction?()
-            })
-            alert.addAction(noAction)
+
+        guard let secondTitle = secondTitle else {
+            return
         }
+
+        var alertActions = [AlertAction]()
         
-        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
-            cancelAction?()
-        })
-        alert.addAction(cancelAction)
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
+        alertActions.append(AlertAction(title: firstTitle, style: firstStyle, handler: firstAction))
+        alertActions.append(AlertAction(title: secondTitle, style: secondStyle, handler: secondAction))
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
+
+        Alerts.shared.alert(title: title, message: message, actions: alertActions)
+
+//        let alert = UIAlertController(title: title,
+//                                      message: message,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        if firstTitle != nil {
+//            let yesAction = UIAlertAction(title: firstTitle, style: firstStyle, handler: { (UIAlertAction) -> Void in
+//                firstAction?()
+//            })
+//            alert.addAction(yesAction)
+//        }
+//
+//        if secondTitle != nil {
+//            let noAction = UIAlertAction(title: secondTitle, style: secondStyle, handler: { (UIAlertAction) -> Void in
+//                secondAction?()
+//            })
+//            alert.addAction(noAction)
+//        }
+//
+//        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
+//            cancelAction?()
+//        })
+//        alert.addAction(cancelAction)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
     }
     
     func mailText(viewController:UIViewController?,to: [String]?,subject: String?, body:String)
@@ -3599,10 +3755,20 @@ extension UIViewController
         }
         
         mailComposeViewController.setMessageBody(body, isHTML: false)
-        
-        Thread.onMainThread {
-            viewController.present(mailComposeViewController, animated: true, completion: nil)
+
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                viewController.present(mailComposeViewController, animated: true, completion: {
+                    Alerts.shared.semaphore.signal()
+                })
+            }
         }
+
+//        Thread.onMainThread {
+//            viewController.present(mailComposeViewController, animated: true, completion: nil)
+//        }
     }
     
     func mailHTML(to: [String]?,subject: String?, htmlString:String)
@@ -3628,10 +3794,21 @@ extension UIViewController
         }
         
         mailComposeViewController.setMessageBody(htmlString, isHTML: true)
-        
-        Thread.onMainThread {
-            self.present(mailComposeViewController, animated: true, completion: nil)
+
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(mailComposeViewController, animated: true, completion: {
+                    Alerts.shared.semaphore.signal()
+                })
+            }
         }
+
+//        present(mailComposeViewController, animated: true, completion: nil)
+//        Thread.onMainThread {
+//            self.present(mailComposeViewController, animated: true, completion: nil)
+//        }
     }
 
     func printJob(data:Data?)
@@ -3653,11 +3830,23 @@ extension UIViewController
         
         pic.printingItem = data // Causes orientation to be ignored
         
-        Thread.onMainThread {
-            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                    pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
+                        Alerts.shared.semaphore.signal()
+                    })
+                }
             }
         }
+        
+//        Thread.onMainThread {
+//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+//            }
+//        }
     }
     
     func printTextJob(string:String?,orientation:UIPrintInfo.Orientation)
@@ -3691,11 +3880,22 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Thread.onMainThread {
-            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                    pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
+                        Alerts.shared.semaphore.signal()
+                    })
+                }
             }
         }
+//        Thread.onMainThread {
+//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+//            }
+//        }
     }
     
     func printText(string:String?)
@@ -3748,11 +3948,22 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Thread.onMainThread {
-            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                    pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
+                        Alerts.shared.semaphore.signal()
+                    })
+                }
             }
         }
+//        Thread.onMainThread {
+//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+//            }
+//        }
     }
     
     func printImage(image:UIImage?)
@@ -3802,11 +4013,22 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Thread.onMainThread {
-            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+                    pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
+                        Alerts.shared.semaphore.signal()
+                    })
+                }
             }
         }
+//        Thread.onMainThread {
+//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
+//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+//            }
+//        }
     }
     
     func printHTML(htmlString:String?)
@@ -3887,14 +4109,14 @@ extension UIViewController
         )
     }
     
-    func mailMediaItems(viewController:UIViewController, mediaItems:[MediaItem]?, stringFunction:(([MediaItem]?,Bool,Bool)->String?)?, links:Bool, columns:Bool, attachments:Bool)
+    func mailMediaItems(mediaItems:[MediaItem]?, stringFunction:(([MediaItem]?,Bool,Bool)->String?)?, links:Bool, columns:Bool, attachments:Bool)
     {
         guard (mediaItems != nil) && (stringFunction != nil) && MFMailComposeViewController.canSendMail() else {
             self.showSendMailErrorAlert()
             return
         }
         
-        viewController.process(work: {
+        self.process(work: {
             if let text = stringFunction?(mediaItems,links,columns) {
                 return [text]
             }
@@ -3905,7 +4127,7 @@ extension UIViewController
                 let mailComposeViewController = MFMailComposeViewController()
                 
                 // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-                mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
+                mailComposeViewController.mailComposeDelegate = self as? MFMailComposeViewControllerDelegate
                 
                 mailComposeViewController.setToRecipients([])
                 mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
@@ -3914,7 +4136,16 @@ extension UIViewController
                     mailComposeViewController.setMessageBody(body, isHTML: true)
                 }
                 
-                viewController.present(mailComposeViewController, animated: true, completion: nil)
+                Alerts.shared.queue.async {
+                    Alerts.shared.semaphore.wait()
+                    
+                    Thread.onMainThread {
+                        self.present(mailComposeViewController, animated: true, completion: {
+                                Alerts.shared.semaphore.signal()
+                        })
+                    }
+                }
+//                self.present(mailComposeViewController, animated: true, completion: nil)
             }
         })
     }
@@ -3937,9 +4168,18 @@ extension UIViewController
         }
         
         if MFMailComposeViewController.canSendMail() {
-            Thread.onMainThread {
-                self.present(mailComposeViewController, animated: true, completion: nil)
+            Alerts.shared.queue.async {
+                Alerts.shared.semaphore.wait()
+                
+                Thread.onMainThread {
+                    self.present(mailComposeViewController, animated: true, completion: {
+                        Alerts.shared.semaphore.signal()
+                    })
+                }
             }
+//            Thread.onMainThread {
+//                self.present(mailComposeViewController, animated: true, completion: nil)
+//            }
         } else {
             self.showSendMailErrorAlert()
         }
@@ -4072,7 +4312,7 @@ extension UIViewController
             popover.content = .html
             
             popover.navigationController?.isNavigationBarHidden = false
-            
+
             Thread.onMainThread {
                 self.present(navigationController, animated: true, completion: nil)
             }
@@ -4264,62 +4504,6 @@ extension UIViewController
         self.alert(title:Constants.Network_Error,message:message,completion:nil)
     }
     
-    func alert(title:String?,message:String?,completion:(()->(Void))?)
-    {
-        guard UIApplication.shared.applicationState == UIApplication.State.active else {
-            return
-        }
-        
-        let alert = UIAlertController(title:title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
-            completion?()
-        })
-        alert.addAction(action)
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
-    }
-    
-    func alert(title:String?,message:String?,actions:[AlertAction]?)
-    {
-        guard Thread.isMainThread else {
-            print("Not Main Thread","functions:alert")
-            return
-        }
-        
-        guard UIApplication.shared.applicationState == UIApplication.State.active else {
-            return
-        }
-        
-        let alert = UIAlertController(title:title,
-                                      message: message,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        if let alertActions = actions {
-            for alertAction in alertActions {
-                let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                    alertAction.handler?()
-                })
-                alert.addAction(action)
-            }
-        } else {
-            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-        }
-        
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
-    }
-
     func selectWord(title:String?, purpose:PopoverPurpose, allowsSelection:Bool = true,strings:[String]? = nil, stringsFunction:(()->([String]?))? = nil, completion:((PopoverTableViewController)->())? = nil)
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -4474,7 +4658,9 @@ extension UIViewController
             
             completion?(popover)
             
-            present(navigationController, animated: true, completion: nil)
+            Thread.onMainThread {
+                self.present(navigationController, animated: true, completion: nil)
+            }
         }
 
     }

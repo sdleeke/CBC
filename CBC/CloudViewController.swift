@@ -294,7 +294,7 @@ extension CloudViewController : UIActivityItemSource
             activityItems.append(cloudView.image)
         }
 
-        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems: activityItems, applicationActivities: nil)
         
         // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
         activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
@@ -303,7 +303,14 @@ extension CloudViewController : UIActivityItemSource
         
         popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
-        present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(activityViewController, animated: true, completion: nil)
+            }
+        }
+//        present(activityViewController, animated: true, completion: nil)
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -376,7 +383,7 @@ extension CloudViewController : UIActivityItemSource
     }
 }
 
-class CloudViewController: UIViewController
+class CloudViewController : CBCViewController
 {
     var cloudWords : [CloudWord]?
     {
@@ -673,9 +680,9 @@ class CloudViewController: UIViewController
         super.viewWillAppear(animated)
 
                                                             // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
         
         addNotifications()
 
@@ -723,12 +730,12 @@ class CloudViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
+        
 //        layoutQueue?.cancelAllOperations()
         
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
-
         cancelAllOperations()
         
         NotificationCenter.default.removeObserver(self, name: UIContentSizeCategory.didChangeNotification, object: nil)

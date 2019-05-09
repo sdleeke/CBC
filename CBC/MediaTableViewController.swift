@@ -141,7 +141,7 @@ extension MediaTableViewController : UISearchBarDelegate
                     return Globals.shared.media.search.isActive ? string.searchText != Globals.shared.media.search.text?.uppercased() : true
                 }).map({ (string:String) -> String in
                     return string.searchText ?? ""
-                }).sorted()
+                }).set.array.sorted()
                 
                 Thread.onMainThread {
                     popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
@@ -440,14 +440,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         
         if let mediaID = value["mediaId"] as? String,let title = value["title"] as? String {
             actions.append(AlertAction(title: Constants.Strings.Delete, style: .destructive) { [weak self, weak popover] in
-                let alert = UIAlertController(  title: "Confirm Removal From VoiceBase",
-                                                message: title,
-                    preferredStyle: .alert)
-                
-                alert.makeOpaque()
-                
-                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                    (action : UIAlertAction!) -> Void in
+                var alertActions = [AlertAction]()
+                alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
                     VoiceBase.delete(alert:true,mediaID: mediaID)
                     
                     searchIndex?[key]?.remove(at: indexPath.row)
@@ -455,7 +449,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     if searchIndex?[key]?.count == 0 {
                         searchIndex?[key] = nil
                     }
-
+                    
                     if searchIndex != self?.stringIndex, let keys = self?.stringIndex?.keys?.sorted() {
                         for key in keys {
                             if let values = self?.stringIndex?[key] {
@@ -477,7 +471,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                         }
                     }
-
+                    
                     popover?.section.stringIndex = searchIndex?.stringIndex(key: "title", sort: nil) //.keys.count > 0 ? stringIndex : nil
                     
                     popover?.updateToolbar()
@@ -487,34 +481,90 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         popover?.tableView?.reloadData()
                         popover?.tableView?.reloadData()
                     }
-                })
-                alert.addAction(yesAction)
+                }))
+                alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: nil))
+                Alerts.shared.alert(title: "Confirm Removal From VoiceBase", message: title, actions: alertActions)
                 
-                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction!) -> Void in
-                    
-                })
-                alert.addAction(noAction)
-                
-                self?.present(alert, animated: true, completion: nil)
+//                let alert = UIAlertController(  title: "Confirm Removal From VoiceBase",
+//                                                message: title,
+//                    preferredStyle: .alert)
+//
+//                alert.makeOpaque()
+//
+//                let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                    (action : UIAlertAction!) -> Void in
+//                    VoiceBase.delete(alert:true,mediaID: mediaID)
+//
+//                    searchIndex?[key]?.remove(at: indexPath.row)
+//
+//                    if searchIndex?[key]?.count == 0 {
+//                        searchIndex?[key] = nil
+//                    }
+//
+//                    if searchIndex != self?.stringIndex, let keys = self?.stringIndex?.keys?.sorted() {
+//                        for key in keys {
+//                            if let values = self?.stringIndex?[key] {
+//                                var count = 0
+//
+//                                for value in values {
+//                                    if (value["mediaId"] as? String) == mediaID {
+//                                        self?.stringIndex?[key]?.remove(at: count)
+//
+//                                        if self?.stringIndex?[key]?.count == 0 {
+//                                            self?.stringIndex?[key] = nil
+//                                        }
+//
+//                                        break
+//                                    }
+//
+//                                    count += 1
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    popover?.section.stringIndex = searchIndex?.stringIndex(key: "title", sort: nil) //.keys.count > 0 ? stringIndex : nil
+//
+//                    popover?.updateToolbar()
+//
+//                    Thread.onMainThread {
+//                        popover?.tableView?.isEditing = false
+//                        popover?.tableView?.reloadData()
+//                        popover?.tableView?.reloadData()
+//                    }
+//                })
+//                alert.addAction(yesAction)
+//
+//                let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction!) -> Void in
+//
+//                })
+//                alert.addAction(noAction)
+//
+//                self?.present(alert, animated: true, completion: nil)
             })
             
             actions.append(AlertAction(title: "Media ID", style: .default) { [weak self] in
-                let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                message: title,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                alert.addTextField(configurationHandler: { (textField:UITextField) in
-                    textField.text = mediaID
-                })
-                
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                })
-                alert.addAction(okayAction)
-                
-                self?.present(alert, animated: true, completion: nil)
+                var alertItems = [AlertItem]()
+                alertItems.append(AlertItem.text(mediaID))
+                alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
+                Alerts.shared.alert(title: "VoiceBase Media ID", message: title, items: alertItems)
+
+//                let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                message: title,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//
+//                alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                    textField.text = mediaID
+//                })
+//
+//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                })
+//                alert.addAction(okayAction)
+//
+//                self?.present(alert, animated: true, completion: nil)
             })
             
             actions.append(AlertAction(title: "Information", style: .default) { [weak self] in
@@ -822,28 +872,39 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     
     @objc func historyActions()
     {
-        let alert = UIAlertController(title: "Delete History?",
-                                      message: nil,
-                                      preferredStyle: .alert)
-        alert.makeOpaque()
-        
-        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
+        var alertActions = [AlertAction]()
+        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { () -> (Void) in
             Globals.shared.history.clear() // = nil
             let defaults = UserDefaults.standard
             defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
             defaults.synchronize()
             self.popover?["HISTORY"]?.dismiss(animated: true, completion: nil)
-        })
-        alert.addAction(yesAction)
-
-        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (alert:UIAlertAction!) -> Void in
-
-        })
-        alert.addAction(cancelAction)
+        }))
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: nil))
+        Alerts.shared.alert(title: "Delete History?", actions: alertActions)
         
-        Thread.onMainThread {
-            self.present(alert, animated: true, completion: nil)
-        }
+//        let alert = UIAlertController(title: "Delete History?",
+//                                      message: nil,
+//                                      preferredStyle: .alert)
+//        alert.makeOpaque()
+//
+//        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
+//            Globals.shared.history.clear() // = nil
+//            let defaults = UserDefaults.standard
+//            defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
+//            defaults.synchronize()
+//            self.popover?["HISTORY"]?.dismiss(animated: true, completion: nil)
+//        })
+//        alert.addAction(yesAction)
+//
+//        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: { (alert:UIAlertAction!) -> Void in
+//
+//        })
+//        alert.addAction(cancelAction)
+//
+//        Thread.onMainThread {
+//            self.present(alert, animated: true, completion: nil)
+//        }
     }
     
 //    func done()
@@ -1066,7 +1127,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.VoiceBase_API_Key:
-            let alert = UIAlertController(  title: Constants.Strings.VoiceBase_API_Key,
+            let alert = CBCAlertController(  title: Constants.Strings.VoiceBase_API_Key,
                                             message: nil,
                                             preferredStyle: .alert)
             alert.makeOpaque()
@@ -1086,7 +1147,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(cancel)
             
-            present(alert, animated: true, completion: nil)
+            Alerts.shared.queue.async {
+                Alerts.shared.semaphore.wait()
+                Thread.onMainThread {
+                    self.present(alert, animated: true, completion: nil)
+                }
+            }
             break
             
         case Constants.Strings.VoiceBase_Delete_All:
@@ -1150,10 +1216,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 self.popover?["VOICEBASE"]?.refresh = { [weak self] in
                     self?.popover?["VOICEBASE"]?.navigationController?.isToolbarHidden = true
 
-                    self?.popover?["VOICEBASE"]?.section.strings = nil
-                    self?.popover?["VOICEBASE"]?.section.headerStrings = nil
-                    self?.popover?["VOICEBASE"]?.section.counts = nil
-                    self?.popover?["VOICEBASE"]?.section.indexes = nil
+                    self?.popover?["VOICEBASE"]?.unfilteredSection.strings = nil
+                    self?.popover?["VOICEBASE"]?.unfilteredSection.stringIndex = nil
+                    self?.popover?["VOICEBASE"]?.unfilteredSection.headerStrings = nil
+                    self?.popover?["VOICEBASE"]?.unfilteredSection.counts = nil
+                    self?.popover?["VOICEBASE"]?.unfilteredSection.indexes = nil
                     
                     self?.popover?["VOICEBASE"]?.tableView?.reloadData()
                     
@@ -1171,7 +1238,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                         })
                         
-                        self?.popover?["VOICEBASE"]?.section.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
+                        self?.popover?["VOICEBASE"]?.unfilteredSection.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
 
                         Thread.onMainThread {
                             self?.popover?["VOICEBASE"]?.updateSearchResults()
@@ -2228,7 +2295,7 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
     var label : UILabel?
 }
 
-class MediaTableViewController : UIViewController
+class MediaTableViewController : CBCViewController
 {
     deinit {
         debug(self)
@@ -2294,24 +2361,32 @@ class MediaTableViewController : UIViewController
                 if self?.stringIndex?.keys == nil {
                     Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
                 } else {
-                    let alert = UIAlertController(  title: "Confirm Bulk Deletion of VoiceBase Media",
-                                                    message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.",
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        VoiceBase.bulkDelete(alert:true)
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                        (action : UIAlertAction!) -> Void in
+                    var alertActions = [AlertAction]()
+                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
                         
-                    })
-                    alert.addAction(noAction)
+                    }))
+                    alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: nil))
+                    Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media",
+                                        message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.", actions:alertActions)
                     
-                    self?.present(alert, animated: true, completion: nil)
+//                    let alert = UIAlertController(  title: "Confirm Bulk Deletion of VoiceBase Media",
+//                                                    message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.",
+//                                                    preferredStyle: .alert)
+//                    alert.makeOpaque()
+//                    
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        VoiceBase.bulkDelete(alert:true)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    self?.present(alert, animated: true, completion: nil)
                 }
             }
             },onError: nil)
@@ -3022,6 +3097,13 @@ class MediaTableViewController : UIViewController
         operationQueue.maxConcurrentOperationCount = 1 // Slides and Notes
         return operationQueue
     }()
+    
+    var searching : Bool
+    {
+        get {
+            return operationQueue.operationCount > 0
+        }
+    }
     
     func loadMediaItems(completion: (() -> Void)?)
     {
@@ -3804,7 +3886,7 @@ class MediaTableViewController : UIViewController
                 if !Globals.shared.media.search.isActive {
                     actionButton.isEnabled = true
                 } else {
-                    actionButton.isEnabled = (Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true)
+                    actionButton.isEnabled = !searching && ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
                 }
             }
             barButtons.append(actionButton)
@@ -3830,7 +3912,7 @@ class MediaTableViewController : UIViewController
                 if !Globals.shared.media.search.isActive {
                     tagsButton.isEnabled = true
                 } else {
-                    tagsButton.isEnabled = (Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true)
+                    tagsButton.isEnabled = !searching && ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
                 }
             }
             barButtons.append(tagsButton)
@@ -4024,8 +4106,6 @@ class MediaTableViewController : UIViewController
         Thread.onMainThread {
             self.tableView?.reloadData()
         }
-
-        self.setupBarButtons()
         
         operationQueue.cancelAllOperations()
         
@@ -4189,6 +4269,8 @@ class MediaTableViewController : UIViewController
             abort = abort || shouldAbort()
         }
         operationQueue.addOperation(op)
+
+        self.setupBarButtons()
     }
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableView.ScrollPosition)
@@ -4876,26 +4958,34 @@ extension MediaTableViewController : UITableViewDelegate
             //            return editActions(cell: cell, mediaItem: cell.mediaItem)
             
             let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
-                let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                                message: message,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
-                    for alertAction in alertActions {
-                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                            alertAction.handler?()
-                        })
-                        alert.addAction(action)
-                    }
+                guard var actions = cell.mediaItem?.editActions(viewController: self) else {
+                    return
                 }
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                })
-                alert.addAction(okayAction)
+                actions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
                 
-                self.present(alert, animated: true, completion: nil)
+                Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: actions)
+                
+//                let alert = UIAlertController(  title: Constants.Strings.Actions,
+//                                                message: message,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//                
+//                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
+//                    for alertAction in alertActions {
+//                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                            alertAction.handler?()
+//                        })
+//                        alert.addAction(action)
+//                    }
+//                }
+//                
+//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                })
+//                alert.addAction(okayAction)
+//                
+//                self.present(alert, animated: true, completion: nil)
             }
             action.backgroundColor = UIColor.controlBlue()
             

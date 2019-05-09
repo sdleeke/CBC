@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SettingsViewController: UIViewController
+class SettingsViewController: CBCViewController
 {
     @IBOutlet weak var searchTranscriptsSwitch: UISwitch!
     

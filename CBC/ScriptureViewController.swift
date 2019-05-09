@@ -36,7 +36,7 @@ extension ScriptureViewController : UIActivityItemSource
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
         
-        let activityViewController = UIActivityViewController(activityItems:[self,html,print] , applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems:[self,html,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -45,9 +45,16 @@ extension ScriptureViewController : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
         // present the view controller
-        Thread.onMainThread {
-            self.present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(activityViewController, animated: true, completion: nil)
+            }
         }
+//        Thread.onMainThread {
+//            self.present(activityViewController, animated: true, completion: nil)
+//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -829,7 +836,7 @@ extension ScriptureViewController : UIPopoverPresentationControllerDelegate
     }
 }
 
-class ScriptureViewController : UIViewController
+class ScriptureViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {
         return [String:PopoverTableViewController]()
@@ -1553,9 +1560,9 @@ class ScriptureViewController : UIViewController
         super.viewWillAppear(animated)
         
                                                             // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
         
 //        orientation = UIDevice.current.orientation
         
@@ -1581,9 +1588,9 @@ class ScriptureViewController : UIViewController
     {
         super.viewWillDisappear(animated)
 
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
 
         NotificationCenter.default.removeObserver(self)
     }

@@ -408,7 +408,7 @@ extension TextViewController : UIActivityItemSource
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
         
-        let activityViewController = UIActivityViewController(activityItems:[print,text,self] , applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems:[print,text,self] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -418,9 +418,18 @@ extension TextViewController : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
         // present the view controller
-        Thread.onMainThread {
-            self.present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(activityViewController, animated: true, completion: nil)
+            }
         }
+//        self.present(activityViewController, animated: true, completion: nil)
+
+//        Thread.onMainThread {
+//            self.present(activityViewController, animated: true, completion: nil)
+//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -906,7 +915,7 @@ extension TextViewController : UIAdaptivePresentationControllerDelegate
     }
 }
 
-class TextViewController : UIViewController
+class TextViewController : CBCViewController
 {
     @IBOutlet weak var bottomLayoutConstraint: NSLayoutConstraint!
     
@@ -1659,12 +1668,8 @@ class TextViewController : UIViewController
                         }
                     }
 
-                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
-                                                  message: "Please note that this may take a considerable amount of time.",
-                                                  preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
+                    var alertActions = [AlertAction]()
+                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
                             tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
@@ -1678,38 +1683,82 @@ class TextViewController : UIViewController
                                 }
                             }))
                             
-//                            self?.creatingWordRangeTiming = true
+                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
-//                            self?.wordRangeTiming = data as? [[String:Any]]
-//                            self?.creatingWordRangeTiming = false
-                            self?.updateBarButtons()
-                            block()
+                            }, completion: { (data:Any?) in
+                                //                            self?.wordRangeTiming = data as? [[String:Any]]
+                                //                            self?.creatingWordRangeTiming = false
+                                self?.updateBarButtons()
+                                block()
                         })
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
+                    }))
+                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-//                            self?.creatingWordRangeTiming = true
+                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
-//                            self?.wordRangeTiming = data as? [[String:Any]]
-//                            self?.creatingWordRangeTiming = false
-                            self?.updateBarButtons()
-                            block()
+                            }, completion: { (data:Any?) in
+                                //                            self?.wordRangeTiming = data as? [[String:Any]]
+                                //                            self?.creatingWordRangeTiming = false
+                                self?.updateBarButtons()
+                                block()
                         })
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+                    }))
+                    alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: { () -> (Void) in
                         self?.updateBarButtons()
-                    })
-                    alert.addAction(cancelAction)
+                    }))
+                    Alerts.shared.alert(title: "Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", actions: alertActions)
                     
-                    Thread.onMainThread {
-                        self?.present(alert, animated: true, completion: nil)
-                    }
+//                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
+//                                                  message: "Please note that this may take a considerable amount of time.",
+//                                                  preferredStyle: .alert)
+//                    alert.makeOpaque()
+//
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.process(work: { [weak self] () -> (Any?) in
+//                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+//
+//                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+//
+//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+//                                if first.value == second.value {
+//                                    return first.key < second.key
+//                                } else {
+//                                    return first.value > second.value
+//                                }
+//                            }))
+//
+////                            self?.creatingWordRangeTiming = true
+//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+//                        }, completion: { (data:Any?) in
+////                            self?.wordRangeTiming = data as? [[String:Any]]
+////                            self?.creatingWordRangeTiming = false
+//                            self?.updateBarButtons()
+//                            block()
+//                        })
+//                    })
+//                    alert.addAction(yesAction)
+//
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.process(work: { [weak self] () -> (Any?) in
+////                            self?.creatingWordRangeTiming = true
+//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+//                        }, completion: { (data:Any?) in
+////                            self?.wordRangeTiming = data as? [[String:Any]]
+////                            self?.creatingWordRangeTiming = false
+//                            self?.updateBarButtons()
+//                            block()
+//                        })
+//                    })
+//                    alert.addAction(noAction)
+//
+//                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.updateBarButtons()
+//                    })
+//                    alert.addAction(cancelAction)
+//
+//                    Thread.onMainThread {
+//                        self?.present(alert, animated: true, completion: nil)
+//                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -1995,15 +2044,11 @@ class TextViewController : UIViewController
                         }
                     }
                     
-                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
-                                                  message: "Please note that this may take a considerable amount of time.",
-                                                  preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
+                    var actions = [AlertAction]()
+                    actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
                             tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
-
+                            
                             speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
@@ -2014,38 +2059,82 @@ class TextViewController : UIViewController
                                 }
                             }))
                             
-//                            self?.creatingWordRangeTiming = true
+                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
-//                            self?.wordRangeTiming = data as? [[String:Any]]
-//                            self?.creatingWordRangeTiming = false
-                            self?.updateBarButtons()
-                            block()
+                            }, completion: { (data:Any?) in
+                                //                            self?.wordRangeTiming = data as? [[String:Any]]
+                                //                            self?.creatingWordRangeTiming = false
+                                self?.updateBarButtons()
+                                block()
                         })
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
+                    }))
+                    actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-//                            self?.creatingWordRangeTiming = true
+                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
-//                            self?.wordRangeTiming = data as? [[String:Any]]
-//                            self?.creatingWordRangeTiming = false
-                            self?.updateBarButtons()
-                            block()
+                            }, completion: { (data:Any?) in
+                                //                            self?.wordRangeTiming = data as? [[String:Any]]
+                                //                            self?.creatingWordRangeTiming = false
+                                self?.updateBarButtons()
+                                block()
                         })
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+                    }))
+                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: { () -> (Void) in
                         self?.updateBarButtons()
-                    })
-                    alert.addAction(cancelAction)
-
-                    Thread.onMainThread {
-                        self?.present(alert, animated: true, completion: nil)
-                    }
+                    }))
+                    Alerts.shared.alert(title:"Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", actions:actions)
+                    
+//                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
+//                                                  message: "Please note that this may take a considerable amount of time.",
+//                                                  preferredStyle: .alert)
+//                    alert.makeOpaque()
+//                    
+//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.process(work: { [weak self] () -> (Any?) in
+//                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+//
+//                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+//                            
+//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
+//                                if first.value == second.value {
+//                                    return first.key < second.key
+//                                } else {
+//                                    return first.value > second.value
+//                                }
+//                            }))
+//                            
+////                            self?.creatingWordRangeTiming = true
+//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+//                        }, completion: { (data:Any?) in
+////                            self?.wordRangeTiming = data as? [[String:Any]]
+////                            self?.creatingWordRangeTiming = false
+//                            self?.updateBarButtons()
+//                            block()
+//                        })
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.process(work: { [weak self] () -> (Any?) in
+////                            self?.creatingWordRangeTiming = true
+//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+//                        }, completion: { (data:Any?) in
+////                            self?.wordRangeTiming = data as? [[String:Any]]
+////                            self?.creatingWordRangeTiming = false
+//                            self?.updateBarButtons()
+//                            block()
+//                        })
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
+//                        self?.updateBarButtons()
+//                    })
+//                    alert.addAction(cancelAction)
+//
+//                    Thread.onMainThread {
+//                        self?.present(alert, animated: true, completion: nil)
+//                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -2537,9 +2626,9 @@ class TextViewController : UIViewController
         super.viewWillAppear(animated)
 
                                                             // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
         
         navigationController?.isToolbarHidden = toolbarItems == nil
 
@@ -3425,12 +3514,12 @@ class TextViewController : UIViewController
     {
         super.viewWillDisappear(animated)
         
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
+        
         NotificationCenter.default.removeObserver(self)
 
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
-        
         trackingTimer?.invalidate()
         trackingTimer = nil
     }

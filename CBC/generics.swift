@@ -575,13 +575,38 @@ class ThreadSafeArray<T>
         debug(self)
     }
     
+    func forEach(f:(T)->Void)
+    {
+        queue.sync {
+            storage.forEach(f)
+        }
+    }
+    
+    func contains(element:T, compare:(T)->Bool) -> Bool
+    {
+        return queue.sync {
+            return storage.contains(where: compare)
+        }
+    }
+    
+    var first : T?
+    {
+        get {
+            return queue.sync {
+                return storage.first
+            }
+        }
+    }
+
     private var storage = [T]()
     
     func sorted(sort:((T,T)->Bool)) -> [T]
     {
-        return storage.sorted(by: sort)
+        return queue.sync {
+            return storage.sorted(by: sort)
+        }
     }
-    
+
     var copy : [T]?
     {
         get {
@@ -603,15 +628,19 @@ class ThreadSafeArray<T>
     var count : Int
     {
         get {
-            return storage.count
+            return queue.sync {
+                return storage.count
+            }
         }
     }
     
     var isEmpty : Bool
     {
-        return storage.isEmpty
+        return queue.sync {
+            return storage.isEmpty
+        }
     }
-    
+
     func clear()
     {
         queue.sync {
@@ -621,7 +650,18 @@ class ThreadSafeArray<T>
     
     func append(_ item:T)
     {
-        storage.append(item)
+        queue.sync {
+            storage.append(item)
+        }
+    }
+    
+    func remove(at index:Int)
+    {
+        queue.sync {
+            if storage.count > index {
+                storage.remove(at:index)
+            }
+        }
     }
     
     func update(storage:Any?)

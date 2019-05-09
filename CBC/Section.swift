@@ -148,85 +148,89 @@ class Section
     weak var tableView : UITableView?
     
     // Can probably be commented out.
-    var useInsertions = false
-    var insertions : [IndexPath]?
-    {
-        didSet {
-            guard useInsertions else { // This is probably never true.
-                return
-            }
-            
-            guard let insertions = insertions else {
-                return
-            }
-            Thread.onMainThread {
-                self.tableView?.insertRows(at: insertions, with: .automatic)
-            }
-        }
-    }
+//    var useInsertions = false
+//    var insertions : [IndexPath]?
+//    {
+//        didSet {
+//            guard useInsertions else { // This is probably never true.
+//                return
+//            }
+//
+//            guard let insertions = insertions else {
+//                return
+//            }
+//            Thread.onMainThread {
+//                self.tableView?.insertRows(at: insertions, with: .automatic)
+//            }
+//        }
+//    }
     
     // Make thread safe?
     var stringIndex:[String:[String]]?
     {
-        willSet {
-            var insertions = [IndexPath]()
-            
-            guard var newStringIndex = newValue else {
-                return
-            }
-            
-            guard let stringIndex = stringIndex else {
-                let newSections = Array(newStringIndex.keys)
-
-                for newSection in 0..<newSections.count {
-                    let indexPath = IndexPath(row: 0, section: newSection)
-                    insertions.append(indexPath)
-                    if let newRows = newStringIndex[newSections[newSection]] {
-                        for newRow in 0..<newRows.count {
-                            let indexPath = IndexPath(row: newRow, section: newSection)
-                            insertions.append(indexPath)
-                        }
-                    }
-                }
-                self.insertions = insertions.count > 0 ? insertions : nil
-                return
-            }
-            
-            let sections = Array(stringIndex.keys)
-            
-            let newSections = Array(newStringIndex.keys)
-            
-            // Assumption is that strings are a strict superset
-            for section in 0..<sections.count {
-                if sections[section] != newSections[section] {
-                    let indexPath = IndexPath(row: 0, section: section)
-                    insertions.append(indexPath)
-                    if let newRows = newStringIndex[newSections[section]] {
-                        for newRow in 0..<newRows.count {
-                            let indexPath = IndexPath(row: newRow, section: section)
-                            insertions.append(indexPath)
-                        }
-                        newStringIndex[newSections[section]] = nil
-                    }
-                    continue
-                }
-                
-                guard let rows = stringIndex[sections[section]] else {
-                    continue
-                }
-                
-                for row in 0..<rows.count {
-                    // need a stringsComparison function to strip frequency counts for lexicon updates
-                    if stringIndex[sections[section]]?[row] != newStringIndex[sections[section]]?[row] {
-                        let indexPath = IndexPath(row: row, section: section)
-                        insertions.append(indexPath)
-                        newStringIndex[sections[section]]?.remove(at: row)
-                    }
-                }
-            }
-            
-            self.insertions = insertions.count > 0 ? insertions : nil
-        }
+//        willSet {
+//            guard !sorting else {
+//                return
+//            }
+//
+//            var insertions = [IndexPath]()
+//
+//            guard var newStringIndex = newValue else {
+//                return
+//            }
+//
+//            guard let stringIndex = stringIndex else {
+//                let newSections = Array(newStringIndex.keys)
+//
+//                for newSection in 0..<newSections.count {
+//                    let indexPath = IndexPath(row: 0, section: newSection)
+//                    insertions.append(indexPath)
+//                    if let newRows = newStringIndex[newSections[newSection]] {
+//                        for newRow in 0..<newRows.count {
+//                            let indexPath = IndexPath(row: newRow, section: newSection)
+//                            insertions.append(indexPath)
+//                        }
+//                    }
+//                }
+//                self.insertions = insertions.count > 0 ? insertions : nil
+//                return
+//            }
+//
+//            let sections = Array(stringIndex.keys)
+//
+//            let newSections = Array(newStringIndex.keys)
+//
+//            // Assumption is that strings are a strict superset
+//            for section in 0..<sections.count {
+//                if sections[section] != newSections[section] {
+//                    let indexPath = IndexPath(row: 0, section: section)
+//                    insertions.append(indexPath)
+//                    if let newRows = newStringIndex[newSections[section]] {
+//                        for newRow in 0..<newRows.count {
+//                            let indexPath = IndexPath(row: newRow, section: section)
+//                            insertions.append(indexPath)
+//                        }
+//                        newStringIndex[newSections[section]] = nil
+//                    }
+//                    continue
+//                }
+//
+//                guard let rows = stringIndex[sections[section]] else {
+//                    continue
+//                }
+//
+//                for row in 0..<rows.count {
+//                    // need a stringsComparison function to strip frequency counts for lexicon updates
+//                    if stringIndex[sections[section]]?[row] != newStringIndex[sections[section]]?[row] {
+//                        let indexPath = IndexPath(row: row, section: section)
+//                        insertions.append(indexPath)
+//                        newStringIndex[sections[section]]?.remove(at: row)
+//                    }
+//                }
+//            }
+//
+//            self.insertions = insertions.count > 0 ? insertions : nil
+//        }
         
         didSet {
             var counter = 0
@@ -263,42 +267,42 @@ class Section
     // Make thread safe?
     var strings:[String]?
     {
-        willSet {
-            guard !sorting else {
-                return
-            }
-            
-            var insertions = [IndexPath]()
-            
-            guard var newStrings = newValue else {
-                return
-            }
-            
-            // Assumption is that strings are a strict superset
-            guard newStrings.count > strings?.count else {
-                return
-            }
-            
-            guard let strings = strings else {
-                for index in 0..<newStrings.count {
-                    // need a stringsComparison function to strip frequency counts for lexicon updates
-                    let indexPath = IndexPath(row: index, section: 0)
-                    insertions.append(indexPath)
-                }
-                self.insertions = insertions.count > 0 ? insertions : nil
-                return
-            }
-            
-            for index in 0..<strings.count {
-                // need a stringsComparison function to strip frequency counts for lexicon updates
-                if strings[index].components(separatedBy: " ").first != newStrings[index].components(separatedBy: " ").first {
-                    let indexPath = IndexPath(row: index, section: 0)
-                    insertions.append(indexPath)
-                    newStrings.remove(at: index)
-                }
-            }
-            self.insertions = insertions.count > 0 ? insertions : nil
-        }
+//        willSet {
+//            guard !sorting else {
+//                return
+//            }
+//            
+//            var insertions = [IndexPath]()
+//            
+//            guard var newStrings = newValue else {
+//                return
+//            }
+//            
+//            // Assumption is that strings are a strict superset
+//            guard newStrings.count > strings?.count else {
+//                return
+//            }
+//            
+//            guard let strings = strings else {
+//                for index in 0..<newStrings.count {
+//                    // need a stringsComparison function to strip frequency counts for lexicon updates
+//                    let indexPath = IndexPath(row: index, section: 0)
+//                    insertions.append(indexPath)
+//                }
+//                self.insertions = insertions.count > 0 ? insertions : nil
+//                return
+//            }
+//            
+//            for index in 0..<strings.count {
+//                // need a stringsComparison function to strip frequency counts for lexicon updates
+//                if strings[index].components(separatedBy: " ").first != newStrings[index].components(separatedBy: " ").first {
+//                    let indexPath = IndexPath(row: index, section: 0)
+//                    insertions.append(indexPath)
+//                    newStrings.remove(at: index)
+//                }
+//            }
+//            self.insertions = insertions.count > 0 ? insertions : nil
+//        }
         
         didSet {
             stringsAction?(strings,sorting)

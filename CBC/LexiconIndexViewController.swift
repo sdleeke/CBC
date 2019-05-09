@@ -188,28 +188,39 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case "Stop":
-            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",
-                                            message: nil,
-                                            preferredStyle: .alert)
-            alert.makeOpaque()
-            
-            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-                (action : UIAlertAction!) -> Void in
+            var alertActions = [AlertAction]()
+            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
                 self.lexicon?.stop()
                 if self.navigationController?.visibleViewController == self {
                     self.navigationController?.popViewController(animated: true)
                 }
                 Alerts.shared.alert(title: "Lexicon Build Stopped")
-            })
-            alert.addAction(yesAction)
+            }))
+            alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.destructive, handler: nil))
+            Alerts.shared.alert(title: "Confirm Stopping Lexicon Build", actions: alertActions)
             
-            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-                (action : UIAlertAction!) -> Void in
-                
-            })
-            alert.addAction(noAction)
-            
-            self.present(alert, animated: true, completion: nil)
+//            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",
+//                                            message: nil,
+//                                            preferredStyle: .alert)
+//            alert.makeOpaque()
+//
+//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+//                (action : UIAlertAction!) -> Void in
+//                self.lexicon?.stop()
+//                if self.navigationController?.visibleViewController == self {
+//                    self.navigationController?.popViewController(animated: true)
+//                }
+//                Alerts.shared.alert(title: "Lexicon Build Stopped")
+//            })
+//            alert.addAction(yesAction)
+//
+//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+//                (action : UIAlertAction!) -> Void in
+//
+//            })
+//            alert.addAction(noAction)
+//
+//            self.present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.View_List:
@@ -496,7 +507,7 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
     var label : UILabel?
 }
 
-class LexiconIndexViewController : UIViewController
+class LexiconIndexViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {
         return [String:PopoverTableViewController]()
@@ -2285,26 +2296,33 @@ extension LexiconIndexViewController : UITableViewDelegate
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
             let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
-                let alert = UIAlertController(  title: Constants.Strings.Actions,
-                                                message: message,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
-                    for alertAction in alertActions {
-                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-                            alertAction.handler?()
-                        })
-                        alert.addAction(action)
-                    }
+                guard var alertActions = cell.mediaItem?.editActions(viewController: self) else {
+                    return
                 }
                 
-                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-                    (action : UIAlertAction) -> Void in
-                })
-                alert.addAction(okayAction)
+                alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
+                Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
                 
-                self.present(alert, animated: true, completion: nil)
+//                let alert = UIAlertController(  title: Constants.Strings.Actions,
+//                                                message: message,
+//                                                preferredStyle: .alert)
+//                alert.makeOpaque()
+//                
+//                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
+//                    for alertAction in alertActions {
+//                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+//                            alertAction.handler?()
+//                        })
+//                        alert.addAction(action)
+//                    }
+//                }
+//                
+//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//                    (action : UIAlertAction) -> Void in
+//                })
+//                alert.addAction(okayAction)
+//                
+//                self.present(alert, animated: true, completion: nil)
             }
             action.backgroundColor = UIColor.controlBlue()
             

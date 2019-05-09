@@ -189,7 +189,7 @@ extension WebViewController : UIActivityItemSource
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        let activityViewController = UIActivityViewController(activityItems:[self,print] , applicationActivities: nil)
+        let activityViewController = CBCActivityViewController(activityItems:[self,print] , applicationActivities: nil)
         
         // exclude some activity types from the list (optional)
         
@@ -201,11 +201,18 @@ extension WebViewController : UIActivityItemSource
 //        if self.html.text == nil {
 //            activityViewController.excludedActivityTypes?.append(.message)
 //        }
-        
+
         // present the view controller
-        Thread.onMainThread {
-            self.present(activityViewController, animated: true, completion: nil)
+        Alerts.shared.queue.async {
+            Alerts.shared.semaphore.wait()
+            
+            Thread.onMainThread {
+                self.present(activityViewController, animated: true, completion: nil)
+            }
         }
+//        Thread.onMainThread {
+//            self.present(activityViewController, animated: true, completion: nil)
+//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -409,7 +416,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             share()
             
         case Constants.Strings.Search:
-            let alert = UIAlertController(  title: Constants.Strings.Search,
+            let alert = CBCAlertController(  title: Constants.Strings.Search,
                                             message: nil,
                                             preferredStyle: .alert)
             alert.makeOpaque()
@@ -498,7 +505,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(cancel)
             
-            present(alert, animated: true, completion: nil)
+            Alerts.shared.queue.async {
+                Alerts.shared.semaphore.wait()
+                Thread.onMainThread {
+                    self.present(alert, animated: true, completion: nil)
+                }
+            }
             
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
@@ -943,7 +955,7 @@ extension WebViewController: UIPopoverPresentationControllerDelegate
     }
 }
 
-class WebViewController: UIViewController
+class WebViewController: CBCViewController
 {
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -1183,12 +1195,12 @@ class WebViewController: UIViewController
             actionMenu.append(Constants.Strings.Full_Screen)
         }
         
-        if UIPrintInteractionController.isPrintingAvailable {
-            actionMenu.append(Constants.Strings.Print)
-        }
-        
         if html.string != nil {
             actionMenu.append(Constants.Strings.Share)
+        }
+        
+        if UIPrintInteractionController.isPrintingAvailable {
+            actionMenu.append(Constants.Strings.Print)
         }
         
         return actionMenu.count > 0 ? actionMenu : nil
@@ -2020,9 +2032,9 @@ class WebViewController: UIViewController
         super.viewWillAppear(animated)
         
                                                             // In case it is embedded
-        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-            Alerts.shared.topViewController.append(navigationController)
-        }
+//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
+//            Alerts.shared.topViewController.append(navigationController)
+//        }
         
         addNotifications()
         
@@ -2143,15 +2155,15 @@ class WebViewController: UIViewController
     {
         super.viewWillDisappear(animated)
                 
+//        if Alerts.shared.topViewController.last == navigationController {
+//            Alerts.shared.topViewController.removeLast()
+//        }
+        
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil
         
         loadTimer?.invalidate()
         
-        if Alerts.shared.topViewController.last == navigationController {
-            Alerts.shared.topViewController.removeLast()
-        }
-
 //        html.operationQueue.cancelAllOperations()
         
         Thread.onMainThread {
