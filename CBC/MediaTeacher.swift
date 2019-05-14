@@ -8,20 +8,122 @@
 
 import Foundation
 
-class MediaTeacher
+class MediaCategory
 {
     deinit {
         debug(self)
     }
     
-    var name : String?
-    var title : String?
+    init(dict:[String:Any]?)
+    {
+        self.dict = dict
+    }
     
+    var dict : [String:Any]?
+    
+    var id : Int?
+    {
+        get {
+            return dict?["id"] as? Int
+        }
+    }
+    
+    var name : String?
+    {
+        get {
+            return dict?["name"] as? String
+        }
+    }
+}
+
+class MediaGroup
+{
+    deinit {
+        debug(self)
+    }
+    
+    init(dict:[String:Any]?)
+    {
+        self.dict = dict
+    }
+    
+    var dict : [String:Any]?
+    
+    var id : Int?
+    {
+        get {
+            return dict?["id"] as? Int
+        }
+    }
+    
+    var name : String?
+    {
+        get {
+            return dict?["name"] as? String
+        }
+    }
+    
+    var status : String?
+    {
+        get {
+            return dict?["status"] as? String
+        }
+    }
+    
+    var suffix : String?
+    {
+        get {
+            return dict?["suffix"] as? String
+        }
+    }
+}
+
+class MediaTeacher
+    {
+        deinit {
+            debug(self)
+        }
+        
+        init(dict:[String:Any]?)
+        {
+            self.dict = dict
+        }
+        
+        var dict : [String:Any]?
+        
+        var id : Int?
+        {
+            get {
+                return dict?["id"] as? Int
+            }
+        }
+        
+        var name : String?
+        {
+            get {
+                return dict?["name"] as? String
+            }
+        }
+        
+        var status : String?
+        {
+            get {
+                return dict?["status"] as? String
+            }
+        }
+        
+        var suffix : String?
+        {
+            get {
+                return dict?["suffix"] as? String
+            }
+        }
+        
     lazy var speakerNotesParagraphWords : Fetch<[String:Int]>? = {
         let fetch = Fetch<[String:Int]>(name:nil)
 
         fetch.fetch = {
-            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.speaker == self.name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
             }) else {
                 return nil
@@ -62,7 +164,7 @@ class MediaTeacher
 //                return _speakerNotesParagraphWords
 //            }
 //
-//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
 //                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
 //            }) else {
 //                return nil
@@ -116,7 +218,7 @@ class MediaTeacher
         let fetch = Fetch<[String:[Int]]>(name:nil)
         
         fetch.fetch = {
-            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
                 return (mediaItem.speaker == self.name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
             }) else {
                 return nil
@@ -153,7 +255,7 @@ class MediaTeacher
 //                return _speakerNotesParagraphLengths
 //            }
 //
-//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
 //                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
 //            }) else {
 //                return nil
@@ -176,9 +278,11 @@ class MediaTeacher
 //        }
 //    }
 
-    init(name:String?,title:String?)
-    {
-        self.name = name
-        self.title = title
-    }
+//    init(id:Int,name:String?,status:String?,suffix:String? = nil)
+//    {
+//        self.id = id
+//        self.name = name
+//        self.status = status
+//        self.suffix = suffix
+//    }
 }

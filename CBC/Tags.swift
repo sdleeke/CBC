@@ -28,12 +28,12 @@ class Tags
     var selected:String?
     {
         get {
-            return Globals.shared.mediaCategory.tag
+            return Globals.shared.media.category.tag
         }
         set {
-            Globals.shared.mediaCategory.tag = newValue
+            Globals.shared.media.category.tag = newValue
 
-            guard !Globals.shared.isLoading, Globals.shared.mediaRepository.list != nil else {
+            guard !Globals.shared.isLoading, Globals.shared.media.repository.list != nil else {
                 return
             }
             
@@ -47,8 +47,8 @@ class Tags
             
             guard Globals.shared.media.all != nil else {
                 //This is filtering, i.e. searching all mediaItems => s/b in background
-                Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                    return mediaItem.category == Globals.shared.mediaCategory.selected
+                Globals.shared.media.tagged[newValue] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+                    return mediaItem.category == Globals.shared.media.category.selected
                 }).withTag(tag: newValue))
                 return
             }

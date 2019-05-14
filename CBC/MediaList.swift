@@ -936,7 +936,7 @@ class MediaList // : Sequence
 //        //                }
 //        //            }
 //        //            if self?.notesDownloads == 0 {
-//        //                Alerts.shared.alert(title: "All " + (Globals.shared.mediaCategory.notesName ?? "") + " Downloads Complete")
+//        //                Alerts.shared.alert(title: "All " + (Globals.shared.media.category.notesName ?? "") + " Downloads Complete")
 //        //            }
 //        //        }
 //        //
@@ -1442,7 +1442,7 @@ class MediaList // : Sequence
 //            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
 //        }
 //        
-//        if let category = Globals.shared.mediaCategory.selected {
+//        if let category = Globals.shared.media.category.selected {
 //            bodyString = bodyString + "Category: \(category)<br/>"
 //        }
 //        
@@ -1764,7 +1764,7 @@ class MediaList // : Sequence
 //            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
 //        }
 //        
-//        //    if let category = Globals.shared.mediaCategory.selected {
+//        //    if let category = Globals.shared.media.category.selected {
 //        //        bodyString = bodyString + "Category: \(category)<br/><br/>"
 //        //    }
 //        //

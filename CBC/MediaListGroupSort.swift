@@ -155,7 +155,7 @@ class MediaListGroupSort // : NSObject
 //    }
     
     // In case we want different categories in different MLGS's some day?
-    var category = Default<String>({ return Globals.shared.mediaCategory.selected })
+    var category = Default<String>({ return Globals.shared.media.category.selected })
 
 //    var _category : String?
 //    {
@@ -166,7 +166,7 @@ class MediaListGroupSort // : NSObject
 //    var category : String?
 //    {
 //        get {
-//            return _category ?? Globals.shared.mediaCategory.selected
+//            return _category ?? Globals.shared.media.category.selected
 //        }
 //        set {
 //            _category = newValue
@@ -995,7 +995,7 @@ class MediaListGroupSort // : NSObject
             bodyString += "Category: \(category)<br/>"
         }
         
-//                if let category = Globals.shared.mediaCategory.selected {
+//                if let category = Globals.shared.media.category.selected {
 //                    bodyString += "Category: \(category)<br/>"
 //                }
         

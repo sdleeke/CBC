@@ -575,6 +575,25 @@ class ThreadSafeArray<T>
         debug(self)
     }
     
+    var last : T?
+    {
+        get {
+            return queue.sync {
+                return storage.last
+            }
+        }
+    }
+    
+    func removeLast() -> T?
+    {
+        return queue.sync {
+            guard storage.count > 0 else {
+                return nil
+            }
+            return storage.removeLast()
+        }
+    }
+    
     func forEach(f:(T)->Void)
     {
         queue.sync {
@@ -652,6 +671,20 @@ class ThreadSafeArray<T>
     {
         queue.sync {
             storage.append(item)
+        }
+    }
+    
+    func firstIndex(f:(T)->Bool) -> Array<T>.Index?
+    {
+        return queue.sync {
+            return storage.firstIndex(where: f)
+        }
+    }
+    
+    func filter(_ f:(T)->Bool) -> Array<T>?
+    {
+        return queue.sync {
+            return storage.filter(f)
         }
     }
     

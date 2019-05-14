@@ -38,7 +38,7 @@ extension Download : URLSessionDownloadDelegate
         if let taskDescription = task?.taskDescription, let index = taskDescription.range(of: ".") {
             let id = String(taskDescription[..<index.lowerBound])
             
-            if let mediaItem = Globals.shared.mediaRepository.index[id] {
+            if let mediaItem = Globals.shared.media.repository.index[id] {
                 Alerts.shared.alert(title: title, message: mediaItem.title)
             }
         } else {
@@ -283,7 +283,9 @@ extension Download : URLSessionDownloadDelegate
             let filename = String(identifier[range.upperBound...])
             
             if task?.taskDescription == filename {
-                completionHandler?()
+                Thread.onMainThread {
+                    self.completionHandler?()
+                }
             }
         }
     }

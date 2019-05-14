@@ -1154,7 +1154,7 @@ class MediaPlayer : NSObject
             
         }
         didSet {
-            Globals.shared.mediaCategory.playing = mediaItem?.id
+            Globals.shared.media.category.playing = mediaItem?.id
 
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.

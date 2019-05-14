@@ -32,10 +32,10 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
         
-        let attributedText = self.textView.attributedText
+//        let attributedText = self.textView.attributedText
         
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+            let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text
@@ -109,10 +109,10 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
 
-        let attributedText = self.textView.attributedText
+//        let attributedText = self.textView.attributedText
         
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = attributedText?.markedBySearch(string: self.changedText, searchText: self.searchText, wholeWordsOnly: false, test: test)
+            let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text
@@ -1554,10 +1554,10 @@ class TextViewController : CBCViewController
         
         searchQueue.cancelAllOperations()
         
-        let attributedText = self.textView.attributedText
+//        let attributedText = self.textView.attributedText
         
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = attributedText?.markedBySearch(string: self.changedText, searchText: searchText, wholeWordsOnly: false, test: test)
+            let text = self.changedText?.markedBySearch(searchText: searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMainThread {
                 self.textView.attributedText = text

@@ -264,9 +264,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
                     
-                    popover.stringsFunction = {
+                    popover.stringsFunction = { [weak self] in
                         // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                             return word
                         }).sorted()
                     }

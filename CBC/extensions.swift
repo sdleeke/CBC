@@ -563,7 +563,7 @@ extension Array where Element == MediaItem
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        //    if let category = Globals.shared.mediaCategory.selected {
+        //    if let category = Globals.shared.media.category.selected {
         //        bodyString += "Category: \(category)<br/><br/>"
         //    }
         //
@@ -840,7 +840,7 @@ extension Array where Element == MediaItem
 //
 //        bodyString += "Category: \(category)<br/>"
 //
-////        if let category = Globals.shared.mediaCategory.selected {
+////        if let category = Globals.shared.media.category.selected {
 ////            bodyString += "Category: \(category)<br/>"
 ////        }
 //        
@@ -1093,6 +1093,123 @@ extension Array where Element == UIViewController
 
 extension Array where Element == String
 {
+    var transcriptSegmentsFromTranscriptSegmentComponents:String?
+    {
+        get {
+//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
+//                return nil
+//            }
+            
+            var str : String?
+            
+            for transcriptSegmentComponent in self {
+                str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
+            }
+            
+            return str
+        }
+    }
+    
+    var transcriptFromTranscriptSegments:String?
+    {
+        get {
+//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
+//                return nil
+//            }
+            
+            var str : String?
+            
+            for transcriptSegmentComponent in self {
+                var strings = transcriptSegmentComponent.components(separatedBy: "\n")
+                
+                if strings.count > 2 {
+                    _ = strings.removeFirst() // count
+                    let timing = strings.removeFirst() // time
+                    
+                    if let range = transcriptSegmentComponent.range(of:timing+"\n") {
+                        let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
+                        str = (str != nil ? str! + " " : "") + string
+                    }
+                }
+            }
+            
+            return str
+        }
+    }
+
+    func component(atTime:String?, returnClosest:Bool) -> String?
+    {
+        guard let atTime = atTime else {
+            return nil
+        }
+        
+        var segment : String?
+        var found = false
+        var gap : Double?
+        var closest : String?
+        
+        for transcriptSegmentComponent in self {
+            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+            
+            if transcriptSegmentArray.count > 2  {
+                let count = transcriptSegmentArray.removeFirst()
+                let timeWindow = transcriptSegmentArray.removeFirst()
+                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                
+                if  let start = times.first,
+                    let end = times.last,
+                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+                    let string = "\(count)\n\(start) to \(end)\n" + text
+                    
+                    if (start.hmsToSeconds <= atTime.hmsToSeconds) && (atTime.hmsToSeconds <= end.hmsToSeconds) {
+                        segment = transcriptSegmentComponent
+                        found = true
+                        gap = nil
+                        break
+                    } else {
+                        guard let time = atTime.hmsToSeconds else {
+                            continue
+                        }
+                        
+                        guard let start = start.hmsToSeconds else {
+                            continue
+                        }
+                        
+                        guard let end = end.hmsToSeconds else { //
+                            continue
+                        }
+                        
+                        var currentGap = 0.0
+                        
+                        if time < start {
+                            currentGap = start - time
+                        }
+                        if time > end {
+                            currentGap = time - end
+                        }
+                        
+                        if gap != nil {
+                            if currentGap < gap {
+                                gap = currentGap
+                                closest = string
+                            }
+                        } else {
+                            gap = currentGap
+                            closest = string
+                        }
+                    }
+                }
+            }
+        }
+        
+        if !found && returnClosest {
+            return closest
+        } else {
+            return segment
+        }
+    }
+    
     func timingHTML(_ headerHTML:String?, test:(()->(Bool))? = nil) -> String?
     {
         var htmlString = "<!DOCTYPE html><html><body>"
@@ -1206,13 +1323,17 @@ extension Array where Element == String
             
         case Constants.Sort.Length:
             return strings.sorted(by: { (first:String, second:String) -> Bool in
-                guard let firstCount = first.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
-                    return false
-                }
+                let firstCount = first.subString(to: " (")?.count ?? first.count
                 
-                guard let secondCount = second.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
-                    return true
-                }
+                let secondCount = second.subString(to: " (")?.count ?? second.count
+                
+//                guard let firstCount = first.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
+//                    return false
+//                }
+//
+//                guard let secondCount = second.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
+//                    return true
+//                }
                 
                 if firstCount == secondCount {
                     return first < second
@@ -1419,6 +1540,15 @@ extension Array where Element == String
 
 extension String
 {
+    func subString(to: String) -> String?
+    {
+        guard let range = self.range(of: " (") else {
+            return nil
+        }
+        
+        return String(self[..<range.lowerBound])
+    }
+    
     var translateTestament : String
     {
         var translation = Constants.EMPTY_STRING
@@ -3124,160 +3254,160 @@ extension UITableView
 
 extension NSAttributedString
 {
-    func markedBySearch(string:String?, searchText:String?, wholeWordsOnly:Bool, test : (()->Bool)?) -> NSAttributedString?
-    {
-        guard var workingString = string, !workingString.isEmpty else {
-            return nil
-        }
-        
-        guard let searchText = searchText, !searchText.isEmpty else {
-            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-        }
-        
-        guard wholeWordsOnly else {
-            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-            
-//            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
-            
-            let range = NSRange(location: 0, length: workingString.utf16.count)
-
-            if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
-                regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
-                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-                                                 range: $0.range)
-                }
-            }
-            
-//            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-//                if let test = test, test() {
-//                    break
+//    func markedBySearch(string:String?, searchText:String?, wholeWordsOnly:Bool, test : (()->Bool)?) -> NSAttributedString?
+//    {
+//        guard var workingString = string, !workingString.isEmpty else {
+//            return nil
+//        }
+//
+//        guard let searchText = searchText, !searchText.isEmpty else {
+//            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+//        }
+//
+//        guard wholeWordsOnly else {
+//            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+//
+////            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
+//
+//            let range = NSRange(location: 0, length: workingString.utf16.count)
+//
+//            if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+//                regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
+//                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+//                                                 range: $0.range)
+//                }
+//            }
+//
+////            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+////                if let test = test, test() {
+////                    break
+////                }
+////
+////                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
+////
+////                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+////
+////                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
+////                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+////            }
+//
+//            return attributedText
+//        }
+//
+//        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+//
+//        let range = NSRange(location: 0, length: workingString.utf16.count)
+//
+//        if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
+//            regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
+//                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+//                                             range: $0.range)
+//            }
+//        }
+//
+//        return attributedText
+//
+//        let newAttrString       = NSMutableAttributedString()
+//        var foundAttrString     = NSAttributedString()
+//
+//        var stringBefore:String = Constants.EMPTY_STRING
+//        var stringAfter:String = Constants.EMPTY_STRING
+//        var foundString:String = Constants.EMPTY_STRING
+//
+//        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
+//            if let test = test, test() {
+//                break
+//            }
+//
+//            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
+//                stringBefore = String(workingString[..<range.lowerBound])
+//                stringAfter = String(workingString[range.upperBound...])
+//
+//                var skip = false
+//
+//                if wholeWordsOnly {
+//                    if stringBefore == "" {
+//                        if  let characterBefore:Character = newAttrString.string.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        if  let characterBefore:Character = stringBefore.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if let characterAfter:Character = stringAfter.first {
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+//                            skip = true
+//                        }
+//
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                                if stringAfter.endIndex > stringAfter.startIndex {
+//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//
+//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                        skip = CharacterSet.letters.contains(unicodeScalar)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if let characterBefore:Character = stringBefore.last {
+//                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+//                            skip = true
+//                        }
+//                    }
 //                }
 //
-//                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
+//                foundString = String(workingString[range.lowerBound...])
+//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                    foundString = String(foundString[..<newRange.upperBound])
+//                }
 //
-//                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+//                if !skip {
+//                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+//                }
 //
-//                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
-//                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+//                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
+//
+//                newAttrString.append(foundAttrString)
+//
+//                //                stringBefore = stringBefore + foundString
+//
+//                workingString = stringAfter
+//            } else {
+//                break
 //            }
-            
-            return attributedText
-        }
-        
-        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-        
-        let range = NSRange(location: 0, length: workingString.utf16.count)
-        
-        if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
-            regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
-                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-                                             range: $0.range)
-            }
-        }
-        
-        return attributedText
-
-        let newAttrString       = NSMutableAttributedString()
-        var foundAttrString     = NSAttributedString()
-        
-        var stringBefore:String = Constants.EMPTY_STRING
-        var stringAfter:String = Constants.EMPTY_STRING
-        var foundString:String = Constants.EMPTY_STRING
-        
-        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
-            if let test = test, test() {
-                break
-            }
-            
-            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
-                stringBefore = String(workingString[..<range.lowerBound])
-                stringAfter = String(workingString[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if stringBefore == "" {
-                        if  let characterBefore:Character = newAttrString.string.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    } else {
-                        if  let characterBefore:Character = stringBefore.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    if let characterAfter:Character = stringAfter.first {
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-                            skip = true
-                        }
-                        
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                                if stringAfter.endIndex > stringAfter.startIndex {
-                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                    
-                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                        skip = CharacterSet.letters.contains(unicodeScalar)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if let characterBefore:Character = stringBefore.last {
-                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(workingString[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                }
-                
-                if !skip {
-                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
-                }
-                
-                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
-                
-                newAttrString.append(foundAttrString)
-                
-                //                stringBefore = stringBefore + foundString
-                
-                workingString = stringAfter
-            } else {
-                break
-            }
-        }
-        
-        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
-        
-        if newAttrString.string.isEmpty, let string = string {
-            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.body))
-        }
-        
-        return newAttrString
-    }
+//        }
+//
+//        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
+//
+//        if newAttrString.string.isEmpty, let string = string {
+//            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.body))
+//        }
+//
+//        return newAttrString
+//    }
 }
 
 extension Dictionary
@@ -4549,9 +4679,9 @@ extension UIViewController
                     popover.section.indexHeadersTransform = nil
                     popover.section.indexSort = nil
                     
-                    popover.section.sorting = true
+//                    popover.section.sorting = true
                     popover.section.strings = strings
-                    popover.section.sorting = false
+//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -4590,9 +4720,9 @@ extension UIViewController
                         return Int(first) > Int(second)
                     }
                     
-                    popover.section.sorting = true
+//                    popover.section.sorting = true
                     popover.section.strings = strings
-                    popover.section.sorting = false
+//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -4631,9 +4761,9 @@ extension UIViewController
                         return Int(first) > Int(second)
                     }
                     
-                    popover.section.sorting = true
+//                    popover.section.sorting = true
                     popover.section.strings = strings
-                    popover.section.sorting = false
+//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -5226,6 +5356,446 @@ extension UITextView
 
 extension String
 {
+    func markTrailing(searchText:String?) -> NSAttributedString?
+    {
+        var workingString = self
+        
+        guard !workingString.isEmpty else {
+            return nil
+        }
+        
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+        }
+        
+        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+        
+        let range = NSRange(location: 0, length: workingString.utf16.count)
+        
+        let words = searchText.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
+            String(substring)
+        }
+        
+        if words.count > 1 {
+            var strings = [String]()
+            var phrase : String?
+            
+            // Assemble the list of "less than the full phrase" phrases to look for.
+            for i in 0..<words.count {
+                if i == (words.count - 1) {
+                    break
+                }
+                
+                if phrase == nil {
+                    phrase = words[i]
+                } else {
+                    phrase = (phrase ?? "") + " " + words[i]
+                }
+                
+                if let phrase = phrase {
+                    strings.append(phrase)
+                }
+            }
+            
+            // reverse them since we want to look for the longest first.
+            strings.reverse()
+            
+            // Now look for them.
+            var found = false
+            
+            for string in strings {
+                if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
+                    let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+                    if matches.count > 0 {
+                        for match in matches {
+                            if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
+                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                             range: match.range)
+                                found = true
+                                break
+                            } else {
+                                
+                            }
+                        }
+                    } else {
+
+                    }
+                }
+                
+                if found {
+                    break
+                }
+            }
+            
+            if !found {
+                if let string = strings.first {
+                    if let last = workingString.components(separatedBy: " ").last, last.range(of: string, options: String.CompareOptions.caseInsensitive) != nil {
+                        var list = workingString.lowercased().components(separatedBy: " ")
+                        list.removeLast()
+                        let first = list.joined(separator: " ") + " "
+                        if let firstRange = workingString.range(of: first) {
+//                            let range = workingString.range(of: string, options: String.CompareOptions.caseInsensitive, range: Range(
+
+                            attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                         range: NSRange(location: firstRange.upperBound.utf16Offset(in: workingString), length: last.count))
+                            found = true
+                        }
+                    }
+                }
+            }
+            
+            if !found {
+                var phrase = searchText
+                
+                if #available(iOS 12.0, *) {
+                    if let lemmas = phrase.lowercased().nlLemmas {
+                        for lemma in lemmas {
+                            if lemma.0 != lemma.1 {
+                                if let word = lemma.1 {
+                                    phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: String.CompareOptions.caseInsensitive, range: lemma.2)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback on earlier versions
+                    if let lemmas = phrase.nsLemmas {
+                        
+                    }
+                }
+                
+                print(workingString,phrase)
+                
+                if phrase != workingString {
+                    if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
+                        let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+                        
+                        if matches.count > 0 {
+                            for match in matches {
+                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                             range: match.range)
+                            }
+                            found = true
+                        } else {
+                            
+                        }
+                    }
+                } else {
+                    
+                }
+
+                // VoiceBase phrases are based on lemmas so matching is not always possible.
+                // Below is a hack.  Really need to try and match using lemmas
+                
+//                for count in 0..<searchText.count {
+//                    let phrase = String(searchText[searchText.startIndex..<String.Index(utf16Offset: searchText.count - count, in:searchText)])
+//                    if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
+//                        let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+//                        
+//                        if matches.count > 0 {
+//                            for match in matches {
+//                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+//                                                             range: match.range)
+//                            }
+//                            break
+//                        }
+//                    }
+//                }
+            }
+        }
+        
+        return attributedText
+    }
+    
+    func markedBySearch(searchText:String?, wholeWordsOnly:Bool, test : (()->Bool)?) -> NSAttributedString?
+    {
+        var workingString = self
+        
+        guard !workingString.isEmpty else {
+            return nil
+        }
+        
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+        }
+        
+        guard wholeWordsOnly else {
+            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+            
+            //            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
+            
+            let range = NSRange(location: 0, length: workingString.utf16.count)
+            
+            if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+                let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+                    
+                if matches.count > 0 {
+                    matches.forEach {
+                        attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                     range: $0.range)
+                    }
+                } else {
+                    return self.markTrailing(searchText: searchText)
+//                    // This is a special case to catch when the search text is a phrase, all the results are set from
+//                    // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
+//                    //
+//                    // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
+//                    // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
+//                    // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
+//                    // of the words, should appear.
+//                    //
+//
+//                    let words = searchText.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
+//                        String(substring)
+//                    }
+//
+//                    if words.count > 1 {
+//                        var strings = [String]()
+//                        var phrase : String?
+//
+//                        // Assemble the list of "less than the full phrase" phrases to look for.
+//                        for i in 0..<words.count {
+//                            if i == (words.count - 1) {
+//                                break
+//                            }
+//
+//                            if phrase == nil {
+//                                phrase = words[i]
+//                            } else {
+//                                phrase = (phrase ?? "") + " " + words[i]
+//                            }
+//
+//                            if let phrase = phrase {
+//                                strings.append(phrase)
+//                            }
+//                        }
+//
+//                        // reverse them since we want to look for the longest first.
+//                        strings.reverse()
+//
+//                        // Now look for them.
+//                        var found = false
+//
+//                        for string in strings {
+//                            if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
+//                                let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+//                                for match in matches {
+//                                    if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
+//                                        attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+//                                                                     range: match.range)
+//                                        found = true
+//                                        break
+//                                    } else {
+//
+//                                    }
+//                                }
+//                            }
+//
+//                            if found {
+//                                break
+//                            }
+//                        }
+//                    }
+                }
+            }
+            
+            //            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+            //                if let test = test, test() {
+            //                    break
+            //                }
+            //
+            //                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
+            //
+            //                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
+            //
+            //                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
+            //                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
+            //            }
+            
+            return attributedText
+        }
+        
+        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
+        
+        let range = NSRange(location: 0, length: workingString.utf16.count)
+        
+        if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
+            let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+            
+            if matches.count > 0 {
+                matches.forEach {
+                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                                 range: $0.range)
+                }
+            } else {
+                return self.markTrailing(searchText: searchText)
+//                // This is a special case to catch when the search text is a phrase, all the results are set from
+//                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
+//                //
+//                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
+//                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
+//                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
+//                // of the words, should appear.
+//                //
+//
+//                let words = searchText.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
+//                    String(substring)
+//                }
+//
+//                if words.count > 1 {
+//                    var strings = [String]()
+//                    var phrase : String?
+//
+//                    // Assemble the list of "less than the full phrase" phrases to look for.
+//                    for i in 0..<words.count {
+//                        if i == (words.count - 1) {
+//                            break
+//                        }
+//
+//                        if phrase == nil {
+//                            phrase = words[i]
+//                        } else {
+//                            phrase = (phrase ?? "") + " " + words[i]
+//                        }
+//
+//                        if let phrase = phrase {
+//                            strings.append(phrase)
+//                        }
+//                    }
+//
+//                    // reverse them since we want to look for the longest first.
+//                    strings.reverse()
+//
+//                    // Now look for them.
+//                    var found = false
+//
+//                    for string in strings {
+//                        if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
+//                            let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
+//                            for match in matches {
+//                                if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
+//                                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+//                                                                 range: match.range)
+//                                    found = true
+//                                    break
+//                                } else {
+//
+//                                }
+//                            }
+//                        }
+//
+//                        if found {
+//                            break
+//                        }
+//                    }
+//                }
+            }
+        }
+        
+        return attributedText
+        
+//        let newAttrString       = NSMutableAttributedString()
+//        var foundAttrString     = NSAttributedString()
+//        
+//        var stringBefore:String = Constants.EMPTY_STRING
+//        var stringAfter:String = Constants.EMPTY_STRING
+//        var foundString:String = Constants.EMPTY_STRING
+//        
+//        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
+//            if let test = test, test() {
+//                break
+//            }
+//            
+//            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
+//                stringBefore = String(workingString[..<range.lowerBound])
+//                stringAfter = String(workingString[range.upperBound...])
+//                
+//                var skip = false
+//                
+//                if wholeWordsOnly {
+//                    if stringBefore == "" {
+//                        if  let characterBefore:Character = newAttrString.string.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                            
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        if  let characterBefore:Character = stringBefore.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//                            
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    }
+//                    
+//                    if let characterAfter:Character = stringAfter.first {
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+//                            skip = true
+//                        }
+//                        
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                                if stringAfter.endIndex > stringAfter.startIndex {
+//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//                                    
+//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                        skip = CharacterSet.letters.contains(unicodeScalar)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    
+//                    if let characterBefore:Character = stringBefore.last {
+//                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
+//                            skip = true
+//                        }
+//                    }
+//                }
+//                
+//                foundString = String(workingString[range.lowerBound...])
+//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                    foundString = String(foundString[..<newRange.upperBound])
+//                }
+//                
+//                if !skip {
+//                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+//                }
+//                
+//                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
+//                
+//                newAttrString.append(foundAttrString)
+//                
+//                //                stringBefore = stringBefore + foundString
+//                
+//                workingString = stringAfter
+//            } else {
+//                break
+//            }
+//        }
+//        
+//        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
+//        
+//        if newAttrString.string.isEmpty {
+//            newAttrString.append(NSMutableAttributedString(string: self, attributes: Constants.Fonts.Attributes.body))
+//        }
+//        
+//        return newAttrString
+    }
+    
     func highlighted(_ searchText:String?) -> NSAttributedString
     {
         guard let searchText = searchText else {
@@ -5415,13 +5985,15 @@ extension String
     
     var log : String?
     {
-        let strings = self.components(separatedBy: " ")
+        let strings = self.components(separatedBy: Constants.SINGLE_SPACE)
         
         guard strings.count > 1 else {
             return nil
         }
         
-        let string = strings[1].trimmingCharacters(in: CharacterSet(charactersIn: "()"))
+        guard let string = strings.last?.trimmingCharacters(in: CharacterSet(charactersIn: "()")) else {
+            return nil
+        }
         
         if let number = Double(string) {
             let value = Int(log10(number))
@@ -6184,7 +6756,7 @@ extension String
             if #available(iOS 12.0, *) {
                 if let lemmas = html.html2String?.nlLemmas {
                     for lemma in lemmas {
-                        if lemma.1.lowercased() == searchText.lowercased() {
+                        if lemma.1?.lowercased() == searchText.lowercased() {
                             searchTexts.insert(lemma.0.lowercased())
                         }
                     }
@@ -6880,25 +7452,23 @@ extension String
 //    }
     
     @available(iOS 12.0, *)
-    var nlLemmas : [(String,String,Range<String.Index>)]?
+    var nlLemmas : [(String,String?,Range<String.Index>)]?
     {
 //        guard let string = string else {
 //            return nil
 //        }
         
-        let tagger = NLTagger(tagSchemes: [.lemma])
+        var tokens = [(String,String?,Range<String.Index>)]()
         
-        tagger.string = self
-        
+        let tagSchemes = NLTagger.availableTagSchemes(for: .word, language: .english)
         let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
-        
-        var tokens = [(String,String,Range<String.Index>)]()
+
+        let tagger = NLTagger(tagSchemes: tagSchemes)
+        tagger.string = self
         
         tagger.enumerateTags(in: self.startIndex..<self.endIndex, unit: .word, scheme: .lemma, options: options) { (tag:NLTag?, range:Range<String.Index>) -> Bool in
             let token = String(self[range])
-            if let tag = tag?.rawValue {
-                tokens.append((token,tag,range))
-            }
+            tokens.append((token,tag?.rawValue,range))
             return true
         }
         
@@ -7106,16 +7676,14 @@ extension String
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
-        let options:NSLinguisticTagger.Options = [.omitWhitespace, .omitPunctuation, .omitOther, .joinNames]
+        let options:NSLinguisticTagger.Options = [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames]
         
         let tagger = NSLinguisticTagger(tagSchemes: tagSchemes, options: Int(options.rawValue))
         tagger.string = self
         
-        let range = NSRange(location: 0, length: (self as NSString).length) // string.utf16.count
-        
         var ranges : NSArray?
         
-        let tags = tagger.tags(in: range, scheme: NSLinguisticTagScheme.lemma.rawValue, options: options, tokenRanges: &ranges)
+        let tags = tagger.tags(in: NSRange(location: 0, length: (self as NSString).length), scheme: NSLinguisticTagScheme.lemma.rawValue, options: options, tokenRanges: &ranges)
         
         var index = 0
         for tag in tags {

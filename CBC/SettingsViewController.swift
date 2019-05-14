@@ -65,7 +65,7 @@ class SettingsViewController: CBCViewController
             // were downloaded previously?
             
             // Too slow
-//            Globals.shared.mediaRepository.clearCache(block:false)
+//            Globals.shared.media.repository.clearCache(block:false)
 
             try? autoreleasepool {
                 let files = try FileManager.default.contentsOfDirectory(atPath: cachesURL.path)
@@ -146,7 +146,7 @@ class SettingsViewController: CBCViewController
         }
 
         // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
-//        let cacheSize = Globals.shared.mediaRepository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
+//        let cacheSize = Globals.shared.media.repository.cacheSize // (Purpose.slides) + Globals.shared.cacheSize(Purpose.notes)
         
         var size:Float = Float(cacheSize) //  ?? 0
         
@@ -192,7 +192,7 @@ class SettingsViewController: CBCViewController
         // Does this REALLY need to be .user* ?
         // Should this be in an opQueue?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let sizeOfAudio = Globals.shared.mediaRepository.cacheSize(Purpose.audio)
+            let sizeOfAudio = Globals.shared.media.repository.cacheSize(Purpose.audio)
             
             var size:Float = Float(sizeOfAudio ?? 0)
             

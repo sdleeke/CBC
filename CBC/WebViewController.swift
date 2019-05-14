@@ -2163,6 +2163,7 @@ class WebViewController: CBCViewController
         wkWebView?.scrollView.delegate = nil
         
         loadTimer?.invalidate()
+        loadTimer = nil
         
 //        html.operationQueue.cancelAllOperations()
         

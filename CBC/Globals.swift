@@ -458,11 +458,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
 
         // Do include the list because we don't want to be warned at the start that there is a network connection
-        if priorReachabilityStatus == .notReachable, reachability.isReachable, mediaRepository.list != nil {
+        if priorReachabilityStatus == .notReachable, reachability.isReachable, media.repository.list != nil {
             Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
             checkVoiceBaseAvailability()
-            mediaStream.loadLive(completion: nil)
+            media.stream.loadLive(completion: nil)
         }
         
         // Don't include the list because we want to be warned at th start that there is no network connection
@@ -596,7 +596,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var contextTitle:String?
     {
         get {
-            guard let mediaCategory = mediaCategory.selected, !mediaCategory.isEmpty else {
+            guard let mediaCategory = media.category.selected, !mediaCategory.isEmpty else {
                 return nil
             }
             
@@ -685,10 +685,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var selectedMediaItem = SelectedMediaItem()
     
-    var mediaCategory = MediaCategory()
-    
-    var mediaStream = MediaStream()
-    
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     
@@ -725,7 +721,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 
                 if components.count == 2 {
                     let id = components[1]
-                    return mediaRepository.index[id]
+                    return media.repository.index[id]
                 }
             }
             
@@ -780,9 +776,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         defaults.synchronize()
     }
 
-    var mediaTeachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
-    
-    var mediaRepository = MediaList()
+//    var mediaCategory = MediaCategory()
+//
+//    var mediaStream = MediaStream()
+//
+//    var mediaTeachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
+//
+//    var mediaRepository = MediaList()
 
     var media = Media()
     
@@ -866,7 +866,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
             
             if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
-                mediaCategory.settings.update(storage: categorySettingsDictionary)
+                media.category.settings.update(storage: categorySettingsDictionary)
             }
             
             if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
@@ -885,11 +885,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 media.tags.selected = nil
             }
 
-            if media.tags.showing == Constants.TAGGED, let tag = mediaCategory.tag, media.tagged[tag] == nil {
+            if media.tags.showing == Constants.TAGGED, let tag = media.category.tag, media.tagged[tag] == nil {
                 if media.all == nil {
                     //This is filtering, i.e. searching all mediaItems => s/b in background
-                    media.tagged[tag] = MediaListGroupSort(mediaItems: mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                        return mediaItem.category == mediaCategory.selected
+                    media.tagged[tag] = MediaListGroupSort(mediaItems: media.repository.list?.filter({ (mediaItem) -> Bool in
+                        return mediaItem.category == media.category.selected
                     }).withTag(tag: media.tags.selected))
                 } else {
                     if let sortTag = media.tags.selected?.withoutPrefixes {
@@ -901,8 +901,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
             media.search.isActive = media.search.text != nil
 
-            if let playing = mediaCategory.playing {
-                mediaPlayer.mediaItem = mediaRepository.index[playing]
+            if let playing = media.category.playing {
+                mediaPlayer.mediaItem = media.repository.index[playing]
             } else {
                 mediaPlayer.mediaItem = nil
             }

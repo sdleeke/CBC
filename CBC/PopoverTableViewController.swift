@@ -70,6 +70,14 @@ extension PopoverTableViewController: UISearchBarDelegate
     
     @objc func bottomButtonAction(_ sender:UIBarButtonItem)
     {
+        guard tableView.numberOfSections > 0 else {
+            return
+        }
+        
+        guard tableView.numberOfRows(inSection: tableView.numberOfSections - 1) > 0 else {
+            return
+        }
+        
         let indexPath = IndexPath(row: tableView.numberOfRows(inSection: tableView.numberOfSections - 1) - 1, section: tableView.numberOfSections - 1)
         if tableView.isValid(indexPath) {
             tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.bottom, animated: true)
@@ -107,17 +115,17 @@ extension PopoverTableViewController: UISearchBarDelegate
                 }
             }
             
-            filteredSection.sorting = true
+//            filteredSection.sorting = true
             filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
-            filteredSection.sorting = false
+//            filteredSection.sorting = false
         } else
             
         if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
             return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }) {
-            filteredSection.sorting = true
+//            filteredSection.sorting = true
             filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-            filteredSection.sorting = false
+//            filteredSection.sorting = false
         }
 
         updateToolbar()
@@ -242,15 +250,15 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         // In case the method changed
         if let function = section.cancelSearchfunction {
-            unfilteredSection.sorting = true
+//            unfilteredSection.sorting = true
             unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
-            unfilteredSection.sorting = false
+//            unfilteredSection.sorting = false
         } else
         
         if let function = section.function {
-            unfilteredSection.sorting = true
+//            unfilteredSection.sorting = true
             unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
-            unfilteredSection.sorting = false
+//            unfilteredSection.sorting = false
         }
 
         searchBar.showsCancelButton = false
@@ -1724,9 +1732,12 @@ class PopoverTableViewController : CBCViewController
         if bottomBarButton {
             // Set the toobar button for bottom access
             let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+            let bottomButton = UIBarButtonItem(title: "Bottom", style: .plain, target: self, action: #selector(self.bottomButtonAction(_:)))
             
             barButtonItems.append(spaceButton)
-            barButtonItems.append(UIBarButtonItem(title: "Bottom", style: .plain, target: self, action: #selector(self.bottomButtonAction(_:))))
+            barButtonItems.append(bottomButton)
+            
+            bottomButton.isEnabled = section.strings?.count > 0
             
             if barButtonItems.count == 2 {
                 barButtonItems.append(spaceButton)
@@ -2176,131 +2187,131 @@ extension PopoverTableViewController : UITableViewDataSource
         }
         
         if search, searchActive, let searchText = searchText?.lowercased() {
-            var titleString = NSMutableAttributedString()
+//            var titleString = NSMutableAttributedString()
+//
+//            var before:String?
+//            var during:String?
+//            var after:String?
             
-            var before:String?
-            var during:String?
-            var after:String?
-            
-            var range = string.lowercased().range(of: searchText.lowercased())
-            
+//            var range = string.lowercased().range(of: searchText.lowercased())
+//            
+//            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//            if range == nil {
+//                // This is a special case to catch when the search text is a phrase, all the results are set from
+//                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
+//                //
+//                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
+//                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
+//                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
+//                // of the words, should appear.
+//                //
+//                
+//                let words = searchText.split(separator: " ").map { (substring) -> String in
+//                    String(substring)
+//                }
+//                
+//                if words.count > 1 {
+//                    var strings = [String]()
+//                    var phrase : String?
+//                    
+//                    // Assemble the list of "less than the full phrase" phrases to look for.
+//                    for i in 0..<words.count {
+//                        if i == (words.count - 1) {
+//                            break
+//                        }
+//
+//                        if phrase == nil {
+//                            phrase = words[i]
+//                        } else {
+//                            phrase = (phrase ?? "") + " " + words[i]
+//                        }
+//                        
+//                        if let phrase = phrase {
+//                            strings.append(phrase)
+//                        }
+//                    }
+//
+//                    // reverse them since we want to look for the longest first.
+//                    strings.reverse()
+//                    
+//                    // Now look for them.
+//                    for subString in strings {
+//                        var searchRange = Range(uncheckedBounds: (lower: string.startIndex, upper: string.endIndex))
+//
+//                        var rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+//                        
+//                        // But even if there is a match we have to find the LAST match
+//                        if rng != nil {
+//                            var lastRange : Range<String.Index>?
+//                            
+//                            repeat {
+//                                lastRange = rng
+//                                searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: string.endIndex))
+//                                rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+//                            } while rng != nil
+//                            
+//                            // And it only counts if the match is at the end of the string
+//                            if lastRange?.upperBound == string.endIndex {
+//                                range = lastRange
+//                                break
+//                            }
+//                        }
+//                    }
+//                    
+//                    if range == nil {
+//                        // THIS SHOULD NEVER HAPPEN
+//                    }
+//                } else {
+//                    // THIS SHOULD NEVER HAPPEN
+//                }
+//            }
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if range == nil {
-                // This is a special case to catch when the search text is a phrase, all the results are set from
-                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
-                //
-                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
-                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
-                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
-                // of the words, should appear.
-                //
-                
-                let words = searchText.split(separator: " ").map { (substring) -> String in
-                    String(substring)
-                }
-                
-                if words.count > 1 {
-                    var strings = [String]()
-                    var phrase : String?
-                    
-                    // Assemble the list of "less than the full phrase" phrases to look for.
-                    for i in 0..<words.count {
-                        if i == (words.count - 1) {
-                            break
-                        }
-
-                        if phrase == nil {
-                            phrase = words[i]
-                        } else {
-                            phrase = (phrase ?? "") + " " + words[i]
-                        }
-                        
-                        if let phrase = phrase {
-                            strings.append(phrase)
-                        }
-                    }
-
-                    // reverse them since we want to look for the longest first.
-                    strings.reverse()
-                    
-                    // Now look for them.
-                    for subString in strings {
-                        var searchRange = Range(uncheckedBounds: (lower: string.startIndex, upper: string.endIndex))
-
-                        var rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
-                        
-                        // But even if there is a match we have to find the LAST match
-                        if rng != nil {
-                            var lastRange : Range<String.Index>?
-                            
-                            repeat {
-                                lastRange = rng
-                                searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: string.endIndex))
-                                rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
-                            } while rng != nil
-                            
-                            // And it only counts if the match is at the end of the string
-                            if lastRange?.upperBound == string.endIndex {
-                                range = lastRange
-                                break
-                            }
-                        }
-                    }
-                    
-                    if range == nil {
-                        // THIS SHOULD NEVER HAPPEN
-                    }
-                } else {
-                    // THIS SHOULD NEVER HAPPEN
-                }
-            }
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-            repeat {
-                if let range = range {
-                    before = String(string[..<range.lowerBound])
-                    during = String(string[range])
-                    after = String(string[range.upperBound...])
-                    
-                    titleString = NSMutableAttributedString()
-                    
-                    if let before = before {
-                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
-                    }
-                    if let during = during {
-                        titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
-                    }
-                    if let after = after {
-                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
-                    }
-                } else {
-                    break
-                }
-                
-                if wholeWordsOnly {
-                    if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
-                        break
-                    }
-                    
-                    if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
-                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before),
-                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) {
-                            break
-                        }
-                    }
-                    
-                    if let after = after, !after.isEmpty {
-                        range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
-                    } else {
-                        break
-                    }
-                } else {
-                    break
-                }
-            } while after?.contains(searchText) ?? false
+//            repeat {
+//                if let range = range {
+//                    before = String(string[..<range.lowerBound])
+//                    during = String(string[range])
+//                    after = String(string[range.upperBound...])
+//
+//                    titleString = NSMutableAttributedString()
+//
+//                    if let before = before {
+//                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
+//                    }
+//                    if let during = during {
+//                        titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
+//                    }
+//                    if let after = after {
+//                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
+//                    }
+//                } else {
+//                    break
+//                }
+//
+//                if wholeWordsOnly {
+//                    if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
+//                        break
+//                    }
+//
+//                    if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
+//                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before),
+//                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) {
+//                            break
+//                        }
+//                    }
+//
+//                    if let after = after, !after.isEmpty {
+//                        range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
+//                    } else {
+//                        break
+//                    }
+//                } else {
+//                    break
+//                }
+//            } while after?.contains(searchText) ?? false
             
             cell.title.text = string
-            cell.title.attributedText = titleString
+            cell.title.attributedText = string.markedBySearch(searchText: searchText, wholeWordsOnly: wholeWordsOnly, test: nil)
         } else {
             cell.title.text = string
             cell.title.attributedText = NSAttributedString(string:string,attributes:Constants.Fonts.Attributes.body)
@@ -2639,8 +2650,8 @@ extension PopoverTableViewController : UITableViewDelegate
                 }
                 
                 // Must use stringsFunction with .selectingTime.
-                popover.stringsFunction = { () -> [String]? in
-                    return self.transcript?.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
+                popover.stringsFunction = { [weak self] () -> [String]? in
+                    return self?.transcript?.transcriptSegmentComponents?.result?.filter({ (string:String) -> Bool in
                         return string.components(separatedBy: "\n").count > 1
                     }).map({ (transcriptSegmentComponent:String) -> String in
                         var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")

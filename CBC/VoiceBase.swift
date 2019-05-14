@@ -22,6 +22,31 @@ extension NSMutableData
     }
 }
 
+//extension VoiceBase : URLSessionTaskDelegate
+//{
+//    // URLSessionTaskDelegate methods
+//    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+//    {
+//        // task finished
+//
+//    }
+//}
+
+//extension VoiceBase : URLSessionDataDelegate
+//{
+//    // URLSessionDataDelegate methods
+//    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
+//    {
+//        // got some data
+//
+//    }
+//
+//    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
+//    {
+//
+//    }
+//}
+
 extension VoiceBase // Class Methods
 {
     private static func url(path:String?, query:String? = nil) -> String // mediaID:String?,
@@ -241,7 +266,7 @@ extension VoiceBase // Class Methods
             request.addValue(accept, forHTTPHeaderField: "Accept")
         }
         
-        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: mediaID ?? UUID().uuidString)
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
         // Alternate using extension that uses Swift 5's new Result type.
@@ -441,7 +466,7 @@ extension VoiceBase // Class Methods
         
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: mediaID)
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -569,7 +594,11 @@ extension VoiceBase // Class Methods
     }
 }
 
-class VoiceBase
+// All downloading depends on app being active / foregroun until transcription is started
+// because URLSessions are not setup for background because that requires the use of a delegate
+// and not completion handlers.
+
+class VoiceBase // : NSObject
 {
 //    static let customVocab : String? // [String:Vocab]?
 //    {
@@ -1187,6 +1216,7 @@ class VoiceBase
 //        })
 //    }()
     
+    // Replaced with Fetch?
     private var _transcript:String?
     {
         didSet {
@@ -1548,6 +1578,7 @@ class VoiceBase
 //        })
 //    }()
     
+    // Replaced with Fetch?
     // Make thread safe?
     private var _mediaJSON : [String:Any]?
     {
@@ -1694,7 +1725,7 @@ class VoiceBase
                     
                     for dict in wordDictionaries {
                         if let name = dict["name"] as? String {
-                            kwdd[name.lowercased()] = dict
+                            kwdd[name.uppercased()] = dict
                         }
                     }
                     
@@ -1886,17 +1917,17 @@ class VoiceBase
                 self.aligning = (aligning == "YES") // && (mediaID != nil)
             }
             
-            if !completed {
-                if transcribing || aligning {
-                    // We need to check and see if it is really on VB and if not, clean things up.
-                    
-                }
-            } else {
-                if transcribing || aligning {
-                    // This seems wrong.
-                    
-                }
-            }
+//            if !completed {
+//                if transcribing || aligning {
+//                    // We need to check and see if it is really on VB and if not, clean things up.
+//
+//                }
+//            } else {
+//                if transcribing || aligning {
+//                    // This seems wrong.
+//
+//                }
+//            }
         }
     }
     
@@ -2015,7 +2046,7 @@ class VoiceBase
         request.httpBody = body as Data
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
         sessionConfig.timeoutIntervalForRequest = 30.0 * 60.0
         let session = URLSession(configuration: sessionConfig)
 
@@ -2391,7 +2422,7 @@ class VoiceBase
         
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -3264,22 +3295,104 @@ class VoiceBase
 //        })
 //    }()
     
-    // Replace with Fetch?
-    private var _transcriptSegmentArrays:[[String]]? // Make thread safe?
-    {
-        didSet {
-            guard let transcriptSegmentArrays = _transcriptSegmentArrays else {
-                return
+    lazy var transcriptSegmentArrays:Fetch<[[String]]>? = { [weak self] in
+        let fetch = Fetch<[[String]]>()
+        
+        fetch.fetch = { [weak self] in
+            guard let transcriptSegmentComponents = self?.transcriptSegmentComponents?.result else {
+                return nil
             }
-
+            
+            var transcriptSegmentArrays = [[String]]()
+            
+            for transcriptSegmentComponent in transcriptSegmentComponents {
+                transcriptSegmentArrays.append(transcriptSegmentComponent.components(separatedBy: "\n"))
+            }
+            
+            return transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
+        }
+        
+        return fetch
+    }()
+    
+    // Replace with Fetch?
+//    private var _transcriptSegmentArrays:[[String]]? // Make thread safe?
+//    {
+//        didSet {
+//            guard let transcriptSegmentArrays = _transcriptSegmentArrays else {
+//                return
+//            }
+//
+//            var tokenTimes = [String:[String]]()
+//
+//            for transcriptSegmentArray in transcriptSegmentArrays {
+//                if let times = transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
+//                    if let tokens = transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)?.tokens {
+//                        for token in tokens {
+//                            let key = token
+//
+//                            if tokenTimes[key] == nil {
+//                                tokenTimes[key] = [startTime]
+//                            } else {
+//                                if var times = tokenTimes[key] {
+//                                    times.append(startTime)
+//                                    tokenTimes[key] = Array(Set(times)).sorted()
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            transcriptSegmentTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
+//        }
+//    }
+//    var transcriptSegmentArrays:[[String]]? // Make thread safe?
+//    {
+//        get {
+//            guard _transcriptSegmentArrays == nil else {
+//                return _transcriptSegmentArrays
+//            }
+//
+//            // calculation by side-effect - YUK
+//            let _ = transcriptSegments
+//
+//            return _transcriptSegmentArrays
+//        }
+//        set {
+//            _transcriptSegmentArrays = newValue
+//        }
+//    }
+    
+    // thread safe?
+//    var transcriptSegmentTokens : [String]?
+//    {
+//        get {
+//            return transcriptSegmentTokensTimes?.result?.keys.sorted()
+//        }
+//    }
+    
+//    func transcriptSegmentTokenTimes(token:String) -> [String]?
+//    {
+//        return transcriptSegmentTokensTimes?.result?[token]
+//    }
+    
+    lazy var transcriptSegmentTokensTimes:Fetch<[String:[String]]>? = { [weak self] in
+        let fetch = Fetch<[String:[String]]>()
+    
+        fetch.fetch = { [weak self] in
+            guard let transcriptSegmentArrays = self?.transcriptSegmentArrays?.result else {
+                return nil
+            }
+            
             var tokenTimes = [String:[String]]()
-
+            
             for transcriptSegmentArray in transcriptSegmentArrays {
-                if let times = transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
-                    if let tokens = transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)?.tokens {
+                if let times = self?.transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray), let startTime = times.first {
+                    if let tokens = self?.transcriptSegmentArrayText(transcriptSegmentArray: transcriptSegmentArray)?.tokens {
                         for token in tokens {
                             let key = token
-
+                            
                             if tokenTimes[key] == nil {
                                 tokenTimes[key] = [startTime]
                             } else {
@@ -3292,78 +3405,51 @@ class VoiceBase
                     }
                 }
             }
-
-            transcriptSegmentTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
+            
+            return tokenTimes.count > 0 ? tokenTimes : nil
         }
-    }
-    var transcriptSegmentArrays:[[String]]? // Make thread safe?
-    {
-        get {
-            guard _transcriptSegmentArrays == nil else {
-                return _transcriptSegmentArrays
-            }
-
-            // calculation by side-effect - YUK
-            let _ = transcriptSegments
-
-            return _transcriptSegmentArrays
-        }
-        set {
-            _transcriptSegmentArrays = newValue
-        }
-    }
-    
-    // thread safe?
-    var transcriptSegmentTokens : [String]?
-    {
-        get {
-            return transcriptSegmentTokensTimes?.keys.sorted()
-        }
-    }
-    
-    func transcriptSegmentTokenTimes(token:String) -> [String]?
-    {
-        return transcriptSegmentTokensTimes?[token]
-    }
+        
+        return fetch
+    }()
     
     // Replace with Fetch?
-    private var _transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
-    {
-        didSet {
-            
-        }
-    }
-    var transcriptSegmentTokensTimes : [String:[String]]? // thread safe?
-    {
-        get {
-            guard _transcriptSegmentTokensTimes == nil else {
-                return _transcriptSegmentTokensTimes
-            }
-            
-            // Calculation by side-effect - YUK
-            let _ = transcriptSegments
-            
-            return _transcriptSegmentTokensTimes
-        }
-        set {
-            _transcriptSegmentTokensTimes = newValue
-        }
-    }
+//    private var _transcriptSegmentTokensTimes : [String:[String]]? // Make thread safe?
+//    {
+//        didSet {
+//
+//        }
+//    }
+//    var transcriptSegmentTokensTimes : [String:[String]]? // thread safe?
+//    {
+//        get {
+//            guard _transcriptSegmentTokensTimes == nil else {
+//                return _transcriptSegmentTokensTimes
+//            }
+//
+//            // Calculation by side-effect - YUK
+//            let _ = transcriptSegments
+//
+//            return _transcriptSegmentTokensTimes
+//        }
+//        set {
+//            _transcriptSegmentTokensTimes = newValue
+//        }
+//    }
     
-    func transcriptSegmentArrayStartTime(transcriptSegmentArray:[String]?) -> Double?
-    {
-        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.first?.hmsToSeconds
-    }
+//    func transcriptSegmentArrayStartTime(transcriptSegmentArray:[String]?) -> Double?
+//    {
+//        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.first?.hmsToSeconds
+//    }
+//    
+//    func transcriptSegmentArrayEndTime(transcriptSegmentArray:[String]?) -> Double?
+//    {
+//        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.last?.hmsToSeconds
+//    }
     
-    func transcriptSegmentArrayEndTime(transcriptSegmentArray:[String]?) -> Double?
-    {
-        return transcriptSegmentArrayTimes(transcriptSegmentArray: transcriptSegmentArray)?.last?.hmsToSeconds
-    }
-    
-    func transcriptSegmentArrayIndex(transcriptSegmentArray:[String]?) -> String?
-    {
-        return transcriptSegmentArray?.first
-    }
+//    func transcriptSegmentArrayIndex(transcriptSegmentArray:[String]?) -> String?
+//    {
+//        return transcriptSegmentArray?.first
+//    }
     
     func transcriptSegmentArrayTimes(transcriptSegmentArray:[String]?) -> [String]?
     {
@@ -3428,7 +3514,7 @@ class VoiceBase
     
     func searchTranscriptSegmentArrays(string:String) -> [[String]]?
     {
-        guard let transcriptSegmentArrays = transcriptSegmentArrays else {
+        guard let transcriptSegmentArrays = transcriptSegmentArrays?.result else {
             return nil
         }
         
@@ -3443,39 +3529,49 @@ class VoiceBase
         return results.count > 0 ? results : nil
     }
     
+    lazy var transcriptSegmentComponents:Fetch<[String]>? = { [weak self] in
+        let fetch = Fetch<[String]>()
+        
+        fetch.fetch = { [weak self] in
+            return self?.transcriptSegments?.result?.components(separatedBy: VoiceBase.separator)
+        }
+        
+        return fetch
+    }()
+    
     // Replace with Fetch?
-    private var _transcriptSegmentComponents:[String]? // Make thread safe?
-    {
-        didSet {
-            guard let transcriptSegmentComponents = _transcriptSegmentComponents else {
-                return
-            }
-            
-            var transcriptSegmentArrays = [[String]]()
-            
-            for transcriptSegmentComponent in transcriptSegmentComponents {
-                transcriptSegmentArrays.append(transcriptSegmentComponent.components(separatedBy: "\n"))
-            }
-            
-            self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
-        }
-    }
-    var transcriptSegmentComponents:[String]? // thread safe?
-    {
-        get {
-            guard _transcriptSegmentComponents == nil else {
-                return _transcriptSegmentComponents
-            }
-            
-            // Calculation by side-effect - YUK
-            let _ = transcriptSegments
-            
-            return _transcriptSegmentComponents
-        }
-        set {
-            _transcriptSegmentComponents = newValue
-        }
-    }
+//    private var _transcriptSegmentComponents:[String]? // Make thread safe?
+//    {
+//        didSet {
+//            guard let transcriptSegmentComponents = _transcriptSegmentComponents else {
+//                return
+//            }
+//
+//            var transcriptSegmentArrays = [[String]]()
+//
+//            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                transcriptSegmentArrays.append(transcriptSegmentComponent.components(separatedBy: "\n"))
+//            }
+//
+//            self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
+//        }
+//    }
+//    var transcriptSegmentComponents:[String]? // thread safe?
+//    {
+//        get {
+//            guard _transcriptSegmentComponents == nil else {
+//                return _transcriptSegmentComponents
+//            }
+//
+//            // Calculation by side-effect - YUK
+//            let _ = transcriptSegments
+//
+//            return _transcriptSegmentComponents
+//        }
+//        set {
+//            _transcriptSegmentComponents = newValue
+//        }
+//    }
     
 //    lazy var transcriptSegments:Shadowed<String> = { [weak self] in
 //        return Shadowed<String>(get: { () -> (String?) in
@@ -3625,208 +3721,232 @@ class VoiceBase
 //        })
 //    }()
     
-    // Replace with Fetch?
-    private var _transcriptSegments:String?
-    {
-        didSet {
-            guard var transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator) else {
-                self.transcriptSegmentComponents = nil
-                return
-            }
-            
-            var secondsOffset = 0.0
-            
-//            if  let first = transcriptSegmentComponents.first?.components(separatedBy: "\n")[1],
-//                let start = first.components(separatedBy: " --> ").first {
-//                secondsOffset = start.hmsToSeconds ?? 0.0
-//            }
-
-            guard secondsOffset > 0 else {
-                self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
-                return
-            }
-            
-            for index in transcriptSegmentComponents.indices {
-                var segmentComponents = transcriptSegmentComponents[index].components(separatedBy: "\n")
-                
-                let times = segmentComponents[1].components(separatedBy: " --> ")
-                
-                if let start = times[0].hmsToSeconds, let end = times[1].hmsToSeconds {
-                    segmentComponents[1] = ((start - secondsOffset).secondsToHMSms ?? "") + " --> " + ((end - secondsOffset).secondsToHMSms ?? "")
-                }
-                
-                transcriptSegmentComponents[index]  = segmentComponents.joined(separator: "\n")
-            }
-
-            self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
-        }
-    }
-    var transcriptSegments:String?
-    {
-        get {
-            guard completed else {
-                return nil
-            }
-
-            guard _transcriptSegments == nil else {
-                return _transcriptSegments
-            }
-
-//            guard let mediaItem = mediaItem else {
-//                return nil
-//            }
-//
-//            guard let id = mediaItem.id else {
-//                return nil
-//            }
-//
-//            guard let purpose = purpose else {
-//                return nil
-//            }
-
-            guard let filename = filename else {
+    lazy var transcriptSegments:Fetch<String>? = { [weak self] in
+        let fetch = Fetch<String>()
+        
+        fetch.retrieve = { [weak self] in
+            guard let filename = self?.filename else {
                 print("failed to get filename")
                 return nil
             }
-
-            //Legacy
-            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
             
-//            if let url = "\(filename).srt".fileSystemURL {
-//                do {
-//                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
-//                } catch let error {
-//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-//
-//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    //                    if completed && !aligning {
-//                    //                        remove()
-//                    //                    }
-//                }
-//            }
-
-            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
-            
-//            if let url = "\(filename).segments".fileSystemURL {
-//                do {
-//                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
-//                } catch let error {
-//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-//
-//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    //                    if completed && !aligning {
-//                    //                        remove()
-//                    //                    }
-//                }
-//            }
-
-            return _transcriptSegments
+            return (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
         }
-        set {
-//            guard let mediaItem = mediaItem else {
-//                return
-//            }
-
-//            guard let id = mediaItem.id else {
-//                return
-//            }
-//
-//            guard let purpose = purpose else {
-//                return
-//            }
-
-            var changed = false
-
-            var value = newValue
-
-            if _transcriptSegments == nil {
-                // Why do we do this?  To strip any header like SRT or WebVTT and remove newlines and add separator
-                if var transcriptSegmentComponents = value?.components(separatedBy: "\n\n") {
-                    for transcriptSegmentComponent in transcriptSegmentComponents {
-                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                        if transcriptSegmentArray.count > 2 {
-                            let count = transcriptSegmentArray.removeFirst()
-                            let timeWindow = transcriptSegmentArray.removeFirst()
-
-                            if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
-                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-
-                                if let index = transcriptSegmentComponents.firstIndex(of: transcriptSegmentComponent) {
-                                    transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
-                                    changed = true
-                                }
-                            }
-                        }
-                    }
-                    if changed { // Essentially guaranteed to happen.
-                        value = nil
-                        for transcriptSegmentComponent in transcriptSegmentComponents {
-                            let transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                            if transcriptSegmentArray.count > 2 { // This removes anything w/o text, i.e. only count and timeWindow - or less, like a header, e.g. WebVTT (a nice side effect)
-                                value = (value != nil ? value! + VoiceBase.separator : "") + transcriptSegmentComponent
-                            }
-                        }
-                    }
-                }
+        
+        fetch.store = { [weak self] (string:String?) in
+            guard let filename = self?.filename else {
+                print("failed to get filename")
+                return
             }
-
-            _transcriptSegments = value
-
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                let fileManager = FileManager.default
-            fileQueue.addOperation { [weak self] in
-                guard let filename = self?.filename else {
-                    return
-                }
-                
-                if self?._transcriptSegments != nil {
-//                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
-//                        let filename = filename + ".segments"
-//                        filename.fileSystemURL?.delete(block:true)
-                    self?._transcriptSegments?.save16(filename:filename + Constants.FILENAME_EXTENSION.segments) // Keep in mind that this is being saved in the cache folder where it could disappear.
-//                        do {
-//                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
-//                        } catch let error {
-//                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
+            
+            string?.save16(filename:filename + Constants.FILENAME_EXTENSION.segments) // Keep in mind that this is being saved in the cache folder where it could disappear.
+        }
+        
+        return fetch
+    }()
+    
+    // Replace with Fetch?
+//    private var _transcriptSegments:String?
+//    {
+//        didSet {
+//            guard var transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator) else {
+//                self.transcriptSegmentComponents = nil
+//                return
+//            }
 //
-//                    //Legacy clean-up
-//                    (filename + ".srt").fileSystemURL?.delete(block:true)
-////                    if let filename = self?.filename {
-////                        (filename + ".srt").fileSystemURL?.delete(block:true)
+////            var secondsOffset = 0.0
+////
+////            if  let first = transcriptSegmentComponents.first?.components(separatedBy: "\n")[1],
+////                let start = first.components(separatedBy: " --> ").first {
+////                secondsOffset = start.hmsToSeconds ?? 0.0
+////            }
+////
+////            guard secondsOffset > 0 else {
+////                self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
+////                return
+////            }
+////
+////            for index in transcriptSegmentComponents.indices {
+////                var segmentComponents = transcriptSegmentComponents[index].components(separatedBy: "\n")
+////
+////                let times = segmentComponents[1].components(separatedBy: " --> ")
+////
+////                if let start = times[0].hmsToSeconds, let end = times[1].hmsToSeconds {
+////                    segmentComponents[1] = ((start - secondsOffset).secondsToHMSms ?? "") + " --> " + ((end - secondsOffset).secondsToHMSms ?? "")
+////                }
+////
+////                transcriptSegmentComponents[index]  = segmentComponents.joined(separator: "\n")
+////            }
+//
+//            self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
+//        }
+//    }
+//    var transcriptSegments:String?
+//    {
+//        get {
+//            guard completed else {
+//                return nil
+//            }
+//
+//            guard _transcriptSegments == nil else {
+//                return _transcriptSegments
+//            }
+//
+////            guard let mediaItem = mediaItem else {
+////                return nil
+////            }
+////
+////            guard let id = mediaItem.id else {
+////                return nil
+////            }
+////
+////            guard let purpose = purpose else {
+////                return nil
+////            }
+//
+//            guard let filename = filename else {
+//                print("failed to get filename")
+//                return nil
+//            }
+//
+//            //Legacy
+//            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
+//
+////            if let url = "\(filename).srt".fileSystemURL {
+////                do {
+////                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
+////                } catch let error {
+////                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+////
+////                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+////                    //                    if completed && !aligning {
+////                    //                        remove()
+////                    //                    }
+////                }
+////            }
+//
+//            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
+//
+////            if let url = "\(filename).segments".fileSystemURL {
+////                do {
+////                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
+////                } catch let error {
+////                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
+////
+////                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+////                    //                    if completed && !aligning {
+////                    //                        remove()
+////                    //                    }
+////                }
+////            }
+//
+//            return _transcriptSegments
+//        }
+//        set {
+////            guard let mediaItem = mediaItem else {
+////                return
+////            }
+//
+////            guard let id = mediaItem.id else {
+////                return
+////            }
+////
+////            guard let purpose = purpose else {
+////                return
+////            }
+//
+//            var changed = false
+//
+//            var value = newValue
+//
+//            if _transcriptSegments == nil {
+//                // Why do we do this?  To strip any header like SRT or WebVTT and remove newlines and add separator
+//                if var transcriptSegmentComponents = value?.components(separatedBy: "\n\n") {
+//                    for transcriptSegmentComponent in transcriptSegmentComponents {
+//                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                        if transcriptSegmentArray.count > 2 {
+//                            let count = transcriptSegmentArray.removeFirst()
+//                            let timeWindow = transcriptSegmentArray.removeFirst()
+//
+//                            if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
+//                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//
+//                                if let index = transcriptSegmentComponents.firstIndex(of: transcriptSegmentComponent) {
+//                                    transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
+//                                    changed = true
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if changed { // Essentially guaranteed to happen.
+//                        value = nil
+//                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            let transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                            if transcriptSegmentArray.count > 2 { // This removes anything w/o text, i.e. only count and timeWindow - or less, like a header, e.g. WebVTT (a nice side effect)
+//                                value = (value != nil ? value! + VoiceBase.separator : "") + transcriptSegmentComponent
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            _transcriptSegments = value
+//
+////            DispatchQueue.global(qos: .background).async { [weak self] in
+////                let fileManager = FileManager.default
+//            fileQueue.addOperation { [weak self] in
+//                guard let filename = self?.filename else {
+//                    return
+//                }
+//
+//                if self?._transcriptSegments != nil {
+////                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
+////                        let filename = filename + ".segments"
+////                        filename.fileSystemURL?.delete(block:true)
+//                    self?._transcriptSegments?.save16(filename:filename + Constants.FILENAME_EXTENSION.segments) // Keep in mind that this is being saved in the cache folder where it could disappear.
+////                        do {
+////                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
+////                        } catch let error {
+////                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
+////                        }
 ////                    } else {
 ////                        print("failed to get destinationURL")
 ////                    }
-                } else {
-                    (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.delete(block:true)
-//                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-//                        destinationURL.delete(block:true)
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//
-//                    //Legacy clean-up
-//                    (filename + ".srt").fileSystemURL?.delete(block:true)
-////                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
+////
+////                    //Legacy clean-up
+////                    (filename + ".srt").fileSystemURL?.delete(block:true)
+//////                    if let filename = self?.filename {
+//////                        (filename + ".srt").fileSystemURL?.delete(block:true)
+//////                    } else {
+//////                        print("failed to get destinationURL")
+//////                    }
+//                } else {
+//                    (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.delete(block:true)
+////                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
 ////                        destinationURL.delete(block:true)
 ////                    } else {
 ////                        print("failed to get destinationURL")
 ////                    }
-                }
-
-                //Legacy clean-up
-                (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.delete(block:true)
-//                if let filename = self?.filename {
-//                    (filename + ".srt").fileSystemURL?.delete(block:true)
-//                } else {
-//                    print("failed to get destinationURL")
+////
+////                    //Legacy clean-up
+////                    (filename + ".srt").fileSystemURL?.delete(block:true)
+//////                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
+//////                        destinationURL.delete(block:true)
+//////                    } else {
+//////                        print("failed to get destinationURL")
+//////                    }
 //                }
-            }
-        }
-    }
+//
+//                //Legacy clean-up
+//                (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.delete(block:true)
+////                if let filename = self?.filename {
+////                    (filename + ".srt").fileSystemURL?.delete(block:true)
+////                } else {
+////                    print("failed to get destinationURL")
+////                }
+//            }
+//        }
+//    }
 
     var transcriptSegmentsFromWords:String?
     {
@@ -3857,45 +3977,49 @@ class VoiceBase
         }
     }
     
-    var transcriptSegmentsFromTranscriptSegments:String?
-    {
-        get {
-            var str : String?
-            
-            if let transcriptSegmentComponents = transcriptSegmentComponents {
-                for transcriptSegmentComponent in transcriptSegmentComponents {
-                    str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
-                }
-            }
-            
-            return str
-        }
-    }
-    
-    var transcriptFromTranscriptSegments:String?
-    {
-        get {
-            var str : String?
-            
-            if let transcriptSegmentComponents = transcriptSegmentComponents {
-                for transcriptSegmentComponent in transcriptSegmentComponents {
-                    var strings = transcriptSegmentComponent.components(separatedBy: "\n")
-                    
-                    if strings.count > 2 {
-                        _ = strings.removeFirst() // count
-                        let timing = strings.removeFirst() // time
-                        
-                        if let range = transcriptSegmentComponent.range(of:timing+"\n") {
-                            let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
-                            str = (str != nil ? str! + " " : "") + string
-                        }
-                    }
-                }
-            }
-            
-            return str
-        }
-    }
+//    var transcriptSegmentsFromTranscriptSegmentComponents:String?
+//    {
+//        get {
+//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
+//                return nil
+//            }
+//            
+//            var str : String?
+//            
+//            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
+//            }
+//
+//            return str
+//        }
+//    }
+//    
+//    var transcriptFromTranscriptSegments:String?
+//    {
+//        get {
+//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
+//                return nil
+//            }
+//            
+//            var str : String?
+//            
+//            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                var strings = transcriptSegmentComponent.components(separatedBy: "\n")
+//                
+//                if strings.count > 2 {
+//                    _ = strings.removeFirst() // count
+//                    let timing = strings.removeFirst() // time
+//                    
+//                    if let range = transcriptSegmentComponent.range(of:timing+"\n") {
+//                        let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
+//                        str = (str != nil ? str! + " " : "") + string
+//                    }
+//                }
+//            }
+//
+//            return str
+//        }
+//    }
     
     private func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
     {
@@ -3906,10 +4030,11 @@ class VoiceBase
         // mediaID:mediaID,
         VoiceBase.get(accept:"text/vtt", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let transcriptSegments = json?["text"] as? String {
-                self._transcriptSegments = nil // Without this the new transcript segments will not be processed correctly.
-
-                self.transcriptSegments = transcriptSegments
-
+//                self._transcriptSegments = nil // Without this the new transcript segments will not be processed correctly.
+//                self.transcriptSegments = transcriptSegments
+                
+                self.transcriptSegments?.store?(transcriptSegments)
+                
                 if alert, let text = self.mediaItem?.text {
                     Alerts.shared.alert(title: "Transcript Segments Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
@@ -3959,7 +4084,7 @@ class VoiceBase
         
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let sessionConfig = URLSessionConfiguration.default
+        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
         let session = URLSession(configuration: sessionConfig)
         
         // URLSession.shared
@@ -4186,7 +4311,7 @@ class VoiceBase
         
         alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .destructive, handler: {
             self.confirmAlignment(source:Constants.Strings.Segments) { // viewController:viewController
-                self.align(self.transcriptFromTranscriptSegments)
+                self.align(self.transcriptSegmentComponents?.result?.transcriptFromTranscriptSegments)
             }
         }))
         
@@ -6277,7 +6402,7 @@ class VoiceBase
                         
                         alertActions.append(AlertAction(title: "By Segment", style: .default, handler: {
                             viewController.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                                return self?.transcriptSegmentComponents?.timingHTML(self?.headerHTML, test:test) as Any
+                                return self?.transcriptSegmentComponents?.result?.timingHTML(self?.headerHTML, test:test) as Any
                             }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
                                 if let htmlString = data as? String {
                                     viewController.popoverHTML(title:self?.mediaItem?.title,htmlString:htmlString, search:true)
@@ -6821,12 +6946,12 @@ class VoiceBase
         let timing = transcriptSegmentArray.removeFirst() // Timing
         let transcriptSegmentTiming = timing.replacingOccurrences(of: "to", with: "-->")
         
-        if  let first = transcriptSegmentComponents?.filter({ (string:String) -> Bool in
+        if  let first = transcriptSegmentComponents?.result?.filter({ (string:String) -> Bool in
             return string.contains(transcriptSegmentTiming)
         }).first,
             let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
             let textPopover = navigationController.viewControllers[0] as? TextViewController,
-            let transcriptSegmentIndex = self.transcriptSegmentComponents?.firstIndex(of: first),
+            let transcriptSegmentIndex = self.transcriptSegmentComponents?.result?.firstIndex(of: first),
             let range = string.range(of:timing+"\n") {
             navigationController.modalPresentationStyle = .overCurrentContext
             
@@ -6853,7 +6978,7 @@ class VoiceBase
                 }
             }
             
-            textPopover.onSave = { (text:String) -> Void in
+            textPopover.onSave = { [weak self] (text:String) -> Void in
                 // This guard condition will be false after save
                 guard text != textPopover.text else {
                     if playing {
@@ -6864,14 +6989,18 @@ class VoiceBase
                 
                 // I.e. THIS SHOULD NEVER HAPPEN WHEN CALLED FROM onDone UNLESS
                 // It is called during automatic.
-                self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
+                if var transcriptSegmentComponents = self?.transcriptSegmentComponents?.result {
+                    transcriptSegmentComponents[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
+                    self?.transcriptSegments?.store?(transcriptSegmentComponents.transcriptSegmentsFromTranscriptSegmentComponents)
+                }
+
                 if popover.searchActive {
                     popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
                 }
                 popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
             }
             
-            textPopover.onDone = { (text:String) -> Void in
+            textPopover.onDone = { [weak self] (text:String) -> Void in
                 textPopover.onSave?(text)
 //                self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
 //                if popover.searchActive {
@@ -6879,10 +7008,12 @@ class VoiceBase
 //                }
 //                popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
 
+                self?.transcriptSegments?.store?(self?.transcriptSegmentComponents?.result?.transcriptSegmentsFromTranscriptSegmentComponents)
+
                 // Not sure about this.
-                self.fileQueue.addOperation { [weak self] in
-                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
-                }
+//                self.fileQueue.addOperation { [weak self] in
+//                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
+//                }
 //                DispatchQueue.global(qos: .background).async { [weak self] in
 //                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
 //                }
@@ -6964,14 +7095,161 @@ class VoiceBase
                     
                     popover.section.showIndex = true
 
-                    popover.stringsFunction = { () -> [String]? in
-                        guard let transcriptSegmentTokens = self.transcriptSegmentTokens else {
+                    popover.stringsFunction = { [weak self] () -> [String]? in
+//                        guard let transcriptSegmentTokens = self.transcriptSegmentTokens else {
+//                            return nil
+//                        }
+//
+//                        return transcriptSegmentTokens.sorted()
+                        
+                        guard let words = self?.words else {
                             return nil
                         }
                         
-                        return transcriptSegmentTokens.sorted()
+                        var wordCounts = [String:Int]()
+                        
+                        words.filter({ (dict:[String : Any]) -> Bool in
+                            return ((dict["m"] as? String) != "punc") && ((dict["w"] as? String) != nil)
+                        }).map({ (dict:[String : Any]) -> String in
+                            return (dict["w"] as! String).uppercased() // ?? "ERROR"
+                        }).forEach({ (word:String) in
+                            if let count = wordCounts[word] {
+                                wordCounts[word] = count + 1
+                            } else {
+                                wordCounts[word] = 1
+                            }
+                        })
+                        
+                        return wordCounts.keys.sorted().map({ (word:String) -> String in
+                            if let count = wordCounts[word] {
+                                return word + " (\(count))"
+                            } else {
+                                return word
+                            }
+                        })
                     }
 
+                    popover.segments = true
+                    
+                    popover.section.function = { (method:String?,strings:[String]?) in
+                        return strings?.sort(method: method)
+                    }
+                    popover.section.method = Constants.Sort.Alphabetical
+                    
+                    popover.bottomBarButton = true
+                    
+                    var segmentActions = [SegmentAction]()
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 0 {
+                            popover.section.method = Constants.Sort.Alphabetical
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = nil
+                            popover.section.indexHeadersTransform = nil
+                            popover.section.indexSort = nil
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 1 {
+                            popover.section.method = Constants.Sort.Frequency
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                return string?.log
+                            }
+                            
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 2 {
+                            popover.section.method = Constants.Sort.Length
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                guard let count =  string?.subString(to: " (")?.count else {
+                                    return string?.count.description
+//                                    return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
+                                }
+                                
+                                return count.description
+                            }
+                            
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+                    
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXWORD")
                     
@@ -6981,7 +7259,7 @@ class VoiceBase
                 }
             }))
             
-            alertActions.append(AlertAction(title: "By Phrase", style: .default, handler: {
+            let byPhrase = AlertAction(title: "By Phrase", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
@@ -7005,14 +7283,319 @@ class VoiceBase
                     
                     popover.section.showIndex = true
                     
-                    popover.stringsFunction = { () -> [String]? in
-                        guard let keywordDictionaries = self.keywordDictionaries?.keys else {
+                    popover.stringsFunction = { [weak self] () -> [String]? in
+//                        guard let keywordDictionaries = self.keywordDictionaries?.keys else {
+//                            return nil
+//                        }
+//
+//                        return Array(keywordDictionaries).sorted()
+                        
+                        guard let keywordDictionaries = self?.keywordDictionaries else {
                             return nil
                         }
                         
-                        return Array(keywordDictionaries).sorted()
-                    }
+                        var keywordCounts = [String:Int]()
+                        
+                        for keyword in keywordDictionaries.keys {
+                            // This gets the number of SEGMENTS not the number of total occurences if it occurs more than once in a segment.
+                            if let speakers = keywordDictionaries[keyword]?["t"] as? [String:Any],  let times = speakers["unknown"] as? [String] {
+                                for time in 0..<times.count {
+                                    if let time = Double(times[time]) {
+                                        if let component = self?.transcriptSegmentComponents?.result?.component(atTime: Double(time).secondsToHMSms, returnClosest: true) {
+                                            let range = NSRange(location: 0, length: component.utf16.count)
+                                            
+                                            // "\\b" +  + "\\b"
+                                            if let regex = try? NSRegularExpression(pattern: keyword, options: .caseInsensitive) {
+                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+                                                
+                                                if matches.count > 0 {
+                                                    if let oldCount = keywordCounts[keyword] {
+                                                        keywordCounts[keyword] = oldCount + matches.count
+                                                    } else {
+                                                        keywordCounts[keyword] = matches.count
+                                                    }
+                                                } else {
+                                                    let words = keyword.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
+                                                        String(substring)
+                                                    }
+                                                    
+                                                    if words.count > 1 {
+                                                        var strings = [String]()
+                                                        var phrase : String?
+                                                        
+                                                        // Assemble the list of "less than the full phrase" phrases to look for.
+                                                        for i in 0..<words.count {
+                                                            if i == (words.count - 1) {
+                                                                break
+                                                            }
+                                                            
+                                                            if phrase == nil {
+                                                                phrase = words[i]
+                                                            } else {
+                                                                phrase = (phrase ?? "") + " " + words[i]
+                                                            }
+                                                            
+                                                            if let phrase = phrase {
+                                                                strings.append(phrase)
+                                                            }
+                                                        }
+                                                        
+                                                        // reverse them since we want to look for the longest first.
+                                                        strings.reverse()
+                                                        
+                                                        // Now look for them.
+                                                        var found = false
+                                                        
+                                                        for string in strings {
+                                                            if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
+                                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+                                                                if matches.count > 0 {
+                                                                    for match in matches {
+                                                                        if match.range.upperBound == component.endIndex.utf16Offset(in: component) {
+                                                                            if let oldCount = keywordCounts[keyword] {
+                                                                                keywordCounts[keyword] = oldCount + 1
+                                                                            } else {
+                                                                                keywordCounts[keyword] = 1
+                                                                            }
+                                                                            found = true
+                                                                            break
+                                                                        } else {
+//                                                                            if #available(iOS 12.0, *) {
+//                                                                                print(keyword.nlLemmas,string.nlLemmas,component.nlLemmas)
+//                                                                            } else {
+//                                                                                // Fallback on earlier versions
+//                                                                                print(keyword.nsLemmas,string.nsLemmas,component.nsLemmas)
+//                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                
+                                                                }
+                                                            }
+                                                            
+                                                            if found {
+                                                                break
+                                                            }
+                                                        }
+                                                        
+                                                        if !found {
+                                                            if let string = strings.first {
+                                                                if let range = component.components(separatedBy: " ").last?.range(of: string) {
+                                                                    if let oldCount = keywordCounts[keyword] {
+                                                                        keywordCounts[keyword] = oldCount + 1
+                                                                    } else {
+                                                                        keywordCounts[keyword] = 1
+                                                                    }
+                                                                    found = true
+                                                                }
+                                                            }
+                                                        }
+                                                        
+                                                        if !found {
+                                                            var phrase = keyword
+                                                            
+                                                            if #available(iOS 12.0, *) {
+                                                                if let lemmas = keyword.lowercased().nlLemmas {
+                                                                    for lemma in lemmas {
+                                                                        if lemma.0 != lemma.1 {
+                                                                            if let word = lemma.1 {
+                                                                                phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: String.CompareOptions.caseInsensitive, range: lemma.2)
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                // Fallback on earlier versions
+                                                                if let lemmas = keyword.nsLemmas {
+                                                                    
+                                                                }
+                                                            }
 
+                                                            print(keyword,phrase)
+
+                                                            if phrase != keyword {
+                                                                if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
+                                                                    let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+                                                                    
+                                                                    if matches.count > 0 {
+                                                                        if let oldCount = keywordCounts[keyword] {
+                                                                            keywordCounts[keyword] = oldCount + matches.count
+                                                                        } else {
+                                                                            keywordCounts[keyword] = matches.count
+                                                                        }
+                                                                        found = true
+                                                                    } else {
+                                                                        
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                
+                                                            }
+                                                            
+                                                            if !found {
+                                                                // Lemmas didn't help
+                                                                // try to match part of the last word?
+                                                            }
+                                                            
+                                                            // VoiceBase phrases are based on lemmas so matching is not always possible.
+                                                            // Below is a hack.  Really need to try and match using lemmas
+
+//                                                            for count in 0..<keyword.count {
+//                                                                let phrase = String(keyword[keyword.startIndex..<String.Index(utf16Offset: keyword.count - count, in:keyword)])
+//                                                                if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
+//                                                                    let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+//
+//                                                                    if matches.count > 0 {
+//                                                                        if let oldCount = keywordCounts[keyword] {
+//                                                                            keywordCounts[keyword] = oldCount + matches.count
+//                                                                        } else {
+//                                                                            keywordCounts[keyword] = matches.count
+//                                                                        }
+//                                                                        break
+//                                                                    }
+//                                                                }
+//                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        return keywordCounts.keys.sorted().map({ (keyword:String) -> String in
+                            if let count = keywordCounts[keyword] {
+                                return keyword + " (\(count))"
+                            } else {
+                                return keyword
+                            }
+                        })
+                    }
+                    
+                    popover.segments = true
+                    
+                    popover.section.function = { (method:String?,strings:[String]?) in
+                        return strings?.sort(method: method)
+                    }
+                    popover.section.method = Constants.Sort.Alphabetical
+                    
+                    popover.bottomBarButton = true
+                    
+                    var segmentActions = [SegmentAction]()
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 0 {
+                            popover.section.method = Constants.Sort.Alphabetical
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = nil
+                            popover.section.indexHeadersTransform = nil
+                            popover.section.indexSort = nil
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 1 {
+                            popover.section.method = Constants.Sort.Frequency
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                return string?.log
+                            }
+                            
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
+                        guard let popover = popover else {
+                            return
+                        }
+                        
+                        let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
+                        
+                        if popover.segmentedControl.selectedSegmentIndex == 2 {
+                            popover.section.method = Constants.Sort.Length
+                            
+                            popover.section.showHeaders = false
+                            popover.section.showIndex = true
+                            
+                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                                guard let range = string?.range(of: " ("), let subString = string?[..<range.lowerBound] else {
+                                    return nil
+                                }
+                                
+                                let searchText = String(subString)
+                                
+                                return searchText.count.description
+                            }
+                            
+                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                                return string
+                            }
+                            
+                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                                guard let first = first else {
+                                    return false
+                                }
+                                guard let second = second else {
+                                    return true
+                                }
+                                return Int(first) > Int(second)
+                            }
+                            
+                            popover.section.strings = strings
+                            
+                            popover.section.stringsAction?(strings, popover.section.sorting)
+                            
+                            popover.tableView?.reloadData()
+                        }
+                    }))
+                    
+                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+                    
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXPHRASE")
                     
@@ -7020,7 +7603,9 @@ class VoiceBase
 //                        completion?(popover)
 //                    })
                 }
-            }))
+            })
+            
+//            alertActions.append(byPhrase)
             
             alertActions.append(AlertAction(title: "By Timed Segment", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -7065,8 +7650,8 @@ class VoiceBase
                     }
                     
                     // Must use stringsFunction with .selectingTime.
-                    popover.stringsFunction = { () -> [String]? in
-                        return self.transcriptSegmentComponents?.filter({ (string:String) -> Bool in
+                    popover.stringsFunction = { [weak self] () -> [String]? in
+                        return self?.transcriptSegmentComponents?.result?.filter({ (string:String) -> Bool in
                             return string.components(separatedBy: "\n").count > 1
                         }).map({ (transcriptSegmentComponent:String) -> String in
                             var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")

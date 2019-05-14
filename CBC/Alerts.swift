@@ -63,7 +63,7 @@ class Alerts
         debug(self)
     }
     
-    var topViewController = [UIViewController]()
+    var topViewController = ThreadSafeArray<UIViewController>()
     
     init()
     {
@@ -201,7 +201,28 @@ class Alerts
     func alert(category:String? = nil, title:String?, message:String? = nil, attributedText:NSAttributedString? = nil, actions:[AlertAction]? = nil, items:[AlertItem]? = nil)
     {
 //        queue.sync {
+        
+        if title == "No Network Connection" {
+            alertQueue.update(storage: alertQueue.filter({ (alert:Alert) -> Bool in
+                alert.title?.contains("Network Connection") !=  true
+            }))
+        }
+        
+        if title == "Network Connection Restored" {
+            if let alerts = alertQueue.filter({ (alert:Alert) -> Bool in
+                alert.title?.contains("Network Connection") ==  true
+            }) {
+                if alerts.last?.title?.contains("No Network Connection") == true {
+                    alertQueue.update(storage: alertQueue.filter({ (alert:Alert) -> Bool in
+                        alert.title?.contains("Network Connection") !=  true
+                    }))
+                    return // Do not show Network Connection Restored if No Network Connection was pending
+                }
+            }
+        }
+        
         alertQueue.append(Alert(category:category, title: title, message: message, attributedText: attributedText, actions: actions, items:items))
+        
 //        if !alertQueue.copy?.contains(where: { (alert:Alert) -> Bool in
 //                return (alert.title == title) && (alert.message == message)
 //            }) {

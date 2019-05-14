@@ -704,11 +704,11 @@ class CloudViewController : CBCViewController
                     return "\(word) (\(count))"
                 })
 
-                self?.wordsTableViewController.section.sorting = true
+//                self?.wordsTableViewController.section.sorting = true
                 
                 self?.wordsTableViewController.section.strings = self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method,self?.wordsTableViewController.section.strings)
 
-                self?.wordsTableViewController.section.sorting = false
+//                self?.wordsTableViewController.section.sorting = false
                 
                 return nil
             }, completion: { [weak self] (data:Any?) in
@@ -926,9 +926,9 @@ class CloudViewController : CBCViewController
                                         section.indexHeadersTransform = nil
                                         section.indexSort = nil
                                         
-                                        section.sorting = true
+//                                        section.sorting = true
                                         section.strings = strings
-                                        section.sorting = false
+//                                        section.sorting = false
                                         section.stringsAction?(strings,section.sorting)
                                     }
                                     
@@ -996,9 +996,9 @@ class CloudViewController : CBCViewController
                                             return Int(first) > Int(second)
                                         }
                                         
-                                        section.sorting = true
+//                                        section.sorting = true
                                         section.strings = strings
-                                        section.sorting = false
+//                                        section.sorting = false
                                         section.stringsAction?(strings,section.sorting)
                                     }
                                     

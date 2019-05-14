@@ -326,9 +326,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 break
 
             case "category":
-                if Globals.shared.mediaCategory.selected != parts[1] {
+                if Globals.shared.media.category.selected != parts[1] {
                     newCategory = true
-                    Globals.shared.mediaCategory.selected = parts[1]
+                    Globals.shared.media.category.selected = parts[1]
                 }
                 break
                 
@@ -374,19 +374,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             Globals.shared.selectedMediaItem.detail = nil
         }
         
-        guard Globals.shared.mediaRepository.list != nil, !Globals.shared.isLoading else {
+        guard Globals.shared.media.repository.list != nil, !Globals.shared.isLoading else {
 //            Alerts.shared.alert(title: "Not ready for UI.")
             return true
         }
         
         if newCategory {
             Thread.onMainThread {
-                mtvc.mediaCategoryButton.setTitle(Globals.shared.mediaCategory.selected)
+                mtvc.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
                 mtvc.tagLabel.text = nil
             }
             
-            Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
-                mediaItem.category == Globals.shared.mediaCategory.selected
+            Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+                mediaItem.category == Globals.shared.media.category.selected
             }))
             
             mtvc.selectedMediaItem = Globals.shared.selectedMediaItem.master
@@ -456,7 +456,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         }
 
         if let mediaCode = Globals.shared.media.goto {
-            if let mediaItem = Globals.shared.mediaRepository.index[mediaCode] {
+            if let mediaItem = Globals.shared.media.repository.index[mediaCode] {
                 Thread.onMainThread {
                     nvc.popToRootViewController(animated: false)
                 }
@@ -585,7 +585,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         if let range = identifier.range(of: ":") {
             let filename = String(identifier[range.upperBound...])
             
-            if let mediaItems = Globals.shared.mediaRepository.list {
+            if let mediaItems = Globals.shared.media.repository.list {
                 for mediaItem in mediaItems {
                     if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
                         //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")

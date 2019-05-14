@@ -18,7 +18,35 @@ struct MediaNeed
 // Problems went away when I switched to class
 class Media
 {
+    var category = Category()
+    
+//    var categories = MediaCategories() // MediaCategory()
+    
+    var stream = MediaStream()
+    
+    var categories = ThreadSafeDN<MediaCategory>() // [String:String]?
+    
+    var teachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
+    
+    var groups = ThreadSafeDN<MediaGroup>() // [String:String]?
+    
+    var repository = MediaList()
+
     var search = Search()
+    
+    var url:String?
+    {
+        get {
+            return Constants.JSON.URL.MEDIA
+        }
+    }
+    
+    var filename:String?
+    {
+        get {
+            return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + Constants.JSON.FILENAME_EXTENSION
+        }
+    }
     
     deinit {
         debug(self)
@@ -28,7 +56,7 @@ class Media
     
     var need = MediaNeed()
     
-    // Globals.shared.mediaCategory.selected as the key
+    // Globals.shared.media.category.selected as the key
     // That way work can be saved when a category is changed.
     var cache = ThreadSafeDN<MediaListGroupSort>()
     

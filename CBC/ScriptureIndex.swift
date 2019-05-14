@@ -101,7 +101,9 @@ class ScriptureIndex
     // Make thread safe?
     var sorted = [String:Bool]()
     
-    // Make thread safe?
+    //////////////////////////////////////////////////////////////
+    // Must make thread safe before incrementally updating SIVC
+    //////////////////////////////////////////////////////////////
 
     //Test
     var byTestament = [String:[MediaItem]]()
@@ -114,7 +116,8 @@ class ScriptureIndex
     
     //Test  //Book  //Ch#/Verse#
     var byVerse = [String:[String:[Int:[Int:[MediaItem]]]]]()
-    
+    //////////////////////////////////////////////////////////////
+
     lazy var scripture:Scripture! = { [weak self] in
         return Scripture(reference: nil)
     }()

@@ -21,8 +21,8 @@ class SelectedMediaItem
             
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInMaster {
-                selectedMediaItem = Globals.shared.mediaRepository.index[selectedMediaItemID]
+            if let selectedMediaItemID = Globals.shared.media.category.selectedInMaster {
+                selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
             }
             
             return selectedMediaItem
@@ -39,11 +39,11 @@ class SelectedMediaItem
 
             if let category = newValue?.category {
                 // Set according to mediaItem category not whatever is selected.
-                Globals.shared.mediaCategory.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue?.id
+                Globals.shared.media.category.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue?.id
                 // For a high volume of activity this can be very expensive.
-                Globals.shared.mediaCategory.saveSettingsBackground()
+                Globals.shared.media.category.saveSettingsBackground()
 
-//                Globals.shared.mediaCategory.selectedInMaster = newValue?.id
+//                Globals.shared.media.category.selectedInMaster = newValue?.id
                 
 //                var selectedInMaster:String?
 //                {
@@ -64,7 +64,7 @@ class SelectedMediaItem
             var selectedMediaItem:MediaItem?
             
             if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
-                selectedMediaItem = Globals.shared.mediaRepository.index[selectedMediaItemID]
+                selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
             }
             
             return selectedMediaItem
@@ -93,15 +93,15 @@ class SelectedMediaItem
 //        get {
 //            var selectedMediaItem:MediaItem?
 //
-//            if let selectedMediaItemID = Globals.shared.mediaCategory.selectedInDetail {
-//                selectedMediaItem = Globals.shared.mediaRepository.index?[selectedMediaItemID]
+//            if let selectedMediaItemID = Globals.shared.media.category.selectedInDetail {
+//                selectedMediaItem = Globals.shared.media.repository.index?[selectedMediaItemID]
 //            }
 //
 //            return selectedMediaItem
 //        }
 //
 //        set {
-//            Globals.shared.mediaCategory.selectedInDetail = newValue?.id
+//            Globals.shared.media.category.selectedInDetail = newValue?.id
 //        }
     }
 }

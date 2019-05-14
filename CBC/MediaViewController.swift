@@ -17,20 +17,20 @@ import MobileCoreServices
 
 //import Crashlytics
 
-extension MediaViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
+//extension MediaViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//    
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//    
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
 
 extension MediaViewController : UIActivityItemSource
 {
@@ -126,693 +126,711 @@ extension MediaViewController : UIActivityItemSource
     }
 }
 
-extension MediaViewController : PopoverTableViewControllerDelegate
-{
-    // MARK: PopoverTableViewControllerDelegate
-    
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
-    {
-        return nil
-    }
-    
-    func actionMenu(action:String?,mediaItem:MediaItem?)
-    {
-        guard let action = action else {
-            return
-        }
-        
-        switch action {
-//        case Constants.Strings.Print_Slides:
+//extension MediaViewController : PopoverTableViewControllerDelegate
+//{
+//    // MARK: PopoverTableViewControllerDelegate
+//    
+//    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+//    {
+//        return nil
+//    }
+//    
+//    func actionMenu(action:String?,mediaItem:MediaItem?)
+//    {
+//        guard let action = action else {
+//            return
+//        }
+//        
+//        switch action {
+////        case Constants.Strings.Print_Slides:
+////            fallthrough
+////        case Constants.Strings.Print_Transcript:
+////            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+////            break
+//            
+//        case Constants.Strings.Share_Slides:
 //            fallthrough
-//        case Constants.Strings.Print_Transcript:
-//            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+//        case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
+//            share()
 //            break
-            
-        case Constants.Strings.Share_Slides:
-            fallthrough
-        case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
-            share()
-            break
-
-        case Constants.Strings.Add_All_to_Favorites:
-            mediaItems?.addAllToFavorites()
-            break
-            
-        case Constants.Strings.Remove_All_From_Favorites:
-            mediaItems?.removeAllFromFavorites()
-//            guard let mediaItems = mediaItems?.list else {
-//                break
-//            }
 //
-//            // This blocks this thread until it finishes.
-//            Globals.shared.queue.sync {
-//                for mediaItem in mediaItems {
-//                    mediaItem.removeTag(Constants.Strings.Favorites)
+//        case Constants.Strings.Add_All_to_Favorites:
+//            mediaItems?.addAllToFavorites()
+//            break
+//            
+//        case Constants.Strings.Remove_All_From_Favorites:
+//            mediaItems?.removeAllFromFavorites()
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            // This blocks this thread until it finishes.
+////            Globals.shared.queue.sync {
+////                for mediaItem in mediaItems {
+////                    mediaItem.removeTag(Constants.Strings.Favorites)
+////                }
+////            }
+//            break
+//            
+//        case Constants.Strings.Scripture_Viewer:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
+//                
+//                popover.scripture = self.scripture
+//                popover.mediaItem = self.selectedMediaItem
+//
+//                // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
+//
+//                if navigationController.modalPresentationStyle == .popover {
+//                    
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                    navigationController.popoverPresentationController?.delegate = self
 //                }
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                present(navigationController, animated: true, completion: nil)
 //            }
-            break
-            
-        case Constants.Strings.Scripture_Viewer:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
-                
-                popover.scripture = self.scripture
-                popover.mediaItem = self.selectedMediaItem
-
-                // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
-
-                if navigationController.modalPresentationStyle == .popover {
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
-                }
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
-            break
-            
-        case Constants.Strings.Download_All_Audio:
-            mediaItems?.downloadAllAudio()
-//            guard let mediaItems = mediaItems?.list else {
-//                break
-//            }
-//
-//            for mediaItem in mediaItems {
-//                mediaItem.audioDownload?.download()
-//            }
-            break
-            
-        case Constants.Strings.Cancel_All_Audio_Downloads:
-            mediaItems?.cancelAllAudioDownloads()
-//            guard let mediaItems = mediaItems?.list else {
-//                break
-//            }
-//
-//            for mediaItem in mediaItems {
-//                if let state = selectedMediaItem?.audioDownload?.state {
-//                    switch state {
-//                    case .downloading:
-//                        mediaItem.audioDownload?.cancel()
-//                        break
-//
-//                    case .downloaded:
-//                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                                        message: nil,
-//                                                        preferredStyle: .alert)
-//                        alert.makeOpaque()
-//
-//                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-//                            (action : UIAlertAction!) -> Void in
-//                            mediaItem.audioDownload?.delete()
-//                        })
-//                        alert.addAction(yesAction)
-//
-//                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-//                            (action : UIAlertAction!) -> Void in
-//
-//                        })
-//                        alert.addAction(noAction)
-//
-//                        self.present(alert, animated: true, completion: nil)
-//                        break
-//
-//                    default:
-//                        break
-//                    }
-//                }
-//            }
-            break
-            
-        case Constants.Strings.Delete_Audio_Download:
-            var actions = [AlertAction]()
-            
-            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                self.selectedMediaItem?.audioDownload?.delete(block:true)
-            }))
-            
-            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
-
-            }))
-            
-            Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
-            
-//            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-//                                            message: nil,
-//                                            preferredStyle: .alert)
-//            alert.makeOpaque()
-//
-//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-//                (action : UIAlertAction!) -> Void in
+//            break
+//            
+//        case Constants.Strings.Download_All_Audio:
+//            mediaItems?.downloadAllAudio()
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                mediaItem.audioDownload?.download()
+////            }
+//            break
+//            
+//        case Constants.Strings.Cancel_All_Audio_Downloads:
+//            mediaItems?.cancelAllAudioDownloads()
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                if let state = selectedMediaItem?.audioDownload?.state {
+////                    switch state {
+////                    case .downloading:
+////                        mediaItem.audioDownload?.cancel()
+////                        break
+////
+////                    case .downloaded:
+////                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+////                                                        message: nil,
+////                                                        preferredStyle: .alert)
+////                        alert.makeOpaque()
+////
+////                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+////                            (action : UIAlertAction!) -> Void in
+////                            mediaItem.audioDownload?.delete()
+////                        })
+////                        alert.addAction(yesAction)
+////
+////                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+////                            (action : UIAlertAction!) -> Void in
+////
+////                        })
+////                        alert.addAction(noAction)
+////
+////                        self.present(alert, animated: true, completion: nil)
+////                        break
+////
+////                    default:
+////                        break
+////                    }
+////                }
+////            }
+//            break
+//            
+//        case Constants.Strings.Delete_Audio_Download:
+//            var actions = [AlertAction]()
+//            
+//            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
 //                self.selectedMediaItem?.audioDownload?.delete(block:true)
-//            })
-//            alert.addAction(yesAction)
+//            }))
+//            
+//            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
 //
-//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-//                (action : UIAlertAction!) -> Void in
-//
-//            })
-//            alert.addAction(noAction)
-//
-////            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//            }))
+//            
+//            Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
+//            
+////            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+////                                            message: nil,
+////                                            preferredStyle: .alert)
+////            alert.makeOpaque()
+////
+////            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+////                (action : UIAlertAction!) -> Void in
+////                self.selectedMediaItem?.audioDownload?.delete(block:true)
+////            })
+////            alert.addAction(yesAction)
+////
+////            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
 ////                (action : UIAlertAction!) -> Void in
 ////
 ////            })
-////            alert.addAction(cancel)
-//
-//            self.present(alert, animated: true, completion: nil)
-            break
-            
-        case Constants.Strings.Delete_All_Audio_Downloads:
-            var actions = [AlertAction]()
-            
-            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                self.mediaItems?.deleteAllAudioDownloads()
-            }))
-            
-            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
-                
-            }))
-            
-            Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaItems?.multiPartName, actions: actions)
-
-//            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
-//                                            message: mediaItems?.multiPartName,
-//                                            preferredStyle: .alert)
-//            alert.makeOpaque()
-//
-//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-//                (action : UIAlertAction) -> Void in
+////            alert.addAction(noAction)
+////
+//////            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+//////                (action : UIAlertAction!) -> Void in
+//////
+//////            })
+//////            alert.addAction(cancel)
+////
+////            self.present(alert, animated: true, completion: nil)
+//            break
+//            
+//        case Constants.Strings.Delete_All_Audio_Downloads:
+//            var actions = [AlertAction]()
+//            
+//            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
 //                self.mediaItems?.deleteAllAudioDownloads()
-////                if let mediaItems = self.mediaItems?.list {
-////                    for mediaItem in mediaItems {
-////                        mediaItem.audioDownload?.delete()
-////                    }
+//            }))
+//            
+//            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+//                
+//            }))
+//            
+//            Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaItems?.multiPartName, actions: actions)
+//
+////            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+////                                            message: mediaItems?.multiPartName,
+////                                            preferredStyle: .alert)
+////            alert.makeOpaque()
+////
+////            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+////                (action : UIAlertAction) -> Void in
+////                self.mediaItems?.deleteAllAudioDownloads()
+//////                if let mediaItems = self.mediaItems?.list {
+//////                    for mediaItem in mediaItems {
+//////                        mediaItem.audioDownload?.delete()
+//////                    }
+//////                }
+////            })
+////            alert.addAction(yesAction)
+////
+////            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+////                (action : UIAlertAction) -> Void in
+////
+////            })
+////            alert.addAction(noAction)
+////
+////            self.present(alert, animated: true, completion: nil)
+//            break
+//            
+//        case Constants.Strings.Print:
+//            self.process(work: { [weak self] in
+//                return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
+//            }, completion: { [weak self] (data:Any?) in
+//                if let vc = self {
+//                    vc.printHTML(htmlString: data as? String)
+//                }
+//            })
+//            break
+//            
+//        case Constants.Strings.Refresh_Document:
+//            fallthrough
+//        case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
+//            fallthrough
+//        case Constants.Strings.Refresh_Slides:
+//            // This only refreshes the visible document.
+//            document?.download?.cancelOrDelete()
+//            setupDocumentsAndVideo()
+//            break
+//            
+//            
+//        case Constants.Strings.Transcribe_All_Audio:
+//            mediaItems?.transcribeAllAudio(viewController: self)
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                guard mediaItem.audioTranscript?.transcribing == false else {
+////                    continue
 ////                }
-//            })
-//            alert.addAction(yesAction)
+////
+////                guard mediaItem.audioTranscript?.completed == false else {
+////                    continue
+////                }
+////
+////                mediaItem.audioTranscript?.getTranscript(alert: true)
+////                mediaItem.audioTranscript?.alert(viewController: self)
+////            }
+//            break
+//            
+//        case Constants.Strings.Transcribe_All_Video:
+//            mediaItems?.transcribeAllVideo(viewController: self)
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                guard mediaItem.videoTranscript?.transcribing == false else {
+////                    continue
+////                }
+////
+////                guard mediaItem.videoTranscript?.completed == false else {
+////                    continue
+////                }
+////
+////                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
+////                mediaItem.videoTranscript?.alert(viewController: self)
+////            }
+//            break
+//            
+//            
+//        case Constants.Strings.Auto_Edit_All_Audio:
+//            mediaItems?.autoEditAllAudio(viewController:self)
+//            break
+//            
+//        case Constants.Strings.Auto_Edit_All_Video:
+//            mediaItems?.autoEditAllVideo(viewController:self)
+//            break
+//            
+//            
+//        case Constants.Strings.Cancel_All_Auto_Edit_Audio:
+//            var message = ""
+//            
+//            if let multiPartName = self.mediaItems?.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//            
+//            message += "You will be notified when it is complete."
+//            
+//            Alerts.shared.alert(title: "Canceling All Auto Edits for Audio Transcripts", message: message)
 //
-//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-//                (action : UIAlertAction) -> Void in
+//            // We have to cancel and wait until they are finished to we need to do this in the background.
+//            DispatchQueue.global(qos: .userInteractive).async {
+//                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+//                    repeat {
+//                        mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
+//                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+//                    } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
+////                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+//                })
+//                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaItems?.multiPartName)
+//            }
+//            break
+//            
+//        case Constants.Strings.Cancel_All_Auto_Edit_Video:
+//            var message = ""
+//            
+//            if let multiPartName = self.mediaItems?.multiPartName {
+//                message += multiPartName + "\n\n"
+//            }
+//            
+//            message += "You will be notified when it is complete."
+//            
+//            Alerts.shared.alert(title: "Canceling All Auto Edits for Video Transcripts", message: message)
+//            
+//            // We have to cancel and wait until they are finished to we need to do this in the background.
+//            DispatchQueue.global(qos: .userInteractive).async {
+//                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+//                    repeat {
+//                        mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
+//                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+//                    } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
+////                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+//                })
+//                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaItems?.multiPartName)
+//            }
+//            break
+//            
+//            
+//        case Constants.Strings.Align_All_Audio:
+//            mediaItems?.alignAllAudio(viewController:self)
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                guard mediaItem.audioTranscript?.transcribing == false else {
+////                    continue
+////                }
+////
+////                guard mediaItem.audioTranscript?.completed == true else {
+////                    continue
+////                }
+////
+////                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
+////            }
+//            break
+//            
+//        case Constants.Strings.Align_All_Video:
+//            mediaItems?.alignAllVideo(viewController: self)
+////            guard let mediaItems = mediaItems?.list else {
+////                break
+////            }
+////
+////            for mediaItem in mediaItems {
+////                guard mediaItem.videoTranscript?.transcribing == false else {
+////                    continue
+////                }
+////
+////                guard mediaItem.videoTranscript?.completed == true else {
+////                    continue
+////                }
+////
+////                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
+////            }
+//            break
+//            
 //
-//            })
-//            alert.addAction(noAction)
-//
-//            self.present(alert, animated: true, completion: nil)
-            break
-            
-        case Constants.Strings.Print:
-            self.process(work: { [weak self] in
-                return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
-            }, completion: { [weak self] (data:Any?) in
-                if let vc = self {
-                    vc.printHTML(htmlString: data as? String)
-                }
-            })
-            break
-            
-        case Constants.Strings.Refresh_Document:
-            fallthrough
-        case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
-            fallthrough
-        case Constants.Strings.Refresh_Slides:
-            // This only refreshes the visible document.
-            document?.download?.cancelOrDelete()
-            setupDocumentsAndVideo()
-            break
-            
-            
-        case Constants.Strings.Transcribe_All_Audio:
-            mediaItems?.transcribeAllAudio(viewController: self)
-//            guard let mediaItems = mediaItems?.list else {
+//        default:
+//            break
+//        }
+//    }
+//    
+//    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+//    {
+//        guard self.isViewLoaded else {
+//            return
+//        }
+//        
+//        guard Thread.isMainThread else {
+//            self.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
+//            return
+//        }
+//        
+//        guard let string = strings?[index].replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ") else {
+//            return
+//        }
+//        
+//        switch purpose {
+//        case .selectingCellAction:
+//            dismiss(animated: true, completion: nil)
+//            
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                Thread.onMainThread {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                }
+//                break
+//                
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//                
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//                
+//            default:
 //                break
 //            }
-//
-//            for mediaItem in mediaItems {
-//                guard mediaItem.audioTranscript?.transcribing == false else {
-//                    continue
-//                }
-//
-//                guard mediaItem.audioTranscript?.completed == false else {
-//                    continue
-//                }
-//
-//                mediaItem.audioTranscript?.getTranscript(alert: true)
-//                mediaItem.audioTranscript?.alert(viewController: self)
+//            break
+//            
+//        case .selectingAction:
+//            dismiss(animated: true, completion: nil)
+//            actionMenu(action:string,mediaItem:mediaItem)
+//            break
+//            
+//        case .selectingTimingIndexWord:
+//            guard let searchText = string.components(separatedBy: Constants.SINGLE_SPACE).first else {
+//                return
 //            }
-            break
-            
-        case Constants.Strings.Transcribe_All_Video:
-            mediaItems?.transcribeAllVideo(viewController: self)
-//            guard let mediaItems = mediaItems?.list else {
+//            
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.navigationItem.title = string
+//                
+//                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+//                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingTime
+//
+//                popover.parser = { (string:String) -> [String] in
+//                    var strings = string.components(separatedBy: "\n")
+//                    while strings.count > 2 {
+//                        strings.removeLast()
+//                    }
+//                    return strings
+//                }
+//                
+//                popover.search = true
+//                popover.searchInteractive = false
+//                popover.searchActive = true
+//                popover.searchText = searchText
+//                popover.wholeWordsOnly = true
+//                
+//                popover.section.showIndex = true
+//                popover.section.indexStringsTransform =  { (string:String?) -> String? in
+//                    return string?.century
+//                } // century
+//                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                    return string
+//                }
+//                
+//                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                popover.stringsFunction = { [weak popover] in
+//                    guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else {
+//                        return nil
+//                    }
+//                    
+//                    guard let times = popover?.transcript?.transcriptSegmentTokenTimes(token: searchText) else {
+//                        return nil
+//                    }
+//                    
+//                    var strings = [String]()
+//                    
+//                    for time in times {
+//                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            if transcriptSegmentComponent.contains(time+" --> ") { //
+//                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                                
+//                                if transcriptSegmentArray.count > 2  {
+//                                    let count = transcriptSegmentArray.removeFirst()
+//                                    let timeWindow = transcriptSegmentArray.removeFirst()
+//                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+//                                    
+//                                    if  let start = times.first,
+//                                        let end = times.last,
+//                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                        let string = "\(count)\n\(start) to \(end)\n" + text
+//                                        
+//                                        strings.append(string)
+//                                    }
+//                                }
+//                                break
+//                            }
+//                        }
+//                    }
+//                    
+//                    return strings
+//                }
+//                
+////                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//
+//                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//            }
+//            break
+//            
+//        case .selectingTimingIndexPhrase:
+//            guard let range = string.range(of: " (") else {
+//                return
+//            }
+//            
+//            let searchText = String(string[..<range.lowerBound])
+//            
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.navigationItem.title = string
+//                
+//                popover.selectedMediaItem = self.popover?["TIMINGINDEXPHRASE"]?.selectedMediaItem
+//                popover.transcript = self.popover?["TIMINGINDEXPHRASE"]?.transcript
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingTime
+//                
+//                popover.parser = { (string:String) -> [String] in
+//                    var strings = string.components(separatedBy: "\n")
+//                    while strings.count > 2 {
+//                        strings.removeLast()
+//                    }
+//                    return strings
+//                }
+//                
+//                popover.search = true
+//                popover.searchInteractive = false
+//                popover.searchActive = true
+//                popover.searchText = searchText
+////                popover.wholeWordsOnly = true
+//                
+//                popover.section.showIndex = true
+//                popover.section.indexStringsTransform = { (string:String?) -> String? in
+//                    return string?.century
+//                } // century
+//                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                    return string
+//                }
+//                
+//                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                popover.stringsFunction = { [weak popover] in
+//                    guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else { // (token: string)
+//                        return nil
+//                    }
+//                    
+//                    guard let times = popover?.transcript?.keywordTimes?[searchText] else { // (token: string)
+//                        return nil
+//                    }
+//                    
+//                    var strings = [String]()
+//                    
+//                    for time in times {
+//                        var found = false
+//                        var gap : Double?
+//                        var closest : String?
+//                        
+//                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                            
+//                            if transcriptSegmentArray.count > 2  {
+//                                let count = transcriptSegmentArray.removeFirst()
+//                                let timeWindow = transcriptSegmentArray.removeFirst()
+//                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+//                                
+//                                if  let start = times.first,
+//                                    let end = times.last,
+//                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                    let string = "\(count)\n\(start) to \(end)\n" + text
+//                                    
+//                                    if (start.hmsToSeconds <= time.hmsToSeconds) && (time.hmsToSeconds <= end.hmsToSeconds) {
+//                                        strings.append(string)
+//                                        found = true
+//                                        gap = nil
+//                                        break
+//                                    } else {
+//                                        guard let time = time.hmsToSeconds else {
+//                                            continue
+//                                        }
+//                                        
+//                                        guard let start = start.hmsToSeconds else {
+//                                            continue
+//                                        }
+//
+//                                        guard let end = end.hmsToSeconds else { //
+//                                            continue
+//                                        }
+//
+//                                        var currentGap = 0.0
+//                                        
+//                                        if time < start {
+//                                            currentGap = start - time
+//                                        }
+//                                        if time > end {
+//                                            currentGap = time - end
+//                                        }
+//
+//                                        if gap != nil {
+//                                            if currentGap < gap {
+//                                                gap = currentGap
+//                                                closest = string
+//                                            }
+//                                        } else {
+//                                            gap = currentGap
+//                                            closest = string
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        
+//                        // We have to deal w/ the case where the keyword time isn't found in a segment which is probably due to a rounding error in the milliseconds, e.g. 1.
+//                        if !found {
+//                            if let closest = closest {
+//                                strings.append(closest)
+//                            } else {
+//                                // ??
+//                            }
+//                        }
+//                    }
+//                    
+//                    return strings
+//                }
+//                
+////                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                
+//                self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
+//            }
+//            break
+//            
+//        case .selectingTimingIndexTopic:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.navigationItem.title = string
+//                
+//                popover.selectedMediaItem = self.popover?["TIMINGINDEXTOPIC"]?.selectedMediaItem
+//                popover.transcript = self.popover?["TIMINGINDEXTOPIC"]?.transcript
+//
+//                popover.delegate = self
+//                popover.purpose = .selectingTimingIndexTopicKeyword
+//                
+//                popover.section.strings = popover.transcript?.topicKeywords(topic: string)
+//                
+//                self.popover?["TIMINGINDEXTOPIC"]?.navigationController?.pushViewController(popover, animated: true)
+//            }
+//            break
+//            
+//        case .selectingTimingIndexTopicKeyword:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.navigationItem.title = string
+//                
+//                popover.selectedMediaItem = self.popover?["TIMINGINDEXKEYWORD"]?.selectedMediaItem
+//                popover.transcript = self.popover?["TIMINGINDEXKEYWORD"]?.transcript
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingTime
+//                
+//                popover.parser = { (string:String) -> [String] in
+//                    var strings = string.components(separatedBy: "\n")
+//                    while strings.count > 2 {
+//                        strings.removeLast()
+//                    }
+//                    return strings
+//                }
+//
+//                if let topic = self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.visibleViewController?.navigationItem.title {
+//                    popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
+//                        return string.secondsToHMS ?? "ERROR"
+//                    })
+//                }
+//                
+//                self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//            }
+//            break
+//
+//        case .selectingTime:
+//            guard Globals.shared.mediaPlayer.currentTime != nil else {
 //                break
 //            }
-//
-//            for mediaItem in mediaItems {
-//                guard mediaItem.videoTranscript?.transcribing == false else {
-//                    continue
-//                }
-//
-//                guard mediaItem.videoTranscript?.completed == false else {
-//                    continue
-//                }
-//
-//                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
-//                mediaItem.videoTranscript?.alert(viewController: self)
+//            
+//            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
+//                Globals.shared.mediaPlayer.seek(to: seconds)
 //            }
-            break
-            
-            
-        case Constants.Strings.Auto_Edit_All_Audio:
-            mediaItems?.autoEditAllAudio(viewController:self)
-            break
-            
-        case Constants.Strings.Auto_Edit_All_Video:
-            mediaItems?.autoEditAllVideo(viewController:self)
-            break
-            
-            
-        case Constants.Strings.Cancel_All_Auto_Edit_Audio:
-            var message = ""
-            
-            if let multiPartName = self.mediaItems?.multiPartName {
-                message += multiPartName + "\n\n"
-            }
-            
-            message += "You will be notified when it is complete."
-            
-            Alerts.shared.alert(title: "Canceling All Auto Edits for Audio Transcripts", message: message)
-
-            // We have to cancel and wait until they are finished to we need to do this in the background.
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
-                    repeat {
-                        mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
-                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
-                    } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
-//                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
-                })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaItems?.multiPartName)
-            }
-            break
-            
-        case Constants.Strings.Cancel_All_Auto_Edit_Video:
-            var message = ""
-            
-            if let multiPartName = self.mediaItems?.multiPartName {
-                message += multiPartName + "\n\n"
-            }
-            
-            message += "You will be notified when it is complete."
-            
-            Alerts.shared.alert(title: "Canceling All Auto Edits for Video Transcripts", message: message)
-            
-            // We have to cancel and wait until they are finished to we need to do this in the background.
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
-                    repeat {
-                        mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
-                        Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
-                    } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
-//                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
-                })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaItems?.multiPartName)
-            }
-            break
-            
-            
-        case Constants.Strings.Align_All_Audio:
-            mediaItems?.alignAllAudio(viewController:self)
-//            guard let mediaItems = mediaItems?.list else {
-//                break
-//            }
-//
-//            for mediaItem in mediaItems {
-//                guard mediaItem.audioTranscript?.transcribing == false else {
-//                    continue
-//                }
-//
-//                guard mediaItem.audioTranscript?.completed == true else {
-//                    continue
-//                }
-//
-//                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
-//            }
-            break
-            
-        case Constants.Strings.Align_All_Video:
-            mediaItems?.alignAllVideo(viewController: self)
-//            guard let mediaItems = mediaItems?.list else {
-//                break
-//            }
-//
-//            for mediaItem in mediaItems {
-//                guard mediaItem.videoTranscript?.transcribing == false else {
-//                    continue
-//                }
-//
-//                guard mediaItem.videoTranscript?.completed == true else {
-//                    continue
-//                }
-//
-//                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
-//            }
-            break
-            
-
-        default:
-            break
-        }
-    }
-    
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
-    {
-        guard self.isViewLoaded else {
-            return
-        }
-        
-        guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
-            return
-        }
-        
-        guard let string = strings?[index].replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ") else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingCellAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
-                }
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingAction:
-            dismiss(animated: true, completion: nil)
-            actionMenu(action:string,mediaItem:mediaItem)
-            break
-            
-        case .selectingTimingIndexWord:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = string
-                
-                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
-                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
-                
-                popover.delegate = self
-                popover.purpose = .selectingTime
-
-                popover.parser = { (string:String) -> [String] in
-                    var strings = string.components(separatedBy: "\n")
-                    while strings.count > 2 {
-                        strings.removeLast()
-                    }
-                    return strings
-                }
-                
-                popover.search = true
-                popover.searchInteractive = false
-                popover.searchActive = true
-                popover.searchText = string
-                popover.wholeWordsOnly = true
-                
-                popover.section.showIndex = true
-                popover.section.indexStringsTransform =  { (string:String?) -> String? in
-                    return string?.century
-                } // century
-                popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                    return string
-                }
-                
-                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
-                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
-                popover.stringsFunction = {
-                    guard let times = popover.transcript?.transcriptSegmentTokenTimes(token: string), let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else {
-                        return nil
-                    }
-                    
-                    var strings = [String]()
-                    
-                    for time in times {
-                        for transcriptSegmentComponent in transcriptSegmentComponents {
-                            if transcriptSegmentComponent.contains(time+" --> ") { //
-                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                                
-                                if transcriptSegmentArray.count > 2  {
-                                    let count = transcriptSegmentArray.removeFirst()
-                                    let timeWindow = transcriptSegmentArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
-                                    
-                                    if  let start = times.first,
-                                        let end = times.last,
-                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-                                        let string = "\(count)\n\(start) to \(end)\n" + text
-                                        
-                                        strings.append(string)
-                                    }
-                                }
-                                break
-                            }
-                        }
-                    }
-                    
-                    return strings
-                }
-                
-//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-
-                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
-            }
-            break
-            
-        case .selectingTimingIndexPhrase:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = string
-                
-                popover.selectedMediaItem = self.popover?["TIMINGINDEXPHRASE"]?.selectedMediaItem
-                popover.transcript = self.popover?["TIMINGINDEXPHRASE"]?.transcript
-                
-                popover.delegate = self
-                popover.purpose = .selectingTime
-                
-                popover.parser = { (string:String) -> [String] in
-                    var strings = string.components(separatedBy: "\n")
-                    while strings.count > 2 {
-                        strings.removeLast()
-                    }
-                    return strings
-                }
-                
-                popover.search = true
-                popover.searchInteractive = false
-                popover.searchActive = true
-                popover.searchText = string
-                popover.wholeWordsOnly = true
-                
-                popover.section.showIndex = true
-                popover.section.indexStringsTransform = { (string:String?) -> String? in
-                    return string?.century
-                } // century
-                popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                    return string
-                }
-                
-                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
-                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
-                popover.stringsFunction = {
-                    guard let times = popover.transcript?.keywordTimes?[string], let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else { // (token: string)
-                        return nil
-                    }
-                    
-                    var strings = [String]()
-                    
-                    for time in times {
-                        var found = false
-                        var gap : Double?
-                        var closest : String?
-                        
-                        for transcriptSegmentComponent in transcriptSegmentComponents {
-                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                            
-                            if transcriptSegmentArray.count > 2  {
-                                let count = transcriptSegmentArray.removeFirst()
-                                let timeWindow = transcriptSegmentArray.removeFirst()
-                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
-                                
-                                if  let start = times.first,
-                                    let end = times.last,
-                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-                                    let string = "\(count)\n\(start) to \(end)\n" + text
-                                    
-                                    if (start.hmsToSeconds <= time.hmsToSeconds) && (time.hmsToSeconds <= end.hmsToSeconds) {
-                                        strings.append(string)
-                                        found = true
-                                        gap = nil
-                                        break
-                                    } else {
-                                        guard let time = time.hmsToSeconds else {
-                                            continue
-                                        }
-                                        
-                                        guard let start = start.hmsToSeconds else {
-                                            continue
-                                        }
-
-                                        guard let end = end.hmsToSeconds else { //
-                                            continue
-                                        }
-
-                                        var currentGap = 0.0
-                                        
-                                        if time < start {
-                                            currentGap = start - time
-                                        }
-                                        if time > end {
-                                            currentGap = time - end
-                                        }
-
-                                        if gap != nil {
-                                            if currentGap < gap {
-                                                gap = currentGap
-                                                closest = string
-                                            }
-                                        } else {
-                                            gap = currentGap
-                                            closest = string
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // We have to deal w/ the case where the keyword time isn't found in a segment which is probably due to a rounding error in the milliseconds, e.g. 1.
-                        if !found {
-                            if let closest = closest {
-                                strings.append(closest)
-                            } else {
-                                // ??
-                            }
-                        }
-                    }
-                    
-                    return strings
-                }
-                
-//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
-                self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
-            }
-            break
-            
-        case .selectingTimingIndexTopic:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = string
-                
-                popover.selectedMediaItem = self.popover?["TIMINGINDEXTOPIC"]?.selectedMediaItem
-                popover.transcript = self.popover?["TIMINGINDEXTOPIC"]?.transcript
-
-                popover.delegate = self
-                popover.purpose = .selectingTimingIndexTopicKeyword
-                
-                popover.section.strings = popover.transcript?.topicKeywords(topic: string)
-                
-                self.popover?["TIMINGINDEXTOPIC"]?.navigationController?.pushViewController(popover, animated: true)
-            }
-            break
-            
-        case .selectingTimingIndexTopicKeyword:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = string
-                
-                popover.selectedMediaItem = self.popover?["TIMINGINDEXKEYWORD"]?.selectedMediaItem
-                popover.transcript = self.popover?["TIMINGINDEXKEYWORD"]?.transcript
-                
-                popover.delegate = self
-                popover.purpose = .selectingTime
-                
-                popover.parser = { (string:String) -> [String] in
-                    var strings = string.components(separatedBy: "\n")
-                    while strings.count > 2 {
-                        strings.removeLast()
-                    }
-                    return strings
-                }
-
-                if let topic = self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.visibleViewController?.navigationItem.title {
-                    popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
-                        return string.secondsToHMS ?? "ERROR"
-                    })
-                }
-                
-                self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.pushViewController(popover, animated: true)
-            }
-            break
-
-        case .selectingTime:
-            guard Globals.shared.mediaPlayer.currentTime != nil else {
-                break
-            }
-            
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
-                Globals.shared.mediaPlayer.seek(to: seconds)
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-}
+//            break
+//            
+//        default:
+//            break
+//        }
+//    }
+//}
 
 extension MediaViewController : MFMessageComposeViewControllerDelegate
 {
@@ -1099,13 +1117,13 @@ extension MediaViewController: UIScrollViewDelegate
     }
 }
 
-extension MediaViewController: UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-    }
-}
+//extension MediaViewController: UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
 
 extension MediaViewController : PopoverPickerControllerDelegate
 {
@@ -1129,11 +1147,11 @@ enum VideoLocation {
     case withTableView
 }
 
-class MediaViewController : CBCViewController
+class MediaViewController : MediaItemsViewController
 {
-    lazy var popover : [String:PopoverTableViewController]? = {
-        return [String:PopoverTableViewController]()
-    }()
+//    lazy var popover : [String:PopoverTableViewController]? = {
+//        return [String:PopoverTableViewController]()
+//    }()
 
     @IBOutlet weak var controlView: ControlView!
     
@@ -3272,6 +3290,8 @@ class MediaViewController : CBCViewController
     @objc func clearView()
     {
         Thread.onMainThread {
+            self.navigationController?.popToRootViewController(animated: true)
+            
             self.dismiss(animated: true, completion: nil) // In case a dialog is visible.
             
             self.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
@@ -4473,7 +4493,7 @@ class MediaViewController : CBCViewController
 //            self.navigationItem.title = selectedMediaItem?.title
 //        }
 
-//        if Globals.shared.mediaCategory.selected != selectedMediaItem?.category {
+//        if Globals.shared.media.category.selected != selectedMediaItem?.category {
 //            if let title = selectedMediaItem?.title, let category = selectedMediaItem?.category {
 //                self.navigationItem.title = category + ": " + title
 //            } else {
@@ -5221,7 +5241,8 @@ class MediaViewController : CBCViewController
         removeSliderTimer()
         removePlayerObserver()
         
-        NotificationCenter.default.removeObserver(self) // Catch-all.
+        // Need to get notifications when pushed.
+//        NotificationCenter.default.removeObserver(self) // Catch-all.
         
         sliderTimer?.invalidate()
     }
@@ -5892,6 +5913,714 @@ class MediaViewController : CBCViewController
 //    func setDocumentContentOffsetAndZoomScale(_ document:Document?)
 //    {
 //
+//    }
+    
+//    extension MediaViewController : PopoverTableViewControllerDelegate
+//    {
+        // MARK: PopoverTableViewControllerDelegate
+        
+//        override func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+//        {
+//            return super.rowActions(popover: popover, tableView: tableView, indexPath: indexPath)
+//        }
+        
+        func actionMenu(action:String?,mediaItem:MediaItem?)
+        {
+            guard let action = action else {
+                return
+            }
+            
+            switch action {
+                //        case Constants.Strings.Print_Slides:
+                //            fallthrough
+                //        case Constants.Strings.Print_Transcript:
+                //            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+                //            break
+                
+            case Constants.Strings.Share_Slides:
+                fallthrough
+            case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
+                share()
+                break
+                
+            case Constants.Strings.Add_All_to_Favorites:
+                mediaItems?.addAllToFavorites()
+                break
+                
+            case Constants.Strings.Remove_All_From_Favorites:
+                mediaItems?.removeAllFromFavorites()
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            // This blocks this thread until it finishes.
+                //            Globals.shared.queue.sync {
+                //                for mediaItem in mediaItems {
+                //                    mediaItem.removeTag(Constants.Strings.Favorites)
+                //                }
+                //            }
+                break
+                
+            case Constants.Strings.Scripture_Viewer:
+                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
+                    
+                    popover.scripture = self.scripture
+                    popover.mediaItem = self.selectedMediaItem
+                    
+                    // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                    navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
+                    
+                    if navigationController.modalPresentationStyle == .popover {
+                        
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
+                    }
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    present(navigationController, animated: true, completion: nil)
+                }
+                break
+                
+            case Constants.Strings.Download_All_Audio:
+                mediaItems?.downloadAllAudio()
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                mediaItem.audioDownload?.download()
+                //            }
+                break
+                
+            case Constants.Strings.Cancel_All_Audio_Downloads:
+                mediaItems?.cancelAllAudioDownloads()
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                if let state = selectedMediaItem?.audioDownload?.state {
+                //                    switch state {
+                //                    case .downloading:
+                //                        mediaItem.audioDownload?.cancel()
+                //                        break
+                //
+                //                    case .downloaded:
+                //                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                //                                                        message: nil,
+                //                                                        preferredStyle: .alert)
+                //                        alert.makeOpaque()
+                //
+                //                        let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                //                            (action : UIAlertAction!) -> Void in
+                //                            mediaItem.audioDownload?.delete()
+                //                        })
+                //                        alert.addAction(yesAction)
+                //
+                //                        let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                //                            (action : UIAlertAction!) -> Void in
+                //
+                //                        })
+                //                        alert.addAction(noAction)
+                //
+                //                        self.present(alert, animated: true, completion: nil)
+                //                        break
+                //
+                //                    default:
+                //                        break
+                //                    }
+                //                }
+                //            }
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                var actions = [AlertAction]()
+                
+                actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                    self.selectedMediaItem?.audioDownload?.delete(block:true)
+                }))
+                
+                actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                    
+                }))
+                
+                Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
+                
+                //            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                //                                            message: nil,
+                //                                            preferredStyle: .alert)
+                //            alert.makeOpaque()
+                //
+                //            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                //                (action : UIAlertAction!) -> Void in
+                //                self.selectedMediaItem?.audioDownload?.delete(block:true)
+                //            })
+                //            alert.addAction(yesAction)
+                //
+                //            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                //                (action : UIAlertAction!) -> Void in
+                //
+                //            })
+                //            alert.addAction(noAction)
+                //
+                ////            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
+                ////                (action : UIAlertAction!) -> Void in
+                ////
+                ////            })
+                ////            alert.addAction(cancel)
+                //
+                //            self.present(alert, animated: true, completion: nil)
+                break
+                
+            case Constants.Strings.Delete_All_Audio_Downloads:
+                var actions = [AlertAction]()
+                
+                actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                    self.mediaItems?.deleteAllAudioDownloads()
+                }))
+                
+                actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                    
+                }))
+                
+                Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaItems?.multiPartName, actions: actions)
+                
+                //            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+                //                                            message: mediaItems?.multiPartName,
+                //                                            preferredStyle: .alert)
+                //            alert.makeOpaque()
+                //
+                //            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                //                (action : UIAlertAction) -> Void in
+                //                self.mediaItems?.deleteAllAudioDownloads()
+                ////                if let mediaItems = self.mediaItems?.list {
+                ////                    for mediaItem in mediaItems {
+                ////                        mediaItem.audioDownload?.delete()
+                ////                    }
+                ////                }
+                //            })
+                //            alert.addAction(yesAction)
+                //
+                //            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                //                (action : UIAlertAction) -> Void in
+                //
+                //            })
+                //            alert.addAction(noAction)
+                //
+                //            self.present(alert, animated: true, completion: nil)
+                break
+                
+            case Constants.Strings.Print:
+                self.process(work: { [weak self] in
+                    return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
+                    }, completion: { [weak self] (data:Any?) in
+                        if let vc = self {
+                            vc.printHTML(htmlString: data as? String)
+                        }
+                })
+                break
+                
+            case Constants.Strings.Refresh_Document:
+                fallthrough
+            case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
+                fallthrough
+            case Constants.Strings.Refresh_Slides:
+                // This only refreshes the visible document.
+                document?.download?.cancelOrDelete()
+                setupDocumentsAndVideo()
+                break
+                
+                
+            case Constants.Strings.Transcribe_All_Audio:
+                mediaItems?.transcribeAllAudio(viewController: self)
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                guard mediaItem.audioTranscript?.transcribing == false else {
+                //                    continue
+                //                }
+                //
+                //                guard mediaItem.audioTranscript?.completed == false else {
+                //                    continue
+                //                }
+                //
+                //                mediaItem.audioTranscript?.getTranscript(alert: true)
+                //                mediaItem.audioTranscript?.alert(viewController: self)
+                //            }
+                break
+                
+            case Constants.Strings.Transcribe_All_Video:
+                mediaItems?.transcribeAllVideo(viewController: self)
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                guard mediaItem.videoTranscript?.transcribing == false else {
+                //                    continue
+                //                }
+                //
+                //                guard mediaItem.videoTranscript?.completed == false else {
+                //                    continue
+                //                }
+                //
+                //                mediaItem.videoTranscript?.getTranscript(alert: true, atEnd: nil)
+                //                mediaItem.videoTranscript?.alert(viewController: self)
+                //            }
+                break
+                
+                
+            case Constants.Strings.Auto_Edit_All_Audio:
+                mediaItems?.autoEditAllAudio(viewController:self)
+                break
+                
+            case Constants.Strings.Auto_Edit_All_Video:
+                mediaItems?.autoEditAllVideo(viewController:self)
+                break
+                
+                
+            case Constants.Strings.Cancel_All_Auto_Edit_Audio:
+                var message = ""
+                
+                if let multiPartName = self.mediaItems?.multiPartName {
+                    message += multiPartName + "\n\n"
+                }
+                
+                message += "You will be notified when it is complete."
+                
+                Alerts.shared.alert(title: "Canceling All Auto Edits for Audio Transcripts", message: message)
+                
+                // We have to cancel and wait until they are finished to we need to do this in the background.
+                DispatchQueue.global(qos: .userInteractive).async {
+                    self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                        repeat {
+                            mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
+                            Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+                        } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
+                        //                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+                    })
+                    Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaItems?.multiPartName)
+                }
+                break
+                
+            case Constants.Strings.Cancel_All_Auto_Edit_Video:
+                var message = ""
+                
+                if let multiPartName = self.mediaItems?.multiPartName {
+                    message += multiPartName + "\n\n"
+                }
+                
+                message += "You will be notified when it is complete."
+                
+                Alerts.shared.alert(title: "Canceling All Auto Edits for Video Transcripts", message: message)
+                
+                // We have to cancel and wait until they are finished to we need to do this in the background.
+                DispatchQueue.global(qos: .userInteractive).async {
+                    self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                        repeat {
+                            mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
+                            Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
+                        } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
+                        //                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
+                    })
+                    Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaItems?.multiPartName)
+                }
+                break
+                
+                
+            case Constants.Strings.Align_All_Audio:
+                mediaItems?.alignAllAudio(viewController:self)
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                guard mediaItem.audioTranscript?.transcribing == false else {
+                //                    continue
+                //                }
+                //
+                //                guard mediaItem.audioTranscript?.completed == true else {
+                //                    continue
+                //                }
+                //
+                //                mediaItem.audioTranscript?.selectAlignmentSource(viewController: self)
+                //            }
+                break
+                
+            case Constants.Strings.Align_All_Video:
+                mediaItems?.alignAllVideo(viewController: self)
+                //            guard let mediaItems = mediaItems?.list else {
+                //                break
+                //            }
+                //
+                //            for mediaItem in mediaItems {
+                //                guard mediaItem.videoTranscript?.transcribing == false else {
+                //                    continue
+                //                }
+                //
+                //                guard mediaItem.videoTranscript?.completed == true else {
+                //                    continue
+                //                }
+                //
+                //                mediaItem.videoTranscript?.selectAlignmentSource(viewController: self)
+                //            }
+                break
+                
+                
+            default:
+                break
+            }
+        }
+        
+        override func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+        {
+            super.rowClickedAtIndex(index, strings: strings, purpose: purpose, mediaItem: mediaItem)
+            
+            guard self.isViewLoaded else {
+                return
+            }
+            
+            guard Thread.isMainThread else {
+                self.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
+                return
+            }
+            
+            guard let string = strings?[index].replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ") else {
+                return
+            }
+            
+            switch purpose {
+            case .selectingCellAction:
+                dismiss(animated: true, completion: nil)
+                
+                switch string {
+                case Constants.Strings.Download_Audio:
+                    mediaItem?.audioDownload?.download(background: true)
+                    Thread.onMainThread {
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                    }
+                    break
+                    
+                case Constants.Strings.Delete_Audio_Download:
+                    mediaItem?.audioDownload?.delete(block:true)
+                    break
+                    
+                case Constants.Strings.Cancel_Audio_Download:
+                    mediaItem?.audioDownload?.cancelOrDelete()
+                    break
+                    
+                default:
+                    break
+                }
+                break
+                
+            case .selectingAction:
+                dismiss(animated: true, completion: nil)
+                actionMenu(action:string,mediaItem:mediaItem)
+                break
+                
+//            case .selectingTimingIndexWord:
+//                guard let searchText = string.components(separatedBy: Constants.SINGLE_SPACE).first else {
+//                    return
+//                }
+//                
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.navigationItem.title = string
+//                    
+//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+//                    popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
+//                    
+//                    popover.delegate = self
+//                    popover.purpose = .selectingTime
+//                    
+//                    popover.parser = { (string:String) -> [String] in
+//                        var strings = string.components(separatedBy: "\n")
+//                        while strings.count > 2 {
+//                            strings.removeLast()
+//                        }
+//                        return strings
+//                    }
+//                    
+//                    popover.search = true
+//                    popover.searchInteractive = false
+//                    popover.searchActive = true
+//                    popover.searchText = searchText
+//                    popover.wholeWordsOnly = true
+//                    
+//                    popover.section.showIndex = true
+//                    popover.section.indexStringsTransform =  { (string:String?) -> String? in
+//                        return string?.century
+//                    } // century
+//                    popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                        return string
+//                    }
+//                    
+//                    // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                    // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                    popover.stringsFunction = { [weak popover] in
+//                        guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else {
+//                            return nil
+//                        }
+//                        
+//                        guard let times = popover?.transcript?.transcriptSegmentTokenTimes(token: searchText) else {
+//                            return nil
+//                        }
+//                        
+//                        var strings = [String]()
+//                        
+//                        for time in times {
+//                            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                                if transcriptSegmentComponent.contains(time+" --> ") { //
+//                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                                    
+//                                    if transcriptSegmentArray.count > 2  {
+//                                        let count = transcriptSegmentArray.removeFirst()
+//                                        let timeWindow = transcriptSegmentArray.removeFirst()
+//                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+//                                        
+//                                        if  let start = times.first,
+//                                            let end = times.last,
+//                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                            let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                            let string = "\(count)\n\(start) to \(end)\n" + text
+//                                            
+//                                            strings.append(string)
+//                                        }
+//                                    }
+//                                    break
+//                                }
+//                            }
+//                        }
+//                        
+//                        return strings
+//                    }
+//                    
+//                    //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                    
+//                    self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//                break
+//                
+//            case .selectingTimingIndexPhrase:
+//                guard let range = string.range(of: " (") else {
+//                    return
+//                }
+//                
+//                let searchText = String(string[..<range.lowerBound])
+//                
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.navigationItem.title = string
+//                    
+//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXPHRASE"]?.selectedMediaItem
+//                    popover.transcript = self.popover?["TIMINGINDEXPHRASE"]?.transcript
+//                    
+//                    popover.delegate = self
+//                    popover.purpose = .selectingTime
+//                    
+//                    popover.parser = { (string:String) -> [String] in
+//                        var strings = string.components(separatedBy: "\n")
+//                        while strings.count > 2 {
+//                            strings.removeLast()
+//                        }
+//                        return strings
+//                    }
+//                    
+//                    popover.search = true
+//                    popover.searchInteractive = false
+//                    popover.searchActive = true
+//                    popover.searchText = searchText
+//                    //                popover.wholeWordsOnly = true
+//                    
+//                    popover.section.showIndex = true
+//                    popover.section.indexStringsTransform = { (string:String?) -> String? in
+//                        return string?.century
+//                    } // century
+//                    popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                        return string
+//                    }
+//                    
+//                    // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                    // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                    popover.stringsFunction = { [weak popover] in
+//                        guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else { // (token: string)
+//                            return nil
+//                        }
+//                        
+//                        guard let times = popover?.transcript?.keywordTimes?[searchText] else { // (token: string)
+//                            return nil
+//                        }
+//                        
+//                        var strings = [String]()
+//                        
+//                        for time in times {
+//                            var found = false
+//                            var gap : Double?
+//                            var closest : String?
+//                            
+//                            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//                                
+//                                if transcriptSegmentArray.count > 2  {
+//                                    let count = transcriptSegmentArray.removeFirst()
+//                                    let timeWindow = transcriptSegmentArray.removeFirst()
+//                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+//                                    
+//                                    if  let start = times.first,
+//                                        let end = times.last,
+//                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                        let string = "\(count)\n\(start) to \(end)\n" + text
+//                                        
+//                                        if (start.hmsToSeconds <= time.hmsToSeconds) && (time.hmsToSeconds <= end.hmsToSeconds) {
+//                                            strings.append(string)
+//                                            found = true
+//                                            gap = nil
+//                                            break
+//                                        } else {
+//                                            guard let time = time.hmsToSeconds else {
+//                                                continue
+//                                            }
+//                                            
+//                                            guard let start = start.hmsToSeconds else {
+//                                                continue
+//                                            }
+//                                            
+//                                            guard let end = end.hmsToSeconds else { //
+//                                                continue
+//                                            }
+//                                            
+//                                            var currentGap = 0.0
+//                                            
+//                                            if time < start {
+//                                                currentGap = start - time
+//                                            }
+//                                            if time > end {
+//                                                currentGap = time - end
+//                                            }
+//                                            
+//                                            if gap != nil {
+//                                                if currentGap < gap {
+//                                                    gap = currentGap
+//                                                    closest = string
+//                                                }
+//                                            } else {
+//                                                gap = currentGap
+//                                                closest = string
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            
+//                            // We have to deal w/ the case where the keyword time isn't found in a segment which is probably due to a rounding error in the milliseconds, e.g. 1.
+//                            if !found {
+//                                if let closest = closest {
+//                                    strings.append(closest)
+//                                } else {
+//                                    // ??
+//                                }
+//                            }
+//                        }
+//                        
+//                        return strings
+//                    }
+//                    
+//                    //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//                    
+//                    self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//                break
+//                
+//            case .selectingTimingIndexTopic:
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.navigationItem.title = string
+//                    
+//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXTOPIC"]?.selectedMediaItem
+//                    popover.transcript = self.popover?["TIMINGINDEXTOPIC"]?.transcript
+//                    
+//                    popover.delegate = self
+//                    popover.purpose = .selectingTimingIndexTopicKeyword
+//                    
+//                    popover.section.strings = popover.transcript?.topicKeywords(topic: string)
+//                    
+//                    self.popover?["TIMINGINDEXTOPIC"]?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//                break
+//                
+//            case .selectingTimingIndexTopicKeyword:
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.navigationItem.title = string
+//                    
+//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXKEYWORD"]?.selectedMediaItem
+//                    popover.transcript = self.popover?["TIMINGINDEXKEYWORD"]?.transcript
+//                    
+//                    popover.delegate = self
+//                    popover.purpose = .selectingTime
+//                    
+//                    popover.parser = { (string:String) -> [String] in
+//                        var strings = string.components(separatedBy: "\n")
+//                        while strings.count > 2 {
+//                            strings.removeLast()
+//                        }
+//                        return strings
+//                    }
+//                    
+//                    if let topic = self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.visibleViewController?.navigationItem.title {
+//                        popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
+//                            return string.secondsToHMS ?? "ERROR"
+//                        })
+//                    }
+//                    
+//                    self.popover?["TIMINGINDEXKEYWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//                break
+//                
+//            case .selectingTime:
+//                guard Globals.shared.mediaPlayer.currentTime != nil else {
+//                    break
+//                }
+//                
+//                if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
+//                    Globals.shared.mediaPlayer.seek(to: seconds)
+//                }
+//                break
+                
+            default:
+                break
+            }
+        }
 //    }
 }
 

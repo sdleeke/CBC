@@ -9,20 +9,20 @@
 import UIKit
 import MessageUI
 
-extension LexiconIndexViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
+//extension LexiconIndexViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
 
 extension LexiconIndexViewController : PopoverPickerControllerDelegate
 {
@@ -47,442 +47,446 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
     }
 }
 
-extension LexiconIndexViewController : PopoverTableViewControllerDelegate
-{
-    //  MARK: PopoverTableViewControllerDelegate
-
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
-    {
-        return nil
-    }
-    
-   func actionMenu(action: String?,mediaItem:MediaItem?)
-    {
-        guard self.isViewLoaded else {
-            return
-        }
-        
-        guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
-            return
-        }
-        
-        guard let action = action else {
-            return
-        }
-        
-        switch action {
-//        case Constants.Strings.Sorting:
-//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//extension LexiconIndexViewController : PopoverTableViewControllerDelegate
+//{
+//    //  MARK: PopoverTableViewControllerDelegate
+//
+//    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+//    {
+//        return nil
+//    }
+//
+//   func actionMenu(action: String?,mediaItem:MediaItem?)
+//    {
+//        guard self.isViewLoaded else {
+//            return
+//        }
+//
+//        guard Thread.isMainThread else {
+//            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
+//            return
+//        }
+//
+//        guard let action = action else {
+//            return
+//        }
+//
+//        switch action {
+////        case Constants.Strings.Sorting:
+////            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+////                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+////                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+////
+////                navigationController.popoverPresentationController?.delegate = self
+////
+////                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+////                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+////
+////                popover.navigationItem.title = "Select"
+////                navigationController.isNavigationBarHidden = false
+////
+////                popover.delegate = self
+////                popover.purpose = .selectingSorting
+////                popover.stringSelected = self.wordsTableViewController.section.method
+////
+////                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+////
+////                present(navigationController, animated: true, completion: nil)
+////            }
+////            break
+//
+//        case Constants.Strings.Word_Picker:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+//                popover.navigationItem.title = "Select"
+//                navigationController.isNavigationBarHidden = false
+//
+//                if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//                    let hClass = traitCollection.horizontalSizeClass
+//
+//                    if hClass == .compact {
+//                        navigationController.modalPresentationStyle = .overCurrentContext
+//                    } else {
+//                        // I don't think this ever happens: collapsed and regular
+//                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                    }
+//                } else {
+//                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                }
 //
 //                navigationController.popoverPresentationController?.delegate = self
 //
 //                navigationController.popoverPresentationController?.permittedArrowDirections = .up
 //                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
 //
-//                popover.navigationItem.title = "Select"
-//                navigationController.isNavigationBarHidden = false
+//                popover.navigationItem.title = Constants.Strings.Word_Picker
 //
 //                popover.delegate = self
-//                popover.purpose = .selectingSorting
-//                popover.stringSelected = self.wordsTableViewController.section.method
 //
-//                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+////                popover.actionTitle = Constants.Strings.Expanded_View
+////
+////                ////////////////////////////////////////////////////////////////////////////////////////
+////                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
+////                ////////////////////////////////////////////////////////////////////////////////////////
+////                popover.action = { [weak popover] (String) in
+////                    popover?.process(work: { [weak self] () -> (Any?) in
+////                        Thread.onMainThread {
+////                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
+////                        }
+////
+////                        return popover?.stringTree?.html
+////                    }, completion: { [weak self] (data:Any?) in
+////                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+////
+////                        Thread.onMainThread {
+////                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
+////                        }
+////                    })
+////                }
+//
+//                popover.lexicon = self.lexicon
+//
+////                popover.stringTree?.lexicon = self.lexicon
+//
+////                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+////                    return self?.lexicon?.stringsFunction?()
+////                }, incremental:true)
+//
+////                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
+//                // This really defeats the purpose of saving the stringTree in the lexicon.
+//                // But it covers over the lost words problem of incremental updates by forcing a new stringTree each
+//                // time it is opened.  Which is also slow!
+//
+//                // AND because LIVC words table activeWords may be FEWER than last time we can't keep anything from
+//                // past string trees!
+//
+//                // mediaListGroupSort?.lexicon?.tokens
+////                popover.strings = activeWords
+//
+//                popover.stringsFunction = lexicon?.stringsFunction
+////                { [weak self] in
+////                    return self?.activeWords
+////                }
 //
 //                present(navigationController, animated: true, completion: nil)
 //            }
 //            break
-            
-        case Constants.Strings.Word_Picker:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                popover.navigationItem.title = "Select"
-                navigationController.isNavigationBarHidden = false
-
-                if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                    let hClass = traitCollection.horizontalSizeClass
-                    
-                    if hClass == .compact {
-                        navigationController.modalPresentationStyle = .overCurrentContext
-                    } else {
-                        // I don't think this ever happens: collapsed and regular
-                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                    }
-                } else {
-                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                }
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
-                popover.navigationItem.title = Constants.Strings.Word_Picker
-                
-                popover.delegate = self
-                
-//                popover.actionTitle = Constants.Strings.Expanded_View
-//                
-//                ////////////////////////////////////////////////////////////////////////////////////////
-//                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
-//                ////////////////////////////////////////////////////////////////////////////////////////
-//                popover.action = { [weak popover] (String) in
-//                    popover?.process(work: { [weak self] () -> (Any?) in
-//                        Thread.onMainThread {
-//                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
-//                        }
-//                        
-//                        return popover?.stringTree?.html
-//                    }, completion: { [weak self] (data:Any?) in
-//                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
 //
-//                        Thread.onMainThread {
-//                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
-//                        }
-//                    })
-//                }
-
-                popover.lexicon = self.lexicon
-
-//                popover.stringTree?.lexicon = self.lexicon
-                
-//                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
-//                    return self?.lexicon?.stringsFunction?()
-//                }, incremental:true)
-
-//                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
-                // This really defeats the purpose of saving the stringTree in the lexicon.
-                // But it covers over the lost words problem of incremental updates by forcing a new stringTree each
-                // time it is opened.  Which is also slow!
-                
-                // AND because LIVC words table activeWords may be FEWER than last time we can't keep anything from
-                // past string trees!
-                
-                // mediaListGroupSort?.lexicon?.tokens
-//                popover.strings = activeWords
-
-                popover.stringsFunction = lexicon?.stringsFunction
-//                { [weak self] in
-//                    return self?.activeWords
-//                }
-                
-                present(navigationController, animated: true, completion: nil)
-            }
-            break
-            
-        case Constants.Strings.Word_Index:
-            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
-                // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
-
-                // SHOULD ONLY BE activeWords
-                
-//                return self?.lexicon?.wordsHTML
-                return self?.lexicon?.activeWords(searchText:self?.wordsTableViewController.searchText)?.sorted().tableHTML(searchText:self?.wordsTableViewController.searchText, test:test)
-            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                // preferredModalPresentationStyle(viewController: self)
-                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
-            })
-            break
-            
-        case "Stop":
-            var alertActions = [AlertAction]()
-            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                self.lexicon?.stop()
-                if self.navigationController?.visibleViewController == self {
-                    self.navigationController?.popViewController(animated: true)
-                }
-                Alerts.shared.alert(title: "Lexicon Build Stopped")
-            }))
-            alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.destructive, handler: nil))
-            Alerts.shared.alert(title: "Confirm Stopping Lexicon Build", actions: alertActions)
-            
-//            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",
-//                                            message: nil,
-//                                            preferredStyle: .alert)
-//            alert.makeOpaque()
+//        case Constants.Strings.Word_Index:
+//            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+//                // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
+//                // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
 //
-//            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-//                (action : UIAlertAction!) -> Void in
+//                // SHOULD ONLY BE activeWords
+//
+////                return self?.lexicon?.wordsHTML
+//                return self?.lexicon?.activeWords(searchText:self?.wordsTableViewController.searchText)?.sorted().tableHTML(searchText:self?.wordsTableViewController.searchText, test:test)
+//            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+//                // preferredModalPresentationStyle(viewController: self)
+//                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+//            })
+//            break
+//
+//        case "Stop":
+//            var alertActions = [AlertAction]()
+//            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
 //                self.lexicon?.stop()
 //                if self.navigationController?.visibleViewController == self {
 //                    self.navigationController?.popViewController(animated: true)
 //                }
 //                Alerts.shared.alert(title: "Lexicon Build Stopped")
-//            })
-//            alert.addAction(yesAction)
+//            }))
+//            alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.destructive, handler: nil))
+//            Alerts.shared.alert(title: "Confirm Stopping Lexicon Build", actions: alertActions)
 //
-//            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-//                (action : UIAlertAction!) -> Void in
+////            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",
+////                                            message: nil,
+////                                            preferredStyle: .alert)
+////            alert.makeOpaque()
+////
+////            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+////                (action : UIAlertAction!) -> Void in
+////                self.lexicon?.stop()
+////                if self.navigationController?.visibleViewController == self {
+////                    self.navigationController?.popViewController(animated: true)
+////                }
+////                Alerts.shared.alert(title: "Lexicon Build Stopped")
+////            })
+////            alert.addAction(yesAction)
+////
+////            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+////                (action : UIAlertAction!) -> Void in
+////
+////            })
+////            alert.addAction(noAction)
+////
+////            self.present(alert, animated: true, completion: nil)
+//            break
 //
-//            })
-//            alert.addAction(noAction)
-//
-//            self.present(alert, animated: true, completion: nil)
-            break
-            
-        case Constants.Strings.View_List:
-//            self.process(work: { [weak self] () -> (Any?) in
-            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                if self?.results?.html?.string == nil {
-                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true, test:test)
-                }
-                
-                return self?.results?.html?.string
-            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                if let searchText = self?.searchText, let vc = self {
-                    vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
-                }
-            })
-            break
-            
-        default:
-            break
-        }
-    }
-    
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
-    {
-        guard self.isViewLoaded else {
-            return
-        }
-        
-        guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
-            return
-        }
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        guard index < strings.count else {
-            return
-        }
-        
-        let string = strings[index]
-        
-        switch purpose {
-        case .selectingSorting:
-            dismiss(animated: true, completion: nil)
-
-            wordsTableViewController.section.method = string
-            
-            switch string {
-            case Constants.Sort.Alphabetical:
-                wordsTableViewController.section.showIndex = true
-                break
-                
-            case Constants.Sort.Frequency:
-                wordsTableViewController.section.showIndex = false
-                break
-                
-            default:
-                break
-            }
-            
-            wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
-            
-            wordsTableViewController.tableView.reloadData()
-            break
-            
-        case .selectingSection:
-            dismiss(animated: true, completion: nil)
-            
-            if let headerStrings = results?.section?.headerStrings {
-                var i = 0
-                for headerString in headerStrings {
-                    if headerString == string {
-                        break
-                    }
-                    
-                    i += 1
-                }
-                
-                let indexPath = IndexPath(row: 0, section: i)
-                
-//                if !(indexPath.section < tableView.numberOfSections) {
-//                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
-//                    NSLog("Section: \(indexPath.section)")
-//                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-//                    break
+//        case Constants.Strings.View_List:
+////            self.process(work: { [weak self] () -> (Any?) in
+//            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+//                if self?.results?.html?.string == nil {
+//                    self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true, test:test)
 //                }
 //
-//                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-//                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
-//                    NSLog("Section: \(indexPath.section)")
-//                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-//                    NSLog("Row: \(indexPath.row)")
-//                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-//                    break
+//                return self?.results?.html?.string
+//            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+//                if let searchText = self?.searchText, let vc = self {
+//                    vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
 //                }
-                
-                //Can't use this reliably w/ variable row heights.
-                if tableView.isValid(indexPath) {
-                    tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
-                }
-            }
-            break
-            
-        case .selectingLexicon:
-            var text = string
-            
-            if let range = text.range(of: " (") {
-                text = String(string[..<range.lowerBound])
-            }
-
-            var bounds = view.bounds
-            
-            if #available(iOS 11.0, *) {
-                bounds = view.bounds.inset(by: view.safeAreaInsets)
-            } else {
-                // Fallback on earlier versions
-            }
-            
-            guard searchText != text.uppercased() else {
-                searchText = nil
-                if let indexPath = wordsTableViewController.tableView.indexPathForSelectedRow {
-                    wordsTableViewController.tableView.deselectRow(at: indexPath, animated: true)
-                }
-                break
-            }
-            
-            searchText = text.uppercased()
-            
-            Thread.onMainThread {
-                self.tableView.setEditing(false, animated: true)
-            }
+//            })
+//            break
 //
-//            if tableViewHeightConstraint.constant == 0 {
-//                tableViewHeightConstraint.constant = tableView.rowHeight + (tableView.headerView(forSection: 0)?.bounds.height ?? 0) // + ((navigationController?.isToolbarHidden ?? true) ? 0 : (navigationController?.toolbar.bounds.height ?? 0))
+//        default:
+//            break
+//        }
+//    }
+//
+//    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+//    {
+//        guard self.isViewLoaded else {
+//            return
+//        }
+//
+//        guard Thread.isMainThread else {
+//            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
+//            return
+//        }
+//
+//        guard let strings = strings else {
+//            return
+//        }
+//
+//        guard index < strings.count else {
+//            return
+//        }
+//
+//        let string = strings[index]
+//
+//        switch purpose {
+//        case .selectingSorting:
+//            dismiss(animated: true, completion: nil)
+//
+//            wordsTableViewController.section.method = string
+//
+//            switch string {
+//            case Constants.Sort.Alphabetical:
+//                wordsTableViewController.section.showIndex = true
+//                break
+//
+//            case Constants.Sort.Frequency:
+//                wordsTableViewController.section.showIndex = false
+//                break
+//
+//            default:
+//                break
 //            }
-            break
-            
-        case .selectingAction:
-            dismiss(animated: true, completion: nil)
-
-            actionMenu(action:string,mediaItem:mediaItem)
-            break
-            
-        case .selectingCellAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingTimingIndexWord:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = string
-                
-                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
-                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
-                
-                popover.delegate = self
-                popover.purpose = .selectingTime
-                
-                popover.parser = { (string:String) -> [String] in
-                    var strings = string.components(separatedBy: "\n")
-                    while strings.count > 2 {
-                        strings.removeLast()
-                    }
-                    return strings
-                }
-                
-                popover.search = true
-                popover.searchInteractive = false
-                popover.searchActive = true
-                popover.searchText = string
-                popover.wholeWordsOnly = true
-                
-                popover.section.showIndex = true
-                popover.section.indexStringsTransform =  { (string:String?) -> String? in
-                    return string?.century
-                } //century
-                popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                    return string
-                }
-                
-                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
-                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
-                popover.stringsFunction = {
-                    guard let times = popover.transcript?.transcriptSegmentTokenTimes(token: string), let transcriptSegmentComponents = popover.transcript?.transcriptSegmentComponents else {
-                        return nil
-                    }
-                    
-                    var strings = [String]()
-                    
-                    for time in times {
-                        for transcriptSegmentComponent in transcriptSegmentComponents {
-                            if transcriptSegmentComponent.contains(time+" --> ") { //
-                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                                
-                                if transcriptSegmentArray.count > 2  {
-                                    let count = transcriptSegmentArray.removeFirst()
-                                    let timeWindow = transcriptSegmentArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") // 
-                                    
-                                    if  let start = times.first,
-                                        let end = times.last,
-                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-                                        let string = "\(count)\n\(start) to \(end)\n" + text
-                                        
-                                        strings.append(string)
-                                    }
-                                }
-                                break
-                            }
-                        }
-                    }
-                    
-                    return strings
-                }
-                
-//                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
-                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
-            }
-            break
-            
-        case .selectingTime:
-            guard Globals.shared.mediaPlayer.currentTime != nil else {
-                break
-            }
-            
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
-                Globals.shared.mediaPlayer.seek(to: seconds)
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-}
+//
+//            wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
+//
+//            wordsTableViewController.tableView.reloadData()
+//            break
+//
+//        case .selectingSection:
+//            dismiss(animated: true, completion: nil)
+//
+//            if let headerStrings = results?.section?.headerStrings {
+//                var i = 0
+//                for headerString in headerStrings {
+//                    if headerString == string {
+//                        break
+//                    }
+//
+//                    i += 1
+//                }
+//
+//                let indexPath = IndexPath(row: 0, section: i)
+//
+////                if !(indexPath.section < tableView.numberOfSections) {
+////                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
+////                    NSLog("Section: \(indexPath.section)")
+////                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+////                    break
+////                }
+////
+////                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+////                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
+////                    NSLog("Section: \(indexPath.section)")
+////                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+////                    NSLog("Row: \(indexPath.row)")
+////                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+////                    break
+////                }
+//
+//                //Can't use this reliably w/ variable row heights.
+//                if tableView.isValid(indexPath) {
+//                    tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+//                }
+//            }
+//            break
+//
+//        case .selectingLexicon:
+//            var text = string
+//
+//            if let range = text.range(of: " (") {
+//                text = String(string[..<range.lowerBound])
+//            }
+//
+//            var bounds = view.bounds
+//
+//            if #available(iOS 11.0, *) {
+//                bounds = view.bounds.inset(by: view.safeAreaInsets)
+//            } else {
+//                // Fallback on earlier versions
+//            }
+//
+//            guard searchText != text.uppercased() else {
+//                searchText = nil
+//                if let indexPath = wordsTableViewController.tableView.indexPathForSelectedRow {
+//                    wordsTableViewController.tableView.deselectRow(at: indexPath, animated: true)
+//                }
+//                break
+//            }
+//
+//            searchText = text.uppercased()
+//
+//            Thread.onMainThread {
+//                self.tableView.setEditing(false, animated: true)
+//            }
+////
+////            if tableViewHeightConstraint.constant == 0 {
+////                tableViewHeightConstraint.constant = tableView.rowHeight + (tableView.headerView(forSection: 0)?.bounds.height ?? 0) // + ((navigationController?.isToolbarHidden ?? true) ? 0 : (navigationController?.toolbar.bounds.height ?? 0))
+////            }
+//            break
+//
+//        case .selectingAction:
+//            dismiss(animated: true, completion: nil)
+//
+//            actionMenu(action:string,mediaItem:mediaItem)
+//            break
+//
+//        case .selectingCellAction:
+//            dismiss(animated: true, completion: nil)
+//
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                break
+//
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//
+//            default:
+//                break
+//            }
+//            break
+//
+//        case .selectingTimingIndexWord:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//
+//                navigationController.popoverPresentationController?.delegate = self
+//
+//                popover.navigationController?.isNavigationBarHidden = false
+//
+//                popover.navigationItem.title = string
+//
+//                popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+//                popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
+//
+//                popover.delegate = self
+//                popover.purpose = .selectingTime
+//
+//                popover.parser = { (string:String) -> [String] in
+//                    var strings = string.components(separatedBy: "\n")
+//                    while strings.count > 2 {
+//                        strings.removeLast()
+//                    }
+//                    return strings
+//                }
+//
+//                popover.search = true
+//                popover.searchInteractive = false
+//                popover.searchActive = true
+//                popover.searchText = string
+//                popover.wholeWordsOnly = true
+//
+//                popover.section.showIndex = true
+//                popover.section.indexStringsTransform =  { (string:String?) -> String? in
+//                    return string?.century
+//                } //century
+//                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                    return string
+//                }
+//
+//                // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                popover.stringsFunction = { [weak popover] in
+//                    guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else {
+//                        return nil
+//                    }
+//
+//                    guard let times = popover?.transcript?.transcriptSegmentTokenTimes(token: string) else {
+//                        return nil
+//                    }
+//
+//                    var strings = [String]()
+//
+//                    for time in times {
+//                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            if transcriptSegmentComponent.contains(time+" --> ") { //
+//                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//
+//                                if transcriptSegmentArray.count > 2  {
+//                                    let count = transcriptSegmentArray.removeFirst()
+//                                    let timeWindow = transcriptSegmentArray.removeFirst()
+//                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+//
+//                                    if  let start = times.first,
+//                                        let end = times.last,
+//                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                        let string = "\(count)\n\(start) to \(end)\n" + text
+//
+//                                        strings.append(string)
+//                                    }
+//                                }
+//                                break
+//                            }
+//                        }
+//                    }
+//
+//                    return strings
+//                }
+//
+////                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//
+//                self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//            }
+//            break
+//
+//        case .selectingTime:
+//            guard Globals.shared.mediaPlayer.currentTime != nil else {
+//                break
+//            }
+//
+//            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
+//                Globals.shared.mediaPlayer.seek(to: seconds)
+//            }
+//            break
+//
+//        default:
+//            break
+//        }
+//    }
+//}
 
 extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
 {
@@ -494,24 +498,24 @@ extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
     }
 }
 
-extension LexiconIndexViewController : UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-    }
-}
+//extension LexiconIndexViewController : UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
 
 class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
 {
     var label : UILabel?
 }
 
-class LexiconIndexViewController : CBCViewController
+class LexiconIndexViewController : MediaItemsViewController
 {
-    lazy var popover : [String:PopoverTableViewController]? = {
-        return [String:PopoverTableViewController]()
-    }()
+//    lazy var popover : [String:PopoverTableViewController]? = {
+//        return [String:PopoverTableViewController]()
+//    }()
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
@@ -995,9 +999,9 @@ class LexiconIndexViewController : CBCViewController
                                     section.indexSort = nil
                                 }
                                 
-                                wordsTableViewController.unfilteredSection.sorting = true
+//                                wordsTableViewController.unfilteredSection.sorting = true
                                 wordsTableViewController.unfilteredSection.strings = strings
-                                wordsTableViewController.unfilteredSection.sorting = false
+//                                wordsTableViewController.unfilteredSection.sorting = false
 
                                 wordsTableViewController.updateSearchResults()
                                 
@@ -1076,9 +1080,9 @@ class LexiconIndexViewController : CBCViewController
                                     }
                                 }
                                 
-                                wordsTableViewController.unfilteredSection.sorting = true
+//                                wordsTableViewController.unfilteredSection.sorting = true
                                 wordsTableViewController.unfilteredSection.strings = strings
-                                wordsTableViewController.unfilteredSection.sorting = false
+//                                wordsTableViewController.unfilteredSection.sorting = false
                                 
                                 wordsTableViewController.updateSearchResults()
                                 
@@ -1157,9 +1161,9 @@ class LexiconIndexViewController : CBCViewController
                                     }
                                 }
                                 
-                                wordsTableViewController.unfilteredSection.sorting = true
+//                                wordsTableViewController.unfilteredSection.sorting = true
                                 wordsTableViewController.unfilteredSection.strings = strings
-                                wordsTableViewController.unfilteredSection.sorting = false
+//                                wordsTableViewController.unfilteredSection.sorting = false
                                 
                                 wordsTableViewController.updateSearchResults()
                                 
@@ -1424,7 +1428,7 @@ class LexiconIndexViewController : CBCViewController
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-//        if let category = Globals.shared.mediaCategory.selected {
+//        if let category = Globals.shared.media.category.selected {
         if let category = mediaListGroupSort?.category.value {
             bodyString += "Category: \(category)<br/>"
         }
@@ -2237,6 +2241,449 @@ class LexiconIndexViewController : CBCViewController
         // Dispose of any resources that can be recreated.
         Globals.shared.freeMemory()
     }
+    
+//    extension LexiconIndexViewController : PopoverTableViewControllerDelegate
+//    {
+        //  MARK: PopoverTableViewControllerDelegate
+        
+//        override func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+//        {
+//            return super.rowActions(popover: popover, tableView: tableView, indexPath: indexPath)
+//        }
+    
+        func actionMenu(action: String?,mediaItem:MediaItem?)
+        {
+            guard self.isViewLoaded else {
+                return
+            }
+            
+            guard Thread.isMainThread else {
+                self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
+                return
+            }
+            
+            guard let action = action else {
+                return
+            }
+            
+            switch action {
+                //        case Constants.Strings.Sorting:
+                //            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                //                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                //                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                //
+                //                navigationController.popoverPresentationController?.delegate = self
+                //
+                //                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                //                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                //
+                //                popover.navigationItem.title = "Select"
+                //                navigationController.isNavigationBarHidden = false
+                //
+                //                popover.delegate = self
+                //                popover.purpose = .selectingSorting
+                //                popover.stringSelected = self.wordsTableViewController.section.method
+                //
+                //                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+                //
+                //                present(navigationController, animated: true, completion: nil)
+                //            }
+                //            break
+                
+            case Constants.Strings.Word_Picker:
+                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                    popover.navigationItem.title = "Select"
+                    navigationController.isNavigationBarHidden = false
+                    
+                    if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                        let hClass = traitCollection.horizontalSizeClass
+                        
+                        if hClass == .compact {
+                            navigationController.modalPresentationStyle = .overCurrentContext
+                        } else {
+                            // I don't think this ever happens: collapsed and regular
+                            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        }
+                    } else {
+                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                    }
+                    
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                    
+                    popover.navigationItem.title = Constants.Strings.Word_Picker
+                    
+                    popover.delegate = self
+                    
+                    //                popover.actionTitle = Constants.Strings.Expanded_View
+                    //
+                    //                ////////////////////////////////////////////////////////////////////////////////////////
+                    //                //          WEAK POPOVER IS CRUCIAL TO AVOID A RETAIL CYCLE
+                    //                ////////////////////////////////////////////////////////////////////////////////////////
+                    //                popover.action = { [weak popover] (String) in
+                    //                    popover?.process(work: { [weak self] () -> (Any?) in
+                    //                        Thread.onMainThread {
+                    //                            popover?.navigationItem.rightBarButtonItem?.isEnabled = false
+                    //                        }
+                    //
+                    //                        return popover?.stringTree?.html
+                    //                    }, completion: { [weak self] (data:Any?) in
+                    //                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    //
+                    //                        Thread.onMainThread {
+                    //                            popover?.navigationItem.rightBarButtonItem?.isEnabled = true
+                    //                        }
+                    //                    })
+                    //                }
+                    
+                    popover.lexicon = self.lexicon
+                    
+                    //                popover.stringTree?.lexicon = self.lexicon
+                    
+                    //                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
+                    //                    return self?.lexicon?.stringsFunction?()
+                    //                }, incremental:true)
+                    
+                    //                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
+                    // This really defeats the purpose of saving the stringTree in the lexicon.
+                    // But it covers over the lost words problem of incremental updates by forcing a new stringTree each
+                    // time it is opened.  Which is also slow!
+                    
+                    // AND because LIVC words table activeWords may be FEWER than last time we can't keep anything from
+                    // past string trees!
+                    
+                    // mediaListGroupSort?.lexicon?.tokens
+                    //                popover.strings = activeWords
+                    
+                    popover.stringsFunction = lexicon?.stringsFunction
+                    //                { [weak self] in
+                    //                    return self?.activeWords
+                    //                }
+                    
+                    present(navigationController, animated: true, completion: nil)
+                }
+                break
+                
+            case Constants.Strings.Word_Index:
+                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                    // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
+                    // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
+                    
+                    // SHOULD ONLY BE activeWords
+                    
+                    //                return self?.lexicon?.wordsHTML
+                    return self?.lexicon?.activeWords(searchText:self?.wordsTableViewController.searchText)?.sorted().tableHTML(searchText:self?.wordsTableViewController.searchText, test:test)
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                        // preferredModalPresentationStyle(viewController: self)
+                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                })
+                break
+                
+            case "Stop":
+                var alertActions = [AlertAction]()
+                alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                    self.lexicon?.stop()
+                    if self.navigationController?.visibleViewController == self {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                    Alerts.shared.alert(title: "Lexicon Build Stopped")
+                }))
+                alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.destructive, handler: nil))
+                Alerts.shared.alert(title: "Confirm Stopping Lexicon Build", actions: alertActions)
+                
+                //            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",
+                //                                            message: nil,
+                //                                            preferredStyle: .alert)
+                //            alert.makeOpaque()
+                //
+                //            let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
+                //                (action : UIAlertAction!) -> Void in
+                //                self.lexicon?.stop()
+                //                if self.navigationController?.visibleViewController == self {
+                //                    self.navigationController?.popViewController(animated: true)
+                //                }
+                //                Alerts.shared.alert(title: "Lexicon Build Stopped")
+                //            })
+                //            alert.addAction(yesAction)
+                //
+                //            let noAction = UIAlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
+                //                (action : UIAlertAction!) -> Void in
+                //
+                //            })
+                //            alert.addAction(noAction)
+                //
+                //            self.present(alert, animated: true, completion: nil)
+                break
+                
+            case Constants.Strings.View_List:
+                //            self.process(work: { [weak self] () -> (Any?) in
+                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                    if self?.results?.html?.string == nil {
+                        self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true, test:test)
+                    }
+                    
+                    return self?.results?.html?.string
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                        if let searchText = self?.searchText, let vc = self {
+                            vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(searchText)", htmlString: data as? String)
+                        }
+                })
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        override func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+        {
+            super.rowClickedAtIndex(index, strings: strings, purpose: purpose, mediaItem: mediaItem)
+            
+            guard self.isViewLoaded else {
+                return
+            }
+            
+            guard Thread.isMainThread else {
+                self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
+                return
+            }
+            
+            guard let strings = strings else {
+                return
+            }
+            
+            guard index < strings.count else {
+                return
+            }
+            
+            let string = strings[index]
+            
+            switch purpose {
+            case .selectingSorting:
+                dismiss(animated: true, completion: nil)
+                
+                wordsTableViewController.section.method = string
+                
+                switch string {
+                case Constants.Sort.Alphabetical:
+                    wordsTableViewController.section.showIndex = true
+                    break
+                    
+                case Constants.Sort.Frequency:
+                    wordsTableViewController.section.showIndex = false
+                    break
+                    
+                default:
+                    break
+                }
+                
+                wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
+                
+                wordsTableViewController.tableView.reloadData()
+                break
+                
+            case .selectingSection:
+                dismiss(animated: true, completion: nil)
+                
+                if let headerStrings = results?.section?.headerStrings {
+                    var i = 0
+                    for headerString in headerStrings {
+                        if headerString == string {
+                            break
+                        }
+                        
+                        i += 1
+                    }
+                    
+                    let indexPath = IndexPath(row: 0, section: i)
+                    
+                    //                if !(indexPath.section < tableView.numberOfSections) {
+                    //                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
+                    //                    NSLog("Section: \(indexPath.section)")
+                    //                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    //                    break
+                    //                }
+                    //
+                    //                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                    //                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
+                    //                    NSLog("Section: \(indexPath.section)")
+                    //                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    //                    NSLog("Row: \(indexPath.row)")
+                    //                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                    //                    break
+                    //                }
+                    
+                    //Can't use this reliably w/ variable row heights.
+                    if tableView.isValid(indexPath) {
+                        tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                    }
+                }
+                break
+                
+            case .selectingLexicon:
+                var text = string
+                
+                if let range = text.range(of: " (") {
+                    text = String(string[..<range.lowerBound])
+                }
+                
+                var bounds = view.bounds
+                
+                if #available(iOS 11.0, *) {
+                    bounds = view.bounds.inset(by: view.safeAreaInsets)
+                } else {
+                    // Fallback on earlier versions
+                }
+                
+                guard searchText != text.uppercased() else {
+                    searchText = nil
+                    if let indexPath = wordsTableViewController.tableView.indexPathForSelectedRow {
+                        wordsTableViewController.tableView.deselectRow(at: indexPath, animated: true)
+                    }
+                    break
+                }
+                
+                searchText = text.uppercased()
+                
+                Thread.onMainThread {
+                    self.tableView.setEditing(false, animated: true)
+                }
+                //
+                //            if tableViewHeightConstraint.constant == 0 {
+                //                tableViewHeightConstraint.constant = tableView.rowHeight + (tableView.headerView(forSection: 0)?.bounds.height ?? 0) // + ((navigationController?.isToolbarHidden ?? true) ? 0 : (navigationController?.toolbar.bounds.height ?? 0))
+                //            }
+                break
+                
+            case .selectingAction:
+                dismiss(animated: true, completion: nil)
+                
+                actionMenu(action:string,mediaItem:mediaItem)
+                break
+                
+            case .selectingCellAction:
+                dismiss(animated: true, completion: nil)
+                
+                switch string {
+                case Constants.Strings.Download_Audio:
+                    mediaItem?.audioDownload?.download(background: true)
+                    break
+                    
+                case Constants.Strings.Delete_Audio_Download:
+                    mediaItem?.audioDownload?.delete(block:true)
+                    break
+                    
+                case Constants.Strings.Cancel_Audio_Download:
+                    mediaItem?.audioDownload?.cancelOrDelete()
+                    break
+                    
+                default:
+                    break
+                }
+                break
+                
+//            case .selectingTimingIndexWord:
+//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//
+//                    navigationController.popoverPresentationController?.delegate = self
+//
+//                    popover.navigationController?.isNavigationBarHidden = false
+//
+//                    popover.navigationItem.title = string
+//
+//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
+//                    popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
+//
+//                    popover.delegate = self
+//                    popover.purpose = .selectingTime
+//
+//                    popover.parser = { (string:String) -> [String] in
+//                        var strings = string.components(separatedBy: "\n")
+//                        while strings.count > 2 {
+//                            strings.removeLast()
+//                        }
+//                        return strings
+//                    }
+//
+//                    popover.search = true
+//                    popover.searchInteractive = false
+//                    popover.searchActive = true
+//                    popover.searchText = string
+//                    popover.wholeWordsOnly = true
+//
+//                    popover.section.showIndex = true
+//                    popover.section.indexStringsTransform =  { (string:String?) -> String? in
+//                        return string?.century
+//                    } //century
+//                    popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                        return string
+//                    }
+//
+//                    // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
+//                    // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
+//                    popover.stringsFunction = { [weak popover] in
+//                        guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else {
+//                            return nil
+//                        }
+//
+//                        guard let times = popover?.transcript?.transcriptSegmentTokenTimes(token: string) else {
+//                            return nil
+//                        }
+//
+//                        var strings = [String]()
+//
+//                        for time in times {
+//                            for transcriptSegmentComponent in transcriptSegmentComponents {
+//                                if transcriptSegmentComponent.contains(time+" --> ") { //
+//                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//
+//                                    if transcriptSegmentArray.count > 2  {
+//                                        let count = transcriptSegmentArray.removeFirst()
+//                                        let timeWindow = transcriptSegmentArray.removeFirst()
+//                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+//
+//                                        if  let start = times.first,
+//                                            let end = times.last,
+//                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                            let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                            let string = "\(count)\n\(start) to \(end)\n" + text
+//
+//                                            strings.append(string)
+//                                        }
+//                                    }
+//                                    break
+//                                }
+//                            }
+//                        }
+//
+//                        return strings
+//                    }
+//
+//                    //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
+//
+//                    self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//                break
+//
+//            case .selectingTime:
+//                guard Globals.shared.mediaPlayer.currentTime != nil else {
+//                    break
+//                }
+//
+//                if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
+//                    Globals.shared.mediaPlayer.seek(to: seconds)
+//                }
+//                break
+                
+            default:
+                break
+            }
+        }
+//    }
 }
 
 extension LexiconIndexViewController : UITableViewDelegate

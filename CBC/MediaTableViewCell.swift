@@ -157,7 +157,7 @@ class MediaTableViewCell: UITableViewCell
             detailString.append(eventName)
         }
 
-        if let category = mediaItem.category, category != Globals.shared.mediaCategory.selected {
+        if let category = mediaItem.category, category != Globals.shared.media.category.selected {
             if !detailString.string.isEmpty {
                 detailString.append(NSAttributedString(string: "\n"))
             }

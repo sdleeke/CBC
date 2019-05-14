@@ -216,7 +216,7 @@ func stopAudio()
 //    
 //    let fileManager = FileManager.default
 //    
-//    if let filename = Globals.shared.mediaCategory.filename, let jsonFileURL = filename.fileSystemURL {
+//    if let filename = Globals.shared.media.category.filename, let jsonFileURL = filename.fileSystemURL {
 //        // Check if file exist
 //        if (!fileManager.fileExists(atPath: jsonFileURL.path)){
 //            do {
@@ -2455,7 +2455,7 @@ func verifyNASB()
 //    
 //    if mediaItem.hasMultipleParts {
 //        if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-//            let seriesMediaItems = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+//            let seriesMediaItems = Globals.shared.media.repository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
 //                return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
 //            })
 //            multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
@@ -3400,7 +3400,7 @@ func verifyNASB()
 
 //func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 //{
-//    guard let mediaItems = Globals.shared.mediaRepository.list else {
+//    guard let mediaItems = Globals.shared.media.repository.list else {
 //        print("Testing the availability of mediaItem PDF's - no list")
 //        return
 //    }
@@ -3484,7 +3484,7 @@ func verifyNASB()
 //        print("Testing for mediaItem series and tags the same - end")
 //    }
 //
-//    if let mediaItems = Globals.shared.mediaRepository.list {
+//    if let mediaItems = Globals.shared.media.repository.list {
 //        for mediaItem in mediaItems {
 //            if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
 //                if (mediaItem.multiPartName == mediaItem.tags) {
@@ -3502,7 +3502,7 @@ func verifyNASB()
 //        print("Testing for audio - end")
 //    }
 //    
-//    guard let list = Globals.shared.mediaRepository.list else {
+//    guard let list = Globals.shared.media.repository.list else {
 //        print("Testing for audio - list empty")
 //        return
 //    }
@@ -3524,7 +3524,7 @@ func verifyNASB()
 //        print("Testing for speaker - end")
 //    }
 //
-//    guard let list = Globals.shared.mediaRepository.list else {
+//    guard let list = Globals.shared.media.repository.list else {
 //        print("Testing for speaker - no list")
 //        return
 //    }
@@ -3543,7 +3543,7 @@ func verifyNASB()
 //        print("Testing for mediaItems with \"(Part \" in the title but no series - end")
 //    }
 //
-//    guard let list = Globals.shared.mediaRepository.list else {
+//    guard let list = Globals.shared.media.repository.list else {
 //        print("Testing for speaker - no list")
 //        return
 //    }
@@ -4647,7 +4647,7 @@ func verifyNASB()
 //        bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
 //    }
 //
-//    if let category = Globals.shared.mediaCategory.selected {
+//    if let category = Globals.shared.media.category.selected {
 //        bodyString = bodyString + "Category: \(category)<br/>"
 //    }
 //
@@ -4973,7 +4973,7 @@ func verifyNASB()
 //        bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
 //    }
 //    
-////    if let category = Globals.shared.mediaCategory.selected {
+////    if let category = Globals.shared.media.category.selected {
 ////        bodyString = bodyString + "Category: \(category)<br/><br/>"
 ////    }
 ////

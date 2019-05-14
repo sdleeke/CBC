@@ -202,7 +202,7 @@ class MediaItem : NSObject
 //
 //        if mediaItem.hasMultipleParts {
 //            if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-//                let seriesMediaItems = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+//                let seriesMediaItems = Globals.shared.media.repository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
 //                    return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
 //                })
 //                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
@@ -226,7 +226,7 @@ class MediaItem : NSObject
             var mediaItemParts:[MediaItem]?
             
             if let multiPartSort = multiPartSort, (Globals.shared.media.all?.groupSort?[GROUPING.TITLE,multiPartSort,SORTING.CHRONOLOGICAL] == nil) { // ]?[
-                mediaItemParts = Globals.shared.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                mediaItemParts = Globals.shared.media.repository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                     if testMediaItem.hasMultipleParts {
                         return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
                     } else {
@@ -573,11 +573,11 @@ class MediaItem : NSObject
         return lhs.id == rhs.id
     }
     
-    var storage : ThreadSafeDN<String>? = { // [String:String]? // ictionary
-        return ThreadSafeDN<String>() // Can't be id because that becomes recursive.
+    var storage : ThreadSafeDN<Any>? = { // [String:String]? // ictionary
+        return ThreadSafeDN<Any>() // Can't be id because that becomes recursive.
     }()
     
-    subscript(key:String?) -> String?
+    subscript(key:String?) -> Any?
     {
         get {
             guard let key = key else {
@@ -611,7 +611,7 @@ class MediaItem : NSObject
 //        booksChaptersVerses = nil
     }
     
-    init(storage:[String:String]?)
+    init(storage:[String:Any]?)
     {
         
         super.init()
@@ -704,7 +704,7 @@ class MediaItem : NSObject
     var mediaCode:String?
     {
         get {
-            return self[Field.id]
+            return self[Field.id] as? String
         }
     }
     
@@ -932,7 +932,7 @@ class MediaItem : NSObject
     var playing:String?
     {
         get {
-            if (self[Field.playing] == nil) {
+            if (self[Field.playing] as? String == nil) {
                 if let playing = mediaItemSettings?[Field.playing] {
                     self[Field.playing] = playing
                 } else {
@@ -946,7 +946,7 @@ class MediaItem : NSObject
             }
 
             // ERROR CHECKING
-            if !hasAudio && (self[Field.playing] == Playing.audio) {
+            if !hasAudio && (self[Field.playing] as? String == Playing.audio) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasVideo ? Playing.video : nil
                 self[Field.playing] = playing
@@ -956,7 +956,7 @@ class MediaItem : NSObject
             }
 
             // ERROR CHECKING
-            if !hasVideo && (self[Field.playing] == Playing.video) {
+            if !hasVideo && (self[Field.playing] as? String == Playing.video) {
                 // Avoid simultaneous read and write in dict.
                 let playing = hasAudio ? Playing.audio : nil
                 self[Field.playing] = playing
@@ -966,11 +966,11 @@ class MediaItem : NSObject
             }
             
             // Is this ever nil?  Unless it doesn't have audio AND it doesn't have video it is ALWAYS one or the other.
-            return self[Field.playing]
+            return self[Field.playing] as? String
         }
         
         set {
-            if newValue != self[Field.playing] {
+            if newValue != self[Field.playing] as? String {
                 //Changing audio to video or vice versa clears the mediaItem in the player, which is what stop does vs. pause
                 //(which also resets the state and time).
                 if Globals.shared.mediaPlayer.mediaItem == self {
@@ -994,7 +994,7 @@ class MediaItem : NSObject
     var showing:String?
     {
         get {
-            if (self[Field.showing] == nil) {
+            if (self[Field.showing] as? String == nil) {
                 if let showing = mediaItemSettings?[Field.showing] {
                     self[Field.showing] = showing
                 } else {
@@ -1012,16 +1012,16 @@ class MediaItem : NSObject
                     }
 
                     // this saves calculated values in defaults between sessions
-                    mediaItemSettings?[Field.showing] = self[Field.showing]
+                    mediaItemSettings?[Field.showing] = self[Field.showing] as? String
                 }
             }
             
             // Backwards compatible fix
-            if self[Field.showing] == "none" {
+            if self[Field.showing] as? String == "none" {
                 self[Field.showing] = "NONE"
             }
             
-            return self[Field.showing]
+            return self[Field.showing] as? String
         }
         
         set {
@@ -1074,7 +1074,7 @@ class MediaItem : NSObject
             } else {
                 self[Constants.SETTINGS.AT_END+playing] = "NO"
             }
-            return self[Constants.SETTINGS.AT_END+playing] == "YES"
+            return self[Constants.SETTINGS.AT_END+playing]  as? String == "YES"
         }
         
         set {
@@ -1144,7 +1144,7 @@ class MediaItem : NSObject
                 self[Constants.SETTINGS.CURRENT_TIME+playing] = "\(0)"
             }
 
-            return self[Constants.SETTINGS.CURRENT_TIME+playing]
+            return self[Constants.SETTINGS.CURRENT_TIME+playing] as? String
         }
         
         set {
@@ -1415,7 +1415,7 @@ class MediaItem : NSObject
 //                return _speakerNotesParagraphWords
 //            }
 //            
-//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
 //                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
 //            }) else {
 //                return nil
@@ -1480,7 +1480,7 @@ class MediaItem : NSObject
 //                return _speakerNotesParagraphLengths
 //            }
 //            
-//            guard let mediaItems = Globals.shared.mediaRepository.list?.filter({ (mediaItem) -> Bool in
+//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
 //                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
 //            }) else {
 //                return nil
@@ -1721,14 +1721,14 @@ class MediaItem : NSObject
     var dateService:String?
     {
         get {
-            return self[Field.date]
+            return self[Field.date] as? String
         }
     }
     
     var date:String?
     {
         get {
-            if let date = self[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
+            if let date = self[Field.date] as? String, let range = date.range(of: Constants.SINGLE_SPACE) {
                 return String(date[..<range.lowerBound]) // last two characters // self[Field.title]
             } else {
                 return nil
@@ -1739,7 +1739,7 @@ class MediaItem : NSObject
     var service:String?
     {
         get {
-            if let date = self[Field.date], let range = date.range(of: Constants.SINGLE_SPACE) {
+            if let date = self[Field.date] as? String, let range = date.range(of: Constants.SINGLE_SPACE) {
                 return String(date[range.upperBound...]) // last two characters // self[Field.title]
             } else {
                 return nil
@@ -1750,7 +1750,7 @@ class MediaItem : NSObject
     var title:String?
     {
         get {
-            guard let title = self[Field.title], !title.isEmpty else {
+            guard let title = self[Field.title] as? String, !title.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1761,14 +1761,14 @@ class MediaItem : NSObject
     var category:String?
     {
         get {
-            return self[Field.category]
+            return self[Field.category] as? String
         }
     }
     
     var scriptureReference:String?
     {
         get {
-            guard let scriptureReference = self[Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms "), !scriptureReference.isEmpty else {
+            guard let scriptureReference = (self[Field.scripture] as? String)?.replacingOccurrences(of: "Psalm ", with: "Psalms "), !scriptureReference.isEmpty else {
                 return Constants.Strings.Selected_Scriptures
             }
             
@@ -1803,7 +1803,7 @@ class MediaItem : NSObject
     var className:String?
     {
         get {
-            guard let className = self[Field.className], !className.isEmpty else {
+            guard let className = self[Field.className] as? String, !className.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1832,7 +1832,7 @@ class MediaItem : NSObject
     var eventName:String?
     {
         get {
-            guard let eventName = self[Field.eventName], !eventName.isEmpty else {
+            guard let eventName = self[Field.eventName] as? String, !eventName.isEmpty else {
                 return Constants.Strings.None
             }
             
@@ -1869,14 +1869,14 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return Globals.shared.mediaTeachers[speaker]?.title
+            return Globals.shared.media.teachers[speaker]?.status
         }
     }
     
     var speaker:String?
     {
         get {
-            guard let speaker = self[Field.speaker], !speaker.isEmpty else {
+            guard let speaker = self[Field.speaker] as? String, !speaker.isEmpty else {
                 return Constants.Strings.None
             }
 
@@ -1890,14 +1890,14 @@ class MediaItem : NSObject
             guard let speaker = speaker else {
                 return nil
             }
-            return Globals.shared.mediaTeachers[speaker]
+            return Globals.shared.media.teachers[speaker]
         }
     }
     
     var speakerSort:String?
     {
         get {
-            if self[Field.speaker_sort] == nil {
+            if self[Field.speaker_sort] as? String == nil {
                 if let speakerSort = mediaItemSettings?[Field.speaker_sort] {
                     self[Field.speaker_sort] = speakerSort
                 } else {
@@ -1922,7 +1922,7 @@ class MediaItem : NSObject
                 }
             }
 
-            return self[Field.speaker_sort]
+            return self[Field.speaker_sort] as? String
         }
     }
     
@@ -1955,7 +1955,7 @@ class MediaItem : NSObject
     var multiPartSort:String?
     {
         get {
-            if self[Field.multi_part_name_sort] == nil {
+            if self[Field.multi_part_name_sort] as? String == nil {
                 if let multiPartSort = mediaItemSettings?[Field.multi_part_name_sort] {
                     self[Field.multi_part_name_sort] = multiPartSort
                 } else {
@@ -1966,14 +1966,14 @@ class MediaItem : NSObject
                     }
                 }
             }
-            return self[Field.multi_part_name_sort]
+            return self[Field.multi_part_name_sort] as? String
         }
     }
     
     var multiPartName:String?
     {
         get {
-            if (self[Field.multi_part_name] == nil) {
+            if (self[Field.multi_part_name] as? String == nil) {
                 if let title = title, let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
                     let seriesString = String(title[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                     
@@ -1981,7 +1981,7 @@ class MediaItem : NSObject
                 }
             }
             
-            return self[Field.multi_part_name]
+            return self[Field.multi_part_name] as? String
         }
     }
     
@@ -1992,7 +1992,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if hasMultipleParts, self[Field.part] == nil {
+            if hasMultipleParts, self[Field.part] as? String == nil {
                 if let range = title.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
                     let partString = String(title[range.upperBound...])
 
@@ -2002,7 +2002,7 @@ class MediaItem : NSObject
                 }
             }
 
-            return self[Field.part]
+            return self[Field.part] as? String
         }
     }
     
@@ -2144,7 +2144,7 @@ class MediaItem : NSObject
                 tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
             }
             
-            let jsonTags = self[Field.tags]
+            let jsonTags = self[Field.tags] as? String
             
             let savedTags = mediaItemSettings?[Field.tags]
             
@@ -2196,7 +2196,7 @@ class MediaItem : NSObject
             return
         }
         
-        if (mediaItemSettings?[Field.tags] == nil) {
+        if (mediaItemSettings?[Field.tags] as? String == nil) {
             mediaItemSettings?[Field.tags] = tag
         } else {
             if let tags = mediaItemSettings?[Field.tags] {
@@ -2398,11 +2398,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if (self[Field.poster] == nil) {
+            if (self[Field.poster] as? String == nil) {
                 self[Field.poster] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.poster // "poster.jpg"
             }
             
-            return self[Field.poster]?.url
+            return (self[Field.poster] as? String)?.url
         }
     }
 
@@ -2421,7 +2421,7 @@ class MediaItem : NSObject
     
     var seriesImageName : String?
     {
-        return self[Field.seriesImage]
+        return self[Field.seriesImage] as? String
     }
     
     var seriesImageURL : URL?
@@ -2446,21 +2446,21 @@ class MediaItem : NSObject
     var mp3:String?
     {
         get {
-            return self[Field.mp3]
+            return self[Field.mp3] as? String
         }
     }
     
     var mp4:String?
     {
         get {
-            return self[Field.mp4]
+            return self[Field.mp4] as? String
         }
     }
     
     var m3u8:String?
     {
         get {
-            return self[Field.m3u8]
+            return self[Field.m3u8] as? String
         }
     }
     
@@ -2506,11 +2506,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if (self[Field.notes] == nil), hasNotes, let year = year {
+            if (self[Field.notes] as? String == nil), hasNotes, let year = year {
                 self[Field.notes] = Constants.BASE_URL.MEDIA + "\(year)/" + notesFilename
             }
             
-            return self[Field.notes]
+            return self[Field.notes] as? String
         }
     }
     
@@ -2525,7 +2525,7 @@ class MediaItem : NSObject
 //                return nil
 //            }
 //            
-//            if Globals.shared.mediaCategory.dicts?[category] == 1.description {
+//            if Globals.shared.media.category.dicts?[category] == 1.description {
 //                return Constants.Strings.Transcript
 //            } else {
 //                return Constants.Strings.Notes
@@ -2699,11 +2699,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if (self[Field.slides] == nil) && hasSlides, let year = year {
+            if (self[Field.slides] as? String == nil) && hasSlides, let year = year {
                 self[Field.slides] = Constants.BASE_URL.MEDIA + "\(year)/" + slidesFilename
             }
 
-            return self[Field.slides]
+            return self[Field.slides] as? String
         }
     }
     
@@ -2715,11 +2715,11 @@ class MediaItem : NSObject
                 return nil
             }
             
-            if (self[Field.outline] == nil), hasSlides, let year = year {
+            if (self[Field.outline] as? String == nil), hasSlides, let year = year {
                 self[Field.outline] = Constants.BASE_URL.MEDIA + "\(year)/" + outlineFilename
             }
             
-            return self[Field.outline]
+            return self[Field.outline] as? String
         }
     }
     
@@ -2728,7 +2728,7 @@ class MediaItem : NSObject
     var files:String?
     {
         get {
-            return self[Field.files]
+            return self[Field.files] as? String
         }
     }
     
@@ -2815,11 +2815,11 @@ class MediaItem : NSObject
     {
         
         get {
-            if (self[Field.audio] == nil) && hasAudio, let year = year, let id = id {
+            if (self[Field.audio] as? String == nil) && hasAudio, let year = year, let id = id {
                 self[Field.audio] = Constants.BASE_URL.MEDIA + "\(year)/\(id)" + Constants.FILENAME_EXTENSION.MP3
             }
             
-            return self[Field.audio]
+            return self[Field.audio] as? String
         }
     }
     

@@ -133,25 +133,44 @@ enum Constants {
     static let SCRIPTURE_BASE_URL = "http://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]="
     
     enum JSON {
-        static let MEDIA_PATH = "media"
+//        static let MEDIA_PATH = "media"
         
         enum URL {
-            static let BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
+            static let OLD_BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
+            static let NEW_BASE = "https://api.countrysidebible.org/"
             
-            static let MEDIA = BASE + MEDIA_PATH
+            static let OLD_PARAMETER = "&"
+            static let NEW_PARAMETER = "?"
             
-            static let CATEGORIES = BASE + "categories"
+            static let OLD_MEDIA = OLD_BASE + "media"
+            static let NEW_MEDIA = NEW_BASE + "media"
+
+            static let OLD_CATEGORIES = OLD_BASE + "categories"
+            static let NEW_CATEGORIES = NEW_BASE + "categories"
             
-            static let TEACHERS = BASE + "teachers"
+            static let NEW_GROUPS = NEW_BASE + "groups"
             
-//            static let CATEGORY = MEDIA + "&categoryID="
+            static let OLD_TEACHERS = OLD_BASE + "teachers"
+            static let NEW_TEACHERS = NEW_BASE + "teachers"
+
+            static let OLD_CATEGORY = OLD_MEDIA + OLD_PARAMETER + "categoryID="
+            static let NEW_CATEGORY = NEW_MEDIA + NEW_PARAMETER + "categoryID="
             
-            static let SINGLE = BASE + "single&mediacode="
+            static let OLD_SINGLE = OLD_BASE + "single" + OLD_PARAMETER + "mediacode="
+            static let NEW_SINGLE = NEW_BASE + NEW_PARAMETER + "mediacode="
+
+            static let MEDIA = OLD_MEDIA
+            static let SINGLE = OLD_SINGLE
+            static let GROUPS = NEW_GROUPS
+            static let CATEGORY = OLD_CATEGORY
+            static let TEACHERS = OLD_TEACHERS
+            static let CATEGORIES = OLD_CATEGORIES
         }
 
         enum ARRAY_KEY {
-            static let TEACHER_ENTRIES = "teacherEntries"
+            static let TEACHER_ENTRIES  = "teacherEntries"
             static let CATEGORY_ENTRIES = "categoryEntries"
+            static let GROUP_ENTRIES    = "groupEntries"
             static let MEDIA_ENTRIES    = "mediaEntries"
             static let SINGLE_ENTRY     = "singleEntry"
         }
@@ -162,6 +181,7 @@ enum Constants {
         enum FILENAME {
             static let CATEGORIES = ARRAY_KEY.CATEGORY_ENTRIES + FILENAME_EXTENSION
             static let TEACHERS = ARRAY_KEY.TEACHER_ENTRIES + FILENAME_EXTENSION
+            static let GROUPS = ARRAY_KEY.GROUP_ENTRIES + FILENAME_EXTENSION
         }
     }
 
@@ -174,9 +194,14 @@ enum Constants {
     }
     
     enum URL {
-        static let LIVE_EVENTS = "https://api.countrysidebible.org/cache/streamEntries.json"
+        static let OLD_LIVE_EVENTS = "https://api.countrysidebible.org/cache/streamEntries.json"
+        static let NEW_LIVE_EVENTS = "https://api.countrysidebible.org/media/?streaming=true"
 
-        static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
+        static let LIVE_EVENTS = OLD_LIVE_EVENTS
+        
+        static let OLD_LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
+        
+        static let LIVE_STREAM = OLD_LIVE_STREAM
         
         static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/"
         
