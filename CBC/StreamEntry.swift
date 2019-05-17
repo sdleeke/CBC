@@ -60,7 +60,7 @@ class StreamEntry : Base
     var start : Int?
     {
         get {
-            return self["start"] as? Int
+            return self["start"] as? Int ?? Streaming(self["streaming"] as? [String:Any])?.startTs
         }
     }
     
@@ -78,7 +78,7 @@ class StreamEntry : Base
     var end : Int?
     {
         get {
-            return self["end"] as? Int
+            return self["end"] as? Int ?? Streaming(self["streaming"] as? [String:Any])?.endTs
         }
     }
     
@@ -100,11 +100,36 @@ class StreamEntry : Base
         }
     }
     
+    var title : String?
+    {
+        get {
+            if let name = name {
+                return name
+            }
+            
+            var string = ""
+            
+            if let category = Category(self["category"] as? [String:Any])?.name {
+                string = category
+            }
+
+            if let title = self["title"] as? String {
+                string = string.isEmpty ? title : string + ": " + title
+            }
+
+            if let teacher = Teacher(self["teacher"] as? [String:Any])?.name {
+                string = string.isEmpty ? teacher : string + ": " + teacher
+            }
+
+            return !string.isEmpty ? string : nil
+        }
+    }
+    
     var text : String?
     {
         get {
-            if let name = name, let start = startDate?.mdyhm, let end = endDate?.mdyhm {
-                return "\(name)\nStart: \(start)\nEnd: \(end)"
+            if let title = title, let start = startDate?.mdyhm, let end = endDate?.mdyhm {
+                return "\(title)\nStart: \(start)\nEnd: \(end)"
             } else {
                 return nil
             }

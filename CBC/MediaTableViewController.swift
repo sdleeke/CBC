@@ -869,7 +869,7 @@ class MediaTableViewController : MediaItemsViewController
             
             showMenu.append(Constants.Strings.History)
 
-            if Globals.shared.media.stream.streamEntries != nil, Globals.shared.reachability.isReachable {
+            if Globals.shared.reachability.isReachable { // Globals.shared.media.stream.streamEntries != nil, 
                 showMenu.append(Constants.Strings.Live)
             }
             
@@ -1413,7 +1413,7 @@ class MediaTableViewController : MediaItemsViewController
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
 
-            Globals.shared.media.stream.loadLive()
+//            Globals.shared.media.stream.loadLive()
             
             if let jsonSource = self?.jsonSource {
                 switch jsonSource {
@@ -1485,7 +1485,17 @@ class MediaTableViewController : MediaItemsViewController
                     
 //                  self?.loadCategories()
                     Globals.shared.media.json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES)?.forEach({ (dict:[String : Any]) in
-                        if let name = dict["name"] as? String {
+                        var key = ""
+                        
+                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_OLD {
+                            key = "category_name"
+                        }
+                        
+                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_NEW {
+                            key = "name"
+                        }
+                        
+                        if let name = dict[key] as? String {
                             Globals.shared.media.categories[name] = Category(dict)
                         }
                     })
@@ -3703,7 +3713,8 @@ class MediaTableViewController : MediaItemsViewController
                 break
                 
             case Constants.Strings.Live:
-                guard   Globals.shared.media.stream.streamEntries?.count > 0, Globals.shared.reachability.isReachable,
+                guard   // Globals.shared.media.stream.streamEntries?.count > 0,
+                    Globals.shared.reachability.isReachable,
                     let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
                         break
@@ -3781,20 +3792,41 @@ class MediaTableViewController : MediaItemsViewController
                 
                 // Makes no sense w/o section.showIndex also being true - UNLESS you're using section.stringIndex
                 popover.section.showHeaders = true
-                
-                present(navigationController, animated: true, completion: { [weak self, weak popover] in
-                    // This is an alternative to popover.stringsFunction
-                    popover?.activityIndicator.isHidden = false
-                    popover?.activityIndicator.startAnimating()
+
+                process(work: { [weak self, weak popover] (test:(() -> Bool)?) -> (Any?) in
+                    var key = ""
                     
-                    Globals.shared.media.stream.loadLive() {
-                        popover?.section.stringIndex = Globals.shared.media.stream.streamStringIndex
-                        popover?.tableView.reloadData()
-                        
-                        popover?.activityIndicator.stopAnimating()
-                        popover?.activityIndicator.isHidden = true
+                    if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_OLD {
+                        key = "streamEntries"
                     }
-                })
+                    if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_NEW {
+                        key = "mediaEntries"
+                    }
+                    return Globals.shared.media.stream.liveEvents?[key] as? [[String:Any]]
+                }) { [weak self, weak popover] (data:Any?, test:(() -> Bool)?) in
+                    Globals.shared.media.stream.streamEntries = data as? [[String:Any]]
+                    
+                    if Globals.shared.media.stream.streamEntries != nil {
+                        popover?.section.stringIndex = Globals.shared.media.stream.streamStringIndex
+                        self?.present(navigationController, animated: true, completion: nil)
+                    } else {
+                        self?.alert(title: "No Live Events Available")
+                    }
+                }
+                
+//                present(navigationController, animated: true, completion: { [weak self, weak popover] in
+//                    // This is an alternative to popover.stringsFunction
+//                    popover?.activityIndicator.isHidden = false
+//                    popover?.activityIndicator.startAnimating()
+//
+//                    Globals.shared.media.stream.loadLive() {
+//                        popover?.section.stringIndex = Globals.shared.media.stream.streamStringIndex
+//                        popover?.tableView.reloadData()
+//
+//                        popover?.activityIndicator.stopAnimating()
+//                        popover?.activityIndicator.isHidden = true
+//                    }
+//                })
                 break
                 
             case Constants.Strings.Settings:

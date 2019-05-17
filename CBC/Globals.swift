@@ -462,7 +462,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
             checkVoiceBaseAvailability()
-            media.stream.loadLive(completion: nil)
+//            media.stream.loadLive(completion: nil)
         }
         
         // Don't include the list because we want to be warned at th start that there is no network connection

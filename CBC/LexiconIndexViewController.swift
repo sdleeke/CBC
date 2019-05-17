@@ -2391,7 +2391,7 @@ class LexiconIndexViewController : MediaItemsViewController
                     }
                     Alerts.shared.alert(title: "Lexicon Build Stopped")
                 }))
-                alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.destructive, handler: nil))
+                alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: nil))
                 Alerts.shared.alert(title: "Confirm Stopping Lexicon Build", actions: alertActions)
                 
                 //            let alert = UIAlertController(  title: "Confirm Stopping Lexicon Build",

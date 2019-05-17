@@ -34,7 +34,19 @@ class MediaStream
     {
         //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
         operationQueue.addOperation { [weak self] in
-            self?.streamEntries = self?.liveEvents?["streamEntries"] as? [[String:Any]]
+            Thread.sleep(forTimeInterval: 1.0)
+            
+            var key = ""
+            
+            if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_OLD {
+                key = "streamEntries"
+            }
+            
+            if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_NEW {
+                key = "mediaEntries"
+            }
+
+            self?.streamEntries = self?.liveEvents?[key] as? [[String:Any]]
             
             Thread.onMainThread {
                 completion?()
@@ -82,8 +94,12 @@ class MediaStream
                                     streamStringIndex[Constants.Strings.Upcoming] = [String]()
                                 }
                                 streamStringIndex[Constants.Strings.Upcoming]?.append(text)
+                            } else {
+                                
                             }
                         }
+                    } else {
+                        
                     }
                 }
                 

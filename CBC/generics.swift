@@ -940,7 +940,7 @@ class ThreadSafeDN<T>
         return queue.sync { [weak self] in
             guard keys.count > 0 else {
                 if let keys = self?.storage.keys {
-                    return Array(keys)
+                    return keys.count > 0 ? Array(keys) : nil
                 }
                 return nil
             }
@@ -960,7 +960,7 @@ class ThreadSafeDN<T>
             if let index = keys.indices.last, let keys = (dict?[keys[index]] as? [String:Any])?.keys {
                 // we've reached the last index, the value of which in the current dictionary (one before last)
                 // is the last dictionary (of N hierarchical levels deep) from which we return the keys.
-                return Array(keys)
+                return keys.count > 0 ? Array(keys) : nil
             } else {
                 return nil
             }
