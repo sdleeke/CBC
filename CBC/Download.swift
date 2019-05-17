@@ -72,6 +72,8 @@ extension Download : URLSessionDownloadDelegate
                 }
                 break
                 
+            case Purpose.outline:
+                fallthrough
             case Purpose.notes:
                 fallthrough
             case Purpose.slides:

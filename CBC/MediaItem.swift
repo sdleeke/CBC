@@ -258,7 +258,16 @@ class MediaItem : NSObject
                         first.title?.withoutPrefixes < second.title?.withoutPrefixes
                     })
                 } else {
-                    mediaItemParts = mediaItemParts?.sortByYear(sorting: SORTING.CHRONOLOGICAL)
+                    mediaItemParts = mediaItemParts?.sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
+                        // In case we have multiple parts on the same day, e.g. Tom's expository preaching seminars.
+                        if first.date == second.date {
+                            if let first = first.part, let second = second.part {
+                                return first < second
+                            }
+                        }
+
+                        return false
+                    })
                 }
             }
             
@@ -998,17 +1007,29 @@ class MediaItem : NSObject
                 if let showing = mediaItemSettings?[Field.showing] {
                     self[Field.showing] = showing
                 } else {
-                    if (hasSlides && hasNotes) {
+                    if (hasSlides && hasNotes && hasOutline) {
                         self[Field.showing] = Showing.slides
                     }
-                    if (!hasSlides && hasNotes) {
+                    if (!hasSlides && hasNotes && hasOutline) {
                         self[Field.showing] = Showing.notes
                     }
-                    if (hasSlides && !hasNotes) {
+                    if (hasSlides && !hasNotes && hasOutline) {
                         self[Field.showing] = Showing.slides
                     }
-                    if (!hasSlides && !hasNotes) {
+                    if (!hasSlides && !hasNotes && hasOutline) {
+                        self[Field.showing] = Showing.outline
+                    }
+                    if (hasSlides && !hasNotes && !hasOutline) {
+                        self[Field.showing] = Showing.slides
+                    }
+                    if (!hasSlides && !hasNotes && !hasOutline) {
                         self[Field.showing] = Showing.none
+                    }
+                    if (hasSlides && hasNotes && !hasOutline) {
+                        self[Field.showing] = Showing.slides
+                    }
+                    if (!hasSlides && hasNotes && !hasOutline) {
+                        self[Field.showing] = Showing.notes
                     }
 
                     // this saves calculated values in defaults between sessions
@@ -1038,11 +1059,14 @@ class MediaItem : NSObject
                     if hasSlides {
                         wasShowing = Showing.slides
                     } else
-                    if hasNotes {
-                        wasShowing = Showing.notes
-                    } else {
-                        wasShowing = Showing.none
-                    }
+                        if hasNotes {
+                            wasShowing = Showing.notes
+                        } else
+                            if hasOutline {
+                                wasShowing = Showing.outline
+                            } else {
+                                wasShowing = Showing.none
+                            }
                 }
             }
             
@@ -2205,6 +2229,10 @@ class MediaItem : NSObject
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Video
             }
             
+            if hasOutline {
+                constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Outline
+            }
+            
             // Invoke separately so both lazy variables are instantiated.
             if audioTranscript?.transcript != nil {
                 constantTags = (constantTags != nil ? constantTags! + "|" : "") + Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + Constants.Strings.Audio
@@ -2283,7 +2311,7 @@ class MediaItem : NSObject
             return
         }
         
-        if (mediaItemSettings?[Field.tags] as? String == nil) {
+        if (mediaItemSettings?[Field.tags] == nil) {
             mediaItemSettings?[Field.tags] = tag
         } else {
             if let tags = mediaItemSettings?[Field.tags] {
@@ -2855,7 +2883,6 @@ class MediaItem : NSObject
             }
             
             return nil
-
         }
     }
     

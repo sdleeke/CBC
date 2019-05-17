@@ -885,19 +885,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 media.tags.selected = nil
             }
 
-            if media.tags.showing == Constants.TAGGED, let tag = media.category.tag, media.tagged[tag] == nil {
-                if media.all == nil {
-                    //This is filtering, i.e. searching all mediaItems => s/b in background
-                    media.tagged[tag] = MediaListGroupSort(mediaItems: media.repository.list?.filter({ (mediaItem) -> Bool in
-                        return mediaItem.category == media.category.selected
-                    }).withTag(tag: media.tags.selected))
-                } else {
-                    if let sortTag = media.tags.selected?.withoutPrefixes {
-                        media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
-                    }
-                }
-            }
-
             media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
             media.search.isActive = media.search.text != nil
 

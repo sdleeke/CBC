@@ -896,6 +896,10 @@ extension MediaViewController : WKNavigationDelegate
                     self.networkUnavailable("Transcript not available.")
                     break
                     
+                case Purpose.outline:
+                    self.networkUnavailable("Outline not available.")
+                    break
+                    
                 default:
                     break
                 }
@@ -927,6 +931,10 @@ extension MediaViewController : WKNavigationDelegate
         }
         
         guard selectedMediaItem.mediaCode != nil else {
+            return
+        }
+        
+        guard document?.download?.downloadURL == webView.url else {
             return
         }
         
@@ -1015,6 +1023,10 @@ extension MediaViewController : WKNavigationDelegate
                 
             case Purpose.slides:
                 self.networkUnavailable("Slides not available.")
+                break
+                
+            case Purpose.outline:
+                self.networkUnavailable("Outline not available.")
                 break
                 
             default:
@@ -1319,6 +1331,10 @@ class MediaViewController : MediaItemsViewController
                             self.networkUnavailable("Transcript unavailable.")
                             break
                             
+                        case Purpose.outline:
+                            self.networkUnavailable("Outline unavailable.")
+                            break
+                            
                         default:
                             break
                         }
@@ -1405,19 +1421,21 @@ class MediaViewController : MediaItemsViewController
     func loadWeb()
     {
         webQueue.addOperation { [weak self] in
-            if self?.document?.showing(self?.selectedMediaItem) == true {
-                Thread.onMainThread {
-                    if let activityIndicator = self?.activityIndicator {
-                        self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
-                    }
-                    
-                    self?.logo.isHidden = true
-                    
-                    self?.activityIndicator.isHidden = false
-                    self?.activityIndicator.startAnimating()
-                }
+            guard self?.document?.showing(self?.selectedMediaItem) == true else {
+                return
             }
             
+            Thread.onMainThread {
+                if let activityIndicator = self?.activityIndicator {
+                    self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+                }
+                
+                self?.logo.isHidden = true
+                
+                self?.activityIndicator.isHidden = false
+                self?.activityIndicator.startAnimating()
+            }
+
             guard let data = self?.document?.fetchData.result else { // , (data != self?.webData) || (self?.webData == nil)
                 if self?.document?.showing(self?.selectedMediaItem) == true {
                     Thread.onMainThread {
@@ -1452,7 +1470,7 @@ class MediaViewController : MediaItemsViewController
 
                     if let url = self?.download?.downloadURL {
                         self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
-
+                        
 //
 //                        if let activityIndicator = self?.activityIndicator {
 //                            // Don't want to show it just because it is already (down)loaded!
@@ -1770,6 +1788,10 @@ class MediaViewController : MediaItemsViewController
                     selectedMediaItem?.showing = Showing.notes
                     break
                     
+                case Constants.STV_SEGMENT_TITLE.OUTLINE:
+                    selectedMediaItem?.showing = Showing.outline
+                    break
+                    
                 case Constants.STV_SEGMENT_TITLE.VIDEO:
                     selectedMediaItem?.showing = Showing.video
                     break
@@ -1877,11 +1899,18 @@ class MediaViewController : MediaItemsViewController
         stvControl.removeAllSegments()
         
         var index = 0
+        var outlineIndex = 0
         var slidesIndex = 0
         var notesIndex = 0
         var videoIndex = 0
 
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
+        
+        if selectedMediaItem.hasOutline {
+            stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.OUTLINE, at: index, animated: false)
+            outlineIndex = index
+            index += 1
+        }
         
         if selectedMediaItem.hasNotes {
             stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.TRANSCRIPT, at: index, animated: false)
@@ -1909,6 +1938,12 @@ class MediaViewController : MediaItemsViewController
             switch showing {
             case Showing.slides:
                 stvControl.selectedSegmentIndex = slidesIndex
+                // Why were we setting this to nil?
+//                mediaItemNotesAndSlides?.gestureRecognizers = nil
+                break
+                
+            case Showing.outline:
+                stvControl.selectedSegmentIndex = outlineIndex
                 // Why were we setting this to nil?
 //                mediaItemNotesAndSlides?.gestureRecognizers = nil
                 break
@@ -2579,6 +2614,10 @@ class MediaViewController : MediaItemsViewController
                 actionMenu.append(Constants.Strings.Share_Slides)
                 break
                 
+            case Purpose.outline:
+                actionMenu.append(Constants.Strings.Share_Outline)
+                break
+                
             default:
                 break
             }
@@ -2594,6 +2633,10 @@ class MediaViewController : MediaItemsViewController
                 
             case Purpose.slides:
                 actionMenu.append(Constants.Strings.Refresh_Slides)
+                break
+                
+            case Purpose.outline:
+                actionMenu.append(Constants.Strings.Refresh_Outline)
                 break
                 
             default:
@@ -3732,26 +3775,32 @@ class MediaViewController : MediaItemsViewController
 
         // Check whether they show what they should
         
-        switch (selectedMediaItem.hasNotes,selectedMediaItem.hasSlides) {
-        case (true,true):
+        switch (selectedMediaItem.hasNotes,selectedMediaItem.hasSlides,selectedMediaItem.hasOutline) {
+        case (true,true,true):
             if selectedMediaItem.showing == Showing.none {
                 selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
             }
             break
             
-        case (true,false):
+        case (true,false,false):
             if selectedMediaItem.showing == Showing.none {
                 selectedMediaItem.showing = Showing.notes
             }
             break
             
-        case (false,true):
+        case (false,true,false):
             if selectedMediaItem.showing == Showing.none {
                 selectedMediaItem.showing = Showing.slides
             }
             break
             
-        case (false,false):
+        case (false,false,true):
+            if selectedMediaItem.showing == Showing.none {
+                selectedMediaItem.showing = Showing.outline
+            }
+            break
+            
+        case (false,false,false):
             if selectedMediaItem.hasVideo {
                 if (selectedMediaItem.showing != Showing.none) && (selectedMediaItem.showing != Showing.video) {
                     print("ERROR")
@@ -3760,6 +3809,24 @@ class MediaViewController : MediaItemsViewController
                 if (selectedMediaItem.showing != Showing.none) {
                     print("ERROR")
                 }
+            }
+            break
+            
+        case (false,true,true):
+            if selectedMediaItem.showing == Showing.none {
+                selectedMediaItem.showing = Showing.slides
+            }
+            break
+            
+        case (true,false,true):
+            if selectedMediaItem.showing == Showing.none {
+                selectedMediaItem.showing = Showing.notes
+            }
+            break
+            
+        case (true,true,false):
+            if selectedMediaItem.showing == Showing.none {
+                selectedMediaItem.showing = Showing.slides
             }
             break
         }
@@ -3780,12 +3847,18 @@ class MediaViewController : MediaItemsViewController
                 }
                 break
                 
+            case Showing.outline:
+                if !selectedMediaItem.hasOutline {
+                    selectedMediaItem.showing = Showing.none
+                }
+                break
+                
             case Showing.video:
                 if !selectedMediaItem.hasVideo {
                     selectedMediaItem.showing = Showing.none
                 }
                 break
-                
+
             default:
                 break
             }
@@ -3803,6 +3876,10 @@ class MediaViewController : MediaItemsViewController
                         self.alert(title: "Transcript Not Available", message: nil, completion: nil)
                         break
                         
+                    case Showing.outline:
+                        self.alert(title: "Outline Not Available", message: nil, completion: nil)
+                        break
+
                     default:
                         break
                     }
@@ -3812,6 +3889,8 @@ class MediaViewController : MediaItemsViewController
             }
             
             switch showing {
+            case Showing.outline:
+                fallthrough
             case Showing.notes:
                 fallthrough
             case Showing.slides:
@@ -5942,6 +6021,8 @@ class MediaViewController : MediaItemsViewController
                 //            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
                 //            break
                 
+            case Constants.Strings.Share_Outline:
+                fallthrough
             case Constants.Strings.Share_Slides:
                 fallthrough
             case Constants.Strings.Share + " " + (selectedMediaItem?.notesName ?? "") :
@@ -6130,6 +6211,8 @@ class MediaViewController : MediaItemsViewController
             case Constants.Strings.Refresh_Document:
                 fallthrough
             case Constants.Strings.Refresh + " " + (selectedMediaItem?.notesName ?? ""):
+                fallthrough
+            case Constants.Strings.Refresh_Outline:
                 fallthrough
             case Constants.Strings.Refresh_Slides:
                 // This only refreshes the visible document.

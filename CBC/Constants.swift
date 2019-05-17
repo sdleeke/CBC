@@ -120,6 +120,7 @@ enum Showing {
     static let notes        = MediaType.NOTES
     static let transcript   = MediaType.TRANSCRIPT
     static let slides       = MediaType.SLIDES
+    static let outline      = MediaType.OUTLINE
     static let none         = MediaType.NONE
 }
 
@@ -233,7 +234,6 @@ enum Constants {
         static let LIVE_EVENTS = LIVE_EVENTS_NEW
         
         static let LIVE_STREAM_OLD = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
-        
         static let LIVE_STREAM = LIVE_STREAM_OLD
         
         static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/"
@@ -634,6 +634,7 @@ enum Constants {
         static let ICONS_FONT_SIZE = CGFloat(12.0)
         static let SLIDES = "\u{f022}"
         static let TRANSCRIPT = "\u{f0f6}"
+        static let OUTLINE = "\u{f0cb}"
         static let AUDIO = "\u{f025}"
         static let VIDEO = "\u{f03d}"
         static let LIST = "\u{f03a}"
@@ -656,6 +657,7 @@ enum Constants {
     enum STV_SEGMENT_TITLE {
         static let SLIDES       = FA.SLIDES
         static let TRANSCRIPT   = FA.TRANSCRIPT
+        static let OUTLINE      = FA.OUTLINE
         static let VIDEO        = FA.VIDEO
     }
 
@@ -771,6 +773,8 @@ enum Constants {
         static let Audio = "Audio"
         static let Video = "Video"
         
+        static let Outline = "Outline"
+        
         static let Download_Audio = Download + SINGLE_SPACE + Audio
         static let Download_Video = Download + SINGLE_SPACE + Video
         
@@ -862,14 +866,17 @@ enum Constants {
         static let Refresh = "Refresh"
         
         static let Print_Slides = "Print Slides"
+        static let Print_Outline = "Print Outline"
 //        static let Print_Transcript = "Print Transcript"
         
         static let Share_Slides = "Share Slides"
+        static let Share_Outline = "Share Outline"
 //        static let Share_Transcript = "Share Transcript"
         
         static let Refresh_Document = "Refresh Document"
         
         static let Refresh_Slides = "Refresh Slides"
+        static let Refresh_Outline = "Refresh Outline"
 //        static let Refresh_Transcript = "Refresh Transcript"
         
         static let Zoom = "Zoom"

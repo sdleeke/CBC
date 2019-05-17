@@ -1544,6 +1544,19 @@ class MediaTableViewController : MediaItemsViewController
                 }))
             }
             
+            if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.category.tag, Globals.shared.media.tagged[tag] == nil {
+                if Globals.shared.media.all == nil {
+                    //This is filtering, i.e. searching all mediaItems => s/b in background
+                    Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+                        return mediaItem.category == Globals.shared.media.category.selected
+                    }).withTag(tag: Globals.shared.media.tags.selected))
+                } else {
+                    if let sortTag = Globals.shared.media.tags.selected?.withoutPrefixes {
+                        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+                    }
+                }
+            }            
+
             if Globals.shared.media.search.isValid {
                 Thread.onMainThread {
                     self?.searchBar.text = Globals.shared.media.search.text

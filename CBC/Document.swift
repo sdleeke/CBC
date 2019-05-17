@@ -125,6 +125,10 @@ class Document : NSObject
                 download = mediaItem?.slidesDownload
                 break
                 
+            case Purpose.outline:
+                download = mediaItem?.outlineDownload
+                break
+                
             default:
                 download = nil
                 break

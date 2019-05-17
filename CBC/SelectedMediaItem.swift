@@ -37,24 +37,26 @@ class SelectedMediaItem
                 Globals.shared.addToHistory(newValue)
             }
 
-            if let category = newValue?.category {
-                // Set according to mediaItem category not whatever is selected.
-                Globals.shared.media.category.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue?.mediaCode
-                // For a high volume of activity this can be very expensive.
-                Globals.shared.media.category.saveSettingsBackground()
+            Globals.shared.media.category.selectedInMaster = newValue?.mediaCode
 
-//                Globals.shared.media.category.selectedInMaster = newValue?.mediaCode
-                
-//                var selectedInMaster:String?
-//                {
-//                    get {
-//                        return self[Constants.SETTINGS.SELECTED_MEDIA.MASTER]
-//                    }
-//                    set {
-//                        self[Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue
-//                    }
-//                }
-            }
+//            if let category = newValue?.category {
+//                // Set according to mediaItem category not whatever is selected.
+//                Globals.shared.media.category.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER]
+//                // For a high volume of activity this can be very expensive.
+////                Globals.shared.media.category.saveSettingsBackground()
+//
+////                Globals.shared.media.category.selectedInMaster = newValue?.mediaCode
+//
+////                var selectedInMaster:String?
+////                {
+////                    get {
+////                        return self[Constants.SETTINGS.SELECTED_MEDIA.MASTER]
+////                    }
+////                    set {
+////                        self[Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue
+////                    }
+////                }
+//            }
         }
     }
     
@@ -63,9 +65,13 @@ class SelectedMediaItem
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
+            if let selectedMediaItemID = Globals.shared.media.category.selectedInDetail {
                 selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
             }
+            
+//            if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
+//                selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
+//            }
             
             return selectedMediaItem
         }
@@ -78,16 +84,18 @@ class SelectedMediaItem
                 Globals.shared.addToHistory(newValue)
             }
 
+            Globals.shared.media.category.selectedInDetail = newValue?.mediaCode
+
 //            if (selectedMediaItem != mediaItems?[indexPath.row]) || (Globals.shared.history == nil) {
 //                Globals.shared.addToHistory(mediaItems?[indexPath.row])
 //            }
             
-            if let newValue = newValue {
-                UserDefaults.standard.set(newValue.mediaCode, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
-            } else {
-                UserDefaults.standard.removeObject(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
-            }
-            UserDefaults.standard.synchronize()
+//            if let newValue = newValue {
+//                UserDefaults.standard.set(newValue.mediaCode, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+//            } else {
+//                UserDefaults.standard.removeObject(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+//            }
+//            UserDefaults.standard.synchronize()
         }
 
 //        get {
