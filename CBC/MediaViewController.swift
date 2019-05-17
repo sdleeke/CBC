@@ -926,7 +926,7 @@ extension MediaViewController : WKNavigationDelegate
             return
         }
         
-        guard selectedMediaItem.id != nil else {
+        guard selectedMediaItem.mediaCode != nil else {
             return
         }
         
@@ -958,7 +958,7 @@ extension MediaViewController : WKNavigationDelegate
             return
         }
         
-        guard selectedMediaItem.id != nil else {
+        guard selectedMediaItem.mediaCode != nil else {
             return
         }
         
@@ -992,7 +992,7 @@ extension MediaViewController : WKNavigationDelegate
             return
         }
         
-        guard selectedMediaItem.id != nil else {
+        guard selectedMediaItem.mediaCode != nil else {
             return
         }
 
@@ -1197,7 +1197,7 @@ class MediaViewController : MediaItemsViewController
     var document : Document?
     {
         get {
-            if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing, let document = documents[selectedMediaItem.id,showing] {
+            if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing, let document = documents[selectedMediaItem.mediaCode,showing] {
                 return document
             }
 
@@ -1219,7 +1219,7 @@ class MediaViewController : MediaItemsViewController
                 return
             }
             
-            documents[selectedMediaItem.id,showing] = newValue
+            documents[selectedMediaItem.mediaCode,showing] = newValue
         }
     }
     
@@ -1541,7 +1541,7 @@ class MediaViewController : MediaItemsViewController
 //            } else {
 //                if let mediaItems = mediaItems?.list, let multiPartMediaItems = selectedMediaItem?.multiPartMediaItems {
 //                    for index in 0..<mediaItems.count {
-//                        if mediaItems[index].id != multiPartMediaItems[index].id {
+//                        if mediaItems[index].mediaCode != multiPartMediaItems[index].mediaCode {
 //                            self.mediaItems = MediaList(multiPartMediaItems)
 //                            break
 //                        }
@@ -1551,7 +1551,7 @@ class MediaViewController : MediaItemsViewController
 //                }
 //            }
             
-            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil {
+            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil {
                 if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
                     removePlayerObserver()
                     
@@ -1562,7 +1562,7 @@ class MediaViewController : MediaItemsViewController
                     if let url = selectedMediaItem.playingURL {
                         playerURL(url: url)
                     } else {
-                        self.networkUnavailable("Media Not Available")
+                        self.alert(title:"No Media Available")
                     }
                 }
 
@@ -2282,7 +2282,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard selectedMediaItem.id != nil else {
+        guard selectedMediaItem.mediaCode != nil else {
             return
         }
         
@@ -3687,7 +3687,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil else {
             verticalSplit.isHidden = true
             
             wkWebView?.isHidden = true
@@ -4141,7 +4141,7 @@ class MediaViewController : MediaItemsViewController
     //
 //    func setupWKContentOffsets()
 //    {
-//        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
+//        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil else {
 //            return
 //        }
 //
@@ -5164,7 +5164,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil else {
             return
         }
         
@@ -5200,7 +5200,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.id != nil else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil else {
             return
         }
         
@@ -5397,17 +5397,22 @@ class MediaViewController : MediaItemsViewController
                         progress = playingCurrentTime / length
                         slider.value = Float(progress)
                         setTimes(timeNow: playingCurrentTime,length: length)
+                        
+                        elapsed.isHidden = false
+                        remaining.isHidden = false
+                        slider.isHidden = false
+                        slider.isEnabled = true
                     } else {
                         slider.value = Float(progress)
                         setTimes(timeNow: playerCurrentTime,length: length)
+                        
+                        elapsed.isHidden = false
+                        remaining.isHidden = false
+                        slider.isHidden = false
+                        slider.isEnabled = true
                     }
                 }
             }
-            
-            elapsed.isHidden = false
-            remaining.isHidden = false
-            slider.isHidden = false
-            slider.isEnabled = true
             break
             
         case .paused:

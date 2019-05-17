@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1702604D228C77C800100525 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1702604C228C77C800100525 /* JSON.swift */; };
 		17074CB11E25A92B00332F0A /* Scripture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17074CB01E25A92B00332F0A /* Scripture.swift */; };
 		1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */; };
 		17174D02216268AD00D9DE5B /* Alerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17174D01216268AC00D9DE5B /* Alerts.swift */; };
@@ -112,6 +113,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1702604C228C77C800100525 /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		17074CB01E25A92B00332F0A /* Scripture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scripture.swift; sourceTree = "<group>"; };
 		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		17174D01216268AC00D9DE5B /* Alerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alerts.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				17C28565228302B0005654A1 /* CBCViewController.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				1702604C228C77C800100525 /* JSON.swift */,
 				17174D01216268AC00D9DE5B /* Alerts.swift */,
 				17FF988E2030DBC9002AD442 /* Media.swift */,
 				17C6CF842269168100F7BFC1 /* MediaPlayer.swift */,
@@ -747,6 +750,7 @@
 				17FF98852030DA3E002AD442 /* Search.swift in Sources */,
 				17613FD51E4364F200ADFFCD /* LexiconIndexViewController.swift in Sources */,
 				175DF54A203B2EB10087CF0B /* Document.swift in Sources */,
+				1702604D228C77C800100525 /* JSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

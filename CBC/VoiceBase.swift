@@ -812,8 +812,8 @@ class VoiceBase // : NSObject
             return "ERROR no mediaItem"
         }
         
-        guard mediaItem.id != nil else {
-            return "ERROR no mediaItem.id"
+        guard mediaItem.mediaCode != nil else {
+            return "ERROR no mediaItem.mediaCode"
         }
 
         var mediaItemString = "{"
@@ -834,7 +834,7 @@ class VoiceBase // : NSObject
                         mediaItemString += "\"category\":\"\(category)\","
                     }
                     
-                    if let id = mediaItem.id {
+                    if let id = mediaItem.mediaCode {
                         mediaItemString += "\"id\":\"\(id)\","
                     }
                     
@@ -1021,7 +1021,7 @@ class VoiceBase // : NSObject
                 return mp4
                 
             case Purpose.audio:
-                return mediaItem?.audio
+                return mediaItem?.audioURL
                 
             default:
                 return nil
@@ -1081,8 +1081,8 @@ class VoiceBase // : NSObject
     var filename : String?
     {
         get {
-            if let id = mediaItem?.id, let purpose = purpose {
-                return id + "." + purpose + Constants.FILENAME_EXTENSION.transcript
+            if let mediaCode = mediaItem?.mediaCode, let purpose = purpose {
+                return mediaCode + "." + purpose + Constants.FILENAME_EXTENSION.transcript
             } else {
                 return nil
             }
@@ -1092,8 +1092,8 @@ class VoiceBase // : NSObject
     var oldFilename : String?
     {
         get {
-            if let id = mediaItem?.id, let purpose = purpose {
-                return id + "." + purpose
+            if let mediaCode = mediaItem?.mediaCode, let purpose = purpose {
+                return mediaCode + "." + purpose
             } else {
                 return nil
             }
@@ -1112,7 +1112,7 @@ class VoiceBase // : NSObject
 //                return nil
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -1254,7 +1254,7 @@ class VoiceBase // : NSObject
 //                return nil
 //            }
 
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -1369,7 +1369,7 @@ class VoiceBase // : NSObject
 //                return
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return
 //            }
 //
@@ -1487,7 +1487,7 @@ class VoiceBase // : NSObject
 //                return nil
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -1542,7 +1542,7 @@ class VoiceBase // : NSObject
 //                return
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return
 //            }
 //
@@ -1601,7 +1601,7 @@ class VoiceBase // : NSObject
                 return nil
             }
 
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -1648,7 +1648,7 @@ class VoiceBase // : NSObject
 //                return
 //            }
 
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return
 //            }
 //
@@ -3585,7 +3585,7 @@ class VoiceBase // : NSObject
 //                return nil
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -3630,7 +3630,7 @@ class VoiceBase // : NSObject
 //                return nil
 //            }
 //
-//            guard let id = mediaItem.id else {
+//            guard let id = mediaItem.mediaCode else {
 //                return nil
 //            }
 //
@@ -3796,7 +3796,7 @@ class VoiceBase // : NSObject
 ////                return nil
 ////            }
 ////
-////            guard let id = mediaItem.id else {
+////            guard let id = mediaItem.mediaCode else {
 ////                return nil
 ////            }
 ////
@@ -3847,7 +3847,7 @@ class VoiceBase // : NSObject
 ////                return
 ////            }
 //
-////            guard let id = mediaItem.id else {
+////            guard let id = mediaItem.mediaCode else {
 ////                return
 ////            }
 ////
@@ -6090,9 +6090,9 @@ class VoiceBase // : NSObject
                 let transcriptFromWordsString = self?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
                 transcriptString == transcriptFromWordsString {
                 // Can insert paragraph breaks
-                let tooClose = self?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                let tooClose = self?.mediaItem?.teacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                 
-                let speakerNotesParagraphWords = self?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+                let speakerNotesParagraphWords = self?.mediaItem?.teacher?.speakerNotesParagraphWords?.result
                 
                 //                        print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
                 //                            if first.value == second.value {

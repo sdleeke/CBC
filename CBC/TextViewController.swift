@@ -1671,9 +1671,9 @@ class TextViewController : CBCViewController
                     var alertActions = [AlertAction]()
                     alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            tooClose = self?.transcript?.mediaItem?.teacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
-                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.teacher?.speakerNotesParagraphWords?.result
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
                                 if first.value == second.value {
@@ -2047,9 +2047,9 @@ class TextViewController : CBCViewController
                     var actions = [AlertAction]()
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            tooClose = self?.transcript?.mediaItem?.teacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
-                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
+                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.teacher?.speakerNotesParagraphWords?.result
                             
                             print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
                                 if first.value == second.value {

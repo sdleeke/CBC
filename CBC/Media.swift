@@ -18,33 +18,30 @@ struct MediaNeed
 // Problems went away when I switched to class
 class Media
 {
-    var category = Category()
+    var json = JSON()
+    
+    var category = MediaCategory()
     
 //    var categories = MediaCategories() // MediaCategory()
     
     var stream = MediaStream()
     
-    var categories = ThreadSafeDN<MediaCategory>() // [String:String]?
+    var categories = ThreadSafeDN<Category>() // [String:String]?
     
-    var teachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
+    var teachers = ThreadSafeDN<Teacher>() // [String:String]?
     
-    var groups = ThreadSafeDN<MediaGroup>() // [String:String]?
+    var groups = ThreadSafeDN<Group>() // [String:String]?
     
     var repository = MediaList()
 
     var search = Search()
     
-    var url:String?
-    {
-        get {
-            return Constants.JSON.URL.MEDIA
-        }
-    }
+    var metadata : [String:Any]?
     
-    var filename:String?
+    var url : String?
     {
         get {
-            return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + Constants.JSON.FILENAME_EXTENSION
+            return metadata?["s3MediaUrl"] as? String
         }
     }
     

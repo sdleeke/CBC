@@ -2456,7 +2456,7 @@ func verifyNASB()
 //    if mediaItem.hasMultipleParts {
 //        if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
 //            let seriesMediaItems = Globals.shared.media.repository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-//                return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
+//                return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.mediaCode)
 //            })
 //            multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
 //        } else {
@@ -3453,7 +3453,7 @@ func verifyNASB()
 //            if (mediaItem.audio == nil) {
 //                print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
 //            } else {
-//                if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notesURL {
+//                if let title = mediaItem.title, let id = mediaItem.mediaCode, let notesURL = mediaItem.notesURL {
 //                    if ((try? Data(contentsOf: notesURL)) != nil) {
 //                        print("Transcript DOES exist for: \(title) ID:\(id)")
 //                    } else {
@@ -3461,7 +3461,7 @@ func verifyNASB()
 //                    }
 //                }
 //                
-//                if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slides.url {
+//                if let title = mediaItem.title, let id = mediaItem.mediaCode, let slidesURL = mediaItem.slides.url {
 //                    if ((try? Data(contentsOf: slidesURL)) != nil) {
 //                        print("Slides DO exist for: \(title) ID: \(id)")
 //                    } else {

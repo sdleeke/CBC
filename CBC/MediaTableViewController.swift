@@ -458,7 +458,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
         print("URLSession:task:didCompleteWithError")
 
         // category.
-        if let mediaCategoryFilename = Globals.shared.media.filename, let filename = task.taskDescription {
+        if let mediaFilename = Globals.shared.media.json.filename, let filename = task.taskDescription {
             print("filename: \(filename)")
             
             if let error = error {
@@ -468,12 +468,12 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Couldn't get categories from network, try to get media, use last downloaded
                     // category.
-                    if let mediaFileName = Globals.shared.media.filename { // , let selectedID = Globals.shared.media.category.selectedID
-                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
+                    if let mediaFilename = Globals.shared.media.json.filename { // , let selectedID = Globals.shared.media.category.selectedID
+                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFilename) // CATEGORY + selectedID
                     }
                     break
                     
-                case mediaCategoryFilename:
+                case mediaFilename:
                     // Couldn't get media from network, use last downloaded
                     loadMediaItems()
                     {
@@ -491,12 +491,12 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Load media
                     // category.
-                    if let mediaFileName = Globals.shared.media.filename { // , let selectedID = Globals.shared.media.category.selectedID
-                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFileName) // CATEGORY + selectedID
+                    if let mediaFilename = Globals.shared.media.json.filename { // , let selectedID = Globals.shared.media.category.selectedID
+                        downloadJSON(url:Constants.JSON.URL.MEDIA,filename:mediaFilename) // CATEGORY + selectedID
                     }
                     break
                     
-                case mediaCategoryFilename:
+                case mediaFilename:
                     loadMediaItems()
                     {
                         self.loadCompletion()
@@ -1195,118 +1195,124 @@ class MediaTableViewController : MediaItemsViewController
         
         setToolbarItems(barButtons, animated: true)
     }
-    
-    func loadJSONDictsFromFileSystem(filename:String?,key:String) -> [[String:String]]? // CachesDirectory
-    {
-        var mediaItemDicts = [[String:String]]()
-        
-        if let json = filename?.fileSystemURL?.data?.json as? [String:Any] {
-            if let mediaItems = json[key] as? [[String:String]] {
-                for i in 0..<mediaItems.count {
-                    
-                    var dict = [String:String]()
-                    
-                    for (key,value) in mediaItems[i] {
-                        dict[key] = "\(value)"
-                    }
-                    
-                    mediaItemDicts.append(dict)
-                }
-                
-                return mediaItemDicts.count > 0 ? mediaItemDicts : nil
-            }
-        } else {
-            print("could not get json from file, make sure that file contains valid json.")
-        }
 
-        return nil
-    }
-    
-    private lazy var jsonQueue : OperationQueue! = {
-        let operationQueue = OperationQueue()
-        operationQueue.name = "MTVC:JSON"
-        operationQueue.qualityOfService = .background
-        operationQueue.maxConcurrentOperationCount = 1
-        return operationQueue
-    }()
-    
-    func jsonFromURL(urlString:String?,filename:String?) -> Any?
-    {
-//        guard let json = filename?.fileSystemURL?.data?.json else {
-//            // BLOCKS
-//            let data = urlString?.url?.data
-//
-//            jsonQueue.addOperation {
-//                _ = data?.save(to: filename?.fileSystemURL)
-//            }
-//
-//            return data?.json
+//    func loadJSONDictsFromFileSystem(filename:String?,key:String) -> [[String:Any]]? // CachesDirectory
+//    {
+//        guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
+//            return nil
 //        }
-        
-        guard Globals.shared.reachability.isReachable else {
-            return filename?.fileSystemURL?.data?.json
-        }
-        
-        guard let data = urlString?.url?.data else {
-            return filename?.fileSystemURL?.data?.json
-        }
-        
-        jsonQueue.addOperation {
-            _ = data.save(to: filename?.fileSystemURL)
-        }
-        
-        return data.json
-        
+//
+//        return json[key] as? [[String:Any]]
+//
+////        var mediaItemDicts = [[String:String]]()
+////
+////        if let json = filename?.fileSystemURL?.data?.json as? [String:Any] {
+////            if let mediaItems = json[key] as? [[String:String]] {
+////                for i in 0..<mediaItems.count {
+////
+////                    var dict = [String:String]()
+////
+////                    for (key,value) in mediaItems[i] {
+////                        dict[key] = "\(value)"
+////                    }
+////
+////                    mediaItemDicts.append(dict)
+////                }
+////
+////                return mediaItemDicts.count > 0 ? mediaItemDicts : nil
+////            }
+////        } else {
+////            print("could not get json from file, make sure that file contains valid json.")
+////        }
+////
+////        return nil
+//    }
+    
+//    private lazy var jsonQueue : OperationQueue! = {
+//        let operationQueue = OperationQueue()
+//        operationQueue.name = "MTVC:JSON"
+//        operationQueue.qualityOfService = .background
+//        operationQueue.maxConcurrentOperationCount = 1
+//        return operationQueue
+//    }()
+    
+//    func jsonFromURL(urlString:String?,filename:String?) -> Any?
+//    {
+////        guard let json = filename?.fileSystemURL?.data?.json else {
+////            // BLOCKS
+////            let data = urlString?.url?.data
+////
+////            jsonQueue.addOperation {
+////                _ = data?.save(to: filename?.fileSystemURL)
+////            }
+////
+////            return data?.json
+////        }
+//
+//        guard Globals.shared.reachability.isReachable else {
+//            return filename?.fileSystemURL?.data?.json
+//        }
+//
+//        guard let data = urlString?.url?.data else {
+//            return filename?.fileSystemURL?.data?.json
+//        }
+//
 //        jsonQueue.addOperation {
-//            _ = urlString?.url?.data?.save(to: filename?.fileSystemURL)
+//            _ = data.save(to: filename?.fileSystemURL)
 //        }
 //
-//        return json
-    }
+//        return data.json
+//
+////        jsonQueue.addOperation {
+////            _ = urlString?.url?.data?.save(to: filename?.fileSystemURL)
+////        }
+////
+////        return json
+//    }
 
-    func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:Any]]?
-    {
-        guard let json = jsonFromURL(urlString: url,filename: filename) as? [String:Any] else {
-            print("could not get json from URL, make sure that URL contains valid json.")
-            return nil
-        }
-        
-        return json[key] as? [[String:Any]]
-        
-        guard let dictArray = json[key] as? [[String:Any]] else {
-            print("could not get [[String:String]] from json[\(key)].")
-            return nil
-        }
-        
-        var dicts = [[String:Any]]()
-        
-        for i in 0..<dictArray.count {
-            
-            var dict = [String:Any]()
-            
-            for (key,value) in dictArray[i] {
-                if let subdict = value as? [String:Any] {
-                    dict[key] = subdict
-//                    if let id = subdict["id"] {
-//                        dict[key] = "\(id)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                    }
-                } else {
-                    dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                }
-            }
-            
-            dicts.append(dict)
-        }
-
-        return dicts.count > 0 ? dicts : nil
-    }
+//    func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:Any]]?
+//    {
+//        guard let json = jsonFromURL(urlString: url,filename: filename) as? [String:Any] else {
+//            print("could not get json from URL, make sure that URL contains valid json.")
+//            return nil
+//        }
+//
+//        return json[key] as? [[String:Any]]
+//
+////        guard let dictArray = json[key] as? [[String:Any]] else {
+////            print("could not get [[String:String]] from json[\(key)].")
+////            return nil
+////        }
+////
+////        var dicts = [[String:Any]]()
+////
+////        for i in 0..<dictArray.count {
+////
+////            var dict = [String:Any]()
+////
+////            for (key,value) in dictArray[i] {
+////                if let subdict = value as? [String:Any] {
+////                    dict[key] = subdict
+//////                    if let id = subdict["id"] {
+//////                        dict[key] = "\(id)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//////                    }
+////                } else {
+////                    dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+////                }
+////            }
+////
+////            dicts.append(dict)
+////        }
+////
+////        return dicts.count > 0 ? dicts : nil
+//    }
     
-    func mediaItems(from mediaItemDicts:[[String:Any]]?) -> [MediaItem]?
-    {
-        return mediaItemDicts?.map({ (mediaItemDict:[String : Any]) -> MediaItem in
-            return MediaItem(storage: mediaItemDict)
-        })
-    }
+//    func mediaItems(from mediaItemDicts:[[String:Any]]?) -> [MediaItem]?
+//    {
+//        return mediaItemDicts?.map({ (mediaItemDict:[String : Any]) -> MediaItem in
+//            return MediaItem(storage: mediaItemDict)
+//        })
+//    }
     
 //    func loadLive(completion:(()->(Void))?)
 //    {
@@ -1320,57 +1326,57 @@ class MediaTableViewController : MediaItemsViewController
 //        }
 //    }
     
-    func loadCategories()
-    {
-        if let categoryDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES,filename: Constants.JSON.FILENAME.CATEGORIES) {
-//            var mediaCategoryDicts = [String:String]()
-            
-            for categoryDict in categoryDicts {
-                if let name = categoryDict["category_name"] as? String {
-                    Globals.shared.media.categories[name] = MediaCategory(dict:categoryDict)
-//                    mediaCategoryDicts[name] = categoriesDict["id"]
-                }
-            }
-            
-            //            Globals.shared.media.category.dicts = mediaCategoryDicts
-            
-//            Globals.shared.media.categories.dicts.update(storage: mediaCategoryDicts)
-        }
-    }
-    
-    func loadGroups()
-    {
-        if let groupDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.GROUPS,key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES,filename: Constants.JSON.FILENAME.GROUPS) {
-//            var mediaGroupDicts = [String:String]()
-            
-            for groupDict in groupDicts {
-                if let name = groupDict["name"] as? String {
-                    Globals.shared.media.groups[name] = MediaGroup(dict:groupDict)
-//                    mediaGroupDicts[name] = groupDict["id"]
-                }
-            }
-            
-            //            Globals.shared.media.category.dicts = mediaCategoryDicts
-            
-//            Globals.shared.media.groups.dicts.update(storage: mediaGroupDicts)
-        }
-    }
-    
-    func loadTeachers()
-    {
-        if let teachersDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES,filename: Constants.JSON.FILENAME.TEACHERS) {
-//            var mediaTeachersDict = [String:String]()
-            
-            for teachersDict in teachersDicts {
-                if let name = teachersDict["name"] as? String {
-                    Globals.shared.media.teachers[name] = MediaTeacher(dict:teachersDict)
-//                    mediaTeachersDict[name] = teachersDict["status"]
-                }
-            }
-            
-//            Globals.shared.mediaTeachers = mediaTeachersDict
-        }
-    }
+//    func loadCategories()
+//    {
+//        if let categoryDicts = self.json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES) {
+////            var mediaCategoryDicts = [String:String]()
+//
+//            for categoryDict in categoryDicts {
+//                if let name = categoryDict["category_name"] as? String {
+//                    Globals.shared.media.categories[name] = Category(categoryDict)
+////                    mediaCategoryDicts[name] = categoriesDict["id"]
+//                }
+//            }
+//
+//            //            Globals.shared.media.category.dicts = mediaCategoryDicts
+//
+////            Globals.shared.media.categories.dicts.update(storage: mediaCategoryDicts)
+//        }
+//    }
+//
+//    func loadGroups()
+//    {
+//        if let groupDicts = self.json.load(urlString: Constants.JSON.URL.GROUPS, key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES, filename: Constants.JSON.FILENAME.GROUPS) {
+////            var mediaGroupDicts = [String:String]()
+//
+//            for groupDict in groupDicts {
+//                if let name = groupDict["name"] as? String {
+//                    Globals.shared.media.groups[name] = Group(groupDict)
+////                    mediaGroupDicts[name] = groupDict["id"]
+//                }
+//            }
+//
+//            //            Globals.shared.media.category.dicts = mediaCategoryDicts
+//
+////            Globals.shared.media.groups.dicts.update(storage: mediaGroupDicts)
+//        }
+//    }
+//
+//    func loadTeachers()
+//    {
+//        if let teachersDicts = self.json.load(urlString: Constants.JSON.URL.TEACHERS, key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES, filename: Constants.JSON.FILENAME.TEACHERS) {
+////            var mediaTeachersDict = [String:String]()
+//
+//            for teachersDict in teachersDicts {
+//                if let name = teachersDict["name"] as? String {
+//                    Globals.shared.media.teachers[name] = Teacher(teachersDict)
+////                    mediaTeachersDict[name] = teachersDict["status"]
+//                }
+//            }
+//
+////            Globals.shared.mediaTeachers = mediaTeachersDict
+//        }
+//    }
     
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -1413,27 +1419,37 @@ class MediaTableViewController : MediaItemsViewController
                 switch jsonSource {
                 case .download:
                     // From Caches Directory
-                    if let categoryDicts = self?.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES) {
-//                        var mediaCategoryDicts = [String:String]()
+                    if let categoryDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES) {
+                        //                        var mediaCategoryDicts = [String:String]()
                         
                         for categoryDict in categoryDicts {
-                            if let name = categoryDict["category_name"] {
-                                Globals.shared.media.categories[name] = MediaCategory(dict:categoryDict) // name:name,title:teachersDict["status"]
-//                                mediaCategoryDicts[name] = categoriesDict["id"]
+                            if let name = categoryDict["category_name"] as? String {
+                                Globals.shared.media.categories[name] = Category(categoryDict) // name:name,title:teachersDict["status"]
+                                //                                mediaCategoryDicts[name] = categoriesDict["id"]
                             }
                         }
                         
-//                        Globals.shared.media.category.dicts = mediaCategoryDicts
+                        //                        Globals.shared.media.category.dicts = mediaCategoryDicts
                         
-//                        Globals.shared.media.category.dicts.update(storage: mediaCategoryDicts)
+                        //                        Globals.shared.media.category.dicts.update(storage: mediaCategoryDicts)
                     }
                     
-                    if let teacherDicts = self?.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
+                    if let groupDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES) {
+                        //                        var mediaGroupDicts = [String:String]()
+                        
+                        for groupDict in groupDicts {
+                            if let name = groupDict["name"] as? String {
+                                Globals.shared.media.groups[name] = Group(groupDict) // name:name,title:teachersDict["status"]
+                            }
+                        }
+                    }
+                    
+                    if let teacherDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
 //                        var mediaTeachersDict = [String:String]()
                         
                         for teacherDict in teacherDicts {
-                            if let name = teacherDict["name"] {
-                                Globals.shared.media.teachers[name] = MediaTeacher(dict:teacherDict) // name:name,title:teachersDict["status"]
+                            if let name = teacherDict["name"] as? String {
+                                Globals.shared.media.teachers[name] = Teacher(teacherDict) // name:name,title:teachersDict["status"]
 //                              mediaTeachersDict[name] = teachersDict["status"]
                             }
                         }
@@ -1442,8 +1458,10 @@ class MediaTableViewController : MediaItemsViewController
                     }
                     
                     // category.
-                    if  let mediaItemDicts = self?.loadJSONDictsFromFileSystem(filename:Globals.shared.media.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
-                        Globals.shared.media.repository.list = self?.mediaItems(from: mediaItemDicts)
+                    if  let mediaItemDicts = Globals.shared.media.json.load(filename:Globals.shared.media.json.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
+                        Globals.shared.media.repository.list = mediaItemDicts.map({ (mediaItemDict:[String : Any]) -> MediaItem in
+                            return MediaItem(storage: mediaItemDict)
+                        })
                     } else {
                         Globals.shared.media.repository.list = nil
                         print("FAILED TO LOAD")
@@ -1451,16 +1469,46 @@ class MediaTableViewController : MediaItemsViewController
                     break
                     
                 case .direct:
-                    self?.loadGroups()
-                    self?.loadTeachers()
-                    self?.loadCategories()
+//                    self?.loadGroups()
+                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.GROUPS, key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES, filename: Constants.JSON.FILENAME.GROUPS)?.forEach({ (dict:[String : Any]) in
+                        if let name = dict["name"] as? String {
+                            Globals.shared.media.groups[name] = Group(dict)
+                        }
+                    })
+                    
+//                    self?.loadTeachers()
+                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.TEACHERS, key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES, filename: Constants.JSON.FILENAME.TEACHERS)?.forEach({ (dict:[String : Any]) in
+                        if let name = dict["name"] as? String {
+                            Globals.shared.media.teachers[name] = Teacher(dict)
+                        }
+                    })
+                    
+//                  self?.loadCategories()
+                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES)?.forEach({ (dict:[String : Any]) in
+                        if let name = dict["name"] as? String {
+                            Globals.shared.media.categories[name] = Category(dict)
+                        }
+                    })
                     
 //                    self?.notesName = (Globals.shared.media.category.notesName ?? "") + (Globals.shared.media.category.notesName == Constants.Strings.Transcript ? "s" : "")
 
-                    if  let url = Globals.shared.media.url,
-                        let filename = Globals.shared.media.filename,
-                        let mediaItemDicts = self?.loadJSONDictsFromURL(url: url,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
-                        Globals.shared.media.repository.list = self?.mediaItems(from: mediaItemDicts)
+                    if  let url = Globals.shared.media.json.url,
+                        let filename = Globals.shared.media.json.filename,
+                        let json = Globals.shared.media.json.get(urlString: url, filename: filename) as? [String:Any],
+                        let mediaItemDicts = json[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
+//                        let mediaItemDicts = self?.json.load(urlString: url, key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES, filename: filename) {
+                        
+                        Globals.shared.media.metadata = json[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
+                        
+                        Globals.shared.media.repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
+//                            if dict["published"] == nil {
+//                                return true
+//                            }
+//
+                            return (dict["published"] as? Bool) != false
+                        }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
+                            return MediaItem(storage: mediaItemDict)
+                        })
                     } else {
                         Globals.shared.media.repository.list = nil
                         print("FAILED TO LOAD")
@@ -1886,7 +1934,7 @@ class MediaTableViewController : MediaItemsViewController
                 Globals.shared.isRefreshing = false
             }
 
-            self.alert(title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
+            self.alert(title: "No Media Available",message: "Please check your network connection and try again.")
         } else {
             if Globals.shared.isRefreshing {
                 self.refreshControl?.endRefreshing()

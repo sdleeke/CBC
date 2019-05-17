@@ -8,47 +8,54 @@
 
 import Foundation
 
-class StreamEntry
+class StreamEntry : Base
 {
-    deinit {
-        debug(self)
-    }
-    
-    init?(_ storage:[String:Any]?)
-    {
-        guard storage != nil else {
-            return nil
-        }
-        
-        self.storage = storage
-    }
-    
-    // Make thread safe?
-    var storage : [String:Any]?
-    
-    subscript(key:String?) -> Any?
-    {
-        get {
-            guard let key = key else {
-                return nil
-            }
-            return storage?[key]
-        }
-        set {
-            guard let key = key else {
-                return
-            }
-            
-            storage?[key] = newValue
-        }
-    }
+//    deinit {
+//        debug(self)
+//    }
+//
+//    init?(_ storage:[String:Any]?)
+//    {
+//        guard storage != nil else {
+//            return nil
+//        }
+//
+//        self.storage = storage
+//    }
+//
+//    // Make thread safe?
+//    var storage : [String:Any]?
+//
+//    subscript(key:String?) -> Any?
+//    {
+//        get {
+//            guard let key = key else {
+//                return nil
+//            }
+//            return storage?[key]
+//        }
+//        set {
+//            guard let key = key else {
+//                return
+//            }
+//
+//            storage?[key] = newValue
+//        }
+//    }
 
-    var id : Int?
-    {
-        get {
-            return self["id"] as? Int
-        }
-    }
+//    var id : Int?
+//    {
+//        get {
+//            return self["id"] as? Int
+//        }
+//    }
+//
+//    var name : String?
+//    {
+//        get {
+//            return self["name"] as? String
+//        }
+//    }
     
     var start : Int?
     {
@@ -83,13 +90,6 @@ class StreamEntry
             } else {
                 return nil
             }
-        }
-    }
-    
-    var name : String?
-    {
-        get {
-            return self["name"] as? String
         }
     }
     

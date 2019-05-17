@@ -1342,7 +1342,7 @@ class MediaList // : Sequence
 //        events = [String]()
 
         for mediaItem in list {
-            if let id = mediaItem.id {
+            if let id = mediaItem.mediaCode {
                 index[id] = mediaItem
             }
             
@@ -2037,10 +2037,10 @@ class MediaList // : Sequence
                     
                 }
                 
-                if (mediaItem.audio == nil) {
+                if (mediaItem.audioURL == nil) {
                     print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
                 } else {
-                    if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notes?.url {
+                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let notesURL = mediaItem.notes?.url {
                         if ((try? Data(contentsOf: notesURL)) != nil) {
                             print("Transcript DOES exist for: \(title) ID:\(id)")
                         } else {
@@ -2048,7 +2048,7 @@ class MediaList // : Sequence
                         }
                     }
                     
-                    if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slides?.url {
+                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let slidesURL = mediaItem.slides?.url {
                         if ((try? Data(contentsOf: slidesURL)) != nil) {
                             print("Slides DO exist for: \(title) ID: \(id)")
                         } else {

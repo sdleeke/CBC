@@ -18,8 +18,17 @@ enum ScreenSize
 }
 
 enum Field {
-    static let id           = "mediacode"
-    static let mediacode    = "mediacode"
+    static let published    = "published"
+    static let status       = "status"
+    static let suffix       = "suffix"
+    static let duration     = "duration"
+    static let filesize     = "filesize"
+
+    static let vimeo_mp4    = "vimeo_mp4"
+    static let vimeo_m3u8   = "vimeo_m3u8"
+
+//    static let id           = "mediacode" // "id" in new format
+    static let mediaCode    = "mediacode"
 
     static let date         = "date"
     static let service      = "service"
@@ -28,16 +37,27 @@ enum Field {
     
     static let name         = "name"
     
-    static let audio        = "audio_url"
-    
+    static let audio        = "audio"
+    static let video        = "video"
+
+//    static let audio_url    = "audio_url"
+
     static let m3u8         = "m3u8"
     static let mp4          = "mp4"
     static let mp3          = "mp3"
 
     static let poster       = "poster"
     
-    static let notes        = "transcript"
-    static let notes_HTML   = "transcript_HTML"
+    static let transcript      = "transcript"
+    static let transcript_html = "transcript_html"
+    
+    static let transcript_HTML = "transcript_HTML" // Old single call
+
+    static let notes        = transcript
+    static let notes_html   = transcript_html
+    
+    static let notes_HTML   = transcript_HTML
+    
     static let slides       = "slides"
     static let outline      = "outline"
     
@@ -46,12 +66,17 @@ enum Field {
     static let playing      = "playing"
     static let showing      = "showing"
     
+    static let teacher      = "teacher"
+    static let series       = "series"
+
     static let speaker      = "teacher" // was "speaker"
     static let speaker_sort = "speaker sort"
     
     static let scripture    = "text" // was "scripture"
-    static let category     = "category"
     
+    static let category     = "category"
+    static let group        = "group"
+
     static let className    = "class"
     static let eventName    = "event"
     
@@ -59,7 +84,7 @@ enum Field {
     static let multi_part_name_sort = "multi part name sort"
     
     static let part = "part"
-    static let tags = "series"
+    static let tags = "tags" // "series"
     static let book = "book"
     static let year = "year"
 
@@ -67,20 +92,22 @@ enum Field {
 }
 
 enum MediaType {
-    static let AUDIO    = "AUDIO"
-    static let VIDEO    = "VIDEO"
-    static let SLIDES   = "SLIDES"
-    static let NOTES    = "NOTES"
-    static let OUTLINE  = "OUTLINE"
-    static let NONE     = "NONE"
+    static let AUDIO        = "AUDIO"
+    static let VIDEO        = "VIDEO"
+    static let SLIDES       = "SLIDES"
+    static let NOTES        = "NOTES"
+    static let TRANSCRIPT   = "TRANSCRIPT"
+    static let OUTLINE      = "OUTLINE"
+    static let NONE         = "NONE"
 }
 
 enum Purpose {
-    static let audio    = MediaType.AUDIO
-    static let video    = MediaType.VIDEO
-    static let slides   = MediaType.SLIDES
-    static let notes    = MediaType.NOTES
-    static let outline  = MediaType.OUTLINE
+    static let audio        = MediaType.AUDIO
+    static let video        = MediaType.VIDEO
+    static let slides       = MediaType.SLIDES
+    static let notes        = MediaType.NOTES
+    static let transcript   = MediaType.TRANSCRIPT
+    static let outline      = MediaType.OUTLINE
 }
 
 enum Playing {
@@ -89,10 +116,11 @@ enum Playing {
 }
 
 enum Showing {
-    static let video    = MediaType.VIDEO
-    static let notes    = MediaType.NOTES
-    static let slides   = MediaType.SLIDES
-    static let none     = MediaType.NONE
+    static let video        = MediaType.VIDEO
+    static let notes        = MediaType.NOTES
+    static let transcript   = MediaType.TRANSCRIPT
+    static let slides       = MediaType.SLIDES
+    static let none         = MediaType.NONE
 }
 
 enum Grouping {
@@ -110,6 +138,7 @@ enum GROUPING {
     static let SPEAKER  = "speaker"
     static let TITLE    = "title"
     static let CLASS    = "class"
+    static let GROUP    = "group"
     static let EVENT    = "event"
 }
 
@@ -136,35 +165,38 @@ enum Constants {
 //        static let MEDIA_PATH = "media"
         
         enum URL {
-            static let OLD_BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
-            static let NEW_BASE = "https://api.countrysidebible.org/"
+            static let BASE_OLD = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
+            static let BASE_NEW = "https://api.countrysidebible.org/"
             
-            static let OLD_PARAMETER = "&"
-            static let NEW_PARAMETER = "?"
+            static let BASE = BASE_OLD
             
-            static let OLD_MEDIA = OLD_BASE + "media"
-            static let NEW_MEDIA = NEW_BASE + "media"
+            static let PARAMETER_OLD = "&"
+            static let PARAMETER_NEW = "?"
+            
+            static let MEDIA_OLD = BASE_OLD + "media"
+            static let MEDIA_NEW = BASE_NEW + "media"
 
-            static let OLD_CATEGORIES = OLD_BASE + "categories"
-            static let NEW_CATEGORIES = NEW_BASE + "categories"
+            static let CATEGORIES_OLD = BASE_OLD + "categories"
+            static let CATEGORIES_NEW = BASE_NEW + "categories"
             
-            static let NEW_GROUPS = NEW_BASE + "groups"
+            static let GROUPS_NEW = BASE_NEW + "groups"
             
-            static let OLD_TEACHERS = OLD_BASE + "teachers"
-            static let NEW_TEACHERS = NEW_BASE + "teachers"
+            static let TEACHERS_OLD = BASE_OLD + "teachers"
+            static let TEACHERS_NEW = BASE_NEW + "teachers"
 
-            static let OLD_CATEGORY = OLD_MEDIA + OLD_PARAMETER + "categoryID="
-            static let NEW_CATEGORY = NEW_MEDIA + NEW_PARAMETER + "categoryID="
+            static let CATEGORY_OLD = MEDIA_OLD + PARAMETER_OLD + "categoryID="
+            static let CATEGORY_NEW = MEDIA_NEW + PARAMETER_NEW + "categoryID="
             
-            static let OLD_SINGLE = OLD_BASE + "single" + OLD_PARAMETER + "mediacode="
-            static let NEW_SINGLE = NEW_BASE + NEW_PARAMETER + "mediacode="
+            static let SINGLE_OLD = BASE_OLD + "single" + PARAMETER_OLD + "mediacode="
+            static let SINGLE_NEW = MEDIA_NEW + PARAMETER_NEW + "mediacode="
+            static let SINGLE_ALT_NEW = MEDIA_NEW + "/"
 
-            static let MEDIA = OLD_MEDIA
-            static let SINGLE = OLD_SINGLE
-            static let GROUPS = NEW_GROUPS
-            static let CATEGORY = OLD_CATEGORY
-            static let TEACHERS = OLD_TEACHERS
-            static let CATEGORIES = OLD_CATEGORIES
+            static let MEDIA = MEDIA_OLD
+            static let SINGLE = SINGLE_OLD
+            static let GROUPS = GROUPS_NEW
+            static let CATEGORY = CATEGORY_OLD
+            static let TEACHERS = TEACHERS_OLD
+            static let CATEGORIES = CATEGORIES_OLD
         }
 
         enum ARRAY_KEY {
@@ -172,6 +204,7 @@ enum Constants {
             static let CATEGORY_ENTRIES = "categoryEntries"
             static let GROUP_ENTRIES    = "groupEntries"
             static let MEDIA_ENTRIES    = "mediaEntries"
+            static let META_DATA        = "metadata"
             static let SINGLE_ENTRY     = "singleEntry"
         }
         
@@ -194,14 +227,14 @@ enum Constants {
     }
     
     enum URL {
-        static let OLD_LIVE_EVENTS = "https://api.countrysidebible.org/cache/streamEntries.json"
-        static let NEW_LIVE_EVENTS = "https://api.countrysidebible.org/media/?streaming=true"
+        static let LIVE_EVENTS_OLD = "https://api.countrysidebible.org/cache/streamEntries.json"
+        static let LIVE_EVENTS_NEW = "https://api.countrysidebible.org/media/?streaming=true"
 
-        static let LIVE_EVENTS = OLD_LIVE_EVENTS
+        static let LIVE_EVENTS = LIVE_EVENTS_NEW
         
-        static let OLD_LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
+        static let LIVE_STREAM_OLD = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
-        static let LIVE_STREAM = OLD_LIVE_STREAM
+        static let LIVE_STREAM = LIVE_STREAM_OLD
         
         static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/"
         
@@ -333,9 +366,16 @@ enum Constants {
     enum CBC {
         static let EMAIL = "cbcstaff@countrysidebible.org"
         static let WEBSITE = "https://www.countrysidebible.org"
-        static let MEDIA_WEBSITE = WEBSITE + "/cbcmedia"
-        static let SINGLE_WEBSITE = MEDIA_WEBSITE + "?return=single&mediacode="
+
+        static let MEDIA_WEBSITE_OLD = WEBSITE + "/cbcmedia"
+        static let MEDIA_WEBSITE_NEW = WEBSITE + "/media"
         
+        static let MEDIA_WEBSITE = MEDIA_WEBSITE_OLD
+        
+        static let SINGLE_WEBSITE_OLD = MEDIA_WEBSITE + "?return=single&mediacode="
+        static let SINGLE_WEBSITE_NEW = MEDIA_WEBSITE_NEW + "/"
+        static let SINGLE_WEBSITE = SINGLE_WEBSITE_OLD
+
         static let APP_URL = "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8"
         
         static let STREET_ADDRESS = "250 Countryside Court"
@@ -369,8 +409,10 @@ enum Constants {
     
     static let DICT = "dict"
 
-    static let PART_INDICATOR_SINGULAR = " (Part "
-    
+    static let PART_PREAMBLES = [" ("," - "]
+    static let PART_POSTAMBLES = [")",""]
+    static let PART_INDICATOR = "Part "
+
     static let VIEW_SPLIT = "VIEW SPLIT"
     static let SLIDE_SPLIT = "SLIDE SPLIT"
     

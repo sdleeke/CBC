@@ -3600,9 +3600,9 @@ extension UIViewController
 //        }
     }
 
-    func alert(title:String?,message:String?,completion:(()->(Void))?)
+    func alert(title:String?,message:String? = nil,completion:(()->(Void))? = nil)
     {
-        Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: { () -> (Void) in
+        Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { () -> (Void) in
             completion?()
         })])
 
@@ -7050,8 +7050,15 @@ extension String
         var str = self // .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //.replacingOccurrences(of: "\r\n", with: " ")
         
         // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
-        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-            str = String(str[..<range.lowerBound])
+    
+//        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
+//            str = String(str[..<range.lowerBound])
+//        }
+        for partPreamble in Constants.PART_PREAMBLES {
+            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
+                str = String(str[..<range.lowerBound])
+            }
+            break
         }
         
         var token = Constants.EMPTY_STRING
@@ -7150,8 +7157,14 @@ extension String
         
         var str = self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
         
-        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-            str = String(str[..<range.lowerBound])
+//        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
+//            str = String(str[..<range.lowerBound])
+//        }
+        for partPreamble in Constants.PART_PREAMBLES {
+            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
+                str = String(str[..<range.lowerBound])
+            }
+            break
         }
         
         var token = Constants.EMPTY_STRING

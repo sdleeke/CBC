@@ -115,18 +115,25 @@ class MediaTableViewCell: UITableViewCell
         
         var title:String?
         
-        if searchText == nil,
-            let string = mediaItem.title,
-            let rangeTo = string.range(of: " (Part"),
-            let rangeFrom = string.range(of: " (Part ") {
-            // This causes searching for "(Part " to present a blank title.
-            let first = String(string[..<rangeTo.upperBound])
-            let second = String(string[rangeFrom.upperBound...])
-            title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-        } else {
-            title = mediaItem.title
+        var partFound = false
+        for partPreamble in Constants.PART_PREAMBLES {
+            if searchText == nil,
+                let string = mediaItem.title,
+                let rangeTo = string.range(of: partPreamble + Constants.PART_INDICATOR),
+                let rangeFrom = string.range(of: partPreamble + Constants.PART_INDICATOR) {
+                // This causes searching for "(Part " to present a blank title.
+                let first = String(string[..<rangeTo.upperBound])
+                let second = String(string[rangeFrom.upperBound...])
+                title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+                partFound = true
+                break
+            }
         }
         
+        if !partFound {
+            title = mediaItem.title
+        }
+
         if let title = title?.boldHighlighted(searchText) {
             if !detailString.string.isEmpty {
                 detailString.append(NSAttributedString(string: "\n"))

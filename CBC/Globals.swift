@@ -756,12 +756,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        guard mediaItem.id != nil else {
+        guard mediaItem.mediaCode != nil else {
             print("mediaItem ID NIL!")
             return
         }
         
-        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.id
+        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.mediaCode
         
 //        if history == nil {
 //            history = [entry]

@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Category
+class MediaCategory
 {
 //    var dicts = ThreadSafeDN<String>() // :[String:String]? // ictionary
 //

@@ -8,116 +8,242 @@
 
 import Foundation
 
-class MediaCategory
+class Storage
 {
-    deinit {
-        debug(self)
-    }
+    var storage:[String:Any]?
     
-    init(dict:[String:Any]?)
-    {
-        self.dict = dict
-    }
-    
-    var dict : [String:Any]?
-    
-    var id : Int?
+    subscript(key:String?) -> Any?
     {
         get {
-            return dict?["id"] as? Int
+            guard let key = key else {
+                return nil
+            }
+            return storage?[key]
+        }
+        set {
+            guard let key = key else {
+                return
+            }
+            storage?[key] = newValue
         }
     }
     
-    var name : String?
+    init?(_ storage:[String:Any]?)
+    {
+        guard let storage = storage else {
+            return nil
+        }
+        
+        self.storage = storage
+    }
+    
+    deinit {
+        debug(self)
+    }
+}
+
+class Streaming : Storage
+{
+    var liveNow : Bool?
     {
         get {
-            return dict?["name"] as? String
+            return self["liveNow"] as? Bool
+        }
+    }
+    
+    var start : String?
+    {
+        get {
+            return self["start"] as? String
+        }
+    }
+    
+    var startDate : Date?
+    {
+        get {
+            if let start = start {
+                return Date(dateString: start)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var end : String?
+    {
+        get {
+            return self["end"] as? String
+        }
+    }
+    
+    var endDate : Date?
+    {
+        get {
+            if let end = end {
+                return Date(dateString: end)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var startTs : Int?
+    {
+        get {
+            return self["startTs"] as? Int
+        }
+    }
+    
+    var endTs : Int?
+    {
+        get {
+            return self["endTs"] as? Int
         }
     }
 }
 
-class MediaGroup
+class Files : Storage
 {
-    deinit {
-        debug(self)
-    }
-    
-    init(dict:[String:Any]?)
+    var slides : String?
     {
-        self.dict = dict
+        get {
+            return self[Field.slides] as? String
+        }
     }
     
-    var dict : [String:Any]?
+    var notes : String?
+    {
+        get {
+            return self[Field.notes] as? String
+        }
+    }
     
+    var notesHTML : String?
+    {
+        get {
+            return self[Field.notes_html] as? String
+        }
+    }
+    
+    var transcript : String?
+    {
+        get {
+            return self[Field.transcript] as? String
+        }
+    }
+    
+    var transcriptHTML : String?
+    {
+        get {
+            return self[Field.transcript_html] as? String
+        }
+    }
+    
+    var outline : String?
+    {
+        get {
+            return self[Field.outline] as? String
+        }
+    }
+}
+
+class Base : Storage
+{
     var id : Int?
     {
         get {
-            return dict?["id"] as? Int
+            return self[Field.mediaCode] as? Int
         }
     }
     
     var name : String?
     {
         get {
-            return dict?["name"] as? String
+            return self[Field.name] as? String
         }
     }
+}
+
+class Series : Base
+{
     
-    var status : String?
-    {
-        get {
-            return dict?["status"] as? String
-        }
-    }
+}
+
+class Event : Base
+{
     
+}
+
+class Suffix : Base
+{
     var suffix : String?
     {
         get {
-            return dict?["suffix"] as? String
+            return self[Field.suffix] as? String
         }
     }
 }
 
-class MediaTeacher
+class Audio : Storage
+{
+    var mp3 : String?
     {
-        deinit {
-            debug(self)
-        }
-        
-        init(dict:[String:Any]?)
-        {
-            self.dict = dict
-        }
-        
-        var dict : [String:Any]?
-        
-        var id : Int?
-        {
-            get {
-                return dict?["id"] as? Int
+        return self[Field.mp3] as? String
+    }
+    
+    var duration : String?
+    {
+        return self[Field.duration] as? String
+    }
+    
+    var filesize : Int?
+    {
+        get {
+            guard let filesize = self[Field.filesize] as? String else {
+                return nil
             }
+            
+            return Int(filesize)
         }
-        
-        var name : String?
-        {
-            get {
-                return dict?["name"] as? String
-            }
+    }
+}
+
+class Video : Storage
+{
+    var mp4 : String?
+    {
+        return self[Field.vimeo_mp4] as? String
+    }
+    
+    var m3u8 : String?
+    {
+        return self[Field.vimeo_m3u8] as? String
+    }
+    
+    var poster : String?
+    {
+        return self[Field.poster] as? String
+    }
+}
+
+class Category : Suffix
+{
+
+}
+
+class Group : Suffix
+{
+
+}
+
+class Teacher : Suffix
+{
+    var status : String?
+    {
+        get {
+            return self[Field.status] as? String
         }
-        
-        var status : String?
-        {
-            get {
-                return dict?["status"] as? String
-            }
-        }
-        
-        var suffix : String?
-        {
-            get {
-                return dict?["suffix"] as? String
-            }
-        }
+    }
         
     lazy var speakerNotesParagraphWords : Fetch<[String:Int]>? = {
         let fetch = Fetch<[String:Int]>(name:nil)
@@ -228,7 +354,7 @@ class MediaTeacher
             
             for mediaItem in mediaItems {
                 if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
-                    allNotesParagraphLengths[mediaItem.id] = notesParagraphLengths
+                    allNotesParagraphLengths[mediaItem.mediaCode] = notesParagraphLengths
                 }
             }
             
@@ -265,7 +391,7 @@ class MediaTeacher
 //
 //            for mediaItem in mediaItems {
 //                if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
-//                    allNotesParagraphLengths[mediaItem.id] = notesParagraphLengths
+//                    allNotesParagraphLengths[mediaItem.mediaCode] = notesParagraphLengths
 //                }
 //            }
 //

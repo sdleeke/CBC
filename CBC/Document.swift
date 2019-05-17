@@ -21,7 +21,7 @@ class Document : NSObject
     var setOffset = false
     
     lazy var fetchData : Fetch<Data>! = { [weak self] in
-        let fetchData = Fetch<Data>(name:mediaItem?.id ?? "" + "DOCUMENT" + (purpose ?? "")) //
+        let fetchData = Fetch<Data>(name:mediaItem?.mediaCode ?? "" + "DOCUMENT" + (purpose ?? "")) //
     
         fetchData.fetch = {
             var data : Data?

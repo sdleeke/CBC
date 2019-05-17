@@ -30,7 +30,7 @@ class SelectedMediaItem
         
         set {
             if let relevantHistoryFirst = Globals.shared.relevantHistoryFirst {
-                if newValue?.id != relevantHistoryFirst.id {
+                if newValue?.mediaCode != relevantHistoryFirst.mediaCode {
                     Globals.shared.addToHistory(newValue)
                 }
             } else {
@@ -39,11 +39,11 @@ class SelectedMediaItem
 
             if let category = newValue?.category {
                 // Set according to mediaItem category not whatever is selected.
-                Globals.shared.media.category.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue?.id
+                Globals.shared.media.category.settings[category,Constants.SETTINGS.SELECTED_MEDIA.MASTER] = newValue?.mediaCode
                 // For a high volume of activity this can be very expensive.
                 Globals.shared.media.category.saveSettingsBackground()
 
-//                Globals.shared.media.category.selectedInMaster = newValue?.id
+//                Globals.shared.media.category.selectedInMaster = newValue?.mediaCode
                 
 //                var selectedInMaster:String?
 //                {
@@ -71,7 +71,7 @@ class SelectedMediaItem
         }
         set {
             if let relevantHistoryFirst = Globals.shared.relevantHistoryFirst {
-                if newValue?.id != relevantHistoryFirst.id {
+                if newValue?.mediaCode != relevantHistoryFirst.mediaCode {
                     Globals.shared.addToHistory(newValue)
                 }
             } else {
@@ -83,7 +83,7 @@ class SelectedMediaItem
 //            }
             
             if let newValue = newValue {
-                UserDefaults.standard.set(newValue.id, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
+                UserDefaults.standard.set(newValue.mediaCode, forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
             } else {
                 UserDefaults.standard.removeObject(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL)
             }
@@ -101,7 +101,7 @@ class SelectedMediaItem
 //        }
 //
 //        set {
-//            Globals.shared.media.category.selectedInDetail = newValue?.id
+//            Globals.shared.media.category.selectedInDetail = newValue?.mediaCode
 //        }
     }
 }

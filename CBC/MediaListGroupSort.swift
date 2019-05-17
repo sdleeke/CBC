@@ -885,7 +885,7 @@ class MediaListGroupSort // : NSObject
 //        index = [String:MediaItem]()
 //
 //        for mediaItem in mediaItems {
-//            if let id = mediaItem.id {
+//            if let id = mediaItem.mediaCode {
 //                index?[id] = mediaItem
 //            }
 //
