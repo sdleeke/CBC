@@ -2389,13 +2389,13 @@ class MediaTableViewController : MediaItemsViewController
         if (Globals.shared.media.active?.context == context) {
 //        if !Globals.shared.media.search.isActive || (Globals.shared.media.search.text?.uppercased() == searchText) {
             display.setup(Globals.shared.media.active)
-        }
-        
-        Thread.onMainThread {
-            if !self.tableView.isEditing {
-                self.tableView.reloadData()
-            } else {
-                self.changesPending = true
+            
+            Thread.onMainThread {
+                if !self.tableView.isEditing {
+                    self.tableView.reloadData()
+                } else {
+                    self.changesPending = true
+                }
             }
         }
     }

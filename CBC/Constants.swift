@@ -231,7 +231,7 @@ enum Constants {
         static let LIVE_EVENTS_OLD = "https://api.countrysidebible.org/cache/streamEntries.json"
         static let LIVE_EVENTS_NEW = "https://api.countrysidebible.org/media/?streaming=true"
 
-        static let LIVE_EVENTS = LIVE_EVENTS_NEW
+        static let LIVE_EVENTS = LIVE_EVENTS_OLD
         
         static let LIVE_STREAM_OLD = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         static let LIVE_STREAM = LIVE_STREAM_OLD

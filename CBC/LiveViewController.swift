@@ -17,9 +17,25 @@ class LiveViewController: CBCViewController
         debug(self)
     }
     
+    var streamingURL : String?
+    {
+        get {
+            return ((streaming?.storage?["files"] as? [String:Any])?["progressive"] as? [[String:Any]])?[0]["url"] as? String
+        }
+    }
+    
+    var streaming : Streaming?
+    {
+        didSet {
+            
+        }
+    }
+    
     var streamEntry:StreamEntry?
     {
         didSet {
+            streaming = Streaming(streamEntry?["streaming"] as? [String:Any])
+            
             let defaults = UserDefaults.standard
             if streamEntry != nil {
                 if (streamEntry?.storage != nil) {
@@ -158,7 +174,7 @@ class LiveViewController: CBCViewController
         if (Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
             Globals.shared.mediaPlayer.pause() // IfPlaying
 
-            Globals.shared.mediaPlayer.setup(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
+            Globals.shared.mediaPlayer.setup(url: streamingURL?.url ?? URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
             Globals.shared.mediaPlayer.setupPlayingInfoCenter()
         }
         
