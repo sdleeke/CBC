@@ -418,13 +418,16 @@ extension TextViewController : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         
         // present the view controller
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
-            
-            Thread.onMainThread {
-                self.present(activityViewController, animated: true, completion: nil)
-            }
-        }
+        Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//
+//            Thread.onMainThread {
+//                self.present(activityViewController, animated: true, completion: nil)
+//            }
+//        }
+        
 //        self.present(activityViewController, animated: true, completion: nil)
 
 //        Thread.onMainThread {

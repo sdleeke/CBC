@@ -10,6 +10,12 @@ import Foundation
 import MediaPlayer
 import AVKit
 
+/**
+
+ enum for the media player state machine states
+ 
+ */
+
 enum PlayerState {
     case none
     
@@ -20,6 +26,12 @@ enum PlayerState {
     case seekingForward
     case seekingBackward
 }
+
+/**
+ 
+ class for keeping track of the time the player spends in each state.
+ 
+ */
 
 class PlayerStateTime
 {
@@ -117,6 +129,24 @@ enum PIP {
     case started
     case stopped
 }
+
+/**
+ 
+ class that provides all media player capabilities
+ 
+ Properties:
+    - isSeeking/completion
+    - observer to handle KVO
+    - AVPlayerViewController
+    - AVPlayerView from view controller)
+    - full screen control
+    - play to end control
+ 
+ Methods:
+    - play, pause, stop
+    - reload
+    - 
+ */
 
 class MediaPlayer : NSObject
 {

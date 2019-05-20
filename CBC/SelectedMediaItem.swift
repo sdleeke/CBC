@@ -8,8 +8,23 @@
 
 import Foundation
 
+/**
+
+ Simple class to track the media item selected in master and detail views for the current category
+ 
+ All updates history list for media items selected.
+ 
+ */
+
 class SelectedMediaItem
 {
+    weak var media : Media?
+    
+    init(_ media:Media?)
+    {
+        self.media = media
+    }
+    
     deinit {
         debug(self)
     }
@@ -21,23 +36,23 @@ class SelectedMediaItem
             
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = Globals.shared.media.category.selectedInMaster {
-                selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
+            if let selectedMediaItemID = media?.category.selectedInMaster {
+                selectedMediaItem = media?.repository.index[selectedMediaItemID]
             }
             
             return selectedMediaItem
         }
         
         set {
-            if let relevantHistoryFirst = Globals.shared.relevantHistoryFirst {
+            if let relevantHistoryFirst = media?.relevantHistoryFirst {
                 if newValue?.mediaCode != relevantHistoryFirst.mediaCode {
-                    Globals.shared.addToHistory(newValue)
+                    media?.addToHistory(newValue)
                 }
             } else {
-                Globals.shared.addToHistory(newValue)
+                media?.addToHistory(newValue)
             }
 
-            Globals.shared.media.category.selectedInMaster = newValue?.mediaCode
+            media?.category.selectedInMaster = newValue?.mediaCode
 
 //            if let category = newValue?.category {
 //                // Set according to mediaItem category not whatever is selected.
@@ -65,8 +80,8 @@ class SelectedMediaItem
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = Globals.shared.media.category.selectedInDetail {
-                selectedMediaItem = Globals.shared.media.repository.index[selectedMediaItemID]
+            if let selectedMediaItemID = media?.category.selectedInDetail {
+                selectedMediaItem = media?.repository.index[selectedMediaItemID]
             }
             
 //            if let selectedMediaItemID = UserDefaults.standard.string(forKey: Constants.SETTINGS.SELECTED_MEDIA.DETAIL) {
@@ -76,15 +91,15 @@ class SelectedMediaItem
             return selectedMediaItem
         }
         set {
-            if let relevantHistoryFirst = Globals.shared.relevantHistoryFirst {
+            if let relevantHistoryFirst = media?.relevantHistoryFirst {
                 if newValue?.mediaCode != relevantHistoryFirst.mediaCode {
-                    Globals.shared.addToHistory(newValue)
+                    media?.addToHistory(newValue)
                 }
             } else {
-                Globals.shared.addToHistory(newValue)
+                media?.addToHistory(newValue)
             }
 
-            Globals.shared.media.category.selectedInDetail = newValue?.mediaCode
+            media?.category.selectedInDetail = newValue?.mediaCode
 
 //            if (selectedMediaItem != mediaItems?[indexPath.row]) || (Globals.shared.history == nil) {
 //                Globals.shared.addToHistory(mediaItems?[indexPath.row])

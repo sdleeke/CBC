@@ -8,12 +8,44 @@
 
 import UIKit
 
+/**
+
+ Protocol to handle popover menus, can only be applied to *classes*
+ 
+ Properties:
+    - popover dictionary to keep track of popover menus
+ 
+ Methods:
+    - rowActions to provide tableview edit row actions (if any)
+    - rowClickedAtIndex to process selections
+ 
+ */
+
 protocol PopoverTableViewControllerDelegate : class
 {
     var popover : [String:PopoverTableViewController]? { get set }
 
+    /**
+     Returns an array of AlertAction's for a given row.
+
+     - Parameters:
+         - popover: PopoverTableViewController that is being shown
+         - tableView: UITableView of popover
+         - indexPath: IndexPath of row selected
+    */
+    
     func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
 
+    /**
+     Processes a row selection from a PopoverTableViewControler
+     
+     - Parameters:
+         - index: PopoverTableViewController that is being shown
+         - strings: The strings being chosen between in the PTVC
+         - purpose: The intended purpose of the PTVC
+         - mediaItem: MediaItem if one was selected
+     */
+    
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
@@ -68,6 +100,13 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
     }
     
+    /**
+     Scrolls to the bottom of the list in response to a barButtonItem being touched
+     
+     - Parameters:
+         - sender: UIBarButtonItem touched
+     */
+    
     @objc func bottomButtonAction(_ sender:UIBarButtonItem)
     {
         guard tableView.numberOfSections > 0 else {
@@ -83,6 +122,12 @@ extension PopoverTableViewController: UISearchBarDelegate
             tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.bottom, animated: true)
         }
     }
+    
+    /**
+     Updates search results shown in the PTVC
+     
+     - Parameters: None
+     */
     
     func updateSearchResults()
     {
@@ -383,6 +428,14 @@ extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
 //    }
 //}
 
+/**
+ struct containing the information to setup one segment in a UISegmentControl
+ 
+ - Properties:
+     - title : String? of the segment
+     - position : Int location in the segemented control
+     - action: void func what the segment should do if touched
+ */
 struct SegmentAction
 {
     var title:String?
@@ -390,10 +443,43 @@ struct SegmentAction
     var action:(()->(Void))?
 }
 
+/**
+ Concrete subclass for tableview headers and footers
+ 
+ - Properties:
+ lable : UILabel to show the segment name (header only)
+
+ */
 class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
 {
     var label : UILabel?
 }
+
+/**
+ View controller for showing a list of text
+
+ Optionally includes ability to:
+    - de/select one or more rows
+    - call a delegate after each/all de/select
+    - search strings, showing only the strings in the results
+    - show a segmented control and specify the name, location, and action for each
+    - synchronize a time associated with each row to the time of the audio player
+    - process the string in each row
+    - delegate for PopoverTableViewControllerDelegate protocol
+ 
+Properties:
+    - whether search is allowed and if so, whether it is interactive
+    - flag for whether changes are pending
+    - text selected
+    - multiple function properties for controlling what happens on selection and how the list is displayed
+    - buttons for syncing player time to a corresponding row and to play/pause the audio
+    - button to launch action to process string in each row
+    - functions to support actions on selection, e.g. shouldSelect and didSelect, as opposed to using the PopoverTableViewControllerDelegate prototocol and delegate, although these could be incorporated into the protocol
+    - uses two Section properties, one each for when search is active and not
+    - optional function to generate the strings, which is called after the dialog is brought up so the user isn't waiting
+    - to allow recursive use for drilling down into JSON data structures
+    - to control whether headers and an index or shown and how they are generated
+ */
 
 class PopoverTableViewController : CBCViewController
 {
@@ -2465,7 +2551,7 @@ extension PopoverTableViewController : UITableViewDelegate
             alertActions = delegate?.rowActions(popover: self,tableView: tableView,indexPath: indexPath)
         }
         
-        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] rowAction, indexPath in
+        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] (rowAction, indexPath) in
             alertActions?.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
             Alerts.shared.alert(title: Constants.Strings.Actions, message: self?.section.string(from: indexPath), actions: alertActions)
 

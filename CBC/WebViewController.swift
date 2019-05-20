@@ -203,13 +203,16 @@ extension WebViewController : UIActivityItemSource
 //        }
 
         // present the view controller
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
-            
-            Thread.onMainThread {
-                self.present(activityViewController, animated: true, completion: nil)
-            }
-        }
+        Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//
+//            Thread.onMainThread {
+//                self.present(activityViewController, animated: true, completion: nil)
+//            }
+//        }
+        
 //        Thread.onMainThread {
 //            self.present(activityViewController, animated: true, completion: nil)
 //        }
@@ -505,12 +508,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
             })
             alert.addAction(cancel)
             
-            Alerts.shared.queue.async {
-                Alerts.shared.semaphore.wait()
-                Thread.onMainThread {
-                    self.present(alert, animated: true, completion: nil)
-                }
-            }
+            Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
+
+//            Alerts.shared.queue.async {
+//                Alerts.shared.semaphore.wait()
+//                Thread.onMainThread {
+//                    self.present(alert, animated: true, completion: nil)
+//                }
+//            }
             
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,

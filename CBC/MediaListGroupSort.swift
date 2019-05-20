@@ -20,6 +20,12 @@ typealias MediaGroupNames = ThreadSafeDN<String> // ictionaryOfDictionaries
 
 typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
 
+/**
+
+ A version of Section for MediaListGroupSort
+ 
+ */
+
 class MLGSSection
 {
     private weak var mediaListGroupSort:MediaListGroupSort?
@@ -83,7 +89,27 @@ class MLGSSection
     }()
 }
 
-// This needs to be broken up into simpler components and reviewed for threadsafety
+/**
+ 
+ Manages all sorting and grouping of media items.
+
+ This needs to be broken up into simpler components and reviewed for threadsafety
+
+ Properties:
+    - mediaList
+    - lexicon
+    - scriptureIndex
+    - groupSort
+    - groupNames
+    - tagMediaItems
+    - tagNames
+ 
+ Methods:
+    - sortGroup
+    - mediaItems
+ 
+ */
+
 class MediaListGroupSort // : NSObject
 {
     deinit {
@@ -634,6 +660,9 @@ class MediaListGroupSort // : NSObject
         return groupedSortedMediaItems
     }
     
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Would be nice to group these
+    //////////////////////////////////////////////////////////////////////////////////////////////
     lazy var section:MLGSSection? = { [weak self] in
         return MLGSSection(self) // section
     }()
@@ -782,7 +811,8 @@ class MediaListGroupSort // : NSObject
             return prior
         })
     }
-    
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
     @objc func tagAdded(_ notification : NSNotification)
     {
         guard let mediaItem = notification.object as? MediaItem else {
@@ -859,6 +889,9 @@ class MediaListGroupSort // : NSObject
         }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Uses notifications for adding and removing tags since mediaItems could be in multiple MLGS
+    //////////////////////////////////////////////////////////////////////////////////////////////
     init(name:String? = nil, mediaItems:[MediaItem]?)
     {
         Thread.onMainThread {
@@ -957,6 +990,9 @@ class MediaListGroupSort // : NSObject
 //        }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Why is this in an MLGS rather than elsewhere? 
+    //////////////////////////////////////////////////////////////////////////////////////////////
     func html(includeURLs:Bool,includeColumns:Bool,test:(()->(Bool))? = nil) -> String?
     {
         //        guard (Globals.shared.media.active?.mediaList?.list != nil) else {

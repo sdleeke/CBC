@@ -8,6 +8,12 @@
 
 import Foundation
 
+/**
+
+ Abstract class for a dictionary backed class, i.e. properties are values in the dictionary
+ 
+ */
+
 class Storage
 {
     var storage:[String:Any]?
@@ -41,6 +47,12 @@ class Storage
         debug(self)
     }
 }
+
+/**
+ 
+ Dictionary backed class for streaming entries
+ 
+ */
 
 class Streaming : Storage
 {
@@ -102,6 +114,17 @@ class Streaming : Storage
     }
 }
 
+/**
+ 
+Dictionary backed class that has properties for file urls.
+ 
+ Properties:
+ - slides
+ - transcript
+ - outline
+ - html
+ */
+
 class Files : Storage
 {
     var slides : String?
@@ -147,6 +170,15 @@ class Files : Storage
     }
 }
 
+/**
+ 
+ Abstract dictionary backed class
+ 
+ Properties:
+    - id
+    - name
+ */
+
 class Base : Storage
 {
     var id : Int?
@@ -164,15 +196,33 @@ class Base : Storage
     }
 }
 
+/**
+ 
+ Abstract dictionary backed class with id/name
+
+ */
+
 class Series : Base
 {
     
 }
 
+/**
+ 
+ Abstract dictionary backed class with id/name
+ 
+ */
+
 class Event : Base
 {
     
 }
+
+/**
+ 
+ Abstract dictionary backed class with id/name
+ 
+ */
 
 class Suffix : Base
 {
@@ -183,6 +233,17 @@ class Suffix : Base
         }
     }
 }
+
+
+/**
+ 
+ Abstract dictionary backed class for audio
+ 
+ Parameters:
+    - mp3 url
+    - duration
+    - file size
+ */
 
 class Audio : Storage
 {
@@ -208,6 +269,16 @@ class Audio : Storage
     }
 }
 
+/**
+ 
+ Abstract dictionary backed class for video
+ 
+ Parameters:
+ - mp4 url
+ - m3u8 url
+ - poster url
+ */
+
 class Video : Storage
 {
     var mp4 : String?
@@ -226,15 +297,33 @@ class Video : Storage
     }
 }
 
+/**
+ 
+ Abstract dictionary backed class with id, name, suffix
+
+ */
+
 class Category : Suffix
 {
 
 }
 
+/**
+ 
+ Abstract dictionary backed class with id, name, suffix
+ 
+ */
+
 class Group : Suffix
 {
 
 }
+
+/**
+ 
+ Abstract dictionary backed class with id, name, suffix
+ 
+ */
 
 class Teacher : Suffix
 {

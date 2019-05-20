@@ -11,61 +11,26 @@ import MediaPlayer
 import AVKit
 import CoreData
 
-class Globals : NSObject, AVPlayerViewControllerDelegate
+/**
+
+ Singleton shared to access global properties and methods
+ 
+ Properties:
+    - rootViewController/splitViewController/storyboard
+    - VoiceBase availability
+    - reachability
+    - sorting
+    - grouping
+    - settings
+    - media player
+    - Media
+    - history
+    - motion events
+ */
+
+class Globals : NSObject
 {
     static var shared = Globals()
-    
-//    lazy var queue : DispatchQueue = { [weak self] in
-//        return DispatchQueue(label: UUID().uuidString)
-//    }()
-    
-//    func addTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
-//    {
-//        // Tag added but no point in updating unless...
-//        guard media.all != nil else {
-//            return
-//        }
-//        
-////        media.all?.addTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
-////        media.active?.addTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
-//
-////        queue.sync {
-////            if media.all?.tagMediaItems?[sortTag] != nil {
-////                if media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) == nil {
-////                    media.all?.tagMediaItems?[sortTag]?.append(mediaItem)
-////                    media.all?.tagNames?[sortTag] = tag
-////                }
-////            } else {
-////                media.all?.tagMediaItems?[sortTag] = [mediaItem]
-////                media.all?.tagNames?[sortTag] = tag
-////            }
-//            
-//            media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
-////        }
-//    }
-    
-//    func removeTagMediaItem(mediaItem:MediaItem,sortTag:String,tag:String)
-//    {
-//        // Tag removed but no point in updating unless...
-//        guard media.all != nil else {
-//            return
-//        }
-//        
-////        media.all?.removeTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
-////        media.active?.removeTagMediaItem(mediaItem:mediaItem,sortTag:sortTag,tag:tag)
-//
-////        queue.sync {
-////            if let index = media.all?.tagMediaItems?[sortTag]?.firstIndex(of: mediaItem) {
-////                media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-////            }
-////
-////            if media.all?.tagMediaItems?[sortTag]?.count == 0 {
-////                _ = media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
-////            }
-////
-//            media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
-////        }
-//    }
     
     var rootViewController : UIViewController?
     {
@@ -95,97 +60,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var allowMGTs = true
     
     var checkVoiceBaseTimer : Timer?
-    
-    // BAD PERFORMANCE
-//    lazy var isVoiceBaseAvailable:Shadowed<Bool> = { [weak self] in
-//        return Shadowed<Bool>(get:{
-//            guard self.allowMGTs else {
-//                return false
-//            }
-//
-//            guard reachability.isReachable else {
-//                return false
-//            }
-//
-//            return self.checkingVoiceBaseAvailability
-//        },
-////          pre:{
-////            if !self.allowMGTs {
-////                return false
-////            }
-////
-////            if !reachability.isReachable {
-////                return false
-////            }
-////
-////            return true
-////        },
-//          didSet:{ (backingStore:Bool?,oldValue:Bool?) in
-//            guard backingStore != oldValue else {
-//                return
-//            }
-//
-//            guard let backingStore = backingStore else {
-//                return
-//            }
-//
-//            if !backingStore {
-//                if self.checkVoiceBaseTimer != nil {
-//                    self.checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.checkVoiceBaseAvailability), userInfo:nil, repeats:true)
-//                }
-//            } else {
-//                self.checkVoiceBaseTimer?.invalidate()
-//                self.checkVoiceBaseTimer = nil
-//            }
-//
-//            // Why?
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-//            }
-//        })
-//    }()
-    
-//    lazy var isVoiceBaseAvailable : Shadowed<Bool> = {
-//        let shadow = Shadowed<Bool>()
-//
-//        shadow.onGet = { [weak self] (oldValue:Bool?) in
-//            guard self?.allowMGTs == true else {
-//                return false
-//            }
-//
-//            guard reachability.isReachable else {
-//                return false
-//            }
-//
-//            return oldValue ?? false // checkingVoiceBaseAvailability
-//        }
-//
-//        shadow.onDidSet = { [weak self] (value:Bool?,oldValue:Bool?) in
-//            guard value != oldValue else {
-//                return
-//            }
-//
-//            guard let value = value else {
-//                return
-//            }
-//
-//            if !value {
-//                if self?.checkVoiceBaseTimer == nil {
-//                    self?.checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self!, selector: #selector(self?.ckVBA), userInfo:nil, repeats:true)
-//                }
-//            } else {
-//                self?.checkVoiceBaseTimer?.invalidate()
-//                self?.checkVoiceBaseTimer = nil
-//            }
-//
-//            // Why?
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-//            }
-//        }
-//
-//        return shadow
-//    }()
     
     private var _isVoiceBaseAvailable : Bool? // = false
     {
@@ -261,42 +135,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         checkVoiceBaseAvailability()
     }
 
-    // BAD PERFORMANCE
-//    lazy var voiceBaseAPIKey:Shadowed<String> = { [weak self] in
-//        return Shadowed<String>(get: { () -> (String?) in
-//            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
-//                if key.isEmpty {
-//                    return nil
-//                }
-//
-//                return key
-//            } else {
-//                return nil
-//            }
-//        }, didSet: { (apiKey, oldValue) in
-//            guard let apiKey = apiKey else {
-//                self.isVoiceBaseAvailable = false
-//                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-//                return
-//            }
-//
-//            if !apiKey.isEmpty {
-//                UserDefaults.standard.set(apiKey, forKey: Constants.Strings.VoiceBase_API_Key)
-//            } else {
-//                self.isVoiceBaseAvailable = false
-//                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-//            }
-//
-//            // Do we need to notify VoiceBase objects?
-//            // No, because if it was nil before there shouldn't be anything on VB.com
-//            // No, because if it was not nil before then they either the new KEY is good or bad.
-//            // If bad, then it will fail.  If good, then they will finish.
-//            // So, nothing needs to be done.
-//
-//            UserDefaults.standard.synchronize()
-//        })
-//    }()
-
     private var _voiceBaseAPIKey : String?
     {
         didSet {
@@ -341,47 +179,47 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
-    {
-        return true
-    }
-    
-    func playerViewController(_ playerViewController: AVPlayerViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void)
-    {
-        completionHandler(true)
-    }
-    
-    func playerViewController(_ playerViewController: AVPlayerViewController, failedToStartPictureInPictureWithError error: Error)
-    {
-        NSLog("failedToStartPictureInPictureWithError \(error.localizedDescription)")
-        mediaPlayer.pip = .stopped
-    }
-    
-    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController)
-    {
-        print("playerViewControllerWillStopPictureInPicture")
-        mediaPlayer.stoppingPIP = true
-    }
-    
-    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController)
-    {
-        print("playerViewControllerDidStopPictureInPicture")
-        mediaPlayer.pip = .stopped
-        mediaPlayer.stoppingPIP = false
-    }
-
-    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController)
-    {
-        print("playerViewControllerWillStartPictureInPicture")
-        mediaPlayer.startingPIP = true
-    }
-    
-    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController)
-    {
-        print("playerViewControllerDidStartPictureInPicture")
-        mediaPlayer.pip = .started
-        mediaPlayer.startingPIP = false
-    }
+//    func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
+//    {
+//        return true
+//    }
+//
+//    func playerViewController(_ playerViewController: AVPlayerViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void)
+//    {
+//        completionHandler(true)
+//    }
+//
+//    func playerViewController(_ playerViewController: AVPlayerViewController, failedToStartPictureInPictureWithError error: Error)
+//    {
+//        NSLog("failedToStartPictureInPictureWithError \(error.localizedDescription)")
+//        mediaPlayer.pip = .stopped
+//    }
+//
+//    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+//    {
+//        print("playerViewControllerWillStopPictureInPicture")
+//        mediaPlayer.stoppingPIP = true
+//    }
+//
+//    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+//    {
+//        print("playerViewControllerDidStopPictureInPicture")
+//        mediaPlayer.pip = .stopped
+//        mediaPlayer.stoppingPIP = false
+//    }
+//
+//    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+//    {
+//        print("playerViewControllerWillStartPictureInPicture")
+//        mediaPlayer.startingPIP = true
+//    }
+//
+//    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+//    {
+//        print("playerViewControllerDidStartPictureInPicture")
+//        mediaPlayer.pip = .started
+//        mediaPlayer.startingPIP = false
+//    }
     
     var allowSaveSettings = true
     
@@ -514,9 +352,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
 
-    // So that the selected cell is scrolled to only on startup, not every time the master view controller appears.
-    var scrolledToMediaItemLastSelected = false
+//    // So that the selected cell is scrolled to only on startup, not every time the master view controller appears.
+//    var scrolledToMediaItemLastSelected = false
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // would like to group these somehow
+    /////////////////////////////////////////////////////////////////////////////////////
     var groupings = Constants.groupings
     var groupingTitles = Constants.GroupingTitles
     
@@ -539,7 +380,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             defaults.synchronize()
         }
     }
-    
+
     var sorting:String? = SORTING.REVERSE_CHRONOLOGICAL
     {
         willSet {
@@ -559,7 +400,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             defaults.synchronize()
         }
     }
-    
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Would like to group these settings
+    /////////////////////////////////////////////////////////////////////////////////////
     var autoAdvance:Bool
     {
         get {
@@ -589,7 +434,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             UserDefaults.standard.synchronize()
         }
     }
-    
+    /////////////////////////////////////////////////////////////////////////////////////
+
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
     
@@ -683,98 +529,109 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var mediaPlayer = MediaPlayer()
 
-    var selectedMediaItem = SelectedMediaItem()
+//    var selectedMediaItem = SelectedMediaItem()
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
     
+    ////////////////////////////////////////////////////////////////////////////
+    // Would like to group these
+    ////////////////////////////////////////////////////////////////////////////
     var multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
 
     var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+    ////////////////////////////////////////////////////////////////////////////
 
-    var history = ThreadSafeArray<String>() // :[String]?
-    
-    // thread safe
-    var relevantHistory:[String]?
-    {
-        get {
-            guard let index = media.all?.mediaList?.index else {
-                return nil
-            }
-            
-            return history.reversed?.filter({ (string:String) -> Bool in
-                if let range = string.range(of: Constants.SEPARATOR) {
-                    let mediaItemID = String(string[range.upperBound...])
-                    return index[mediaItemID] != nil
-                } else {
-                    return false
-                }
-            })
-        }
-    }
-    
-    var relevantHistoryFirst : MediaItem?
-    {
-        get {
-            if let first = relevantHistory?.first {
-                let components = first.components(separatedBy: Constants.SEPARATOR)
-                
-                if components.count == 2 {
-                    let id = components[1]
-                    return media.repository.index[id]
-                }
-            }
-            
-            return nil
-        }
-    }
-    
-    // thread safe
-    var relevantHistoryList:[String]?
-    {
-        get {
-            guard let index = media.all?.mediaList?.index else {
-                return nil
-            }
-            
-            return relevantHistory?.map({ (string:String) -> String in
-                if  let range = string.range(of: Constants.SEPARATOR),
-                    let mediaItem = index[String(string[range.upperBound...])],
-                    let text = mediaItem.text {
-                    return text
-                }
-
-                return ("ERROR")
-            })
-        }
-    }
-    
-    func addToHistory(_ mediaItem:MediaItem? = nil)
-    {
-        guard let mediaItem = mediaItem else {
-            print("mediaItem NIL!")
-            return
-        }
-        
-        guard mediaItem.mediaCode != nil else {
-            print("mediaItem ID NIL!")
-            return
-        }
-        
-        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.mediaCode
-        
-//        if history == nil {
-//            history = [entry]
-//        } else {
-//            history?.append(entry)
+    ////////////////////////////////////////////////////////////////////////////
+    // Would like to group these
+    ////////////////////////////////////////////////////////////////////////////
+//    var history = ThreadSafeArray<String>() // :[String]?
+//    
+//    // thread safe
+//    var relevantHistory:[String]?
+//    {
+//        get {
+//            // This is a problem for grouping these.
+//            guard let index = media.all?.mediaList?.index else {
+//                return nil
+//            }
+//            
+//            return history.reversed?.filter({ (string:String) -> Bool in
+//                if let range = string.range(of: Constants.SEPARATOR) {
+//                    let mediaItemID = String(string[range.upperBound...])
+//                    return index[mediaItemID] != nil
+//                } else {
+//                    return false
+//                }
+//            })
 //        }
-        
-        history.append(entry)
-        
-        let defaults = UserDefaults.standard
-        defaults.set(history.copy, forKey: Constants.SETTINGS.HISTORY)
-        defaults.synchronize()
-    }
+//    }
+//    
+//    var relevantHistoryFirst : MediaItem?
+//    {
+//        get {
+//            if let first = relevantHistory?.first {
+//                let components = first.components(separatedBy: Constants.SEPARATOR)
+//                
+//                if components.count == 2 {
+//                    let id = components[1]
+//                    
+//                    // This is a problem for grouping these.
+//                    return media.repository.index[id]
+//                }
+//            }
+//            
+//            return nil
+//        }
+//    }
+//    
+//    // thread safe
+//    var relevantHistoryList:[String]?
+//    {
+//        get {
+//            guard let index = media.all?.mediaList?.index else {
+//                return nil
+//            }
+//            
+//            return relevantHistory?.map({ (string:String) -> String in
+//                if  let range = string.range(of: Constants.SEPARATOR),
+//                    let mediaItem = index[String(string[range.upperBound...])],
+//                    let text = mediaItem.text {
+//                    return text
+//                }
+//
+//                return ("ERROR")
+//            })
+//        }
+//    }
+//    
+//    func addToHistory(_ mediaItem:MediaItem? = nil)
+//    {
+//        guard let mediaItem = mediaItem else {
+//            print("mediaItem NIL!")
+//            return
+//        }
+//        
+//        guard mediaItem.mediaCode != nil else {
+//            print("mediaItem ID NIL!")
+//            return
+//        }
+//        
+//        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.mediaCode
+//        
+////        if history == nil {
+////            history = [entry]
+////        } else {
+////            history?.append(entry)
+////        }
+//        
+//        history.append(entry)
+//        
+//        let defaults = UserDefaults.standard
+//        defaults.set(history.copy, forKey: Constants.SETTINGS.HISTORY)
+//        defaults.synchronize()
+//    }
+    ////////////////////////////////////////////////////////////////////////////
 
 //    var mediaCategory = MediaCategory()
 //
@@ -896,7 +753,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
             if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
 //                history = historyArray as? [String]
-                history.update(storage: historyArray as? [String])
+                media.history.update(storage: historyArray as? [String])
             }
         } else {
             //This is where we should map the old version on to the new one and preserve the user's information.
@@ -1073,3 +930,47 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     }
 }
 
+extension Globals : AVPlayerViewControllerDelegate
+{
+    func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
+    {
+        return true
+    }
+    
+    func playerViewController(_ playerViewController: AVPlayerViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void)
+    {
+        completionHandler(true)
+    }
+    
+    func playerViewController(_ playerViewController: AVPlayerViewController, failedToStartPictureInPictureWithError error: Error)
+    {
+        NSLog("failedToStartPictureInPictureWithError \(error.localizedDescription)")
+        mediaPlayer.pip = .stopped
+    }
+    
+    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
+        print("playerViewControllerWillStopPictureInPicture")
+        mediaPlayer.stoppingPIP = true
+    }
+    
+    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
+        print("playerViewControllerDidStopPictureInPicture")
+        mediaPlayer.pip = .stopped
+        mediaPlayer.stoppingPIP = false
+    }
+    
+    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
+        print("playerViewControllerWillStartPictureInPicture")
+        mediaPlayer.startingPIP = true
+    }
+    
+    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController)
+    {
+        print("playerViewControllerDidStartPictureInPicture")
+        mediaPlayer.pip = .started
+        mediaPlayer.startingPIP = false
+    }
+}

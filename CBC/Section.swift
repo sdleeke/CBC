@@ -9,7 +9,9 @@
 import Foundation
 import UIKit
 
-
+/**
+ Class for handling sections in tableView for PopoverTableViewController(Protocol).
+ */
 class Section
 {
     var sorting = false

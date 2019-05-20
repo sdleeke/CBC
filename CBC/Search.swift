@@ -8,8 +8,21 @@
 
 import Foundation
 
+/**
+ 
+ Manages everything search related for the Media class.
+ 
+ */
+
 class Search
 {
+    weak var media : Media?
+    
+    init(_ media:Media?)
+    {
+        self.media = media
+    }
+    
     deinit {
         debug(self)
     }
@@ -21,7 +34,7 @@ class Search
     var current:MediaListGroupSort?
     {
         get {
-            guard let context = Globals.shared.media.active?.context else { // text
+            guard let context = media?.active?.context else { // text
                 return nil
             }
             
@@ -29,7 +42,7 @@ class Search
         }
         
         set {
-            guard let context = Globals.shared.media.active?.context else { // text
+            guard let context = media?.active?.context else { // text
                 return
             }
             

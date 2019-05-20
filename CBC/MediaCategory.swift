@@ -8,6 +8,13 @@
 
 import Foundation
 
+/**
+ 
+ Simple class to handle the master/detail selected and the settings associated
+ with the currently selected category
+ 
+ */
+
 class MediaCategory
 {
 //    var dicts = ThreadSafeDN<String>() // :[String:String]? // ictionary

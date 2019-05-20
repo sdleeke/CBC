@@ -8,6 +8,12 @@
 
 import Foundation
 
+/**
+ 
+ Handles live events 
+ 
+ */
+
 class MediaStream
 {
     lazy var operationQueue:OperationQueue! = {

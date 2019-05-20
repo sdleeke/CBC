@@ -9,6 +9,12 @@
 import Foundation
 import UIKit
 
+/**
+ 
+ Allows tracking success/failure of network calls.
+ 
+ */
+
 class CheckIn
 {
     deinit {
@@ -58,6 +64,12 @@ class CheckIn
         }
     }
 }
+
+/**
+ 
+ Handles lists of media items, maintains an index to them, performs bulk operations.
+ 
+ */
 
 class MediaList // : Sequence
 {

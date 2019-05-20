@@ -11,6 +11,19 @@ import UIKit
 
 //var alerts = Alerts()
 
+/**
+
+ struct containing all the information for an alert, including actions/times.
+ 
+ Properties:
+    - category for tracking different types of alerts
+    - title of alert
+    - message of alert
+    - attributedText that will be displayed in a text field
+    - actions, or
+    - items, where items can be actions or text fields
+ */
+
 struct Alert {
     let category : String?
     let title : String?
@@ -19,6 +32,13 @@ struct Alert {
     let actions : [AlertAction]?
     let items : [AlertItem]?
 }
+
+/**
+
+ CBC specific subclass for releasing the Alerts.shared.semaphore
+ after the activity view controller (i.e. share sheet) disappears.
+ 
+ */
 
 class CBCActivityViewController : UIActivityViewController
 {
@@ -30,30 +50,40 @@ class CBCActivityViewController : UIActivityViewController
     }
 }
 
+/**
+ 
+ CBC specific subclass for releasing the Alerts.shared.semaphore
+ after the alert controller disappears.
+ 
+ */
+
 class CBCAlertController : UIAlertController
 {
-//    override func viewWillAppear(_ animated: Bool)
-//    {
-//        super.viewWillAppear(animated)
-//
-////        Alerts.shared.semaphore.wait()
-//
-////        Alerts.shared.queue.async {
-////            Alerts.shared.semaphore.wait()
-////        }
-//    }
-
     override func viewDidDisappear(_ animated: Bool)
     {
         super.viewDidDisappear(animated)
 
         Alerts.shared.semaphore.signal()
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.signal()
-//        }
     }
 }
+
+/**
+ 
+ Singleton class for app-wide managing of alerts so they are queued and never lost.
+ 
+ Properties:
+    - queue: used asynchronously to allow blocking if an alert should NOT be presented
+    - array: used as a stack of alerts
+    - timer: use to keep checking for alerts to present
+    - semaphore: used to track whether an alert should be presented
+ 
+ Methods:
+    - init() start timer
+    - viewer() present the next alert in the queue, actually forks the alert into the async queue
+    but the semaphore keeps them in order since each fork decrements and they run as signals increment it.
+    - blockPresent does the view controller presentation with blocking.  Whether semphore is released after view controller presents is controlled by a function parameter.
+    - alert queues the content of alerts.
+ */
 
 class Alerts
 {
@@ -75,37 +105,11 @@ class Alerts
         }
     }
 
-//    var presenting : CBCAlertController?
-//    {
-//        didSet {
-//            if presenting == nil {
-//
-//            }
-//        }
-//    }
-    
     @objc func viewer()
     {
         guard let viewController = self.topViewController.last ?? Globals.shared.splitViewController else { // ?.navigationController?.topViewController
             return
         }
-        
-//        guard vcQueue.first == nil else {
-//            if let vc = vcQueue.first {
-//                Thread.onMainThread {
-//                    //                    if self.presenting == nil {
-//                    //                        self.presenting = vc
-//
-//                    viewController.present(vc, animated: true, completion: {
-//                        if self.vcQueue.count > 0 {
-//                            self.vcQueue.remove(at: 0)
-//                        }
-//                    })
-//                    //                    }
-//                }
-//            }
-//            return
-//        }
         
         alertQueue.forEach { (alert:Alert) in
             debug(alert)
@@ -162,46 +166,56 @@ class Alerts
             alertVC.addAction(UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: nil))
         }
         
-//        vcQueue.append(alertVC) // crashes
-        
         self.alertQueue.remove(at: 0)
 
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
+        // This means we could actually queue viewControllers now since they aren't really queued
+        // The timer means we only dequeue one alert every period and fork that on to an aync queue
+        // that blocks on the semaphore.  We don't limit the number of threads the queue can have.
+        
+        blockPresent(presenting:viewController,presented:alertVC, animated:true)
+        
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//            Thread.onMainThread {
+//                viewController.present(alertVC, animated: true, completion: nil)
+//            }
+//        }
+    }
+    
+//    // Make it thread safe
+    
+    func blockPresent(presenting:UIViewController, presented:UIViewController, animated:Bool, release:(()->(Bool))? = nil, completion:(()->())? = nil)
+    {
+        queue.async { [weak self] in
+            self?.semaphore.wait()
+            
             Thread.onMainThread {
-                //            let viewController = self.topViewController.last ?? Globals.shared.splitViewController // ?.navigationController?.topViewController
-                
-                // This works because a new alertVC is created each time.  Presenting the same vc twice will cause a crash.
-                // If the alertVC can't be shown it is simply thrown away and the struct from which it is contained is not removed from
-                // the queue so attempts keep being made until it is shown.
-                
-                // Haven't found a way to queue the vc's themselves and show them.
-                viewController.present(alertVC, animated: true, completion: {
-                    //                self.queue.sync {
-                    //                }
+                presenting.present(presented, animated: true, completion: {
+                    if release?() == true {
+                        self?.semaphore.signal()
+                    }
+                    completion?()
                 })
             }
         }
     }
     
-//    // Make it thread safe
-    
+    // value 1 => block immediately upon first wait() call.
     var semaphore = DispatchSemaphore(value: 1)
 
+    // Do not limit the number of threads that the queue may use.
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: UUID().uuidString)
     }()
     
+    // Thread safe queue of alert contents.
     var alertQueue = ThreadSafeArray<Alert>()
-    
-//    var vcQueue = [UIViewController]()
-    
+
+    // Timer to keep looking for alerts to show.
     var alertTimer : Timer?
 
     func alert(category:String? = nil, title:String?, message:String? = nil, attributedText:NSAttributedString? = nil, actions:[AlertAction]? = nil, items:[AlertItem]? = nil)
     {
-//        queue.sync {
-        
         if title == "No Network Connection" {
             alertQueue.update(storage: alertQueue.filter({ (alert:Alert) -> Bool in
                 alert.title?.contains("Network Connection") !=  true
@@ -222,15 +236,5 @@ class Alerts
         }
         
         alertQueue.append(Alert(category:category, title: title, message: message, attributedText: attributedText, actions: actions, items:items))
-        
-//        if !alertQueue.copy?.contains(where: { (alert:Alert) -> Bool in
-//                return (alert.title == title) && (alert.message == message)
-//            }) {
-//                alertQueue.append(Alert(category:category,title: title, message: message, attributedText: attributedText, actions: actions))
-//        } else {
-//            // This is happening - how?
-//            print("DUPLICATE ALERT")
-//        }
-//        }
     }
 }

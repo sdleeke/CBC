@@ -10,6 +10,18 @@ import Foundation
 
 // Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
 // Problems went away when I switched to class
+
+/**
+
+ Simple class to handle whether a tag is selected and if so,
+ the creation of the list of mediaItems that have it.
+ 
+ Properties:
+    - showing
+    - selected
+ 
+ */
+
 class Tags
 {
 //    weak var globals:Globals!

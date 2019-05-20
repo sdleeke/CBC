@@ -8,6 +8,16 @@
 
 import Foundation
 
+/**
+
+ class for handling JSON retrieval and storage
+ 
+ Properties:
+    - url to get json from
+    - filename for saving json
+    - operation queue for managing saving
+ */
+
 class JSON
 {
     deinit {

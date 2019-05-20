@@ -95,6 +95,8 @@ extension MediaTableViewController : UISearchBarDelegate
 
     @objc func searchActions()
     {
+        self.popover?["SEARCH_HISTORY"]?.dismiss(animated: true, completion: nil)
+        
         var alertActions = [AlertAction]()
         
         let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { [weak self]
@@ -144,7 +146,7 @@ extension MediaTableViewController : UISearchBarDelegate
                 }).set.array.sorted()
                 
                 Thread.onMainThread {
-                    popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
+                    popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
                     popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                 }
                 
@@ -898,8 +900,8 @@ class MediaTableViewController : MediaItemsViewController
             
         }
         didSet {
-            if selectedMediaItem != Globals.shared.selectedMediaItem.master {
-                Globals.shared.selectedMediaItem.master = selectedMediaItem
+            if selectedMediaItem != Globals.shared.media.selected.master {
+                Globals.shared.media.selected.master = selectedMediaItem
             }
         }
     }
@@ -1965,7 +1967,7 @@ class MediaTableViewController : MediaItemsViewController
                 Globals.shared.isRefreshing = false
             }
             
-            self.selectedMediaItem = Globals.shared.selectedMediaItem.master
+            self.selectedMediaItem = Globals.shared.media.selected.master
             
             if Globals.shared.media.search.isValid, ((Globals.shared.media.search.current?.complete ?? false) == false) {
                 self.updateSearchResults(Globals.shared.media.active?.context,completion: {
@@ -1999,11 +2001,13 @@ class MediaTableViewController : MediaItemsViewController
         self.tableView?.isHidden = false
         self.logo.isHidden = true
         
+        // Navigate to a mediaitem pass in a URL.
         if let goto = Globals.shared.media.goto {
             navigationController?.popToRootViewController(animated: false)
-            Globals.shared.media.goto = nil 
+            Globals.shared.media.goto = nil
+            
             if let mediaItem = Globals.shared.media.repository.index[goto] {
-                Globals.shared.selectedMediaItem.master = mediaItem
+                Globals.shared.media.selected.master = mediaItem
                 selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: .top)
                
                 // Delay required for iPhone
@@ -2857,12 +2861,12 @@ class MediaTableViewController : MediaItemsViewController
     
     @objc func playingPaused()
     {
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.mediaPlayer.mediaItem ?? Globals.shared.selectedMediaItem.detail)
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.mediaPlayer.mediaItem ?? Globals.shared.media.selected.detail)
     }
     
     @objc func lastSegue()
     {
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.selectedMediaItem.detail)
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: Globals.shared.media.selected.detail)
     }
     
     @objc func deviceOrientationDidChange()
@@ -3582,7 +3586,7 @@ class MediaTableViewController : MediaItemsViewController
         {
             var alertActions = [AlertAction]()
             alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { () -> (Void) in
-                Globals.shared.history.clear() // = nil
+                Globals.shared.media.history.clear() // = nil
                 let defaults = UserDefaults.standard
                 defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
                 defaults.synchronize()
@@ -3711,10 +3715,10 @@ class MediaTableViewController : MediaItemsViewController
                     }
                     
                     popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
-                        let strings = Globals.shared.relevantHistoryList
+                        let strings = Globals.shared.media.relevantHistoryList
                         
                         Thread.onMainThread {
-                            popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.historyActions))
+                            popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.historyActions))
                             popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                         }
                         
@@ -3876,13 +3880,15 @@ class MediaTableViewController : MediaItemsViewController
                     (action : UIAlertAction) -> Void in
                 })
                 alert.addAction(cancel)
-                
-                Alerts.shared.queue.async {
-                    Alerts.shared.semaphore.wait()
-                    Thread.onMainThread {
-                        self.present(alert, animated: true, completion: nil)
-                    }
-                }
+
+                Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
+
+//                Alerts.shared.queue.async {
+//                    Alerts.shared.semaphore.wait()
+//                    Thread.onMainThread {
+//                        self.present(alert, animated: true, completion: nil)
+//                    }
+//                }
                 break
                 
             case Constants.Strings.VoiceBase_Delete_All:
@@ -4129,7 +4135,7 @@ class MediaTableViewController : MediaItemsViewController
                 }
                 
                 self.process(disableEnable: true, work: { [weak self] () -> (Any?) in // , hideSubviews: false
-                    self?.selectedMediaItem = Globals.shared.selectedMediaItem.master
+                    self?.selectedMediaItem = Globals.shared.media.selected.master
                     
                     guard let selected = Globals.shared.media.category.selected else {
                         return nil
@@ -4315,7 +4321,7 @@ class MediaTableViewController : MediaItemsViewController
             case .selectingHistory:
                 self.popover?["HISTORY"]?.dismiss(animated: true, completion: nil)
                 
-                if let history = Globals.shared.relevantHistory {
+                if let history = Globals.shared.media.relevantHistory {
                     var mediaItemID:String
                     
                     if let range = history[index].range(of: Constants.SEPARATOR) {

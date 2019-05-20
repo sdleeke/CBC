@@ -598,6 +598,12 @@ extension VoiceBase // Class Methods
 // because URLSessions are not setup for background because that requires the use of a delegate
 // and not completion handlers.
 
+/**
+ 
+ Class to ecapsulate VoiceBase use for transcripts
+ 
+ */
+
 class VoiceBase // : NSObject
 {
 //    static let customVocab : String? // [String:Vocab]?
@@ -6289,12 +6295,14 @@ class VoiceBase // : NSObject
                         })
                         alert.addAction(cancel)
                         
-                        Alerts.shared.queue.async {
-                            Alerts.shared.semaphore.wait()
-                            Thread.onMainThread {
-                                viewController.present(alert, animated: true, completion: nil)
-                            }
-                        }
+                        Alerts.shared.blockPresent(presenting: viewController, presented: alert, animated: true)
+
+//                        Alerts.shared.queue.async {
+//                            Alerts.shared.semaphore.wait()
+//                            Thread.onMainThread {
+//                                viewController.present(alert, animated: true, completion: nil)
+//                            }
+//                        }
                     } else {
                         viewController.networkUnavailable("VoiceBase unavailable.")
                     }

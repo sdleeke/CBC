@@ -303,13 +303,16 @@ extension CloudViewController : UIActivityItemSource
         
         popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
-            
-            Thread.onMainThread {
-                self.present(activityViewController, animated: true, completion: nil)
-            }
-        }
+        Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//
+//            Thread.onMainThread {
+//                self.present(activityViewController, animated: true, completion: nil)
+//            }
+//        }
+        
 //        present(activityViewController, animated: true, completion: nil)
     }
     

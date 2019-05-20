@@ -842,7 +842,7 @@ enum Constants {
         static let About = "About"
         static let Current_Selection = "Current Selection"
         static let Tags = "Tags"
-        
+
         static let Sorting = "Sorting"
         
         static let Back = "Back"

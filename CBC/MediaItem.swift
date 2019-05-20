@@ -123,13 +123,16 @@ extension MediaItem : UIActivityItemSource
         activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
         // present the view controller
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
-            
-            Thread.onMainThread {
-                viewController.present(activityViewController, animated: true, completion: nil)
-            }
-        }
+        Alerts.shared.blockPresent(presenting: viewController, presented: activityViewController, animated: true)
+
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//
+//            Thread.onMainThread {
+//                viewController.present(activityViewController, animated: true, completion: nil)
+//            }
+//        }
+        
 //        Thread.onMainThread {
 //            viewController.present(activityViewController, animated: true, completion: nil)
 //        }

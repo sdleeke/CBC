@@ -56,13 +56,15 @@ extension MediaViewController : UIActivityItemSource
                 
                 popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
                 
-                Alerts.shared.queue.async {
-                    Alerts.shared.semaphore.wait()
-                    
-                    Thread.onMainThread {
-                        self.present(activityViewController, animated: true, completion: nil)
-                    }
-                }
+                Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+
+//                Alerts.shared.queue.async {
+//                    Alerts.shared.semaphore.wait()
+//
+//                    Thread.onMainThread {
+//                        self.present(activityViewController, animated: true, completion: nil)
+//                    }
+//                }
             }
         }
     }
@@ -1584,7 +1586,7 @@ class MediaViewController : MediaItemsViewController
                     }
                 }
 
-                Globals.shared.selectedMediaItem.detail = selectedMediaItem
+                Globals.shared.media.selected.detail = selectedMediaItem
             } else {
                 // We always select, never deselect
                 
@@ -2515,15 +2517,18 @@ class MediaViewController : MediaItemsViewController
         messageComposeViewController.subject = "Recommendation"
         messageComposeViewController.body = mediaItem?.contents
 
-        Alerts.shared.queue.async {
-            Alerts.shared.semaphore.wait()
-            
-            Thread.onMainThread {
-                self.present(messageComposeViewController, animated: true, completion: {
-                    Alerts.shared.semaphore.signal()
-                })
-            }
-        }
+        Alerts.shared.blockPresent(presenting: self, presented: messageComposeViewController, animated: true, release:{true})
+
+//        Alerts.shared.queue.async {
+//            Alerts.shared.semaphore.wait()
+//
+//            Thread.onMainThread {
+//                self.present(messageComposeViewController, animated: true, completion: {
+//                    Alerts.shared.semaphore.signal()
+//                })
+//            }
+//        }
+        
 //        Thread.onMainThread {
 //            self.present(messageComposeViewController, animated: true, completion: nil)
 //        }
@@ -3313,8 +3318,8 @@ class MediaViewController : MediaItemsViewController
     
     @objc func updateView()
     {
-        if selectedMediaItem != Globals.shared.selectedMediaItem.detail {
-            selectedMediaItem = Globals.shared.selectedMediaItem.detail
+        if selectedMediaItem != Globals.shared.media.selected.detail {
+            selectedMediaItem = Globals.shared.media.selected.detail
         }
         
         tableView.reloadData()
@@ -5131,8 +5136,8 @@ class MediaViewController : MediaItemsViewController
     {
         super.viewDidAppear(animated)
         
-        if selectedMediaItem == nil, Globals.shared.selectedMediaItem.detail != nil {
-            selectedMediaItem = Globals.shared.selectedMediaItem.detail
+        if selectedMediaItem == nil, Globals.shared.media.selected.detail != nil {
+            selectedMediaItem = Globals.shared.media.selected.detail
             updateUI()
             
             tableView.reloadData()
