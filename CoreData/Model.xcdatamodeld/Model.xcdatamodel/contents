@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14133" systemVersion="17E202" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="CoreDataMedia" representedClassName="CoreDataMedia" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="dict" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MediaProperty" inverseName="mediaItem" inverseEntity="MediaProperty" syncable="YES"/>
+        <relationship name="htmlTranscript" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MediaTranscript" inverseName="media" inverseEntity="MediaTranscript" syncable="YES"/>
+    </entity>
+    <entity name="LexiconEntry" representedClassName="LexiconEntry" syncable="YES">
+        <attribute name="count" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="lexiconTranscript" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LexiconTranscript" inverseName="lexiconEntries" inverseEntity="LexiconTranscript" syncable="YES"/>
+        <relationship name="lexiconWord" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LexiconWord" inverseName="lexiconEntries" inverseEntity="LexiconWord" syncable="YES"/>
+    </entity>
+    <entity name="LexiconStringNode" representedClassName="LexiconStringNode" syncable="YES">
+        <attribute name="string" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="wordEnding" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="stringNodes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="LexiconStringNode" inverseName="stringNodes" inverseEntity="LexiconStringNode" syncable="YES"/>
+    </entity>
+    <entity name="LexiconTranscript" representedClassName="LexiconTranscript" syncable="YES">
+        <attribute name="category" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="lexiconEntries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LexiconEntry" inverseName="lexiconTranscript" inverseEntity="LexiconEntry" syncable="YES"/>
+    </entity>
+    <entity name="LexiconWord" representedClassName="LexiconWord" syncable="YES">
+        <attribute name="word" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="lexiconEntries" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="LexiconEntry" inverseName="lexiconWord" inverseEntity="LexiconEntry" syncable="YES"/>
+    </entity>
+    <entity name="MediaProperty" representedClassName="MediaProperty" syncable="YES">
+        <attribute name="property" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="mediaItem" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CoreDataMedia" inverseName="dict" inverseEntity="CoreDataMedia" syncable="YES"/>
+        <relationship name="value" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MediaValue" inverseName="key" inverseEntity="MediaValue" syncable="YES"/>
+    </entity>
+    <entity name="MediaTranscript" representedClassName="MediaTranscript" syncable="YES">
+        <attribute name="html" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="media" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CoreDataMedia" inverseName="htmlTranscript" inverseEntity="CoreDataMedia" syncable="YES"/>
+    </entity>
+    <entity name="MediaValue" representedClassName="MediaValue" syncable="YES">
+        <attribute name="value" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="key" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="MediaProperty" inverseName="value" inverseEntity="MediaProperty" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="LexiconEntry" positionX="-414" positionY="-180" width="128" height="88"/>
+        <element name="LexiconStringNode" positionX="-623" positionY="-36" width="128" height="88"/>
+        <element name="LexiconTranscript" positionX="-614" positionY="-306" width="128" height="88"/>
+        <element name="LexiconWord" positionX="-243" positionY="-28" width="128" height="73"/>
+        <element name="CoreDataMedia" positionX="-623" positionY="-535" width="128" height="88"/>
+        <element name="MediaProperty" positionX="-414" positionY="-450" width="128" height="88"/>
+        <element name="MediaValue" positionX="-225" positionY="-376" width="128" height="73"/>
+        <element name="MediaTranscript" positionX="-441" positionY="-639" width="128" height="73"/>
+    </elements>
+</model>
