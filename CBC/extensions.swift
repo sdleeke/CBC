@@ -1982,7 +1982,7 @@ extension String
             }
 //        }
         
-        if token != Constants.EMPTY_STRING {
+        if !token.isEmpty {
             tokens.append(token)
         }
         
@@ -5886,6 +5886,7 @@ extension String
 //        guard let name = name else {
 //            return nil
 //        }
+        let titles = ["DR."]
         
         var title = Constants.EMPTY_STRING
         
@@ -5898,7 +5899,11 @@ extension String
             }
         }
         
-        return title != Constants.EMPTY_STRING ? title : nil
+        if !title.isEmpty, titles.contains(title.uppercased()) {
+            return title
+        } else {
+            return nil
+        }
     }
 }
 
@@ -6927,7 +6932,7 @@ extension String
                 token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
             }
             
-            if token != Constants.EMPTY_STRING {
+            if !token.isEmpty {
                 if let count = tokens[token.uppercased()] {
                     tokens[token.uppercased()] = count + 1
                 } else {
@@ -6970,7 +6975,7 @@ extension String
             }
         }
         
-        if token != Constants.EMPTY_STRING {
+        if !token.isEmpty {
             processToken()
         }
         
@@ -7033,7 +7038,7 @@ extension String
                 //                print("\(token)")
             }
             
-            if token != Constants.EMPTY_STRING {
+            if !token.isEmpty {
                 tokens.insert(token.uppercased())
                 token = Constants.EMPTY_STRING
             }
@@ -7069,7 +7074,7 @@ extension String
             }
         }
         
-        if token != Constants.EMPTY_STRING {
+        if !token.isEmpty {
             processToken()
         }
         

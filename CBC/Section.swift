@@ -149,7 +149,7 @@ class Section
     
     weak var tableView : UITableView?
     
-    // Can probably be commented out.
+    // Created problems.  Didn't solve any.
 //    var useInsertions = false
 //    var insertions : [IndexPath]?
 //    {

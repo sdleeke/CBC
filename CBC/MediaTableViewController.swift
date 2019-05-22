@@ -174,7 +174,7 @@ extension MediaTableViewController : UISearchBarDelegate
         
         Globals.shared.media.search.text = searchText
         
-        if (searchText != Constants.EMPTY_STRING) { //
+        if !searchText.isEmpty { //
             updateSearchResults(Globals.shared.media.active?.context,completion: nil)
         } else {
             display.clear()

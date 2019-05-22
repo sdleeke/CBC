@@ -787,7 +787,7 @@ class MediaItem : NSObject
             
             let code = String(mediaCode[string.endIndex...])
             
-            if code != Constants.EMPTY_STRING  {
+            if !code.isEmpty  {
                 return code
             } else {
                 return nil
