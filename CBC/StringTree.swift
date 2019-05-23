@@ -302,14 +302,14 @@ class StringTree
     
     deinit {
         debug(self)
-        lexicon?.callBacks.unregister(id: "STRINGTREE")
+        lexicon?.callBacks.unregister("STRINGTREE")
         operationQueue.cancelAllOperations()
     }
     
     func build(strings:[String]?)
     {
         guard !completed else {
-            callBacks.complete()
+            callBacks.execute("complete")
             return
         }
 
@@ -332,7 +332,7 @@ class StringTree
 //                    self?.building = false
 //                }
                 
-                self?.callBacks.start()
+                self?.callBacks.execute("start")
                 
 //                self?.root = StringNode(nil) // Faster?
 
@@ -361,7 +361,7 @@ class StringTree
                     self?.root.addString(string)
                     
                     if (date == nil) || (date?.timeIntervalSinceNow <= -3) { // Any more frequent and the UI becomes unresponsive.
-                        self?.callBacks.update()
+                        self?.callBacks.execute("update")
                         //                        Globals.shared.queue.async {
                         //                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                         //                        }
@@ -376,7 +376,7 @@ class StringTree
                 
                 self?.completed = true
                 
-                self?.callBacks.complete()
+                self?.callBacks.execute("complete")
                 //                Globals.shared.queue.async {
                 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
                 //                }

@@ -78,20 +78,20 @@ class ScriptureIndex
         get {
             var index:String?
             
-            if let selectedTestament = scripture.selected.testament {
+            if let selectedTestament = scripture.picked.testament {
                 index = selectedTestament
             }
             
-            if index != nil, let selectedBook = scripture.selected.book {
+            if index != nil, let selectedBook = scripture.picked.book {
                 index = index! + ":" + selectedBook
             }
             
-            if index != nil, scripture.selected.chapter > 0 {
-                index = index! + ":\(scripture.selected.chapter)"
+            if index != nil, scripture.picked.chapter > 0 {
+                index = index! + ":\(scripture.picked.chapter)"
             }
             
-            if index != nil, scripture.selected.verse > 0 {
-                index = index! + ":\(scripture.selected.verse)"
+            if index != nil, scripture.picked.verse > 0 {
+                index = index! + ":\(scripture.picked.verse)"
             }
             
             return index
@@ -212,7 +212,7 @@ class ScriptureIndex
                 for mediaItem in mediaItems {
                     if let books = mediaItem.scripture?.books {
                         for book in books {
-                            if let selectedTestament = scripture.selected.testament {
+                            if let selectedTestament = scripture.picked.testament {
                                 if selectedTestament.translateTestament == book.testament {
                                     if sections[book] == nil {
                                         sections[book] = [mediaItem]
@@ -252,7 +252,7 @@ class ScriptureIndex
     func build()
     {
         guard !completed else {
-            callBacks.complete()
+            callBacks.execute("complete")
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
 //            }
@@ -273,7 +273,7 @@ class ScriptureIndex
 //            }
             
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
-                self?.callBacks.start()
+                self?.callBacks.execute("start")
 //                Globals.shared.queue.async {
 //                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
 //                }
@@ -376,26 +376,26 @@ class ScriptureIndex
                         }
                     }
                     
-                    self?.callBacks.update()
+                    self?.callBacks.execute("update")
                 }
             }
             
 //            self?.creating = false
             self?.completed = true
             
-            if let selectedTestament = self?.scripture.selected.testament {
+            if let selectedTestament = self?.scripture.picked.testament {
                 let testament = selectedTestament.translateTestament
                 
                 switch selectedTestament {
                 case Constants.OT:
                     if (self?.byTestament[testament] == nil) {
-                        self?.scripture.selected.testament = Constants.NT
+                        self?.scripture.picked.testament = Constants.NT
                     }
                     break
                     
                 case Constants.NT:
                     if (self?.byTestament[testament] == nil) {
-                        self?.scripture.selected.testament = Constants.OT
+                        self?.scripture.picked.testament = Constants.OT
                     }
                     break
                     
@@ -404,7 +404,7 @@ class ScriptureIndex
                 }
             }
             
-            self?.callBacks.complete()
+            self?.callBacks.execute("complete")
             
 //            Globals.shared.queue.async {
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
@@ -494,16 +494,16 @@ class ScriptureIndex
         
         bodyString += "</div>"
         
-        if let selectedTestament = scripture?.selected.testament {
+        if let selectedTestament = scripture?.picked.testament {
             var indexFor = selectedTestament.translateTestament
             
-            if let selectedBook = scripture?.selected.book {
+            if let selectedBook = scripture?.picked.book {
                 indexFor = selectedBook
                 
-                if let chapter = scripture?.selected.chapter, chapter > 0 {
+                if let chapter = scripture?.picked.chapter, chapter > 0 {
                     indexFor = indexFor + " \(chapter)"
                     
-                    if let verse = scripture?.selected.verse, verse > 0 {
+                    if let verse = scripture?.picked.verse, verse > 0 {
                         indexFor = indexFor + ":\(verse)"
                     }
                 }

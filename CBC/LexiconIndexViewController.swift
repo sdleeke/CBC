@@ -1315,17 +1315,16 @@ class LexiconIndexViewController : MediaItemsViewController
 
         addNotifications()
         
-        lexicon?.callBacks.register(id: "LIVC", callBack: CallBack(
-            start:{[weak self] in
+        lexicon?.callBacks.register("LIVC",
+            ["start":{[weak self] in
                 self?.started()
             },
-            update:{[weak self] in
+            "update":{[weak self] in
                 self?.updated()
             },
-            complete:{[weak self] in
+            "complete":{[weak self] in
                 self?.completed()
-            }
-            )
+            }]
         )
 
         navigationItem.hidesBackButton = false
@@ -1942,7 +1941,7 @@ class LexiconIndexViewController : MediaItemsViewController
         debug(self)
         operationQueue.cancelAllOperations()
     
-        lexicon?.callBacks.unregister(id: "LIVC")
+        lexicon?.callBacks.unregister("LIVC")
     }
     
     @objc func started()
@@ -2303,10 +2302,10 @@ class LexiconIndexViewController : MediaItemsViewController
                             navigationController.modalPresentationStyle = .overCurrentContext
                         } else {
                             // I don't think this ever happens: collapsed and regular
-                            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                            navigationController.modalPresentationStyle = .overCurrentContext // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                         }
                     } else {
-                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+                        navigationController.modalPresentationStyle = .overCurrentContext // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                     }
                     
                     navigationController.popoverPresentationController?.delegate = self
@@ -2341,27 +2340,7 @@ class LexiconIndexViewController : MediaItemsViewController
                     
                     popover.lexicon = self.lexicon
                     
-                    //                popover.stringTree?.lexicon = self.lexicon
-                    
-                    //                popover.stringTree = StringTree(lexicon:lexicon, stringsFunction: { [weak self] in
-                    //                    return self?.lexicon?.stringsFunction?()
-                    //                }, incremental:true)
-                    
-                    //                popover.stringTree?.completed = false // The user could have used search in LIVC wordsTable PTVC
-                    // This really defeats the purpose of saving the stringTree in the lexicon.
-                    // But it covers over the lost words problem of incremental updates by forcing a new stringTree each
-                    // time it is opened.  Which is also slow!
-                    
-                    // AND because LIVC words table activeWords may be FEWER than last time we can't keep anything from
-                    // past string trees!
-                    
-                    // mediaListGroupSort?.lexicon?.tokens
-                    //                popover.strings = activeWords
-                    
                     popover.stringsFunction = lexicon?.stringsFunction
-                    //                { [weak self] in
-                    //                    return self?.activeWords
-                    //                }
                     
                     present(navigationController, animated: true, completion: nil)
                 }

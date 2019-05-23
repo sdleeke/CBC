@@ -8,6 +8,12 @@
 
 import Foundation
 
+/**
+ 
+ For comparing book, chapter, verse Scripture references
+ 
+ */
+
 class BooksChaptersVerses : Swift.Comparable
 {
     deinit {

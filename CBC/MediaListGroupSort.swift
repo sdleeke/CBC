@@ -123,101 +123,17 @@ class MediaListGroupSort // : NSObject
 
     lazy var sorting = Default<String>({ return Globals.shared.sorting })
     
-//    var _sorting : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
-//    var sorting : String?
-//    {
-//        get {
-//            return _sorting ?? Globals.shared.sorting
-//        }
-//        set {
-//            _sorting = newValue
-//        }
-//    }
-    
     lazy var grouping = Default<String>({ return Globals.shared.grouping })
-    
-//    var _grouping : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
-//    var grouping : String?
-//    {
-//        get {
-//            return _grouping ?? Globals.shared.grouping
-//        }
-//        set {
-//            _grouping = newValue
-//        }
-//    }
     
     // In case we want different search in different MLGS's some day?
     var search = Default<Search>({ return Globals.shared.media.search })
     
-//    var _search : Search!
-//    {
-//        didSet {
-//            // Will this happen when it is a property of Search that is being set?  No.
-//        }
-//    }
-//    var search : Search!
-//    {
-//        get {
-//            return _search ?? Globals.shared.search
-//        }
-//        set {
-//            if _search == nil {
-//                _search = Search()
-//            }
-//
-//            _search = newValue
-//        }
-//    }
-    
     // In case we want different categories in different MLGS's some day?
     var category = Default<String>({ return Globals.shared.media.category.selected })
-
-//    var _category : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
-//    var category : String?
-//    {
-//        get {
-//            return _category ?? Globals.shared.media.category.selected
-//        }
-//        set {
-//            _category = newValue
-//        }
-//    }
 
     // In case we want different tags selected in different MLGS's some day?
     var tag = Default<String>({ return Globals.shared.media.tags.selected })
 
-//    var _tagSelected : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
-//    var tagSelected : String?
-//    {
-//        get {
-//            return _tagSelected ?? Globals.shared.media.tags.selected
-//        }
-//        set {
-//            _tagSelected = newValue
-//        }
-//    }
-    
     func addTagMediaItem(mediaItem:MediaItem,sortTag:String?,tag:String?)
     {
         // Tag added but no point in updating unless...
@@ -900,10 +816,8 @@ class MediaListGroupSort // : NSObject
         
         Globals.shared.queue.async {
             NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
-//            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: mediaItem, userInfo: ["TAG":"FOO"])
 
             NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
-//            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: mediaItem, userInfo: ["TAG":"FOO"])
         }
         
         self.name = name

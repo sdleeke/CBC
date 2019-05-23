@@ -124,18 +124,6 @@ extension MediaItem : UIActivityItemSource
 
         // present the view controller
         Alerts.shared.blockPresent(presenting: viewController, presented: activityViewController, animated: true)
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                viewController.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-        
-//        Thread.onMainThread {
-//            viewController.present(activityViewController, animated: true, completion: nil)
-//        }
     }
 
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -189,36 +177,6 @@ extension MediaItem : UIActivityItemSource
 
 class MediaItem : NSObject
 {
-//    var multiPartMediaItems : [MediaItem]?
-//    {
-////        guard let mediaItem = mediaItem else {
-////            return nil
-////        }
-//
-//        let mediaItem = self
-//
-//        guard let multiPartSort = mediaItem.multiPartSort else {
-//            return nil
-//        }
-//
-//        var multiPartMediaItems:[MediaItem]?
-//
-//        if mediaItem.hasMultipleParts {
-//            if (Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
-//                let seriesMediaItems = Globals.shared.media.repository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-//                    return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.mediaCode == mediaItem.mediaCode)
-//                })
-//                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
-//            } else {
-//                multiPartMediaItems = Globals.shared.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]
-//            }
-//        } else {
-//            multiPartMediaItems = [mediaItem]
-//        }
-//
-//        return multiPartMediaItems
-//    }
-    
     var multiPartMediaItems:[MediaItem]?
     {
         get {
@@ -335,8 +293,8 @@ class MediaItem : NSObject
         }
     }
     
-    lazy var documents : ThreadSafeDN<Document>! = { [weak self] in // ictionaryOfDictionaries
-        return ThreadSafeDN<Document>(name:mediaCode+"Documents") // ictionaryOfDictionaries
+    lazy var documents : ThreadSafeDN<Document>! = { [weak self] in
+        return ThreadSafeDN<Document>(name:mediaCode+"Documents")
     }()
     
     var cacheSize : Int
@@ -358,47 +316,7 @@ class MediaItem : NSObject
                 })
                 
                 return totalCacheSize
-                
-//                return sizeOfFilesOfNameInCache(id) ?? 0
             }
-//            guard let cachesURL = FileManager.default.cachesURL else {
-//                return 0
-//            }
-            
-//            var totalCacheSize = 0
-//
-//            // HUGE MEMORY LEAK
-//            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
-//                var fileURL = cachesURL
-//                fileURL.appendPathComponent(string)
-//                totalCacheSize += fileURL.fileSize ?? 0
-//            })
-//
-////            // NO cacheSize(Purpose.audio) + cacheSize(Purpose.video) +
-//
-//            totalCacheSize += cacheSize(Purpose.notes)
-//            totalCacheSize += cacheSize(Purpose.slides)
-//
-////            totalCacheSize += downloads[Purpose.notes]?.fileSize ?? 0
-////            totalCacheSize += downloads[Purpose.slides]?.fileSize ?? 0
-//
-//            totalCacheSize += posterImage?.fileSize ?? 0
-//            totalCacheSize += seriesImage?.fileSize ?? 0
-//
-//            totalCacheSize += notesHTML?.fileSize ?? 0
-//            totalCacheSize += notesTokens?.fileSize ?? 0
-//
-////            if #available(iOS 11.0, *) {
-////                totalCacheSize += notesPDFText?.fileSize ?? 0
-////            } else {
-////                // Fallback on earlier versions
-////            }
-//
-//            totalCacheSize += notesParagraphLengths?.fileSize ?? 0
-//            totalCacheSize += notesParagraphWords?.fileSize ?? 0
-//            totalCacheSize += notesTokensMarkMismatches?.fileSize ?? 0
-//
-//            return totalCacheSize
         }
     }
 
@@ -450,55 +368,9 @@ class MediaItem : NSObject
                     }
                 }
             }
-
-//            cachesURL.files(startingWith:id)?.forEach({ (string:String) in
-//                if let audioTranscript = audioTranscript, let filename = audioTranscript.filename, string.range(of: filename) != nil {
-//                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
-//                    if !audioTranscript.completed {
-//                        audioTranscript.fileSystemURL?.delete(block: block)
-//                    }
-//                } else
-//
-//                if let videoTranscript = videoTranscript, let filename = videoTranscript.filename, string.range(of: filename) != nil {
-//                    // DO NOT DELETE COMPLETE TRANSCRIPT FILES
-//                    if !videoTranscript.completed {
-//                        videoTranscript.fileSystemURL?.delete(block: block)
-//                    }
-//                } else
-//
-//                if let audioDownload = audioDownload, let filename = audioDownload.fileSystemURL?.lastPathComponent, string.range(of: filename) != nil {
-//                    // DO NOT DELETE AUDIO FILES
-//                } else {
-//                    // DELETE EVERYTHING ELSE.  THIS COULD BE FILES FROM A FETCH VARIABLE.
-//                    var fileURL = cachesURL
-//                    fileURL.appendPathComponent(string)
-//                    fileURL.delete(block: block)
-//                }
-//            })
         }
         
         completion?()
-        
-//        _ = deleteFilesOfNameInCache(id,block:block)
-        
-//        notesDownload?.delete(block:block)
-//        slidesDownload?.delete(block:block)
-//
-//        posterImage?.delete(block:block)
-//        seriesImage?.delete(block:block)
-//
-//        notesHTML?.delete(block:block)
-//        notesTokens?.delete(block:block)
-//
-////        if #available(iOS 11.0, *) {
-////            notesPDFText?.delete()
-////        } else {
-////            // Fallback on earlier versions
-////        }
-//
-//        notesParagraphWords?.delete(block:block)
-//        notesParagraphLengths?.delete(block:block)
-//        notesTokensMarkMismatches?.delete(block:block)
     }
     
     @objc func downloaded(_ notification : NSNotification)
@@ -1250,21 +1122,6 @@ class MediaItem : NSObject
         }
         
         return (url.data?.json as? [String:Any])?["singleEntry"] as? [[String:String]]
-        
-//        do {
-//            let data = try Data(contentsOf: url)
-//
-//            do {
-//                let json = try JSONSerialization.jsonObject(with: data, options: [])
-//                return (json as? [String:Any])?["singleEntry"] as? [[String:String]]
-//            } catch let error {
-//                NSLog(error.localizedDescription)
-//            }
-//        } catch let error {
-//            NSLog(error.localizedDescription)
-//        }
-//
-//        return nil
     }
     
     var headerHTML:String {
@@ -1437,113 +1294,6 @@ class MediaItem : NSObject
         }
     }
     
-    //////////////////////////////////////////////
-    // THESE REALLY SHOULD BE IN A SPEAKER OBJECT
-    
-    // Replace with Fetch?
-    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
-//    private var _speakerNotesParagraphWords:[String:Int]?
-//    {
-//        didSet {
-//            
-//        }
-//    }
-//    var speakerNotesParagraphWords:[String:Int]?
-//    {
-//        get {
-//            guard _speakerNotesParagraphWords == nil else {
-//                return _speakerNotesParagraphWords
-//            }
-//            
-//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
-//                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
-//            }) else {
-//                return nil
-//            }
-//            
-//            var allNotesParagraphWords = [String:Int]()
-//            
-//            for mediaItem in mediaItems {
-//                if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
-//                    // notesParagraphWords.count is the number of paragraphs.
-//                    // So we can get the distribution of the number of paragraphs
-//                    // in each document - if that is useful.
-//                    allNotesParagraphWords.merge(notesParagraphWords) { (firstValue, secondValue) -> Int in
-//                        return firstValue + secondValue
-//                    }
-//                }
-//            }
-//            
-//            _speakerNotesParagraphWords = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
-//            
-//            return _speakerNotesParagraphWords
-//        }
-//        set {
-//            _speakerNotesParagraphWords = newValue
-//        }
-//    }
-//
-//    var overallAverageSpeakerNotesParagraphLength : Int?
-//    {
-//        get {
-//            guard let values = averageSpeakerNotesParagraphLength?.values else {
-//                return nil
-//            }
-//            
-//            let averageLengths = Array(values)
-//            
-//            return averageLengths.reduce(0,+) / averageLengths.count
-//        }
-//    }
-//    
-//    var averageSpeakerNotesParagraphLength : [String:Int]?
-//    {
-//        get {
-//            return speakerNotesParagraphLengths?.mapValues({ (paragraphLengths:[Int]) -> Int in
-//                return paragraphLengths.reduce(0,+) / paragraphLengths.count
-//            })
-//        }
-//    }
-//    
-//    // Replace with Fetch?
-//    // How will we know when new transcripts are added?  On refresh when this is reset to nil.
-//    private var _speakerNotesParagraphLengths : [String:[Int]]?
-//    {
-//        didSet {
-//            
-//        }
-//    }
-//    var speakerNotesParagraphLengths : [String:[Int]]?
-//    {
-//        get {
-//            guard _speakerNotesParagraphLengths == nil else {
-//                return _speakerNotesParagraphLengths
-//            }
-//            
-//            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
-//                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
-//            }) else {
-//                return nil
-//            }
-//            
-//            var allNotesParagraphLengths = [String:[Int]]()
-//            
-//            for mediaItem in mediaItems {
-//                if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
-//                    allNotesParagraphLengths[mediaItem.mediaCode] = notesParagraphLengths
-//                }
-//            }
-//            
-//            _speakerNotesParagraphLengths = allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil
-//
-//            return _speakerNotesParagraphLengths
-//        }
-//        set {
-//            _speakerNotesParagraphLengths = newValue
-//        }
-//    }
-    //////////////////////////////////////////////
-
     var notesParagraphLengthsFilename : String?
     {
         get {
@@ -1819,7 +1569,12 @@ class MediaItem : NSObject
             return nil
         }
     }
-    
+
+    // NEW API
+//    lazy var category : Category? = {
+//        return Category(storage?[Field.category] as? [String:Any])
+//    }()
+
     var scriptureReference:String?
     {
         get {
@@ -1965,10 +1720,11 @@ class MediaItem : NSObject
             return nil
         }
     }
-    
-//    lazy var category : Category? = {
-//        return Category(dict:storage?[Field.category] as? [String:Any])
-//    }()
+
+    // NEW API
+    //    lazy var series : Series? = {
+    //        return Series(storage?[Field.series] as? [String:Any])
+    //    }()
     
     lazy var files : Files? = {
         return Files(storage?[Field.files] as? [String:Any])
@@ -1978,22 +1734,9 @@ class MediaItem : NSObject
         return Group(storage?[Field.group] as? [String:Any])
     }()
     
-//    lazy var series : Series? = {
-//        return Series(storage?[Field.series] as? [String:Any])
-//    }()
-    
     lazy var teacher : Teacher? = {
         return Teacher(storage?[Field.teacher] as? [String:Any])
     }()
-    
-//    {
-//        get {
-//            guard let speaker = speaker else {
-//                return nil
-//            }
-//            return Globals.shared.media.teachers[speaker]
-//        }
-//    }
     
     var speakerSort:String?
     {
@@ -2119,53 +1862,6 @@ class MediaItem : NSObject
             return self[Field.part] as? String
         }
     }
-    
-//    func proposedTags(_ tags:String?) -> String?
-//    {
-//        var possibleTags = [String:Int]()
-//        
-//        if let tags = tagsArrayFromTagsString(tags) {
-//            for tag in tags {
-//                var possibleTag = tag
-//                
-//                if possibleTag.range(of: "-") != nil {
-//                    while possibleTag.range(of: "-") != nil {
-//                        if let range = possibleTag.range(of: "-") {
-//                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                            
-//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-//                                if let count = possibleTags[candidate] {
-//                                    possibleTags[candidate] =  count + 1
-//                                } else {
-//                                    possibleTags[candidate] =  1
-//                                }
-//                            }
-//                            
-//                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                        } else {
-//                            // ???
-//                        }
-//                    }
-//                    
-//                    if !possibleTag.isEmpty {
-//                        let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                        
-//                        if (Int(candidate) == nil) && !tags.contains(candidate) {
-//                            if let count = possibleTags[candidate] {
-//                                possibleTags[candidate] =  count + 1
-//                            } else {
-//                                possibleTags[candidate] =  1
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        
-//        let proposedTags = [String](possibleTags.keys)
-//        
-//        return proposedTags.count > 0 ? tagsArrayToTagsString(proposedTags) : nil
-//    }
     
     var dynamicTags:String?
     {
@@ -2328,35 +2024,9 @@ class MediaItem : NSObject
             return
         }
 
-//        Globals.shared.addTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
-        
         Globals.shared.queue.async {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: self, userInfo: ["TAG":tag])
         }
-
-//        lazy var queue : DispatchQueue = { [weak self] in
-//            return DispatchQueue(label: UUID().uuidString)
-//            }()
-//
-//        queue.sync {
-//            if Globals.shared.media.all?.tagMediaItems?[sortTag] != nil {
-//                if Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) == nil {
-//                    Globals.shared.media.all?.tagMediaItems?[sortTag]?.append(self)
-//                    Globals.shared.media.all?.tagNames?[sortTag] = tag
-//                }
-//            } else {
-//                Globals.shared.media.all?.tagMediaItems?[sortTag] = [self]
-//                Globals.shared.media.all?.tagNames?[sortTag] = tag
-//            }
-//
-//            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-//        }
-        
-//        if (Globals.shared.media.tags.selected == tag) {
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-//            }
-//        }
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
@@ -2392,74 +2062,15 @@ class MediaItem : NSObject
             return
         }
         
-//        Globals.shared.removeTagMediaItem(mediaItem:self,sortTag:sortTag,tag:tag)
-        
         Globals.shared.queue.async {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: self, userInfo: ["TAG":tag])
         }
-        
-//        if let index = Globals.shared.media.all?.tagMediaItems?[sortTag]?.firstIndex(of: self) {
-//            Globals.shared.media.all?.tagMediaItems?[sortTag]?.remove(at: index)
-//        }
-//
-//        if Globals.shared.media.all?.tagMediaItems?[sortTag]?.count == 0 {
-//            _ = Globals.shared.media.all?.tagMediaItems?[sortTag] = nil // .removeValue(forKey: sortTag)
-//        }
-//
-//        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-        
-//        if (Globals.shared.media.tags.selected == tag) {
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-//            }
-//        }
         
         Thread.onMainThread {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }
     }
-    
-//    func tagsSetToString(_ tagsSet:Set<String>?) -> String?
-//    {
-//        guard let tagsSet = tagsSet else {
-//            return nil
-//        }
-//
-//        let array = Array(tagsSet).sorted { (first:String, second:String) -> Bool in
-//            return first.withoutPrefixes < second.withoutPrefixes
-//        }
-//
-//        guard array.count > 0 else {
-//            return nil
-//        }
-//        
-//        return array.joined(separator: Constants.SEPARATOR)
-//    }
-//
-//    func tagsToSet(_ tags:String?) -> Set<String>?
-//    {
-//        guard var tags = tags else {
-//            return nil
-//        }
-//
-//        var tag:String
-//        var tagsSet = Set<String>()
-//
-//        while (tags.range(of: Constants.SEPARATOR) != nil) {
-//            if let range = tags.range(of: Constants.SEPARATOR) {
-//                tag = String(tags[..<range.lowerBound])
-//                tagsSet.insert(tag)
-//                tags = String(tags[range.upperBound...])
-//            } else {
-//                // ???
-//            }
-//        }
-//
-//        tagsSet.insert(tags)
-//
-//        return tagsSet.count == 0 ? nil : tagsSet
-//    }
     
     var tagsSet:Set<String>?
     {
@@ -2664,25 +2275,6 @@ class MediaItem : NSObject
         }
     }
     
-//    var notesName:String?
-//    {
-//        get {
-//            guard hasNotes else {
-//                return nil
-//            }
-//            
-//            guard let category = category else {
-//                return nil
-//            }
-//            
-//            if Globals.shared.media.category.dicts?[category] == 1.description {
-//                return Constants.Strings.Transcript
-//            } else {
-//                return Constants.Strings.Notes
-//            }
-//        }
-//    }
-//    
 //    @available(iOS 11.0, *)
 //    lazy var notesPDFTokens:FetchCodable<[String:Int]>? = { [weak self] in
 //        guard let mediaCode = self.mediaCode else {
@@ -3007,66 +2599,6 @@ class MediaItem : NSObject
         }
     }
     
-//    var audioURL:URL?
-//    {
-//        get {
-////            if let audio = audio {
-////                return URL(string: audio)
-////            } else {
-////                return nil
-////            }
-//            return audio?.url
-//        }
-//    }
-//
-//    var videoURL:URL?
-//    {
-//        get {
-////            if let video = video {
-////                return URL(string: video)
-////            } else {
-////                return nil
-////            }
-//            return video?.url
-//        }
-//    }
-//
-//    var notesURL:URL?
-//    {
-//        get {
-//            return notesURLString?.url
-////            if let notes = notes {
-////                return URL(string: notes)
-////            } else {
-////                return nil
-////            }
-//        }
-//    }
-//
-//    var slidesURL:URL?
-//    {
-//        get {
-//            return slidesURLString?.url
-////            if let slides = slides {
-////                return URL(string: slides)
-////            } else {
-////                return nil
-////            }
-//        }
-//    }
-//
-//    var outlineURL:URL?
-//    {
-//        get {
-//            return outlineURLString?.url
-////            if let outline = outline {
-////                return URL(string: outline)
-////            } else {
-////                return nil
-////            }
-//        }
-//    }
-    
     var audioFilename:String?
     {
         get {
@@ -3136,13 +2668,6 @@ class MediaItem : NSObject
         }
     }
     
-//    var notesFileSystemURL:URL?
-//    {
-//        get {
-//            return notesFilename?.fileSystemURL
-//        }
-//    }
-    
     var outlineFilename:String?
     {
         get {
@@ -3168,277 +2693,6 @@ class MediaItem : NSObject
             return [scriptureReference.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)]
         }
     }
-    
-//    func verses(book:String,chapter:Int) -> [Int]
-//    {
-//        var versesForChapter = [Int]()
-//
-//        if let bacv = scriptureReference?.booksChaptersVerses, let verses = bacv[book]?[chapter] {
-//            versesForChapter = verses
-//        }
-//
-//        return versesForChapter
-//    }
-//
-//    func chaptersAndVerses(book:String) -> [Int:[Int]]
-//    {
-//        var chaptersAndVerses = [Int:[Int]]()
-//
-//        if let bacv = scriptureReference?.booksChaptersVerses, let cav = bacv[book] {
-//            chaptersAndVerses = cav
-//        }
-//
-//        return chaptersAndVerses
-//    }
-    
-//    func booksChaptersVerses() -> BooksChaptersVerses?
-//    {
-//        // PUT THIS BACK LATER
-//        if self.booksChaptersVerses != nil {
-//            return self.booksChaptersVerses
-//        }
-//
-//        guard (scripture != nil) else {
-//            return nil
-//        }
-//
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
-//
-//        guard let books = books else { // booksFromScriptureReference(scriptureReference)
-//            return nil
-//        }
-//
-//        let booksChaptersVerses = BooksChaptersVerses()
-//
-////        let separator = ";"
-////        let scriptures = scriptureReference.components(separatedBy: separator)
-//
-//        var ranges = [Range<String.Index>]()
-//        var scriptures = [String]()
-//
-//        for book in books {
-//            if let range = scriptureReference.range(book) {
-//                ranges.append(range)
-//            }
-////            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
-////                ranges.append(range)
-////            } else {
-////                var bk = book
-////
-////                repeat {
-////                    if let range = scriptureReference.range(of: bk.lowercased()) {
-////                        ranges.append(range)
-////                        break
-////                    } else {
-////                        bk.removeLast()
-////                        if bk.last == " " {
-////                            break
-////                        }
-////                    }
-////                } while bk.count > 2
-////            }
-//        }
-//
-//        if books.count == ranges.count {
-//            var lastRange : Range<String.Index>?
-//
-//            for range in ranges {
-//                if let lastRange = lastRange {
-//                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
-//                }
-//
-//                lastRange = range
-//            }
-//
-//            if let lastRange = lastRange {
-//                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
-//            }
-//        } else {
-//            // BUMMER
-//        }
-//
-////        var scriptures = [String]()
-////
-////        var string = scriptureReference
-////
-////        while let range = string.range(of: separator) {
-////            scriptures.append(String(string[..<range.lowerBound]))
-////            string = String(string[range.upperBound...])
-////        }
-////
-////        scriptures.append(string)
-//
-////        var lastBook:String?
-//
-//        for scripture in scriptures {
-////            var book = booksFromScriptureReference(scripture)?.first
-////
-////            if book == nil {
-////                book = lastBook
-////            } else {
-////                lastBook = book
-////            }
-//
-//            if let book = scripture.books?.first {
-//                var reference : String?
-//
-//                if let range = scripture.range(book) {
-//                    reference = String(scripture[range.upperBound...])
-//                }
-//
-////                var bk = book
-////
-////                repeat {
-////                    if let range = scripture.lowercased().range(of: bk.lowercased()) {
-////                        reference = String(scripture[range.upperBound...])
-////                        break
-////                    } else {
-////                        bk.removeLast()
-////                        if bk.last == " " {
-////                            break
-////                        }
-////                    }
-////                } while bk.count > 2
-//
-//                // What if a reference includes the book more than once?
-//                booksChaptersVerses[book] = reference?.chaptersAndVerses(book)
-//
-//                if let chapters = booksChaptersVerses[book]?.keys {
-//                    for chapter in chapters {
-//                        if booksChaptersVerses[book]?[chapter] == nil {
-//                            print(description,book,chapter)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        self.booksChaptersVerses = booksChaptersVerses.data?.count > 0 ? booksChaptersVerses : nil
-//
-//        return self.booksChaptersVerses
-//    }
-//
-//    func chapters(_ thisBook:String) -> [Int]?
-//    {
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
-//
-//        guard !Constants.NO_CHAPTER_BOOKS.contains(thisBook) else {
-//            return [1]
-//        }
-//
-//        var chaptersForBook:[Int]?
-//
-//        guard let books = scriptureReference.books else {
-//            return nil
-//        }
-//
-//        switch books.count {
-//        case 0:
-//            break
-//
-//        case 1:
-//            if thisBook == books.first {
-//                if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
-//                    chaptersForBook = [1]
-//                } else {
-//                    var string = scriptureReference
-//
-//                    if (string.range(of: ";") == nil) {
-//                        if let range = scriptureReference.range(of: thisBook) {
-//                            chaptersForBook = String(string[range.upperBound...]).chapters
-//                        } else {
-//                            // ???
-//                        }
-//                    } else {
-//                        while let range = string.range(of: ";") {
-//                            var subString = String(string[..<range.lowerBound])
-//
-//                            if let range = subString.range(of: thisBook) {
-//                                subString = String(subString[range.upperBound...])
-//                            }
-//                            if let chapters = subString.chapters {
-//                                chaptersForBook?.append(contentsOf: chapters)
-//                            }
-//
-//                            string = String(string[range.upperBound...])
-//                        }
-//
-//                        if let range = string.range(of: thisBook) {
-//                            string = String(string[range.upperBound...])
-//                        }
-//                        if let chapters = string.chapters {
-//                            chaptersForBook?.append(contentsOf: chapters)
-//                        }
-//                    }
-//                }
-//            } else {
-//                // THIS SHOULD NOT HAPPEN
-//            }
-//            break
-//
-//        default:
-//            var scriptures = [String]()
-//
-//            var string = scriptureReference
-//
-//            let separator = ";"
-//
-//            while let range = string.range(of: separator) {
-//                scriptures.append(String(string[..<range.lowerBound]))
-//                string = String(string[range.upperBound...])
-//            }
-//
-//            scriptures.append(string)
-//
-//            for scripture in scriptures {
-//                if let range = scripture.range(of: thisBook) {
-//                    if let chapters = String(scripture[range.upperBound...]).chapters {
-//                        if chaptersForBook == nil {
-//                            chaptersForBook = chapters
-//                        } else {
-//                            chaptersForBook?.append(contentsOf: chapters)
-//                        }
-//                    }
-//                }
-//            }
-//            break
-//        }
-//
-//        return chaptersForBook
-//    }
-
-//    lazy var books:Shadowed<[String]> = { [weak self] in
-//        return Shadowed<[String]>(get: { () -> ([String]?) in
-//            return booksFromScriptureReference(self.scriptureReference)
-//        })
-//    }()
-    
-    // Replace with Shadow?
-//    private var _books:[String]?
-//    {
-//        didSet {
-//            
-//        }
-//    }
-//    var books:[String]?
-//    {
-//        get {
-//            guard _books == nil else {
-//                return _books
-//            }
-//            
-//            _books = scripture?.books
-//            
-//            return _books
-//        }
-//        set {
-//            _books = newValue
-//        }
-//    }
     
     var fullDate:Date?
     {
@@ -4011,76 +3265,6 @@ class MediaItem : NSObject
         })
     }
     
-//    func editOrView(viewController: UIViewController, bodyText:String?, bodyHTML:String?)
-//    {
-//        let alert = UIAlertController(  title: "Edit or View?",
-//                                        message: nil,
-//                                        preferredStyle: .alert)
-//        alert.makeOpaque()
-//
-//        let editAction = UIAlertAction(title: "Edit", style: UIAlertAction.Style.default, handler: {
-//            (action : UIAlertAction!) -> Void in
-//            if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
-//                let textPopover = navigationController.viewControllers[0] as? TextViewController {
-//                navigationController.modalPresentationStyle = viewController.preferredModalPresentationStyle
-//
-//                if navigationController.modalPresentationStyle == .popover {
-//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                    navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//                }
-//
-//                textPopover.navigationController?.isNavigationBarHidden = false
-//
-//                textPopover.navigationItem.title = self.title ?? ""
-//
-//                textPopover.text = bodyText
-//                textPopover.readOnly = true
-//
-//                textPopover.search = true
-//
-//                viewController.present(navigationController, animated: true, completion: nil)
-//            } else {
-//                print("ERROR")
-//            }
-//        })
-//        alert.addAction(editAction)
-//
-//        let viewAction = UIAlertAction(title: "View", style: UIAlertAction.Style.default, handler: {
-//            (action : UIAlertAction!) -> Void in
-//
-//            viewController.process(work: { [weak self] () -> (Any?) in
-//                var htmlString:String?
-//
-//                if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-//                    htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, lemmas: false,index: true).0
-//                } else
-//
-//                    if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
-//                        htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, lemmas: false, index: true).0
-//                    } else {
-//                        htmlString = bodyHTML
-//                }
-//
-//                return htmlString
-//            }, completion: { [weak self] (data:Any?) in
-//                if let _ = data as? String {
-//                    viewController.popoverHTML(title:self?.title, mediaItem:self, bodyHTML: bodyHTML, headerHTML: self?.headerHTML, sourceView:viewController.view, sourceRectView:viewController.view, search:true)
-//                } else {
-//                    Alerts.shared.alert(title: "Network Error",message: "Transcript unavailable.")
-//                }
-//            })
-//        })
-//        alert.addAction(viewAction)
-//
-//        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-//            (action : UIAlertAction!) -> Void in
-//
-//        })
-//        alert.addAction(cancel)
-//
-//        viewController.present(alert, animated: true, completion: nil)
-//    }
-    
     func addToFavorites(alert:Bool = true)
     {
         self.addTag(Constants.Strings.Favorites)
@@ -4088,8 +3272,6 @@ class MediaItem : NSObject
         if alert {
             Alerts.shared.alert(title: "Added to Favorites",message: self.text)
         }
-//        Globals.shared.queue.sync {
-//        }
     }
     
     func removeFromFavorites(alert:Bool = true)
@@ -4099,8 +3281,6 @@ class MediaItem : NSObject
         if alert {
             Alerts.shared.alert(title: "Removed From Favorites",message: self.text)
         }
-//        Globals.shared.queue.sync {
-//        }
     }
     
     func editActions(viewController: UIViewController) -> [AlertAction]?
@@ -4343,200 +3523,6 @@ class MediaItem : NSObject
             guard let mtvc = viewController as? MediaTableViewController else {
                 return
             }
-            
-//            func transcriptTokens()
-//            {
-//                guard Thread.isMainThread else {
-//                    viewController.alert(title: "Not Main Thread", message: "MediaTableViewController:transcriptTokens", completion: nil)
-//                    return
-//                }
-//
-//                guard let tokens = self?.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-//                    return "\(string) (\(count))"
-//                }).sorted() else {
-//                    viewController.networkUnavailable("HTML transcript vocabulary unavailable.")
-//                    return
-//                }
-//
-//                if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-////                    mtvc.dismiss(animated: true, completion: { [weak mtvc] in
-////                        mtvc?.presentingVC = nil
-////                    })
-//
-//                    mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
-//                        popover.dismiss(animated: true, completion: nil)
-//                    })
-//
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//
-//                    navigationController.popoverPresentationController?.delegate = mtvc
-//
-//                    popover.navigationItem.title = Constants.Strings.Search
-//
-//                    popover.navigationController?.isNavigationBarHidden = false
-//
-//                    popover.parser = { (string:String) -> [String] in
-//                        return [string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)]
-//                    }
-//
-//                    popover.delegate = mtvc
-//                    popover.purpose = .selectingCellSearch
-//
-//                    popover.selectedMediaItem = self
-//
-//                    popover.section.showIndex = true
-//
-//                    popover.section.strings = tokens
-//
-//                    popover.segments = true
-//
-//                    popover.section.function = { (method:String?,strings:[String]?) in
-//                        return strings?.sort(method: method)
-//                    }
-//                    popover.section.method = Constants.Sort.Alphabetical
-//
-//                    popover.bottomBarButton = true
-//                    popover.updateToolbar()
-//
-//                    var segmentActions = [SegmentAction]()
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-////                        guard let section = popover.section else {
-////                            return
-////                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-//                            popover.section.method = Constants.Sort.Alphabetical
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = nil
-//                            popover.section.indexHeadersTransform = nil
-//                            popover.section.indexSort = nil
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-//                        //                        guard let section = popover.section else {
-//                        //                            return
-//                        //                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-//                            popover.section.method = Constants.Sort.Frequency
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-//                                return string?.log
-//                            }
-//
-//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-//                                return string
-//                            }
-//
-//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-//                                guard let first = first else {
-//                                    return false
-//                                }
-//                                guard let second = second else {
-//                                    return true
-//                                }
-//                                return Int(first) > Int(second)
-//                            }
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 2 {
-//                            popover.section.method = Constants.Sort.Length
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-//                                return string?.count.description
-//                            }
-//
-//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-//                                return string
-//                            }
-//
-//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-//                                guard let first = first else {
-//                                    return false
-//                                }
-//                                guard let second = second else {
-//                                    return true
-//                                }
-//                                return Int(first) > Int(second)
-//                            }
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-//
-//                    popover.search = popover.section.strings?.count > 10
-//
-//                    mtvc.popover?["WORD"] = popover
-//
-//                    popover.completion = { [weak mtvc] in
-//                        mtvc?.popover?["WORD"] = nil
-//                    }
-//
-////                    popover.completion = { [weak mtvc] in
-////                        mtvc?.presentingVC = nil
-////                    }
-//
-//                    mtvc.present(navigationController, animated: true, completion: { [weak mtvc] in
-////                        mtvc?.presentingVC = navigationController
-//                    })
-//                }
-//            }
 
             mtvc.process(work: { [weak self] () -> (Any?) in
                 self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
@@ -4694,15 +3680,6 @@ class MediaItem : NSObject
         }
 
         actions.append(favorites)
-
-//        if Globals.shared.media.search.current?.context?.tag != Constants.Strings.Favorites.uppercased() {
-//        }
-//
-//        if Globals.shared.splitViewController?.isCollapsed == false {
-//
-//        } else {
-//            actions.append(favorites)
-//        }
         
         actions.append(openOnCBC)
 
@@ -4716,13 +3693,6 @@ class MediaItem : NSObject
             actions.append(voiceBase)
         }
 
-        // Calling cacheSize is VERY expensive.
-        // AND
-        // canEditRow gets called with EACH cell
-        // which calls THIS!
-//        if cacheSize > 0 {
-//            actions.append(clearCache)
-//        }
         if hasCacheFiles {
             actions.append(clearCache)
         }

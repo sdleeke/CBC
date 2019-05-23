@@ -8,12 +8,14 @@
 
 import Foundation
 
-struct CallBack
-{
-    var start : (()->())?
-    var update : (()->())?
-    var complete : (()->())?
-}
+//struct CallBack
+//{
+//    var name : String?
+//    var function : (()->())?
+////    var start : (()->())?
+////    var update : (()->())?
+////    var complete : (()->())?
+//}
 
 class CallBacks
 {
@@ -26,73 +28,67 @@ class CallBacks
         debug(self)
     }
 
-    private var callbacks = [String:CallBack]()
-//    private var callbacks : [String:CallBack]!
-//    {
-//        get {
-//            return queue.sync {
-//                return _callbacks
-//            }
-//        }
-//        set {
-//            queue.sync {
-//                _callbacks = newValue
-//            }
-//        }
-//    }
+    private var callbacks = [String:[String:(()->())]]()
     
-    func register(id:String,callBack:CallBack)
+    func register(_ id:String,_ callBacks:[String:(()->())]?)
     {
         queue.sync {
-            callbacks[id] = callBack
+            callbacks[id] = callBacks
         }
     }
     
-    func unregister(id:String)
+    func unregister(_ id:String)
     {
         queue.sync {
             callbacks[id] = nil
         }
     }
     
-    func start()
+    func execute(_ name:String)
     {
-        // Crashes without this and build() comes before register()
-        // Why didn't queue.sync protect against that?
-        guard callbacks.count > 0 else {
-            return
-        }
-        
         queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.start?()
-            }
+            callbacks.values.forEach({ (dict:[String : (() -> ())]) in
+                dict[name]?()
+            })
         }
     }
     
-    func update()
-    {
-        guard callbacks.count > 0 else {
-            return
-        }
-        
-        queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.update?()
-            }
-        }
-    }
-    
-    func complete()
-    {
-        guard callbacks.count > 0 else {
-            return
-        }
-        
-        queue.sync {
-            callbacks.values.forEach { (callBack:CallBack) in
-                callBack.complete?()
-            }
-        }
-    }
+//    func start()
+//    {
+//        queue.sync {
+//            guard callbacks.count > 0 else {
+//                return
+//            }
+//
+//            callbacks.values.forEach { (callBack:CallBack) in
+//                callBack.start?()
+//            }
+//        }
+//    }
+//
+//    func update()
+//    {
+//        guard callbacks.count > 0 else {
+//            return
+//        }
+//
+//        queue.sync {
+//            callbacks.values.forEach { (callBack:CallBack) in
+//                callBack.update?()
+//            }
+//        }
+//    }
+//
+//    func complete()
+//    {
+//        guard callbacks.count > 0 else {
+//            return
+//        }
+//
+//        queue.sync {
+//            callbacks.values.forEach { (callBack:CallBack) in
+//                callBack.complete?()
+//            }
+//        }
+//    }
 }

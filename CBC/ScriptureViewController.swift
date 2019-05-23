@@ -540,7 +540,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 1:
-//            if scripture?.selected.testament != nil, let books = scripture?.picker.books {
+//            if scripture?.picked.testament != nil, let books = scripture?.picker.books {
 //                numberOfRows = books.count
 //            } else {
 //                numberOfRows = 0 // number of books in testament
@@ -548,12 +548,12 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 2:
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                numberOfRows = 0
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                numberOfRows = 0
 //                break
 //            }
@@ -569,17 +569,17 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //                break
 //            }
 //
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                numberOfRows = 0
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                numberOfRows = 0
 //                break
 //            }
 //
-//            guard scripture?.selected.chapter > 0 else {
+//            guard scripture?.picked.chapter > 0 else {
 //                numberOfRows = 0
 //                break
 //            }
@@ -620,7 +620,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 1:
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
@@ -630,11 +630,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 2:
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                break
 //            }
 //
@@ -644,15 +644,15 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 3:
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                break
 //            }
 //
-////            if scripture?.selected.chapter > 0 {
+////            if scripture?.picked.chapter > 0 {
 ////                return "1"
 ////            }
 //
@@ -705,18 +705,18 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //        case 0: // Testament
 //            switch row {
 //            case 0:
-//                scripture?.selected.testament = Constants.OT
+//                scripture?.picked.testament = Constants.OT
 //                break
 //
 //            case 1:
-//                scripture?.selected.testament = Constants.NT
+//                scripture?.picked.testament = Constants.NT
 //                break
 //
 //            default:
 //                break
 //            }
 //
-//            if let testament = scripture?.selected.testament {
+//            if let testament = scripture?.picked.testament {
 //                switch testament {
 //                case Constants.OT:
 //                    scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
@@ -731,12 +731,12 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //                }
 //            }
 //
-//            scripture?.selected.book = scripture?.picker.books?[0]
+//            scripture?.picked.book = scripture?.picker.books?[0]
 //
 //            updatePicker()
 //
 //            if let chapter = scripture?.picker.chapters?[0] {
-//                scripture?.selected.chapter = chapter
+//                scripture?.picked.chapter = chapter
 //            }
 //
 //            pickerView.reloadAllComponents()
@@ -753,16 +753,16 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 1: // Book
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
-//            scripture?.selected.book = scripture?.picker.books?[row]
+//            scripture?.picked.book = scripture?.picker.books?[row]
 //
 //            updatePicker()
 //
 //            if let chapter = scripture?.picker.chapters?[0] {
-//                scripture?.selected.chapter = chapter
+//                scripture?.picked.chapter = chapter
 //            }
 //
 //            pickerView.reloadAllComponents()
@@ -775,22 +775,22 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 2: // Chapter
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                break
 //            }
 //
 //            if let chapter = scripture?.picker.chapters?[row] {
-//                scripture?.selected.chapter = chapter
+//                scripture?.picked.chapter = chapter
 //            }
 //
 //            updatePicker()
 //
 //            if let verse = scripture?.picker.verses?[0] {
-//                scripture?.selected.verse = verse
+//                scripture?.picked.verse = verse
 //            }
 //
 //            pickerView.reloadAllComponents()
@@ -803,20 +803,20 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 //            break
 //
 //        case 3: // Verse
-//            guard scripture?.selected.testament != nil else {
+//            guard scripture?.picked.testament != nil else {
 //                break
 //            }
 //
-//            guard scripture?.selected.book != nil else {
+//            guard scripture?.picked.book != nil else {
 //                break
 //            }
 //
-//            guard scripture?.selected.chapter > 0 else {
+//            guard scripture?.picked.chapter > 0 else {
 //                break
 //            }
 //
 //            if let verse = scripture?.picker.verses?[row] {
-//                scripture?.selected.verse = verse
+//                scripture?.picked.verse = verse
 //            }
 //
 ////            pickerView.reloadAllComponents()
@@ -1048,7 +1048,7 @@ class ScriptureViewController : CBCViewController
     
     func showScripture()
     {
-        guard let reference = self.scripture?.selected.reference else {
+        guard let reference = self.scripture?.picked.reference else {
             return
         }
         
@@ -1173,12 +1173,13 @@ class ScriptureViewController : CBCViewController
         
         popover.navigationController?.isNavigationBarHidden = false
         
-        Globals.shared.splitViewController?.present(navigationController, animated: true, completion: nil)
+        // Globals.shared.splitViewController
+        self.presentingViewController?.present(navigationController, animated: true, completion: nil)
     }
     
     @objc func resetScripture()
     {
-        scripture?.selected.clear()
+        scripture?.picked.clear()
         scripture?.reference = mediaItem?.scriptureReference
         setupPicker()
         navigationController?.isToolbarHidden = true
@@ -1238,7 +1239,7 @@ class ScriptureViewController : CBCViewController
             
             let chapter = mediaItemScripture.booksChaptersVerses?[book]?.keys.sorted()[0]
             
-            if (scripture?.selected.testament != testament) ||  (scripture?.selected.book != book) || (scripture?.selected.chapter != chapter) {
+            if (scripture?.picked.testament != testament) ||  (scripture?.picked.book != book) || (scripture?.picked.chapter != chapter) {
                 let resetButton = UIBarButtonItem(title: "Reset", style: UIBarButtonItem.Style.plain, target: self, action: #selector(resetScripture))
                 
                 let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
@@ -1527,7 +1528,7 @@ class ScriptureViewController : CBCViewController
     
     func setupPicker()
     {
-        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
+        if scripture?.picked.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
             webViewController?.view.isHidden = true
             
             //            DispatchQueue.global(qos: .background).async { [weak self] in
@@ -1538,11 +1539,11 @@ class ScriptureViewController : CBCViewController
                 if let books = self?.scripture?.booksChaptersVerses?.books?.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
-                    self?.scripture?.selected.testament = book.testament.translateTestament
-                    self?.scripture?.selected.book = book
+                    self?.scripture?.picked.testament = book.testament.translateTestament
+                    self?.scripture?.picked.book = book
                     
                     if let chapters = self?.scripture?.booksChaptersVerses?[book]?.keys.sorted() {
-                        self?.scripture?.selected.chapter = chapters[0]
+                        self?.scripture?.picked.chapter = chapters[0]
                     }
                 }
                 
@@ -1632,11 +1633,11 @@ class ScriptureViewController : CBCViewController
     
 //    func updatePicker()
 //    {
-//        if scripture?.selected.testament == nil {
-//            scripture?.selected.testament = Constants.OT
+//        if scripture?.picked.testament == nil {
+//            scripture?.picked.testament = Constants.OT
 //        }
 //
-//        guard let selectedTestament = scripture?.selected.testament else {
+//        guard let selectedTestament = scripture?.picked.testament else {
 //            return
 //        }
 //
@@ -1657,20 +1658,20 @@ class ScriptureViewController : CBCViewController
 //            break
 //        }
 //
-//        if scripture?.selected.book == nil {
-//            scripture?.selected.book = scripture?.picker.books?[0]
+//        if scripture?.picked.book == nil {
+//            scripture?.picked.book = scripture?.picker.books?[0]
 //        }
 //
 //        var maxChapters = 0
 //        switch selectedTestament {
 //        case Constants.OT:
-//            if let index = scripture?.selected.book?.bookNumberInBible {
+//            if let index = scripture?.picked.book?.bookNumberInBible {
 //                maxChapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
 //            }
 //            break
 //
 //        case Constants.NT:
-//            if let index = scripture?.selected.book?.bookNumberInBible {
+//            if let index = scripture?.picked.book?.bookNumberInBible {
 //                maxChapters = Constants.NEW_TESTAMENT_CHAPTERS[index - Constants.OLD_TESTAMENT_BOOKS.count]
 //            }
 //            break
@@ -1687,11 +1688,11 @@ class ScriptureViewController : CBCViewController
 //        }
 //        scripture?.picker.chapters = chapters
 //
-//        if scripture?.selected.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
-//            scripture?.selected.chapter = chapter
+//        if scripture?.picked.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
+//            scripture?.picked.chapter = chapter
 //        }
 //
-//        if includeVerses, let index = scripture?.selected.book?.bookNumberInBible, let chapter = scripture?.selected.chapter {
+//        if includeVerses, let index = scripture?.picked.book?.bookNumberInBible, let chapter = scripture?.picked.chapter {
 //            var maxVerses = 0
 //            switch selectedTestament {
 //            case Constants.OT:
@@ -1713,14 +1714,14 @@ class ScriptureViewController : CBCViewController
 //            }
 //            scripture?.picker.verses = verses
 //
-//            if scripture?.selected.verse == 0, let verse = scripture?.picker.verses?[0] {
-//                scripture?.selected.verse = verse
+//            if scripture?.picked.verse == 0, let verse = scripture?.picker.verses?[0] {
+//                scripture?.picked.verse = verse
 //            }
 //        }
 //
 //        scripturePicker.reloadAllComponents()
 //
-////        guard let selectedTestament = scripture?.selected.testament else {
+////        guard let selectedTestament = scripture?.picked.testament else {
 ////            return
 ////        }
 //
@@ -1728,11 +1729,11 @@ class ScriptureViewController : CBCViewController
 //            scripturePicker.selectRow(index, inComponent: 0, animated: false)
 //        }
 //
-//        if let selectedBook = scripture?.selected.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
+//        if let selectedBook = scripture?.picked.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
 //            scripturePicker.selectRow(index, inComponent: 1, animated: false)
 //        }
 //
-//        if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
+//        if let chapter = scripture?.picked.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
 //            scripturePicker.selectRow(index, inComponent: 2, animated: false)
 //        }
 //
@@ -1740,7 +1741,7 @@ class ScriptureViewController : CBCViewController
 //            return
 //        }
 //
-//        if let verse = scripture?.selected.verse, verse > 0, let index = scripture?.picker.verses?.firstIndex(of: verse) {
+//        if let verse = scripture?.picked.verse, verse > 0, let index = scripture?.picker.verses?.firstIndex(of: verse) {
 //            scripturePicker.selectRow(index, inComponent: 3, animated: false)
 //        }
 //    }

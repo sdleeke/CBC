@@ -15,7 +15,7 @@ struct Picker
     var verses:[Int]?
 }
 
-class Selected
+class Picked
 {
     var picker = Picker()
     
@@ -200,7 +200,7 @@ class Scripture : NSObject
 {
 //    var passages : [[String:Any]]?
     
-    var selected = Selected()
+    var picked = Picked()
 
 //    lazy var xml = { [weak self] in
 //        return XML()

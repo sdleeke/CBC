@@ -50,75 +50,13 @@ class Search
         }
     }
 
-//    var complete:Bool
-//    {
-//        get {
-//            guard let text = text else {
-//                return false
-//            }
-//
-//            return Globals.shared.media.toSearch?.searches?[text]?.complete ?? false
-//        }
-//
-//        set {
-//            guard let text = text else {
-//                return
-//            }
-//
-//            Globals.shared.media.toSearch?.searches?[text]?.complete = newValue
-//        }
-//    }
-    
-//    var cancelled:Bool
-//    {
-//        get {
-//            guard let text = text else {
-//                return false
-//            }
-//
-//            return Globals.shared.media.toSearch?.searches?[text]?.cancelled ?? false
-//        }
-//
-//        set {
-//            guard let text = text else {
-//                return
-//            }
-//
-//            Globals.shared.media.toSearch?.searches?[text]?.cancelled = newValue
-//        }
-//    }
-    
-//    var results:MediaListGroupSort?
-//    {
-//        get {
-//            guard let text = text else {
-//                return nil
-//            }
-//            
-//            return Globals.shared.media.toSearch?.searches?[text]
-//        }
-//        
-//        set {
-//            guard let text = text else {
-//                return
-//            }
-//            
-//            Globals.shared.media.toSearch?.searches?[text] = newValue
-//        }
-//    }
-
-//    var complete:Bool = true
-//    var cancelled:Bool = false
-
     var isActive:Bool = false
     {
         willSet {
             
         }
         didSet {
-            if !isActive {
-//                complete = true
-            }
+
         }
     }
     
@@ -132,11 +70,7 @@ class Search
     var isExtant:Bool
     {
         get {
-            if let isEmpty = text?.isEmpty {
-                return !isEmpty
-            } else {
-                return false
-            }
+            return !(text?.isEmpty ?? true)
         }
     }
     
@@ -170,12 +104,6 @@ class Search
             return UserDefaults.standard.bool(forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
         }
         set {
-            // Setting to nil can cause a crash.
-            // Globals.shared.media.toSearch?.
-//            searches = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "SEARCH") // [String:MediaListGroupSort]() // ictionary
-            
-//            searches?.clear()
-            
             UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
             UserDefaults.standard.synchronize()
         }

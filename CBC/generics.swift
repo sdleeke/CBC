@@ -95,6 +95,24 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool
  
  Can be a struct (w/o deinit) or class
 
+ Alternative is a pattern:
+ 
+     var _value : String?
+     {
+         didSet {
+ 
+         }
+     }
+     var value : String?
+     {
+         get {
+             return _value ?? <default_value>
+         }
+         set {
+             _value = newValue
+         }
+     }
+ 
  */
 
 class Default<T>

@@ -482,7 +482,7 @@ class Lexicon : NSObject // Why an NSObject?
     func build()
     {
         guard !completed else {
-            callBacks.complete()
+            callBacks.execute("complete")
             return
         }
         
@@ -522,7 +522,7 @@ class Lexicon : NSObject // Why an NSObject?
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
 //            }
 
-            self?.callBacks.start()
+            self?.callBacks.execute("start")
             
             repeat {
                 guard let mediaItem = list.first else { // One chance to load tokens per media item
@@ -593,7 +593,7 @@ class Lexicon : NSObject // Why an NSObject?
 //                self?.update()
 
                 if firstUpdate || (date.timeIntervalSinceNow <= -5) {
-                    self?.callBacks.update()
+                    self?.callBacks.execute("update")
 
                     date = Date()
 
@@ -628,7 +628,7 @@ class Lexicon : NSObject // Why an NSObject?
 //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
 //            }
             
-            self?.callBacks.complete()
+            self?.callBacks.execute("complete")
         }
 
         operationQueue.addOperation(operation)

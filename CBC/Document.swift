@@ -28,32 +28,8 @@ class Document : NSObject
             
             if Globals.shared.cacheDownloads {
                 data = self?.download?.fileSystemURL?.data ?? self?.download?.downloadURL?.data?.save(to: self?.download?.fileSystemURL)
-                
-//                if let fileSystemData = self.download?.fileSystemURL?.data {
-//                    data = fileSystemData
-//                } else {
-//                    data = self.download?.downloadURL?.data
-//                    data?.save(to: self.download?.fileSystemURL)
-////                    if let url = self.download?.downloadURL {
-////                        data = url.data
-////                        do {
-////                            if let fileSystemURL = self.download?.fileSystemURL {
-////                                try data?.write(to: fileSystemURL, options: [.atomic])
-////                            }
-////                        } catch let error {
-////                            NSLog(error.localizedDescription)
-////                        }
-////                    }
-//                }
             } else {
                 data = self?.download?.downloadURL?.data
-//                if let url = self.download?.downloadURL {
-//                    do {
-//                        data = try Data(contentsOf: url)
-//                    } catch let error {
-//                        NSLog(error.localizedDescription)
-//                    }
-//                }
             }
             
             if #available(iOS 11.0, *) {
@@ -74,12 +50,12 @@ class Document : NSObject
                                 }
                             }
                         }
-                        
-//                        if let pageImage = self.mediaItem?.seriesImage?.image {
+//                        
+//                        if let pageImage = self?.mediaItem?.seriesImage?.image {
 //                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
 //                            
 //                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
-//                                if let pdf = data?.pdf, let page = pageImage.pdf {
+//                                if let pdf = data?.pdf, let page = pageImage.page {
 //                                    pdf.insert(page, at: 0)
 //                                    
 //                                    if let pdfData = pdf.data {
@@ -99,13 +75,6 @@ class Document : NSObject
         
         return fetchData
     }()
-
-//    var data : Data?
-//    {
-//        get {
-//            return fetchData.result
-//        }
-//    }
     
     var download:Download?
     {

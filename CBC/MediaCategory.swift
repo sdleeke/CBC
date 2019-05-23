@@ -17,49 +17,6 @@ import Foundation
 
 class MediaCategory
 {
-//    var dicts = ThreadSafeDN<String>() // :[String:String]? // ictionary
-//
-//    var filename:String?
-//    {
-//        get {
-//            guard let selectedID = selectedID else {
-//                return nil
-//            }
-//
-//            return Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + selectedID + Constants.JSON.FILENAME_EXTENSION
-//        }
-//    }
-//
-//    var url:String?
-//    {
-//        get {
-//            guard let selectedID = selectedID else {
-//                return nil
-//            }
-//
-//            return Constants.JSON.URL.CATEGORY + selectedID
-//        }
-//    }
-//
-//    var names:[String]?
-//    {
-//        get {
-////            guard let dicts = dicts else {
-////                return nil
-////            }
-//
-//            guard let keys = dicts.keys() else {
-//                return nil
-//            }
-//
-//            guard keys.count > 0 else {
-//                return nil
-//            }
-//
-//            return Array(keys).sorted()
-//        }
-//    }
-    
     // This doesn't work if we someday allow multiple categories to be selected at the same time - unless the string contains multiple categories, as with tags.
     // In that case it would need to be an array.  Not a big deal, just a change.
     var selected:String?
@@ -81,17 +38,6 @@ class MediaCategory
             UserDefaults.standard.synchronize()
         }
     }
-    
-//    var selectedID:String?
-//    {
-//        get {
-//            if let selected = selected {
-//                return dicts[selected] // ?? "1" // Sermons are category 1
-//            } else {
-//                return nil
-//            }
-//        }
-//    }
     
     var settings = ThreadSafeDN<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
     

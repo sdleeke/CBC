@@ -14,27 +14,27 @@ import NaturalLanguage
 import AVFoundation
 import AudioToolbox
 
-// Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
-    return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
-}
+//// Helper function inserted by Swift 4.2 migrator.
+//fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+//    return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
+//}
 
-extension FourCharCode
-{
-    // Create a String representation of a FourCC
-    func toString() -> String {
-        let bytes: [CChar] = [
-            CChar((self >> 24) & 0xff),
-            CChar((self >> 16) & 0xff),
-            CChar((self >> 8) & 0xff),
-            CChar(self & 0xff),
-            0
-        ]
-        let result = String(cString: bytes)
-        let characterSet = CharacterSet.whitespaces
-        return result.trimmingCharacters(in: characterSet)
-    }
-}
+//extension FourCharCode
+//{
+//    // Create a String representation of a FourCC
+//    func toString() -> String {
+//        let bytes: [CChar] = [
+//            CChar((self >> 24) & 0xff),
+//            CChar((self >> 16) & 0xff),
+//            CChar((self >> 8) & 0xff),
+//            CChar(self & 0xff),
+//            0
+//        ]
+//        let result = String(cString: bytes)
+//        let characterSet = CharacterSet.whitespaces
+//        return result.trimmingCharacters(in: characterSet)
+//    }
+//}
 
 extension Set
 {
@@ -90,10 +90,8 @@ extension UIApplication
         }
         
         if #available(iOS 10, *) {
-            self.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]),
-                                      completionHandler: {
-                                        (success) in
-                                        print("Open \(scheme): \(success)")
+            self.open(url, options: [:], completionHandler: { (success) in
+                print("Open \(scheme): \(success)")
             })
         } else {
             let success = UIApplication.shared.openURL(url)
@@ -117,102 +115,15 @@ extension FileManager
             return self.urls(for: .cachesDirectory, in: .userDomainMask).first
         }
     }
-
-//    func filesOfTypeInCache(_ fileType:String) -> [String]?
-//    {
-//        guard let path = self.cachesURL?.path else {
-//            return nil
-//        }
-//
-//        var files = [String]()
-//
-//        do {
-//            let array = try self.contentsOfDirectory(atPath: path)
-//
-//            for string in array {
-//                if let range = string.range(of: fileType) {
-//                    if fileType == String(string[range.lowerBound...]) {
-//                        files.append(string)
-//                    }
-//                }
-//            }
-//        } catch let error {
-//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//        }
-//
-//        return files.count > 0 ? files : nil
-//    }
-//
-//    func filesOfNameInCache(_ filename:String) -> [String]?
-//    {
-//        guard let path = self.cachesURL?.path else {
-//            return nil
-//        }
-//
-//        var files = [String]()
-//
-//        do {
-//            let array = try self.contentsOfDirectory(atPath: path)
-//
-//            for string in array {
-//                if let range = string.range(of: filename) {
-//                    if filename == String(string[..<range.upperBound]) {
-//                        files.append(string)
-//                    }
-//                }
-//            }
-//        } catch let error {
-//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//        }
-//
-//        return files.count > 0 ? files : nil
-//    }
-//
-//    func deleteFilesOfNameInCache(_ filename:String) -> [String]?
-//    {
-//        guard let path = self.cachesURL?.path else {
-//            return nil
-//        }
-//
-//        var files = [String]()
-//
-//        do {
-//            let array = try self.contentsOfDirectory(atPath: path)
-//
-//            for string in array {
-//                if let range = string.range(of: filename) {
-//                    if filename == String(string[..<range.upperBound]) {
-//                        files.append(string)
-//
-//                        var fileURL = path.url
-//
-//                        fileURL?.appendPathComponent(string, isDirectory: false)
-//
-//                        if let fileURL = fileURL {
-//                            do {
-//                                try self.removeItem(at: fileURL)
-//                            } catch let error {
-//                                NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } catch let error {
-//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//        }
-//
-//        return files.count > 0 ? files : nil
-//    }
 }
 
 extension Set where Element == String
 {
     var tagsString: String?
     {
-//        guard let tagsSet = tagsSet else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let array = self.array.sorted { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
@@ -231,6 +142,10 @@ extension Array where Element == MediaItem
     var speakerNotesParagraph : SpeakerNotesParagraph?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return SpeakerNotesParagraph(list:self)
         }
     }
@@ -248,6 +163,10 @@ extension Array where Element == MediaItem
     
     func sort(book:String?) -> [MediaItem]?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         var list:[MediaItem]?
         
         list = self.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
@@ -278,6 +197,10 @@ extension Array where Element == MediaItem
     
     var sortChronologically : [MediaItem]?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         return self.sorted() {
             return $0.dateService < $1.dateService
         }
@@ -285,6 +208,10 @@ extension Array where Element == MediaItem
     
     var sortReverseChronologically : [MediaItem]?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         return self.sorted() {
             return $0.dateService > $1.dateService
         }
@@ -292,6 +219,10 @@ extension Array where Element == MediaItem
     
     func sortByYear(sorting:String?) -> [MediaItem]?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard let sorting = sorting else {
             return nil
         }
@@ -316,7 +247,11 @@ extension Array where Element == MediaItem
 
     func withTag(tag:String?) -> [MediaItem]?
     {
-        guard let tag = tag else {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        guard let tag = tag, !tag.isEmpty else {
             return nil
         }
         
@@ -332,7 +267,11 @@ extension Array where Element == MediaItem
     
     func inBook(_ book:String?) -> [MediaItem]?
     {
-        guard let book = book else {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        guard let book = book, !book.isEmpty else {
             return nil
         }
         
@@ -357,10 +296,10 @@ extension Array where Element == MediaItem
     
     var books : [String]?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let mediaItems = self
         
         var bookSet = Set<String>()
@@ -372,8 +311,6 @@ extension Array where Element == MediaItem
                 }
             }
         }
-        
-//        let array = Array(bookSet) as [String]
         
         return bookSet.array.sorted(by: { (first:String, second:String) -> Bool in
             var result = false
@@ -401,10 +338,10 @@ extension Array where Element == MediaItem
     
     var bookSections : [String]?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let mediaItems = self
         
         var bookSectionSet = Set<String>()
@@ -414,10 +351,8 @@ extension Array where Element == MediaItem
                 bookSectionSet.insert(bookSection)
             }
         }
-        
-//        let array = Array(bookSectionSet) as [String]
 
-        return bookSectionSet.array.sorted(by: { (first:String, second:String) -> Bool in
+        let bookSections = bookSectionSet.array.sorted(by: { (first:String, second:String) -> Bool in
             var result = false
             if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                 if first.bookNumberInBible == second.bookNumberInBible {
@@ -437,13 +372,15 @@ extension Array where Element == MediaItem
             }
             return result
         })
+        
+        return bookSections.count > 0 ? bookSections : nil
     }
     
     var series : [String]?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let mediaItems = Set(self.filter({ (mediaItem:MediaItem) -> Bool in
             return mediaItem.hasMultipleParts
@@ -454,19 +391,13 @@ extension Array where Element == MediaItem
         return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
-        
-//                    self.filter({ (mediaItem:MediaItem) -> Bool in
-//                        return mediaItem.hasMultipleParts
-//                    }).map({ (mediaItem:MediaItem) -> String in
-//                        return mediaItem.multiPartName ?? Constants.Strings.None
-//                    })
     }
     
     var seriesSections : [String]?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let mediaItems = Set(self.map({ (mediaItem:MediaItem) -> String in
             if let multiPartSection = mediaItem.multiPartSection {
@@ -479,22 +410,14 @@ extension Array where Element == MediaItem
         return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
-
-//                    self.map({ (mediaItem:MediaItem) -> String in
-//                        if let multiPartSection = mediaItem.multiPartSection {
-//                            return multiPartSection
-//                        } else {
-//                            return "ERROR"
-//                        }
-//                    })
     }
     
     func seriesSections(withTitles:Bool) -> [String]?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let mediaItems = Set(self.map({ (mediaItem:MediaItem) -> String in
             if mediaItem.hasMultipleParts {
                 return mediaItem.multiPartName!
@@ -506,22 +429,14 @@ extension Array where Element == MediaItem
         return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
-        
-//                    self.map({ (mediaItem:MediaItem) -> String in
-//                        if mediaItem.hasMultipleParts {
-//                            return mediaItem.multiPartName!
-//                        } else {
-//                            return withTitles ? (mediaItem.title ?? "No Title") : Constants.Strings.Individual_Media
-//                        }
-//                    })
     }
 
     func html(includeURLs:Bool = true,includeColumns:Bool = true, test:(()->(Bool))? = nil) -> String?
     {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard test?() != true else {
             return nil
         }
@@ -564,23 +479,9 @@ extension Array where Element == MediaItem
         
         if includeURLs {
             bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
-            
-            //        bodyString += " from <a target=\"_blank\" href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
-        
-        //    if let category = Globals.shared.media.category.selected {
-        //        bodyString += "Category: \(category)<br/><br/>"
-        //    }
-        //
-        //    if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-        //        bodyString += "Collection: \(tag)<br/><br/>"
-        //    }
-        //
-        //    if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
-        //        bodyString += "Search: \(searchText)<br/><br/>"
-        //    }
         
         let keys = mediaListSort.keys.sorted() {
             $0.withoutPrefixes < $1.withoutPrefixes
@@ -589,8 +490,6 @@ extension Array where Element == MediaItem
         if includeURLs, (keys.count > 1) {
             bodyString += "<a href=\"#index\">Index</a><br/><br/>"
         }
-        
-        //    var lastKey:String?
         
         if includeColumns {
             bodyString  = bodyString + "<table>"
@@ -702,25 +601,9 @@ extension Array where Element == MediaItem
                     if !includeColumns {
                         bodyString += "<br/>"
                     }
-                    
-                    //                if let lastKey = lastKey, let count = mediaListSort[lastKey]?.count, count == 1 {
-                    //                    if includeColumns {
-                    //                        bodyString  = bodyString + "<tr>"
-                    //                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
-                    //                    }
-                    //
-                    //                    bodyString += "<br/>"
-                    //
-                    //                    if includeColumns {
-                    //                        bodyString  = bodyString + "</td>"
-                    //                        bodyString  = bodyString + "</tr>"
-                    //                    }
-                    //                }
                     break
                 }
             }
-            
-            //        lastKey = key
         }
         
         if includeColumns {
@@ -730,8 +613,6 @@ extension Array where Element == MediaItem
         bodyString += "<br/>"
         
         if includeURLs, (keys.count > 1) {
-            //        if let indexTitles = keys {
-            
             let a = "a"
             
             let titles = keys.map({ (string:String) -> String in
@@ -799,289 +680,22 @@ extension Array where Element == MediaItem
             }
             
             bodyString += "</div>"
-            //        }
-            
-            //        bodyString += "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
-            //
-            //        for key in keys {
-            //            bodyString += "<a href=\"#\(key.asTag)\">\(key)</a><br/>"
-            //        }
-            //
-            //        bodyString += "</div>"
         }
         
         bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
     }
-
-//    func htmlGlobal(grouping:String,sorting:String,category:String,tag:String?,search:String?,includeURLs:Bool,includeColumns:Bool) -> String?
-//    {
-////        guard (Globals.shared.media.active?.mediaList?.list != nil) else {
-////            return nil
-////        }
-//        
-////        guard let grouping = Globals.shared.grouping else {
-////            return nil
-////        }
-////
-////        guard let sorting = Globals.shared.sorting else {
-////            return nil
-////        }
-//        
-//        var bodyString = "<!DOCTYPE html><html><body>"
-//        
-//        bodyString += "The following media "
-//        
-//        if self.count > 1 {
-//            bodyString += "are"
-//        } else {
-//            bodyString += "is"
-//        }
-//        
-//        if includeURLs {
-//            bodyString += " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
-//        } else {
-//            bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
-//        }
-//
-//        bodyString += "Category: \(category)<br/>"
-//
-////        if let category = Globals.shared.media.category.selected {
-////            bodyString += "Category: \(category)<br/>"
-////        }
-//        
-//        if let tag = tag {
-//            bodyString += "Collection: \(tag)<br/>"
-//        }
-//        
-////        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-////            bodyString += "Collection: \(tag)<br/>"
-////        }
-//        
-//        if let searchText = search {
-//            bodyString += "Search: \(searchText)<br/>"
-//        }
-//        
-////        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
-////            bodyString += "Search: \(searchText)<br/>"
-////        }
-//        
-//        bodyString += "Grouped: By \(grouping.translate)<br/>"
-//        
-//        bodyString += "Sorted: \(sorting.translate)<br/>"
-//        
-//        if let keys = Globals.shared.media.active?.section?.indexStrings {
-//            var count = 0
-//            for key in keys {
-//                if let mediaItems = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting] {
-//                    count += mediaItems.count
-//                }
-//            }
-//            
-//            bodyString += "Total: \(count)<br/>"
-//            
-//            if includeURLs, (keys.count > 1) {
-//                bodyString += "<br/>"
-//                bodyString += "<a href=\"#index\">Index</a><br/>"
-//            }
-//            
-//            if includeColumns {
-//                bodyString += "<table>"
-//            }
-//            
-//            for key in keys {
-//                if  let name = Globals.shared.media.active?.groupNames?[grouping]?[key],
-//                    let mediaItems = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting] {
-//                    var speakerCounts = [String:Int]()
-//                    
-//                    for mediaItem in mediaItems {
-//                        if let speaker = mediaItem.speaker {
-//                            if let count = speakerCounts[speaker] {
-//                                speakerCounts[speaker] = count + 1
-//                            } else {
-//                                speakerCounts[speaker] = 1
-//                            }
-//                        }
-//                    }
-//                    
-//                    let speakerCount = speakerCounts.keys.count
-//                    
-//                    let tag = key.asTag
-//                    
-//                    if includeColumns {
-//                        if includeURLs {
-//                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
-//                        } else {
-//                            bodyString += "<tr><td colspan=\"7\"><br/></td></tr>"
-//                        }
-//                    } else {
-//                        if includeURLs {
-//                            bodyString += "<br/>"
-//                        } else {
-//                            bodyString += "<br/>"
-//                        }
-//                    }
-//                    
-//                    if includeColumns {
-//                        bodyString += "<tr>"
-//                        bodyString += "<td style=\"vertical-align:baseline;\" colspan=\"7\">"
-//                    }
-//                    
-//                    if includeURLs, (keys.count > 1) {
-//                        bodyString += "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>" //  + " (\(mediaItems.count))"
-//                    } else {
-//                        bodyString += name + " (\(mediaItems.count))"
-//                    }
-//                    
-//                    if speakerCount == 1 {
-//                        if var speaker = mediaItems[0].speaker, name != speaker {
-//                            if let speakerTitle = mediaItems[0].speakerTitle {
-//                                speaker += ", \(speakerTitle)"
-//                            }
-//                            bodyString += " by " + speaker
-//                        }
-//                    }
-//                    
-//                    if includeColumns {
-//                        bodyString += "</td>"
-//                        bodyString += "</tr>"
-//                    } else {
-//                        bodyString += "<br/>"
-//                    }
-//                    
-//                    for mediaItem in mediaItems {
-//                        var order = ["date","title","scripture"]
-//                        
-//                        if speakerCount > 1 {
-//                            order.append("speaker")
-//                        }
-//                        
-//                        if Globals.shared.grouping != GROUPING.CLASS {
-//                            if mediaItem.hasClassName {
-//                                order.append("class")
-//                            }
-//                        }
-//                        
-//                        if Globals.shared.grouping != GROUPING.EVENT {
-//                            if mediaItem.hasEventName {
-//                                order.append("event")
-//                            }
-//                        }
-//                        
-//                        if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-//                            bodyString += string
-//                        }
-//                        
-//                        if !includeColumns {
-//                            bodyString += "<br/>"
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            if includeColumns {
-//                bodyString += "</table>"
-//            }
-//            
-//            bodyString += "<br/>"
-//            
-//            if includeURLs, keys.count > 1 {
-//                bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
-//                
-//                switch grouping {
-//                case GROUPING.CLASS:
-//                    fallthrough
-//                case GROUPING.SPEAKER:
-//                    fallthrough
-//                case GROUPING.TITLE:
-//                    let a = "A"
-//                    
-//                    if let indexTitles = Globals.shared.media.active?.section?.indexStrings {
-//                        let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-//                            if string.count >= a.count { // endIndex
-//                                return String(string.withoutPrefixes[..<String.Index(utf16Offset: a.count, in: string)]).uppercased()
-//                            } else {
-//                                return string
-//                            }
-//                        }))).sorted() { $0 < $1 }
-//                        
-//                        var stringIndex = [String:[String]]()
-//                        
-//                        if let indexStrings = Globals.shared.media.active?.section?.indexStrings {
-//                            for indexString in indexStrings {
-//                                let key = String(indexString[..<String.Index(utf16Offset: a.count, in: indexString)]).uppercased()
-//                                
-//                                if stringIndex[key] == nil {
-//                                    stringIndex[key] = [String]()
-//                                }
-//                                
-//                                stringIndex[key]?.append(indexString)
-//                            }
-//                        }
-//                        
-//                        var index:String?
-//                        
-//                        for title in titles {
-//                            let link = "<a href=\"#\(title)\">\(title)</a>"
-//                            index = ((index != nil) ? index! + " " : "") + link
-//                        }
-//                        
-//                        bodyString += "<div><a id=\"sections\" name=\"sections\">Sections</a> "
-//                        
-//                        if let index = index {
-//                            bodyString += index + "<br/>"
-//                        }
-//                        
-//                        for title in titles {
-//                            bodyString += "<br/>"
-//                            if let count = stringIndex[title]?.count { // Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count
-//                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a> (\(count))<br/>"
-//                            } else {
-//                                bodyString += "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
-//                            }
-//                            
-//                            if let keys = stringIndex[title] {
-//                                for key in keys {
-//                                    if let title = Globals.shared.media.active?.groupNames?[grouping]?[key] {
-//                                        let tag = key.asTag
-//                                        bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>" // (\(count))
-//                                    }
-//                                }
-//                            }
-//                            
-//                            bodyString += "</div>"
-//                        }
-//                        
-//                        bodyString += "</div>"
-//                    }
-//                    break
-//                    
-//                default:
-//                    for key in keys {
-//                        if let title = Globals.shared.media.active?.groupNames?[grouping]?[key],
-//                            let count = Globals.shared.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
-//                            let tag = key.asTag
-//                            bodyString += "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
-//                        }
-//                    }
-//                    break
-//                }
-//                
-//                bodyString += "</div>"
-//            }
-//        }
-//        
-//        bodyString += "</body></html>"
-//        
-//        return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
-//    }
 }
 
 extension Array where Element == UIViewController
 {
     func containsBelow(_ containedViewController:UIViewController) -> Bool
     {
+        guard !self.isEmpty else {
+            return false
+        }
+        
         for viewController in self {
             if viewController == containedViewController {
                 return true
@@ -1103,9 +717,9 @@ extension Array where Element == String
     var transcriptSegmentsFromTranscriptSegmentComponents:String?
     {
         get {
-//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
-//                return nil
-//            }
+            guard !self.isEmpty else {
+                return nil
+            }
             
             var str : String?
             
@@ -1120,9 +734,9 @@ extension Array where Element == String
     var transcriptFromTranscriptSegments:String?
     {
         get {
-//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
-//                return nil
-//            }
+            guard !self.isEmpty else {
+                return nil
+            }
             
             var str : String?
             
@@ -1146,6 +760,10 @@ extension Array where Element == String
 
     func component(atTime:String?, returnClosest:Bool) -> String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard let atTime = atTime else {
             return nil
         }
@@ -1219,6 +837,10 @@ extension Array where Element == String
     
     func timingHTML(_ headerHTML:String?, test:(()->(Bool))? = nil) -> String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         var htmlString = "<!DOCTYPE html><html><body>"
         
         var transcriptSegmentHTML = String()
@@ -1274,50 +896,35 @@ extension Array where Element == String
         return htmlString
     }
     
-    func additions(to array1:[String]?) -> [(Int,String)]?
-    {
-        guard let array1 = array1 else {
-            return self.enumerated().map({ (arg0) -> (Int,String) in
-//                let (offset, element) = arg0
-                return arg0
-            })
-        }
-        
-        var array2 = self as [String]
-        
-        var diff = [(Int,String)]()
-        
-        for (index, element) in array1.enumerated() {
-//            var first:String? = array2[index]
-//            var second:String? = array1[index]
+//    func additions(to array1:[String]?) -> [(Int,String)]?
+//    {
+//        guard let array1 = array1 else {
+//            return self.enumerated().map({ (arg0) -> (Int,String) in
+////                let (offset, element) = arg0
+//                return arg0
+//            })
+//        }
 //
-//            if let separator = separator {
-//                if let range = first?.range(of: separator), let string = first {
-//                    first = String(string[..<range.lowerBound])
-//                }
+//        var array2 = self as [String]
 //
-//                if let range = second?.range(of: separator), let string = second {
-//                    second = String(string[..<range.lowerBound])
-//                }
+//        var diff = [(Int,String)]()
+//
+//        for (index, element) in array1.enumerated() {
+//            if array2[index] != array1[index] {
+//                array2.remove(at: index)
+//                diff.append((index,element))
 //            }
+//        }
 //
-//            if first != second {
-
-            if array2[index] != array1[index] {
-                array2.remove(at: index)
-                diff.append((index,element))
-            }
-        }
-
-        return diff.count > 0 ? diff : nil
-    }
+//        return diff.count > 0 ? diff : nil
+//    }
     
     func sort(method:String?) -> [String]?
     {
-//        guard let strings = strings else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let strings = self
         
         guard let method = method else {
@@ -1333,14 +940,6 @@ extension Array where Element == String
                 let firstCount = first.subString(to: " (")?.count ?? first.count
                 
                 let secondCount = second.subString(to: " (")?.count ?? second.count
-                
-//                guard let firstCount = first.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
-//                    return false
-//                }
-//
-//                guard let secondCount = second.components(separatedBy: Constants.SINGLE_SPACE).first?.count else {
-//                    return true
-//                }
                 
                 if firstCount == secondCount {
                     return first < second
@@ -1387,10 +986,6 @@ extension Array where Element == String
 
     var tagsString : String?
     {
-//        guard let tagsArray = tagsArray else {
-//            return nil
-//        }
-        
         return self.count > 0 ? self.joined(separator: Constants.SEPARATOR) : nil
     }
     
@@ -1401,6 +996,10 @@ extension Array where Element == String
     
     func tableHTML(title:String? = nil, searchText:String? = nil, test:(()->(Bool))? = nil) -> String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard test?() != true else {
             return nil
         }
@@ -1411,25 +1010,8 @@ extension Array where Element == String
 
         let words = self.sorted()
         
-//            guard let words = self.sorted() else {
-//                bodyHTML += "</body></html>"
-//                return bodyHTML
-//            }
-        
-        //            var hyphenWords = [String]()
-        //
-        //            for wordRoot in wordRoots {
-        //                if let words = wordRoot.hyphenWords(nil) {
-        //                    hyphenWords.append(contentsOf: words)
-        //                }
-        //            }
-        
         var wordsHTML = ""
         var indexHTML = ""
-        
-        //            let words = hyphenWords.sorted(by: { (lhs:String, rhs:String) -> Bool in
-        //                return lhs < rhs
-        //            })
         
         var roots = [String:Int]()
         
@@ -1440,13 +1022,12 @@ extension Array where Element == String
         }
 
         for word in words {
-//        words.forEach({ (word:String) in
             guard test?() != true else {
                 return nil
             }
             
             let key = String(word[..<String.Index(utf16Offset: 1, in: word)])
-            //                    let key = String(word[..<String.Index(encodedOffset: 1)])
+
             if let count = roots[key] {
                 roots[key] = count + 1
             } else {
@@ -1461,10 +1042,8 @@ extension Array where Element == String
         
         bodyHTML += "<p>Index to \(words.count.formatted) Words</p>"
 
-//        bodyHTML += "<div>Word Index (\(words.count))<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
-
         if let searchText = searchText?.uppercased() {
-            bodyHTML += "Search Text: \(searchText)<br/><br/>" //  (<a id=\"wordsIndex\" name=\"wordsIndex\" href=\"#top\">Return to Top</a>)
+            bodyHTML += "Search Text: \(searchText)<br/><br/>"
         }
     
         var index : String?
@@ -1549,7 +1128,11 @@ extension String
 {
     func subString(to: String) -> String?
     {
-        guard let range = self.range(of: " (") else {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        guard let range = self.range(of: to) else {
             return nil
         }
         
@@ -1586,10 +1169,6 @@ extension String
     
     var translate : String
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
         switch self {
         case SORTING.CHRONOLOGICAL:
             return Sorting.Oldest_to_Newest
@@ -1647,28 +1226,13 @@ extension String
 
     var booksChaptersVerses : BooksChaptersVerses?
     {
-//        if self.booksChaptersVerses != nil {
-//            return self.booksChaptersVerses
-//        }
-        
-//        guard (scripture != nil) else {
-//            return nil
-//        }
-        
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
-        
         let scriptureReference = self
         
-        guard let books = books else { // booksFromScriptureReference(scriptureReference)
+        guard let books = books else {
             return nil
         }
         
         let booksChaptersVerses = BooksChaptersVerses()
-        
-        //        let separator = ";"
-        //        let scriptures = scriptureReference.components(separatedBy: separator)
         
         var ranges = [Range<String.Index>]()
         var scriptures = [String]()
@@ -1677,23 +1241,6 @@ extension String
             if let range = scriptureReference.range(book) {
                 ranges.append(range)
             }
-            //            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
-            //                ranges.append(range)
-            //            } else {
-            //                var bk = book
-            //
-            //                repeat {
-            //                    if let range = scriptureReference.range(of: bk.lowercased()) {
-            //                        ranges.append(range)
-            //                        break
-            //                    } else {
-            //                        bk.removeLast()
-            //                        if bk.last == " " {
-            //                            break
-            //                        }
-            //                    }
-            //                } while bk.count > 2
-            //            }
         }
         
         if books.count == ranges.count {
@@ -1714,48 +1261,13 @@ extension String
             // BUMMER
         }
         
-        //        var scriptures = [String]()
-        //
-        //        var string = scriptureReference
-        //
-        //        while let range = string.range(of: separator) {
-        //            scriptures.append(String(string[..<range.lowerBound]))
-        //            string = String(string[range.upperBound...])
-        //        }
-        //
-        //        scriptures.append(string)
-        
-        //        var lastBook:String?
-        
         for scripture in scriptures {
-            //            var book = booksFromScriptureReference(scripture)?.first
-            //
-            //            if book == nil {
-            //                book = lastBook
-            //            } else {
-            //                lastBook = book
-            //            }
-            
             if let book = scripture.books?.first {
                 var reference : String?
                 
                 if let range = scripture.range(book) {
                     reference = String(scripture[range.upperBound...])
                 }
-                
-                //                var bk = book
-                //
-                //                repeat {
-                //                    if let range = scripture.lowercased().range(of: bk.lowercased()) {
-                //                        reference = String(scripture[range.upperBound...])
-                //                        break
-                //                    } else {
-                //                        bk.removeLast()
-                //                        if bk.last == " " {
-                //                            break
-                //                        }
-                //                    }
-                //                } while bk.count > 2
                 
                 // What if a reference includes the book more than once?
                 booksChaptersVerses[book] = reference?.chaptersAndVerses(book)
@@ -1775,9 +1287,9 @@ extension String
     
     func chapters(_ thisBook:String) -> [Int]?
     {
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let scriptureReference = self
         
@@ -1868,10 +1380,10 @@ extension String
     
     func versesForChapter(_ chapter:Int) -> [Int]?
     {
-//        guard let book = book else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let book = self
         
         var verses = [Int]()
@@ -1930,6 +1442,10 @@ extension String
     
     func chaptersAndVerses(_ book:String?) -> [Int:[Int]]?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         // This can only comprehend a range of chapters or a range of verses from a single book.
         
         guard let book = book else {
@@ -1941,10 +1457,6 @@ extension String
         guard (reference.range(of: ".") == nil) else {
             return nil
         }
-        
-        //    guard (reference?.range(of: "&") == nil) else {
-        //        return nil
-        //    }
         
         var chaptersAndVerses = [Int:[Int]]()
         
@@ -1958,7 +1470,6 @@ extension String
         
         let string = reference.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
         
-//        if (string == nil) || (string == Constants.EMPTY_STRING) {
         if string.isEmpty {
             // Now we have a book w/ no chapter or verse references
             // FILL in all chapters and all verses and return
@@ -1967,21 +1478,19 @@ extension String
         
         var token = Constants.EMPTY_STRING
         
-//        if let chars = string {
-            for char in string {
-                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "&:,-").contains(unicodeScalar) {
-                    tokens.append(token)
-                    token = Constants.EMPTY_STRING
-                    
-                    tokens.append(String(char))
-                } else {
-                    if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "0123456789").contains(unicodeScalar) {
-                        token.append(char)
-                    }
+        for char in string {
+            if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "&:,-").contains(unicodeScalar) {
+                tokens.append(token)
+                token = Constants.EMPTY_STRING
+                
+                tokens.append(String(char))
+            } else {
+                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "0123456789").contains(unicodeScalar) {
+                    token.append(char)
                 }
             }
-//        }
-        
+        }
+
         if !token.isEmpty {
             tokens.append(token)
         }
@@ -2695,9 +2204,9 @@ extension String
     {
         // This can only comprehend a range of chapters or a range of verses from a single book.
         
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
 
         let scriptureReference = self
         
@@ -2832,10 +2341,10 @@ extension String
     
     var books : [String]?
     {
-//        guard let scriptureReference = scriptureReference else {
-//            return nil
-//        }
-
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let scriptureReference = self
         
         guard scriptureReference.lowercased() != Constants.Strings.Selected_Scriptures.lowercased() else {
@@ -2892,25 +2401,6 @@ extension String
                         string = before + Constants.SINGLE_SPACE + after
                     }
                 } while string.range(of: book.lowercased()) != nil
-                
-                //            var bk = book
-                //
-                //            repeat {
-                //                if let range = string.range(of: bk.lowercased()) {
-                //                    otBooks.append(book)
-                //
-                //                    let before = String(string[..<range.lowerBound])
-                //                    let after = String(string[range.upperBound...])
-                //
-                //                    string = before + Constants.SINGLE_SPACE + after
-                //                    break
-                //                } else {
-                //                    bk.removeLast()
-                //                    if bk.last == " " {
-                //                        break
-                //                    }
-                //                }
-                //            } while bk.count > 2
             }
             
             for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
@@ -2924,25 +2414,6 @@ extension String
                         string = before + Constants.SINGLE_SPACE + after
                     }
                 } while string.range(of: book.lowercased()) != nil
-                
-                //            var bk = book
-                //
-                //            repeat {
-                //                if let range = string.range(of: bk.lowercased()) {
-                //                    books.append(book)
-                //
-                //                    let before = String(string[..<range.lowerBound])
-                //                    let after = String(string[range.upperBound...])
-                //
-                //                    string = before + Constants.SINGLE_SPACE + after
-                //                    break
-                //                } else {
-                //                    bk.removeLast()
-                //                    if bk.last == " " {
-                //                        break
-                //                    }
-                //                }
-                //            } while bk.count > 2
             }
             
             let ntBooks = books.reversed()
@@ -3021,9 +2492,9 @@ extension String
     
     var verses : [Int]?
     {
-//        guard let scripture = scripture else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         var verses = [Int]()
         
@@ -3119,9 +2590,9 @@ extension String
 
     var chaptersAndVerses : [Int:[Int]]?
     {
-//        guard let book = book else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let book = self
         
@@ -3188,35 +2659,11 @@ extension String
 
 extension String
 {
-//    var toTagsSet : Set<String>?
-//    {
-//        guard var tags = tags else {
-//            return nil
-//        }
-//
-//        var tag:String
-//        var tagsSet = Set<String>()
-//
-//        while (tags.range(of: Constants.SEPARATOR) != nil) {
-//            if let range = tags.range(of: Constants.SEPARATOR) {
-//                tag = String(tags[..<range.lowerBound])
-//                tagsSet.insert(tag)
-//                tags = String(tags[range.upperBound...])
-//            } else {
-//                // ???
-//            }
-//        }
-//
-//        tagsSet.insert(tags)
-//
-//        return tagsSet.count == 0 ? nil : tagsSet
-//    }
-
     var tagsSet : Set<String>?
     {
-//        guard let tagsString = tagsString else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let array = self.components(separatedBy: Constants.SEPARATOR)
         
@@ -3225,9 +2672,9 @@ extension String
     
     var tagsArray : [String]?
     {
-//        guard let tagsString = tagsString else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         let array = self.components(separatedBy: Constants.SEPARATOR)
         
@@ -3259,169 +2706,15 @@ extension UITableView
     }
 }
 
-extension NSAttributedString
-{
-//    func markedBySearch(string:String?, searchText:String?, wholeWordsOnly:Bool, test : (()->Bool)?) -> NSAttributedString?
-//    {
-//        guard var workingString = string, !workingString.isEmpty else {
-//            return nil
-//        }
-//
-//        guard let searchText = searchText, !searchText.isEmpty else {
-//            return NSAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-//        }
-//
-//        guard wholeWordsOnly else {
-//            let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-//
-////            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
-//
-//            let range = NSRange(location: 0, length: workingString.utf16.count)
-//
-//            if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
-//                regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
-//                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-//                                                 range: $0.range)
-//                }
-//            }
-//
-////            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-////                if let test = test, test() {
-////                    break
-////                }
-////
-////                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
-////
-////                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
-////
-////                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
-////                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
-////            }
-//
-//            return attributedText
-//        }
-//
-//        let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
-//
-//        let range = NSRange(location: 0, length: workingString.utf16.count)
-//
-//        if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
-//            regex.matches(in: workingString, options: .withTransparentBounds, range: range).forEach {
-//                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-//                                             range: $0.range)
-//            }
-//        }
-//
-//        return attributedText
-//
-//        let newAttrString       = NSMutableAttributedString()
-//        var foundAttrString     = NSAttributedString()
-//
-//        var stringBefore:String = Constants.EMPTY_STRING
-//        var stringAfter:String = Constants.EMPTY_STRING
-//        var foundString:String = Constants.EMPTY_STRING
-//
-//        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
-//            if let test = test, test() {
-//                break
-//            }
-//
-//            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
-//                stringBefore = String(workingString[..<range.lowerBound])
-//                stringAfter = String(workingString[range.upperBound...])
-//
-//                var skip = false
-//
-//                if wholeWordsOnly {
-//                    if stringBefore == "" {
-//                        if  let characterBefore:Character = newAttrString.string.last,
-//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//
-//                            if searchText.count == 1 {
-//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                    skip = true
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        if  let characterBefore:Character = stringBefore.last,
-//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//
-//                            if searchText.count == 1 {
-//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                    skip = true
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    if let characterAfter:Character = stringAfter.first {
-//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-//                            skip = true
-//                        }
-//
-//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-//                                if stringAfter.endIndex > stringAfter.startIndex {
-//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-//
-//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-//                                        skip = CharacterSet.letters.contains(unicodeScalar)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    if let characterBefore:Character = stringBefore.last {
-//                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-//                            skip = true
-//                        }
-//                    }
-//                }
-//
-//                foundString = String(workingString[range.lowerBound...])
-//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-//                    foundString = String(foundString[..<newRange.upperBound])
-//                }
-//
-//                if !skip {
-//                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
-//                }
-//
-//                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
-//
-//                newAttrString.append(foundAttrString)
-//
-//                //                stringBefore = stringBefore + foundString
-//
-//                workingString = stringAfter
-//            } else {
-//                break
-//            }
-//        }
-//
-//        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
-//
-//        if newAttrString.string.isEmpty, let string = string {
-//            newAttrString.append(NSMutableAttributedString(string: string, attributes: Constants.Fonts.Attributes.body))
-//        }
-//
-//        return newAttrString
-//    }
-}
-
 extension Dictionary
 {
     // Would be nice to know the key path of what comes back.
     func search(key:String) -> Any?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard var currDict = self as? [String : Any]  else {
             return nil
         }
@@ -3437,52 +2730,7 @@ extension Dictionary
             return nil
         }
     }
-//    func search(key:String, in dict:[String:Any] = [:]) -> Any?
-//    {
-//        guard var currDict = self as? [String : Any]  else {
-//            return nil
-//        }
-//
-//        currDict = !dict.isEmpty ? dict : currDict
-//
-//        if let foundValue = currDict[key] {
-//            return foundValue
-//        } else {
-//            for val in currDict.values {
-//                if let innerDict = val as? [String:Any], let result = search(key: key, in: innerDict) {
-//                    return result
-//                }
-//            }
-//            return nil
-//        }
-//    }
 }
-
-//extension Dictionary
-//{
-//    // How do we know the Key, Value types are the same between the two dictionaries?
-//    // Wouldn't we be better off using the merge methods of Dictionary?
-//    func union(_ dictionary: Dictionary<Key, Value>?) -> Dictionary<Key, Value>?
-//    {
-//        var dict = Dictionary<Key, Value>()
-//        
-//        for (key, value) in self {
-//            dict[key] = value
-//        }
-//        
-//        if let dictionary = dictionary {
-//            for (key, value) in dictionary {
-//                if dict[key] == nil {
-//                    dict[key] = value
-//                } else {
-//                    // collision!
-//                }
-//            }
-//        }
-//        
-//        return dict.count > 0 ? dict : nil
-//    }
-//}
 
 extension String
 {
@@ -3503,10 +2751,6 @@ extension String
     
     var stripHead : String
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
         var bodyString = self
         
         while bodyString.range(of: "<head>") != nil {
@@ -3588,18 +2832,6 @@ extension UIViewController
         Alerts.shared.blockPresent(presenting: self, presented: viewControllerToPresent, animated: animated,
                                    release: { viewControllerToPresent.modalPresentationStyle != .popover },
                                    completion: completion)
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(viewControllerToPresent as UIViewController, animated: flag, completion: {
-//                    if viewControllerToPresent.modalPresentationStyle != .popover {
-//                        Alerts.shared.semaphore.signal()
-//                    }
-//                    completion?()
-//                })
-//            }
-//        }
     }
 
     func alert(title:String?,message:String? = nil,completion:(()->(Void))? = nil)
@@ -3608,7 +2840,6 @@ extension UIViewController
             completion?()
         })])
     }
-    
 
     func alert(title:String?,message:String?,actions:[AlertAction]?)
     {
@@ -3672,13 +2903,6 @@ extension UIViewController
         alert.addAction(cancel)
 
         Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
-        
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//            Thread.onMainThread {
-//                self.present(alert, animated: true, completion: nil)
-//            }
-//        }
     }
 
     func yesOrNo(title:String?,message:String?,
@@ -3740,16 +2964,6 @@ extension UIViewController
         mailComposeViewController.setMessageBody(body, isHTML: false)
 
         Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                viewController.present(mailComposeViewController, animated: true, completion: {
-//                    Alerts.shared.semaphore.signal()
-//                })
-//            }
-//        }
     }
     
     func mailHTML(to: [String]?,subject: String?, htmlString:String)
@@ -3773,16 +2987,6 @@ extension UIViewController
         mailComposeViewController.setMessageBody(htmlString, isHTML: true)
 
         Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(mailComposeViewController, animated: true, completion: {
-//                    Alerts.shared.semaphore.signal()
-//                })
-//            }
-//        }
     }
 
     func printJob(data:Data?)
@@ -3815,12 +3019,6 @@ extension UIViewController
                 }
             }
         }
-        
-//        Thread.onMainThread {
-//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
-//            }
-//        }
     }
     
     func printTextJob(string:String?,orientation:UIPrintInfo.Orientation)
@@ -3865,11 +3063,6 @@ extension UIViewController
                 }
             }
         }
-//        Thread.onMainThread {
-//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
-//            }
-//        }
     }
     
     func printText(string:String?)
@@ -3933,11 +3126,6 @@ extension UIViewController
                 }
             }
         }
-//        Thread.onMainThread {
-//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
-//            }
-//        }
     }
     
     func printImage(image:UIImage?)
@@ -3998,11 +3186,6 @@ extension UIViewController
                 }
             }
         }
-//        Thread.onMainThread {
-//            if let barButtonItem = self.navigationItem.rightBarButtonItem {
-//                pic.present(from: barButtonItem, animated: true, completionHandler: nil)
-//            }
-//        }
     }
     
     func printHTML(htmlString:String?)
@@ -4111,17 +3294,6 @@ extension UIViewController
                 }
                 
                 Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
-
-//                Alerts.shared.queue.async {
-//                    Alerts.shared.semaphore.wait()
-//
-//                    Thread.onMainThread {
-//                        self.present(mailComposeViewController, animated: true, completion: {
-//                                Alerts.shared.semaphore.signal()
-//                        })
-//                    }
-//                }
-//                self.present(mailComposeViewController, animated: true, completion: nil)
             }
         })
     }
@@ -4145,18 +3317,6 @@ extension UIViewController
         
         if MFMailComposeViewController.canSendMail() {
             Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
-//            Alerts.shared.queue.async {
-//                Alerts.shared.semaphore.wait()
-//                
-//                Thread.onMainThread {
-//                    self.present(mailComposeViewController, animated: true, completion: {
-//                        Alerts.shared.semaphore.signal()
-//                    })
-//                }
-//            }
-//            Thread.onMainThread {
-//                self.present(mailComposeViewController, animated: true, completion: nil)
-//            }
         } else {
             self.showSendMailErrorAlert()
         }
@@ -4304,18 +3464,6 @@ extension UIViewController
         
         self.startAnimating()
         
-//        guard let view = self.view else {
-//            return
-//        }
-        
-//        let operationQueue = OperationQueue()
-//
-//        operationQueue.name = UUID().uuidString // Assumes there is only one globally
-//        operationQueue.qualityOfService = .background
-//        operationQueue.maxConcurrentOperationCount = 1
-//
-//        let operation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
-
         Thread.onMainThread {
             // Brute force disable
             if disableEnable {
@@ -4343,18 +3491,6 @@ extension UIViewController
                 }
             }
         }
-
-//        let monitorOperation = CancelableOperation() { [weak self] (test:(()->Bool)?) in
-//            while operation.isExecuting {
-//                Thread.sleep(forTimeInterval: 1.0)
-//            }
-//        }
-//
-//        monitorOperation.addDependency(operation)
-
-//        operationQueue.addOperation(operation)
-        
-//        operationQueue.addOperation(monitorOperation)
     }
     
     func barButtonItems(isEnabled:Bool)
@@ -4386,55 +3522,13 @@ extension UIViewController
             return
         }
         
-//        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
-//            return
-//        }
-        
-//        guard let container = self.loadingContainer else {
-//            return
-//        }
-
         self.startAnimating()
         
-//        guard let view = self.view else {
-//            return
-//        }
-
         Thread.onMainThread { [weak self] in
             // Brute force disable
             if disableEnable {
                 self?.barButtonItems(isEnabled: false)
-//                if let buttons = self.navigationItem.rightBarButtonItems {
-//                    for button in buttons {
-//                        button.isEnabled = false
-//                    }
-//                }
-//
-//                if let buttons = self.navigationItem.leftBarButtonItems {
-//                    for button in buttons {
-//                        button.isEnabled = false
-//                    }
-//                }
-//
-//                if let buttons = self.toolbarItems {
-//                    for button in buttons {
-//                        button.isEnabled = false
-//                    }
-//                }
             }
-            
-//            container.frame = view.frame
-//            container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
-//
-//            container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
-            
-//            if hideSubviews {
-//                for view in container.subviews {
-//                    view.isHidden = true
-//                }
-//            }
-            
-//            view.addSubview(container)
             
             // Should be an OperationQueue and work should be a CancelableOperation
             DispatchQueue.global(qos: .background).async { [weak self] in
@@ -4444,33 +3538,11 @@ extension UIViewController
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
-
-//                        if let buttons = self.navigationItem.rightBarButtonItems {
-//                            for button in buttons {
-//                                button.isEnabled = true
-//                            }
-//                        }
-//
-//                        if let buttons = self.navigationItem.leftBarButtonItems {
-//                            for button in buttons {
-//                                button.isEnabled = true
-//                            }
-//                        }
-//
-//                        if let buttons = self.toolbarItems {
-//                            for button in buttons {
-//                                button.isEnabled = true
-//                            }
-//                        }
                     }
                     
                     completion?(data)
 
                     self?.stopAnimating()
-                    
-//                    if container.superview != nil { //  != viewController.view
-//                        container.removeFromSuperview()
-//                    }
                 }
             }
         }
@@ -4754,16 +3826,6 @@ extension String
     {
         get {
             return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? self
-            
-//            var string = String()
-//
-//            for char in self {
-//                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet.alphanumerics.contains(unicodeScalar) { // !CharacterSet(charactersIn:
-//                    string.append(char)
-//                }
-//            }
-//
-//            return string
         }
     }
         
@@ -4977,13 +4039,6 @@ extension UIViewController
         return width
     }
     
-//    var loadingViewController:UIViewController?
-//    {
-//        if let loadingView = storyboard?.instantiateViewController(withIdentifier: "Loading View Controller").view {
-//            self.view.addSubview(loadingView)
-//        }
-//    }
-    
     var loadingContainer:UIView?
     {
         get {
@@ -4999,9 +4054,6 @@ extension UIViewController
                     loadingContainer.backgroundColor = UIColor.white.withAlphaComponent(0.5)
                     
                     self.view.addSubview(loadingContainer)
-
-//                    loadingView?.isUserInteractionEnabled = false
-//                    loadingActivity?.isUserInteractionEnabled = false
 
                     return loadingContainer
                 }
@@ -5040,7 +4092,6 @@ extension UIViewController
             if self.loadingContainer?.tag < 100 {
                 self.loadingContainer?.tag = 101
             }
-//            button.tag = 0
             
             button.addTarget(self, action: #selector(cancelWork(_:)), for: .touchUpInside)
             
@@ -5068,51 +4119,17 @@ extension UIViewController
     
     func stopAnimating()
     {
-//        guard loadingContainer != nil else {
-//            return
-//        }
-//
-//        guard loadingView != nil else {
-//            return
-//        }
-//
-//        guard loadingActivity != nil else {
-//            return
-//        }
-        
         Thread.onMainThread {
-//            self.loadingActivity?.stopAnimating()
-//            self.loadingView?.isHidden = true
-//            self.loadingContainer?.isHidden = true
             self.loadingContainer?.removeFromSuperview()
         }
     }
     
     func startAnimating(allowTouches:Bool = false)
     {
-//        setupLoadingView()
-        
-        //        if container == nil { // loadingView
-        //            setupLoadingView()
-        //        }
-        
-//        guard loadingContainer != nil else {
-//            return
-//        }
-//        
-//        guard loadingView != nil else {
-//            return
-//        }
-//        
-//        guard loadingActivity != nil else {
-//            return
-//        }
-        
         Thread.onMainThread {
             if allowTouches {
                 self.loadingContainer?.backgroundColor = UIColor.clear
                 self.loadingContainer?.tag = 102
-//                self.loadingContainer?.isUserInteractionEnabled = false
             }
             
             self.loadingContainer?.isHidden = false
@@ -5120,44 +4137,6 @@ extension UIViewController
             self.loadingActivity?.startAnimating()
         }
     }
-    
-//    func setupLoadingView()
-//    {
-//        guard let loadingContainer = loadingContainer, !view.subviews.contains(loadingContainer) else {
-//            return
-//        }
-//
-//        //        guard (loadingView == nil) else {
-//        //            return
-//        //        }
-//
-//        //        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
-//        //            return
-//        //        }
-//
-//        //        if let view = Globals.shared.loadingViewController?.view {
-//        //            container = view
-//        //        }
-//
-//        loadingContainer.backgroundColor = UIColor.clear
-//
-//        loadingContainer.frame = view.frame
-//        loadingContainer.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
-//
-//        loadingContainer.isUserInteractionEnabled = false
-//
-//        //        loadingView = loadingViewController.view.subviews[0]
-//
-//        loadingView?.isUserInteractionEnabled = false
-//
-//        //        if let view = loadingView.subviews[0] as? UIActivityIndicatorView {
-//        //            actInd = view
-//        //        }
-//
-//        loadingActivity?.isUserInteractionEnabled = false
-//
-//        view.addSubview(loadingContainer)
-//    }
 }
 
 extension NSLayoutConstraint
@@ -5281,73 +4260,12 @@ extension String
                         list.removeLast()
                         let first = list.joined(separator: " ") + " "
                         if let firstRange = workingString.range(of: first) {
-//                            let range = workingString.range(of: string, options: String.CompareOptions.caseInsensitive, range: Range(
-
                             attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
                                                          range: NSRange(location: firstRange.upperBound.utf16Offset(in: workingString), length: last.count))
                             found = true
                         }
                     }
                 }
-            }
-            
-            if !found {
-                var phrase = searchText
-                
-                if #available(iOS 12.0, *) {
-                    if let lemmas = phrase.lowercased().nlLemmas {
-                        for lemma in lemmas {
-                            if lemma.0 != lemma.1 {
-                                if let word = lemma.1 {
-                                    phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: String.CompareOptions.caseInsensitive, range: lemma.2)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Fallback on earlier versions
-                    if let lemmas = phrase.nsLemmas {
-                        
-                    }
-                }
-                
-                print(workingString,phrase)
-                
-                if phrase != workingString {
-                    if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
-                        let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
-                        
-                        if matches.count > 0 {
-                            for match in matches {
-                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-                                                             range: match.range)
-                            }
-                            found = true
-                        } else {
-                            
-                        }
-                    }
-                } else {
-                    
-                }
-
-                // VoiceBase phrases are based on lemmas so matching is not always possible.
-                // Below is a hack.  Really need to try and match using lemmas
-                
-//                for count in 0..<searchText.count {
-//                    let phrase = String(searchText[searchText.startIndex..<String.Index(utf16Offset: searchText.count - count, in:searchText)])
-//                    if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
-//                        let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
-//                        
-//                        if matches.count > 0 {
-//                            for match in matches {
-//                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-//                                                             range: match.range)
-//                            }
-//                            break
-//                        }
-//                    }
-//                }
             }
         }
         
@@ -5369,8 +4287,6 @@ extension String
         guard wholeWordsOnly else {
             let attributedText = NSMutableAttributedString(string: workingString, attributes: Constants.Fonts.Attributes.body)
             
-            //            var startingRange = Range(uncheckedBounds: (lower: workingString.startIndex, upper: workingString.endIndex))
-            
             let range = NSRange(location: 0, length: workingString.utf16.count)
             
             if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
@@ -5383,81 +4299,8 @@ extension String
                     }
                 } else {
                     return self.markTrailing(searchText: searchText)
-//                    // This is a special case to catch when the search text is a phrase, all the results are set from
-//                    // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
-//                    //
-//                    // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
-//                    // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
-//                    // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
-//                    // of the words, should appear.
-//                    //
-//
-//                    let words = searchText.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
-//                        String(substring)
-//                    }
-//
-//                    if words.count > 1 {
-//                        var strings = [String]()
-//                        var phrase : String?
-//
-//                        // Assemble the list of "less than the full phrase" phrases to look for.
-//                        for i in 0..<words.count {
-//                            if i == (words.count - 1) {
-//                                break
-//                            }
-//
-//                            if phrase == nil {
-//                                phrase = words[i]
-//                            } else {
-//                                phrase = (phrase ?? "") + " " + words[i]
-//                            }
-//
-//                            if let phrase = phrase {
-//                                strings.append(phrase)
-//                            }
-//                        }
-//
-//                        // reverse them since we want to look for the longest first.
-//                        strings.reverse()
-//
-//                        // Now look for them.
-//                        var found = false
-//
-//                        for string in strings {
-//                            if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
-//                                let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
-//                                for match in matches {
-//                                    if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
-//                                        attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-//                                                                     range: match.range)
-//                                        found = true
-//                                        break
-//                                    } else {
-//
-//                                    }
-//                                }
-//                            }
-//
-//                            if found {
-//                                break
-//                            }
-//                        }
-//                    }
                 }
             }
-            
-            //            while let range = self.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-            //                if let test = test, test() {
-            //                    break
-            //                }
-            //
-            //                let nsRange = NSMakeRange(range.lowerBound.utf16Offset(in: searchText), searchText.count)
-            //
-            //                //            let nsRange = NSMakeRange(range.lowerBound.encodedOffset, searchText.count)
-            //
-            //                attributedText.addAttribute(NSAttributedString.Key.backgroundColor, value: UIColor.yellow, range: nsRange)
-            //                startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: workingString.endIndex))
-            //            }
             
             return attributedText
         }
@@ -5476,171 +4319,10 @@ extension String
                 }
             } else {
                 return self.markTrailing(searchText: searchText)
-//                // This is a special case to catch when the search text is a phrase, all the results are set from
-//                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
-//                //
-//                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
-//                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
-//                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
-//                // of the words, should appear.
-//                //
-//
-//                let words = searchText.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
-//                    String(substring)
-//                }
-//
-//                if words.count > 1 {
-//                    var strings = [String]()
-//                    var phrase : String?
-//
-//                    // Assemble the list of "less than the full phrase" phrases to look for.
-//                    for i in 0..<words.count {
-//                        if i == (words.count - 1) {
-//                            break
-//                        }
-//
-//                        if phrase == nil {
-//                            phrase = words[i]
-//                        } else {
-//                            phrase = (phrase ?? "") + " " + words[i]
-//                        }
-//
-//                        if let phrase = phrase {
-//                            strings.append(phrase)
-//                        }
-//                    }
-//
-//                    // reverse them since we want to look for the longest first.
-//                    strings.reverse()
-//
-//                    // Now look for them.
-//                    var found = false
-//
-//                    for string in strings {
-//                        if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
-//                            let matches = regex.matches(in: workingString, options: .withTransparentBounds, range: range)
-//                            for match in matches {
-//                                if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
-//                                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
-//                                                                 range: match.range)
-//                                    found = true
-//                                    break
-//                                } else {
-//
-//                                }
-//                            }
-//                        }
-//
-//                        if found {
-//                            break
-//                        }
-//                    }
-//                }
             }
         }
         
         return attributedText
-        
-//        let newAttrString       = NSMutableAttributedString()
-//        var foundAttrString     = NSAttributedString()
-//        
-//        var stringBefore:String = Constants.EMPTY_STRING
-//        var stringAfter:String = Constants.EMPTY_STRING
-//        var foundString:String = Constants.EMPTY_STRING
-//        
-//        while (workingString.lowercased().range(of: searchText.lowercased()) != nil) {
-//            if let test = test, test() {
-//                break
-//            }
-//            
-//            if let range = workingString.lowercased().range(of: searchText.lowercased()) {
-//                stringBefore = String(workingString[..<range.lowerBound])
-//                stringAfter = String(workingString[range.upperBound...])
-//                
-//                var skip = false
-//                
-//                if wholeWordsOnly {
-//                    if stringBefore == "" {
-//                        if  let characterBefore:Character = newAttrString.string.last,
-//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                            if CharacterSet.letters.contains(unicodeScalar) { // }!CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//                            
-//                            if searchText.count == 1 {
-//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                    skip = true
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        if  let characterBefore:Character = stringBefore.last,
-//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-//                            if CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters + Constants.Strings.TrimChars).contains(unicodeScalar) {
-//                                skip = true
-//                            }
-//                            
-//                            if searchText.count == 1 {
-//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-//                                    skip = true
-//                                }
-//                            }
-//                        }
-//                    }
-//                    
-//                    if let characterAfter:Character = stringAfter.first {
-//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-//                            skip = true
-//                        }
-//                        
-//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-//                                if stringAfter.endIndex > stringAfter.startIndex {
-//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-//                                    
-//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-//                                        skip = CharacterSet.letters.contains(unicodeScalar)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                    
-//                    if let characterBefore:Character = stringBefore.last {
-//                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) { // !CharacterSet(charactersIn: Constants.Strings.TokenDelimiters).contains(unicodeScalar)
-//                            skip = true
-//                        }
-//                    }
-//                }
-//                
-//                foundString = String(workingString[range.lowerBound...])
-//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-//                    foundString = String(foundString[..<newRange.upperBound])
-//                }
-//                
-//                if !skip {
-//                    foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
-//                }
-//                
-//                newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.body))
-//                
-//                newAttrString.append(foundAttrString)
-//                
-//                //                stringBefore = stringBefore + foundString
-//                
-//                workingString = stringAfter
-//            } else {
-//                break
-//            }
-//        }
-//        
-//        newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.body))
-//        
-//        if newAttrString.string.isEmpty {
-//            newAttrString.append(NSMutableAttributedString(string: self, attributes: Constants.Fonts.Attributes.body))
-//        }
-//        
-//        return newAttrString
     }
     
     func highlighted(_ searchText:String?) -> NSAttributedString
@@ -5661,22 +4343,6 @@ extension String
         }
         
         return attributedText
-
-//        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
-//            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.body)
-//        }
-//
-//        let highlightedString = NSMutableAttributedString()
-//
-//        let before = String(self[..<range.lowerBound])
-//        let string = String(self[range])
-//        let after = String(self[range.upperBound...])
-//
-//        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
-//        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-//        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
-//
-//        return highlightedString
     }
     
     func boldHighlighted(_ searchText:String?) -> NSAttributedString
@@ -5697,23 +4363,6 @@ extension String
         }
 
         return attributedText
-
-//
-//        guard let range = self.lowercased().range(of: searchText.lowercased()) else {
-//            return NSAttributedString(string: self, attributes: Constants.Fonts.Attributes.bold)
-//        }
-//
-//        let highlightedString = NSMutableAttributedString()
-//
-//        let before = String(self[..<range.lowerBound])
-//        let string = String(self[range])
-//        let after = String(self[range.upperBound...])
-//
-//        highlightedString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
-//        highlightedString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
-//        highlightedString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
-//
-//        return highlightedString
     }
 }
 
@@ -5721,10 +4370,6 @@ extension String
 {
     var bookNumberInBible : Int
     {
-//        guard let book = book else {
-//            return nil
-//        }
-        
         if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: self) {
             return index
         }
@@ -5736,13 +4381,6 @@ extension String
         return Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE // Not in the Bible.  E.g. Selected Scriptures
     }
 
-//    var books : [String]?
-//    {
-//        get {
-//            return booksFromScriptureReference(self)
-//        }
-//    }
-    
     func range(_ book:String) -> Range<String.Index>?
     {
         var bookRange : Range<String.Index>?
@@ -5770,6 +4408,10 @@ extension String
     var category : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
                 return component.components(separatedBy: ":").first == "CATEGORY"
             }).first?.components(separatedBy: ":").last
@@ -5779,6 +4421,10 @@ extension String
     var tag : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
                 return component.components(separatedBy: ":").first == "TAG"
             }).first?.components(separatedBy: ":").last
@@ -5788,6 +4434,10 @@ extension String
     var transcripts : Bool
     {
         get {
+            guard !self.isEmpty else {
+                return false
+            }
+            
             return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
                 return component.components(separatedBy: ":").first == "TRANSCRIPTS"
             }).first != nil
@@ -5797,6 +4447,10 @@ extension String
     var searchText : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return self.components(separatedBy: "|").filter({ (component:String) -> Bool in
                 return component.components(separatedBy: ":").first == "SEARCH"
             }).first?.components(separatedBy: ":").last
@@ -5805,6 +4459,10 @@ extension String
     
     var lastName : String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard let firstName = self.firstName else {
             return nil
         }
@@ -5818,6 +4476,10 @@ extension String
     
     var century : String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard let string = self.components(separatedBy: "\n").first else {
             return nil
         }
@@ -5832,6 +4494,10 @@ extension String
     
     var log : String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let strings = self.components(separatedBy: Constants.SINGLE_SPACE)
         
         guard strings.count > 1 else {
@@ -5852,9 +4518,9 @@ extension String
     
     var firstName : String?
     {
-//        guard let name = name else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         var firstName:String?
         
@@ -5883,9 +4549,10 @@ extension String
     
     var title : String?
     {
-//        guard let name = name else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         let titles = ["DR."]
         
         var title = Constants.EMPTY_STRING
@@ -5917,11 +4584,6 @@ extension String
             if let startRange = bodyString.range(of: start) {
                 if let endRange = String(bodyString[startRange.lowerBound...]).range(of: stop) {
                     let to = String(bodyString[..<startRange.lowerBound])
-                    
-//                    let snippet = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//                    print(snippet)
-                    
-//                    bodyString = to + String(bodyString[(to + from).endIndex...])
                     
                     let from = String(String(bodyString[startRange.lowerBound...])[endRange.upperBound...])
                     
@@ -5960,51 +4622,13 @@ extension String
     
     var stripLinks : String
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
         var bodyString = self
         
         bodyString = bodyString.snipLinks("<div>Locations","</div>")
-//        while bodyString.range(of: "<div>Locations") != nil {
-//            if let startRange = bodyString.range(of: "<div>Locations") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</div>") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    let string = to + from
-//
-//                    if let range = string.range(of: string) {
-//                        let from = String(bodyString[range.upperBound...])
-//
-//                        bodyString = to + from
-//                    }
-//                }
-//            }
-//        }
         
         bodyString = bodyString.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/>", with: "")
         
         bodyString = bodyString.snipLinks("<a",">")
-//        while bodyString.range(of: "<a") != nil {
-//            if let startRange = bodyString.range(of: "<a") {
-//                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-//                    let to = String(bodyString[..<startRange.lowerBound])
-//
-//                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    let string = to + from
-//
-//                    if let range = string.range(of: string) {
-//                        let from = String(bodyString[range.upperBound...])
-//
-//                        bodyString = to + from
-//                    }
-//                }
-//            }
-//        }
         
         bodyString = bodyString.replacingOccurrences(of: "</a>", with: "")
         
@@ -6015,14 +4639,6 @@ extension String
     
     var stripHTML : String
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
-        //        guard var bodyString = self.stripHead.stripLinks else {
-        //            return nil
-        //        }
-        
         var bodyString = self.stripHead.stripLinks
         
         bodyString = bodyString.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
@@ -6033,118 +4649,21 @@ extension String
         
         bodyString = bodyString.snip("<p class=\"copyright\">","</p>")
         
-        //        while bodyString.range(of: "<p class=\"copyright\">") != nil {
-        //            if let startRange = bodyString.range(of: "<p class=\"copyright\">") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</p>") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
-        
         bodyString = bodyString.snip("<script>","</script>")
-        
-        //        while bodyString.range(of: "<script>") != nil {
-        //            if let startRange = bodyString.range(of: "<script>") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</script>") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
         
         bodyString = bodyString.snip("<noscript>","</noscript>")
         
-        //        while bodyString.range(of: "<noscript>") != nil {
-        //            if let startRange = bodyString.range(of: "<noscript>") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</noscript>") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
-        
         bodyString = bodyString.snip("<p ",">")
-        
-        //        while bodyString.range(of: "<p ") != nil {
-        //            if let startRange = bodyString.range(of: "<p ") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + "\n\n" + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
         
         bodyString = bodyString.snip("<br ",">")
         
-        //        while bodyString.range(of: "<br ") != nil {
-        //            if let startRange = bodyString.range(of: "<br ") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
-        
         bodyString = bodyString.snip("<span ",">")
-        
-        //        while bodyString.range(of: "<span ") != nil {
-        //            if let startRange = bodyString.range(of: "<span ") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
         
         bodyString = bodyString.snip("<font ",">")
         
-        //        while bodyString.range(of: "<font") != nil {
-        //            if let startRange = bodyString.range(of: "<font") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
-        
         bodyString = bodyString.snip("<sup>","</sup>")
         
-        //        while bodyString.range(of: "<sup>") != nil {
-        //            if let startRange = bodyString.range(of: "<sup>") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: "</sup>") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    bodyString = to + String(bodyString[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
-        
         bodyString = bodyString.snip("<sup ", "</sup>")
-        
-        //        while string.range(of: "<sup ") != nil {
-        //            if let startRange = string.range(of: "<sup ") {
-        //                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
-        //                    let to = String(string[..<startRange.lowerBound])
-        //                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    string = to + String(string[(to + from).endIndex...])
-        //                }
-        //            }
-        //        }
         
         bodyString = bodyString.snip("<h3", "</h3>")
         
@@ -6178,21 +4697,6 @@ extension String
         bodyString = bodyString.replacingOccurrences(of: "<tr>", with: "")
         
         bodyString = bodyString.snipLinks("<td",">")
-        //        while bodyString.range(of: "<td") != nil {
-        //            if let startRange = bodyString.range(of: "<td") {
-        //                if let endRange = String(bodyString[startRange.lowerBound...]).range(of: ">") {
-        //                    let to = String(bodyString[..<startRange.lowerBound])
-        //                    let from = String(String(bodyString[startRange.lowerBound...])[..<endRange.upperBound])
-        //
-        //                    let string = to + from
-        //                    if let range = string.range(of: string) {
-        //                        let from = String(bodyString[range.upperBound...])
-        //
-        //                        bodyString = to + from
-        //                    }
-        //                }
-        //            }
-        //        }
         
         bodyString = bodyString.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
         
@@ -6246,339 +4750,8 @@ extension String
         
         bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
         
-        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
+        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE))
     }
-    
-//    func stripHTML(_ test:(()->Bool)?) -> String
-//    {
-//        var bodyString = self.stripHead.stripLinks
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<html>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<body>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<p class=\"copyright\">","</p>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<script>","</script>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<noscript>","</noscript>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<p ",">")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<br ",">")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<span ",">")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<font ",">")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<sup>","</sup>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<sup ", "</sup>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snip("<h3", "</h3>")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&rsquo;", with: "'")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&rdquo;", with: "\"")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&lsquo;", with: "'")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&ldquo;", with: "\"")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&mdash;", with: "-")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&ndash;", with: "-")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&nbsp;", with: " ")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "&ccedil;", with: "C")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<br/>", with: "\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</br>", with: "\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<span>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<table>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<center>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<tr>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.snipLinks("<td",">")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</tr>", with: "\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</table>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</center>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</span>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</font>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</body>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</html>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<em>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</em>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<div>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</div>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<mark>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</mark>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<i>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</i>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<p>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</p>", with: "\n\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<p/>", with: "\n\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "\n\n\n", with: "\n\n")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "• ", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "–", with: "-")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "—", with: "-")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "…", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "<b>", with: "")
-//        
-//        if test?() == true {
-//            return bodyString
-//        }
-//        
-//        bodyString = bodyString.replacingOccurrences(of: "</b>", with: "")
-//        
-//        return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE)) // .insertHead(fontSize: Constants.FONT_SIZE)
-//    }
     
     func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
     {
@@ -6853,9 +5026,9 @@ extension String
             return nil
         }
         
-//        guard let string = string else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         var tokenCounts = [(String,Int)]()
         
@@ -6887,15 +5060,15 @@ extension String
             return nil
         }
         
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         if #available(iOS 12.0, *) {
             return nlTaggerTokensAndCounts
         } else {
             return nsTaggerTokensAndCounts
         }
-        
-//        guard let string = string else {
-//            return nil
-//        }
         
         var tokens = [String:Int]()
         
@@ -6903,9 +5076,6 @@ extension String
         
         // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
     
-//        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-//            str = String(str[..<range.lowerBound])
-//        }
         for partPreamble in Constants.PART_PREAMBLES {
             if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
                 str = String(str[..<range.lowerBound])
@@ -6982,22 +5152,15 @@ extension String
         return tokens.count > 0 ? tokens : nil
     }
     
-//    var tokensAndCounts : [String:Int]?
-//    {
-//        get {
-//            return tokensAndCountsFromString(self) // tokensAndCountsFromString // tokensAndCountsInString uses NSLinguisticTagger but that doesn't do contractions
-//        }
-//    }
-
     var tokens : [String]?
     {
         guard !Globals.shared.isRefreshing else {
             return nil
         }
-        
-//        guard let string = string else {
-//            return nil
-//        }
+
+        guard !self.isEmpty else {
+            return nil
+        }
         
         if #available(iOS 12.0, *) {
             return nlTaggerTokens
@@ -7009,9 +5172,6 @@ extension String
         
         var str = self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
         
-//        if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
-//            str = String(str[..<range.lowerBound])
-//        }
         for partPreamble in Constants.PART_PREAMBLES {
             if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
                 str = String(str[..<range.lowerBound])
@@ -7091,6 +5251,10 @@ extension String
     // Looks for a string pattern at the end of the string, i.e. a fileType (in the old model) if the string is a filename.
     func isFileType(_ fileType:String) -> Bool
     {
+        guard !self.isEmpty else {
+            return false
+        }
+        
         let file = self
         
         if let range = file.range(of: fileType), file[range.lowerBound...] == fileType {
@@ -7104,6 +5268,10 @@ extension String
     var url : URL?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return URL(string: self)
         }
     }
@@ -7133,6 +5301,10 @@ extension String
 
     func save8(filename:String?)
     {
+        guard !self.isEmpty else {
+            return
+        }
+        
         guard let filename = filename else {
             return
         }
@@ -7152,6 +5324,10 @@ extension String
     
     func save16(filename:String?)
     {
+        guard !self.isEmpty else {
+            return
+        }
+        
         guard let filename = filename else {
             return
         }
@@ -7214,6 +5390,10 @@ extension String
     var data16 : Data?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return self.data(using: String.Encoding.utf16, allowLossyConversion: false)
         }
     }
@@ -7221,6 +5401,10 @@ extension String
     var data8 : Data?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return self.data(using: String.Encoding.utf8, allowLossyConversion: false)
         }
     }
@@ -7230,11 +5414,19 @@ extension String
 {
     var html2AttributedString: NSAttributedString?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         return self.data16?.html2AttributedString // (using: String.Encoding.utf16)
     }
     
     var html2String: String?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         return html2AttributedString?.string
     }
 }

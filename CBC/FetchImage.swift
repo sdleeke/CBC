@@ -9,7 +9,13 @@
 import Foundation
 import UIKit
 
-class FetchImage : Size
+/**
+ 
+ Special fetch subclass for images.
+ 
+ */
+
+class FetchImage : Fetch<UIImage>, Size
 {
     deinit {
         debug(self)
@@ -17,12 +23,26 @@ class FetchImage : Size
     
     var url : URL?
     
-    init?(url:URL?)
+    init?(name:String? = nil, url:URL?)
     {
         guard let url = url else {
             return nil
         }
         
+        super.init(name: name)
+        
+        fetch = { [weak self] () -> (UIImage?) in
+            return self?.fetchIt()
+        }
+        
+        store = { [weak self] (image:UIImage?) in
+            self?.storeIt(image: image)
+        }
+        
+        retrieve = { [weak self] in
+            return self?.retrieveIt()
+        }
+
         self.url = url
     }
     
@@ -60,41 +80,10 @@ class FetchImage : Size
     var image : UIImage?
     {
         get {
-            return fetch?.result
+            return result
         }
     }
-    
-    func load()
-    {
-        fetch?.load()
-    }
-    
-    // BAD PERFORMANCE
 
-//    var fileSize = Shadowed<Int>()
-    
-//    lazy var fileSize:Shadowed<Int> = { [weak self] in
-//        return Shadowed<Int>(get:{
-//            return self.fileSystemURL?.fileSize
-//        })
-//    }()
-    
-//    lazy var fileSize : Shadowed<Int> = {
-//        let fileSize = Shadowed<Int>()
-//
-//        fileSize.onGet = { [weak self] (_fileSize:Int?) in
-//            guard let fileSize = _fileSize else {
-//                return self?.fileSystemURL?.fileSize
-//            }
-//
-//            return fileSize
-//        }
-//
-//        return fileSize
-//    }()
-
-
-    // Slow when replaced w/ class or struct
     internal var _fileSize : Int?
     var fileSize : Int?
     {
@@ -113,9 +102,8 @@ class FetchImage : Size
 
     func delete(block:Bool)
     {
-        fetch?.clear()
+        clear()
         fileSize = nil
-//        fileSize.value = nil
         fileSystemURL?.delete(block:block)
     }
     
@@ -126,20 +114,6 @@ class FetchImage : Size
         }
         
         return fileSystemURL?.data?.image
-        
-//        guard let fileSystemURL = self.fileSystemURL else {
-//            return nil
-//        }
-//
-//        guard fileSystemURL.exists else {
-//            return nil
-//        }
-//
-//        guard let image = UIImage(contentsOfFile: fileSystemURL.path) else {
-//            return nil
-//        }
-//
-//        return image
     }
     
     func storeIt(image:UIImage?)
@@ -169,29 +143,15 @@ class FetchImage : Size
             print("Image \(fileSystemURL.lastPathComponent) not saved to file system")
         }
     }
-    
-    lazy var fetch:Fetch<UIImage>? = { [weak self] in // THIS IS VITAL TO PREVENT A MEMORY LEAK
-        guard let imageName = imageName else {
-            return nil
-        }
-        
-        let fetch = Fetch<UIImage>(name:imageName)
-        
-        fetch.store = { (image:UIImage?) in
-            self?.storeIt(image: image)
-        }
-        
-        fetch.retrieve = {
-            return self?.retrieveIt()
-        }
-        
-        fetch.fetch = {
-            return self?.fetchIt()
-        }
-        
-        return fetch
-    }()
 }
+
+/**
+ 
+ Special fetch subclass for images that are cached.
+ 
+ The cache is a class property.  The cache is thread safe.
+ 
+ */
 
 class FetchCachedImage : FetchImage
 {

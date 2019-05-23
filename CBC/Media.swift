@@ -44,8 +44,8 @@ class Media
 {
     var json = JSON()
     
-    lazy var selected : SelectedMediaItem! = {
-        return SelectedMediaItem(self)
+    lazy var selected : Selected! = {
+        return Selected(self)
     }()
 
     lazy var history : History! = {

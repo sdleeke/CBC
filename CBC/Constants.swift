@@ -17,6 +17,12 @@ enum ScreenSize
     static let SCREEN_MIN_LENGTH    = min(ScreenSize.SCREEN_WIDTH, ScreenSize.SCREEN_HEIGHT)
 }
 
+/**
+
+ Strings of the fields in the dictionary either from JSON downloaded or added.
+ 
+ */
+
 enum Field {
     static let published    = "published"
     static let status       = "status"
@@ -40,7 +46,7 @@ enum Field {
     static let audio        = "audio"
     static let video        = "video"
 
-//    static let audio_url    = "audio_url"
+//    static let audio_url    = "audio_url" // ???
 
     static let m3u8         = "m3u8"
     static let mp4          = "mp4"
@@ -84,12 +90,18 @@ enum Field {
     static let multi_part_name_sort = "multi part name sort"
     
     static let part = "part"
-    static let tags = "tags" // "series"
+    static let tags = "tags" // was "series"
     static let book = "book"
     static let year = "year"
 
     static let seriesImage = "series_image"
 }
+
+/**
+ 
+ To indicate the various media types.
+ 
+ */
 
 enum MediaType {
     static let AUDIO        = "AUDIO"
@@ -101,6 +113,12 @@ enum MediaType {
     static let NONE         = "NONE"
 }
 
+/**
+ 
+ To indicate the purpose for downloads or documents.
+ 
+ */
+
 enum Purpose {
     static let audio        = MediaType.AUDIO
     static let video        = MediaType.VIDEO
@@ -110,10 +128,22 @@ enum Purpose {
     static let outline      = MediaType.OUTLINE
 }
 
+/**
+ 
+ What is playing?  Audio or Video
+ 
+ */
+
 enum Playing {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
 }
+
+/**
+ 
+ What is showing?  A document (and if so, which) or video?
+ 
+ */
 
 enum Showing {
     static let video        = MediaType.VIDEO
@@ -124,6 +154,12 @@ enum Showing {
     static let none         = MediaType.NONE
 }
 
+/**
+ 
+ User-facing Grouping names
+ 
+ */
+
 enum Grouping {
     static let Year     = "Year"
     static let Book     = "Book"
@@ -132,6 +168,12 @@ enum Grouping {
     static let Class    = "Class"
     static let Event    = "Event"
 }
+
+/**
+ 
+ Grouping options, not all are available for all MLGS's
+ 
+ */
 
 enum GROUPING {
     static let YEAR     = "year"
@@ -143,15 +185,33 @@ enum GROUPING {
     static let EVENT    = "event"
 }
 
+/**
+ 
+ User-facing sorting option names
+ 
+ */
+
 enum Sorting {
     static let Newest_to_Oldest = "Newest to Oldest"
     static let Oldest_to_Newest = "Oldest to Newest"
 }
 
+/**
+ 
+ Sorting options
+ 
+ */
+
 enum SORTING {
     static let CHRONOLOGICAL            = "chronological"
     static let REVERSE_CHRONOLOGICAL    = "reverse chronological"
 }
+
+/**
+ 
+ Constants, mainly strings, for various uses, some in subordinate enum's for organization 
+ 
+ */
 
 enum Constants {
     static let sortings = [SORTING.CHRONOLOGICAL, SORTING.REVERSE_CHRONOLOGICAL]
