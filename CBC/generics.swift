@@ -864,18 +864,6 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
         }
     }
     
-//    var fileSize = Shadowed<Int>()
-
-    // Awful performance as a class and couldn't get a struct to work
-//    lazy var fileSize:Shadowed<Int> = { [weak self] in
-//        let shadowed = Shadowed<Int>(get:{
-//            return self.fileSystemURL?.fileSize
-//        })
-//
-//        return shadowed
-//    }()
-
-    // Guess we use the var _foo/var foo shadow pattern
     internal var _fileSize : Int?
     var fileSize : Int?
     {
@@ -892,40 +880,17 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
         }
     }
     
-//    var fileSize : Int?
-//    {
-//        get {
-//            return fileSystemURL?.fileSize
-//        }
-//    }
-    
     func delete(block:Bool)
     {
         clear()
         fileSize = nil
-//        fileSize.value = nil
         fileSystemURL?.delete(block:block)
     }
     
-//    @objc func clearCache()
-//    {
-//        fileSize = nil
-//        fileSystemURL?.delete(block:true)
-//    }
-//
-//    deinit {
-//        print(self)
-//
-//    }
-    
-    // name MUST be unique to ever INSTANCE, not just the class!
+    // name MUST be unique to every INSTANCE, not just the class!
     override init(name: String?, fetch: (() -> (T?))? = nil)
     {
         super.init(name: name, fetch: fetch)
-
-//        Globals.shared.queue.async {
-//            NotificationCenter.default.addObserver(self, selector: #selector(self.clearCache), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-//        }
 
         store = { [weak self] (t:T?) in
             guard Globals.shared.cacheDownloads else {
