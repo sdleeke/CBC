@@ -185,6 +185,7 @@ extension WebViewController : UIActivityItemSource
             return
         }
         
+        // Must be on main thread.
         let print = UIMarkupTextPrintFormatter(markupText: html)
         let margin:CGFloat = 0.5 * 72
         print.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
@@ -275,20 +276,28 @@ extension WebViewController : UIActivityItemSource
     }
 }
 
-extension WebViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
+//extension WebViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//    
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//    
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
+//
+//extension WebViewController: UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
 
 extension WebViewController : PopoverPickerControllerDelegate
 {
@@ -416,7 +425,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             
         case Constants.Strings.Share:
+            // Delay before menu comes down by not dispatching or delay before share menu comes up by doing so?
+            // Because share is on the main thread I'm not even sure an activity view would run.
             share()
+//            DispatchQueue.global(qos: .background).async {
+//                Thread.onMainThread {
+//                    self.share()
+//                }
+//            }
             
         case Constants.Strings.Search:
             let alert = CBCAlertController(  title: Constants.Strings.Search,
@@ -949,14 +965,6 @@ extension WebViewController: UIScrollViewDelegate
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }
-    }
-}
-
-extension WebViewController: UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
     }
 }
 

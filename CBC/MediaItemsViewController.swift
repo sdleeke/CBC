@@ -29,11 +29,19 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         return [String:PopoverTableViewController]()
     }()
     
+    // Does nothing
     func rowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [AlertAction]?
     {
         return nil
     }
     
+    // Handles only the selectingTimingIndex and selectingTime row actions.
+    // selectingTimingIndex has four variants: Word, Phrase, Topic, and Keyword
+    // While all are implemented only the Word variant is used in the app because
+    // it is the useful one and the others really aren't that useful.  They are
+    // also problematic in that they use lemmas or other word variants that may
+    // not actually appear in the words of the transcript, making it very hard
+    // to property find and highlight them in segments or the transcript
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard self.isViewLoaded else {
@@ -56,6 +64,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         let string = strings[index]
         
         switch purpose {
+        // Used
         case .selectingTimingIndexWord:
             guard let searchText = string.components(separatedBy: Constants.SINGLE_SPACE).first else {
                 return
@@ -145,6 +154,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
             }
             break
             
+        // Not used
         case .selectingTimingIndexPhrase:
             guard let range = string.range(of: " (") else {
                 return
@@ -286,6 +296,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
             }
             break
             
+        // Not used
         case .selectingTimingIndexTopic:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -309,6 +320,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
             }
             break
             
+        // Not used
         case .selectingTimingIndexTopicKeyword:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -344,6 +356,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
             }
             break
             
+        // Used
         case .selectingTime:
             guard Globals.shared.mediaPlayer.currentTime != nil else {
                 break
@@ -361,28 +374,28 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
 }
 
 // Allow popovers
-extension MediaItemsViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
-
-// Only dismiss true popovers
-extension MediaItemsViewController : UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-    }
-}
+//extension MediaItemsViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//    
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//    
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
+//
+//// Only dismiss true popovers
+//extension MediaItemsViewController : UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
 
 

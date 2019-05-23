@@ -7088,6 +7088,7 @@ extension String
 
 extension String
 {
+    // Looks for a string pattern at the end of the string, i.e. a fileType (in the old model) if the string is a filename.
     func isFileType(_ fileType:String) -> Bool
     {
         let file = self
@@ -7099,6 +7100,7 @@ extension String
         }
     }
     
+    // Creates a URL from the string.
     var url : URL?
     {
         get {
@@ -7106,6 +7108,9 @@ extension String
         }
     }
     
+    // If the string and the lastPathComponent of the URL made from the string are the same, then use the string
+    // as the filename in the caches directory as the fileSystemURL, otherwise create a fileSystemURL from the url,
+    // which amounts to lastPathComponent of the URL as the filename in the caches directory.
     var fileSystemURL : URL?
     {
         get {
@@ -7121,14 +7126,6 @@ extension String
                     return nil
                 }
             }
-            
-//            guard  else {
-//                if let lastPathComponent = self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) {
-//                    return cachesURL?.appendingPathComponent(lastPathComponent)
-//                } else {
-//                    return nil
-//                }
-//            }
             
             return url?.fileSystemURL
         }
@@ -7265,63 +7262,12 @@ let colors = ["LimeGreen", "Red", "Aqua", "Silver", "Fuchsia", "GreenYellow", "Y
 
 extension String
 {
-//    var nsLemmas : [(String,String,NSRange)]?
-//    {
-//        get {
-//            return nsLemmasInString(string: self)
-//        }
-//    }
-//
-//    var nsNameTypes : [(String,String,NSRange)]?
-//    {
-//        get {
-//            return nsNameTypesInString(string: self)
-//        }
-//    }
-//
-//    var nsLexicalTypes : [(String,String,NSRange)]?
-//    {
-//        get {
-//            return nsLexicalTypesInString(string: self)
-//        }
-//    }
-//
-//    var nsTokenTypes : [(String,String,NSRange)]?
-//    {
-//        get {
-//            return nsTokenTypesInString(string: self)
-//        }
-//    }
-//
-//    var nsNameTypesAndLexicalClasses : [(String,String,NSRange)]?
-//    {
-//        get {
-//            return nsNameTypesAndLexicalClassesInString(string: self)
-//        }
-//    }
-    
-//    @available(iOS 12.0, *)
-//    var nlLemmas : [(String,String,Range<String.Index>)]?
-//    {
-//        get {
-//            return nlLemmasInString(string: self)
-//        }
-//    }
-//
-//    @available(iOS 12.0, *)
-//    var nlTokenTypes : [(String,String,Range<String.Index>)]?
-//    {
-//        get {
-//            return nlTokenTypesInString(string: self)
-//        }
-//    }
-    
     @available(iOS 12.0, *)
     var nlLemmas : [(String,String?,Range<String.Index>)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
+        guard !self.isEmpty else {
+            return nil
+        }
         
         var tokens = [(String,String?,Range<String.Index>)]()
         
@@ -7343,10 +7289,10 @@ extension String
     @available(iOS 12.0, *)
     var nlTokenTypes : [(String,String,Range<String.Index>)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         let tagger = NLTagger(tagSchemes: [.tokenType])
         
         tagger.string = self
@@ -7369,10 +7315,10 @@ extension String
     @available(iOS 12.0, *)
     var nlNameTypesAndLexicalClasses : [(String,String,Range<String.Index>)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         
         tagger.string = self
@@ -7392,22 +7338,14 @@ extension String
         return tokens.count > 0 ? tokens : nil
     }
 
-//    @available(iOS 12.0, *)
-//    var nlNameTypesAndLexicalClasses : [(String,String,Range<String.Index>)]?
-//    {
-//        get {
-//            return nlNameTypesAndLexicalClassesInString(string: self)
-//        }
-//    }
-
     // Make thread safe?
     @available(iOS 12.0, *)
     var nlTaggerTokensAndCounts : [String:Int]?
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [String:Int]()
         
         let tagger = NLTagger(tagSchemes: [.tokenType])
@@ -7434,10 +7372,10 @@ extension String
     @available(iOS 12.0, *)
     var nlTaggerTokens : [String]?
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [String]()
         
         let tagger = NLTagger(tagSchemes: [.tokenType])
@@ -7459,10 +7397,10 @@ extension String
     // Make thread safe?
     var nsTaggerTokensAndCounts : [String:Int]?
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [String:Int]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7501,10 +7439,10 @@ extension String
     // Make thread safe?
     var nsTaggerTokens : [String]?
     {
-        //        guard let string = string else {
-        //            return nil
-        //        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [String]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7534,10 +7472,10 @@ extension String
     
     var nsLemmas : [(String,String,NSRange)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7564,10 +7502,10 @@ extension String
     
     var nsNameTypes : [(String,String,NSRange)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7596,10 +7534,10 @@ extension String
     
     var nsLexicalTypes : [(String,String,NSRange)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7628,10 +7566,10 @@ extension String
     
     var nsTokenTypes : [(String,String,NSRange)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")
@@ -7660,10 +7598,10 @@ extension String
     
     var nsNameTypesAndLexicalClasses : [(String,String,NSRange)]?
     {
-//        guard let string = string else {
-//            return nil
-//        }
-        
+        guard !self.isEmpty else {
+            return nil
+        }
+
         var tokens = [(String,String,NSRange)]()
         
         let tagSchemes = NSLinguisticTagger.availableTagSchemes(forLanguage: "en")

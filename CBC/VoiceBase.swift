@@ -242,6 +242,8 @@ extension VoiceBase // Class Methods
     
     private static func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
     {
+        // Critical to know if we are checking VB availability or not since we make a get to check if it is available!
+        // If not, then we need to know if VB is available
         if !Globals.shared.checkingVoiceBaseAvailability {
             if !(Globals.shared.isVoiceBaseAvailable ?? false){
                 return

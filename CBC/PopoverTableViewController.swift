@@ -26,18 +26,23 @@ protocol PopoverTableViewControllerDelegate : class
     var popover : [String:PopoverTableViewController]? { get set }
 
     /**
-     Returns an array of AlertAction's for a given row.
 
+     Provides the alert actions for a given row in a PopoverTableViewController's tableview of strings.
+     
      - Parameters:
          - popover: PopoverTableViewController that is being shown
          - tableView: UITableView of popover
          - indexPath: IndexPath of row selected
+     
+     - Returns: An array of AlertAction's for a given row.
+
     */
     
     func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
 
     /**
-     Processes a row selection from a PopoverTableViewControler
+     Handles selections from a PopoverTableViewController's tableview of strings.  The name popover is historical and does not imply
+     that the modal presentation style is always popover.
      
      - Parameters:
          - index: PopoverTableViewController that is being shown
@@ -49,24 +54,46 @@ protocol PopoverTableViewControllerDelegate : class
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
-extension PopoverTableViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
+/**
+ 
+ Extension to allow popovers regardless of compact height or width.
+ 
+ */
+
+//extension PopoverTableViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//    
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//    
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
+//
+//
+//extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
+
+
+/**
+ 
+ Extension to implement UISearchBarDelegate protocol.
+ 
+ */
 
 extension PopoverTableViewController: UISearchBarDelegate
 {
-    //MARK: SearchBarDelegate
+    //MARK: UISearchBarDelegate
 
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
@@ -86,6 +113,16 @@ extension PopoverTableViewController: UISearchBarDelegate
         return search && !section.sorting
     }
     
+    /**
+     
+     Action for UIToolBar UIBarButtonItem's to jump to the section for that button
+     The section is defined by the position of the UIBarButtonItem in the navigation controller's toolbarItems array
+     AMONG the buttons with titles, i.e. space buttons are eliminated.
+     
+     - Parameters:
+         - sender : UIBarButtonItem touched
+     
+     */
     @objc func barButtonAction(_ sender:UIBarButtonItem)
     {
         let toolBarItems = toolbarItems?.filter({ (barButton) -> Bool in
@@ -124,9 +161,24 @@ extension PopoverTableViewController: UISearchBarDelegate
     }
     
     /**
+     
      Updates search results shown in the PTVC
      
+     - Uses:
+         - unfilteredSection:
+         - filteredSection:
+         - tableView:
+     
      - Parameters: None
+     
+     - Actions:
+        - if sorting is going on, return, do not update
+        - if search is not active, return, do not update
+        - unwrap searchText and if it can't be, return, do not update
+        - update the search results
+        - update the toolbar
+        - reload the tableView to show the new search results
+     
      */
     
     func updateSearchResults()
@@ -180,6 +232,24 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
     }
     
+    /**
+     
+     UISearchBarDelegate protocol method to indicate editing of searchBar text began
+     
+     - Uses:
+        - filteredSection:
+        - unfilteredSection:
+     
+     - Actions:
+        - copies the text from the searcbar into the controller's searchText property
+        - sets the controller's searchActive variable to true
+        - sets the searchBar's showCancelButton property to true
+        - updates the search results
+     
+     - Parameters: searchBar:UISearchBar - the search bar being edited
+     
+     */
+    
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
         guard self.isViewLoaded else {
@@ -191,7 +261,8 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        // To make sure we start out right
+        // To make sure we start out right we copy over all the functions from the unfiltered (not searched) setion to the section showing search results.
+        // To the user it looks like one section.
         if !searchActive {
             filteredSection.function = unfilteredSection.function
             filteredSection.cancelSearchfunction = unfilteredSection.cancelSearchfunction
@@ -213,6 +284,24 @@ extension PopoverTableViewController: UISearchBarDelegate
         updateSearchResults()
     }
     
+    /**
+     
+     UISearchBarDelegate protocol method to indicate editing of searchBar text ended
+     
+     Which comes first: this (searchBarTextDidEndEditing) or searchBarSearchButtonClicked?
+     
+     Which comes first: this (searchBarTextDidEndEditing) or searchBarCancelButtonClicked?
+     
+     - Uses:
+     
+     - Actions:
+        - if the search is still active, copies text from searchBar into view controller's searchText property
+        - updates search results
+     
+     - Parameters: searchBar:UISearchBar - the search bar where edited just ended
+     
+     */
+    
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
         guard self.isViewLoaded else {
@@ -231,6 +320,16 @@ extension PopoverTableViewController: UISearchBarDelegate
         updateSearchResults()
     }
     
+    /**
+     
+     UISearchBarDelegate protocol method to indicate searchBar text changed
+     
+     - Actions:
+        - copies text from searchBar into view controller's searchText property
+        - updates search results
+     
+    */
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard self.isViewLoaded else {
@@ -247,6 +346,19 @@ extension PopoverTableViewController: UISearchBarDelegate
         updateSearchResults()
     }
     
+    /**
+     
+     UISearchBarDelegate protocol method to indicate the searchBar's search button was clicked
+     
+     Which comes first: this (searchBarSearchButtonClicked) or searchBarTextDidEndEditing?
+     
+     - Actions:
+        - copies text from searchBar into view controller's searchText property
+        - searchBar resigns as first responder
+        - tableView is reloaded
+     
+     */
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
         guard self.isViewLoaded else {
@@ -262,8 +374,26 @@ extension PopoverTableViewController: UISearchBarDelegate
 
         searchBar.resignFirstResponder()
         
-        tableView.reloadData()
+        tableView.reloadData() // WHY?
     }
+    
+    /**
+     
+     UISearchBarDelegate protocol method to indicate the searchBar's cancel button was clicked
+     
+     Which comes first: this (searchBarCancelButtonClicked) or searchBarTextDidEndEditing?
+     
+     - Actions:
+        - set searchText property to nil
+        - set searchActive property to false
+        - copy methods from filteredSection back to unfiltered in case the sorting method has changed
+        - if there is a cancelSearchFunction use it, if not then sort the unfiltered strings using the function
+     
+     - copies text from searchBar into view controller's searchText property
+     - searchBar resigns as first responder
+     - tableView is reloaded
+     
+     */
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
@@ -283,7 +413,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         if purpose == .selectingWord {
         }
         
-        // In case they've changed: alpha vs. freq sorting.
+        // In case sorting has changed.
         unfilteredSection.showIndex = filteredSection.showIndex
         unfilteredSection.showHeaders = filteredSection.showHeaders
 
@@ -389,14 +519,6 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
     }
 }
 
-extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-    }
-}
-
 //class Sort
 //{
 //    init(_ ptvc:PopoverTableViewController?)
@@ -456,7 +578,7 @@ class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
 }
 
 /**
- View controller for showing a list of text
+ View controller for showing a tableview of strings
 
  Optionally includes ability to:
     - de/select one or more rows

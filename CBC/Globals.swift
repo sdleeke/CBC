@@ -32,7 +32,7 @@ class Globals : NSObject
 {
     static var shared = Globals()
     
-    var rootViewController : UIViewController?
+    private var rootViewController : UIViewController?
     {
         get {
             return UIApplication.shared.keyWindow?.rootViewController
@@ -46,21 +46,25 @@ class Globals : NSObject
         }
     }
     
-    var storyboard : UIStoryboard?
-    {
-        get {
-            return rootViewController?.storyboard
-        }
-    }
+//    var storyboard : UIStoryboard?
+//    {
+//        get {
+//            return rootViewController?.storyboard
+//        }
+//    }
     
-    var purge = false
+//    var purge = false
     
+    // Global queue for activity that should not be on the main queue
     var queue = DispatchQueue(label: "CBC")
     
+    // flag whether machine generated transcripts are allowed
     var allowMGTs = true
-    
+
+    // Timer to keep checking on whether VoiceBase is available
     var checkVoiceBaseTimer : Timer?
-    
+
+    // Shadow property for voicebase availability.
     private var _isVoiceBaseAvailable : Bool? // = false
     {
         didSet {
@@ -105,6 +109,7 @@ class Globals : NSObject
         }
     }
 
+    // This is critical since we make a VB call to see if VB is available so we need to ignore the isVBAvailable nil or false
     var checkingVoiceBaseAvailability = false
     
     func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
@@ -117,6 +122,7 @@ class Globals : NSObject
             return
         }
         
+        // Tell the world we are checking
         checkingVoiceBaseAvailability = true
         
         VoiceBase.all(completion: { [weak self] (json:[String : Any]?) -> (Void) in
@@ -127,6 +133,7 @@ class Globals : NSObject
             completion?()
         })
         
+        // Tell the world we are done checking
         checkingVoiceBaseAvailability = false
     }
     

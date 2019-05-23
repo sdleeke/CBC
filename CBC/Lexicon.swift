@@ -537,7 +537,7 @@ class Lexicon : NSObject // Why an NSObject?
                     return
                 }
 
-                let purge = Globals.shared.purge && (mediaItem.notesTokens?.cache == nil)
+//                let purge = Globals.shared.purge && (mediaItem.notesTokens?.cache == nil)
                 
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
@@ -545,9 +545,9 @@ class Lexicon : NSObject // Why an NSObject?
                         // Try indefinitely to load all media items
                         list.removeFirst()
                         
-                        if purge {
-                            mediaItem.notesTokens?.clear() // Save memory - load on demand.
-                        }
+//                        if purge {
+//                            mediaItem.notesTokens?.clear() // Save memory - load on demand.
+//                        }
                         
 //                        print("notesTokens to add: \(notesTokens.count)")
                         

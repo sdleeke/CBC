@@ -30,7 +30,7 @@ class StringNode
         return DispatchQueue(label: UUID().uuidString)
     }()
     var _stringNodes : [StringNode]?
-    var stringNodes : [StringNode]? // ThreadSafe<[StringNode]>()
+    var stringNodes : [StringNode]?
     {
         get {
             return queue.sync { [weak self] in

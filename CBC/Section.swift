@@ -26,6 +26,7 @@ class Section
         }
     }
     
+    // What is this use for?
     var cancelSearchfunction : ((String?,[String]?)->[String]?)?
     {
         willSet {
@@ -35,7 +36,8 @@ class Section
             
         }
     }
-    
+ 
+    // Why is this just called function?
     var function : ((String?,[String]?)->[String]?)?
     {
         willSet {
@@ -56,6 +58,7 @@ class Section
         }
     }
     
+    // Gets called in the didSet for strings
     var stringsAction : (([String]?,Bool) -> (Void))?
     
     init(tableView : UITableView?,stringsAction : (([String]?,Bool) -> (Void))?)
@@ -76,6 +79,9 @@ class Section
         debug(self)
     }
     
+    // Given a string returns the indexPath
+    // THIS MUST MAKE ASSUMPTIONS ABOUT DUPLICATE STRINGS
+    // LIKE RETURNING THE INDEXPATH TO THE FIRST FOUND
     func indexPath(from string:String?) -> IndexPath?
     {
         guard let indexes = self.indexes else {
@@ -125,11 +131,13 @@ class Section
         return nil
     }
     
+    // Returns the string for a given IndexPath
     func string(from indexPath:IndexPath) -> String?
     {
         return strings?[index(indexPath)]
     }
     
+    // Given an IndexPath returns the index into the array of strings
     func index(_ indexPath:IndexPath) -> Int
     {
         var index = 0
@@ -147,6 +155,7 @@ class Section
         return index
     }
     
+    // So the section can manipulate the tableView
     weak var tableView : UITableView?
     
     // Created problems.  Didn't solve any.
@@ -168,6 +177,8 @@ class Section
 //    }
     
     // Make thread safe?
+    // Where is this used instead of strings?
+    // Why was it created?
     var stringIndex:[String:[String]]?
     {
 //        willSet {
@@ -259,6 +270,7 @@ class Section
                 }
             }
             
+            // This is a hack that doesn't provide any thread safety.
             self.strings = strings.count > 0 ? strings : nil
             self.headerStrings = stringIndex?.keys.sorted()
             self.counts = counts.count > 0 ? counts : nil
@@ -329,7 +341,7 @@ class Section
         }
     }
     
-    // Make it thread safeLO
+    // Make it thread safe?
 //    lazy var queue : DispatchQueue = { [weak self] in
 //        return DispatchQueue(label: UUID().uuidString)
 //    }()
@@ -358,9 +370,11 @@ class Section
     }
     
     // Make thread safe?
+    // These are what is actually shown in the index?
     var indexHeaders:[String]?
     
     // Make thread safe?
+    // These are how the strings are indexed?
     var indexStrings:[String]?
     {
         didSet {
@@ -470,9 +484,14 @@ class Section
             }
         }
     }
+    
+    // Getting from strings to indexStrings use this?
     var indexStringsTransform:((String?)->String?)?
+    
+    // Getting from indexStrings to headerStrings use this?
     var indexHeadersTransform:((String?)->String?)?
     
+    // How to sort the index (and therefore the headers)
     var indexSort:((String?,String?)->Bool)?
     
     var showHeaders = false
@@ -484,6 +503,12 @@ class Section
         }
     }
     
+    // What is the difference between headerStrings and headers?
+    // They are both string arrays.
+    
+    // THe difference is that headers is the front for choosing between
+    // headerStrings and indexHeaders as headers.
+    
     // Make thread safe?
     var headerStrings:[String]?
     
@@ -491,6 +516,10 @@ class Section
     var headers:[String]?
     {
         get {
+            // CANNOT show both headers and index.
+            // By implication if only the index is shown
+            // the headers shown become the first letter
+            // of the indexStrings?
             if showHeaders && showIndex {
                 print("ERROR: showIndex && showHeaders")
                 return nil

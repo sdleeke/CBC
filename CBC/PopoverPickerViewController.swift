@@ -15,20 +15,28 @@ protocol PopoverPickerControllerDelegate : class
     func stringPicked(_ string:String?, purpose:PopoverPurpose?)
 }
 
-extension PopoverPickerViewController : UIAdaptivePresentationControllerDelegate
-{
-    // MARK: UIAdaptivePresentationControllerDelegate
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-}
+//extension PopoverPickerViewController : UIAdaptivePresentationControllerDelegate
+//{
+//    // MARK: UIAdaptivePresentationControllerDelegate
+//    
+//    // Specifically for Plus size iPhones.
+//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+//    {
+//        return UIModalPresentationStyle.none
+//    }
+//    
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+//}
+//
+//extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
+//{
+//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+//    {
+//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+//    }
+//}
 
 extension PopoverPickerViewController : UIPickerViewDataSource
 {
@@ -298,14 +306,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     }
 }
 
-extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
-{
-    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-    {
-        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-    }
-}
-
 extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 {
     func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
@@ -560,9 +560,11 @@ class PopoverPickerViewController : CBCViewController
     var barButtonAction : ((String?)->())?
     var barButtonActionTitle : String?
     
-    var pickerSelections = ThreadSafe<[Int:Int]>() {
-        return [Int:Int]()
-    }
+    // Either method of initialization works.
+    var pickerSelections = ThreadSafe<[Int:Int]>([Int:Int]())
+//    {
+//        return [Int:Int]()
+//    }
     
     var stringsFunction:(()->[String]?)?
     

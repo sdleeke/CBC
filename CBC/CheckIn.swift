@@ -22,7 +22,7 @@ class CheckIn
     
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: UUID().uuidString)
-        }()
+    }()
     
     func reset()
     {

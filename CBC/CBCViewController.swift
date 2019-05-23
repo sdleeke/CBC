@@ -24,8 +24,47 @@ import UIKit
  
  */
 
+// Allow popovers
+extension CBCViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+}
+
+// Only dismiss true popovers
+extension CBCViewController : UIPopoverPresentationControllerDelegate
+{
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
+}
+
 class CBCViewController : UIViewController
 {
+    /**
+ 
+     Checks to see if the view controller is contained in the splitviewcontroller heirarchy and if it IS NOT
+     
+     it continues to check and see if it is embedded and if it IS NOT
+     
+     it checks to see if it is a POPOVER and if it IS NOT
+     
+     it appends teh navigation controller for the view controller in the top view controller
+     
+     stack in the Alerts singleton so it can be used to present alerts.
+     
+     */
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -48,6 +87,13 @@ class CBCViewController : UIViewController
         }
     }
     
+    /**
+     
+     Checks to see if the last view controller in the Alerts singleton's top view controller stack is the current navigation controller and if IT IS, it is removed.
+     
+     Then if the navigation controller's modal presentation style is POPOVER the Alerts singleton's semaphore is signaled to allow alerts to be presented again.
+     
+     */
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
