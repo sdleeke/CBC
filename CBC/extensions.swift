@@ -3452,14 +3452,12 @@ extension UIViewController
         
         popover.navigationController?.isNavigationBarHidden = false
         
-        Thread.onMainThread {
-            self.present(navigationController, animated: true, completion: nil)
-        }
+        present(navigationController, animated: true, completion: nil)
     }
     
     func showSendMailErrorAlert()
     {
-        self.alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
+        alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
     }
 
     var preferredModalPresentationStyle : UIModalPresentationStyle
@@ -3542,9 +3540,7 @@ extension UIViewController
             
             popover.navigationController?.isNavigationBarHidden = false
 
-            Thread.onMainThread {
-                self.present(navigationController, animated: true, completion: nil)
-            }
+            present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -3793,9 +3789,7 @@ extension UIViewController
             
             completion?(popover)
             
-            Thread.onMainThread {
-                self.present(navigationController, animated: true, completion: nil)
-            }
+            present(navigationController, animated: true, completion: nil)
         }
     }
 }

@@ -8,6 +8,12 @@
 
 import Foundation
 
+/**
+
+ Keeps track of what mediaItems were accessed across all categories
+ 
+ */
+
 class History
 {
     weak var media : Media?

@@ -1641,7 +1641,7 @@ class MediaTableViewController : MediaItemsViewController
                 self?.popover?["ACTION"] = nil
             }
             
-            self.present(navigationController, animated: true, completion:  nil)
+            present(navigationController, animated: true, completion:  nil)
         }
     }
 
@@ -1798,7 +1798,7 @@ class MediaTableViewController : MediaItemsViewController
                 self?.popover?["TAGS"] = nil
             }
             
-            self.present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: nil)
         }
     }
     

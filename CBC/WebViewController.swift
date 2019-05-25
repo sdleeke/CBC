@@ -198,25 +198,9 @@ extension WebViewController : UIActivityItemSource
         activityViewController.excludedActivityTypes = [ .addToReadingList,.airDrop,.saveToCameraRoll ]
         
         activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-        
-//        if self.html.text == nil {
-//            activityViewController.excludedActivityTypes?.append(.message)
-//        }
 
         // present the view controller
         Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-        
-//        Thread.onMainThread {
-//            self.present(activityViewController, animated: true, completion: nil)
-//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -237,16 +221,6 @@ extension WebViewController : UIActivityItemSource
         }
         
         switch activityType {
-//        case .message:
-//            guard let title = self.navigationItem.title else {
-//                return self.html.text
-//            }
-//            
-//            guard let text = self.html.text else {
-//                return self.navigationItem.title
-//            }
-//
-//            return title + "\n\n" + text
 
         default:
             if WebViewController.cases.contains(activityType) {

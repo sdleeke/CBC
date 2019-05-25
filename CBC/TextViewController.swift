@@ -1941,7 +1941,6 @@ class TextViewController : CBCViewController
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            // Globals.shared.splitViewController
             self.presentingViewController?.present(navigationController, animated: true, completion: nil)
         }
     }

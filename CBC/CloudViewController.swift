@@ -290,18 +290,6 @@ extension CloudViewController : UIActivityItemSource
         let popoverPresentationController = activityViewController.popoverPresentationController
         
         popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-        Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-        
-//        present(activityViewController, animated: true, completion: nil)
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any

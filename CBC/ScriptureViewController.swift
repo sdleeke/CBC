@@ -163,7 +163,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         // Fallback on earlier versions
                         return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
                     }
-                }) { (data:Any?, test:(()->(Bool))?) in
+                }) { [weak self] (data:Any?, test:(()->(Bool))?) in
                     guard test?() != true else {
                         return
                     }
@@ -173,9 +173,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         return
                     }
                     
-                    if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? WebViewController {
-                        popover.navigationItem.title = (self.scripture?.reference ?? "") +  " Lexical Analysis"
+                        popover.navigationItem.title = (self?.scripture?.reference ?? "") +  " Lexical Analysis"
                         navigationController.isNavigationBarHidden = false
                         
                         navigationController.modalPresentationStyle = .overCurrentContext
@@ -184,7 +184,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         popover.html.string = data as? String
                         popover.content = .html
                         
-                        self.present(navigationController, animated: true, completion: nil)
+                        self?.present(navigationController, animated: true, completion: nil)
                     }
                 }
                 break
@@ -426,7 +426,7 @@ class ScriptureViewController : CBCViewController
                 self?.popover?["ACTION"] = nil
             }
             
-            self.present(navigationController, animated: true, completion:  nil)
+            present(navigationController, animated: true, completion:  nil)
         }
     }
     
@@ -618,13 +618,12 @@ class ScriptureViewController : CBCViewController
         navigationController.modalPresentationStyle = .overFullScreen
         navigationController.popoverPresentationController?.delegate = popover
         
-        popover.navigationItem.title = self.scripture?.description // navigationItem.title
+        popover.navigationItem.title = self.scripture?.description
 
         popover.scripture = scripture
         
         popover.navigationController?.isNavigationBarHidden = false
         
-        // Globals.shared.splitViewController
         self.presentingViewController?.present(navigationController, animated: true, completion: nil)
     }
     

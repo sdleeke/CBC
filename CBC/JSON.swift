@@ -10,7 +10,7 @@ import Foundation
 
 /**
 
- class for handling JSON retrieval and storage
+ Handles JSON retrieval and storage
  
  Properties:
     - url to get json from

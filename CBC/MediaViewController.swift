@@ -1752,20 +1752,6 @@ class MediaViewController : MediaItemsViewController
         messageComposeViewController.body = mediaItem?.contents
 
         Alerts.shared.blockPresent(presenting: self, presented: messageComposeViewController, animated: true, release:{true})
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(messageComposeViewController, animated: true, completion: {
-//                    Alerts.shared.semaphore.signal()
-//                })
-//            }
-//        }
-        
-//        Thread.onMainThread {
-//            self.present(messageComposeViewController, animated: true, completion: nil)
-//        }
     }
     
     fileprivate func openMediaItemScripture(_ mediaItem:MediaItem?)
@@ -2029,11 +2015,9 @@ class MediaViewController : MediaItemsViewController
                 self?.popover?["ACTION"] = nil
             }
 
-            Thread.onMainThread {
-                self.present(navigationController, animated: true, completion: {
+            present(navigationController, animated: true, completion: {
                     self.popover?["ACTION"] = popover
-                })
-            }
+            })
         }
     }
     
@@ -5514,27 +5498,6 @@ extension MediaViewController : UITableViewDataSource
                 alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
                 
                 Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
-                
-//                let alert = UIAlertController(  title: Constants.Strings.Actions,
-//                                                message: message,
-//                                                preferredStyle: .alert)
-//                alert.makeOpaque()
-//                
-//                if let alertActions = cell.mediaItem?.editActions(viewController: self) {
-//                    for alertAction in alertActions {
-//                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-//                            alertAction.handler?()
-//                        })
-//                        alert.addAction(action)
-//                    }
-//                }
-//                
-//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-//                    (action : UIAlertAction) -> Void in
-//                })
-//                alert.addAction(okayAction)
-//                
-//                self.present(alert, animated: true, completion: nil)
             }
             action.backgroundColor = UIColor.controlBlue()
             

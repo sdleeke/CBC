@@ -173,16 +173,7 @@ class Alerts
         // that blocks on the semaphore.  We don't limit the number of threads the queue can have.
         
         blockPresent(presenting:viewController,presented:alertVC, animated:true)
-        
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//            Thread.onMainThread {
-//                viewController.present(alertVC, animated: true, completion: nil)
-//            }
-//        }
     }
-    
-//    // Make it thread safe
     
     func blockPresent(presenting:UIViewController, presented:UIViewController, animated:Bool, release:(()->(Bool))? = nil, completion:(()->())? = nil)
     {

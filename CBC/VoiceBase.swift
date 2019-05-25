@@ -5653,13 +5653,6 @@ class VoiceBase // : NSObject
                         alert.addAction(cancel)
                         
                         Alerts.shared.blockPresent(presenting: viewController, presented: alert, animated: true)
-
-//                        Alerts.shared.queue.async {
-//                            Alerts.shared.semaphore.wait()
-//                            Thread.onMainThread {
-//                                viewController.present(alert, animated: true, completion: nil)
-//                            }
-//                        }
                     } else {
                         viewController.networkUnavailable("VoiceBase unavailable.")
                     }
@@ -5673,43 +5666,15 @@ class VoiceBase // : NSObject
                 
                 if !self.transcribing {
                     if Globals.shared.reachability.isReachable {
-//                        var alertActions = [AlertAction]()
-//
-//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: {
-//                            self.getTranscript(alert: true) {}
-//                            mgtUpdate()
-//                        }))
-//
-//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                        
                         viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.getTranscript() // alert:true,detailedAlerts:true
-
-//                                self.getTranscript(alert:true) {
-//                                    self.getTranscriptSegments(alert:true) {
-//                                        self.details(alert:true) {
-//                                            self.transcribing = false
-//                                            self.completed = true
-//
-//                                            // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-//                                            // sure I can predict the context in which this (i.e. that) would happen.
-//                                        }
-//                                    }
-//                                }
-                                
+                                self.getTranscript()
                                 self.alert(viewController:viewController)
                             },
                             yesStyle: .default,
                             noAction: nil,
                             noStyle: .default)
-                        
-//                            alertActionsCancel( viewController: viewController,
-//                                                title: "Begin Creating\nMachine Generated Transcript?",
-//                                                message: "\(text) (\(self.transcriptPurpose))",
-//                                alertActions: alertActions,
-//                                cancelAction: nil)
                     } else {
                         viewController.networkUnavailable( "Machine Generated Transcript Unavailable.")
                     }

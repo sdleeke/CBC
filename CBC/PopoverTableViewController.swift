@@ -2369,29 +2369,6 @@ extension PopoverTableViewController : UITableViewDelegate
         let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] (rowAction, indexPath) in
             alertActions?.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
             Alerts.shared.alert(title: Constants.Strings.Actions, message: self?.section.string(from: indexPath), actions: alertActions)
-
-//            let alert = UIAlertController(  title: Constants.Strings.Actions,
-//                                            message: self?.section.string(from: indexPath),
-//                                            preferredStyle: .alert)
-//            alert.makeOpaque()
-//
-//            if let alertActions = alertActions {
-//                for alertAction in alertActions {
-//                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-//                        alertAction.handler?()
-//                    })
-//                    alert.addAction(action)
-//                }
-//            }
-//
-//            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-//                (action : UIAlertAction) -> Void in
-//            })
-//            alert.addAction(okayAction)
-//
-//            self?.present(alert, animated: true, completion: {
-//                self?.alertController = alert
-//            })
         }
         action.backgroundColor = UIColor.controlBlue()
         
