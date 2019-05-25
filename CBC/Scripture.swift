@@ -8,12 +8,24 @@
 
 import Foundation
 
+/**
+
+ Holds data for UIPickerView for a Scripture reference.
+ 
+ */
+
 struct Picker
 {
     var books:[String]?
     var chapters:[Int]?
     var verses:[Int]?
 }
+
+/**
+ 
+ Used to manage the picker view for selecting a Scripture reference
+ 
+ */
 
 class Picked
 {
@@ -65,146 +77,15 @@ class Picked
     }
 }
 
-//struct XML {
-//    var parser:XMLParser?
-//    var strings = [String]()
-//
-//    var elementNames = [String]()
-//    var dicts = [Dict]()
-//
-//    var book:String?
-//    var chapter:String?
-//    var verse:String?
-//
-//    // Make thread safe?
-//
-//              //Book //Chap  //Verse //Text
-//    var text:[String:[String:[String:String]]]?
-//
-//    var dict = Dict()
-//}
-
-//class Dict : NSObject {
-//    // Make thread safe?
-//    var data = [String:Any]()
-//
-//    subscript(key:String) -> Any?
-//    {
-//        get {
-//            return data[key]
-//        }
-//        set {
-//            data[key] = newValue
-//        }
-//    }
-//
-//    override var description: String {
-//        get {
-//            return data.description
-//        }
-//    }
-//}
-
-//extension Scripture : XMLParserDelegate
-//{
-//    // MARK: XMLParserDelegate
-//
-//    func parserDidStartDocument(_ parser: XMLParser)
-//    {
-//        xml.dicts.append(xml.dict)
-//        print(xml.dict)
-//    }
-//
-//    func parserDidEndDocument(_ parser: XMLParser)
-//    {
-//        print("\n\nEnd Document\n")
-//
-//        print(xml.dict)
-//    }
-//
-//    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
-//    {
-//        print(parseError.localizedDescription)
-//    }
-//
-//    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:])
-//    {
-//        guard let currentDict = xml.dicts.last else {
-//            return
-//        }
-//
-//        var name = elementName
-//
-//        xml.strings.append(String())
-//
-//        for key in attributeDict.keys {
-//            if key.contains("id") {
-//                if let id = attributeDict[key] {
-//                    name = name + "-" + id
-//                }
-//            }
-//        }
-//
-//        currentDict[name] = Dict()
-//
-//        if attributeDict.count > 0 {
-//            (currentDict[name] as? Dict)?["attributes"] = attributeDict
-//        }
-//
-//        if let dict = currentDict[name] as? Dict {
-//            xml.dicts.append(dict)
-//        }
-//
-//        xml.elementNames.append(name)
-//    }
-//
-//    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
-//    {
-//        if let currentDict = xml.dicts.last {
-//            if let string = xml.strings.last {
-//                if !string.isEmpty {
-//                    currentDict["text"] = string
-//                }
-//                xml.strings.removeLast()
-//            }
-//            xml.dicts.removeLast()
-//        }
-//
-//        xml.elementNames.removeLast()
-//    }
-//
-//    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
-//    {
-//        print(elementName)
-//        print(model)
-//    }
-//
-//    func parser(_ parser: XMLParser, foundCharacters string: String)
-//    {
-//        var count = xml.strings.count
-//
-//        if count > 0 {
-//            count -= 1
-//            xml.strings[count] = (xml.strings[count] + string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//        } else {
-//            let string = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//
-//            if !string.isEmpty {
-//                xml.strings.append(string)
-//            }
-//        }
-//    }
-//}
+/**
+ 
+ Everything having to do with a Scripture reference, including producing the NASB text in HTML format.
+ 
+ */
 
 class Scripture : NSObject
 {
-//    var passages : [[String:Any]]?
-    
     var picked = Picked()
-
-//    lazy var xml = { [weak self] in
-//        return XML()
-//    }()
     
     private var _booksChaptersVerses:BooksChaptersVerses?
     {
@@ -239,28 +120,11 @@ class Scripture : NSObject
         didSet {
             if reference != oldValue {
                 // MUST update the data structure.
-//                _books = nil
                 books = nil
                 booksChaptersVerses = reference?.booksChaptersVerses
-//                setupBooksChaptersVerses()
             }
         }
     }
-    
-//    lazy var books:Shadowed<[String]> = { [weak self] in
-//        return Shadowed<[String]>(get: { () -> ([String]?) in
-//            return booksFromScriptureReference(self.reference)
-//        })
-//    }()
-    
-    // Replace with Fetch?
-    
-//    lazy var books : OnNil<[String]> = {
-//        let books = OnNil({
-//            return self.reference?.books
-//        })
-//        return books
-//    }()
     
     private var _books:[String]?
     {
@@ -284,15 +148,6 @@ class Scripture : NSObject
         }
     }
     
-//    var htmlString : String?
-//    {
-//        guard let reference = reference else {
-//            return nil
-//        }
-//
-//        return html?[reference]
-//    }
-    
     func text(_ reference:String?) -> String?
     {
         guard let reference = reference else {
@@ -303,43 +158,6 @@ class Scripture : NSObject
             return nil
         }
 
-//        if let startRange = string.range(of: "</sup>") {
-//            string = String(string[startRange.upperBound...])
-//        }
-
-//        string = string.snip("<sup ", "</sup>")
-//        while string.range(of: "<sup ") != nil {
-//            if let startRange = string.range(of: "<sup ") {
-//                if let endRange = String(string[startRange.lowerBound...]).range(of: "</sup>") {
-//                    let to = String(string[..<startRange.lowerBound])
-//                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    string = to + String(string[(to + from).endIndex...])
-//                }
-//            }
-//        }
-        
-//        string = string.snip("<h3", "</h3>")
-//        while string.range(of: "<h3") != nil {
-//            if let startRange = string.range(of: "<h3") {
-//                if let endRange = String(string[startRange.lowerBound...]).range(of: "</h3>") {
-//                    let to = String(string[..<startRange.lowerBound])
-//                    let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                    string = to + String(string[(to + from).endIndex...])
-//                }
-//            }
-//        }
-        
-//        if let startRange = string.range(of: "\n\n\n ") {
-//            if let endRange = String(string[startRange.lowerBound...]).range(of: "</noscript>") {
-//                let to = String(string[..<startRange.lowerBound])
-//                let from = String(String(string[startRange.lowerBound...])[..<endRange.upperBound])
-//
-//                string = to + String(string[(to + from).endIndex...])
-//            }
-//        }
-
         return string
     }
     
@@ -348,10 +166,6 @@ class Scripture : NSObject
         super.init()
         
         self.reference = reference
-        
-//        booksChaptersVerses = reference?.booksChaptersVerses
-        
-//        setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
     }
     
     deinit {
@@ -361,163 +175,6 @@ class Scripture : NSObject
     lazy var html:CachedString? = { [weak self] in
         return CachedString(index: nil)
     }()
-    
-//    func setupBooksChaptersVerses()
-//    {
-//        guard let scriptureReference = reference else {
-//            return
-//        }
-//
-//        guard let books = books else {
-//            return
-//        }
-//
-//        let booksChaptersVerses = BooksChaptersVerses()
-//
-////        var scriptures = [String]()
-//
-////        var string = scriptureReference
-//
-////        let separator = ";"
-////
-////        let scriptures = scriptureReference.components(separatedBy: separator)
-//
-//        var ranges = [Range<String.Index>]()
-//        var scriptures = [String]()
-//
-//        for book in books {
-//            if let range = scriptureReference.range(book) {
-//                ranges.append(range)
-//            }
-//
-////            if let range = scriptureReference.lowercased().range(of: book.lowercased()) {
-////                ranges.append(range)
-////            } else {
-////                var bk = book
-////
-////                repeat {
-////                    if let range = scriptureReference.range(of: bk.lowercased()) {
-////                        ranges.append(range)
-////                        break
-////                    } else {
-////                        bk.removeLast()
-////                        if bk.last == " " {
-////                            break
-////                        }
-////                    }
-////                } while bk.count > 2
-////            }
-//        }
-//
-//        if books.count == ranges.count {
-//            var lastRange : Range<String.Index>?
-//
-//            for range in ranges {
-//                if let lastRange = lastRange {
-//                    scriptures.append(String(scriptureReference[lastRange.lowerBound..<range.lowerBound]))
-//                }
-//
-//                lastRange = range
-//            }
-//
-//            if let lastRange = lastRange {
-//                scriptures.append(String(scriptureReference[lastRange.lowerBound..<scriptureReference.endIndex]))
-//            }
-//        } else {
-//            // BUMMER
-//        }
-//
-////        while (string.range(of: separator) != nil) {
-////            if let lowerBound = string.range(of: separator)?.lowerBound {
-////                scriptures.append(String(string[..<lowerBound]))
-////            }
-////
-////            if let range = string.range(of: separator) {
-////                string = String(string[range.upperBound...])
-////            }
-////        }
-////
-////        scriptures.append(string)
-//
-////        var lastBook:String?
-//
-//        for scripture in scriptures {
-//            if let book = scripture.books?.first {
-//                var reference : String?
-//
-//                if let range = scripture.range(book) {
-//                    reference = String(scripture[range.upperBound...])
-//                }
-//
-////                var bk = book
-////
-////                repeat {
-////                    if let range = scripture.range(of: bk) {
-////                        reference = String(scripture[range.upperBound...])
-////                        break
-////                    } else {
-////                        bk.removeLast()
-////                        if bk.last == " " {
-////                            break
-////                        }
-////                    }
-////                } while bk.count > 2
-//
-//                // What if a reference includes the book more than once?
-//
-//                if let chaptersAndVerses = reference?.chaptersAndVerses(book) {
-//                    if let _ = booksChaptersVerses[book] {
-//                        for key in chaptersAndVerses.keys {
-//                            if let verses = chaptersAndVerses[key] {
-//                                if let _ = booksChaptersVerses[book]?[key] {
-//                                    booksChaptersVerses[book]?[key]?.append(contentsOf: verses)
-//                                } else {
-//                                    booksChaptersVerses[book]?[key] = verses
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        booksChaptersVerses[book] = chaptersAndVerses
-//                    }
-//                }
-//
-//                if let chapters = booksChaptersVerses[book]?.keys {
-//                    for chapter in chapters {
-//                        if booksChaptersVerses[book]?[chapter] == nil {
-//                            print(description,book,chapter)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        booksChaptersVerses = booksChaptersVerses.data?.count > 0 ? booksChaptersVerses : nil
-//    }
-    
-    func loadHTMLVerseFromURL() -> String?
-    {
-        guard let reference = reference else {
-            return nil
-        }
-        
-        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(reference)&include-audio-link=false&include-headings=false&include-footnotes=false".replacingOccurrences(of: " ", with: "%20")
-
-        if let url = URL(string: urlString) {
-            if let data = url.data {
-                if let string = data.string16 { // String(data: data, encoding: .utf8)
-                    var bodyString = "<!DOCTYPE html><html><body>"
-
-                    bodyString = bodyString + string
-
-                    bodyString = bodyString + "</body></html>"
-                    
-                    return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
-                }
-            }
-        }
-        
-        return nil
-    }
 
     func loadJSONVerseFromURL() -> [String:Any]?
     {
@@ -529,7 +186,6 @@ class Scripture : NSObject
             return nil
         }
         
-        //
         let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
         return urlString.url?.data?.json as? [String:Any]
@@ -540,13 +196,200 @@ class Scripture : NSObject
         loadHTMLFromJSON()
     }
     
-    func loadHTML()
+    func loadHTMLFromJSON()
     {
+        var bodyString:String!
+        
+        bodyString = "<!DOCTYPE html><html><body>"
+        
+        guard let books = books else { // FromScriptureReference(reference)
+            return
+        }
+        
+        var copyright:String?
+        
+        var fums:String?
+        
+        for book in books {
+            if let chapters = booksChaptersVerses?[book]?.keys.sorted(by: { (first:Int, second:Int) -> Bool in
+                if let left = reference?.range(of: "\(first):")?.lowerBound, let right = reference?.range(of: "\(second):")?.lowerBound {
+                    return left < right
+                } else {
+                    return first < second
+                }
+            }) {
+                for chapter in chapters {
+                    var scriptureReference = book
+                    
+                    scriptureReference = scriptureReference + " \(chapter)"
+                    
+                    if let verses = booksChaptersVerses?[book]?[chapter] {
+                        scriptureReference = scriptureReference + ":"
+                        
+                        var lastVerse = 0
+                        var hyphen = false
+                        
+                        for verse in verses {
+                            if hyphen == false,lastVerse == 0 {
+                                scriptureReference = scriptureReference + "\(verse)"
+                            }
+                            
+                            if hyphen == false,lastVerse != 0,verse != (lastVerse + 1) {
+                                scriptureReference = scriptureReference + ","
+                                scriptureReference = scriptureReference + "\(verse)"
+                            }
+                            
+                            if hyphen == false,lastVerse != 0,verse == (lastVerse + 1) {
+                                scriptureReference = scriptureReference + "-"
+                                hyphen = true
+                            }
+                            
+                            if hyphen == true,lastVerse != 0,verse != (lastVerse + 1) {
+                                scriptureReference = scriptureReference + "\(lastVerse)"
+                                scriptureReference = scriptureReference + ","
+                                scriptureReference = scriptureReference + "\(verse)"
+                                hyphen = false
+                            }
+                            
+                            if hyphen == true,lastVerse != 0,verse == (lastVerse + 1),verse == verses.last {
+                                scriptureReference = scriptureReference + "\(verse)"
+                                hyphen = false
+                            }
+                            
+                            lastVerse = verse
+                        }
+                    }
+                    
+                    guard let dict = Scripture(reference: scriptureReference).loadJSONVerseFromURL() else {
+                        return
+                    }
+                    
+                    guard let response = dict["response"] as? [String:Any] else {
+                        return
+                    }
+                    
+                    guard let meta = response["meta"] as? [String:Any] else {
+                        return
+                    }
+                    
+                    fums = meta["fums"] as? String
+                    
+                    guard let search = response["search"] as? [String:Any] else {
+                        return
+                    }
+                    
+                    guard let result = search["result"] as? [String:Any] else {
+                        return
+                    }
+                    
+                    guard let passages = result["passages"] as? [[String:Any]] else {
+                        return
+                    }
+                    
+//                    self.passages = passages
+                    
+                    for passage in passages {
+                        if let display = passage["display"] as? String {
+                            bodyString = bodyString! + "<h3><a href=\"https://www.biblegateway.com/passage/?search=\(display.replacingOccurrences(of: " ", with: "%20"))&version=NASB\">" + display + "</a></h3>"
+                        }
+                        
+                        if var text = passage["text"] as? String {
+                            text = text.replacingOccurrences(of: "span><span", with: "span> <span")
+                            text = text.replacingOccurrences(of: "<sup", with: " <sup")
+                            text = text.replacingOccurrences(of: ">\n<", with: "><")
+                            text = text.replacingOccurrences(of: "<p class=\"b\"></p>", with: "")
+                            
+                            
+                            if var lastRange = text.range(of: "</h3>") {
+                                var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                //                                print(text.substring(with: range))
+                                
+                                while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
+                                    if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                        lastRange = newRange
+                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                        //                                        print(text.substring(with: range))
+                                    } else {
+                                        break
+                                    }
+                                }
+                                
+                                if lastRange.upperBound == text.endIndex {
+                                    if let newRange = text.range(of: "<h3 class=\"s\">") {
+                                        lastRange = newRange
+                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                        //                                        print(text.substring(with: range))
+                                        
+                                        while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
+                                            if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                                lastRange = newRange
+                                                range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                                //                                                print(text.substring(with: range))
+                                            } else {
+                                                break
+                                            }
+                                        }
+                                        
+                                        text = String(text[..<lastRange.lowerBound])
+                                    }
+                                }
+                            }
+                            
+                            
+                            bodyString = bodyString + text
+                        }
+                        
+                        if copyright == nil {
+                            copyright = passage["copyright"] as? String
+                        }
+                    }
+                }
+            }
+        }
+        
+        if let fums = fums, let copyright = copyright {
+            bodyString = bodyString + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
+            bodyString = bodyString + fums
+        }
+        
+        bodyString = bodyString + "</body></html>"
+        
         if let reference = reference {
-            html?[reference] = loadHTMLVerseFromURL()
+            html?[reference] = bodyString.insertHead(fontSize:Constants.FONT_SIZE)
         }
     }
-    
+
+//    func loadHTMLVerseFromURL() -> String?
+//    {
+//        guard let reference = reference else {
+//            return nil
+//        }
+//
+//        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(reference)&include-audio-link=false&include-headings=false&include-footnotes=false".replacingOccurrences(of: " ", with: "%20")
+//
+//        if let url = URL(string: urlString) {
+//            if let data = url.data {
+//                if let string = data.string16 { // String(data: data, encoding: .utf8)
+//                    var bodyString = "<!DOCTYPE html><html><body>"
+//
+//                    bodyString = bodyString + string
+//
+//                    bodyString = bodyString + "</body></html>"
+//
+//                    return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
+//                }
+//            }
+//        }
+//
+//        return nil
+//    }
+//    func loadHTML()
+//    {
+//        if let reference = reference {
+//            html?[reference] = loadHTMLVerseFromURL()
+//        }
+//    }
+
 //    func loadXMLVerseFromURL(_ reference:String?) -> [String:Any]?
 //    {
 //        guard let reference = reference else {
@@ -785,175 +628,135 @@ class Scripture : NSObject
 //
 //        html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
 //    }
-    
-    func loadHTMLFromJSON()
-    {
-        var bodyString:String!
-        
-        bodyString = "<!DOCTYPE html><html><body>"
-        
-        guard let books = books else { // FromScriptureReference(reference)
-            return
-        }
-        
-        //        print(books)
-        
-//        guard let data = booksChaptersVerses?.data else {
-//            return
+//
+//    struct XML {
+//        var parser:XMLParser?
+//        var strings = [String]()
+//
+//        var elementNames = [String]()
+//        var dicts = [Dict]()
+//
+//        var book:String?
+//        var chapter:String?
+//        var verse:String?
+//
+//        // Make thread safe?
+//
+//                  //Book //Chap  //Verse //Text
+//        var text:[String:[String:[String:String]]]?
+//
+//        var dict = Dict()
+//    }
+//
+//    class Dict : NSObject {
+//        // Make thread safe?
+//        var data = [String:Any]()
+//
+//        subscript(key:String) -> Any?
+//        {
+//            get {
+//                return data[key]
+//            }
+//            set {
+//                data[key] = newValue
+//            }
 //        }
-        
-        //        print(data)
-        
-        var copyright:String?
-        
-        var fums:String?
-        
-        for book in books {
-            if let chapters = booksChaptersVerses?[book]?.keys.sorted(by: { (first:Int, second:Int) -> Bool in
-                if let left = reference?.range(of: "\(first):")?.lowerBound, let right = reference?.range(of: "\(second):")?.lowerBound {
-                    return left < right
-                } else {
-                    return first < second
-                }
-            }) {
-                for chapter in chapters {
-                    var scriptureReference = book
-                    
-                    scriptureReference = scriptureReference + " \(chapter)"
-                    
-                    if let verses = booksChaptersVerses?[book]?[chapter] {
-                        scriptureReference = scriptureReference + ":"
-                        
-                        var lastVerse = 0
-                        var hyphen = false
-                        
-                        for verse in verses {
-                            if hyphen == false,lastVerse == 0 {
-                                scriptureReference = scriptureReference + "\(verse)"
-                            }
-                            
-                            if hyphen == false,lastVerse != 0,verse != (lastVerse + 1) {
-                                scriptureReference = scriptureReference + ","
-                                scriptureReference = scriptureReference + "\(verse)"
-                            }
-                            
-                            if hyphen == false,lastVerse != 0,verse == (lastVerse + 1) {
-                                scriptureReference = scriptureReference + "-"
-                                hyphen = true
-                            }
-                            
-                            if hyphen == true,lastVerse != 0,verse != (lastVerse + 1) {
-                                scriptureReference = scriptureReference + "\(lastVerse)"
-                                scriptureReference = scriptureReference + ","
-                                scriptureReference = scriptureReference + "\(verse)"
-                                hyphen = false
-                            }
-                            
-                            if hyphen == true,lastVerse != 0,verse == (lastVerse + 1),verse == verses.last {
-                                scriptureReference = scriptureReference + "\(verse)"
-                                hyphen = false
-                            }
-                            
-                            lastVerse = verse
-                        }
-                    }
-                    
-                    guard let dict = Scripture(reference: scriptureReference).loadJSONVerseFromURL() else {
-                        return
-                    }
-                    
-                    guard let response = dict["response"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    guard let meta = response["meta"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    fums = meta["fums"] as? String
-                    
-                    guard let search = response["search"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    guard let result = search["result"] as? [String:Any] else {
-                        return
-                    }
-                    
-                    guard let passages = result["passages"] as? [[String:Any]] else {
-                        return
-                    }
-                    
-//                    self.passages = passages
-                    
-                    for passage in passages {
-                        if let display = passage["display"] as? String {
-                            bodyString = bodyString! + "<h3><a href=\"https://www.biblegateway.com/passage/?search=\(display.replacingOccurrences(of: " ", with: "%20"))&version=NASB\">" + display + "</a></h3>"
-                        }
-                        
-                        if var text = passage["text"] as? String {
-                            text = text.replacingOccurrences(of: "span><span", with: "span> <span")
-                            text = text.replacingOccurrences(of: "<sup", with: " <sup")
-                            text = text.replacingOccurrences(of: ">\n<", with: "><")
-                            text = text.replacingOccurrences(of: "<p class=\"b\"></p>", with: "")
-                            
-                            
-                            if var lastRange = text.range(of: "</h3>") {
-                                var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                //                                print(text.substring(with: range))
-                                
-                                while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
-                                    if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
-                                        lastRange = newRange
-                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                        //                                        print(text.substring(with: range))
-                                    } else {
-                                        break
-                                    }
-                                }
-                                
-                                if lastRange.upperBound == text.endIndex {
-                                    if let newRange = text.range(of: "<h3 class=\"s\">") {
-                                        lastRange = newRange
-                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                        //                                        print(text.substring(with: range))
-                                        
-                                        while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
-                                            if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
-                                                lastRange = newRange
-                                                range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                                //                                                print(text.substring(with: range))
-                                            } else {
-                                                break
-                                            }
-                                        }
-                                        
-                                        text = String(text[..<lastRange.lowerBound])
-                                    }
-                                }
-                            }
-                            
-                            
-                            bodyString = bodyString + text
-                        }
-                        
-                        if copyright == nil {
-                            copyright = passage["copyright"] as? String
-                        }
-                    }
-                }
-            }
-        }
-        
-        if let fums = fums, let copyright = copyright {
-            bodyString = bodyString + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
-            bodyString = bodyString + fums
-        }
-        
-        bodyString = bodyString + "</body></html>"
-        
-        if let reference = reference {
-            html?[reference] = bodyString.insertHead(fontSize:Constants.FONT_SIZE)
-        }
-    }
+//
+//        override var description: String {
+//            get {
+//                return data.description
+//            }
+//        }
+//    }
+//
+//    extension Scripture : XMLParserDelegate
+//    {
+//        // MARK: XMLParserDelegate
+//
+//        func parserDidStartDocument(_ parser: XMLParser)
+//        {
+//            xml.dicts.append(xml.dict)
+//            print(xml.dict)
+//        }
+//
+//        func parserDidEndDocument(_ parser: XMLParser)
+//        {
+//            print("\n\nEnd Document\n")
+//
+//            print(xml.dict)
+//        }
+//
+//        func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error)
+//        {
+//            print(parseError.localizedDescription)
+//        }
+//
+//        func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:])
+//        {
+//            guard let currentDict = xml.dicts.last else {
+//                return
+//            }
+//
+//            var name = elementName
+//
+//            xml.strings.append(String())
+//
+//            for key in attributeDict.keys {
+//                if key.contains("id") {
+//                    if let id = attributeDict[key] {
+//                        name = name + "-" + id
+//                    }
+//                }
+//            }
+//
+//            currentDict[name] = Dict()
+//
+//            if attributeDict.count > 0 {
+//                (currentDict[name] as? Dict)?["attributes"] = attributeDict
+//            }
+//
+//            if let dict = currentDict[name] as? Dict {
+//                xml.dicts.append(dict)
+//            }
+//
+//            xml.elementNames.append(name)
+//        }
+//
+//        func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
+//        {
+//            if let currentDict = xml.dicts.last {
+//                if let string = xml.strings.last {
+//                    if !string.isEmpty {
+//                        currentDict["text"] = string
+//                    }
+//                    xml.strings.removeLast()
+//                }
+//                xml.dicts.removeLast()
+//            }
+//
+//            xml.elementNames.removeLast()
+//        }
+//
+//        func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
+//        {
+//            print(elementName)
+//            print(model)
+//        }
+//
+//        func parser(_ parser: XMLParser, foundCharacters string: String)
+//        {
+//            var count = xml.strings.count
+//
+//            if count > 0 {
+//                count -= 1
+//                xml.strings[count] = (xml.strings[count] + string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//            } else {
+//                let string = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//
+//                if !string.isEmpty {
+//                    xml.strings.append(string)
+//                }
+//            }
+//        }
+//    }
 }

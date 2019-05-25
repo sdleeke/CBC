@@ -91,12 +91,6 @@ class History
         
         let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.mediaCode
         
-        //        if history == nil {
-        //            history = [entry]
-        //        } else {
-        //            history?.append(entry)
-        //        }
-        
         list.append(entry)
         
         let defaults = UserDefaults.standard

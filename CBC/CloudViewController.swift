@@ -72,30 +72,6 @@ enum CloudColors {
     static let White = [UIColor.white]
 }
 
-//extension CloudViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//extension CloudViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
 extension CloudViewController : UIScrollViewDelegate
 {
     func viewForZooming(in scrollView: UIScrollView) -> UIView?
@@ -177,24 +153,19 @@ extension CloudViewController : PopoverTableViewControllerDelegate
             guard let string = strings?[index] else {
                 return
             }
-            
-            guard let startRange = string.range(of: " (") else {
+
+            guard let word = string.word else {
                 return
             }
             
-            let word = String(string[..<startRange.lowerBound])
-            let remainder = String(string[startRange.upperBound...])
-            
-            guard let endRange = remainder.range(of: ")") else {
+            guard let frequency = string.frequency else {
                 return
             }
-            
-            let count = String(remainder[..<endRange.lowerBound])
             
             var index = 0
             
             for cloudWordDict in cloudWordDicts {
-                if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
+                if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == frequency) { // Int(count)
                     if let selected = self.cloudWordDicts?[index]["selected"] as? Bool, selected {
                         self.cloudWordDicts?[index]["selected"] = false
                     } else {
@@ -699,11 +670,6 @@ class CloudViewController : CBCViewController
     {
         super.viewWillAppear(animated)
 
-                                                            // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
-        
         addNotifications()
 
         self.navigationItem.title = cloudTitle
@@ -723,12 +689,8 @@ class CloudViewController : CBCViewController
                     let count = dict["count"] as? Int ?? -1
                     return "\(word) (\(count))"
                 })
-
-//                self?.wordsTableViewController.section.sorting = true
                 
                 self?.wordsTableViewController.section.strings = self?.wordsTableViewController.section.function?(self?.wordsTableViewController.section.method,self?.wordsTableViewController.section.strings)
-
-//                self?.wordsTableViewController.section.sorting = false
                 
                 return nil
             }, completion: { [weak self] (data:Any?) in
@@ -749,12 +711,6 @@ class CloudViewController : CBCViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
-        
-//        layoutQueue?.cancelAllOperations()
         
         cancelAllOperations()
         
@@ -798,10 +754,8 @@ class CloudViewController : CBCViewController
     {
         // Cancel any in-progress layout
         layoutQueue.cancelAllOperations()
-//        layoutQueue.waitUntilAllOperationsAreFinished()
         
         labelQueue.cancelAllOperations()
-//        labelQueue.waitUntilAllOperationsAreFinished()
         
         relayoutCloudWords()
     }
@@ -869,23 +823,31 @@ class CloudViewController : CBCViewController
                             return false
                         }
                         
-                        guard let startRange = string.range(of: " (") else {
-                            return false
-                        }
+//                        guard let startRange = string.range(of: " (") else {
+//                            return false
+//                        }
+//
+//                        let word = String(string[..<startRange.lowerBound])
+//                        let remainder = String(string[startRange.upperBound...])
+//
+//                        guard let endRange = remainder.range(of: ")") else {
+//                            return false
+//                        }
+//
+//                        let count = String(remainder[..<endRange.lowerBound])
 
-                        let word = String(string[..<startRange.lowerBound])
-                        let remainder = String(string[startRange.upperBound...])
-                        
-                        guard let endRange = remainder.range(of: ")") else {
+                        guard let word = string.word else {
                             return false
                         }
                         
-                        let count = String(remainder[..<endRange.lowerBound])
+                        guard let frequency = string.frequency else {
+                            return false
+                        }
                         
                         var index = 0
                         
                         for cloudWordDict in cloudWordDicts {
-                            if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == Int(count)) {
+                            if ((cloudWordDict["word"] as? String) == word) && ((cloudWordDict["count"] as? Int) == frequency) { // Int(count)
                                 return (cloudWordDicts[index]["selected"] as? Bool) ?? false
                             }
                             
@@ -908,7 +870,6 @@ class CloudViewController : CBCViewController
                         // Cancel or wait?
                         self?.operationQueue.cancelAllOperations()
                         
-//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
@@ -946,9 +907,7 @@ class CloudViewController : CBCViewController
                                         section.indexHeadersTransform = nil
                                         section.indexSort = nil
                                         
-//                                        section.sorting = true
                                         section.strings = strings
-//                                        section.sorting = false
                                         section.stringsAction?(strings,section.sorting)
                                     }
                                     
@@ -966,7 +925,6 @@ class CloudViewController : CBCViewController
                         // Cancel or wait?
                         self?.operationQueue.cancelAllOperations()
                         
-//                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                         self?.operationQueue.addOperation { [weak self] in
                             Thread.onMainThread {
                                 self?.wordsTableViewController.tableView.isHidden = true
@@ -1016,9 +974,7 @@ class CloudViewController : CBCViewController
                                             return Int(first) > Int(second)
                                         }
                                         
-//                                        section.sorting = true
                                         section.strings = strings
-//                                        section.sorting = false
                                         section.stringsAction?(strings,section.sorting)
                                     }
                                     
@@ -1038,8 +994,6 @@ class CloudViewController : CBCViewController
                     wordsTableViewController.purpose = .selectingWordCloud
                     
                     wordsTableViewController.search = false
-                    
-//                    wordsTableViewController.section.showIndex = false
                     
                     wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
                         Thread.onMainThread {

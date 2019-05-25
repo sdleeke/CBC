@@ -9,29 +9,6 @@
 import UIKit
 import MessageUI
 
-//extension ScriptureViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//extension ScriptureViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
 extension ScriptureViewController : UIActivityItemSource
 {
     func share()
@@ -55,18 +32,6 @@ extension ScriptureViewController : UIActivityItemSource
         
         // present the view controller
         Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-        
-//        Thread.onMainThread {
-//            self.present(activityViewController, animated: true, completion: nil)
-//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -136,7 +101,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             return
         }
         
-//        popover?.dismiss(animated: true, completion: nil)
         popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
             self?.popover?["ACTION"] = nil
         })
@@ -263,17 +227,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.allowsSelection = false
                     
-//                    popover.actionTitle = Constants.Strings.Expanded_View
-//                    popover.action = { (String) in
-//                        self.process(work: { [weak self] () -> (Any?) in
-//                            return popover.stringTree?.html
-//                        }, completion: { [weak self] (data:Any?) in
-//                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//                        })
-//                    }
-
-//                    popover.stringTree = StringTree()
-                    
                     popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
                     
                     popover.stringsFunction = { [weak self] in
@@ -332,7 +285,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         return "\(word) (\(count))"
                     }).sorted().tableHTML(title:self?.scripture?.reference, test:test)
                 }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                    // preferredModalPresentationStyle(viewController: self)
                     self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                 })
                 break
@@ -344,120 +296,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                         return "\(word) (\(count))"
                     }).sorted()
                 })
-
-//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//
-//                    navigationController.popoverPresentationController?.delegate = self
-//
-//                    popover.navigationController?.isNavigationBarHidden = false
-//
-//                    popover.navigationItem.title = navigationItem.title
-//
-//                    popover.delegate = self
-//                    popover.purpose = .selectingWord
-//
-//                    popover.segments = true
-//
-//                    popover.section.function = { (method:String?,strings:[String]?) in
-//                        return strings?.sort(method: method)
-//                    }
-//                    popover.section.method = Constants.Sort.Alphabetical
-//
-//                    popover.bottomBarButton = true
-//
-//                    var segmentActions = [SegmentAction]()
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-//                            popover.section.method = Constants.Sort.Alphabetical
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = nil
-//                            popover.section.indexHeadersTransform = nil
-//                            popover.section.indexSort = nil
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-//                            popover.section.method = Constants.Sort.Frequency
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-//                                return string?.log
-//                            }
-//
-//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-//                                return string
-//                            }
-//
-//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-//                                guard let first = first else {
-//                                    return false
-//                                }
-//                                guard let second = second else {
-//                                    return true
-//                                }
-//                                return Int(first) > Int(second)
-//                            }
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-//
-//                    popover.section.showIndex = true
-//
-//                    popover.search = true
-//
-//                    popover.stringsFunction = { [weak self] in
-//                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-//                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-//                            return "\(word) (\(count))"
-//                        }).sorted()
-//                    }
-//
-//                    self.popover?["WORD"] = popover
-//
-//                    popover.completion = { [weak self] in
-//                        self?.popover?["WORD"] = nil
-//                    }
-//
-//                    present(navigationController, animated: true, completion: nil)
-//                }
                 break
                 
             case Constants.Strings.Share:
@@ -474,363 +312,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         }
     }
 }
-
-//extension ScriptureViewController : PopoverPickerControllerDelegate
-//{
-//    // MARK: PopoverPickerControllerDelegate
-//
-//    func stringPicked(_ string: String?, purpose:PopoverPurpose?)
-//    {
-//        guard self.isViewLoaded else {
-//            return
-//        }
-//
-//        guard Thread.isMainThread else {
-//            self.alert(title: "Not Main Thread", message: "ScriptureViewController:stringPicked", completion: nil)
-//            return
-//        }
-//
-//        guard let string = string else {
-//            return
-//        }
-//
-//        dismiss(animated: true, completion: nil)
-//
-//        self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
-//
-//        var searchText = string
-//
-//        if let range = searchText.range(of: " (") {
-//            searchText = String(searchText[..<range.lowerBound])
-//        }
-//
-//        self.webViewController?.wkWebView?.isHidden = true
-//
-//        self.webViewController?.activityIndicator.isHidden = false
-//        self.webViewController?.activityIndicator.startAnimating()
-//
-//        if webViewController?.bodyHTML != nil { // , headerHTML != nil // Not necessary
-//            webViewController?.html.string = webViewController?.bodyHTML?.markHTML(headerHTML: webViewController?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
-//        }
-//
-//        webViewController?.html.string = webViewController?.html.string?.stripHead.insertHead(fontSize: webViewController?.html.fontSize ?? Constants.FONT_SIZE)
-//
-//        if let url = self.webViewController?.html.fileURL {
-//            webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-//        }
-//    }
-//}
-
-//extension ScriptureViewController : UIPickerViewDataSource
-//{
-//    // MARK: UIPickerViewDataSource
-//
-//    func numberOfComponents(in pickerView: UIPickerView) -> Int
-//    {
-//        return includeVerses ? 4 : 3  // Compact width => 3, otherwise 5?  (beginning and ending verses)
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
-//    {
-//        var numberOfRows = 1
-//
-//        switch component {
-//        case 0:
-//            numberOfRows = 2 // N.T. or O.T.
-//            break
-//
-//        case 1:
-//            if scripture?.picked.testament != nil, let books = scripture?.picker.books {
-//                numberOfRows = books.count
-//            } else {
-//                numberOfRows = 0 // number of books in testament
-//            }
-//            break
-//
-//        case 2:
-//            guard scripture?.picked.testament != nil else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            if let chapters = scripture?.picker.chapters {
-//                numberOfRows = chapters.count
-//            }
-//            break
-//
-//        case 3:
-//            guard includeVerses else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            guard scripture?.picked.testament != nil else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            guard scripture?.picked.chapter > 0 else {
-//                numberOfRows = 0
-//                break
-//            }
-//
-//            if let verses = scripture?.picker.verses {
-//                numberOfRows = verses.count
-//            }
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        return numberOfRows
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
-//    {
-//        let label = (view as? UILabel) ?? UILabel()
-//
-//        if let title = title(forRow: row, forComponent: component) {
-//            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.body)
-//        }
-//
-//        return label
-//    }
-//
-//    func title(forRow row:Int, forComponent component:Int) -> String?
-//    {
-//        switch component {
-//        case 0:
-//            if row == 0 {
-//                return Constants.OT
-//            }
-//            if row == 1 {
-//                return Constants.NT
-//            }
-//            break
-//
-//        case 1:
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            if let book = scripture?.picker.books?[row] {
-//                return book
-//            }
-//            break
-//
-//        case 2:
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                break
-//            }
-//
-//            if let chapters = scripture?.picker.chapters {
-//                return "\(chapters[row])"
-//            }
-//            break
-//
-//        case 3:
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                break
-//            }
-//
-////            if scripture?.picked.chapter > 0 {
-////                return "1"
-////            }
-//
-//            if let verses = scripture?.picker.verses {
-//                return "\(verses[row])"
-//            }
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        return Constants.EMPTY_STRING
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
-//    {
-//        return title(forRow: row,forComponent: component)
-//    }
-//}
-
-//extension ScriptureViewController : UIPickerViewDelegate
-//{
-//    // MARK: UIPickerViewDelegate
-//
-//    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
-//    {
-//        // These should be dynamic
-//        switch component {
-//        case 0:
-//            return 50
-//
-//        case 1:
-//            return 175
-//
-//        case 2:
-//            return 35
-//
-//        case 3:
-//            return 35
-//
-//        default:
-//            return 0
-//        }
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
-//    {
-//        switch component {
-//        case 0: // Testament
-//            switch row {
-//            case 0:
-//                scripture?.picked.testament = Constants.OT
-//                break
-//
-//            case 1:
-//                scripture?.picked.testament = Constants.NT
-//                break
-//
-//            default:
-//                break
-//            }
-//
-//            if let testament = scripture?.picked.testament {
-//                switch testament {
-//                case Constants.OT:
-//                    scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
-//                    break
-//
-//                case Constants.NT:
-//                    scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
-//                    break
-//
-//                default:
-//                    break
-//                }
-//            }
-//
-//            scripture?.picked.book = scripture?.picker.books?[0]
-//
-//            updatePicker()
-//
-//            if let chapter = scripture?.picker.chapters?[0] {
-//                scripture?.picked.chapter = chapter
-//            }
-//
-//            pickerView.reloadAllComponents()
-//
-//            if pickerView.numberOfComponents > 1 {
-//                pickerView.selectRow(0, inComponent: 1, animated: true)
-//            }
-//
-//            if pickerView.numberOfComponents > 2 {
-//                pickerView.selectRow(0, inComponent: 2, animated: true)
-//            }
-//
-//            updateReferenceLabel()
-//            break
-//
-//        case 1: // Book
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            scripture?.picked.book = scripture?.picker.books?[row]
-//
-//            updatePicker()
-//
-//            if let chapter = scripture?.picker.chapters?[0] {
-//                scripture?.picked.chapter = chapter
-//            }
-//
-//            pickerView.reloadAllComponents()
-//
-//            if pickerView.numberOfComponents > 2 {
-//                pickerView.selectRow(0, inComponent: 2, animated: true)
-//            }
-//
-//            updateReferenceLabel()
-//            break
-//
-//        case 2: // Chapter
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                break
-//            }
-//
-//            if let chapter = scripture?.picker.chapters?[row] {
-//                scripture?.picked.chapter = chapter
-//            }
-//
-//            updatePicker()
-//
-//            if let verse = scripture?.picker.verses?[0] {
-//                scripture?.picked.verse = verse
-//            }
-//
-//            pickerView.reloadAllComponents()
-//
-//            if pickerView.numberOfComponents > 3 {
-//                pickerView.selectRow(0, inComponent: 3, animated: true)
-//            }
-//
-//            updateReferenceLabel()
-//            break
-//
-//        case 3: // Verse
-//            guard scripture?.picked.testament != nil else {
-//                break
-//            }
-//
-//            guard scripture?.picked.book != nil else {
-//                break
-//            }
-//
-//            guard scripture?.picked.chapter > 0 else {
-//                break
-//            }
-//
-//            if let verse = scripture?.picker.verses?[row] {
-//                scripture?.picked.verse = verse
-//            }
-//
-////            pickerView.reloadAllComponents()
-//
-//            updateReferenceLabel()
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        showScripture()
-//    }
-//}
 
 extension ScriptureViewController : MFMailComposeViewControllerDelegate
 {
@@ -860,14 +341,11 @@ class ScriptureViewController : CBCViewController
     var scripture:Scripture?
     {
         didSet {
-//            webViewController?.bodyHTML = scripture?.text(scripture?.reference)
             scripturePickerViewController?.scripture = scripture
         }
     }
     
     @IBOutlet weak var directionLabel: UILabel!
-    
-//    @IBOutlet weak var scripturePicker: UIPickerView!
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
@@ -887,9 +365,6 @@ class ScriptureViewController : CBCViewController
                 if let wvc = destination as? WebViewController {
                     webViewController = wvc
                     
-                    // Just not ready.
-                    //                    webViewController?.search = true
-                    
                     webViewController?.html.string = "" // Why?
                     if let fontSize = fontSize {
                         webViewController?.html.fontSize = fontSize
@@ -902,7 +377,6 @@ class ScriptureViewController : CBCViewController
                 if let spvc = destination as? ScripturePickerViewController {
                     scripturePickerViewController = spvc
                     scripturePickerViewController?.scripture = scripture
-//                    scripturePickerViewController?.includeVerses = true
                     scripturePickerViewController?.show = { [weak self] in
                         self?.showScripture()
                         self?.setupBarButtons()
@@ -916,17 +390,6 @@ class ScriptureViewController : CBCViewController
             }
         }
     }
-    
-//    func actionMenu() -> [String]?
-//    {
-//        return webViewController?.actionMenu()
-//
-////        var actionMenu = [String]()
-////
-////        actionMenu.append("Lexical Analysis")
-////
-////        return actionMenu.count > 0 ? actionMenu : nil
-//    }
     
     @objc func actions()
     {
@@ -969,7 +432,7 @@ class ScriptureViewController : CBCViewController
     
     func updateReferenceLabel()
     {
-        print(scripture?.reference)
+//        print(scripture?.reference)
     }
 
     func disableToolBarButtons()
@@ -1076,8 +539,6 @@ class ScriptureViewController : CBCViewController
                 return self?.scripture?.html?[reference]
             }) { [weak self] (data:Any?) in
                 if let string = data as? String {
-//                        self?.webViewController?.html.string = string
-
                     self?.webViewController?.html.string = string.stripHead.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                     
                     self?.webViewController?.bodyHTML = self?.webViewController?.html.string
@@ -1085,13 +546,6 @@ class ScriptureViewController : CBCViewController
                     if let url = self?.webViewController?.html.fileURL {
                         self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
-
-//                    if let string =  { //
-//                    } else {
-//                        if let url = self?.webViewController?.html.fileURL {
-//                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-//                        }
-//                    }
                 } else {
                     var bodyString = "<!DOCTYPE html><html><body>"
                     
@@ -1106,9 +560,6 @@ class ScriptureViewController : CBCViewController
                     if let url = self?.webViewController?.html.fileURL {
                         self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
-
-//                    if let string = bodyString.insertHead(fontSize:self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE) { //
-//                    }
                 }
 
                 self?.webViewController?.view.isHidden = false
@@ -1183,9 +634,6 @@ class ScriptureViewController : CBCViewController
         scripture?.reference = mediaItem?.scriptureReference
         setupPicker()
         navigationController?.isToolbarHidden = true
-
-//        scripturePickerViewController?.updatePicker()
-//        updatePicker()
     }
     
     fileprivate func setupBarButtons()
@@ -1259,256 +707,9 @@ class ScriptureViewController : CBCViewController
         }
     }
     
-//    var activityViewController:UIActivityViewController?
-
-//    var orientation : UIDeviceOrientation?
-    
-    @objc func deviceOrientationDidChange()
-    {
-//        guard let orientation = orientation else {
-//            return
-//        }
-//
-//        func action()
-//        {
-//            popover?["ACTION"]?.dismiss(animated: false, completion: { [weak self] in
-//                self?.popover?["ACTION"] = nil
-//            })
-//            activityViewController?.dismiss(animated: false, completion: nil)
-//        }
-//
-//        // Dismiss any popover
-//        switch orientation {
-//        case .faceUp:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .faceDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeLeft:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeRight:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portrait:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portraitUpsideDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-//
-//        switch UIDevice.current.orientation {
-//        case .faceUp:
-//            break
-//
-//        case .faceDown:
-//            break
-//
-//        case .landscapeLeft:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .landscapeRight:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portrait:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portraitUpsideDown:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-    }
-    
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
@@ -1531,7 +732,6 @@ class ScriptureViewController : CBCViewController
         if scripture?.picked.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
             webViewController?.view.isHidden = true
             
-            //            DispatchQueue.global(qos: .background).async { [weak self] in
             operationQueue.addOperation { [weak self] in
                 self?.scripture?.reference = reference // Why?
                 self?.scripture?.load()
@@ -1548,13 +748,11 @@ class ScriptureViewController : CBCViewController
                 }
                 
                 Thread.onMainThread {
-//                    self?.updatePicker()
                     self?.scripturePickerViewController?.updatePicker()
                     self?.showScripture()
                 }
             }
         } else {
-//            updatePicker()
             scripturePickerViewController?.updatePicker()
             showScripture()
         }
@@ -1563,13 +761,6 @@ class ScriptureViewController : CBCViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-        
-                                                            // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
-        
-//        orientation = UIDevice.current.orientation
         
         addNotifications()
         
@@ -1593,10 +784,6 @@ class ScriptureViewController : CBCViewController
     {
         super.viewWillDisappear(animated)
 
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
-
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -1612,147 +799,18 @@ class ScriptureViewController : CBCViewController
 
         setupBarButtons()
     }
-    
-//    func testament(_ book:String) -> String?
-//    {
-//        if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
-//            return Constants.OT
-//        } else
-//            if (Constants.NEW_TESTAMENT_BOOKS.contains(book)) {
-//                return Constants.NT
-//        }
-//
-//        return nil
-//    }
-    
+
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
     }
     
-//    func updatePicker()
-//    {
-//        if scripture?.picked.testament == nil {
-//            scripture?.picked.testament = Constants.OT
-//        }
-//
-//        guard let selectedTestament = scripture?.picked.testament else {
-//            return
-//        }
-//
-//        guard !selectedTestament.isEmpty else {
-//            return
-//        }
-//
-//        switch selectedTestament {
-//        case Constants.OT:
-//            scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
-//            break
-//
-//        case Constants.NT:
-//            scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        if scripture?.picked.book == nil {
-//            scripture?.picked.book = scripture?.picker.books?[0]
-//        }
-//
-//        var maxChapters = 0
-//        switch selectedTestament {
-//        case Constants.OT:
-//            if let index = scripture?.picked.book?.bookNumberInBible {
-//                maxChapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
-//            }
-//            break
-//
-//        case Constants.NT:
-//            if let index = scripture?.picked.book?.bookNumberInBible {
-//                maxChapters = Constants.NEW_TESTAMENT_CHAPTERS[index - Constants.OLD_TESTAMENT_BOOKS.count]
-//            }
-//            break
-//
-//        default:
-//            break
-//        }
-//
-//        var chapters = [Int]()
-//        if maxChapters > 0 {
-//            for i in 1...maxChapters {
-//                chapters.append(i)
-//            }
-//        }
-//        scripture?.picker.chapters = chapters
-//
-//        if scripture?.picked.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
-//            scripture?.picked.chapter = chapter
-//        }
-//
-//        if includeVerses, let index = scripture?.picked.book?.bookNumberInBible, let chapter = scripture?.picked.chapter {
-//            var maxVerses = 0
-//            switch selectedTestament {
-//            case Constants.OT:
-//                maxVerses = Constants.OLD_TESTAMENT_VERSES[index][chapter]
-//                break
-//
-//            case Constants.NT:
-//                maxVerses = Constants.NEW_TESTAMENT_VERSES[index - Constants.OLD_TESTAMENT_BOOKS.count][chapter]
-//                break
-//
-//            default:
-//                break
-//            }
-//            var verses = [Int]()
-//            if maxVerses > 0 {
-//                for i in 1...maxVerses {
-//                    verses.append(i)
-//                }
-//            }
-//            scripture?.picker.verses = verses
-//
-//            if scripture?.picked.verse == 0, let verse = scripture?.picker.verses?[0] {
-//                scripture?.picked.verse = verse
-//            }
-//        }
-//
-//        scripturePicker.reloadAllComponents()
-//
-////        guard let selectedTestament = scripture?.picked.testament else {
-////            return
-////        }
-//
-//        if let index = Constants.TESTAMENTS.firstIndex(of: selectedTestament) {
-//            scripturePicker.selectRow(index, inComponent: 0, animated: false)
-//        }
-//
-//        if let selectedBook = scripture?.picked.book, let index = scripture?.picker.books?.firstIndex(of: selectedBook) {
-//            scripturePicker.selectRow(index, inComponent: 1, animated: false)
-//        }
-//
-//        if let chapter = scripture?.picked.chapter, chapter > 0, let index = scripture?.picker.chapters?.firstIndex(of: chapter) {
-//            scripturePicker.selectRow(index, inComponent: 2, animated: false)
-//        }
-//
-//        guard includeVerses else {
-//            return
-//        }
-//
-//        if let verse = scripture?.picked.verse, verse > 0, let index = scripture?.picker.verses?.firstIndex(of: verse) {
-//            scripturePicker.selectRow(index, inComponent: 3, animated: false)
-//        }
-//    }
-    
     func updateUI()
     {
         guard self.isViewLoaded else {
             return
         }
-        
-//        updatePicker()
         
         updateReferenceLabel()
     }

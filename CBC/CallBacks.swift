@@ -8,14 +8,27 @@
 
 import Foundation
 
-//struct CallBack
-//{
-//    var name : String?
-//    var function : (()->())?
-////    var start : (()->())?
-////    var update : (()->())?
-////    var complete : (()->())?
-//}
+/**
+
+ Flexible way to handle callbacks from a long-running data structure process to a view controller that is
+ displaying a representation of it.
+ 
+ Each view controller must register to begin receiving call backs and unregister when it no longer wants them.
+ Registration includes a dictionary of named closures that are called by the long-running data structure process.
+ 
+ Right now the names are "start", "update", and "complete" and it is assumed the view controller and the data structure
+ both know that.  There is no way for a view controller to get a list of the names the data structure uses or a state machine
+ associated with them.  The names above imply a simple state machine that:
+ 
+ starts in "start" then moves into "update" and then returns to "update repeatedly until it is "complete"
+ 
+ I'm not sure how we would define a state machine in the data structure and communicate the states to the view controller in
+ a way that the view controller would know what to do with them.
+ 
+ Previously we used fixed methods: start/update/complete, meaning we could only have three and it was those three.  This is more
+ flexible, should/can we define a protocol so both the data structure and view controller (delegate) can be conformed to it?
+ 
+ */
 
 class CallBacks
 {
@@ -28,6 +41,7 @@ class CallBacks
         debug(self)
     }
 
+                            //VCID  //State // Closure
     private var callbacks = [String:[String:(()->())]]()
     
     func register(_ id:String,_ callBacks:[String:(()->())]?)
@@ -52,43 +66,4 @@ class CallBacks
             })
         }
     }
-    
-//    func start()
-//    {
-//        queue.sync {
-//            guard callbacks.count > 0 else {
-//                return
-//            }
-//
-//            callbacks.values.forEach { (callBack:CallBack) in
-//                callBack.start?()
-//            }
-//        }
-//    }
-//
-//    func update()
-//    {
-//        guard callbacks.count > 0 else {
-//            return
-//        }
-//
-//        queue.sync {
-//            callbacks.values.forEach { (callBack:CallBack) in
-//                callBack.update?()
-//            }
-//        }
-//    }
-//
-//    func complete()
-//    {
-//        guard callbacks.count > 0 else {
-//            return
-//        }
-//
-//        queue.sync {
-//            callbacks.values.forEach { (callBack:CallBack) in
-//                callBack.complete?()
-//            }
-//        }
-//    }
 }

@@ -876,12 +876,10 @@ class VoiceBase // : NSObject
             
                 mediaItemString += "\"device\":{"
                 
-                    mediaItemString += "\"name\":\"\(UIDevice.current.deviceName)\","
+                    mediaItemString += "\"name\":\"\(UIDevice.current.name)\","
                     
                     mediaItemString += "\"model\":\"\(UIDevice.current.localizedModel)\","
                     
-                    mediaItemString += "\"modelName\":\"\(UIDevice.current.modelName)\","
-        
                     if let uuid = UIDevice.current.identifierForVendor?.description {
                         mediaItemString += "\"UUID\":\"\(uuid)\""
                     }
@@ -1371,47 +1369,13 @@ class VoiceBase // : NSObject
         set {
             _transcript = newValue
 
-//            let fileManager = FileManager.default
-//
-//            guard let mediaItem = mediaItem else {
-//                return
-//            }
-//
-//            guard let id = mediaItem.mediaCode else {
-//                return
-//            }
-//
-//            guard let purpose = purpose else {
-//                return
-//            }
-
             if _transcript != nil {
-//                DispatchQueue.global(qos: .background).async { [weak self] in
                 fileQueue.addOperation { [weak self] in
-//                    self?.filename?.fileSystemURL?.delete(block:true)
                     self?._transcript?.save16(filename: self?.filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
-                    
-//                    if let destinationURL = self?.filename?.fileSystemURL {
-//                        destinationURL.delete()
-//
-//                        do {
-//                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
-//                        } catch let error {
-//                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
                 }
             } else {
-//                DispatchQueue.global(qos: .background).async { [weak self] in
                 fileQueue.addOperation { [weak self] in
                     self?.filename?.fileSystemURL?.delete(block:true)
-//                    if let destinationURL = self?.filename?.fileSystemURL {
-//                        destinationURL.delete(block:true)
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
                 }
             }
         }
@@ -1506,110 +1470,6 @@ class VoiceBase // : NSObject
         }
     }
     
-//    lazy var mediaJSON:Shadowed<[String:Any]> = { [weak self] in
-//        return Shadowed<[String:Any]>(
-//        get: { () -> ([String : Any]?) in
-//            ///// THIS MAY BE A PRE /////
-//            guard self.completed else {
-//                return nil
-//            }
-//            /////////////////////////////
-//
-//            guard let mediaItem = self.mediaItem else {
-//                return nil
-//            }
-//
-//            guard let id = mediaItem.mediaCode else {
-//                return nil
-//            }
-//
-//            guard let purpose = self.purpose else {
-//                return nil
-//            }
-//
-//            var value : [String : Any]?
-//
-//            if let url = ("\(id).\(purpose).media").fileSystemURL, let data = url.data {
-//                do {
-//                    value = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-//                } catch let error {
-//                    print("failed to load machine generated media for \(self.mediaItem?.description): \(error.localizedDescription)")
-//
-//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    //                    if completed && !aligning {
-//                    //                        remove()
-//                    //                    }
-//                }
-//            } else {
-//                print("failed to open machine generated media for \(self.mediaItem?.description)")
-//                // Not sure I want to do this since it only removes keywords
-//                //                remove()
-//            }
-//
-//            return value
-//        },
-//
-////        pre: { () -> (Bool) in
-////            if !self.completed {
-////                return false
-////            }
-////
-////            if self.mediaItem == nil {
-////                return false
-////            }
-////
-////            if self.mediaItem?.id == nil {
-////                return false
-////            }
-////
-////            if self.purpose == nil {
-////                return false
-////            }
-////
-////            return true
-////        },
-//
-//        didSet: { (mediaJSON, oldValue) in
-//            guard let mediaItem = self.mediaItem else {
-//                return
-//            }
-//
-//            guard let id = mediaItem.mediaCode else {
-//                return
-//            }
-//
-//            guard let purpose = self.purpose else {
-//                return
-//            }
-//
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                let fileManager = FileManager.default
-//
-//                if mediaJSON != nil {
-//                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: mediaJSON as Any, format: .xml, options: 0)
-//
-//                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-//                        destinationURL.delete()
-//
-//                        do {
-//                            try mediaPropertyList?.write(to: destinationURL)
-//                        } catch let error {
-//                            print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("destinationURL nil!")
-//                    }
-//                } else {
-//                    if let destinationURL = "\(id).\(purpose).media".fileSystemURL {
-//                        destinationURL.delete()
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//                }
-//            }
-//        })
-//    }()
-    
     // Replaced with Fetch?
     // Make thread safe?
     private var _mediaJSON : [String:Any]?
@@ -1633,14 +1493,6 @@ class VoiceBase // : NSObject
                 return nil
             }
 
-//            guard let id = mediaItem.mediaCode else {
-//                return nil
-//            }
-//
-//            guard let purpose = purpose else {
-//                return nil
-//            }
-            
             guard let filename = filename else {
                 return nil
             }
@@ -1676,18 +1528,6 @@ class VoiceBase // : NSObject
         set {
             _mediaJSON = newValue
 
-//            guard let mediaItem = mediaItem else {
-//                return
-//            }
-
-//            guard let id = mediaItem.mediaCode else {
-//                return
-//            }
-//
-//            guard let purpose = purpose else {
-//                return
-//            }
-
             guard let filename = filename else {
                 print("failed to get filename")
                 return
@@ -1698,13 +1538,10 @@ class VoiceBase // : NSObject
                 return
             }
             
-//            DispatchQueue.global(qos: .background).async { [weak self] in
             fileQueue.addOperation { [weak self] in
                 if self?._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
 
-//                    destinationURL.delete(block:true)
-                    
                     do {
                         try mediaPropertyList?.write(to: destinationURL)
                     } catch let error {
@@ -3571,188 +3408,6 @@ class VoiceBase // : NSObject
         return fetch
     }()
     
-    // Replace with Fetch?
-//    private var _transcriptSegmentComponents:[String]? // Make thread safe?
-//    {
-//        didSet {
-//            guard let transcriptSegmentComponents = _transcriptSegmentComponents else {
-//                return
-//            }
-//
-//            var transcriptSegmentArrays = [[String]]()
-//
-//            for transcriptSegmentComponent in transcriptSegmentComponents {
-//                transcriptSegmentArrays.append(transcriptSegmentComponent.components(separatedBy: "\n"))
-//            }
-//
-//            self.transcriptSegmentArrays = transcriptSegmentArrays.count > 0 ? transcriptSegmentArrays : nil
-//        }
-//    }
-//    var transcriptSegmentComponents:[String]? // thread safe?
-//    {
-//        get {
-//            guard _transcriptSegmentComponents == nil else {
-//                return _transcriptSegmentComponents
-//            }
-//
-//            // Calculation by side-effect - YUK
-//            let _ = transcriptSegments
-//
-//            return _transcriptSegmentComponents
-//        }
-//        set {
-//            _transcriptSegmentComponents = newValue
-//        }
-//    }
-    
-//    lazy var transcriptSegments:Shadowed<String> = { [weak self] in
-//        return Shadowed<String>(get: { () -> (String?) in
-//            ///// THIS MAY BE A PRE //////
-//            guard self.completed else {
-//                return nil
-//            }
-//            //////////////////////////////
-//
-//            guard let mediaItem = self.mediaItem else {
-//                return nil
-//            }
-//
-//            guard let id = mediaItem.mediaCode else {
-//                return nil
-//            }
-//
-//            guard let purpose = self.purpose else {
-//                return nil
-//            }
-//
-//            var value : String?
-//
-//            //Legacy
-//            if let url = "\(id).\(purpose).srt".fileSystemURL {
-//                do {
-//                    try value = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
-//                } catch let error {
-//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-//
-//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    //                    if completed && !aligning {
-//                    //                        remove()
-//                    //                    }
-//                }
-//            }
-//
-//            if let url = "\(id).\(purpose).segments".fileSystemURL {
-//                do {
-//                    try value = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
-//                } catch let error {
-//                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-//
-//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    //                    if completed && !aligning {
-//                    //                        remove()
-//                    //                    }
-//                }
-//            }
-//
-//            return value
-//        },
-//
-//        toSet: { (newValue) in
-//            guard let mediaItem = self.mediaItem else {
-//                return nil
-//            }
-//
-//            guard let id = mediaItem.mediaCode else {
-//                return nil
-//            }
-//
-//            guard let purpose = self.purpose else {
-//                return nil
-//            }
-//
-//            var changed = false
-//
-//            var value = newValue
-//
-//            if _transcriptSegments == nil {
-//                // Why do we do this?  To strip any header like SRT or WebVTT and remove newlines and add separator
-//                if var transcriptSegmentComponents = value?.components(separatedBy: "\n\n") {
-//                    for transcriptSegmentComponent in transcriptSegmentComponents {
-//                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-//                        if transcriptSegmentArray.count > 2 {
-//                            let count = transcriptSegmentArray.removeFirst()
-//                            let timeWindow = transcriptSegmentArray.removeFirst()
-//
-//                            if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
-//                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-//
-//                                if let index = transcriptSegmentComponents.index(of: transcriptSegmentComponent) {
-//                                    transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
-//                                    changed = true
-//                                }
-//                            }
-//                        }
-//                    }
-//                    if changed { // Essentially guaranteed to happen.
-//                        value = nil
-//                        for transcriptSegmentComponent in transcriptSegmentComponents {
-//                            let transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-//                            if transcriptSegmentArray.count > 2 { // This removes anything w/o text, i.e. only count and timeWindow - or less, like a header, e.g. WebVTT (a nice side effect)
-//                                value = (value != nil ? value! + VoiceBase.separator : "") + transcriptSegmentComponent
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            _transcriptSegments = newValue
-//
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                let fileManager = FileManager.default
-//
-//                if self?._transcriptSegments != nil {
-//                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-//                        destinationURL.delete()
-//
-//                        do {
-//                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8) // why not utf16?
-//                        } catch let error {
-//                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//
-//                    //Legacy clean-up
-//                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-//                        destinationURL.delete()
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//                } else {
-//                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-//                        destinationURL.delete()
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//
-//                    //Legacy clean-up
-//                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-//                        destinationURL.delete()
-//                    } else {
-//                        print("failed to get destinationURL")
-//                    }
-//                }
-//            }
-//
-//            return newValue
-//        },
-//
-//        didSet: { (transcriptSegments, oldValue) in
-//            self.transcriptSegmentComponents = transcriptSegments?.components(separatedBy: VoiceBase.separator)
-//        })
-//    }()
-    
     lazy var transcriptSegments:Fetch<String>? = { [weak self] in
         let fetch = Fetch<String>()
         
@@ -3777,209 +3432,6 @@ class VoiceBase // : NSObject
         return fetch
     }()
     
-    // Replace with Fetch?
-//    private var _transcriptSegments:String?
-//    {
-//        didSet {
-//            guard var transcriptSegmentComponents = _transcriptSegments?.components(separatedBy: VoiceBase.separator) else {
-//                self.transcriptSegmentComponents = nil
-//                return
-//            }
-//
-////            var secondsOffset = 0.0
-////
-////            if  let first = transcriptSegmentComponents.first?.components(separatedBy: "\n")[1],
-////                let start = first.components(separatedBy: " --> ").first {
-////                secondsOffset = start.hmsToSeconds ?? 0.0
-////            }
-////
-////            guard secondsOffset > 0 else {
-////                self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
-////                return
-////            }
-////
-////            for index in transcriptSegmentComponents.indices {
-////                var segmentComponents = transcriptSegmentComponents[index].components(separatedBy: "\n")
-////
-////                let times = segmentComponents[1].components(separatedBy: " --> ")
-////
-////                if let start = times[0].hmsToSeconds, let end = times[1].hmsToSeconds {
-////                    segmentComponents[1] = ((start - secondsOffset).secondsToHMSms ?? "") + " --> " + ((end - secondsOffset).secondsToHMSms ?? "")
-////                }
-////
-////                transcriptSegmentComponents[index]  = segmentComponents.joined(separator: "\n")
-////            }
-//
-//            self.transcriptSegmentComponents = transcriptSegmentComponents.count > 0 ? transcriptSegmentComponents : nil
-//        }
-//    }
-//    var transcriptSegments:String?
-//    {
-//        get {
-//            guard completed else {
-//                return nil
-//            }
-//
-//            guard _transcriptSegments == nil else {
-//                return _transcriptSegments
-//            }
-//
-////            guard let mediaItem = mediaItem else {
-////                return nil
-////            }
-////
-////            guard let id = mediaItem.mediaCode else {
-////                return nil
-////            }
-////
-////            guard let purpose = purpose else {
-////                return nil
-////            }
-//
-//            guard let filename = filename else {
-//                print("failed to get filename")
-//                return nil
-//            }
-//
-//            //Legacy
-//            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.string16 // "\(filename).srt".fileSystemURL?.string16
-//
-////            if let url = "\(filename).srt".fileSystemURL {
-////                do {
-////                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16
-////                } catch let error {
-////                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-////
-////                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-////                    //                    if completed && !aligning {
-////                    //                        remove()
-////                    //                    }
-////                }
-////            }
-//
-//            _transcriptSegments = (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.string16 // "\(filename).segments".fileSystemURL?.string16
-//
-////            if let url = "\(filename).segments".fileSystemURL {
-////                do {
-////                    try _transcriptSegments = String(contentsOfFile: url.path, encoding: String.Encoding.utf8) // why not utf16?
-////                } catch let error {
-////                    print("failed to load machine generated transcriptSegments for \(mediaItem.description): \(error.localizedDescription)")
-////
-////                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-////                    //                    if completed && !aligning {
-////                    //                        remove()
-////                    //                    }
-////                }
-////            }
-//
-//            return _transcriptSegments
-//        }
-//        set {
-////            guard let mediaItem = mediaItem else {
-////                return
-////            }
-//
-////            guard let id = mediaItem.mediaCode else {
-////                return
-////            }
-////
-////            guard let purpose = purpose else {
-////                return
-////            }
-//
-//            var changed = false
-//
-//            var value = newValue
-//
-//            if _transcriptSegments == nil {
-//                // Why do we do this?  To strip any header like SRT or WebVTT and remove newlines and add separator
-//                if var transcriptSegmentComponents = value?.components(separatedBy: "\n\n") {
-//                    for transcriptSegmentComponent in transcriptSegmentComponents {
-//                        var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-//                        if transcriptSegmentArray.count > 2 {
-//                            let count = transcriptSegmentArray.removeFirst()
-//                            let timeWindow = transcriptSegmentArray.removeFirst()
-//
-//                            if let range = transcriptSegmentComponent.range(of: timeWindow + "\n") {
-//                                let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-//
-//                                if let index = transcriptSegmentComponents.firstIndex(of: transcriptSegmentComponent) {
-//                                    transcriptSegmentComponents[index] = "\(count)\n\(timeWindow)\n" + text
-//                                    changed = true
-//                                }
-//                            }
-//                        }
-//                    }
-//                    if changed { // Essentially guaranteed to happen.
-//                        value = nil
-//                        for transcriptSegmentComponent in transcriptSegmentComponents {
-//                            let transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-//                            if transcriptSegmentArray.count > 2 { // This removes anything w/o text, i.e. only count and timeWindow - or less, like a header, e.g. WebVTT (a nice side effect)
-//                                value = (value != nil ? value! + VoiceBase.separator : "") + transcriptSegmentComponent
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            _transcriptSegments = value
-//
-////            DispatchQueue.global(qos: .background).async { [weak self] in
-////                let fileManager = FileManager.default
-//            fileQueue.addOperation { [weak self] in
-//                guard let filename = self?.filename else {
-//                    return
-//                }
-//
-//                if self?._transcriptSegments != nil {
-////                    if let filename = self?.filename { // , let destinationURL = (filename + ".segments").fileSystemURL
-////                        let filename = filename + ".segments"
-////                        filename.fileSystemURL?.delete(block:true)
-//                    self?._transcriptSegments?.save16(filename:filename + Constants.FILENAME_EXTENSION.segments) // Keep in mind that this is being saved in the cache folder where it could disappear.
-////                        do {
-////                            try self?._transcriptSegments?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf16) // why not utf16?
-////                        } catch let error {
-////                            print("failed to write segment transcript to cache directory: \(error.localizedDescription)")
-////                        }
-////                    } else {
-////                        print("failed to get destinationURL")
-////                    }
-////
-////                    //Legacy clean-up
-////                    (filename + ".srt").fileSystemURL?.delete(block:true)
-//////                    if let filename = self?.filename {
-//////                        (filename + ".srt").fileSystemURL?.delete(block:true)
-//////                    } else {
-//////                        print("failed to get destinationURL")
-//////                    }
-//                } else {
-//                    (filename + Constants.FILENAME_EXTENSION.segments).fileSystemURL?.delete(block:true)
-////                    if let filename = self?.filename, let destinationURL = (filename + ".segments").fileSystemURL {
-////                        destinationURL.delete(block:true)
-////                    } else {
-////                        print("failed to get destinationURL")
-////                    }
-////
-////                    //Legacy clean-up
-////                    (filename + ".srt").fileSystemURL?.delete(block:true)
-//////                    if let filename = self?.filename, let destinationURL = (filename + ".srt").fileSystemURL {
-//////                        destinationURL.delete(block:true)
-//////                    } else {
-//////                        print("failed to get destinationURL")
-//////                    }
-//                }
-//
-//                //Legacy clean-up
-//                (filename + Constants.FILENAME_EXTENSION.srt).fileSystemURL?.delete(block:true)
-////                if let filename = self?.filename {
-////                    (filename + ".srt").fileSystemURL?.delete(block:true)
-////                } else {
-////                    print("failed to get destinationURL")
-////                }
-//            }
-//        }
-//    }
-
     var transcriptSegmentsFromWords:String?
     {
         get {
@@ -4009,62 +3461,14 @@ class VoiceBase // : NSObject
         }
     }
     
-//    var transcriptSegmentsFromTranscriptSegmentComponents:String?
-//    {
-//        get {
-//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
-//                return nil
-//            }
-//            
-//            var str : String?
-//            
-//            for transcriptSegmentComponent in transcriptSegmentComponents {
-//                str = (str != nil ? str! + VoiceBase.separator : "") + transcriptSegmentComponent
-//            }
-//
-//            return str
-//        }
-//    }
-//    
-//    var transcriptFromTranscriptSegments:String?
-//    {
-//        get {
-//            guard let transcriptSegmentComponents = transcriptSegmentComponents?.result else {
-//                return nil
-//            }
-//            
-//            var str : String?
-//            
-//            for transcriptSegmentComponent in transcriptSegmentComponents {
-//                var strings = transcriptSegmentComponent.components(separatedBy: "\n")
-//                
-//                if strings.count > 2 {
-//                    _ = strings.removeFirst() // count
-//                    let timing = strings.removeFirst() // time
-//                    
-//                    if let range = transcriptSegmentComponent.range(of:timing+"\n") {
-//                        let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
-//                        str = (str != nil ? str! + " " : "") + string
-//                    }
-//                }
-//            }
-//
-//            return str
-//        }
-//    }
-    
     private func getTranscriptSegments(alert:Bool, atEnd:(()->())?)
     {
         guard let mediaID = mediaID else {
             return
         }
         
-        // mediaID:mediaID,
         VoiceBase.get(accept:"text/vtt", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let transcriptSegments = json?["text"] as? String {
-//                self._transcriptSegments = nil // Without this the new transcript segments will not be processed correctly.
-//                self.transcriptSegments = transcriptSegments
-                
                 self.transcriptSegments?.store?(transcriptSegments)
                 
                 if alert, let text = self.mediaItem?.text {
@@ -4102,7 +3506,6 @@ class VoiceBase // : NSObject
             return
         }
         
-        // mediaID: nil,
         var service = VoiceBase.url(path: "media", query: nil)
         service = service + "?query=" + string
         
@@ -4160,19 +3563,6 @@ class VoiceBase // : NSObject
                     print(errors)
                     errorOccured = true
                 }
-
-//                do {
-//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-//                    print(json as Any)
-//
-//                    if let errors = json?["errors"] {
-//                        print(errors)
-//                        errorOccured = true
-//                    }
-//                } catch let error {
-//                    // JSONSerialization failed
-//                    print("JSONSerialization error: ",error.localizedDescription)
-//                }
             } else {
                 // no data
                 
@@ -4207,16 +3597,6 @@ class VoiceBase // : NSObject
                                 
                             }
 
-//                            self.getTranscript(alert:detailedAlerts) {
-//                                self.getTranscriptSegments(alert:detailedAlerts) {
-//                                    self.details(alert:detailedAlerts) {
-//
-//                                        // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
-//                                        // sure I can predict the context in which this (i.e. that) would happen.
-//
-//                                    }
-//                                }
-//                            }
                         },
                         errorTitle: "Transcript Reload Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not reloaded.  Please try again.", onError: {
 
@@ -4256,22 +3636,6 @@ class VoiceBase // : NSObject
                 alertItems.append(AlertItem.text(self.mediaID))
                 alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
                 Alerts.shared.alert(title: "VoiceBase Media ID", message: message, items: alertItems)
-
-//                let alert = UIAlertController(  title: "VoiceBase Media ID",
-//                                                message: message,
-//                                                preferredStyle: .alert)
-//                alert.makeOpaque()
-//
-//                alert.addTextField(configurationHandler: { (textField:UITextField) in
-//                    textField.text = self.mediaID
-//                })
-//
-//                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-//                    (action : UIAlertAction) -> Void in
-//                })
-//                alert.addAction(okayAction)
-//
-//                viewController.present(alert, animated: true, completion: nil)
             }))
             
             actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
@@ -4304,13 +3668,6 @@ class VoiceBase // : NSObject
         }))
 
         Alerts.shared.alert(title: "Confirm Alignment of Machine Generated Transcript From \(source)", message: "This may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.", actions: alertActions)
-
-//        yesOrNo(viewController: viewController, title: "Confirm Alignment of Machine Generated Transcript", message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
-//            yesAction: { () -> (Void) in
-//                action?()
-//        },
-//            yesStyle: .destructive,
-//            noAction: nil, noStyle: .default)
     }
     
     func selectAlignmentSource(viewController:UIViewController)
@@ -4358,17 +3715,6 @@ class VoiceBase // : NSObject
         }))
         
         Alerts.shared.alert(title: "Select Source for Alignment", message: text, actions: alertActions)
-//        alertActionsCancel( viewController: viewController,
-//                            title: "Select Source for Alignment",
-//                            message: text,
-//                            alertActions: alertActions,
-//                            cancelAction: nil)
-        
-        //                            alertActionsCancel( viewController: viewController,
-        //                                                title: "Confirm Alignment of Machine Generated Transcript",
-        //                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
-        //                                alertActions: alertActions,
-        //                                cancelAction: nil)
     }
     
     // This is used to keep track of auto edit and must be accessible, i.e. not private
@@ -5825,39 +5171,24 @@ class VoiceBase // : NSObject
 
     func cancelAutoEdit(alert:Bool)
     {
-//        DispatchQueue.global(qos: .userInteractive).async {
-            self.operationQueue.cancelAllOperations()
-            self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
-            
-            //                            self.operationQueue.waitUntilAllOperationsAreFinished()
-            
-            guard alert else {
-                return
-            }
-            
-            if let text = self.mediaItem?.text {
-                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
-            } else {
-                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
-            }
-//        }
+        self.operationQueue.cancelAllOperations()
+        self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
+        
+        //                            self.operationQueue.waitUntilAllOperationsAreFinished()
+        
+        guard alert else {
+            return
+        }
+        
+        if let text = self.mediaItem?.text {
+            Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
+        } else {
+            Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
+        }
     }
     
     func cancelAutoEdit(confirm:Bool,alert:Bool)
     {
-//        Alerts.shared.alert(title: Constants.Strings.Canceling_Auto_Edit, message: message)
-//
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            self.operationQueue.cancelAllOperations()
-//            //                            self.operationQueue.waitUntilAllOperationsAreFinished()
-//
-//            if let text = self.mediaItem?.text {
-//                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
-//            } else {
-//                Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
-//            }
-//        }
-
         guard confirm else {
             cancelAutoEdit(alert:alert)
             return
@@ -5874,19 +5205,6 @@ class VoiceBase // : NSObject
             }
 
             self.cancelAutoEdit(alert:alert)
-
-//            DispatchQueue.global(qos: .userInteractive).async {
-//                self.operationQueue.cancelAllOperations()
-//                self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
-//
-//                //                            self.operationQueue.waitUntilAllOperationsAreFinished()
-//
-//                if let text = self.mediaItem?.text {
-//                    Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled, message: "\(text) (\(self.transcriptPurpose))")
-//                } else {
-//                    Alerts.shared.alert(title: Constants.Strings.Auto_Edit_Canceled)
-//                }
-//            }
         })
         alertActions.append(yesAction)
         
@@ -6615,65 +5933,11 @@ class VoiceBase // : NSObject
                     }))
                 }
                 
-//                if self.operationQueue.operationCount == 0 {
-//                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .destructive, handler: {
-//                        self.confirmAutoEdit()
-////                        var alertActions = [AlertAction]()
-////
-////                        let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
-////                            () -> Void in
-////                            self.autoEdit()
-////                        })
-////                        alertActions.append(yesAction)
-////
-////                        let noAction = AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: {
-////                            () -> Void in
-////
-////                        })
-////                        alertActions.append(noAction)
-////
-////                        Alerts.shared.alert(title: Constants.Strings.Confirm_Auto_Edit, message: text + " (\(self.transcriptPurpose))", actions: alertActions)
-//                    }))
-//                } else {
-////                    alertActions.append(AlertAction(title: Constants.Strings.Cancel_Auto_Edit, style: .default, handler: {
-////                        let message = "for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it is complete."
-////
-////                        Alerts.shared.alert(title: "Canceling Auto Edit", message: message)
-////
-////                        DispatchQueue.global(qos: .userInteractive).async {
-////                            self.operationQueue.cancelAllOperations()
-//////                            self.operationQueue.waitUntilAllOperationsAreFinished()
-////
-////                            Alerts.shared.alert(title: "Auto Edit Canceled", message: "\(text) (\(self.transcriptPurpose))")
-////                        }
-////                    }))
-//
-//                    alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .default, handler: {
-//                        self.autoEditUnderway()
-//                    }))
-//                }
-                
                 alertActions.append(AlertAction(title: "Media ID", style: .default, handler: {
                     var alertItems = [AlertItem]()
                     alertItems.append(AlertItem.text(self.mediaID))
                     alertItems.append(AlertItem.action(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil)))
                     Alerts.shared.alert(title: "VoiceBase Media ID", message: text + " (\(self.transcriptPurpose))", items: alertItems)
-
-//                    let alert = UIAlertController(  title: "VoiceBase Media ID",
-//                                                    message: text + " (\(self.transcriptPurpose))",
-//                                                    preferredStyle: .alert)
-//                    alert.makeOpaque()
-//                    
-//                    alert.addTextField(configurationHandler: { (textField:UITextField) in
-//                        textField.text = self.mediaID
-//                    })
-//                    
-//                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: {
-//                        (action : UIAlertAction) -> Void in
-//                    })
-//                    alert.addAction(okayAction)
-//                    
-//                    viewController.present(alert, animated: true, completion: nil)
                 }))
                 
                 if Globals.shared.isVoiceBaseAvailable ?? false {
@@ -6725,89 +5989,7 @@ class VoiceBase // : NSObject
                             return
                         }
                         
-//                        var alertActions = [AlertAction]()
-//
-//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-//                            var alertActions = [AlertAction]()
-//
-//                            if self.mediaItem?.hasNotesHTML == true {
-//                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .default, handler: {
-//                                    process(viewController: viewController, work: { [weak self] () -> (Any?) in
-//                                        self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
-//                                    }, completion: { [weak self] (data:Any?) in
-//                                        self?.align(stripHTML(self?.mediaItem?.notesHTML.result))
-//                                    })
-//                                }))
-//                            }
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .default, handler: {
-//                                self.align(self.transcript)
-//                            }))
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .default, handler: {
-//                                self.align(self.transcriptFromTranscriptSegments)
-//                            }))
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .default, handler: {
-//                                self.align(self.transcriptFromWords)
-//                            }))
-//
-//                            alertActionsCancel( viewController: viewController,
-//                                                title: "Select Source for Alignment",
-//                                                message: text,
-//                                                alertActions: alertActions,
-//                                                cancelAction: nil)
-//                        }))
-//
-//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                        
                         self.selectAlignmentSource(viewController:viewController)
-                        
-//                        if let text = self.mediaItem?.text {
-//                            var alertActions = [AlertAction]()
-//
-//                            if (self.mediaItem?.hasNotes == true) || (self.mediaItem?.hasNotesHTML == true) {
-//                                alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .destructive, handler: {
-//                                    confirmAlignment {
-//                                        process(viewController: viewController, work: { [weak self] () -> (Any?) in
-//                                            self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
-//                                            }, completion: { [weak self] (data:Any?) in
-//                                                self?.align(self?.mediaItem?.notesText) // stripHTML(self?.mediaItem?.notesHTML.result)
-//                                        })
-//                                    }
-//                                }))
-//                            }
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Transcript, style: .destructive, handler: {
-//                                confirmAlignment {
-//                                    self.align(self.transcript)
-//                                }
-//                            }))
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Segments, style: .destructive, handler: {
-//                                confirmAlignment {
-//                                    self.align(self.transcriptFromTranscriptSegments)
-//                                }
-//                            }))
-//
-//                            alertActions.append(AlertAction(title: Constants.Strings.Words, style: .destructive, handler: {
-//                                confirmAlignment {
-//                                    self.align(self.transcriptFromWords)
-//                                }
-//                            }))
-//
-//                            alertActionsCancel( viewController: viewController,
-//                                                title: "Select Source for Alignment",
-//                                                message: text,
-//                                                alertActions: alertActions,
-//                                                cancelAction: nil)
-//
-////                            alertActionsCancel( viewController: viewController,
-////                                                title: "Confirm Alignment of Machine Generated Transcript",
-////                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))\n\nPlease note that new lines and blank lines (e.g. paragraph breaks) may not survive the alignment process.",
-////                                alertActions: alertActions,
-////                                cancelAction: nil)
-//                        }
                     }))
                 }
                 
@@ -6836,49 +6018,11 @@ class VoiceBase // : NSObject
                                     self.transcript = self.transcriptFromWords
                                 }, yesStyle: .destructive,
                                 noAction: nil, noStyle: .default)
-                        
-//                        var alertActions = [AlertAction]()
-//                        
-//                        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-//                            self.transcript = self.transcriptFromWords
-//                        }))
-//                        
-//                        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-//                        
-//                        if let text = self.mediaItem?.text {
-//                            alertActionsCancel( viewController: viewController,
-//                                                title: "Confirm Regeneration of Transcript",
-//                                                message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
-//                                alertActions: alertActions,
-//                                cancelAction: nil)
-//                        }
                     }))
                     
                     if Globals.shared.isVoiceBaseAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-//                                var alertActions = [AlertAction]()
-//
-//                                alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-//                                    Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
-//
-//                                    if self.resultsTimer != nil {
-//                                        print("TIMER NOT NIL!")
-//
-//                                        var actions = [AlertAction]()
-//
-//                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))
-//
-//                                        Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
-//                                    } else {
-//                                        Thread.onMainThread {
-//                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
-//                                        }
-//                                    }
-//                                }))
-//
-//                                alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                                
                                 viewController.yesOrNo(title: "Confirm Reloading",
                                         message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
                                         yesAction: { () -> (Void) in
@@ -6899,12 +6043,6 @@ class VoiceBase // : NSObject
                                             }
                                         }, yesStyle: .destructive,
                                         noAction: nil, noStyle: .default)
-                                
-//                                        alertActionsCancel( viewController: viewController,
-//                                                            title: "Confirm Reloading",
-//                                                            message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
-//                                            alertActions: alertActions,
-//                                            cancelAction: nil)
                             }, onError:  { (dict:[String:Any]?)->(Void) in
                                 var actions = [AlertAction]()
                                 
@@ -6937,14 +6075,6 @@ class VoiceBase // : NSObject
                         return
                     }
                     
-//                    var alertActions = [AlertAction]()
-//
-//                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-//                        self.remove()
-//                    }))
-//
-//                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: nil))
-                    
                     viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
@@ -6953,12 +6083,6 @@ class VoiceBase // : NSObject
                             yesStyle: .destructive,
                             noAction: nil,
                             noStyle: .default)
-
-//                        alertActionsCancel( viewController: viewController,
-//                                            title: "Confirm Deletion of Machine Generated Transcript",
-//                                            message: "\(text) (\(self.transcriptPurpose))",
-//                            alertActions: alertActions,
-//                            cancelAction: nil)
                 }))
                 
                 viewController.alertActionsCancel(title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
@@ -6970,11 +6094,6 @@ class VoiceBase // : NSObject
         
         return action
     }
-    
-//    func editTranscriptSegment(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath)
-//    {
-//        editTranscriptSegment(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticVisible:false,automaticInteractive:false,automaticCompletion:nil)
-//    }
     
     func editTranscriptSegment(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath, automatic:Bool = false, automaticVisible:Bool = false, automaticInteractive:Bool = false, automaticCompletion:(()->(Void))? = nil)
     {
@@ -7049,35 +6168,13 @@ class VoiceBase // : NSObject
             
             textPopover.onDone = { [weak self] (text:String) -> Void in
                 textPopover.onSave?(text)
-//                self.transcriptSegmentComponents?[transcriptSegmentIndex] = "\(count)\n\(transcriptSegmentTiming)\n\(text)"
-//                if popover.searchActive {
-//                    popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing)\n\(text)"
-//                }
-//                popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
+            self?.transcriptSegments?.store?(self?.transcriptSegmentComponents?.result?.transcriptSegmentsFromTranscriptSegmentComponents)
 
-                self?.transcriptSegments?.store?(self?.transcriptSegmentComponents?.result?.transcriptSegmentsFromTranscriptSegmentComponents)
-
-                // Not sure about this.
-//                self.fileQueue.addOperation { [weak self] in
-//                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
-//                }
-//                DispatchQueue.global(qos: .background).async { [weak self] in
-//                    self?.transcriptSegments = self?.transcriptSegmentsFromTranscriptSegments
-//                }
-                
                 Thread.onMainThread {
                     popover.tableView.isEditing = false
                     popover.tableView.reloadData()
                     popover.tableView.reloadData()
                 }
-                
-//                if indexPath.section >= popover.tableView.numberOfSections {
-//                    print("ERROR: bad indexPath.section")
-//                }
-//
-//                if indexPath.row >= popover.tableView.numberOfRows(inSection: indexPath.section) {
-//                    print("ERROR: bad indexPath.row")
-//                }
                 
                 Thread.onMainThread {
                     if popover.tableView.isValid(indexPath) {
@@ -7096,7 +6193,7 @@ class VoiceBase // : NSObject
         }
     }
     
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]? // popover:PopoverTableViewController,
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
         var actions = [AlertAction]()
         
@@ -7121,13 +6218,6 @@ class VoiceBase // : NSObject
             alertActions.append(AlertAction(title: "By Word", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-//
-//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//                    }
-                    
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
@@ -7143,12 +6233,6 @@ class VoiceBase // : NSObject
                     popover.section.showIndex = true
 
                     popover.stringsFunction = { [weak self] () -> [String]? in
-//                        guard let transcriptSegmentTokens = self.transcriptSegmentTokens else {
-//                            return nil
-//                        }
-//
-//                        return transcriptSegmentTokens.sorted()
-                        
                         guard let words = self?.words else {
                             return nil
                         }
@@ -7265,12 +6349,7 @@ class VoiceBase // : NSObject
                             popover.section.showIndex = true
                             
                             popover.section.indexStringsTransform = { (string:String?) -> String? in
-                                guard let count =  string?.subString(to: " (")?.count else {
-                                    return string?.count.description
-//                                    return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
-                                }
-                                
-                                return count.description
+                                return (string?.word?.count ?? string?.count)?.description
                             }
                             
                             popover.section.indexHeadersTransform = { (string:String?) -> String? in
@@ -7299,23 +6378,12 @@ class VoiceBase // : NSObject
                     
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXWORD")
-                    
-//                    viewController.present(navigationController, animated: true, completion:  {
-//                        completion?(popover)
-//                    })
                 }
             }))
             
             let byPhrase = AlertAction(title: "By Phrase", style: .default, handler: {
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-//
-//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//                    }
-                    
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))"
@@ -7331,12 +6399,6 @@ class VoiceBase // : NSObject
                     popover.section.showIndex = true
                     
                     popover.stringsFunction = { [weak self] () -> [String]? in
-//                        guard let keywordDictionaries = self.keywordDictionaries?.keys else {
-//                            return nil
-//                        }
-//
-//                        return Array(keywordDictionaries).sorted()
-                        
                         guard let keywordDictionaries = self?.keywordDictionaries else {
                             return nil
                         }
@@ -7407,12 +6469,7 @@ class VoiceBase // : NSObject
                                                                             found = true
                                                                             break
                                                                         } else {
-//                                                                            if #available(iOS 12.0, *) {
-//                                                                                print(keyword.nlLemmas,string.nlLemmas,component.nlLemmas)
-//                                                                            } else {
-//                                                                                // Fallback on earlier versions
-//                                                                                print(keyword.nsLemmas,string.nsLemmas,component.nsLemmas)
-//                                                                            }
+
                                                                         }
                                                                     }
                                                                 } else {
@@ -7483,25 +6540,6 @@ class VoiceBase // : NSObject
                                                                 // Lemmas didn't help
                                                                 // try to match part of the last word?
                                                             }
-                                                            
-                                                            // VoiceBase phrases are based on lemmas so matching is not always possible.
-                                                            // Below is a hack.  Really need to try and match using lemmas
-
-//                                                            for count in 0..<keyword.count {
-//                                                                let phrase = String(keyword[keyword.startIndex..<String.Index(utf16Offset: keyword.count - count, in:keyword)])
-//                                                                if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
-//                                                                    let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
-//
-//                                                                    if matches.count > 0 {
-//                                                                        if let oldCount = keywordCounts[keyword] {
-//                                                                            keywordCounts[keyword] = oldCount + matches.count
-//                                                                        } else {
-//                                                                            keywordCounts[keyword] = matches.count
-//                                                                        }
-//                                                                        break
-//                                                                    }
-//                                                                }
-//                                                            }
                                                         }
                                                     }
                                                 }
@@ -7610,13 +6648,11 @@ class VoiceBase // : NSObject
                             popover.section.showIndex = true
                             
                             popover.section.indexStringsTransform = { (string:String?) -> String? in
-                                guard let range = string?.range(of: " ("), let subString = string?[..<range.lowerBound] else {
+                                guard let word = string?.word else {
                                     return nil
                                 }
                                 
-                                let searchText = String(subString)
-                                
-                                return searchText.count.description
+                                return word.count.description
                             }
                             
                             popover.section.indexHeadersTransform = { (string:String?) -> String? in
@@ -7645,24 +6681,11 @@ class VoiceBase // : NSObject
                     
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXPHRASE")
-                    
-//                    viewController.present(navigationController, animated: true, completion:  {
-//                        completion?(popover)
-//                    })
                 }
             })
             
-//            alertActions.append(byPhrase)
-            
             alertActions.append(AlertAction(title: "By Timed Segment", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-//
-//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//                    }
-                    
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
@@ -7673,8 +6696,6 @@ class VoiceBase // : NSObject
                     popover.transcript = self
 
                     popover.search = true
-                    
-//                    popover.editActionsAtIndexPath = self.rowActions
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
                     popover.purpose = .selectingTime
@@ -7727,22 +6748,11 @@ class VoiceBase // : NSObject
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXTIMEDSEGMENT")
-                    
-//                    viewController.present(navigationController, animated: true, completion: {
-//                        completion?(popover)
-//                    })
                 }
             }))
             
             alertActions.append(AlertAction(title: "By Timed Word", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = preferredModalPresentationStyle(viewController: viewController)
-//
-//                    if navigationController.modalPresentationStyle == .popover {// MUST OCCUR BEFORE PPC DELEGATE IS SET.
-//                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-//                    }
-                    
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
@@ -7780,29 +6790,16 @@ class VoiceBase // : NSObject
                         if let words = self?.words?.filter({ (dict:[String:Any]) -> Bool in
                             return dict["w"] != nil
                         }) {
-//                            var lastEnd : Int?
-                            var secondsOffset = 0
-                            
-//                            if let firstStart = words.first?["s"] as? Int {
-//                                secondsOffset = firstStart
-//                            }
-                            
                             for i in 0..<words.count {
                                 if  let position = words[i]["p"] as? Int,
                                     let start = words[i]["s"] as? Int,
                                     let end = words[i]["e"] as? Int,
                                     let word = words[i]["w"] as? String,
-                                    let startHMS = (Double(start - secondsOffset)/1000.0).secondsToHMSms,
-                                    let endHMS = (Double(end - secondsOffset)/1000.0).secondsToHMSms {
+                                    let startHMS = (Double(start)/1000.0).secondsToHMSms,
+                                    let endHMS = (Double(end)/1000.0).secondsToHMSms {
                                     strings.append("\(position+1)\n")
                                     
-//                                    if let lastEnd = lastEnd {
-//                                        strings[i] += String(format:"%.3f ",Double(start - lastEnd)/1000.0)
-//                                    }
-
                                     strings[i] += "\(startHMS) to \(endHMS)\n\(word)"
-
-//                                    lastEnd = end
                                 }
                             }
                         }
@@ -7812,10 +6809,6 @@ class VoiceBase // : NSObject
 
                     viewController.navigationController?.pushViewController(popover, animated: true)
                     completion?(popover,"TIMINGINDEXTIMEDWORD")
-                    
-//                    viewController.present(navigationController, animated: true, completion: {
-//                        completion?(popover)
-//                    })
                 }
             }))
             

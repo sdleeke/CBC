@@ -15,29 +15,6 @@ protocol PopoverPickerControllerDelegate : class
     func stringPicked(_ string:String?, purpose:PopoverPurpose?)
 }
 
-//extension PopoverPickerViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
 extension PopoverPickerViewController : UIPickerViewDataSource
 {
     // MARK: UIPickerViewDataSource
@@ -295,9 +272,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             toolbarItems?[1].isEnabled = false
         }
         
-        // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
-//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-        
         // Needs to be in an opQueue so we don't get multiple conflicting
         operationQueue.addOperation { [weak self] in
             self?.updatePickerSelections()
@@ -366,16 +340,9 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     Thread.onMainThread {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = false
                     }
-                    
-                    // Use setupMediaItemsHTML to also show the documents these words came from - and to allow linking from words to documents.
-                    // The problem is that for lots of words (and documents) this gets to be a very, very large HTML documents
-                    
-                    // SHOULD ONLY BE activeWords
-                    
-                    //                return self?.lexicon?.wordsHTML
+
                     return self?.stringTree?.wordsHTML
                 }, completion: { [weak self] (data:Any?) in
-                    // preferredModalPresentationStyle(viewController: self)
                     var style:UIModalPresentationStyle = .overCurrentContext
 
                     if self?.navigationController?.modalPresentationStyle == .popover {
@@ -422,10 +389,6 @@ class PopoverPickerViewController : CBCViewController
     
         lexicon?.callBacks.unregister("PPVC")
         stringTree?.callBacks.unregister("PPVC")
-
-//        stringTree?.start = nil
-//        stringTree?.update = nil
-//        stringTree?.complete = nil
     }
     
     lazy var popover : [String:PopoverTableViewController]? = {
@@ -458,10 +421,6 @@ class PopoverPickerViewController : CBCViewController
             if stringTree == nil {
                 stringTree = lexicon?.stringTreeFunction?()
                 
-//                stringTree = StringTree(stringsFunction: { [weak self] in
-//                    return self?.lexicon?.stringsFunction?()
-//                    }, incremental:true)
-
                 stringTree?.callBacks.register("PPVC",
                    [
                     "start": { [weak self] in
@@ -479,31 +438,7 @@ class PopoverPickerViewController : CBCViewController
         }
     }
     
-//    var _stringTree : StringTree?
-//    {
-//        didSet {
-//            _stringTree?.lexicon = self.lexicon
-//        }
-//    }
     private var stringTree : StringTree?
-//    {
-//        get {
-//            if let lexicon = lexicon {
-//                return lexicon.stringTree
-//            } else {
-//                return _stringTree
-//            }
-//        }
-//        set {
-//            if let lexicon = lexicon {
-//                lexicon.stringTree = newValue
-//            } else {
-//                _stringTree = newValue
-//            }
-//        }
-//    }
-    
-//    var incremental = false
     
     var allowsSelection = true
     
@@ -512,116 +447,24 @@ class PopoverPickerViewController : CBCViewController
     
     // Either method of initialization works.
     var pickerSelections = ThreadSafe<[Int:Int]>([Int:Int]())
-//    {
-//        return [Int:Int]()
-//    }
     
     var stringsFunction:(()->[String]?)?
     
-//    var _strings:[String]?
     var strings:[String]?
     {
         didSet {
             
         }
     }
-//    {
-//        get {
-//            if let lexicon = lexicon {
-//                return lexicon.strings // Problem - this takes a snapshot as arrays are passed by value, i.e. copies
-//            } else {
-//                return _strings
-//            }
-//        }
-//        set {
-//            if lexicon != nil {
-//                _strings = newValue
-//            }
-//        }
-//    }
   
     var string:String?
     
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     @IBOutlet weak var picker: UIPickerView!
     
-//    @IBOutlet weak var selectButton: UIButton!
-//    @IBOutlet weak var expandedViewButton: UIButton!
-//
-//    @IBAction func expandedViewAction(_ sender: UIButton)
-//    {
-//        process(viewController: self, work: { [weak self] () -> (Any?) in
-//            var bodyHTML = "<!DOCTYPE html>"
-//            
-//            var wordsHTML = ""
-//            var indexHTML = ""
-//            
-//            bodyHTML = bodyHTML + "<html><body>"
-//            
-//            if let roots = self?.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
-//                return lhs.string < rhs.string
-//            }) {
-//                var total = 0
-//                
-//                wordsHTML = "<table>"
-//                
-//                for root in roots {
-//                    if let rows = root.htmlWords(nil) {
-//                        total += rows.count
-//                        
-//                        if let string = root.string {
-//                            wordsHTML = wordsHTML + "<tr><td><br/></td></tr>"
-//                            
-//                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
-//                        }
-//                        
-//                        for row in rows {
-//                            wordsHTML = wordsHTML + "<tr>" + row + "</tr>"
-//                        }
-//                    }
-//                }
-//                
-//                wordsHTML = wordsHTML + "</table>"
-//                
-//                indexHTML = "<table>"
-//                
-//                indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
-//                
-//                indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
-//                
-//                for root in roots {
-//                    if let string = root.string {
-//                        indexHTML = indexHTML + "<td>" + "<a id=\"index\" name=\"index\" href=#\(string)>" + string + "</a>" + "</td>"
-//                    }
-//                }
-//                
-//                indexHTML = indexHTML + "</tr></table>"
-//            }
-//            
-//            bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
-//            
-//            return bodyHTML
-//        }, completion: { [weak self] (data:Any?) in
-//            if let vc = self {
-//                presentHTMLModal(viewController: vc, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//            }
-//        })
-//    }
-//    
-//    @IBAction func selectButtonAction(sender: UIButton)
-//    {
-//        string = wordFromPicker()
-//
-//        delegate?.stringPicked(string,purpose:purpose)
-//    }
-    
     func actionMenu() -> [String]?
     {
         var actionMenu = [String]()
-        
-//        if let actionTitle = actionTitle {
-//            actionMenu.append(actionTitle)
-//        }
         
         actionMenu.append(Constants.Strings.Expanded_View)
         actionMenu.append(Constants.Strings.Word_Index)
@@ -1028,11 +871,6 @@ class PopoverPickerViewController : CBCViewController
     {
         super.viewWillAppear(animated)
         
-        // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
-        
         didAppear = false
 
         if stringTree == nil {
@@ -1135,8 +973,6 @@ class PopoverPickerViewController : CBCViewController
             } else
             
             if stringsFunction != nil {
-//                var strings : [String]?
-                
                 self.process(work: { [weak self] () -> (Any?) in
                     if self?.stringTree?.completed == false {
                         let strings = self?.stringsFunction?()
@@ -1200,10 +1036,6 @@ class PopoverPickerViewController : CBCViewController
     {
         super.viewWillDisappear(animated)
 
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
-        
         NotificationCenter.default.removeObserver(self)
     }
     

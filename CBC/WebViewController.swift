@@ -276,29 +276,6 @@ extension WebViewController : UIActivityItemSource
     }
 }
 
-//extension WebViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//extension WebViewController: UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
 extension WebViewController : PopoverPickerControllerDelegate
 {
     // MARK: PopoverPickerControllerDelegate
@@ -322,12 +299,8 @@ extension WebViewController : PopoverPickerControllerDelegate
 
         self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
         
-        var searchText = string
-        
-        if let range = searchText.range(of: " (") {
-            searchText = String(searchText[..<range.lowerBound])
-        }
-        
+        let searchText = string.word ?? string
+
         self.wkWebView?.isHidden = true
         
         self.activityIndicator.isHidden = false
@@ -525,13 +498,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             alert.addAction(cancel)
             
             Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
-
-//            Alerts.shared.queue.async {
-//                Alerts.shared.semaphore.wait()
-//                Thread.onMainThread {
-//                    self.present(alert, animated: true, completion: nil)
-//                }
-//            }
             
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
@@ -546,18 +512,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.allowsSelection = search
                 
-//                popover.actionTitle = Constants.Strings.Expanded_View
-//                popover.action = { [weak self, weak popover] (String) in
-//                    self?.process(work: { [weak self, weak popover] () -> (Any?) in
-//                        return popover?.stringTree?.html
-//                    }, completion: { [weak self, weak popover] (data:Any?) in
-//                        popover?.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//                    })
-//                }
-                
-//                popover.stringTree = StringTree()
-
-                popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
+                popover.navigationItem.title = navigationItem.title
                 
                 popover.stringsFunction = { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -586,14 +541,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.cloudString = self.bodyHTML?.html2String
                 
-//                popover.cloudWordDictsFunction = {
-//                    let words:[[String:Any]]? = self.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
-//                        return ["word":key,"count":value,"selected":true]
-//                    })
-//                    
-//                    return words
-//                }
-
                 popover.cloudWordDictsFunction = { [weak self] in
                     let words = self?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
                         return ["word":word,"count":count,"selected":true]
@@ -626,7 +573,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     }
                 }).sorted().tableHTML(title:self?.navigationItem.title, test:test)
             }, completion: { [weak self] (data:Any?,test:(()->(Bool))?) in
-                // preferredModalPresentationStyle(viewController: self)
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
             })
             
@@ -769,18 +715,13 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
             
-            var searchText = string
-            
-            if let range = searchText.range(of: " (") {
-                searchText = String(searchText[..<range.lowerBound])
-            }
+            let searchText = string.word ?? string
             
             wkWebView?.isHidden = true
             
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             // This serializes the webView loading
             operationQueue.addOperation { [weak self] in
                 if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
@@ -823,7 +764,6 @@ extension WebViewController : WKNavigationDelegate
     func webView(_ wkWebView: WKWebView, didFinish navigation: WKNavigation!)
     {
         setupWKZoomScaleAndContentOffset(wkWebView)
-        setupHTMLWKZoomScaleAndContentOffset(wkWebView)
         
         Thread.onMainThread {
             self.activityIndicator.stopAnimating()
@@ -837,17 +777,6 @@ extension WebViewController : WKNavigationDelegate
             self.barButtonItems(isEnabled: true)
 
             wkWebView.isHidden = false
-
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
-//                
-//                Thread.onMainThread {
-//                    wkWebView.isHidden = false
-//                    wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
-//                    
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
-//                }
-//            }
         }
     }
     
@@ -918,7 +847,7 @@ extension WebViewController: UIScrollViewDelegate
                 break
 
             case .html:
-                captureHTMLContentOffsetAndZoomScale()
+                break
             }
         }
     }
@@ -939,7 +868,7 @@ extension WebViewController: UIScrollViewDelegate
                 break
                 
             case .html:
-                captureHTMLContentOffsetAndZoomScale()
+                break
             }
         }
     }
@@ -955,7 +884,7 @@ extension WebViewController: UIScrollViewDelegate
                 break
                 
             case .html:
-                captureHTMLContentOffsetAndZoomScale()
+                break
             }
         }
     }
@@ -1129,18 +1058,6 @@ class WebViewController: CBCViewController
         
         webView.addSubview(wkWebView)
         
-//        let centerX = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-//        wkWebView.superview?.addConstraint(centerX)
-//
-//        let centerY = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//        wkWebView.superview?.addConstraint(centerY)
-//
-//        let width = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-//        wkWebView.superview?.addConstraint(width)
-//
-//        let height = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-//        wkWebView.superview?.addConstraint(height)
-        
         let top = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutConstraint.Attribute.topMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: wkWebView.superview, attribute: NSLayoutConstraint.Attribute.topMargin, multiplier: 1.0, constant: 0.0)
         wkWebView.superview?.addConstraint(top)
         
@@ -1169,8 +1086,6 @@ class WebViewController: CBCViewController
 
         self.dismiss(animated: true, completion: nil)
     }
-    
-//    var activityViewController:UIActivityViewController?
     
     func actionMenu() -> [String]?
     {
@@ -1254,8 +1169,6 @@ class WebViewController: CBCViewController
     {
         html.fontSize += 1
         
-        captureHTMLContentOffsetAndZoomScale()
-        
         Thread.onMainThread {
             if self.html.fontSize > Constants.HTML_MIN_FONT_SIZE {
                 self.minusButton?.isEnabled = true
@@ -1276,8 +1189,6 @@ class WebViewController: CBCViewController
     {
         if html.fontSize > Constants.HTML_MIN_FONT_SIZE {
             html.fontSize -= 1
-            
-            captureHTMLContentOffsetAndZoomScale()
             
             Thread.onMainThread {
                 if self.html.fontSize <= Constants.HTML_MIN_FONT_SIZE {
@@ -1334,18 +1245,11 @@ class WebViewController: CBCViewController
                 if self.navigationController?.viewControllers.count == 1 {
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
 
-                    if Globals.shared.splitViewController?.isCollapsed == false { // presentingViewController?.modalPresentationStyle == .popover
+                    if Globals.shared.splitViewController?.isCollapsed == false {
                         navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                     }
-
-//                                                                                // To Keep WEB VIEWS over other Forms from failing.
-//                    if Globals.shared.splitViewController?.isCollapsed == false, Alerts.shared.topViewController.isEmpty {
-//                        navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
-//                    } else {
-//                        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
-//                    }
                 } else {
                     if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
                         navigationItem.rightBarButtonItems?.append(actionButton)
@@ -1510,31 +1414,6 @@ class WebViewController: CBCViewController
         }
     }
     
-    //
-    // The following don't work well
-    //
-    
-    func setupHTMLWKZoomScaleAndContentOffset(_ wkWebView: WKWebView?)
-    {
-        // This used in transition to size to set the content offset.
-        
-    }
-    
-    func setupHTMLWKContentOffset(_ wkWebView: WKWebView?)
-    {
-        // This used in transition to size to set the content offset.
-        
-    }
-    
-    func captureHTMLContentOffsetAndZoomScale()
-    {
-
-    }
-    
-    //
-    ////////////////////////////////////
-    //
-    
     func setupSplitViewController()
     {
         if (UIDevice.current.orientation.isPortrait) {
@@ -1576,7 +1455,7 @@ class WebViewController: CBCViewController
             break
             
         case .html:
-            captureHTMLContentOffsetAndZoomScale()
+            break
         }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -1590,7 +1469,7 @@ class WebViewController: CBCViewController
                 break
                 
             case .html:
-                self.setupHTMLWKZoomScaleAndContentOffset(self.wkWebView)
+                break
             }
             
             // only works for popover
@@ -1662,102 +1541,54 @@ class WebViewController: CBCViewController
             return
         }
         
-//        if #available(iOS 9.0, *) {
-            if Globals.shared.cacheDownloads {
-                if let destinationURL = urlString.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
-                    _ = wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
-                    
-                    activityIndicator.stopAnimating()
-                    activityIndicator.isHidden = true
-                    
-                    progressIndicator.progress = 0.0
-                    progressIndicator.isHidden = true
-                    
-                    loadTimer?.invalidate()
-                    loadTimer = nil
-                } else {
-                    download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url) // , fileSystemURL: urlString.fileSystemURL
-                    
-                    if let download = download {
-                        activityIndicator.isHidden = false
-                        activityIndicator.startAnimating()
-                        
-                        progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                        progressIndicator.isHidden = false
-
-                        NotificationCenter.default.addObserver(self, selector: #selector(downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
-                        NotificationCenter.default.addObserver(self, selector: #selector(downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
-
-                        download.download(background: false)
-                    }
-                }
-            } else {
-                if let activityIndicator = activityIndicator {
-                    webView.bringSubviewToFront(activityIndicator)
-                }
+        if Globals.shared.cacheDownloads {
+            if let destinationURL = urlString.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
+                _ = wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                 
-                activityIndicator.isHidden = false
-                activityIndicator.startAnimating()
+                activityIndicator.stopAnimating()
+                activityIndicator.isHidden = true
                 
                 progressIndicator.progress = 0.0
-                progressIndicator.isHidden = false
+                progressIndicator.isHidden = true
                 
-                if loadTimer == nil {
-                    loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(loading), userInfo: nil, repeats: true)
-                }
+                loadTimer?.invalidate()
+                loadTimer = nil
+            } else {
+                download = Download(mediaItem: nil, purpose: nil, downloadURL: urlString.url) // , fileSystemURL: urlString.fileSystemURL
+                
+                if let download = download {
+                    activityIndicator.isHidden = false
+                    activityIndicator.startAnimating()
+                    
+                    progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+                    progressIndicator.isHidden = false
 
-                if let url = urlString.url {
-                    let request = URLRequest(url: url)
-                    _ = wkWebView?.load(request)
-                }
+                    NotificationCenter.default.addObserver(self, selector: #selector(downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
 
-//                DispatchQueue.global(qos: .background).async { [weak self] in
-//                    Thread.onMainThread {
-//                        if let activityIndicator = self?.activityIndicator {
-//                            self?.webView.bringSubview(toFront: activityIndicator)
-//                        }
-//
-//                        self?.activityIndicator.isHidden = false
-//                        self?.activityIndicator.startAnimating()
-//
-//                        self?.progressIndicator.progress = 0.0
-//                        self?.progressIndicator.isHidden = false
-//
-//                        if self?.loadTimer == nil, let target = self {
-//                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-//                        }
-//                    }
-//
-//                    if let url = urlString.url {
-//                        let request = URLRequest(url: url)
-//                        _ = self?.wkWebView?.load(request)
-//                    }
-//                }
+                    download.download(background: false)
+                }
             }
-//        } else {
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                Thread.onMainThread {
-//                    if let activityIndicator = self?.activityIndicator {
-//                        self?.webView.bringSubview(toFront: activityIndicator)
-//                    }
-//
-//                    self?.activityIndicator.isHidden = false
-//                    self?.activityIndicator.startAnimating()
-//
-//                    self?.progressIndicator.progress = 0.0
-//                    self?.progressIndicator.isHidden = false
-//
-//                    if self?.loadTimer == nil {
-//                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(self?.loading), userInfo: nil, repeats: true)
-//                    }
-//                }
-//
-//                if let url = urlString.url {
-//                    let request = URLRequest(url: url)
-//                    _ = self?.wkWebView?.load(request)
-//                }
-//            }
-//        }
+        } else {
+            if let activityIndicator = activityIndicator {
+                webView.bringSubviewToFront(activityIndicator)
+            }
+            
+            activityIndicator.isHidden = false
+            activityIndicator.startAnimating()
+            
+            progressIndicator.progress = 0.0
+            progressIndicator.isHidden = false
+            
+            if loadTimer == nil {
+                loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(loading), userInfo: nil, repeats: true)
+            }
+
+            if let url = urlString.url {
+                let request = URLRequest(url: url)
+                _ = wkWebView?.load(request)
+            }
+        }
     }
     
     @objc func setPreferredContentSize()
@@ -1780,262 +1611,11 @@ class WebViewController: CBCViewController
         }
     }
     
-//    var orientation : UIDeviceOrientation?
-    
-    @objc func deviceOrientationDidChange()
-    {
-//        guard let orientation = orientation else {
-//            return
-//        }
-//
-//        func action()
-//        {
-//            popover?.values.forEach({ (popover:PopoverTableViewController) in
-//                popover.dismiss(animated: false, completion: nil)
-//            })
-////            popover.values.dismiss(animated: false, completion: nil)
-//            activityViewController?.dismiss(animated: false, completion: nil)
-//        }
-//
-//        // Dismiss any popover
-//        switch orientation {
-//        case .faceUp:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .faceDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeLeft:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeRight:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portrait:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portraitUpsideDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-//
-//        switch UIDevice.current.orientation {
-//        case .faceUp:
-//            break
-//
-//        case .faceDown:
-//            break
-//
-//        case .landscapeLeft:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .landscapeRight:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portrait:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portraitUpsideDown:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-    }
-    
-    @objc func willResignActive()
-    {
-//        dismiss(animated: true, completion: nil)
-    }
-    
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+//
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
     }
@@ -2044,16 +1624,7 @@ class WebViewController: CBCViewController
     {
         super.viewWillAppear(animated)
         
-                                                            // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
-        
         addNotifications()
-        
-//        if html.operationQueue.operationCount > 0 {
-//            activityButtonIndicator.startAnimating()
-//        }
         
         navigationController?.isToolbarHidden = true
         
@@ -2062,8 +1633,6 @@ class WebViewController: CBCViewController
         webView.bringSubviewToFront(activityIndicator)
         
         progressIndicator.isHidden = content == .html
-
-//        orientation = UIDevice.current.orientation
 
         if let title = mediaItem?.title {
             navigationItem.title = title
@@ -2074,26 +1643,14 @@ class WebViewController: CBCViewController
             case .document:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-//
-//                loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
     
             case .pdf:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-//
-//                loadPDF(urlString: pdfURLString)
     
             case .html:
                 activityIndicator.isHidden = false
                 activityIndicator.startAnimating()
-//
-//                if html.string != nil {
-//                    html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
-//
-//                    if let url = html.fileURL {
-//                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-//                    }
-//                }
                 }
 
             preferredContentSize = CGSize(width: 0,height: 44)
@@ -2103,27 +1660,6 @@ class WebViewController: CBCViewController
             barButtonItems(isEnabled: true)
         }
     }
-
-//    func barButtonItems(isEnabled:Bool)
-//    {
-//        if let toolbarItems = self.navigationItem.rightBarButtonItems {
-//            for toolbarItem in toolbarItems {
-//                toolbarItem.isEnabled = isEnabled
-//            }
-//        }
-//        
-//        if let toolbarItems = self.navigationItem.leftBarButtonItems {
-//            for toolbarItem in toolbarItems {
-//                toolbarItem.isEnabled = isEnabled
-//            }
-//        }
-//        
-//        if let toolbarItems = self.toolbarItems {
-//            for toolbarItem in toolbarItems {
-//                toolbarItem.isEnabled = isEnabled
-//            }
-//        }
-//    }
     
     override func viewDidAppear(_ animated: Bool)
     {
@@ -2132,15 +1668,9 @@ class WebViewController: CBCViewController
         if let isHidden = wkWebView?.isHidden, isHidden {
             switch content {
             case .document:
-//                activityIndicator.isHidden = false
-//                activityIndicator.startAnimating()
-//
                 loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
                 
             case .pdf:
-//                activityIndicator.isHidden = false
-//                activityIndicator.startAnimating()
-//
                 loadPDF(urlString: pdfURLString)
                 
             case .html:
@@ -2155,12 +1685,8 @@ class WebViewController: CBCViewController
                     barButtonItems(isEnabled: true)
                 }
             }
-//
-//            preferredContentSize = CGSize(width: 0,height: 44)
-//
-//            barButtonItems(isEnabled: false)
         } else {
-//            barButtonItems(isEnabled: true)
+
         }
     }
     
@@ -2168,17 +1694,11 @@ class WebViewController: CBCViewController
     {
         super.viewWillDisappear(animated)
                 
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
-        
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil
         
         loadTimer?.invalidate()
         loadTimer = nil
-        
-//        html.operationQueue.cancelAllOperations()
         
         Thread.onMainThread {
             NotificationCenter.default.removeObserver(self)

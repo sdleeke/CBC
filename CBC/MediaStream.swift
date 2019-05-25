@@ -38,7 +38,6 @@ class MediaStream
     
     func loadLive(completion:(()->(Void))? = nil)
     {
-        //        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
         operationQueue.addOperation { [weak self] in
             Thread.sleep(forTimeInterval: 1.0)
             

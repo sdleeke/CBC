@@ -56,37 +56,6 @@ protocol PopoverTableViewControllerDelegate : class
 
 /**
  
- Extension to allow popovers regardless of compact height or width.
- 
- */
-
-//extension PopoverTableViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//
-//extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
-
-/**
- 
  Extension to implement UISearchBarDelegate protocol.
  
  */
@@ -212,17 +181,13 @@ extension PopoverTableViewController: UISearchBarDelegate
                 }
             }
             
-//            filteredSection.sorting = true
             filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
-//            filteredSection.sorting = false
         } else
             
         if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
             return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }) {
-//            filteredSection.sorting = true
             filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-//            filteredSection.sorting = false
         }
 
         updateToolbar()
@@ -425,15 +390,11 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         // In case the method changed
         if let function = section.cancelSearchfunction {
-//            unfilteredSection.sorting = true
             unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
-//            unfilteredSection.sorting = false
         } else
         
         if let function = section.function {
-//            unfilteredSection.sorting = true
             unfilteredSection.strings = function(unfilteredSection.method,unfilteredSection.strings)
-//            unfilteredSection.sorting = false
         }
 
         searchBar.showsCancelButton = false
@@ -450,12 +411,6 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         section.stringsAction?(section.strings,section.sorting)
-        
-//        filteredSection = Section(tableView:tableView, stringsAction: { (strings:[String]?,sorting:Bool) in
-//            Thread.onMainThread {
-//                self.segmentedControl?.isEnabled = (strings != nil) && !sorting
-//            }
-//        })
     }
 }
 
@@ -1465,11 +1420,13 @@ class PopoverTableViewController : CBCViewController
         selectedText = string
         
         if let selectedText = selectedText,  let index = section.strings?.firstIndex(where: { (string:String) -> Bool in
-            if let range = string.range(of: " (") {
-                return selectedText.uppercased() == String(string[..<range.lowerBound]).uppercased()
-            } else {
-                return selectedText.uppercased() == string.uppercased()
-            }
+            return selectedText.uppercased() == string.word?.uppercased() ?? string.uppercased()
+            
+//            if let range = string.range(of: " (") {
+//                return selectedText.uppercased() == String(string[..<range.lowerBound]).uppercased()
+//            } else {
+//                return selectedText.uppercased() == string.uppercased()
+//            }
         }) {
             var i = 0
             
@@ -1577,10 +1534,6 @@ class PopoverTableViewController : CBCViewController
         
         NotificationCenter.default.removeObserver(self)
         
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
-        
         completion?()
 
         trackingTimer?.invalidate()
@@ -1591,259 +1544,6 @@ class PopoverTableViewController : CBCViewController
     {
         super.viewDidDisappear(animated)
         
-    }
-    
-    func updateTitle()
-    {
-
-    }
-    
-//    var orientation : UIDeviceOrientation?
-    
-    @objc func deviceOrientationDidChange()
-    {
-//        // Dismiss any popover
-//        func action()
-//        {
-//
-//        }
-//
-//        guard let orientation = orientation else {
-//            return
-//        }
-//
-//        switch orientation {
-//        case .faceUp:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .faceDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeLeft:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeRight:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portrait:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portraitUpsideDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-//
-//        switch UIDevice.current.orientation {
-//        case .faceUp:
-//            break
-//
-//        case .faceDown:
-//            break
-//
-//        case .landscapeLeft:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .landscapeRight:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portrait:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portraitUpsideDown:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-    }
-    
-    @objc func willResignActive()
-    {
-//        self.alertController?.dismiss(animated: true, completion: nil)
-//        self.dismiss(animated: true, completion: nil)
     }
     
     @objc func stopped()
@@ -1868,9 +1568,9 @@ class PopoverTableViewController : CBCViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+//
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(playing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
@@ -1979,11 +1679,6 @@ class PopoverTableViewController : CBCViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-        
-        // Because it is embedded in LexiconViewController
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
         
         if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.containsBelow(navigationController) == false {
             switch navigationController.modalPresentationStyle {
@@ -2108,8 +1803,6 @@ class PopoverTableViewController : CBCViewController
                 }
             }
 
-            // Should this be in an opQueue?  Seems like it should so we don't start this more than once.
-//            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
             operationQueue.addOperation { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
@@ -2809,11 +2502,11 @@ extension PopoverTableViewController : UITableViewDelegate
         guard let string = section.strings?[index] else {
             return
         }
-        
-        if let range = string.range(of: " (") {
-            selectedText = String(string[..<range.lowerBound]).uppercased()
-        }
 
+        if let word = string.word {
+            selectedText = word.uppercased()
+        }
+        
         if let purpose = purpose {
             switch purpose {
                 

@@ -460,25 +460,12 @@ class ScripturePickerViewController : CBCViewController
     {
         super.viewWillAppear(animated)
         
-                                                            // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
-        
-//        orientation = UIDevice.current.orientation
-//
-//        addNotifications()
-        
-//        navigationController?.isToolbarHidden = true
-        
         if navigationController?.modalPresentationStyle == .popover {
             preferredContentSize = CGSize(width:  view.frame.width,
                                           height: scripturePicker.frame.height + 60)
         } else {
             
         }
-        
-//        setupBarButtons()
         
         if scripture?.picked.reference == nil, let reference = scripture?.reference, let books = reference.books, books.count > 0 {
             if let books = scripture?.booksChaptersVerses?.books?.sorted(by: { scripture?.reference?.range(of: $0)?.lowerBound < scripture?.reference?.range(of: $1)?.lowerBound }) {
@@ -501,10 +488,6 @@ class ScripturePickerViewController : CBCViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
         
         NotificationCenter.default.removeObserver(self)
     }

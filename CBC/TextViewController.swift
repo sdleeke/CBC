@@ -299,11 +299,7 @@ extension TextViewController : PopoverPickerControllerDelegate
         
         switch purpose {
         case .selectingWord:
-            var searchText = string
-            
-            if let range = searchText.range(of: " (") {
-                searchText = String(searchText[..<range.lowerBound])
-            }
+            let searchText = string.word ?? string
             
             self.searchActive = true
             self.searchText = searchText
@@ -420,20 +416,6 @@ extension TextViewController : UIActivityItemSource
         
         // present the view controller
         Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-
-//        Alerts.shared.queue.async {
-//            Alerts.shared.semaphore.wait()
-//
-//            Thread.onMainThread {
-//                self.present(activityViewController, animated: true, completion: nil)
-//            }
-//        }
-        
-//        self.present(activityViewController, animated: true, completion: nil)
-
-//        Thread.onMainThread {
-//            self.present(activityViewController, animated: true, completion: nil)
-//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -514,11 +496,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
         case .selectingWord:
             popover?["WORD"]?.dismiss(animated: true, completion: nil)
 
-            var searchText = string
-            
-            if let range = searchText.range(of: " (") {
-                searchText = String(searchText[..<range.lowerBound])
-            }
+            let searchText = string.word ?? string
 
             self.searchActive = true
             self.searchText = searchText
@@ -557,23 +535,12 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     
                     popover.delegate = self
                     
-//                    popover.actionTitle = Constants.Strings.Expanded_View
-//                    popover.action = { (String) in
-//                        self.process(work: { [weak self] () -> (Any?) in
-//                            return popover.stringTree?.html
-//                        }, completion: { [weak self] (data:Any?) in
-//                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//                        })
-//                    }
-                    
                     popover.allowsSelection = search
                     
                     popover.purpose = .selectingWord
                     
-//                    popover.stringTree = StringTree()
-                    
                     if let mediaItem = mediaItem {
-                        popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
+                        popover.navigationItem.title = mediaItem.title
                         
                         popover.stringsFunction = {
                             if let keys = mediaItem.notesTokens?.result?.keys {
@@ -586,7 +553,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                     } else
                         
                     if let transcript = transcript {
-                        popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
+                        popover.navigationItem.title = transcript.mediaItem?.title
                         
                         popover.stringsFunction = {
                             // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -595,7 +562,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             }).sorted()
                         }
                     } else {
-                        popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
+                        popover.navigationItem.title = navigationItem.title
                         
                         let text = self.textView.text
                         
@@ -647,7 +614,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             return "\(string) (\(count))"
                         }).sorted().tableHTML(title:mediaItem.title, test:test)
                     }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()
                     })
@@ -658,7 +624,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             return "\(word) (\(count))"
                         }).sorted().tableHTML(title:transcript.title,test:test)
                     }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()
                     })
@@ -668,7 +633,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                             return "\(string) (\(count))"
                         }).sorted().tableHTML(test:test)
                     }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        // preferredModalPresentationStyle(viewController: self)
                         self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
                         self?.updateBarButtons()
                     })
@@ -726,157 +690,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
                         }).sorted()
                     })
                 }
-
-//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//
-//                    navigationController.popoverPresentationController?.delegate = self
-//
-//                    popover.navigationController?.isNavigationBarHidden = false
-//
-//                    popover.delegate = self
-//                    popover.purpose = .selectingWord
-//
-//                    popover.segments = true
-//
-//                    popover.section.function = { (method:String?,strings:[String]?) in
-//                        return strings?.sort(method: method)
-//                    }
-//                    popover.section.method = Constants.Sort.Alphabetical
-//
-//                    popover.bottomBarButton = true
-//
-//                    var segmentActions = [SegmentAction]()
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-////                        guard let section = popover.section else {
-////                            return
-////                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-//                            popover.section.method = Constants.Sort.Alphabetical
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = nil
-//                            popover.section.indexHeadersTransform = nil
-//                            popover.section.indexSort = nil
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak popover] in
-//                        guard let popover = popover else {
-//                            return
-//                        }
-//
-////                        guard let section = popover.section else {
-////                            return
-////                        }
-//
-//                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-//
-//                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-//                            popover.section.method = Constants.Sort.Frequency
-//
-//                            popover.section.showHeaders = false
-//                            popover.section.showIndex = true
-//
-//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-//                                return string?.log
-//                            }
-//
-//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-//                                return string
-//                            }
-//
-//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-//                                guard let first = first else {
-//                                    return false
-//                                }
-//                                guard let second = second else {
-//                                    return true
-//                                }
-//                                return Int(first) > Int(second)
-//                            }
-//
-//                            popover.section.sorting = true
-//                            popover.section.strings = strings
-//                            popover.section.sorting = false
-//
-//                            popover.section.stringsAction?(strings, popover.section.sorting)
-//
-//                            popover.tableView?.reloadData()
-//                        }
-//                    }))
-//
-//                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-//
-//                    popover.section.showIndex = true
-//
-//                    popover.search = true
-//
-//                    if let mediaItem = mediaItem, mediaItem.hasNotesText {
-//                        popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
-//
-//                        popover.selectedMediaItem = mediaItem
-//
-//                        popover.stringsFunction = {
-//                            //                            mediaItem.loadNotesTokens()
-//
-//                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-//                                return "\(string) (\(count))"
-//                            }).sorted()
-//                        }
-//                    } else
-//
-//                    if let transcript = transcript {
-//                        popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
-//
-//                        // If the transcript has been edited some of these words may not be found.
-//
-//                        popover.stringsFunction = {
-//                            // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-//                            return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-//                                return "\(word) (\(count))"
-//                            }).sorted()
-//                        }
-//                    } else {
-//                        popover.navigationItem.title = navigationItem.title // Constants.Strings.Words
-//
-//                        let text = self.textView.text
-//
-//                        popover.stringsFunction = {
-//                            // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-//                            return text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
-//                                return "\(string) (\(count))"
-//                            }).sorted()
-//                        }
-//                    }
-//
-//                    self.popover?["WORD"] = popover
-//
-//                    popover.completion = { [weak self]  in
-//                        self?.popover?["WORD"] = nil
-//                    }
-//
-//                    present(navigationController, animated: true, completion: nil)
-//                }
                 break
                 
             case Constants.Strings.Email_One:
@@ -895,29 +708,6 @@ extension TextViewController : PopoverTableViewControllerDelegate
         }
     }
 }
-
-//extension TextViewController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-//
-//extension TextViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
 
 class TextViewController : CBCViewController
 {
@@ -1138,10 +928,6 @@ class TextViewController : CBCViewController
     var onSave : ((String)->(Void))?
     var onCancel : (()->(Void))?
 
-//    var confirmation : (()->Bool)?
-//    var confirmationTitle : String?
-//    var confirmationMessage : String?
-
     @objc func singleTapAction(_ tap:UITapGestureRecognizer)
     {
         guard isTracking else {
@@ -1217,19 +1003,6 @@ class TextViewController : CBCViewController
     
     var transcript:VoiceBase?
     
-    // Make thread safe?
-//    var _wordRangeTiming : [[String:Any]]?
-//    {
-//        didSet {
-//            if wordRangeTiming != nil {
-//                checkSync()
-//            }
-//            Thread.onMainThread {
-//                self.syncButton?.isEnabled = self.wordRangeTiming != nil
-//                self.activityIndicator?.stopAnimating()
-//            }
-//        }
-//    }
     lazy var wordRangeTiming : Fetch<[[String:Any]]>? = { [weak self] in
         let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming") // Assumes there is only one at a time globally.
         
@@ -1248,18 +1021,6 @@ class TextViewController : CBCViewController
         }
 
         return fetch
-//        get {
-//            guard _wordRangeTiming == nil else {
-//                return _wordRangeTiming
-//            }
-//
-//            _wordRangeTiming = transcript?.wordRangeTiming
-//
-//            return _wordRangeTiming
-//        }
-//        set {
-//            _wordRangeTiming = newValue
-//        }
     }()
     
     var oldRange : Range<String.Index>?
@@ -1482,28 +1243,6 @@ class TextViewController : CBCViewController
                 self.onDone?(self.textView.attributedText.string)
             })
 
-//            if text != textView.attributedText.string, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
-//                var actions = [AlertAction]()
-//
-//                actions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { () -> (Void) in
-//                    if self.isTracking {
-//                        self.stopTracking()
-//                    }
-//                    self.dismiss(animated: true, completion: nil)
-//                    self.onDone?(self.textView.attributedText.string)
-//                }))
-//
-//                actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:nil))
-//
-//                self.alert(title:confirmationTitle, message:self.confirmationMessage, actions:actions)
-//            } else {
-//                if isTracking {
-//                    stopTracking()
-//                }
-//                dismiss(animated: true, completion: nil)
-//                onDone?(textView.attributedText.string)
-//            }
-
         case "Cancel":
             self.yesOrNo(title: "Discard Changes?", message: nil, yesAction: { () -> (Void) in
                 self.dismiss(animated: true, completion: {
@@ -1518,14 +1257,6 @@ class TextViewController : CBCViewController
             break
         }
     }
-    
-//    private lazy var operationQueue : OperationQueue! = {
-//        let operationQueue = OperationQueue()
-//        operationQueue.name = "TEVC:Operations" // Implies there is only ever one at a time globally
-//        operationQueue.qualityOfService = .userInteractive
-//        operationQueue.maxConcurrentOperationCount = 1
-//        return operationQueue
-//    }()
     
     private lazy var editingQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -1608,11 +1339,7 @@ class TextViewController : CBCViewController
                     var speakerNotesParagraphWords : [String:Int]?
 
                     var tooClose : Int?
-                    
-//                    func showGapTimes(tooClose:Int?)
-//                    {
-//                        
-//                    }
+
                     let block = { // clean this up so it doesn't use variables from outside its scope but parameters passed in?
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
@@ -1679,36 +1406,19 @@ class TextViewController : CBCViewController
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
                             }).speakerNotesParagraph
                             
-                            // self?.transcript?.mediaItem?.teacher?.
                             tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
-                            
-//                            // self?.transcript?.mediaItem?.teacher?.
+
                             speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
-                            
-//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-//                                if first.value == second.value {
-//                                    return first.key < second.key
-//                                } else {
-//                                    return first.value > second.value
-//                                }
-//                            }))
-                            
-                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            //                            self?.wordRangeTiming = data as? [[String:Any]]
-                            //                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
                     }))
                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result
                             }, completion: { (data:Any?) in
-                                //                            self?.wordRangeTiming = data as? [[String:Any]]
-                                //                            self?.creatingWordRangeTiming = false
                                 self?.updateBarButtons()
                                 block()
                         })
@@ -1717,58 +1427,6 @@ class TextViewController : CBCViewController
                         self?.updateBarButtons()
                     }))
                     Alerts.shared.alert(title: "Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", actions: alertActions)
-                    
-//                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
-//                                                  message: "Please note that this may take a considerable amount of time.",
-//                                                  preferredStyle: .alert)
-//                    alert.makeOpaque()
-//
-//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.process(work: { [weak self] () -> (Any?) in
-//                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
-//
-//                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
-//
-//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-//                                if first.value == second.value {
-//                                    return first.key < second.key
-//                                } else {
-//                                    return first.value > second.value
-//                                }
-//                            }))
-//
-////                            self?.creatingWordRangeTiming = true
-//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-//                        }, completion: { (data:Any?) in
-////                            self?.wordRangeTiming = data as? [[String:Any]]
-////                            self?.creatingWordRangeTiming = false
-//                            self?.updateBarButtons()
-//                            block()
-//                        })
-//                    })
-//                    alert.addAction(yesAction)
-//
-//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.process(work: { [weak self] () -> (Any?) in
-////                            self?.creatingWordRangeTiming = true
-//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-//                        }, completion: { (data:Any?) in
-////                            self?.wordRangeTiming = data as? [[String:Any]]
-////                            self?.creatingWordRangeTiming = false
-//                            self?.updateBarButtons()
-//                            block()
-//                        })
-//                    })
-//                    alert.addAction(noAction)
-//
-//                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.updateBarButtons()
-//                    })
-//                    alert.addAction(cancelAction)
-//
-//                    Thread.onMainThread {
-//                        self?.present(alert, animated: true, completion: nil)
-//                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -1871,19 +1529,8 @@ class TextViewController : CBCViewController
                                     popover.navigationItem.title = "Select Gap Threshold"
                                     
                                     popover.delegate = vc
-                                    
-//                                    popover.actionTitle = Constants.Strings.Expanded_View
-//                                    popover.action = { (String) in
-//                                        self?.process(work: { [weak self] () -> (Any?) in
-//                                            return popover.stringTree?.html
-//                                        }, completion: { [weak self] (data:Any?) in
-//                                            popover.presentHTMLModal(mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-//                                        })
-//                                    }
 
                                     popover.purpose = .selectingGapTime
-                                    
-//                                    popover.stringTree = StringTree()
                                     
                                     popover.barButtonActionTitle = "Show"
                                     popover.barButtonAction = { [weak popover] (gapThresholdString:String?) in
@@ -2061,36 +1708,20 @@ class TextViewController : CBCViewController
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
                             }).speakerNotesParagraph
 
-                            // self?.transcript?.mediaItem?.teacher?.
                             tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
-                            // self?.transcript?.mediaItem?.teacher?.
                             speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
                             
-//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-//                                if first.value == second.value {
-//                                    return first.key < second.key
-//                                } else {
-//                                    return first.value > second.value
-//                                }
-//                            }))
-                            
-                            //                            self?.creatingWordRangeTiming = true
                             return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                         }, completion: { (data:Any?) in
-                            //                            self?.wordRangeTiming = data as? [[String:Any]]
-                            //                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
                     }))
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
                         self?.process(work: { [weak self] () -> (Any?) in
-                            //                            self?.creatingWordRangeTiming = true
-                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
+                            return self?.wordRangeTiming?.result
                         }, completion: { (data:Any?) in
-                            //                            self?.wordRangeTiming = data as? [[String:Any]]
-                            //                            self?.creatingWordRangeTiming = false
                             self?.updateBarButtons()
                             block()
                         })
@@ -2099,58 +1730,6 @@ class TextViewController : CBCViewController
                         self?.updateBarButtons()
                     }))
                     Alerts.shared.alert(title:"Use Speaker Paragraph Words?", message: "Please note that this may take a considerable amount of time.", actions:actions)
-                    
-//                    let alert = UIAlertController(title: "Use Speaker Paragraph Words?",
-//                                                  message: "Please note that this may take a considerable amount of time.",
-//                                                  preferredStyle: .alert)
-//                    alert.makeOpaque()
-//                    
-//                    let yesAction = UIAlertAction(title: Constants.Strings.Yes, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.process(work: { [weak self] () -> (Any?) in
-//                            tooClose = self?.transcript?.mediaItem?.mediaTeacher?.overallAverageSpeakerNotesParagraphLength ?? 700 // default value is arbitrary - at best based on trial and error
-//
-//                            speakerNotesParagraphWords = self?.transcript?.mediaItem?.mediaTeacher?.speakerNotesParagraphWords?.result
-//                            
-//                            print(speakerNotesParagraphWords?.sorted(by: { (first:(key: String, value: Int), second:(key: String, value: Int)) -> Bool in
-//                                if first.value == second.value {
-//                                    return first.key < second.key
-//                                } else {
-//                                    return first.value > second.value
-//                                }
-//                            }))
-//                            
-////                            self?.creatingWordRangeTiming = true
-//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-//                        }, completion: { (data:Any?) in
-////                            self?.wordRangeTiming = data as? [[String:Any]]
-////                            self?.creatingWordRangeTiming = false
-//                            self?.updateBarButtons()
-//                            block()
-//                        })
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: Constants.Strings.No, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.process(work: { [weak self] () -> (Any?) in
-////                            self?.creatingWordRangeTiming = true
-//                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-//                        }, completion: { (data:Any?) in
-////                            self?.wordRangeTiming = data as? [[String:Any]]
-////                            self?.creatingWordRangeTiming = false
-//                            self?.updateBarButtons()
-//                            block()
-//                        })
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: { (UIAlertAction) -> Void in
-//                        self?.updateBarButtons()
-//                    })
-//                    alert.addAction(cancelAction)
-//
-//                    Thread.onMainThread {
-//                        self?.present(alert, animated: true, completion: nil)
-//                    }
                 }))
                 
                 actions.append(AlertAction(title: "Text Edits", style: .default, handler: { [weak self] in
@@ -2335,10 +1914,6 @@ class TextViewController : CBCViewController
             popover.automaticCompletion = self.automaticCompletion
             popover.automaticInteractive = self.automaticInteractive
 
-//            popover.confirmation = self.confirmation
-//            popover.confirmationTitle = self.confirmationTitle
-//            popover.confirmationMessage = self.confirmationMessage
-
             // Can't copy this or the sync button may never become active
             // because the following data structure must be setup in and by the full screen view
 //            popover.creatingWordRangeTiming = self.creatingWordRangeTiming
@@ -2354,6 +1929,7 @@ class TextViewController : CBCViewController
 
             popover.lastRange = self.lastRange
 
+            // Don't
 //            popover.operationQueue = self.operationQueue
             
             popover.oldRange = self.oldRange
@@ -2570,13 +2146,6 @@ class TextViewController : CBCViewController
         navigationController?.toolbar.isTranslucent = false
     }
     
-//    var creatingWordRangeTiming : Bool // = false
-//    {
-//        get {
-//            return operationQueue.operationCount > 0
-//        }
-//    }
-    
     func checkSync()
     {
         guard let transcript = self.transcript else {
@@ -2641,11 +2210,6 @@ class TextViewController : CBCViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
-
-                                                            // In case it is embedded
-//        if let navigationController = navigationController, navigationController.topViewController == self, modalPresentationStyle != .popover {
-//            Alerts.shared.topViewController.append(navigationController)
-//        }
         
         navigationController?.isToolbarHidden = toolbarItems == nil
 
@@ -2661,16 +2225,6 @@ class TextViewController : CBCViewController
         if track {
             wordRangeTiming?.fill()
         }
-        
-//        if track, wordRangeTiming == nil, !creatingWordRangeTiming {
-////            self.creatingWordRangeTiming = true
-//
-////            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//            operationQueue.addOperation { [weak self] in
-//                _ = self?.wordRangeTiming // = self?.transcript?.wordRangeTiming
-////                self?.creatingWordRangeTiming = false
-//            }
-//        }
         
         updateBarButtons()
     }
@@ -2751,27 +2305,6 @@ class TextViewController : CBCViewController
             if let lowerRange = lowerRange {
                 // encodedOffset
                 if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
-//                    if interactive {
-//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                    } else {
-//                        guard gap >= gapThreshold else {
-//                            if !automatic {
-//                                var actions = [AlertAction]()
-//
-//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-//                                    self.updateBarButtons()
-//                                }))
-//
-//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-//                            }
-//                            return
-//                        }
-//
-//                        editingQueue.addOperation { [weak self] in
-//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                        }
-//                    }
-                    
                     if !interactive, gap < gapThreshold {
                         if !automatic {
                             var actions = [AlertAction]()
@@ -2797,27 +2330,6 @@ class TextViewController : CBCViewController
                 
                 // Too close to the start?
                 if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
-//                    if interactive {
-//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                    } else {
-//                        guard gap >= gapThreshold else {
-//                            if !automatic {
-//                                var actions = [AlertAction]()
-//
-//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-//                                    self.updateBarButtons()
-//                                }))
-//
-//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-//                            }
-//                            return
-//                        }
-//
-//                        editingQueue.addOperation { [weak self] in
-//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                        }
-//                    }
-                    
                     if !interactive, gap < gapThreshold {
                         if !automatic {
                             var actions = [AlertAction]()
@@ -2847,27 +2359,6 @@ class TextViewController : CBCViewController
             // Too close to the next?
             if let upperRange = upperRange {
                 if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
-//                    if interactive {
-//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                    } else {
-//                        guard gap >= gapThreshold else {
-//                            if !automatic {
-//                                var actions = [AlertAction]()
-//
-//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-//                                    self.updateBarButtons()
-//                                }))
-//
-//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-//                            }
-//                            return
-//                        }
-//
-//                        editingQueue.addOperation { [weak self] in
-//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                        }
-//                    }
-                    
                     if !interactive, gap < gapThreshold {
                         if !automatic {
                             var actions = [AlertAction]()
@@ -2893,27 +2384,6 @@ class TextViewController : CBCViewController
                 
                 // Too close to end?
                 if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
-//                    if interactive {
-//                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold: gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                    } else {
-//                        guard gap >= gapThreshold else {
-//                            if !automatic {
-//                                var actions = [AlertAction]()
-//
-//                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-//                                    self.updateBarButtons()
-//                                }))
-//
-//                                Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-//                            }
-//                            return
-//                        }
-//
-//                        editingQueue.addOperation { [weak self] in
-//                            self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
-//                        }
-//                    }
-                    
                     if !interactive, gap < gapThreshold {
                         if !automatic {
                             var actions = [AlertAction]()
@@ -3007,15 +2477,7 @@ class TextViewController : CBCViewController
                             
                             lower = String.Index(utf16Offset: wordRange.lowerBound.utf16Offset(in: text) + gapString.endIndex.utf16Offset(in: gapString), in: newText)
                             
-//                            if wordRange.lowerBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
-//                                lower = newText.index(wordRange.lowerBound, offsetBy: gapString.count)
-//                            }
-                            
                             upper = String.Index(utf16Offset: wordRange.upperBound.utf16Offset(in: text) + gapString.endIndex.utf16Offset(in: gapString), in: newText)
-
-//                            if wordRange.upperBound <= newText.index(newText.endIndex, offsetBy:-gapString.count) {
-//                                upper = newText.index(wordRange.upperBound, offsetBy: gapString.count)
-//                            }
                             
                             if let lower = lower, let upper = upper {
                                 let newRange = Range<String.Index>(uncheckedBounds: (lower: lower, upper: upper))
@@ -3142,11 +2604,6 @@ class TextViewController : CBCViewController
         }
         
         guard var changes = changes, let change = changes.first else {
-//            completion?(text)
-//            return
-//        }
-//        
-//        guard var masterChanges = masterChanges, masterChanges.count > 0 else {
             if !automatic {
                 var actions = [AlertAction]()
                 
@@ -3185,96 +2642,6 @@ class TextViewController : CBCViewController
                 range = text.range(of: oldText, options: [], range:  startingRange, locale: nil)
             }
         }
-        
-//        let keyOrder = ["words","books","verse","verses","chapter","chapters","textToNumbers"]
-//
-//        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
-//            let firstIndex = keyOrder.index(of: first)
-//            let secondIndex = keyOrder.index(of: second)
-//
-//            if let firstIndex = firstIndex, let secondIndex = secondIndex {
-//                return firstIndex > secondIndex
-//            }
-//
-//            if firstIndex != nil {
-//                return false
-//            }
-//
-//            if secondIndex != nil {
-//                return true
-//            }
-//
-//            return first.endIndex > second.endIndex
-//        })
-//
-//        guard var text = text else {
-//            return
-//        }
-//
-//        for masterKey in masterKeys {
-//            if !["words","books","textToNumbers"].contains(masterKey) {
-//                if !text.lowercased().contains(masterKey.lowercased()) {
-//                    masterChanges[masterKey] = nil
-//                }
-//            }
-//        }
-//
-//        guard let masterKey = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
-//            let firstIndex = keyOrder.index(of: first)
-//            let secondIndex = keyOrder.index(of: second)
-//
-//            if let firstIndex = firstIndex, let secondIndex = secondIndex {
-//                return firstIndex > secondIndex
-//            }
-//
-//            if firstIndex != nil {
-//                return false
-//            }
-//
-//            if secondIndex != nil {
-//                return true
-//            }
-//
-//            return first.endIndex > second.endIndex
-//        }).first else {
-//            return
-//        }
-//
-//        guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
-//            return
-//        }
-        
-//        var range : Range<String.Index>?
-//        
-//        if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
-//            if startingRange == nil {
-//                range = text.lowercased().range(of: key)
-//            } else {
-//                range = text.lowercased().range(of: key, options: [], range:  startingRange, locale: nil)
-//            }
-//        } else {
-//            if startingRange == nil {
-//                range = text.range(of: key)
-//            } else {
-//                range = text.range(of: key, options: [], range:  startingRange, locale: nil)
-//            }
-//        }
-//        
-//        while range == nil {
-//            masterChanges[masterKey]?[key] = nil
-//            
-//            if let first = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
-//                key = first
-//                
-//                if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
-//                    range = text.lowercased().range(of: key)
-//                } else {
-//                    range = text.range(of: key)
-//                }
-//            } else {
-//                break
-//            }
-//        }
         
         if let range = range { // , let value = masterChanges[masterKey]?[key]
             let fullAttributedString = NSMutableAttributedString()
@@ -3392,7 +2759,6 @@ class TextViewController : CBCViewController
                         }) { [weak self] (data:Any?) in
                             
                         }
-//                        self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, masterChanges:masterChanges, completion:completion)
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
@@ -3441,40 +2807,12 @@ class TextViewController : CBCViewController
                 editingQueue.addOperation { [weak self] in
                     self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                 }
-//                if interactive {
-//                    let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-//                    self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
-//                } else {
-//                    editingQueue.addOperation { [weak self] in
-//                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-//                        self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
-//                    }
-//                }
             }
         } else {
             changes.removeFirst()
             editingQueue.addOperation { [weak self] in
                 self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
             }
-//            if interactive {
-////                print(key)
-////                masterChanges[masterKey]?[key] = nil
-////                if masterChanges[masterKey]?.count == 0 {
-////                    print(masterKey)
-////                    masterChanges[masterKey] = nil
-////                }
-//                changes.removeFirst()
-//                self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
-//            } else {
-//                editingQueue.addOperation { [weak self] in
-////                    masterChanges[masterKey]?[key] = nil
-////                    if masterChanges[masterKey]?.count == 0 {
-////                        masterChanges[masterKey] = nil
-////                    }
-//                    changes.removeFirst()
-//                    self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion:completion)
-//                }
-//            }
         }
     }
 
@@ -3538,10 +2876,6 @@ class TextViewController : CBCViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        
-//        if Alerts.shared.topViewController.last == navigationController {
-//            Alerts.shared.topViewController.removeLast()
-//        }
         
         NotificationCenter.default.removeObserver(self)
 

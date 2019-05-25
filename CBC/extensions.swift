@@ -14,48 +14,40 @@ import NaturalLanguage
 import AVFoundation
 import AudioToolbox
 
-//// Helper function inserted by Swift 4.2 migrator.
-//fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
-//    return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
-//}
-
-//extension FourCharCode
-//{
-//    // Create a String representation of a FourCC
-//    func toString() -> String {
-//        let bytes: [CChar] = [
-//            CChar((self >> 24) & 0xff),
-//            CChar((self >> 16) & 0xff),
-//            CChar((self >> 8) & 0xff),
-//            CChar(self & 0xff),
-//            0
-//        ]
-//        let result = String(cString: bytes)
-//        let characterSet = CharacterSet.whitespaces
-//        return result.trimmingCharacters(in: characterSet)
-//    }
-//}
-
 extension Set
 {
+    /**
+     Extension of Set
+     */
     var array: [Element]
     {
+        // get syntax is assumed
         return Array(self)
     }
 }
 
 extension Array where Element : Hashable
 {
+    /**
+     Extension of Array
+     */
     var set: Set<Element>
     {
+        // get syntax is assumed
         return Set(self)
     }
 }
 
 extension UIView
 {
+    /**
+     Extension of UIView - returns an UIImage of the view hierarchy.
+     */
     var image : UIImage?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         var snapShotImage : UIImage?
         
         UIGraphicsBeginImageContextWithOptions(bounds.size, true, 0.0)
@@ -74,6 +66,9 @@ extension UIView
 
 extension UIApplication
 {
+    /**
+     Extension of UIApplication to open a url or execute a closure if it cannot be.
+     */
     func open(scheme: String?,cannotOpen:(()->(Void))?)
     {
         guard let scheme = scheme else {
@@ -102,6 +97,9 @@ extension UIApplication
 
 extension FileManager
 {
+    /**
+     Extension of FileManager to return a URL to the documents directory.
+     */
     var documentsURL : URL?
     {
         get {
@@ -109,6 +107,9 @@ extension FileManager
         }
     }
     
+    /**
+     Extension of FileManager to return a URL to the caches directory.
+     */
     var cachesURL : URL?
     {
         get {
@@ -119,8 +120,14 @@ extension FileManager
 
 extension Set where Element == String
 {
+    /**
+     Extension of Set of Strings to return a sorted, joined string of tags.
+     */
     var tagsString: String?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
@@ -139,6 +146,9 @@ extension Set where Element == String
 
 extension Array where Element == MediaItem
 {
+    /**
+     Extension of Array of MediaItem to return the SpeakerNotesParagraph class for the array.
+     */
     var speakerNotesParagraph : SpeakerNotesParagraph?
     {
         get {
@@ -150,6 +160,9 @@ extension Array where Element == MediaItem
         }
     }
 
+    /**
+     Extension of Array of MediaItem to return the number of VB transcripts in the array.
+     */
     var voiceBaseMediaItems : Int
     {
         get {
@@ -161,6 +174,9 @@ extension Array where Element == MediaItem
         }
     }
     
+    /**
+     Extension of Array of MediaItem to return the array sorted for a specific book.
+     */
     func sort(book:String?) -> [MediaItem]?
     {
         guard !self.isEmpty else {
@@ -174,18 +190,22 @@ extension Array where Element == MediaItem
             let secondBooksChaptersVerses  = second.scripture?.booksChaptersVerses?.copy(for: book)
             
             if firstBooksChaptersVerses == secondBooksChaptersVerses {
-                if let firstDate = first.fullDate, let secondDate = second.fullDate {
-                    if firstDate.isEqualTo(secondDate) {
-                        if first.service == second.service {
-                            return first.speaker?.lastName < second.speaker?.lastName
-                        } else {
-                            return first.service < second.service
-                        }
+                guard let firstDate = first.fullDate else {
+                    return false
+                }
+                
+                guard let secondDate = second.fullDate else {
+                    return true
+                }
+                
+                if firstDate.isEqualTo(secondDate) {
+                    if first.service == second.service {
+                        return first.speakerSort < second.speakerSort
                     } else {
-                        return firstDate.isOlderThan(secondDate)
+                        return first.service < second.service
                     }
                 } else {
-                    return false
+                    return firstDate.isOlderThan(secondDate)
                 }
             } else {
                 return firstBooksChaptersVerses < secondBooksChaptersVerses
@@ -195,8 +215,14 @@ extension Array where Element == MediaItem
         return list
     }
     
+    /**
+     Extension of Array of MediaItem to return the array sorted chronologically.
+     */
     var sortChronologically : [MediaItem]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
@@ -206,8 +232,14 @@ extension Array where Element == MediaItem
         }
     }
     
+    /**
+     Extension of Array of MediaItem to return the array sorted reverse chronologically.
+     */
     var sortReverseChronologically : [MediaItem]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
@@ -217,6 +249,9 @@ extension Array where Element == MediaItem
         }
     }
     
+    /**
+     Extension of Array of MediaItem to return the array sorted according to the sorting.
+     */
     func sortByYear(sorting:String?) -> [MediaItem]?
     {
         guard !self.isEmpty else {
@@ -245,6 +280,9 @@ extension Array where Element == MediaItem
         return sortedMediaItems
     }
 
+    /**
+     Extension of Array of MediaItem to return the MediaItems in the array with the specified tag.
+     */
     func withTag(tag:String?) -> [MediaItem]?
     {
         guard !self.isEmpty else {
@@ -265,6 +303,9 @@ extension Array where Element == MediaItem
             })
     }
     
+    /**
+     Extension of Array of MediaItem to return the MediaItems in the array whose Scripture reference includes the specified book.
+     */
     func inBook(_ book:String?) -> [MediaItem]?
     {
         guard !self.isEmpty else {
@@ -294,8 +335,14 @@ extension Array where Element == MediaItem
         })
     }
     
+    /**
+     Extension of Array of MediaItem to return the array of books (sorted according to the order of books in the Bible) in the Scripture references in the MediaItems in the array.
+     */
     var books : [String]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
@@ -312,32 +359,17 @@ extension Array where Element == MediaItem
             }
         }
         
-        return bookSet.array.sorted(by: { (first:String, second:String) -> Bool in
-            var result = false
-            
-            if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                if first.bookNumberInBible == second.bookNumberInBible {
-                    result = first < second
-                } else {
-                    result = first.bookNumberInBible < second.bookNumberInBible
-                }
-            } else
-                if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                    result = true
-                } else
-                    if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                        result = false
-                    } else
-                        if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                            result = first < second
-            }
-            
-            return result
-        })
+        return bookSet.array.inBibleOrder
     }
     
+    /**
+     Extension of Array of MediaItem to return the array of unique books or None or Selected Scripture(s)
+     */
     var bookSections : [String]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
@@ -352,54 +384,45 @@ extension Array where Element == MediaItem
             }
         }
 
-        let bookSections = bookSectionSet.array.sorted(by: { (first:String, second:String) -> Bool in
-            var result = false
-            if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                if first.bookNumberInBible == second.bookNumberInBible {
-                    result = first < second
-                } else {
-                    result = first.bookNumberInBible < second.bookNumberInBible
-                }
-            } else
-                if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                    result = true
-                } else
-                    if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                        result = false
-                    } else
-                        if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-                            result = first < second
-            }
-            return result
-        })
-        
-        return bookSections.count > 0 ? bookSections : nil
+        return bookSectionSet.array.inBibleOrder
     }
     
-    var series : [String]?
+    /**
+     Extension of Array of MediaItem to return the array of multiPartNames in the MediaItems
+     */
+    var multiPartNames : [String]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
         
-        let mediaItems = Set(self.filter({ (mediaItem:MediaItem) -> Bool in
+        let multiPartNames = Set(self.filter({ (mediaItem:MediaItem) -> Bool in
             return mediaItem.hasMultipleParts
         }).map({ (mediaItem:MediaItem) -> String in
             return mediaItem.multiPartName ?? Constants.Strings.None
         }))
 
-        return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
+        return multiPartNames.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
     }
     
-    var seriesSections : [String]?
+    /**
+     Extension of Array of MediaItem to return the array of multiPartSections in the MediaItems
+     */
+    var multiPartSections : [String]?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+        
         guard !self.isEmpty else {
             return nil
         }
         
-        let mediaItems = Set(self.map({ (mediaItem:MediaItem) -> String in
+        let multiPartSections = Set(self.map({ (mediaItem:MediaItem) -> String in
             if let multiPartSection = mediaItem.multiPartSection {
                 return multiPartSection
             } else {
@@ -407,30 +430,39 @@ extension Array where Element == MediaItem
             }
         }))
 
-        return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
+        return multiPartSections.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
     }
     
-    func seriesSections(withTitles:Bool) -> [String]?
+    /**
+     Extension of Array of MediaItem to return the array of multiPartSections in the MediaItems OR if
+     a MediaItem isn't part of a multiPart the title.
+     */
+    func multiPartSections(withTitles:Bool) -> [String]?
     {
         guard !self.isEmpty else {
             return nil
         }
         
-        let mediaItems = Set(self.map({ (mediaItem:MediaItem) -> String in
-            if mediaItem.hasMultipleParts {
-                return mediaItem.multiPartName!
-            } else {
-                return withTitles ? (mediaItem.title ?? "No Title") : Constants.Strings.Individual_Media
-            }
+        let multiPartSections = Set(self.map({ (mediaItem:MediaItem) -> String in
+            return mediaItem.multiPartName ?? (withTitles ? (mediaItem.title ?? "No Title") : Constants.Strings.Individual_Media)
+            
+//            if mediaItem.hasMultipleParts {
+//                return mediaItem.multiPartName!
+//            } else {
+//                return withTitles ? (mediaItem.title ?? "No Title") : Constants.Strings.Individual_Media
+//            }
         }))
         
-        return mediaItems.sorted(by: { (first:String, second:String) -> Bool in
+        return multiPartSections.sorted(by: { (first:String, second:String) -> Bool in
             return first.withoutPrefixes < second.withoutPrefixes
         })
     }
 
+    /**
+     Extension of Array of MediaItem to return an html representation.
+     */
     func html(includeURLs:Bool = true,includeColumns:Bool = true, test:(()->(Bool))? = nil) -> String?
     {
         guard !self.isEmpty else {
@@ -690,6 +722,10 @@ extension Array where Element == MediaItem
 
 extension Array where Element == UIViewController
 {
+    /**
+     Extension of Array of UIViewController to return a boolean value on whether or not a UIViewController is
+     either in the array or in the array of viewControllers in a UINavigationController or UISplitViewController
+     */
     func containsBelow(_ containedViewController:UIViewController) -> Bool
     {
         guard !self.isEmpty else {
@@ -706,6 +742,12 @@ extension Array where Element == UIViewController
                     return true
                 }
             }
+            
+            if let svCon = (viewController as? UISplitViewController) {
+                if svCon.viewControllers.containsBelow(containedViewController) == true {
+                    return true
+                }
+            }
         }
         
         return false
@@ -714,6 +756,45 @@ extension Array where Element == UIViewController
 
 extension Array where Element == String
 {
+    /**
+     Extension of Array of String that is assumed to be an array of books of the Bible and returns them
+     sorted in the order they appear in the Bible.
+     */
+    var inBibleOrder : [String]?
+    {
+        // get syntax is assumed.
+        
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        return self.sorted(by: { (first:String, second:String) -> Bool in
+            var result = false
+            
+            if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                if first.bookNumberInBible == second.bookNumberInBible {
+                    result = first < second
+                } else {
+                    result = first.bookNumberInBible < second.bookNumberInBible
+                }
+            } else
+                if (first.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                    result = true
+                } else
+                    if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                        result = false
+                    } else
+                        if (first.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (second.bookNumberInBible == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
+                            result = first < second
+            }
+            
+            return result
+        })
+    }
+    
+    /**
+     Extension of Array of String that is assumed to be an array of transcriptSegmentComponentss and returns a String of them joined together as a String of transcriptSegments
+     */
     var transcriptSegmentsFromTranscriptSegmentComponents:String?
     {
         get {
@@ -731,6 +812,9 @@ extension Array where Element == String
         }
     }
     
+    /**
+     Extension of Array of String that is assumed to be an array of transcriptSegments and returns a String of them joined together as a transcript
+     */
     var transcriptFromTranscriptSegments:String?
     {
         get {
@@ -748,7 +832,7 @@ extension Array where Element == String
                     let timing = strings.removeFirst() // time
                     
                     if let range = transcriptSegmentComponent.range(of:timing+"\n") {
-                        let string = transcriptSegmentComponent[range.upperBound...] // .substring(from:range.upperBound)
+                        let string = transcriptSegmentComponent[range.upperBound...]
                         str = (str != nil ? str! + " " : "") + string
                     }
                 }
@@ -758,6 +842,9 @@ extension Array where Element == String
         }
     }
 
+    /**
+     Extension of Array of String that is assumed to be an array of transcriptSegments and returns the one at a given time or closest to it.
+     */
     func component(atTime:String?, returnClosest:Bool) -> String?
     {
         guard !self.isEmpty else {
@@ -835,6 +922,9 @@ extension Array where Element == String
         }
     }
     
+    /**
+     Extension of Array of String that is assumed to be an array of transcriptSegmentComponents and returns a String of them in HTML to show timing of each segment.
+     */
     func timingHTML(_ headerHTML:String?, test:(()->(Bool))? = nil) -> String?
     {
         guard !self.isEmpty else {
@@ -896,29 +986,11 @@ extension Array where Element == String
         return htmlString
     }
     
-//    func additions(to array1:[String]?) -> [(Int,String)]?
-//    {
-//        guard let array1 = array1 else {
-//            return self.enumerated().map({ (arg0) -> (Int,String) in
-////                let (offset, element) = arg0
-//                return arg0
-//            })
-//        }
-//
-//        var array2 = self as [String]
-//
-//        var diff = [(Int,String)]()
-//
-//        for (index, element) in array1.enumerated() {
-//            if array2[index] != array1[index] {
-//                array2.remove(at: index)
-//                diff.append((index,element))
-//            }
-//        }
-//
-//        return diff.count > 0 ? diff : nil
-//    }
-    
+    /**
+     Extension of Array of String that is assumed to be an array of words and returns an array sorted using the method specified.
+     
+     Assumes each word is followed by their frequency in parentheses.
+     */
     func sort(method:String?) -> [String]?
     {
         guard !self.isEmpty else {
@@ -937,9 +1009,9 @@ extension Array where Element == String
             
         case Constants.Sort.Length:
             return strings.sorted(by: { (first:String, second:String) -> Bool in
-                let firstCount = first.subString(to: " (")?.count ?? first.count
+                let firstCount = first.word?.count ?? first.count
                 
-                let secondCount = second.subString(to: " (")?.count ?? second.count
+                let secondCount = second.word?.count ?? second.count
                 
                 if firstCount == secondCount {
                     return first < second
@@ -950,31 +1022,10 @@ extension Array where Element == String
             
         case Constants.Sort.Frequency:
             let newStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
-                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-                    let left = String(first[rangeFirst.upperBound...])
-                    let right = String(second[rangeSecond.upperBound...])
-                    
-                    let first = String(first[..<rangeFirst.lowerBound])
-                    let second = String(second[..<rangeSecond.lowerBound])
-                    
-                    if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
-                        let left = String(left[..<rangeLeft.lowerBound])
-                        let right = String(right[..<rangeRight.lowerBound])
-                        
-                        //                    print(first,left,second,right)
-                        
-                        if let left = Int(left), let right = Int(right) {
-                            if left == right {
-                                return first < second
-                            } else {
-                                return left > right
-                            }
-                        }
-                    }
-                    
-                    return false
+                if first.count == second.count {
+                    return first < second
                 } else {
-                    return false
+                    return first.count > second.count
                 }
             })
             return newStrings
@@ -1126,19 +1177,6 @@ extension Array where Element == String
 
 extension String
 {
-    func subString(to: String) -> String?
-    {
-        guard !self.isEmpty else {
-            return nil
-        }
-        
-        guard let range = self.range(of: to) else {
-            return nil
-        }
-        
-        return String(self[..<range.lowerBound])
-    }
-    
     var translateTestament : String
     {
         var translation = Constants.EMPTY_STRING
@@ -1202,6 +1240,9 @@ extension String
 
 extension String
 {
+    /**
+     A String extension that assumes self is a Scripture reference.
+     */
     func verses(book:String,chapter:Int) -> [Int]
     {
         var versesForChapter = [Int]()
@@ -1213,6 +1254,9 @@ extension String
         return versesForChapter
     }
     
+    /**
+     A String extension that assumes self is a Scripture reference.
+     */
     func chaptersAndVerses(book:String) -> [Int:[Int]]
     {
         var chaptersAndVerses = [Int:[Int]]()
@@ -1224,8 +1268,14 @@ extension String
         return chaptersAndVerses
     }
 
+    /**
+     A String extension that assumes self is a Scripture reference.
+     */
     var booksChaptersVerses : BooksChaptersVerses?
     {
+        // get syntax is assumed, not including it makes it easier to convert
+        // this to a func later if we need to
+
         let scriptureReference = self
         
         guard let books = books else {
@@ -1285,6 +1335,9 @@ extension String
         return booksChaptersVerses.count > 0 ? booksChaptersVerses : nil
     }
     
+    /**
+     A String extension that assumes self is a Scripture reference.
+     */
     func chapters(_ thisBook:String) -> [Int]?
     {
         guard !self.isEmpty else {
@@ -1378,6 +1431,9 @@ extension String
         return chaptersForBook
     }
     
+    /**
+     A String extension that assumes self is a book name.
+     */
     func versesForChapter(_ chapter:Int) -> [Int]?
     {
         guard !self.isEmpty else {
@@ -1440,6 +1496,20 @@ extension String
         return verses.count > 0 ? verses : nil
     }
     
+    /**
+     A String extension that assumes self is a Scripture reference.
+     
+     Acceptable reference formats are:
+     - John (the entire book)
+     - John 1 (the entire chapter)
+     - John 1-3 (three chapters)
+     - John 1:1 (one verse)
+     - John 1:1-3 (three verses)
+     - John 1,3 (two chapters)
+     - what else?
+     
+     This is a very complicated state machine that assumes a specific format of Scripture reference.
+     */
     func chaptersAndVerses(_ book:String?) -> [Int:[Int]]?
     {
         guard !self.isEmpty else {
@@ -2200,14 +2270,23 @@ extension String
         return chaptersAndVerses.count > 0 ? chaptersAndVerses : nil
     }
     
+    /**
+     
+     A String extension that assumes self is a Scripture reference.
+
+     This can only comprehend a range of chapters or a range of verses from a single book.
+     
+     */
     var chapters : [Int]?
     {
-        // This can only comprehend a range of chapters or a range of verses from a single book.
-        
         guard !self.isEmpty else {
             return nil
         }
-
+        
+        guard books?.count == 1 else {
+            return nil
+        }
+        
         let scriptureReference = self
         
         var chapters = [Int]()
@@ -2339,6 +2418,9 @@ extension String
         return chapters.count > 0 ? chapters : nil
     }
     
+    /**
+     A String extension that assumes self is a Scripture reference.
+     */
     var books : [String]?
     {
         guard !self.isEmpty else {
@@ -2803,6 +2885,16 @@ extension String
         return self.replacingOccurrences(of: "<html>", with: head)
     }
 }
+
+/**
+ 
+ Enum to provide contents of an alert dialog action or text item
+ 
+ Cases:
+     - action : AlertAction
+     - text : String
+ 
+ */
 
 enum AlertItem {
     case action(_ action:AlertAction)
@@ -3598,9 +3690,7 @@ extension UIViewController
                     popover.section.indexHeadersTransform = nil
                     popover.section.indexSort = nil
                     
-//                    popover.section.sorting = true
                     popover.section.strings = strings
-//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -3639,9 +3729,7 @@ extension UIViewController
                         return Int(first) > Int(second)
                     }
                     
-//                    popover.section.sorting = true
                     popover.section.strings = strings
-//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -3680,9 +3768,7 @@ extension UIViewController
                         return Int(first) > Int(second)
                     }
                     
-//                    popover.section.sorting = true
                     popover.section.strings = strings
-//                    popover.section.sorting = false
                     
                     popover.section.stringsAction?(strings, popover.section.sorting)
                     
@@ -3711,7 +3797,6 @@ extension UIViewController
                 self.present(navigationController, animated: true, completion: nil)
             }
         }
-
     }
 }
 
@@ -3815,6 +3900,28 @@ extension Double
 
 extension String
 {
+    var word : String?
+    {
+        return self.subString(to: " (")
+    }
+    
+    var frequency : Int?
+    {
+        guard let startRange = self.range(of: " (") else {
+            return nil
+        }
+        
+        let remainder = String(self[startRange.upperBound...])
+        
+        guard let endRange = remainder.range(of: ")") else {
+            return nil
+        }
+        
+        let count = String(remainder[..<endRange.lowerBound])
+        
+        return Int(count)
+    }
+    
     var singleLine : String
     {
         get {
@@ -5248,6 +5355,19 @@ extension String
 
 extension String
 {
+    func subString(to: String) -> String?
+    {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        guard let range = self.range(of: to) else {
+            return nil
+        }
+        
+        return String(self[..<range.lowerBound])
+    }
+    
     // Looks for a string pattern at the end of the string, i.e. a fileType (in the old model) if the string is a filename.
     func isFileType(_ fileType:String) -> Bool
     {
@@ -6103,111 +6223,6 @@ extension URLSession
 
 extension URL
 {
-    var isVBR : Bool
-    {
-        get {
-            var audioFile = AudioFileID(bitPattern: 0)
-            
-            var result = OSStatus()
-            
-            result = AudioFileOpenURL(self as CFURL, .readPermission, kAudioFileMP3Type, &audioFile)
-
-            var audioFormat = AudioStreamBasicDescription()
-            
-            var size = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
-            
-            guard let audioFileID = audioFile else {
-                return false
-            }
-            
-            result = AudioFileGetProperty(audioFileID, kAudioFilePropertyDataFormat, &size, &audioFormat)
-            
-            var vbrSize = UInt32(MemoryLayout<AudioFormatPropertyID>.size) // UInt32(MemoryLayout<[AudioValueRange]>.size)
-
-            // kAudioFormatProperty_FormatIsVBR
-//            result = AudioFormatGetPropertyInfo(kAudioFormatProperty_AvailableEncodeBitRates, UInt32(MemoryLayout<AudioFormatID>.size), &audioFormat.mFormatID, &vbrSize);
-
-            var vbrInfo = AudioFormatPropertyID(bitPattern: 0) // [AudioValueRange]()
-            
-//            vbrInfo.reserveCapacity(100)
-//            vbrInfo.append(AudioValueRange())
-
-            // UInt32(MemoryLayout<AudioFormatID>.size)
-            // audioFormat.mFormatID
-            result = AudioFormatGetProperty(kAudioFormatProperty_FormatIsVBR, size, &audioFormat, &vbrSize, &vbrInfo);
-            
-            return result == noErr ? vbrInfo != 0 : false //
-            
-//            OSStatus result = noErr;
-//            UInt32 size;
-//
-//
-//            AudioFileID audioFile;
-//            AudioStreamBasicDescription audioFormat;
-//            AudioFormatPropertyID vbrInfo;
-//
-//            // Open audio file.
-//            let result = AudioFileOpenURL( (__bridge CFURLRef)originalURL, kAudioFileReadPermission, 0, &audioFile );
-//            if( result != noErr )
-//            {
-//                NSLog( @"Error in AudioFileOpenURL: %d", (int)result );
-//                return;
-//            }
-//
-//            // Get data format
-//            size = sizeof( audioFormat );
-//            result = AudioFileGetProperty( audioFile, kAudioFilePropertyDataFormat, &size, &audioFormat );
-//            if( result != noErr )
-//            {
-//                NSLog( @"Error in AudioFileGetProperty: %d", (int)result );
-//                return;
-//            }
-//
-//            // Get vbr info
-//            size = sizeof( vbrInfo );
-//            result = AudioFormatGetProperty( kAudioFormatProperty_FormatIsVBR, sizeof(audioFormat), &audioFormat, &size, &vbrInfo);
-//
-//            if( result != noErr )
-//            {
-//                NSLog( @"Error getting vbr info: %d", (int)result );
-//                return;
-//            }
-//
-//            NSLog(@"%@ is VBR: %d", originalURL.lastPathComponent, vbrInfo);
-        }
-    }
-
-//    func files(ofType fileType:String) -> [String]?
-//    {
-//        //        guard let path = self.path else {
-//        //            return nil
-//        //        }
-//
-//        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
-//            return nil
-//        }
-//
-//        var files = [String]()
-//
-//        do {
-//              // contentsOfDirectory is a MASSIVE MEMORY LEAK
-//            let array = try FileManager.default.contentsOfDirectory(atPath: path)
-//
-//            for string in array {
-//                //                if let range = string.range(of: fileType) {
-//                if let range = string.range(of: "." + fileType) {
-//                    if fileType == String(string[range.lowerBound...]) {
-//                        files.append(string)
-//                    }
-//                }
-//            }
-//        } catch let error {
-//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//        }
-//
-//        return files.count > 0 ? files : nil
-//    }
-    
     func files(startingWith filename:String? = nil,ofType fileType:String? = nil,notOfType notFileType:String? = nil) -> [String]?
     {
 //        guard let path = path else {
@@ -6232,29 +6247,6 @@ extension URL
 
         var files = [String]()
         
-        // contentsOfDirectory causes a massive memory leak
-        // is this a typical problem when trying to use methods that throw in an extension?
-//        let array = try? FileManager.default.contentsOfDirectory(atPath: path)
-
-        // autoreleasepool helps but still a HUGE MEMORY LEAK
-//        return autoreleasepool {
-//            var files = [String]()
-//
-//            let path = self.path
-//
-//            let enumerator = FileManager.default.enumerator(atPath: path)
-//
-//            while let file = enumerator?.nextObject() as? FileWrapper {
-//                if let name = file.filename, let range = name.range(of: filename) {
-//                    if filename == String(name[..<range.upperBound]) {
-//                        files.append(name)
-//                    }
-//                }
-//            }
-//
-//            return files.count > 0 ? files : nil
-//        }
-
         do {
             let array = try FileManager.default.contentsOfDirectory(atPath: path)
 
@@ -6318,60 +6310,6 @@ extension URL
         return files.count > 0 ? files : nil
     }
     
-//    func delete(startingWith filename:String, block:Bool) -> [String]?
-//    {
-//        let files = self.files(startingWith:filename)
-//        
-//        files?.forEach({ (string:String) in
-//            var fileURL = self
-//            fileURL.appendPathComponent(string)
-//            fileURL.delete(block: block)
-//        })
-//        
-//        return files
-//    }
-    
-//    func delete(startingWith filename:String) -> [String]?
-//    {
-////        guard let path = self.cachesURL?.path else {
-////            return nil
-////        }
-//        
-//        guard let isDirectory = try? FileWrapper(url: self, options: []).isDirectory, isDirectory else {
-//            return nil
-//        }
-//        
-//        var files = [String]()
-//        
-//        do {
-//            let array = try FileManager.default.contentsOfDirectory(atPath: path)
-//            
-//            for string in array {
-//                if let range = string.range(of: filename) {
-//                    if filename == String(string[..<range.upperBound]) {
-//                        files.append(string)
-//                        
-//                        var fileURL = path.url
-//                        
-//                        fileURL?.appendPathComponent(string, isDirectory: false)
-//                        
-//                        if let fileURL = fileURL {
-//                            do {
-//                                try FileManager.default.removeItem(at: fileURL)
-//                            } catch let error {
-//                                NSLog("failed to delete \(fileURL.lastPathComponent) error: \(error.localizedDescription)")
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } catch let error {
-//            NSLog("failed to get files in caches directory: \(error.localizedDescription)")
-//        }
-//        
-//        return files.count > 0 ? files : nil
-//    }
-
     var fileSystemURL : URL?
     {
         return self.lastPathComponent.fileSystemURL
@@ -6387,14 +6325,6 @@ extension URL
             debug("File does not exist at \(fileSystemURL.absoluteString)")
             return 0
         }
-
-        // Either of the following work
-        
-//        let fileAttributes = try? FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
-//
-//        if let num = fileAttributes?[FileAttributeKey.size] as? Int {
-//            return num
-//        }
 
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
@@ -6852,159 +6782,6 @@ extension Date
         
         //Return Result
         return dateWithHoursAdded
-    }
-}
-
-public extension UIDevice
-{
-    var isSimulator : Bool
-    {
-        var systemInfo = utsname()
-        uname(&systemInfo)
-        let machineMirror = Mirror(reflecting: systemInfo.machine)
-        let identifier = machineMirror.children.reduce("") { identifier, element in
-            guard let value = element.value as? Int8, value != 0 else { return identifier }
-            return identifier + String(UnicodeScalar(UInt8(value)))
-        }
-        
-        switch identifier {
-        case "i386":
-            fallthrough
-        case "x86_64":
-            return true
-            
-        default:
-            return false
-        }
-    }
-    
-    var deviceName : String
-    {
-        get {
-            if UIDevice.current.isSimulator {
-                return "\(UIDevice.current.name):\(UIDevice.current.modelName)"
-            } else {
-                return UIDevice.current.name
-            }
-        }
-    }
-    
-    var modelName: String
-    {
-        var systemInfo = utsname()
-        uname(&systemInfo)
-        let machineMirror = Mirror(reflecting: systemInfo.machine)
-        var identifier = machineMirror.children.reduce("") { identifier, element in
-            guard let value = element.value as? Int8, value != 0 else { return identifier }
-            return identifier + String(UnicodeScalar(UInt8(value)))
-        }
-        
-        switch identifier {
-        case "i386":
-            fallthrough
-        case "x86_64":
-            if let id = ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] {
-                identifier = id
-            }
-            
-        default:
-            break
-        }
-        
-        var modelName: String
-        
-        switch identifier {
-        case "iPhone1,1": modelName = "iPhone"
-        case "iPhone1,2": modelName = "iPhone 3G"
-            
-        case "iPhone2,1": modelName = "iPhone 3GS"
-            
-        case "iPhone3,1": modelName = "iPhone 4 (GSM)"
-        case "iPhone3,2": modelName = "iPhone 4 (GSM Rev A)"
-        case "iPhone3,3": modelName = "iPhone 4 (CDMA)"
-            
-        case "iPhone4,1": modelName = "iPhone 4S"
-            
-        case "iPhone5,1": modelName = "iPhone 5 (GSM)"
-        case "iPhone5,2": modelName = "iPhone 5 (CDMA)"
-            
-        case "iPhone5,3": modelName = "iPhone 5c (GSM)"
-        case "iPhone5,4": modelName = "iPhone 5c (CDMA)"
-            
-        case "iPhone6,1": modelName = "iPhone 5s (GSM)"
-        case "iPhone6,2": modelName = "iPhone 5s (CDMA)"
-            
-        case "iPhone7,1": modelName = "iPhone 6 Plus"
-        case "iPhone7,2": modelName = "iPhone 6"
-            
-        case "iPhone8,1": modelName = "iPhone 6s"
-        case "iPhone8,2": modelName = "iPhone 6s Plus"
-            
-        case "iPhone8,4": modelName = "iPhone SE"
-            
-        case "iPhone9,1": modelName = "iPhone 7 (CDMA+GSM)"
-        case "iPhone9,2": modelName = "iPhone 7 Plus (CDMA+GSM)"
-        case "iPhone9,3": modelName = "iPhone 7 (GSM)"
-        case "iPhone9,4": modelName = "iPhone 7 Plus (GSM)"
-            
-        case "iPod1,1": modelName = "iPod Touch 1st Generation"
-        case "iPod2,1": modelName = "iPod Touch 2nd Generation"
-        case "iPod3,1": modelName = "iPod Touch 3rd Generation"
-        case "iPod4,1": modelName = "iPod Touch 4th Generation"
-        case "iPod5,1": modelName = "iPod Touch 5th Generation"
-            
-        case "iPod7,1": modelName = "iPod Touch 6th Generation"
-            
-        case "iPad1,1": modelName = "iPad"
-            
-        case "iPad2,1": modelName = "iPad 2 (WiFi)"
-        case "iPad2,2": modelName = "iPad 2 (WiFi+GSM)"
-        case "iPad2,3": modelName = "iPad 2 (WiFi+CDMA)"
-        case "iPad2,4": modelName = "iPad 2 (WiFi, revised)"
-            
-        case "iPad2,5": modelName = "iPad Mini (WiFi)"
-        case "iPad2,6": modelName = "iPad Mini (WiFi+GSM)"
-        case "iPad2,7": modelName = "iPad Mini (WiFi+GSM+CDMA)"
-            
-        case "iPad3,1": modelName = "iPad 3rd Generation (WiFi)"
-        case "iPad3,2": modelName = "iPad 3rd Generation (WiFi+GSM+CDMA)"
-        case "iPad3,3": modelName = "iPad 3rd Generation (WiFi+GSM)"
-            
-        case "iPad3,4": modelName = "iPad 4th Generation (WiFi)"
-        case "iPad3,5": modelName = "iPad 4th Generation (WiFi+GSM)"
-        case "iPad3,6": modelName = "iPad 4th Generation (WiFi+GSM+CDMA)"
-            
-        case "iPad4,1": modelName = "iPad Air (WiFi)"
-        case "iPad4,2": modelName = "iPad Air (WiFi+Cellular)"
-        case "iPad4,3": modelName = "iPad Air (revised)"
-            
-        case "iPad4,4": modelName = "iPad mini 2 (WiFi)"
-        case "iPad4,5": modelName = "iPad mini 2 (WiFi+Cellular)"
-        case "iPad4,6": modelName = "iPad mini 2 (revised)"
-            
-        case "iPad4,7": modelName = "iPad mini 3 (WiFi)"
-        case "iPad4,8": modelName = "iPad mini 3 (WiFi+Cellular)"
-        case "iPad4,9": modelName = "iPad mini 3 (China Model)"
-            
-        case "iPad5,1": modelName = "iPad mini 4 (WiFi)"
-        case "iPad5,2": modelName = "iPad mini 4 (WiFi+Cellular)"
-            
-        case "iPad5,3": modelName = "iPad Air 2 (WiFi)"
-        case "iPad5,4": modelName = "iPad Air 2 (WiFi+Cellular)"
-            
-        case "iPad6,3": modelName = "iPad Pro (9.7 inch) (WiFi)"
-        case "iPad6,4": modelName = "iPad Pro (9.7 inch) (WiFi+Cellular)"
-            
-        case "iPad6,7": modelName = "iPad Pro (12.9 inch) (WiFi)"
-        case "iPad6,8": modelName = "iPad Pro (12.9 inch) (WiFi+Cellular)"
-            
-        case "iPad7,3": modelName = "iPad Pro (10.5 inch) (WiFi)"
-        case "iPad7,4": modelName = "iPad Pro (10.5 inch) (WiFi+Cellular)"
-            
-        default: modelName = "Unknown"
-        }
-        
-        return modelName
     }
 }
 

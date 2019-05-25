@@ -100,17 +100,10 @@ class Section
             return nil
         }
         
-        if let range = string.range(of: " (") {
-            string = String(string[..<range.lowerBound]) //.uppercased()
-        }
+        string = string.word ?? string
         
         guard let index = strings?.firstIndex(where: { (str:String) -> Bool in
-            var match = str
-            
-            if let range = str.range(of: " (") {
-                match = String(str[..<range.lowerBound]) //.uppercased()
-            }
-            
+            let match = str.word ?? str            
             return match == string
         }) else {
             return nil

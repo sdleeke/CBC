@@ -98,8 +98,16 @@ class ScriptureIndex
         }
     }
     
+    // The mediaItems in a ScriptureIndex do not change during its life
+    // But in a SIVC we need to keep track of whether the by*'s below
+    // are sorted properly so we don't have sort to be sure each time
+    // the user changes the testament, book, chapter, (or someday verse) controls
+    //
+    // They are here instead of in the SIVC so we can reuse them if the
+    // user enters a SIVC for this SI again.
+    
     // Make thread safe?
-    var sorted = [String:Bool]()
+    var isSorted = [String:Bool]()
     
     //////////////////////////////////////////////////////////////
     // Must make thread safe before incrementally updating SIVC
@@ -121,56 +129,18 @@ class ScriptureIndex
     lazy var scripture:Scripture! = { [weak self] in
         return Scripture(reference: nil)
     }()
-//    var selected = Selected()
-
-//    var selectedTestament:String? = Constants.OT
-//    
-//    var selectedBook:String?
-//    {
-//        willSet {
-//            
-//        }
-//        didSet {
-//            if selectedBook == nil {
-//                selectedChapter = 0
-//                selectedVerse = 0
-//            }
-//        }
-//    }
-//    
-//    var selectedChapter:Int = 0
-//    {
-//        willSet {
-//            
-//        }
-//        didSet {
-//            if selectedChapter == 0 {
-//                selectedVerse = 0
-//            }
-//        }
-//    }
-//    
-//    var selectedVerse:Int = 0
-
-//    lazy var eligible:Shadowed<[MediaItem]> = { [weak self] in
-//        return Shadowed<[MediaItem]>(get: { () -> ([MediaItem]?) in
-//            if let list = self.mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-//                return mediaItem.books != nil
-//            }), list.count > 0 {
-//                return list
-//            } else {
-//                return nil
-//            }
-//        })
-//    }()
     
     // Replace with Fetch?
     var startingUp = true
     private var _eligible:[MediaItem]?
     {
         didSet {
-            if _eligible == nil, startingUp || (oldValue != nil) { // , oldValue != nil
+            if _eligible == nil, startingUp || (oldValue != nil) {
                 startingUp = false
+                
+                // Force a recalculation if newValue is nil and oldValue is not nil
+                // This characteristic is used by MLGS (that contains a Lexicon and a ScriptureIndex)
+                // Such that when the MLGS.mediaList.list is set these are calculated.
                 _ = eligible
             }
         }
@@ -181,6 +151,7 @@ class ScriptureIndex
             guard _eligible == nil else {
                 return _eligible
             }
+            
             if let list = mediaListGroupSort?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.scripture?.books != nil
             }), list.count > 0 {
@@ -263,21 +234,10 @@ class ScriptureIndex
             return
         }
         
-//        let start = Date().timeIntervalSince1970
-
-//        DispatchQueue.global(qos: .userInitiated).async{  [weak self] in
-//        operationQueue.addOperation {  [weak self] in
         let op = CancelableOperation { [weak self] (test:(() -> (Bool))?) in
-//            defer {
-//                self?.creating = false
-//            }
-            
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
                 self?.callBacks.execute("start")
-//                Globals.shared.queue.async {
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
-//                }
-                
+
                 for mediaItem in mediaList {
                     if Globals.shared.isRefreshing || Globals.shared.isLoading {
                         break

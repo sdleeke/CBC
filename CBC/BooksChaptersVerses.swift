@@ -14,7 +14,7 @@ import Foundation
  
  */
 
-class BooksChaptersVerses : Swift.Comparable
+class BooksChaptersVerses
 {
     deinit {
         debug(self)
@@ -92,7 +92,10 @@ class BooksChaptersVerses : Swift.Comparable
             data?[key] = newValue
         }
     }
-    
+}
+
+extension BooksChaptersVerses : Comparable
+{
     static func ==(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
     {
         let lhsBooks = lhs.data?.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
@@ -274,3 +277,4 @@ class BooksChaptersVerses : Swift.Comparable
         return !(lhs < rhs) && !(lhs == rhs)
     }
 }
+

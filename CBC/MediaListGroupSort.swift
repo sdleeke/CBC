@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import AVKit
 
+/*
 //Group//String//Sort
 //[String:[String:[String:[MediaItem]]]]
 typealias MediaGroupSort = ThreadSafeDN<[MediaItem]> // ictionaryOfDictionariesOfDictionaries
@@ -19,6 +20,7 @@ typealias MediaGroupSort = ThreadSafeDN<[MediaItem]> // ictionaryOfDictionariesO
 typealias MediaGroupNames = ThreadSafeDN<String> // ictionaryOfDictionaries
 
 typealias Words = ThreadSafeDN<[MediaItem:Int]> // ictionary
+*/
 
 /**
 
@@ -245,27 +247,6 @@ class MediaListGroupSort // : NSObject
         lexicon = Lexicon(self) // Side effects?
         
         scriptureIndex = ScriptureIndex(self) // side effects?
-        
-//        searches = nil
-//        
-//        guard searches != nil else {
-//            return
-//        }
-//        
-//        if let isActive = search.value?.isActive, !isActive {
-//            searches = nil
-//        } else {
-//            // Is this risky, to try and delete all but the current search?  Don't think so as searches is thread safe.
-//            if let keys = searches?.keys() {
-//                for key in keys {
-//                    if key != search.value?.text {
-//                        searches?[key] = nil
-//                    } else {
-//
-//                    }
-//                }
-//            }
-//        }
     }
     
     var mediaList:MediaList?
@@ -286,31 +267,12 @@ class MediaListGroupSort // : NSObject
         return ScriptureIndex(self)
     }()
     
-    var groupSort:MediaGroupSort?
+    var groupSort:ThreadSafeDN<[MediaItem]>?
 
-    var groupNames:MediaGroupNames?
+    var groupNames:ThreadSafeDN<String>?
     
     var tagMediaItems : ThreadSafeDN<[MediaItem]>? // [String:[MediaItem]]?//sortTag:MediaItem // ictionary
     {
-//        get {
-//            var tagMediaItems = [String:[MediaItem]]()
-//
-//            mediaList?.list?.forEach { (mediaItem:MediaItem) in
-//                mediaItem.tagsSet?.forEach({ (tag:String) in
-//                    let sortTag = tag.withoutPrefixes
-//
-//                    if !sortTag.isEmpty {
-//                        if tagMediaItems[sortTag] == nil {
-//                            tagMediaItems[sortTag] = [mediaItem]
-//                        } else {
-//                            tagMediaItems[sortTag]?.append(mediaItem)
-//                        }
-//                    }
-//                })
-//            }
-//
-//            return tagMediaItems.count > 0 ? tagMediaItems : nil
-//        }
         didSet {
 
         }
@@ -318,70 +280,10 @@ class MediaListGroupSort // : NSObject
 
     var tagNames:ThreadSafeDN<String>? // [String:String]?//sortTag:tag // ictionary
     {
-//        get {
-//            var tagNames = [String:String]()
-//
-//            mediaList?.list?.forEach { (mediaItem:MediaItem) in
-//                mediaItem.tagsSet?.forEach({ (tag:String) in
-//                    let sortTag = tag.withoutPrefixes
-//
-//                    if !sortTag.isEmpty {
-//                        tagNames[sortTag] = tag
-//                    }
-//                })
-//            }
-//
-//            return tagNames.count > 0 ? tagNames : nil
-//        }
         didSet {
 
         }
     }
-    
-//    var proposedTags:[String]?
-//    {
-//        get {
-//            var possibleTags = [String:Int]()
-//            
-//            if let tags = mediaItemTags {
-//                for tag in tags {
-//                    var possibleTag = tag
-//                    
-//                    if possibleTag.range(of: "-") != nil {
-//                        while let range = possibleTag.range(of: "-") {
-//                            let candidate = String(possibleTag[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                            
-//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-//                                if let count = possibleTags[candidate] {
-//                                    possibleTags[candidate] =  count + 1
-//                                } else {
-//                                    possibleTags[candidate] =  1
-//                                }
-//                            }
-//
-//                            possibleTag = String(possibleTag[range.upperBound...]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//                        }
-//                        
-//                        if !possibleTag.isEmpty {
-//                            let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//
-//                            if (Int(candidate) == nil) && !tags.contains(candidate) {
-//                                if let count = possibleTags[candidate] {
-//                                    possibleTags[candidate] =  count + 1
-//                                } else {
-//                                    possibleTags[candidate] =  1
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            let proposedTags = [String](possibleTags.keys)
-//                
-//            return proposedTags.count > 0 ? proposedTags : nil
-//        }
-//    }
     
     // thread safe
     var mediaItemTags:[String]?
@@ -829,32 +731,8 @@ class MediaListGroupSort // : NSObject
             self?.scriptureIndex?.eligible = nil
         }
 
-//        index = [String:MediaItem]()
-//
-//        for mediaItem in mediaItems {
-//            if let id = mediaItem.mediaCode {
-//                index?[id] = mediaItem
-//            }
-//
-//            if mediaItem.hasClassName, let className = mediaItem.className {
-//                if classes == nil {
-//                    classes = [className]
-//                } else {
-//                    classes?.append(className)
-//                }
-//            }
-//
-//            if mediaItem.hasEventName, let eventName = mediaItem.eventName {
-//                if events == nil {
-//                    events = [eventName]
-//                } else {
-//                    events?.append(eventName)
-//                }
-//            }
-//        }
-
-        groupNames = MediaGroupNames(name: "MediaGroupNames")
-        groupSort = MediaGroupSort(name: "MediaGroupSort")
+        groupNames = ThreadSafeDN<String>(name: "MediaGroupNames")
+        groupSort = ThreadSafeDN<[MediaItem]>(name: "MediaGroupSort")
         
         sortGroup(grouping.value)
 
@@ -885,23 +763,6 @@ class MediaListGroupSort // : NSObject
                 }
             })
         }
-        
-//        for mediaItem in mediaItems {
-//            if let tags =  mediaItem.tagsSet {
-//                for tag in tags {
-//                    let sortTag = tag.withoutPrefixes
-//                    
-//                    if !sortTag.isEmpty {
-//                        if tagMediaItems?[sortTag] == nil {
-//                            tagMediaItems?[sortTag] = [mediaItem]
-//                        } else {
-//                            tagMediaItems?[sortTag]?.append(mediaItem)
-//                        }
-//                        tagNames?[sortTag] = tag
-//                    }
-//                }
-//            }
-//        }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
@@ -909,9 +770,9 @@ class MediaListGroupSort // : NSObject
     //////////////////////////////////////////////////////////////////////////////////////////////
     func html(includeURLs:Bool,includeColumns:Bool,test:(()->(Bool))? = nil) -> String?
     {
-        //        guard (Globals.shared.media.active?.mediaList?.list != nil) else {
-        //            return nil
-        //        }
+        guard self.mediaList?.list != nil else {
+            return nil
+        }
         
         guard let grouping = grouping.value else {
             return nil
@@ -945,17 +806,9 @@ class MediaListGroupSort // : NSObject
             bodyString += "Category: \(category)<br/>"
         }
         
-//                if let category = Globals.shared.media.category.selected {
-//                    bodyString += "Category: \(category)<br/>"
-//                }
-        
         if let tag = tag.value {
             bodyString += "Tag: \(tag)<br/>"
         }
-        
-        //        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-        //            bodyString += "Collection: \(tag)<br/>"
-        //        }
         
         if let searchText = search.value?.text {
             bodyString += "Search: \(searchText)"
@@ -967,10 +820,6 @@ class MediaListGroupSort // : NSObject
 
         bodyString += "<br/>"
 
-        //        if Globals.shared.media.search.isValid, let searchText = Globals.shared.media.search.text {
-        //            bodyString += "Search: \(searchText)<br/>"
-        //        }
-        
         bodyString += "Grouped: By \(grouping.translate)<br/>"
 
         bodyString += "Sorted: \(sorting.translate)<br/>"
