@@ -8,6 +8,9 @@
 
 import UIKit
 
+/**
+ For user settings
+ */
 class SettingsViewController: CBCViewController
 {
     @IBOutlet weak var searchTranscriptsSwitch: UISwitch!

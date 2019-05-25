@@ -15,25 +15,9 @@ class HTML
 {
     deinit {
         debug(self)
-//        operationQueue.cancelAllOperations()
     }
     
     weak var webViewController: WebViewController?
-    
-//    private lazy var operationQueue : OperationQueue! = {
-//        let operationQueue = OperationQueue()
-//        operationQueue.name = "HTML"
-//        operationQueue.qualityOfService = .userInteractive
-//        operationQueue.maxConcurrentOperationCount = 1
-//        return operationQueue
-//    }()
-
-//    var text : String?
-//    {
-//        didSet {
-//
-//        }
-//    }
     
     var original:String?
     {
@@ -63,14 +47,6 @@ class HTML
             
             if _string != previousString, let isEmpty = _string?.isEmpty, !isEmpty {
                 _string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
-                
-                // This can take some time.  JUST TOO EXPENSIVE.
-//                operationQueue.cancelAllOperations()
-//
-//                let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
-//                    self?.text = self?._string?.stripHTML(test)
-//                }
-//                operationQueue.addOperation(op)
             }
         }
     }
@@ -93,73 +69,8 @@ class HTML
 
             _string = newString
         }
-//        didSet {
-//            // Why are we doing this?
-//            string = string?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
-//            string = string?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
-//
-//            string = string?.replacingOccurrences(of: Constants.LEFT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
-//            string = string?.replacingOccurrences(of: Constants.RIGHT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
-//
-//            string = string?.replacingOccurrences(of: Constants.EM_DASH, with: Constants.DASH)
-//
-//        }
     }
 
-//                if let url = fileURL {
-//                    let fileManager = FileManager.default
-
-                    // Why delete?  Not necessary.
-//                    url.delete(block:true)
-//                    if (fileManager.fileExists(atPath: url.path)){
-//                        do {
-//                            try fileManager.removeItem(at: url)
-//                        } catch let error {
-//                            print("failed to remove htmlString: \(error.localizedDescription)")
-//                        }
-//                    }
-
-//                    if let isEmpty = string?.isEmpty, !isEmpty {
-//                        string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).save16(filename:fileURL?.lastPathComponent)
-////                        do {
-////                            try
-//////                                .write(toFile: url.path, atomically: false, encoding: String.Encoding.utf16);
-////                        } catch let error {
-////                            print("failed to write htmlString to cache directory: \(error.localizedDescription)")
-////                        }
-//                    }
-//                }
-
-//                Thread.onMainThread {
-//                    self.webViewController?.activityButtonIndicator?.startAnimating()
-//                }
-//
-//                operationQueue.addOperation { [weak self] in
-//                    self?.text = self?.string?.html2String
-//                    Thread.onMainThread {
-//                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
-//                    }
-//                }
-                
-                // THIS DOES NOT WORK.  THe old opQ keeps working!
-//                Thread.onMainThread {
-//                    self.webViewController?.activityButtonIndicator?.startAnimating()
-//                }
-//
-//                // Get a new queue - does this ever happen more than once?  Yes, when font size is changed or searching occurs.
-//                // The motivation for doing this rather than cancelling is the belief that we can just throw away the old operationQueue
-//                // and it will stop executing.  I don't think that is true!
-//                operationQueue = OperationQueue()
-//                operationQueue.name = "HTML"
-//                operationQueue.qualityOfService = .userInteractive
-//                operationQueue.maxConcurrentOperationCount = 1
-//
-//                operationQueue.addOperation { [weak self] in
-//                    self?.text = stripHTML(self?.string) // This leaves an HTML frame around the text!
-//                    Thread.onMainThread {
-//                        self?.webViewController?.activityButtonIndicator?.stopAnimating()
-//                    }
-    
     var fileURL : URL?
     {
         get {

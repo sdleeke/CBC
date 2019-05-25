@@ -8,6 +8,9 @@
 
 import Foundation
 
+/**
+ Keeps track of strings based on an index
+ */
 class CachedString
 {
     @objc func freeMemory()

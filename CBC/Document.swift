@@ -10,6 +10,9 @@ import Foundation
 import WebKit
 import PDFKit
 
+/**
+ Holds all pdf documents in mediaItems.
+ */
 class Document : NSObject
 {
     private weak var mediaItem:MediaItem?

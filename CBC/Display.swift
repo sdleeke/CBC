@@ -8,6 +8,10 @@
 
 import Foundation
 
+/**
+ For managing the list of mediaItems displayed in the MTVC.
+ */
+
 class Display
 {
     deinit {

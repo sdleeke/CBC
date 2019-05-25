@@ -474,36 +474,6 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
     }
 }
 
-//class Sort
-//{
-//    init(_ ptvc:PopoverTableViewController?)
-//    {
-//        self.ptvc = ptvc
-//    }
-//
-//    private weak var ptvc : PopoverTableViewController!
-//
-//    var sorting = false
-//    {
-//        didSet {
-//            Thread.onMainThread {
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SORTING_CHANGED), object: self.ptvc)
-//            }
-//        }
-//    }
-//
-//    var function : ((String?,[String]?)->[String]?)?
-//
-//    var method : String? = Constants.Sort.Alphabetical
-//    {
-//        willSet {
-//
-//        }
-//        didSet {
-//
-//        }
-//    }
-//}
 
 /**
  struct containing the information to setup one segment in a UISegmentControl
@@ -564,8 +534,6 @@ class PopoverTableViewController : CBCViewController
         return [String:PopoverTableViewController]()
     }()
     
-//    var alertController : UIAlertController?
-    
     var changesPending = false
     
     var selectedText:String!
@@ -575,12 +543,6 @@ class PopoverTableViewController : CBCViewController
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
-//    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
-    
-//    lazy var sort = { [weak self] in
-//        return Sort(self)
-//    }()
- 
     func stopTracking()
     {
         guard track else {
@@ -918,50 +880,11 @@ class PopoverTableViewController : CBCViewController
             
         }
         didSet {
-//            filteredSection.indexStringsTransform = indexStringsTransform
             unfilteredSection.indexStringsTransform = indexStringsTransform
         }
     }
     
     var stringSelected : String?
-
-//    var filteredSections = [String:Section]()
-//    var filteredSection : Section!
-//    {
-//        get {
-//            guard let searchText = searchText else {
-//                return nil
-//            }
-//
-//            if filteredSections[searchText] == nil {
-//                let section = Section(tableView:tableView, stringsAction: nil)
-//
-//                section.showIndex = unfilteredSection.showIndex
-//                section.showHeaders = unfilteredSection.showHeaders
-//
-//                section.indexSort = unfilteredSection.indexSort
-//                section.indexStringsTransform = unfilteredSection.indexStringsTransform
-//                section.indexHeadersTransform = unfilteredSection.indexHeadersTransform
-//
-//                section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
-//                    Thread.onMainThread {
-//                        self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
-//                    }
-//                }
-//
-//                filteredSections[searchText] = section
-//            }
-//
-//            return filteredSections[searchText]
-//        }
-//        set {
-//            guard let searchText = searchText else {
-//                return
-//            }
-//
-//            filteredSections[searchText] = newValue
-//        }
-//    }
     
     lazy var filteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
@@ -974,25 +897,6 @@ class PopoverTableViewController : CBCViewController
 
         return section
     }()
-    
-//    // Make it thread safe
-//    lazy var filteredQueue : DispatchQueue = { [weak self] in
-//        return DispatchQueue(label: UUID().uuidString)
-//    }()
-//
-//    var filteredSection:Section!
-//    {
-//        get {
-//            return filteredQueue.sync {
-//                return _filteredSection
-//            }
-//        }
-//        set {
-//            filteredQueue.sync {
-//                _filteredSection = newValue
-//            }
-//        }
-//    }
 
     lazy var unfilteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
@@ -1005,26 +909,7 @@ class PopoverTableViewController : CBCViewController
         
         return section
     }()
-    
-//    // Make it thread safe
-//    lazy var unfilteredQueue : DispatchQueue = { [weak self] in
-//        return DispatchQueue(label: UUID().uuidString)
-//    }()
-//
-//    var unfilteredSection:Section!
-//    {
-//        get {
-//            return unfilteredQueue.sync {
-//                return _unfilteredSection
-//            }
-//        }
-//        set {
-//            unfilteredQueue.sync {
-//                _unfilteredSection = newValue
-//            }
-//        }
-//    }
-    
+
     var section:Section!
     {
         get {
@@ -1113,22 +998,6 @@ class PopoverTableViewController : CBCViewController
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
 
         width = self.titleWidth(lineHeight: Constants.Fonts.bold.lineHeight)
-        
-//        if let title = self.navigationItem.title, !title.isEmpty {
-//            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-//
-//            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
-//
-//            if let left = navigationItem.leftBarButtonItem?.title {
-//                let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-//                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
-//            }
-//
-//            if let right = navigationItem.rightBarButtonItem?.title {
-//                let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-//                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
-//            }
-//        }
         
         for string in strings {
             if let strings = parser != nil ? parser?(string) : [string] {
@@ -1361,7 +1230,6 @@ class PopoverTableViewController : CBCViewController
         
         doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
         
-//        if navigationController?.viewControllers.count == 1, let presentationStyle = navigationController?.modalPresentationStyle {
         if let navigationController = navigationController, Globals.shared.splitViewController?.viewControllers.containsBelow(navigationController) == false {
             switch navigationController.modalPresentationStyle {
             case .formSheet:
@@ -1421,12 +1289,6 @@ class PopoverTableViewController : CBCViewController
         
         if let selectedText = selectedText,  let index = section.strings?.firstIndex(where: { (string:String) -> Bool in
             return selectedText.uppercased() == string.word?.uppercased() ?? string.uppercased()
-            
-//            if let range = string.range(of: " (") {
-//                return selectedText.uppercased() == String(string[..<range.lowerBound]).uppercased()
-//            } else {
-//                return selectedText.uppercased() == string.uppercased()
-//            }
         }) {
             var i = 0
             
@@ -1458,69 +1320,6 @@ class PopoverTableViewController : CBCViewController
                     }
                 }
             }
-
-//            if let method = section.method {
-//                switch method {
-//                case Constants.Sort.Alphabetical:
-//                    var i = 0
-//                    
-//                    repeat {
-//                        i += 1
-//                    } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
-//                    
-//                    let section = i - 1
-//                    
-//                    if let base = self.section.indexes?[section] {
-//                        let row = index - base
-//                        
-//                        if self.section.strings?.count > 0 {
-//                            Thread.onMainThread {
-//                                if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
-//                                    let indexPath = IndexPath(row: row,section: section)
-//                                    
-//                                    if self.tableView.isValid(indexPath) {
-//                                        if scroll {
-//                                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-//                                        }
-//                                        if select {
-//                                            self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-//                                        }
-//                                    }
-//                                } else {
-//
-//                                }
-//                            }
-//                        }
-//                    }
-//                    break
-//                    
-//                case Constants.Sort.Frequency:
-//                    let section = 0
-//                    let row = index
-//
-//                    if self.section.strings?.count > 0 {
-//                        Thread.onMainThread {
-//                            if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
-//                                let indexPath = IndexPath(row: row,section: section)
-//                                
-//                                if self.tableView.isValid(indexPath) {
-//                                    if scroll {
-//                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-//                                    }
-//                                    if select {
-//                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-//                                    }
-//                                }
-//                            } else {
-//
-//                            }
-//                        }
-//                    }
-//                    break
-//                default:
-//                    break
-//                }
-//            }
         } else {
             if let selectedText = selectedText {
                 self.alert(title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
@@ -1759,8 +1558,6 @@ class PopoverTableViewController : CBCViewController
                 break
             }
         }
-        
-//        orientation = UIDevice.current.orientation
         
         if searchActive {
             searchBar.text = searchText
@@ -2087,134 +1884,11 @@ extension PopoverTableViewController : UITableViewDataSource
             return cell
         }
         
+        cell.title.text = string
+
         if search, searchActive, let searchText = searchText?.lowercased() {
-//            var titleString = NSMutableAttributedString()
-//
-//            var before:String?
-//            var during:String?
-//            var after:String?
-            
-//            var range = string.lowercased().range(of: searchText.lowercased())
-//            
-//            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//            if range == nil {
-//                // This is a special case to catch when the search text is a phrase, all the results are set from
-//                // VB times for the phrase (aka keyword) and it is nil because less than the full phrase appears.
-//                //
-//                // This ASSUMES that the list of results (i.e. the strings) is transcript segments generated from the
-//                // phrase start times, meaning the whole phrase should appear unless the start time is close to the end time
-//                // for the segment, in which case, since segments end on word boundaries, at least one or more but not all
-//                // of the words, should appear.
-//                //
-//                
-//                let words = searchText.split(separator: " ").map { (substring) -> String in
-//                    String(substring)
-//                }
-//                
-//                if words.count > 1 {
-//                    var strings = [String]()
-//                    var phrase : String?
-//                    
-//                    // Assemble the list of "less than the full phrase" phrases to look for.
-//                    for i in 0..<words.count {
-//                        if i == (words.count - 1) {
-//                            break
-//                        }
-//
-//                        if phrase == nil {
-//                            phrase = words[i]
-//                        } else {
-//                            phrase = (phrase ?? "") + " " + words[i]
-//                        }
-//                        
-//                        if let phrase = phrase {
-//                            strings.append(phrase)
-//                        }
-//                    }
-//
-//                    // reverse them since we want to look for the longest first.
-//                    strings.reverse()
-//                    
-//                    // Now look for them.
-//                    for subString in strings {
-//                        var searchRange = Range(uncheckedBounds: (lower: string.startIndex, upper: string.endIndex))
-//
-//                        var rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
-//                        
-//                        // But even if there is a match we have to find the LAST match
-//                        if rng != nil {
-//                            var lastRange : Range<String.Index>?
-//                            
-//                            repeat {
-//                                lastRange = rng
-//                                searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: string.endIndex))
-//                                rng = string.lowercased().range(of: subString.lowercased(), options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
-//                            } while rng != nil
-//                            
-//                            // And it only counts if the match is at the end of the string
-//                            if lastRange?.upperBound == string.endIndex {
-//                                range = lastRange
-//                                break
-//                            }
-//                        }
-//                    }
-//                    
-//                    if range == nil {
-//                        // THIS SHOULD NEVER HAPPEN
-//                    }
-//                } else {
-//                    // THIS SHOULD NEVER HAPPEN
-//                }
-//            }
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            
-//            repeat {
-//                if let range = range {
-//                    before = String(string[..<range.lowerBound])
-//                    during = String(string[range])
-//                    after = String(string[range.upperBound...])
-//
-//                    titleString = NSMutableAttributedString()
-//
-//                    if let before = before {
-//                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.body))
-//                    }
-//                    if let during = during {
-//                        titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
-//                    }
-//                    if let after = after {
-//                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.body))
-//                    }
-//                } else {
-//                    break
-//                }
-//
-//                if wholeWordsOnly {
-//                    if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
-//                        break
-//                    }
-//
-//                    if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
-//                        if  let before = UnicodeScalar(String(characterBefore)), !CharacterSet.letters.contains(before),
-//                            let after = UnicodeScalar(String(characterAfter)), !CharacterSet.letters.contains(after) {
-//                            break
-//                        }
-//                    }
-//
-//                    if let after = after, !after.isEmpty {
-//                        range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
-//                    } else {
-//                        break
-//                    }
-//                } else {
-//                    break
-//                }
-//            } while after?.contains(searchText) ?? false
-            
-            cell.title.text = string
             cell.title.attributedText = string.markedBySearch(searchText: searchText, wholeWordsOnly: wholeWordsOnly, test: nil)
         } else {
-            cell.title.text = string
             cell.title.attributedText = NSAttributedString(string:string,attributes:Constants.Fonts.Attributes.body)
         }
         
@@ -2315,14 +1989,6 @@ extension PopoverTableViewController : UITableViewDelegate
             
             view?.addSubview(label)
 
-//            if let superview = label.superview {
-//                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//                label.superview?.addConstraint(centerY)
-//
-//                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-//                label.superview?.addConstraint(leftMargin)
-//            }
-            
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             
@@ -2457,9 +2123,6 @@ extension PopoverTableViewController : UITableViewDelegate
                 Thread.onMainThread {
                     self?.activityIndicator.stopAnimating()
                     self?.startTracking()
-//                    if self.isTracking {
-//                        self.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.follow), userInfo: nil, repeats: true)
-//                    }
                 }
             }
         }

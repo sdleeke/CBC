@@ -8,15 +8,15 @@
 
 import Foundation
 
+/**
+ Scripture Index to all the mediaItems in an MLGS.
+ */
+
 class ScriptureIndex
 {
     var callBacks = CallBacks()
     
-//    var start : (()->())?
-//    var update : (()->())?
-//    var complete : (()->())?
-    
-    var building : Bool // = false
+    var building : Bool
     {
         get {
             return operationQueue.operationCount > 0
@@ -65,13 +65,6 @@ class ScriptureIndex
             return self?.context
         })
     }()
-    
-//    var index : String?
-//    {
-//        get {
-//            return context
-//        }
-//    }
     
     var context:String?
     {
@@ -224,9 +217,6 @@ class ScriptureIndex
     {
         guard !completed else {
             callBacks.execute("complete")
-//            Globals.shared.queue.async {
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-//            }
             return
         }
         
@@ -340,7 +330,6 @@ class ScriptureIndex
                 }
             }
             
-//            self?.creating = false
             self?.completed = true
             
             if let selectedTestament = self?.scripture.picked.testament {
@@ -365,14 +354,6 @@ class ScriptureIndex
             }
             
             self?.callBacks.execute("complete")
-            
-//            Globals.shared.queue.async {
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
-//            }
-            
-//            let end = Date().timeIntervalSince1970
-//
-//            print(end - start)
         }
         
         operationQueue.addOperation(op)

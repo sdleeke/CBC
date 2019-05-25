@@ -12,7 +12,7 @@ import Foundation
  
  Abstract dictionary backed class with id, name, suffix
  
- Properties:
+ - Properties:
      - status: this is a title that indicates their status, e.g. Pastor-Teacher or Staff Pastor.
      - Paragraphs: fetch properties about transcript paragraphs characterisitics use in setting paragraph boundaries automatically.
  

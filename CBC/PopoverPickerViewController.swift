@@ -373,6 +373,10 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
     }
 }
 
+/**
+ Holds any number of picker wheels to show the contents of a StringTree
+ that is generated from a lexicon.
+ */
 class PopoverPickerViewController : CBCViewController
 {
     private lazy var operationQueue : OperationQueue! = {
@@ -586,253 +590,9 @@ class PopoverPickerViewController : CBCViewController
         }
     }
     
-//    var orientation : UIDeviceOrientation?
-
-    @objc func deviceOrientationDidChange()
-    {
-//        // Dismiss any popover
-//        func action()
-//        {
-//            popover?.values.forEach({ (popover:PopoverTableViewController) in
-//                popover.dismiss(animated: false, completion: nil)
-//            })
-//        }
-//
-//        guard let orientation = orientation else {
-//            return
-//        }
-//
-//        switch orientation {
-//        case .faceUp:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .faceDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeLeft:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .landscapeRight:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                break
-//
-//            case .landscapeRight:
-//                break
-//
-//            case .portrait:
-//                action()
-//                break
-//
-//            case .portraitUpsideDown:
-//                action()
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portrait:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .portraitUpsideDown:
-//            switch UIDevice.current.orientation {
-//            case .faceUp:
-//                break
-//
-//            case .faceDown:
-//                break
-//
-//            case .landscapeLeft:
-//                action()
-//                break
-//
-//            case .landscapeRight:
-//                action()
-//                break
-//
-//            case .portrait:
-//                break
-//
-//            case .portraitUpsideDown:
-//                break
-//
-//            case .unknown:
-//                action()
-//                break
-//
-//            @unknown default:
-//                break
-//            }
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-//
-//        switch UIDevice.current.orientation {
-//        case .faceUp:
-//            break
-//
-//        case .faceDown:
-//            break
-//
-//        case .landscapeLeft:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .landscapeRight:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portrait:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .portraitUpsideDown:
-//            self.orientation = UIDevice.current.orientation
-//            break
-//
-//        case .unknown:
-//            break
-//
-//        @unknown default:
-//            break
-//        }
-    }
-    
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
     var didAppear = false
@@ -885,14 +645,7 @@ class PopoverPickerViewController : CBCViewController
                 fallthrough
             case .overFullScreen:
                 navigationItem.leftBarButtonItem = doneButton
-                
-//                if navigationItem.leftBarButtonItems != nil {
-//                    // When would this have been necessary?
-//                    navigationItem.leftBarButtonItems?.append(doneButton)
-//                } else {
-//                    navigationItem.leftBarButtonItem = doneButton
-//                }
-                
+
             default:
                 break
             }
@@ -900,44 +653,10 @@ class PopoverPickerViewController : CBCViewController
         
         setupActionButton()
 
-//        picker.isHidden = true
-        
-//        orientation = UIDevice.current.orientation
-        
         addNotifications()
-        
-//        updateActionButton()
 
         spinner.isHidden = false
         spinner.startAnimating()
-
-//        if stringTree?.incremental == true {
-//            if stringTree?.completed == false {
-//                spinner.isHidden = false
-//                spinner.startAnimating()
-//            }
-//
-//            stringTree?.callBacks.register(id: "PPVC", callBack: CallBack(
-//                    start: { [weak self] in
-//                        self?.started()
-//                    },
-//                    update:{ [weak self] in
-//                        self?.updated()
-//                    },
-//                    complete:{ [weak self] in
-//                        self?.completed()
-//                    }
-//                )
-//            )
-            
-//            stringTree?.update = { [weak self] in
-//                self?.updated()
-//            }
-            
-//            Globals.shared.queue.async {
-//                NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
-//            }
-//        }
         
         if let string = string, let index = strings?.firstIndex(of:string), picker.numberOfComponents == 1 {
             // THIS IS FINE IF THERE IS ONE COMPONENT TO THE PICKER!
@@ -958,7 +677,6 @@ class PopoverPickerViewController : CBCViewController
                     } else {
                         self?.complete = true
                     }
-//                    self?.stringTree?.build(strings: self?.strings)
 
                     return nil
                 }, completion: { [weak self] (data:Any?) in
@@ -995,12 +713,6 @@ class PopoverPickerViewController : CBCViewController
         }
         
         setupBarButtonItems()
-        
-//        self.operationQueue.addOperation {
-//            self.updateActionButton()
-//            self.updatePickerSelections()
-//            self.updatePicker()
-//        }
 
         setPreferredContentSize() // = CGSize(width: 300, height: 300)
     }

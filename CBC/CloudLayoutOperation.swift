@@ -17,6 +17,9 @@ protocol CloudLayoutOperationDelegate : class
     func update(cloudWords:[CloudWord]?)
 }
 
+/**
+ How we layout clouds.
+ */
 class CloudLayoutOperation : Operation
 {
     var cloudFont : UIFont?
@@ -162,17 +165,6 @@ class CloudLayoutOperation : Operation
         // it seems intuitive that the image would be more meaningful
         // but how do we do that?
         //
-//        if let first = cloudWords.first, let last = cloudWords.last {
-//            first.pointSize = fontMax
-//            first.sizeWord(isVertical: false, scale:containerScale, fontName:cloudFont.fontName)
-//            let firstArea = first.boundsArea
-//
-//            last.pointSize = fontMin
-//            last.sizeWord(isVertical: false, scale:containerScale, fontName:cloudFont.fontName)
-//            let lastArea = last.boundsArea
-//
-//            print(firstArea,lastArea,firstArea/lastArea)
-//        }
         
         // It would be very cool to be able to map the word locations to the surface of a sphere and use a pan gesture
         // to rotate the sphere around a fixed center.
@@ -200,8 +192,6 @@ class CloudLayoutOperation : Operation
                 }
                 
                 if wordArea < (containerArea * scaleFactor) {
-//                    oldFontMin = fontMin
-                    
                     fontMin += fontStep
                     
                     fontMax = fontMin * maxMinRatio

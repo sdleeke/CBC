@@ -8,26 +8,23 @@
 
 import Foundation
 
-// Crucial for Word Picker that this be a struct so that it is passed by value, not reference; i.e. a copy is made.
-// That means all of the stringNodes are frozen when it is passed by value so that Expanded Views are always complete as of that moment and
-// are not affected by changes to the tree while the expanded view is being prepared.
-////////////
-// So why is it a class?
-////////////
+/**
+
+ Handle parsing strings into their shared parts in a hierarchy.
+
+ */
 
 class StringTree
 {
     var callBacks = CallBacks()
-//    var start : (()->())?
-//    var update : (()->())?
-//    var complete : (()->())?
     
     lazy var root:StringNode! = { [weak self] in
         return StringNode(nil)
     }()
     
     var incremental = false
-    var building:Bool // = false
+    
+    var building:Bool
     {
         get {
             return operationQueue.operationCount > 0
@@ -54,30 +51,11 @@ class StringTree
         }
     }
     
-    // lexicon: Lexicon?,
     convenience init(stringsFunction:(()->[String]?)?, incremental: Bool)
     {
         self.init()
         
-//        self.lexicon = lexicon
-        
         self.stringsFunction = stringsFunction
-        
-//        if incremental {
-//            lexicon?.callBacks.register(id: "STRINGTREE",   callBack: CallBack(
-//                start: { [weak self] in
-//
-//                },
-//                update: { [weak self] in
-//                    self?.completed = false
-//                    self?.build(strings: self?.stringsFunction?())
-//                },
-//                complete: { [weak self] in
-//                    self?.completed = false
-//                    self?.build(strings: self?.stringsFunction?())
-//                }
-//            ))
-//        }
 
         self.incremental = incremental
     }
@@ -148,8 +126,6 @@ class StringTree
             
             bodyHTML += "<p>Index to \(total.formatted) Words</p>"
 
-//            bodyHTML += "<p>Index to \(total) Words</p>"
-            
             bodyHTML += "<table><tr>"
             
             for root in roots {

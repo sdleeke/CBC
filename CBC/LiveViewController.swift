@@ -11,6 +11,9 @@ import WebKit
 import AVFoundation
 import AVKit
 
+/**
+ For displaying live events.
+ */
 class LiveViewController: CBCViewController
 {
     deinit {

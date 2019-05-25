@@ -15,6 +15,9 @@ enum State {
     case none
 }
 
+/**
+ Handles downloading of everything from audio/video to documents.
+ */
 extension Download : URLSessionDownloadDelegate
 {
     // MARK: URLSessionDownloadDelegate
@@ -154,20 +157,12 @@ extension Download : URLSessionDownloadDelegate
         do {
             if (state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
                 fileSystemURL.delete(block:true)
-//                if (fileManager.fileExists(atPath: fileSystemURL.path)){
-//                    do {
-//                        try fileManager.removeItem(at: fileSystemURL)
-//                    } catch let error {
-//                        print("failed to remove duplicate download: \(error.localizedDescription)")
-//                    }
-//                }
                 
                 debug("\(location)")
                 
                 try fileManager.copyItem(at: location, to: fileSystemURL)
                 
                 location.delete(block:true)
-//                try fileManager.removeItem(at: location)
                 
                 state = .downloaded
             } else {
@@ -222,21 +217,6 @@ extension Download : URLSessionDownloadDelegate
             downloadFailed(error:error)
         }
         
-//        if let purpose = purpose {
-//            switch purpose {
-//            case Purpose.slides:
-//                fallthrough
-//            case Purpose.notes:
-//                Thread.onMainThread {
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
-//                }
-//                break
-//
-//            default:
-//                break
-//            }
-//        }
-
         session.invalidateAndCancel()
         
         Thread.onMainThread {
@@ -279,8 +259,6 @@ extension Download : URLSessionDownloadDelegate
             return
         }
         
-//        let filename = String(identifier[Constants.DOWNLOAD_IDENTIFIER.endIndex...])
-
         if let range = identifier.range(of: ":") {
             let filename = String(identifier[range.upperBound...])
             
@@ -302,7 +280,6 @@ class Download : NSObject, Size
         self.mediaItem = mediaItem
         self.purpose = purpose
         self.downloadURL = downloadURL
-//        self.fileSystemURL = fileSystemURL
         
         if let fileSystemURL = fileSystemURL {
             if FileManager.default.fileExists(atPath: fileSystemURL.path) {
@@ -361,12 +338,6 @@ class Download : NSObject, Size
         get {
             return downloadURL?.fileSystemURL
         }
-//        willSet {
-//
-//        }
-//        didSet {
-//            state = exists ? .downloaded : .none
-//        }
     }
     
     var totalBytesWritten:Int64 = 0
@@ -382,11 +353,6 @@ class Download : NSObject, Size
             return state == .downloading
         }
     }
-
-//    @objc func downloadFailed()
-//    {
-//        Alerts.shared.alert(title: "Network Error",message: "Download failed.")
-//    }
 
     var state:State = .none {
         willSet {
@@ -431,25 +397,16 @@ class Download : NSObject, Size
                 case .downloading:
                     self.mediaItem?.removeTag(Constants.Strings.Downloaded)
                     self.mediaItem?.addTag(Constants.Strings.Downloading)
-                    // This blocks this thread until it finishes.
-//                    Globals.shared.queue.sync {
-//                    }
                     break
                     
                 case .downloaded:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.addTag(Constants.Strings.Downloaded)
-                    // This blocks this thread until it finishes.
-//                    Globals.shared.queue.sync {
-//                    }
                     break
                     
                 case .none:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.removeTag(Constants.Strings.Downloaded)
-                    // This blocks this thread until it finishes.
-//                    Globals.shared.queue.sync {
-//                    }
                     break
                 }
                 
@@ -557,12 +514,6 @@ class Download : NSObject, Size
         }
     }
     
-//    lazy var fileSize:Shadowed<Int> = { [weak self] in
-//        return Shadowed<Int>(get:{
-//            return self.fileSystemURL?.fileSize
-//        })
-//    }()
-
     // Slow when replaced w/ struct or class
     internal var _fileSize : Int?
     var fileSize : Int?
@@ -584,38 +535,6 @@ class Download : NSObject, Size
         }
     }
     
-//    var fileSize:Int
-//    {
-//        var size = 0
-//
-//        guard let fileSystemURL = fileSystemURL else {
-//            return size
-//        }
-//
-//        guard fileSystemURL.downloaded else {
-//            return size
-//        }
-//
-//        do {
-//            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
-//
-//            if let num = fileAttributes[FileAttributeKey.size] as? Int {
-//                size = num
-//            }
-//        } catch let error {
-//            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
-//        }
-//
-//        return size
-//    }
-    
-//    var fileSize : Int?
-//    {
-//        get {
-//            return fileSystemURL?.fileSize
-//        }
-//    }
-    
     func delete(block:Bool)
     {
         guard state == .downloaded else {
@@ -624,15 +543,6 @@ class Download : NSObject, Size
         
         fileSize = nil
         fileSystemURL?.delete(block:block)
-        
-//        // Check if file exists and if so, delete it.
-//        if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
-//            do {
-//                try FileManager.default.removeItem(at: fileSystemURL)
-//            } catch let error {
-//                print("failed to delete download: \(error.localizedDescription)")
-//            }
-//        }
         
         state = .none // MUST delete file first as state change updates UI.
         totalBytesWritten = 0

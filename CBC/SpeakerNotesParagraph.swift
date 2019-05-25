@@ -8,6 +8,12 @@
 
 import Foundation
 
+/**
+
+ Manages all information about the speaker notes paragraphs in a list of mediaItems.
+ 
+ */
+
 class SpeakerNotesParagraph
 {
     var name : String?
@@ -34,7 +40,6 @@ class SpeakerNotesParagraph
                         return true
                     }
                 }
-//                return (mediaItem.speaker == self?.name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
             }) else {
                 return nil
             }
@@ -56,52 +61,8 @@ class SpeakerNotesParagraph
         }
         
         return fetch
-        }()
-    
-    // Replace with Fetch?
-    // How will we know when new transcripts are added?  On refresh when this is reset to nil.  Until then we WON'T.
-    
-    //    private var _words:[String:Int]?
-    //    {
-    //        didSet {
-    //
-    //        }
-    //    }
-    //    var words:[String:Int]?
-    //    {
-    //        get {
-    //            guard _words == nil else {
-    //                return _words
-    //            }
-    //
-    //            guard let mediaItems = Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
-    //                return (mediaItem.category == self.category) && (mediaItem.speaker == self.speaker) && mediaItem.hasNotesText
-    //            }) else {
-    //                return nil
-    //            }
-    //
-    //            var allNotesParagraphWords = [String:Int]()
-    //
-    //            for mediaItem in mediaItems {
-    //                if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
-    //                    // notesParagraphWords.count is the number of paragraphs.
-    //                    // So we can get the distribution of the number of paragraphs
-    //                    // in each document - if that is useful.
-    //                    allNotesParagraphWords.merge(notesParagraphWords) { (firstValue, secondValue) -> Int in
-    //                        return firstValue + secondValue
-    //                    }
-    //                }
-    //            }
-    //
-    //            _words = allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
-    //
-    //            return _words
-    //        }
-    //        set {
-    //            _words = newValue
-    //        }
-    //    }
-    
+    }()
+
     var overallAverageLength : Int?
     {
         get {

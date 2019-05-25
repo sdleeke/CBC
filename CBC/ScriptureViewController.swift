@@ -321,6 +321,9 @@ extension ScriptureViewController : MFMailComposeViewControllerDelegate
     }
 }
 
+/**
+ For displaying Scripture
+ */
 class ScriptureViewController : CBCViewController
 {
     lazy var popover : [String:PopoverTableViewController]? = {

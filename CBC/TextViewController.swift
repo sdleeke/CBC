@@ -32,8 +32,6 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
         
-//        let attributedText = self.textView.attributedText
-        
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
@@ -109,8 +107,6 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
 
-//        let attributedText = self.textView.attributedText
-        
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
@@ -708,6 +704,10 @@ extension TextViewController : PopoverTableViewControllerDelegate
         }
     }
 }
+
+/**
+ For editing transcripts.
+ */
 
 class TextViewController : CBCViewController
 {

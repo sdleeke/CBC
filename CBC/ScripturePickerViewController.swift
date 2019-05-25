@@ -320,6 +320,9 @@ extension ScripturePickerViewController : UIPickerViewDelegate
     }
 }
 
+/**
+ For picking a Scripture reference from its constituent components, e.g. testament, book, chapter, verse.
+ */
 class ScripturePickerViewController : CBCViewController
 {
     deinit {

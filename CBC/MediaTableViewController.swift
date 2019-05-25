@@ -454,6 +454,12 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
     var label : UILabel?
 }
 
+/**
+
+ The main view controller.
+
+ */
+
 class MediaTableViewController : MediaItemsViewController
 {
     deinit {
@@ -461,10 +467,6 @@ class MediaTableViewController : MediaItemsViewController
     }
     
     var display = Display()
-
-//    lazy var popover : [String:PopoverTableViewController]? = {
-//        return [String:PopoverTableViewController]()
-//    }()
 
     var actionsButton : UIBarButtonItem?
     

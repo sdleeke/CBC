@@ -32,6 +32,9 @@ extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
     }
 }
 
+/**
+ Cell that displays a mediaItem
+ */
 class MediaTableViewCell: UITableViewCell
 {
     deinit {

@@ -47,6 +47,9 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
     var label : UILabel?
 }
 
+/**
+ For displaying a lexicon
+ */
 class LexiconIndexViewController : MediaItemsViewController
 {
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
@@ -353,7 +356,6 @@ class LexiconIndexViewController : MediaItemsViewController
                 if let destination = dvc as? PopoverTableViewController {
                     wordsTableViewController = destination
                     
-//                    wordsTableViewController.section.useInsertions = true
                     wordsTableViewController.segments = true
                     
                     wordsTableViewController.section.cancelSearchfunction = { [weak self] (method:String?,strings:[String]?) -> [String]? in
@@ -1511,7 +1513,6 @@ class LexiconIndexViewController : MediaItemsViewController
             break
             
         case Constants.Strings.View_List:
-            //            self.process(work: { [weak self] () -> (Any?) in
             self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 if self?.results?.html?.string == nil {
                     self?.results?.html?.string = self?.setupMediaItemsHTMLLexicon(includeURLs:true, includeColumns:true, test:test)

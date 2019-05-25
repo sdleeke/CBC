@@ -136,6 +136,9 @@ extension AboutViewController : UIActivityItemSource
     }
 }
 
+/**
+ About view has information on the app, CBC, TP, etc.
+ */
 class AboutViewController: CBCViewController
 {
     lazy var geocoder:CLGeocoder? = {
@@ -144,9 +147,6 @@ class AboutViewController: CBCViewController
     
     deinit {
         debug(self)
-        // Breakpoint won't work without something here.
-        // Strange.  Other breakpoints in other empty deinit's work fine.
-        print("deinit:About")
     }
     
     lazy var popover : [String:PopoverTableViewController]? = {

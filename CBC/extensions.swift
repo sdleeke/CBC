@@ -1035,16 +1035,29 @@ extension Array where Element == String
         }
     }
 
+    /**
+     Extension of Array of String that is assumed to be an array of tags and returns a string of them joined or nil if the array is empty.
+     */
     var tagsString : String?
     {
-        return self.count > 0 ? self.joined(separator: Constants.SEPARATOR) : nil
+        get {
+            return self.isEmpty ? self.joined(separator: Constants.SEPARATOR) : nil
+        }
     }
     
+    /**
+     Extension of Array of String that returns a default html representation.
+     */
     var tableHTML : String?
     {
-        return tableHTML()
+        get {
+            return tableHTML()
+        }
     }
     
+    /**
+     Extension of Array of String that returns an html representation.  Can be interrupted.
+     */
     func tableHTML(title:String? = nil, searchText:String? = nil, test:(()->(Bool))? = nil) -> String?
     {
         guard !self.isEmpty else {
@@ -1177,6 +1190,9 @@ extension Array where Element == String
 
 extension String
 {
+    /**
+     Extension of String that is assumed to be a representation of NT or OT and needs to be translated to the other.
+     */
     var translateTestament : String
     {
         var translation = Constants.EMPTY_STRING
@@ -1205,6 +1221,9 @@ extension String
         return translation
     }
     
+    /**
+     Extension of String that is assumed to be sorting or grouping and returns the user readable translation.
+     */
     var translate : String
     {
         switch self {
@@ -2560,6 +2579,9 @@ extension String
         return books.count > 0 ? books.sorted() { scriptureReference.range(of: $0)?.lowerBound < scriptureReference.range(of: $1)?.lowerBound } : nil
     }
     
+    /**
+     A String extension that assumes self is a book and returns the testament it is in.
+     */
     var testament : String
     {
         if (Constants.OLD_TESTAMENT_BOOKS.contains(self)) {
@@ -2572,6 +2594,9 @@ extension String
         return Constants.EMPTY_STRING
     }
     
+    /**
+     A String extension that assumes self is a Scripture reference and returns the verses in an array if Int.
+     */
     var verses : [Int]?
     {
         guard !self.isEmpty else {
@@ -2670,6 +2695,9 @@ extension String
         return verses.count > 0 ? verses : nil
     }
 
+    /**
+     A String extension that assumes self is a Scripture reference and returns the chapters and verses in a dictionary of Int of [Int].
+     */
     var chaptersAndVerses : [Int:[Int]]?
     {
         guard !self.isEmpty else {
@@ -2741,17 +2769,17 @@ extension String
 
 extension String
 {
+    /**
+     A String extension that assumes self is a made up of tags and returns them in a set.
+     */
     var tagsSet : Set<String>?
     {
-        guard !self.isEmpty else {
-            return nil
-        }
-        
-        let array = self.components(separatedBy: Constants.SEPARATOR)
-        
-        return array.count > 0 ? Set(array) : nil
+        return tagsArray?.set
     }
     
+    /**
+     A String extension that assumes self is a made up of tags and returns them in an array.
+     */
     var tagsArray : [String]?
     {
         guard !self.isEmpty else {
@@ -2766,6 +2794,9 @@ extension String
 
 extension UITableView
 {
+    /**
+     UITableView extension that checks an indexPath to make sure it is valid.
+     */
     func isValid(_ indexPath:IndexPath) -> Bool
     {
         guard indexPath.section >= 0 else {
@@ -2790,7 +2821,13 @@ extension UITableView
 
 extension Dictionary
 {
-    // Would be nice to know the key path of what comes back.
+    /**
+     Dictionary extension that assumes the dictionary is [String:Any] and searches for a given key until found and returns the value or returns nil.
+     NOTE: This method is recursive.
+     
+     Would be nice to know the key path of what comes back.
+     */
+
     func search(key:String) -> Any?
     {
         guard !self.isEmpty else {
@@ -2816,23 +2853,38 @@ extension Dictionary
 
 extension String
 {
+    /**
+     Extension of String that <mark/>'s a searchText in self, returning the string with marking inserted.
+     */
     func markSearchHTML(_ searchText:String?) -> String
     {
-        guard let searchText = searchText?.uppercased() else {
+        guard let searchText = searchText else { // ?.uppercased()
             return self
         }
         
-        var string = self.uppercased()
+        var newString = self
         
-        if let range = string.range(of: searchText) {
-            string = String(string[..<range.lowerBound]) + "<mark>" + searchText + "</mark>" + String(string[range.upperBound...])
+        let range = NSRange(location: 0, length: newString.utf16.count)
+
+        if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
+            regex.matches(in: newString, options: .withTransparentBounds, range: range).sorted(by: { (first:NSTextCheckingResult, second:NSTextCheckingResult) -> Bool in
+                return first.range.lowerBound > second.range.lowerBound // If we work from the end to the beginning through the string the ranges are always correct.
+            }).forEach { match in
+                let foundString = "<mark>" + String(newString[String.Index(utf16Offset: match.range.lowerBound, in: newString)..<String.Index(utf16Offset: match.range.upperBound, in: newString)]) + "</mark>"
+                newString = String(newString[..<String.Index(utf16Offset: match.range.lowerBound, in: newString)]) + foundString + String(newString[String.Index(utf16Offset: match.range.upperBound, in: newString)...])
+            }
         }
-        
-        return string
+
+        return newString
     }
     
+    /**
+     Extension of String that is assumed to be html and returns it stripped of the <head/> block.
+     */
     var stripHead : String
     {
+        // get syntax is assumed.
+        
         var bodyString = self
         
         while bodyString.range(of: "<head>") != nil {
@@ -2854,6 +2906,9 @@ extension String
         return bodyString
     }
     
+    /**
+     Extension of String that is assumed to be html and returns it with the new <head/> block.
+     */
     func insertHead(fontSize:Int) -> String
     {
         var head = "<html><head><title>CBC Media</title><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>"
@@ -2919,6 +2974,9 @@ struct AlertAction
 
 extension UIViewController
 {
+    /**
+     Extension of UIViewController that blocks presentation until the Alert singleton semaphore is available.
+     */
     func present(_ viewControllerToPresent: UINavigationController, animated: Bool, completion: (() -> Void)? = nil)
     {
         Alerts.shared.blockPresent(presenting: self, presented: viewControllerToPresent, animated: animated,
@@ -2926,6 +2984,9 @@ extension UIViewController
                                    completion: completion)
     }
 
+    /**
+     Extension of UIViewController that presents an alert with completion on the Alert singleton.
+     */
     func alert(title:String?,message:String? = nil,completion:(()->(Void))? = nil)
     {
         Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { () -> (Void) in
@@ -2933,6 +2994,9 @@ extension UIViewController
         })])
     }
 
+    /**
+     Extension of UIViewController that presents an alert with actions on the Alert singleton.
+     */
     func alert(title:String?,message:String?,actions:[AlertAction]?)
     {
         guard let actions = actions else {
@@ -2943,6 +3007,9 @@ extension UIViewController
         Alerts.shared.alert(title: title, message: message, actions: actions)
     }
     
+    /**
+     Extension of UIViewController that presents an alert with actions, and a specific cancel action, on the Alert singleton.
+     */
     func alertActionsCancel(title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
     {
         guard var alertActions = alertActions else {
@@ -2954,6 +3021,9 @@ extension UIViewController
         Alerts.shared.alert(title: title, message: message, actions: alertActions)
     }
     
+    /**
+     Extension of UIViewController that presents an alert with actions, and a specific okay action, on the Alert singleton.
+     */
     func alertActionsOkay(title:String?,message:String?,alertActions:[AlertAction]?,okayAction:(()->(Void))?)
     {
         guard var alertActions = alertActions else {
@@ -2965,6 +3035,9 @@ extension UIViewController
         Alerts.shared.alert(title: title, message: message, actions: alertActions)
     }
     
+    /**
+     Extension of UIViewController that presents an alert on the Alert singleton that includes a text field with searchText and a searchAction.
+     */
     func searchAlert(title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
     {
         let alert = CBCAlertController(  title: title,
@@ -2997,6 +3070,9 @@ extension UIViewController
         Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
     }
 
+    /**
+     Extension of UIViewController that presents an alert on the Alert singleton with actions for Yes and No.
+     */
     func yesOrNo(title:String?,message:String?,
                  yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
                  noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
@@ -3009,6 +3085,9 @@ extension UIViewController
         Alerts.shared.alert(title: title, message: message, actions: alertActions)
     }
 
+    /**
+     Extension of UIViewController that presents an alert on the Alert singleton with two actions and a cancel action.
+     */
     func firstSecondCancel(title:String?,message:String?,
                            firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertAction.Style,
                            secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
@@ -3031,6 +3110,9 @@ extension UIViewController
         Alerts.shared.alert(title: title, message: message, actions: alertActions)
     }
     
+    /**
+     Extension of UIViewController that presents an mail compose view controller on the Alerts singleton for text.
+     */
     func mailText(viewController:UIViewController?,to: [String]?,subject: String?, body:String)
     {
         guard let viewController = viewController else {
@@ -3058,6 +3140,9 @@ extension UIViewController
         Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
     }
     
+    /**
+     Extension of UIViewController that presents an mail compose view controller on the Alerts singleton for html.
+     */
     func mailHTML(to: [String]?,subject: String?, htmlString:String)
     {
         guard MFMailComposeViewController.canSendMail() else {
@@ -3081,6 +3166,9 @@ extension UIViewController
         Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
     }
 
+    /**
+     Extension of UIViewController that presents a print interaction controller using the Alerts singleton semaphore.
+     */
     func printJob(data:Data?)
     {
         guard UIPrintInteractionController.isPrintingAvailable, let data = data else {
@@ -3113,6 +3201,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController that presents a print interaction controller using the Alerts singleton semaphore.
+     */
     func printTextJob(string:String?,orientation:UIPrintInfo.Orientation)
     {
         guard UIPrintInteractionController.isPrintingAvailable, let string = string else {
@@ -3135,9 +3226,6 @@ extension UIViewController
         let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
         formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        // use printFormatter or pageRenderer (below)
-        //        pic.printFormatter = formatter
-        
         let renderer = UIPrintPageRenderer()
         renderer.headerHeight = margin
         renderer.footerHeight = margin
@@ -3157,6 +3245,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController that print text.
+     */
     func printText(string:String?)
     {
         guard UIPrintInteractionController.isPrintingAvailable && (string != nil) else {
@@ -3174,6 +3265,9 @@ extension UIViewController
         )
     }
     
+    /**
+     Extension of UIViewController that presents a print interaction controller using the Alerts singleton semaphore.
+     */
     func printImageJob(image:UIImage?,orientation:UIPrintInfo.Orientation)
     {
         guard UIPrintInteractionController.isPrintingAvailable, let image = image else {
@@ -3198,9 +3292,6 @@ extension UIViewController
         
         formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        // use printFormatter or pageRenderer (below)
-        //        pic.printFormatter = formatter
-        
         let renderer = UIPrintPageRenderer()
         renderer.headerHeight = margin
         renderer.footerHeight = margin
@@ -3220,6 +3311,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController that prints an image.
+     */
     func printImage(image:UIImage?)
     {
         guard UIPrintInteractionController.isPrintingAvailable && (image != nil) else {
@@ -3238,6 +3332,9 @@ extension UIViewController
         )
     }
     
+    /**
+     Extension of UIViewController that presents a print interaction controller using the Alerts singleton semaphore for html.
+     */
     func printHTMLJob(html:String?,orientation:UIPrintInfo.Orientation)
     {
         guard UIPrintInteractionController.isPrintingAvailable, let html = html else {
@@ -3258,9 +3355,6 @@ extension UIViewController
         let margin:CGFloat = 0.5 * 72.0 // 72=1" margins
         formatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
 
-        // use printFormatter or pageRenderer (below)
-        //        pic.printFormatter = formatter
-        
         let renderer = UIPrintPageRenderer()
         renderer.headerHeight = margin
         renderer.footerHeight = margin
@@ -3280,6 +3374,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController that prints html.
+     */
     func printHTML(htmlString:String?)
     {
         guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
@@ -3298,6 +3395,9 @@ extension UIViewController
         )
     }
     
+    /**
+     Extension of UIViewController that prints a document.
+     */
     func printDocument(documentURL:URL?)
     {
         guard UIPrintInteractionController.isPrintingAvailable, let documentURL = documentURL else {
@@ -3311,6 +3411,9 @@ extension UIViewController
         })
     }
     
+    /**
+     Extension of UIViewController that prints a mediaItem.
+     */
     func printMediaItem(mediaItem:MediaItem?)
     {
         guard UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil) else {
@@ -3324,6 +3427,9 @@ extension UIViewController
         })
     }
     
+    /**
+     Extension of UIViewController that ask user for page orientation or to cancel.
+     */
     func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
     {
         self.firstSecondCancel(title: "Page Orientation", message: nil,
@@ -3332,6 +3438,9 @@ extension UIViewController
                           cancelAction: cancel)
     }
     
+    /**
+     Extension of UIViewController to print an array of mediaItems.
+     */
     func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool)
     {
         guard UIPrintInteractionController.isPrintingAvailable && (mediaItems != nil) && (stringFunction != nil) else {
@@ -3358,6 +3467,9 @@ extension UIViewController
         )
     }
     
+    /**
+     Extension of UIViewController to present a mail compose view controller with the html of an array of mediaItems.
+     */
     func mailMediaItems(mediaItems:[MediaItem]?, stringFunction:(([MediaItem]?,Bool,Bool)->String?)?, links:Bool, columns:Bool, attachments:Bool)
     {
         guard (mediaItems != nil) && (stringFunction != nil) && MFMailComposeViewController.canSendMail() else {
@@ -3390,6 +3502,9 @@ extension UIViewController
         })
     }
     
+    /**
+     Extension of UIViewController to present a mail compose view controller with the html of an array of mediaItems.
+     */
     func mailMediaItem(mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?)
     {
         guard MFMailComposeViewController.canSendMail() else {
@@ -3414,6 +3529,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController to present a modal dialog of html that may be related to a mediaItem.
+     */
     func presentHTMLModal(dismiss:Bool = false, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
     {
         guard let htmlString = htmlString else {
@@ -3455,11 +3573,17 @@ extension UIViewController
         present(navigationController, animated: true, completion: nil)
     }
     
+    /**
+     Extension of UIViewController to alert user that mail could not be sent.
+     */
     func showSendMailErrorAlert()
     {
         alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
     }
 
+    /**
+     Extension of UIViewController to return the preferred modal presentation style based on traits.
+     */
     var preferredModalPresentationStyle : UIModalPresentationStyle
     {
         let vClass = self.traitCollection.verticalSizeClass
@@ -3477,6 +3601,9 @@ extension UIViewController
         return .formSheet
     }
     
+    /**
+     Extension of UIViewController to show a popover of html that is optionally related to a mediaItem.
+     */
     func popoverHTML(title:String?, mediaItem:MediaItem? = nil, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil, search:Bool)
     {
         guard Thread.isMainThread else {
@@ -3544,7 +3671,12 @@ extension UIViewController
         }
     }
 
-    func process(disableEnable:Bool = true, work:(((()->Bool)?)->(Any?))?, completion:((Any?,(()->Bool)?)->())?) // , hideSubviews:Bool = false
+    /**
+     Extension of UIViewController to do work, screening the view and showing an animating activity indicator view while the work is being done.
+     In this version there is a cancel button below the activity indicator that when pressed tells the work and also tells the completion
+     block whether work was asked to stop.
+     */
+    func process(disableEnable:Bool = true, work:(((()->Bool)?)->(Any?))?, completion:((Any?,(()->Bool)?)->())?)
     {
         guard let cancelButton = self.loadingButton else {
             return
@@ -3581,6 +3713,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController to enable or disable all bar button items.
+     */
     func barButtonItems(isEnabled:Bool)
     {
         Thread.onMainThread {
@@ -3604,7 +3739,10 @@ extension UIViewController
         }
     }
     
-    func process(disableEnable:Bool = true,work:(()->(Any?))?,completion:((Any?)->())?) // ,hideSubviews:Bool = false
+    /**
+     Extension of UIViewController to do work, screening the view and showing an animating activity indicator view while the work is being done.
+     */
+    func process(disableEnable:Bool = true,work:(()->(Any?))?,completion:((Any?)->())?)
     {
         guard (work != nil) && (completion != nil) else {
             return
@@ -3636,11 +3774,17 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController to alert the user that the network is not available.
+     */
     func networkUnavailable(_ message:String?)
     {
         self.alert(title:Constants.Network_Error,message:message,completion:nil)
     }
     
+    /**
+     Extension of UIViewController to show a popover of strings.
+     */
     func selectWord(title:String?, purpose:PopoverPurpose, allowsSelection:Bool = true,strings:[String]? = nil, stringsFunction:(()->([String]?))? = nil, completion:((PopoverTableViewController)->())? = nil)
     {
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -3894,66 +4038,6 @@ extension Double
 
 extension String
 {
-    var word : String?
-    {
-        return self.subString(to: " (")
-    }
-    
-    var frequency : Int?
-    {
-        guard let startRange = self.range(of: " (") else {
-            return nil
-        }
-        
-        let remainder = String(self[startRange.upperBound...])
-        
-        guard let endRange = remainder.range(of: ")") else {
-            return nil
-        }
-        
-        let count = String(remainder[..<endRange.lowerBound])
-        
-        return Int(count)
-    }
-    
-    var singleLine : String
-    {
-        get {
-            return self.replacingOccurrences(of: "\n", with: ", ").trimmingCharacters(in: CharacterSet(charactersIn: " ,"))
-        }
-    }
-    
-    var asTag : String
-    {
-        get {
-            return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? self
-        }
-    }
-        
-    var withoutPrefixes : String
-    {
-        get {
-            if let range = self.range(of: "A is "), range.lowerBound == "a".startIndex {
-                return self
-            }
-            
-            let sourceString = self.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
-            
-            let prefixes = ["A ","An ","The "] // "And ",
-            
-            var sortString = sourceString
-            
-            for prefix in prefixes {
-                if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
-                    sortString = String(sourceString[prefix.endIndex...])
-                    break
-                }
-            }
-            
-            return sortString
-        }
-    }
-    
     var hmsToSeconds : Double?
     {
         get {
@@ -3994,7 +4078,7 @@ extension String
             return seconds
         }
     }
-
+    
     var secondsToHMS : String?
     {
         get {
@@ -4018,6 +4102,87 @@ extension String
             hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%03d",Int(fraction * 1000)))"
             
             return hms
+        }
+    }
+}
+
+extension String
+{
+    /**
+     Extension of String to return the substring up to the pattern " (".
+     This pattern is what indicates a number or a part name.
+     */
+    var word : String?
+    {
+        return self.subString(to: " (")
+    }
+    
+    /**
+     Extension of String to return the Int n that appears in the pattern " (n)".
+     This patter should only occur at the end of the string.
+     */
+    var frequency : Int?
+    {
+        guard let startRange = self.range(of: " (") else {
+            return nil
+        }
+        
+        let remainder = String(self[startRange.upperBound...])
+        
+        guard let endRange = remainder.range(of: ")"), endRange.upperBound == self.endIndex else {
+            return nil
+        }
+        
+        let count = String(remainder[..<endRange.lowerBound])
+        
+        return Int(count)
+    }
+    
+    /**
+     Extension of String that return the string w/ \n replaced with ", "
+     */
+    var singleLine : String
+    {
+        get {
+            return self.replacingOccurrences(of: "\n", with: ", ").trimmingCharacters(in: CharacterSet(charactersIn: " ,"))
+        }
+    }
+    
+    /**
+     Extension of String that return the string percent encoded, allowing only alphanumerics
+     This is a bad variable name as this tag refers to the tags in html and has nothing to do with the mediaItem tags.
+     */
+    var asTag : String
+    {
+        get {
+            return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics) ?? self
+        }
+    }
+        
+    /**
+     Extension of String that return the string w/o leading characters that should not be used in the sorting of strings.
+     */
+    var withoutPrefixes : String
+    {
+        get {
+            if let range = self.range(of: "A is "), range.lowerBound == "a".startIndex {
+                return self
+            }
+            
+            let sourceString = self.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
+            
+            let prefixes = ["A ","An ","The "] // "And ",
+            
+            var sortString = sourceString
+            
+            for prefix in prefixes {
+                if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
+                    sortString = String(sourceString[prefix.endIndex...])
+                    break
+                }
+            }
+            
+            return sortString
         }
     }
 }
@@ -4140,6 +4305,9 @@ extension UIViewController
         return width
     }
     
+    /**
+     Extension of UIViewController that adds a loading container view with activity indicator view, label, and button
+     */
     var loadingContainer:UIView?
     {
         get {
@@ -4166,6 +4334,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Extension of UIViewController that returns the loading view
+     */
     var loadingView:UIView?
     {
         get {
@@ -4173,6 +4344,9 @@ extension UIViewController
         }
     }
     
+    /**
+     func for the button action in the loading container view extension of UIViewController
+     */
     @objc func cancelWork(_ sender:UIButton)
     {
         if sender.tag == 0 {
@@ -4180,6 +4354,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Returns the button from the extension of UIViewController that adds the loading container view
+     */
     var loadingButton:UIButton?
     {
         get {
@@ -4200,6 +4377,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Returns the label from the extension of UIViewController that adds the loading container view
+     */
     var loadingLabel:UILabel?
     {
         get {
@@ -4209,6 +4389,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Returns the UIActivityIndicatorView from the extension of UIViewController that adds the loading container view
+     */
     var loadingActivity:UIActivityIndicatorView?
     {
         get {
@@ -4218,6 +4401,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Removes the loading container view that was added in the extension of UIViewController above
+     */
     func stopAnimating()
     {
         Thread.onMainThread {
@@ -4225,6 +4411,9 @@ extension UIViewController
         }
     }
     
+    /**
+     Starts animating the activity indicator in the loading container view that was added in the extension of UIViewController above
+     */
     func startAnimating(allowTouches:Bool = false)
     {
         Thread.onMainThread {
@@ -4272,6 +4461,9 @@ extension NSLayoutConstraint
 
 extension UITextView
 {
+    /**
+     Extension of UITextView to make a specific range in the text visible
+     */
     func scrollRangeToVisible(_ range:Range<String.Index>)
     {
         Thread.onMainThread {
@@ -4283,6 +4475,9 @@ extension UITextView
 
 extension String
 {
+    /**
+     Extension of String to mark a string based on search text that may partially match a word at the end of the string.
+     */
     func markTrailing(searchText:String?) -> NSAttributedString?
     {
         var workingString = self
@@ -4373,6 +4568,9 @@ extension String
         return attributedText
     }
     
+    /**
+     Extension of String to mark a string based on search text.  May be interrupted.
+     */
     func markedBySearch(searchText:String?, wholeWordsOnly:Bool, test : (()->Bool)?) -> NSAttributedString?
     {
         var workingString = self
@@ -4426,6 +4624,9 @@ extension String
         return attributedText
     }
     
+    /**
+     Extension of String to return an attributed string that is highlighted to show searchText.
+     */
     func highlighted(_ searchText:String?) -> NSAttributedString
     {
         guard let searchText = searchText else {
@@ -4446,6 +4647,9 @@ extension String
         return attributedText
     }
     
+    /**
+     Extension of String to return an attributed string that is bold highlighted to show searchText.
+     */
     func boldHighlighted(_ searchText:String?) -> NSAttributedString
     {
         guard let searchText = searchText else {
@@ -4469,6 +4673,9 @@ extension String
 
 extension String
 {
+    /**
+     Extension of String that is assuemd to be a book fo the bible and reutrns the number of that book in the Bible.
+     */
     var bookNumberInBible : Int
     {
         if let index = Constants.OLD_TESTAMENT_BOOKS.firstIndex(of: self) {
@@ -4506,6 +4713,9 @@ extension String
 
 extension String
 {
+    /**
+     Extension of String that is assuemd to be a search context and returns the category.
+     */
     var category : String?
     {
         get {
@@ -4519,6 +4729,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that is assuemd to be a search context and returns the tag.
+     */
     var tag : String?
     {
         get {
@@ -4532,6 +4745,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that is assuemd to be a search context and returns whether transcripts are being searched.
+     */
     var transcripts : Bool
     {
         get {
@@ -4545,6 +4761,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that is assuemd to be a search context and returns the searchText.
+     */
     var searchText : String?
     {
         get {
@@ -4558,6 +4777,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that is assuemd to be a name and returns the lastname.
+     */
     var lastName : String?
     {
         guard !self.isEmpty else {
@@ -4575,6 +4797,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that is assuemd to be a number and returns the int of it divided by 100 and times 100.
+     */
     var century : String?
     {
         guard !self.isEmpty else {
@@ -4593,6 +4818,9 @@ extension String
         return nil
     }
     
+    /**
+     Extension of String that is assuemd to be a number and returns the log base 10 of it.
+     */
     var log : String?
     {
         guard !self.isEmpty else {
@@ -4617,6 +4845,9 @@ extension String
         return nil
     }
     
+    /**
+     Extension of String that is assuemd to be a name and returns the firstname.
+     */
     var firstName : String?
     {
         guard !self.isEmpty else {
@@ -4648,6 +4879,9 @@ extension String
         return firstName
     }
     
+    /**
+     Extension of String that is assuemd to be a name and returns the title.
+     */
     var title : String?
     {
         guard !self.isEmpty else {
@@ -4677,6 +4911,9 @@ extension String
 
 extension String
 {
+    /**
+     Extension of String that cuts a portion out and returns the modified string.
+     */
     func snip(_ start:String,_ stop:String) -> String
     {
         var bodyString = self
@@ -4696,6 +4933,9 @@ extension String
         return bodyString
     }
 
+    /**
+     Extension of String that removes links from a portion and returns the modified string.
+     */
     func snipLinks(_ start:String,_ stop:String) -> String
     {
         var bodyString = self
@@ -4721,6 +4961,9 @@ extension String
         return bodyString
     }
     
+    /**
+     Extension of String that strips links.
+     */
     var stripLinks : String
     {
         var bodyString = self
@@ -4738,6 +4981,9 @@ extension String
         return bodyString
     }
     
+    /**
+     Extension of String that strips html.
+     */
     var stripHTML : String
     {
         var bodyString = self.stripHead.stripLinks
@@ -4854,6 +5100,9 @@ extension String
         return bodyString.trimmingCharacters(in: CharacterSet(charactersIn: Constants.SINGLE_SPACE))
     }
     
+    /**
+     Extension of String that is assumed html and marks it.  Can be interrupted.
+     */
     func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
     {
         if let headerHTML = headerHTML {
@@ -4864,6 +5113,9 @@ extension String
         }
     }
 
+    /**
+     Extension of String that is assumed html and marks it.  Can be interrupted.
+     */
     func markHTML(searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
     {
         let html = self
@@ -5121,6 +5373,9 @@ extension String
 
 extension String
 {
+    /**
+     Extension of String that returns an array of (token, count) pairs.
+     */
     var tokensCounts : [(String,Int)]?
     {
         guard !Globals.shared.isRefreshing else {
@@ -5154,6 +5409,9 @@ extension String
         return tokenCounts.count > 0 ? tokenCounts : nil
     }
     
+    /**
+     Extension of String that returns a dictionary of tokens and their counts.
+     */
     // Make thread safe?
     var tokensAndCounts : [String:Int]?
     {
@@ -5253,6 +5511,9 @@ extension String
         return tokens.count > 0 ? tokens : nil
     }
     
+    /**
+     Extension of String that returns an array of tokens.
+     */
     var tokens : [String]?
     {
         guard !Globals.shared.isRefreshing else {
@@ -5349,6 +5610,9 @@ extension String
 
 extension String
 {
+    /**
+     Extension of String that returns the substring up to another string.
+     */
     func subString(to: String) -> String?
     {
         guard !self.isEmpty else {
@@ -5362,7 +5626,9 @@ extension String
         return String(self[..<range.lowerBound])
     }
     
-    // Looks for a string pattern at the end of the string, i.e. a fileType (in the old model) if the string is a filename.
+    /**
+     Extension of String that looks for a string pattern at the end of the string, i.e. a fileType (in the old model) if the string is a filename.
+     */
     func isFileType(_ fileType:String) -> Bool
     {
         guard !self.isEmpty else {
@@ -5378,7 +5644,9 @@ extension String
         }
     }
     
-    // Creates a URL from the string.
+    /**
+     Extension of String that creates a URL from the string.
+     */
     var url : URL?
     {
         get {
@@ -5389,10 +5657,14 @@ extension String
             return URL(string: self)
         }
     }
-    
-    // If the string and the lastPathComponent of the URL made from the string are the same, then use the string
-    // as the filename in the caches directory as the fileSystemURL, otherwise create a fileSystemURL from the url,
-    // which amounts to lastPathComponent of the URL as the filename in the caches directory.
+
+    /**
+     Extension of String that creates a URL from the string.
+
+     If the string and the lastPathComponent of the URL made from the string are the same, then use the string
+     as the filename in the caches directory as the fileSystemURL, otherwise create a fileSystemURL from the url,
+     which amounts to lastPathComponent of the URL as the filename in the caches directory.
+     */
     var fileSystemURL : URL?
     {
         get {
@@ -5413,6 +5685,9 @@ extension String
         }
     }
 
+    /**
+     Extension of String that saves it in a specified file of name filename in the cache directory in utf8 format.
+     */
     func save8(filename:String?)
     {
         guard !self.isEmpty else {
@@ -5436,6 +5711,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that saves it in a specified file of name filename in the cache directory in utf16 format.
+     */
     func save16(filename:String?)
     {
         guard !self.isEmpty else {
@@ -5459,6 +5737,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String class that loads a specified file of name filename in the cache directory in utf16 format and returns the string.
+     */
     static func load16(filename:String?) -> String?
     {
         guard let filename = filename else {
@@ -5480,6 +5761,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String class that loads a specified file of name filename in the cache directory in utf8 format and returns the string.
+     */
     static func load8(filename:String?) -> String?
     {
         guard let filename = filename else {
@@ -5501,6 +5785,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that returns the string's data in utf16 format.
+     */
     var data16 : Data?
     {
         get {
@@ -5512,6 +5799,9 @@ extension String
         }
     }
     
+    /**
+     Extension of String that returns the string's data in utf8 format.
+     */
     var data8 : Data?
     {
         get {
@@ -5979,7 +6269,7 @@ extension String
                 htmlString += "<table style=\"display:inline;\">"
                 htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
                 htmlString += "</table>"
-//                htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
+
                 if lexicalType != lexicalTypes.last {
                     htmlString += " "
                 }
@@ -6017,9 +6307,6 @@ extension String
                 htmlString += "</table>"
 
                 text = before + htmlString + after
-                
-                //  <sup>\(nameOrLexicalType)</sup>
-//                text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
             } else {
                 text = before + "<mark>\(token)</mark>" + after
             }
@@ -6079,10 +6366,7 @@ extension String
             return nil
         }
         
-//        htmlString += "<table>"
-//        htmlString += "<tr>"
         for lexicalType in lexicalTypes {
-//            htmlString += "<td>"
             
             guard test?() != true else {
                 return nil
@@ -6092,15 +6376,12 @@ extension String
                 htmlString += "<table style=\"display:inline;\">"
                 htmlString += "<tr><td style=\"background-color:\(color)\">\(lexicalType)</td></tr>"
                 htmlString += "</table>"
-                //                    htmlString += "<mark style=\"background-color:\(color);\">\(lexicalType)</mark>"
+             
                 if lexicalType != lexicalTypes.last {
                     htmlString += " "
                 }
             }
-//            htmlString += "</td>"
         }
-//        htmlString += "</tr>"
-//        htmlString += "</table>"
         
         htmlString += "<br/><br/>"
         
@@ -6121,9 +6402,6 @@ extension String
 
             last = range.upperBound
             
-//            let before = self[..<range.lowerBound]
-//            let after = self[range.upperBound...]
-            
             if let color = lexicalTypeColors[nameOrLexicalType] {
                 var htmlString = String()
                 
@@ -6135,13 +6413,6 @@ extension String
                 htmlString += "</table>"
                 
                 text = text + before + htmlString
-                
-//                text = "\(before)\(htmlString)\(after)"
-                
-                //  <sup>\(nameOrLexicalType)</sup> style=\"background-color:\(color);\"
-                //                    text = before + "<mark style=\"background-color:\(color);\">\(token)</mark>" + after
-            } else {
-//                text = "\(before)<mark>\(token)</mark>\(after)"
             }
         }
         
@@ -6217,12 +6488,11 @@ extension URLSession
 
 extension URL
 {
+    /**
+     Extension of URL to return files
+    */
     func files(startingWith filename:String? = nil,ofType fileType:String? = nil,notOfType notFileType:String? = nil) -> [String]?
     {
-//        guard let path = path else {
-//            return nil
-//        }
-        
         ////////////////////////////////////////////////////////////////////
         // THIS CAN BE A HUGE MEMORY LEAK IF NOT USED IN AN AUTORELEASEPOOL
         ////////////////////////////////////////////////////////////////////
@@ -6304,11 +6574,17 @@ extension URL
         return files.count > 0 ? files : nil
     }
     
+    /**
+     Extension of URL to return the fileSystemURL (i.e. same name but in caches directory)
+     */
     var fileSystemURL : URL?
     {
         return self.lastPathComponent.fileSystemURL
     }
 
+    /**
+     Extension of URL to return the file's size
+     */
     var fileSize:Int?
     {
         guard let fileSystemURL = fileSystemURL else {
@@ -6336,6 +6612,9 @@ extension URL
         return nil
     }
     
+    /**
+     Extension of URL to return whether it exists
+     */
     var exists : Bool
     {
         get {
@@ -6347,6 +6626,9 @@ extension URL
         }
     }
 
+    /**
+     Extension of URL to copy a file at self into the fileSystemURL location i.e. same name in cache directory
+     */
     var copy : URL?
     {
         guard let fileSystemURL = self.fileSystemURL else {
@@ -6364,6 +6646,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to return string in file using utf16 format.
+     */
     var string16 : String?
     {
         do {
@@ -6375,6 +6660,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to return string in file using utf8 format.
+     */
     var string8 : String?
     {
         do {
@@ -6386,6 +6674,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to return data.
+     */
     var data : Data?
     {
         get {
@@ -6418,6 +6709,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to delete file.
+     */
     func delete(block:Bool)
     {
         let op = {
@@ -6450,6 +6744,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to return image and then process it in a closure.
+     */
     func image(block:((UIImage)->()))
     {
         if let image = image {
@@ -6457,6 +6754,9 @@ extension URL
         }
     }
     
+    /**
+     Extension of URL to return image.
+     */
     var image : UIImage?
     {
         get {
@@ -6471,6 +6771,9 @@ extension URL
 
 extension UIImage
 {
+    /**
+     Extension of UIImage to save it.
+     */
     func save(to url: URL?) -> UIImage?
     {
         guard let url = url else {
@@ -6488,6 +6791,9 @@ extension UIImage
         return self
     }
     
+    /**
+     Extension of UIImage to resize it.
+     */
     func resize(scale:CGFloat) -> UIImage?
     {
         let toScaleSize = CGSize(width: scale * self.size.width, height: scale * self.size.height)
@@ -6503,6 +6809,9 @@ extension UIImage
         return scaledImage
     }
     
+    /**
+     Extension of UIImage to return it in a PDFPage.
+     */
     @available(iOS 11.0, *)
     var page : PDFPage?
     {
@@ -6511,6 +6820,9 @@ extension UIImage
         }
     }
     
+    /**
+     Extension of UIImage to return it in a PDF.
+     */
     @available(iOS 11.0, *)
     var pdf : PDFDocument?
     {
@@ -6525,12 +6837,13 @@ extension UIImage
             return pdf
         }
     }
-    
-
 }
 
 extension Data
 {
+    /**
+     Extension of Data to save it to a URL.
+     */
     func save(to url: URL?) -> Data?
     {
         guard let url = url else {
@@ -6546,6 +6859,9 @@ extension Data
         }
     }
     
+    /**
+     Extension of Data to return it as json.
+     */
     var json : Any?
     {
         get {
@@ -6578,6 +6894,9 @@ extension Data
         }
     }
     
+    /**
+     Extension of Data to return it as a string in utf16 format.
+     */
     var string16 : String?
     {
         get {
@@ -6585,6 +6904,9 @@ extension Data
         }
     }
     
+    /**
+     Extension of Data to return it as a string in utf8 format.
+     */
     var string8 : String?
     {
         get {
@@ -6592,6 +6914,9 @@ extension Data
         }
     }
     
+    /**
+     Extension of Data to return it as an image.
+     */
     var image : UIImage?
     {
         get {
@@ -6599,6 +6924,9 @@ extension Data
         }
     }
     
+    /**
+     Extension of Data to return it as a PDF.
+     */
     @available(iOS 11.0, *)
     var pdf : PDFDocument?
     {
@@ -6611,6 +6939,9 @@ extension Data
 @available(iOS 11.0, *)
 extension PDFDocument
 {
+    /**
+     Extension of PDF to return it as data.
+     */
     var data : Data?
     {
         get {

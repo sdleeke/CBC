@@ -12,10 +12,11 @@ import Foundation
  
  Abstract dictionary backed class for video
  
- Parameters:
- - mp4 url
- - m3u8 url
- - poster url
+ - Properties:
+     - mp4 url
+     - m3u8 url
+     - poster url
+ 
  */
 
 class Video : Storage

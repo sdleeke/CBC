@@ -114,15 +114,6 @@ class MediaList // : Sequence
         mediaQueue.addOperation(monitorOperation)
     }
     
-//    func voiceBaseMedia(completion:(([String:Any]?)->())?,onError:(([String:Any]?)->())?)
-//    {
-//        list?.forEach({ (mediaItem:MediaItem) in
-//            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
-//                voiceBase.details(completion:completion,onError:onError)
-//            })
-//        })
-//    }
-    
     func clearCache(block:Bool)
     {
         list?.forEach({ (mediaItem) in
@@ -144,7 +135,6 @@ class MediaList // : Sequence
     {
         // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
         return list?.reduce(0, { (result, mediaItem) -> Int in
-//            return result + (mediaItem.downloads[purpose]?.fileSize ?? 0)
             return result + mediaItem.cacheSize(purpose)
         })
     }
@@ -242,29 +232,6 @@ class MediaList // : Sequence
         }
     }
     
-//    func alignAllVideo(viewController:UIViewController)
-//    {
-//        guard let mediaItems = list else {
-//            return
-//        }
-//
-//        for mediaItem in mediaItems {
-//            guard mediaItem.videoTranscript?.transcribing == false else {
-//                continue
-//            }
-//
-//            guard mediaItem.videoTranscript?.aligning == false else {
-//                continue
-//            }
-//
-//            guard mediaItem.videoTranscript?.completed == true else {
-//                continue
-//            }
-//
-//            mediaItem.videoTranscript?.selectAlignmentSource(viewController: viewController)
-//        }
-//    }
-
     func transcribeAllAudio(viewController:UIViewController)
     {
         transcribeAll(viewController:viewController,purpose:Purpose.audio)

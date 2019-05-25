@@ -8,6 +8,9 @@
 
 import UIKit
 
+/**
+ PTVC cell
+ */
 class PopoverTableViewCell: UITableViewCell
 {
     deinit {

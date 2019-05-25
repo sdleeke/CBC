@@ -339,20 +339,11 @@ extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
     }
 }
 
-//extension ScriptureIndexViewController : UIPopoverPresentationControllerDelegate
-//{
-//    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
-//    {
-//        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
-//    }
-//}
-
+/**
+ For displaying ScriptureIndex from an MLGS
+ */
 class ScriptureIndexViewController : MediaItemsViewController
 {
-//    lazy var popover : [String:PopoverTableViewController]? = {
-//        return [String:PopoverTableViewController]()
-//    }()
-
     var includeVerses = false
     
     var finished:Float = 0.0
@@ -372,10 +363,6 @@ class ScriptureIndexViewController : MediaItemsViewController
             }
         }
     }
-
-//    lazy var scripture:Scripture? = { [weak self] in
-//        return Scripture(reference: nil)
-//    }()
     
     var mediaListGroupSort:MediaListGroupSort?
     {
@@ -494,46 +481,6 @@ class ScriptureIndexViewController : MediaItemsViewController
             scriptureIndex?.mediaItems = newValue
         }
     }
-
-//var mediaItems:[MediaItem]?
-//    {
-//        willSet {
-//
-//        }
-//        didSet {
-//            guard self.sections == nil else {
-//                return
-//            }
-//
-//            var sections = [String:[MediaItem]]()
-//
-//            if let mediaItems = mediaItems {
-//                for mediaItem in mediaItems {
-//                    if let books = mediaItem.books {
-//                        for book in books {
-//                            if let selectedTestament = scriptureIndex?.scripture.picked.testament {
-//                                if selectedTestament.translateTestament == book.testament {
-//                                    if sections[book] == nil {
-//                                        sections[book] = [mediaItem]
-//                                    } else {
-//                                        sections[book]?.append(mediaItem)
-//                                    }
-//                                } else {
-//                                    // THIS SHOULD NEVER HAPPEN
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            for book in sections.keys {
-//                sections[book] = sections[book]?.sort(book:book)
-//            }
-//
-//            self.sections = sections
-//        }
-//    }
     
     var selectedMediaItem:MediaItem?
     {
@@ -597,12 +544,6 @@ class ScriptureIndexViewController : MediaItemsViewController
         guard let scriptureIndex = scriptureIndex else {
             return
         }
-        
-//        scripture?.picked.testament   = scriptureIndex.scripture.selectedTestament
-//        scripture?.picked.book        = scriptureIndex.scripture.selectedBook
-//
-//        scripture?.picked.chapter     = scriptureIndex.scripture.picked.chapter
-//        scripture?.picked.verse       = scriptureIndex.scripture.picked.verse
         
         guard let selectedTestament = scriptureIndex.scripture.picked.testament else {
             mediaItems = nil
@@ -788,8 +729,6 @@ class ScriptureIndexViewController : MediaItemsViewController
             }
             
             if scriptureIndex.isSorted[index] == nil {
-//                let mediaItems = scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]?[scriptureIndex.scripture.picked.verse]
-//                scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]?[scriptureIndex.scripture.picked.verse] = mediaItems?.sort(book:selectedBook)
                 scriptureIndex.isSorted[index] = true
             }
             
@@ -844,11 +783,7 @@ class ScriptureIndexViewController : MediaItemsViewController
     
     func addNotifications()
     {
-//        Globals.shared.queue.async {
-//            NotificationCenter.default.addObserver(self, selector: #selector(self.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
-//            NotificationCenter.default.addObserver(self, selector: #selector(self.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
-//            NotificationCenter.default.addObserver(self, selector: #selector(self.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
-//        }
+
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -950,181 +885,6 @@ class ScriptureIndexViewController : MediaItemsViewController
 
     }
     
-//    func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
-//    {
-//        guard let mediaItems = mediaItems else {
-//            return nil
-//        }
-//        
-//        var bodyItems = [String:[MediaItem]]()
-//        
-//        for mediaItem in mediaItems {
-//            if let books = mediaItem.books {
-//                for book in books {
-//                    if let okay = sectionTitles?.contains(book) {
-//                        if okay {
-//                            if bodyItems[book] == nil {
-//                                bodyItems[book] = [mediaItem]
-//                            } else {
-//                                bodyItems[book]?.append(mediaItem)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        
-//        var bodyString:String!
-//        
-//        bodyString = "<!DOCTYPE html><html><body>"
-//        
-//        bodyString = bodyString + "<div>"
-//
-//        bodyString = bodyString + "The following media "
-//        
-//        if mediaItems.count > 1 {
-//            bodyString = bodyString + "are"
-//        } else {
-//            bodyString = bodyString + "is"
-//        }
-//        
-//        if includeURLs {
-//            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
-//        } else {
-//            bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
-//        }
-//        
-//        if let category = Globals.shared.media.category.selected {
-//            bodyString = bodyString + "Category: \(category)<br/><br/>"
-//        }
-//        
-//        if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.tags.selected {
-//            bodyString = bodyString + "Collection: \(tag)<br/><br/>"
-//        }
-//        
-//        if Globals.shared.media.search.isValid, let text = Globals.shared.media.search.text {
-//            bodyString = bodyString + "Search: \(text)<br/><br/>"
-//        }
-//        
-//        bodyString = bodyString + "</div>"
-//
-//        if let selectedTestament = self.scriptureIndex?.scripture.picked.testament {
-//            var indexFor = selectedTestament.translateTestament
-//
-//            if let selectedBook = self.scriptureIndex?.scripture.picked.book {
-//                indexFor = selectedBook
-//                
-//                if let chapter = self.scriptureIndex?.scripture.picked.chapter, chapter > 0 {
-//                    indexFor = indexFor + " \(chapter)"
-//                    
-//                    if let verse = self.scriptureIndex?.scripture.picked.verse, verse > 0 {
-//                        indexFor = indexFor + ":\(verse)"
-//                    }
-//                }
-//            }
-//            
-//            bodyString = bodyString + "\(indexFor) Scripture Index<br/>"
-//        }
-//        
-//        bodyString = bodyString + "Items are grouped and sorted by Scripture reference.<br/>"
-//
-//        bodyString = bodyString + "Total: \(mediaItems.count)<br/>"
-//        
-//        let books = bodyItems.keys.sorted() { $0.bookNumberInBible < $1.bookNumberInBible }
-//        
-//        if includeURLs, (books.count > 1) {
-//            bodyString = bodyString + "<br/>"
-//            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
-//        }
-//        
-//        if includeColumns {
-//            bodyString  = bodyString + "<table>"
-//        }
-//        
-//        for book in books {
-//            let tag = book.asTag
-//
-//            if includeColumns {
-//                bodyString  = bodyString + "<tr><td><br/></td></tr>"
-//                bodyString  = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
-//            }
-//            
-//            if let mediaItems = bodyItems[book] {
-//                if includeURLs && (books.count > 1) {
-//                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
-//                } else {
-//                    bodyString = bodyString + book
-//                }
-//
-//                var speakerCounts = [String:Int]()
-//                
-//                for mediaItem in mediaItems {
-//                    if let speaker = mediaItem.speaker {
-//                        guard let count = speakerCounts[speaker] else {
-//                            speakerCounts[speaker] = 1
-//                            continue
-//                        }
-//
-//                        speakerCounts[speaker] = count + 1
-//                    }
-//                }
-//                
-//                let speakerCount = speakerCounts.keys.count
-//                
-//                let speakers = Array(speakerCounts.keys)
-//                
-//                if speakerCount == 1{
-//                    bodyString = bodyString + " by \(speakers[0])"
-//                }
-//                
-//                if includeColumns {
-//                    bodyString  = bodyString + "</td>"
-//                    bodyString  = bodyString + "</tr>"
-//                } else {
-//                    bodyString = bodyString + "<br/>"
-//                }
-//                
-//                for mediaItem in mediaItems {
-//                    var order = ["scripture","title","date"]
-//                    
-//                    if speakerCount > 1 {
-//                        order.append("speaker")
-//                    }
-//                    
-//                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-//                        bodyString = bodyString + string
-//                    }
-//                    
-//                    if !includeColumns {
-//                        bodyString = bodyString + "<br/>"
-//                    }
-//                }
-//            }
-//        }
-//        
-//        if includeColumns {
-//            bodyString  = bodyString + "</table>"
-//        }
-//        
-//        bodyString = bodyString + "<br/>"
-//        
-//        if includeURLs, (books.count > 1) {
-//            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
-//
-//            for book in books {
-//                if let count = bodyItems[book]?.count {
-//                    bodyString = bodyString + "<a href=\"#\(book.asTag)\">\(book) (\(count))</a><br/>"
-//                }
-//            }
-//            
-//            bodyString = bodyString + "</div>"
-//        }
-//        
-//        bodyString = bodyString + "</body></html>"
-//        
-//        return bodyString.insertHead(fontSize:Constants.FONT_SIZE)
-//    }
-
     func actionMenuItems() -> [String]?
     {
         var actionMenu = [String]()
@@ -1298,36 +1058,6 @@ class ScriptureIndexViewController : MediaItemsViewController
         
     }
     
-//    func sortMediaItems(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
-//    {
-//        var list:[MediaItem]?
-//        
-//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksChaptersVerses()?.bookChaptersVerses(book: book)
-//            let secondBooksChaptersVerses  = second.booksChaptersVerses()?.bookChaptersVerses(book: book)
-//
-//            if firstBooksChaptersVerses == secondBooksChaptersVerses {
-//                if let firstDate = first.fullDate, let secondDate = second.fullDate {
-//                    if firstDate.isEqualTo(secondDate) {
-//                        if first.service == second.service {
-//                            return first.speaker?.lastName < second.speaker?.lastName
-//                        } else {
-//                            return first.service < second.service
-//                        }
-//                    } else {
-//                        return firstDate.isOlderThan(secondDate)
-//                    }
-//                } else {
-//                    return false
-//                }
-//            } else {
-//                return firstBooksChaptersVerses < secondBooksChaptersVerses
-//            }
-//        })
-//
-//        return list
-//    }
-    
     func updateText()
     {
         guard self.isViewLoaded else {
@@ -1477,11 +1207,6 @@ class ScriptureIndexViewController : MediaItemsViewController
 
         chapterSwitch.isOn = scriptureIndex?.scripture.picked.chapter > 0
         chapterSwitch.isEnabled = bookSwitch.isOn
-
-//        if let book = scriptureIndex?.scripture.picked.book, Constants.NO_CHAPTER_BOOKS.contains(book) {
-//            chapterSwitch.isOn = false
-//            chapterSwitch.isEnabled = false
-//        }
     }
     
     func updateActionMenu()
@@ -1543,231 +1268,111 @@ class ScriptureIndexViewController : MediaItemsViewController
         Globals.shared.freeMemory()
     }
     
-//    extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
-//    {
-        // MARK: PopoverTableViewControllerDelegate
-//        override func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
-//        {
-//            return super.rowActions(popover: popover, tableView: tableView, indexPath: indexPath)
-//        }
-    
-        override func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
-        {
-            super.rowClickedAtIndex(index, strings: strings, purpose: purpose, mediaItem: mediaItem)
+    override func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        super.rowClickedAtIndex(index, strings: strings, purpose: purpose, mediaItem: mediaItem)
+        
+        guard self.isViewLoaded else {
+            return
+        }
+        
+        guard Thread.isMainThread else {
+            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            return
+        }
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        let string = strings[index]
+        
+        tableView.setEditing(false, animated: true)
+        
+        switch purpose {
+        case .selectingSection:
+            dismiss(animated: true, completion: nil)
             
-            guard self.isViewLoaded else {
-                return
+            let indexPath = IndexPath(row: 0, section: index)
+            
+            //Can't use this reliably w/ variable row heights.
+            if tableView.isValid(indexPath) {
+                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
             }
+            break
             
-            guard Thread.isMainThread else {
-                self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
-                return
-            }
+        case .selectingAction:
+            dismiss(animated: true, completion: nil)
             
-            guard let strings = strings else {
-                return
-            }
-            
-            let string = strings[index]
-            
-            tableView.setEditing(false, animated: true)
-            
-            switch purpose {
-            case .selectingSection:
-                dismiss(animated: true, completion: nil)
-                
-                let indexPath = IndexPath(row: 0, section: index)
-                
-                //            if !(indexPath.section < tableView.numberOfSections) {
-                //                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
-                //                NSLog("Section: \(indexPath.section)")
-                //                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                //                break
-                //            }
-                //
-                //            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-                //                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
-                //                NSLog("Section: \(indexPath.section)")
-                //                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                //                NSLog("Row: \(indexPath.row)")
-                //                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-                //                break
-                //            }
-                
-                //Can't use this reliably w/ variable row heights.
-                if tableView.isValid(indexPath) {
-                    tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
-                }
-                break
-                
-            case .selectingAction:
-                dismiss(animated: true, completion: nil)
-                
-                switch strings[index] {
-                case Constants.Strings.View_List:
-                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                        if self?.scriptureIndex?.html?.string == nil {
-                            self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true, test:test)
-                        }
-                        
-                        return self?.scriptureIndex?.html?.string
-                        }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                            if let vc = self {
-                                vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
-                            }
-                    })
-                    break
-                    
-                case Constants.Strings.View_Scripture:
-                    if let reference = scriptureIndex?.scripture.picked.reference {
-                        scripture?.reference = reference
-                        if scripture?.html?[reference] != nil {
-                            self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
-                        } else {
-                            self.process(work: { [weak self] () -> (Any?) in
-                                self?.scripture?.load() // reference
-                                return self?.scripture?.html?[reference]
-                                }, completion: { [weak self] (data:Any?) in
-                                    if let htmlString = data as? String {
-                                        if let vc = self {
-                                            vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
-                                        }
-                                    } else {
-                                        if let vc = self {
-                                            vc.networkUnavailable("Scripture text unavailable.")
-                                        }
-                                    }
-                            })
-                        }
+            switch strings[index] {
+            case Constants.Strings.View_List:
+                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                    if self?.scriptureIndex?.html?.string == nil {
+                        self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true, test:test)
                     }
-                    break
                     
-                default:
-                    break
-                }
+                    return self?.scriptureIndex?.html?.string
+                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                        if let vc = self {
+                            vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+                        }
+                })
                 break
                 
-            case .selectingCellAction:
-                dismiss(animated: true, completion: nil)
-                
-                switch strings[index] {
-                case Constants.Strings.Download_Audio:
-                    mediaItem?.audioDownload?.download(background: true)
-                    break
-                    
-                case Constants.Strings.Delete_Audio_Download:
-                    mediaItem?.audioDownload?.delete(block:true)
-                    break
-                    
-                case Constants.Strings.Cancel_Audio_Download:
-                    mediaItem?.audioDownload?.cancelOrDelete()
-                    break
-                    
-                default:
-                    break
+            case Constants.Strings.View_Scripture:
+                if let reference = scriptureIndex?.scripture.picked.reference {
+                    scripture?.reference = reference
+                    if scripture?.html?[reference] != nil {
+                        self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
+                    } else {
+                        self.process(work: { [weak self] () -> (Any?) in
+                            self?.scripture?.load() // reference
+                            return self?.scripture?.html?[reference]
+                            }, completion: { [weak self] (data:Any?) in
+                                if let htmlString = data as? String {
+                                    if let vc = self {
+                                        vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
+                                    }
+                                } else {
+                                    if let vc = self {
+                                        vc.networkUnavailable("Scripture text unavailable.")
+                                    }
+                                }
+                        })
+                    }
                 }
                 break
-                
-//            case .selectingTimingIndexWord:
-//                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//
-//                    navigationController.popoverPresentationController?.delegate = self
-//
-//                    popover.navigationController?.isNavigationBarHidden = false
-//
-//                    popover.navigationItem.title = string
-//
-//                    popover.selectedMediaItem = self.popover?["TIMINGINDEXWORD"]?.selectedMediaItem
-//                    popover.transcript = self.popover?["TIMINGINDEXWORD"]?.transcript
-//
-//                    popover.delegate = self
-//                    popover.purpose = .selectingTime
-//
-//                    popover.parser = { (string:String) -> [String] in
-//                        var strings = string.components(separatedBy: "\n")
-//                        while strings.count > 2 {
-//                            strings.removeLast()
-//                        }
-//                        return strings
-//                    }
-//
-//                    popover.search = true
-//                    popover.searchInteractive = false
-//                    popover.searchActive = true
-//                    popover.searchText = string
-//                    popover.wholeWordsOnly = true
-//
-//                    popover.section.showIndex = true
-//                    popover.section.indexStringsTransform = { (string:String?) -> String? in
-//                        return string?.century
-//                    } // century
-//                    popover.section.indexHeadersTransform = { (string:String?)->(String?) in
-//                        return string
-//                    }
-//
-//                    // using stringsFunction w/ .selectingTime ensures that follow() will be called after the strings are rendered.
-//                    // In this case because searchActive is true, however, follow() aborts in a guard stmt at the beginning.
-//                    popover.stringsFunction = { [weak popover] in
-//                        guard let transcriptSegmentComponents = popover?.transcript?.transcriptSegmentComponents?.result else {
-//                            return nil
-//                        }
-//
-//                        guard let times = popover?.transcript?.transcriptSegmentTokenTimes(token: string) else {
-//                            return nil
-//                        }
-//
-//                        var strings = [String]()
-//
-//                        for time in times {
-//                            for transcriptSegmentComponent in transcriptSegmentComponents {
-//                                if transcriptSegmentComponent.contains(time+" --> ") { //
-//                                    var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-//
-//                                    if transcriptSegmentArray.count > 2  {
-//                                        let count = transcriptSegmentArray.removeFirst()
-//                                        let timeWindow = transcriptSegmentArray.removeFirst()
-//                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
-//
-//                                        if  let start = times.first,
-//                                            let end = times.last,
-//                                            let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-//                                            let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-//                                            let string = "\(count)\n\(start) to \(end)\n" + text
-//
-//                                            strings.append(string)
-//                                        }
-//                                    }
-//                                    break
-//                                }
-//                            }
-//                        }
-//
-//                        return strings
-//                    }
-//
-//                    //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-//
-//                    self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
-//                }
-//                break
-//
-//            case .selectingTime:
-//                guard Globals.shared.mediaPlayer.currentTime != nil else {
-//                    break
-//                }
-//
-//                if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
-//                    Globals.shared.mediaPlayer.seek(to: seconds)
-//                }
-//                break
                 
             default:
                 break
             }
+            break
+            
+        case .selectingCellAction:
+            dismiss(animated: true, completion: nil)
+            
+            switch strings[index] {
+            case Constants.Strings.Download_Audio:
+                mediaItem?.audioDownload?.download(background: true)
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                mediaItem?.audioDownload?.delete(block:true)
+                break
+                
+            case Constants.Strings.Cancel_Audio_Download:
+                mediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
         }
-//    }
+    }
 }
 
 extension ScriptureIndexViewController : UITableViewDataSource
@@ -1940,14 +1545,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
             
             view?.addSubview(label)
 
-//            if let superview = label.superview {
-//                let centerY = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//                label.superview?.addConstraint(centerY)
-//
-//                let leftMargin = NSLayoutConstraint(item: superview, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
-//                label.superview?.addConstraint(leftMargin)
-//            }
-            
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllLeft], metrics: nil, views: ["label":label]))
             

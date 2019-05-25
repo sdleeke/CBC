@@ -9,7 +9,9 @@
 import Foundation
 import UIKit
 
-
+/**
+ To represent a word in a word cloud.
+ */
 class CloudWord : NSObject
 {
     var wordText : String?

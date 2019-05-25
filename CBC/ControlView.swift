@@ -9,6 +9,9 @@
 import Foundation
 import UIKit
 
+/**
+ Subclass of UIView for showing work being done.
+ */
 class LoadingContainerView : UIView
 {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool
@@ -52,6 +55,9 @@ class LoadingContainerView : UIView
     }
 }
 
+/**
+ Subclass of UIView for holding playback controls.
+ */
 class ControlView : UIView
 {
     deinit {

@@ -19,6 +19,9 @@ enum Quadrants : String
     case bottomRight
 }
 
+/**
+ For tracking 2D space allocation
+ */
 class QuadTree
 {
     var frame : CGRect?

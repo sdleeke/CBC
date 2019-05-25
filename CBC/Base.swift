@@ -12,9 +12,10 @@ import Foundation
  
  Abstract dictionary backed class
  
- Properties:
- - id
- - name
+ - Properties:
+     - id
+     - name
+ 
  */
 
 class Base : Storage

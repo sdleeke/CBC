@@ -10,6 +10,9 @@ import Foundation
 import UIKit
 import AVKit
 
+/**
+ Handle settings for mediaItems that are parts of a sequence
+ */
 class MultiPartSettings
 {
     private weak var mediaItem:MediaItem?
@@ -52,6 +55,9 @@ class MultiPartSettings
     }
 }
 
+/**
+ Handle settings for a mediaItem
+ */
 class MediaItemSettings
 {
     private weak var mediaItem:MediaItem?
@@ -175,6 +181,9 @@ extension MediaItem : UIActivityItemSource
     }
 }
 
+/**
+ Handles everything to do with an individual mediaItem
+ */
 class MediaItem : NSObject
 {
     var multiPartMediaItems:[MediaItem]?
@@ -478,8 +487,6 @@ class MediaItem : NSObject
         }
     }
     
-//    var booksChaptersVerses:BooksChaptersVerses?
-    
     var singleLoaded = false
 
     @objc func freeMemory()
@@ -491,8 +498,6 @@ class MediaItem : NSObject
 
         notesHTML?.clear()
         notesTokens?.clear()
-        
-//        booksChaptersVerses = nil
     }
     
     init(storage:[String:Any]?)
@@ -616,8 +621,6 @@ class MediaItem : NSObject
             let afterDate = String(afterClassCode[ymd.endIndex...])
             
             let code = String(afterDate[..<String.Index(utf16Offset: 1, in: afterDate)])
-
-//            let code = String(afterDate[..<String.Index(encodedOffset: 1)])
             
             return code
         }
@@ -776,7 +779,6 @@ class MediaItem : NSObject
                 if let path = audioFilename?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path) {
                     url = audioFilename?.fileSystemURL
                 }
-//                _ = url?.isVBR
                 break
                 
             case Playing.video:

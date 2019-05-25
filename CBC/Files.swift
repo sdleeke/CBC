@@ -12,11 +12,12 @@ import Foundation
  
  Dictionary backed class that has properties for file urls.
  
- Properties:
- - slides
- - transcript
- - outline
- - html
+ - Properties:
+     - slides
+     - transcript
+     - outline
+     - html
+ 
  */
 
 class Files : Storage

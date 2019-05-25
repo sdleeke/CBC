@@ -8,6 +8,9 @@
 
 import Foundation
 
+/**
+ Determines whether a searchString was found in a mediaItem.
+ */
 class SearchHit
 {
     var mediaItem:MediaItem?

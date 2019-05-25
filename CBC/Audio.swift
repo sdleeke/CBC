@@ -12,10 +12,11 @@ import Foundation
  
  Abstract dictionary backed class for audio
  
- Parameters:
- - mp3 url
- - duration
- - file size
+ - Properties:
+     - mp3 url
+     - duration
+     - file size
+ 
  */
 
 class Audio : Storage

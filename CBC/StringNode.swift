@@ -8,6 +8,10 @@
 
 import Foundation
 
+/**
+ Element that makes up the StringTree
+ */
+
 class StringNode
 {
     var string:String?
@@ -56,19 +60,11 @@ class StringNode
         if isLeaf {
             return cumulative
         } else {
-//            guard let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) else {
-//                return 0
-//            }
-            
             var depthsBelow = [Int]()
             
             stringNodes?.sorted(by: { $0.string < $1.string }).forEach { (stringNode:StringNode) in
                 depthsBelow.append(stringNode.depthBelow(cumulative + 1))
             }
-
-//            for stringNode in stringNodes {
-//                depthsBelow.append(stringNode.depthBelow(cumulative + 1))
-//            }
 
             if let last = depthsBelow.sorted().last {
                 return last

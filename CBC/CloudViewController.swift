@@ -265,10 +265,6 @@ extension CloudViewController : UIActivityItemSource
 {
     @objc func share()
     {
-//        guard let image = self.cloudView.image else {
-//            return
-//        }
-        
         // Must be on main thread.
         let print = cloudView.viewPrintFormatter()
         let margin:CGFloat = 0.5 * 72
@@ -318,27 +314,12 @@ extension CloudViewController : UIActivityItemSource
             
         case .print:
             return nil
-            
-//            if #available(iOS 11.0, *) {
-//                return nil //cloudView.viewPrintFormatter() //?.pdf?.data
-//            } else {
-//                // Fallback on earlier versions
-//                return cloudView.image
-//            } // cloudView.viewPrintFormatter()
 
         default:
             if CloudViewController.cases.contains(activityType) {
                 return self.cloudView.image
             }
         }
-        
-//        if #available(iOS 11.0, *) {
-//            if let data = self.cloudView.image?.jpegData(compressionQuality: 1.0) {
-//                return PDFDocument(data: data)?.data
-//            }
-//        } else {
-//            // Fallback on earlier versions
-//        }
 
         return nil
     }
@@ -362,6 +343,9 @@ extension CloudViewController : UIActivityItemSource
     }
 }
 
+/**
+ To create word clouds for a list of strings and frequencies
+ */
 class CloudViewController : CBCViewController
 {
     var cloudWords : [CloudWord]?
@@ -533,23 +517,6 @@ class CloudViewController : CBCViewController
             }
         }
     }
-    
-//    var image : UIImage?
-//    {
-//        var snapShotImage : UIImage?
-//        
-//        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
-//        
-//        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
-//        
-//        if (success) {
-//            snapShotImage = UIGraphicsGetImageFromCurrentImageContext()
-//        }
-//        
-//        UIGraphicsEndImageContext()
-//        
-//        return snapShotImage
-//    }
     
     override func viewDidLoad()
     {
@@ -811,19 +778,6 @@ class CloudViewController : CBCViewController
                             return false
                         }
                         
-//                        guard let startRange = string.range(of: " (") else {
-//                            return false
-//                        }
-//
-//                        let word = String(string[..<startRange.lowerBound])
-//                        let remainder = String(string[startRange.upperBound...])
-//
-//                        guard let endRange = remainder.range(of: ")") else {
-//                            return false
-//                        }
-//
-//                        let count = String(remainder[..<endRange.lowerBound])
-
                         guard let word = string.word else {
                             return false
                         }

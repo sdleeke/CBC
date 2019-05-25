@@ -8,6 +8,10 @@
 
 import Foundation
 
+/**
+ For working with media file information from VoiceBase.
+ */
+
 class StringIndex : NSObject
 {
     deinit {

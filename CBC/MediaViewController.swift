@@ -395,12 +395,14 @@ enum VideoLocation {
     case withTableView
 }
 
+/**
+
+ The detail view controller.
+ 
+ */
+
 class MediaViewController : MediaItemsViewController
 {
-//    lazy var popover : [String:PopoverTableViewController]? = {
-//        return [String:PopoverTableViewController]()
-//    }()
-
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
@@ -417,9 +419,6 @@ class MediaViewController : MediaItemsViewController
             return selectedMediaItem?.scripture
         }
     }
-//    = {
-//        return Scripture(reference: selectedMediaItem?.scripture?.reference)
-//    }()
 
     var observerActive = false
     var observedItem:AVPlayerItem?

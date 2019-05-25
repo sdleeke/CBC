@@ -116,7 +116,9 @@ class Media
     // The mediaItems with the selected tags, although now we only support one tag being selected
     var tagged = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]() // ictionary
     
-    var tags = Tags()
+    lazy var tags:Tags! = {
+        return Tags(media:self)
+    }()
     
     var toSearch:MediaListGroupSort?
     {
