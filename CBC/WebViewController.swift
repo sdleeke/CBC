@@ -266,6 +266,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
                     firstAction: { [weak self] in
+                        // test:(()->(Bool))?
                         self?.process(work: { [weak self] () -> (Any?) in
                             return self?.html.string?.stripLinks
                         }, completion: { [weak self] (data:Any?) in
@@ -526,7 +527,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             loadPDF(urlString: mediaItem?.downloadURL?.absoluteString)
             
         case Constants.Strings.Lexical_Analysis:
-            self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in // , hideSubviews: false
+            self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in
                 if #available(iOS 12.0, *) {
                     return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                 } else {

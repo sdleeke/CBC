@@ -310,6 +310,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     self?.popover?["ACTION"] = nil
                 })
                 
+                // test:(()->(Bool))?
                 process(work: { [weak self] () -> (Any?) in
                     Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = false
@@ -336,7 +337,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     self?.popover?["ACTION"] = nil
                 })
                 
-                self.process(work: { [weak self] () -> (Any?) in
+                // test:(()->(Bool))?
+                process(work: { [weak self] () -> (Any?) in
                     Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = false
                     }
@@ -671,6 +673,8 @@ class PopoverPickerViewController : CBCViewController
             if (strings != nil) {
                 // This must be changed to be in a cancellable operation in an op queue
                 // otherwise the string tree keeps going forever
+
+                // test:(()->(Bool))?
                 self.process(work: { [weak self] () -> (Any?) in
                     if self?.stringTree?.completed == false {
                         self?.stringTree?.build(strings: self?.strings)
@@ -691,6 +695,7 @@ class PopoverPickerViewController : CBCViewController
             } else
             
             if stringsFunction != nil {
+                // test:(()->(Bool))?
                 self.process(work: { [weak self] () -> (Any?) in
                     if self?.stringTree?.completed == false {
                         let strings = self?.stringsFunction?()

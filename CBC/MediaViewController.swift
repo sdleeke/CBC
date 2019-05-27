@@ -33,13 +33,9 @@ extension MediaViewController : UIActivityItemSource
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
             
-            Thread.onMain {
-                let popoverPresentationController = activityViewController.popoverPresentationController
-                
-                popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-                
-                Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-            }
+            activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+            
+            Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
         }
     }
     
@@ -5285,9 +5281,10 @@ class MediaViewController : MediaItemsViewController
             break
             
         case Constants.Strings.Print:
+            // test:(()->(Bool))?
             self.process(work: { [weak self] in
                 return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
-                }, completion: { [weak self] (data:Any?) in
+            }, completion: { [weak self] (data:Any?) in
                     if let vc = self {
                         vc.printHTML(htmlString: data as? String)
                     }

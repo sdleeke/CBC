@@ -3164,7 +3164,8 @@ class MediaTableViewController : MediaItemsViewController
                 self.tableView?.reloadData()
             }
             
-            self.process(disableEnable: true, work: { [weak self] () -> (Any?) in // , hideSubviews: false
+            // test:(()->(Bool))?
+            self.process(work: { [weak self] () -> (Any?) in
                 self?.selectedMediaItem = Globals.shared.media.selected.master
                 
                 guard let selected = Globals.shared.media.category.selected else {
@@ -3333,7 +3334,8 @@ class MediaTableViewController : MediaItemsViewController
                 print("Index out of range")
             }
             
-            self.process(disableEnable: true, work: { [weak self] () -> (Any?) in // , hideSubviews: false
+            // test:(()->(Bool))?
+            self.process(work: { [weak self] () -> (Any?) in
                 var new:Bool = false
                 
                 switch string {

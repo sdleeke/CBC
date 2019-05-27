@@ -138,12 +138,13 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
                         firstTitle: Constants.Strings.Yes,
                         firstAction: {
+                            // test:(()->(Bool))?
                             self.process(work: { [weak self] () -> (Any?) in
                                 return self?.webViewController?.html.string?.stripLinks
-                                }, completion: { [weak self] (data:Any?) in
-                                    if let vc = self {
-                                        vc.printHTML(htmlString: data as? String)
-                                    }
+                            }, completion: { [weak self] (data:Any?) in
+                                if let vc = self {
+                                    vc.printHTML(htmlString: data as? String)
+                                }
                             })
                     }, firstStyle: .default,
                        secondTitle: Constants.Strings.No,
@@ -156,7 +157,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Lexical_Analysis:
-                self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in // , hideSubviews: false
+                self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in
                     if #available(iOS 12.0, *) {
                         return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                     } else {
@@ -537,6 +538,7 @@ class ScriptureViewController : CBCViewController
                 self.webViewController?.view.isHidden = false
             }
         } else {
+            // test:(()->(Bool))?
             self.process(work: { [weak self] () -> (Any?) in
                 self?.scripture?.load() // reference
                 return self?.scripture?.html?[reference]

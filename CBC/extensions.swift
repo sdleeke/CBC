@@ -3693,32 +3693,34 @@ extension UIViewController
         guard let cancelButton = self.loadingButton else {
             return
         }
-        
+
         self.startAnimating()
-        
+
         Thread.onMain {
             // Brute force disable
             if disableEnable {
                 self.barButtonItems(isEnabled: false)
             }
-            
+
+            // Should be an OperationQueue but as an extension either the UIViewController has it or its global
             DispatchQueue.global(qos: .background).async { [weak self] in
+                // work is Cancelable
                 let data = work?({
                     return DispatchQueue.main.sync {
                         return cancelButton.tag == 1
                     }
                 })
-                
+
                 Thread.onMain {
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
                     }
-                    
+
                     completion?(data) {
                         return cancelButton.tag == 1
                     }
-                    
+
                     self?.stopAnimating()
                 }
             }
@@ -3759,25 +3761,25 @@ extension UIViewController
         guard (work != nil) && (completion != nil) else {
             return
         }
-        
+
         self.startAnimating()
-        
+
         Thread.onMain { [weak self] in
             // Brute force disable
             if disableEnable {
                 self?.barButtonItems(isEnabled: false)
             }
-            
-            // Should be an OperationQueue and work should be a CancelableOperation
+
+            // Should be an OperationQueue but as an extension either the UIViewController has it or its global
             DispatchQueue.global(qos: .background).async { [weak self] in
                 let data = work?()
-                
+
                 Thread.onMain {
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
                     }
-                    
+
                     completion?(data)
 
                     self?.stopAnimating()
@@ -4268,6 +4270,14 @@ extension UIButton
         setTitle(string, for: UIControl.State.disabled)
         setTitle(string, for: UIControl.State.highlighted)
 //        setTitle(string, for: UIControlState.selected)
+    }
+}
+
+extension OperationQueue
+{
+    func addCancelableOperation(tag:String? = nil,block:(((()->Bool)?)->())?)
+    {
+        self.addOperation(CancelableOperation(tag: tag, block: block))
     }
 }
 

@@ -3141,9 +3141,10 @@ class VoiceBase
         if (self.mediaItem?.hasNotesText == true) {
             alertActions.append(AlertAction(title: Constants.Strings.HTML_Transcript, style: .destructive, handler: {
                 self.confirmAlignment(source:Constants.Strings.HTML_Transcript) { // viewController:viewController
+                    // test:(()->(Bool))?
                     viewController.process(work: { [weak self] () -> (Any?) in
                         return self?.mediaItem?.notesText // self?.mediaItem?.notesHTML.load() // Do this in case there is delay.
-                        }, completion: { [weak self] (data:Any?) in
+                    }, completion: { [weak self] (data:Any?) in
                             self?.align(data as? String) // stripHTML(self?.mediaItem?.notesHTML.result)
                     })
                 }
@@ -4249,6 +4250,10 @@ class VoiceBase
         if showGapTimes, let gap = gap {
             gapString = "<\(gap)>" + gapString
         }
+
+//        let beforeFull = String(text[..<range.lowerBound])
+//        let stringFull = String(text[range])
+//        let afterFull = String(text[range.upperBound...])
         
         //////////////////////////////////////////////////////////////////////////////
         // If words.first["range"] (either lowerBound or upperBound) is "too close"
@@ -4266,7 +4271,7 @@ class VoiceBase
             
             searchRange = Range(uncheckedBounds: (lower: text.startIndex, upper: range.lowerBound))
             
-            rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            rng = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
             
             // But even if there is a match we have to find the LAST match
             if rng != nil {
@@ -4281,22 +4286,25 @@ class VoiceBase
             
             // Too close to the previous?
             if let lowerRange = lowerRange {
-                //encodedOffset
                 if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
-                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-                    }
+//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+//                    }
                     
                     if let test = test, test() {
                         return
                     }
 
-                    operationQueue.addOperation(op)
-                    return
+//                    operationQueue.addOperation(op)
+                    
+                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+                    }
+                  return
                 }
             } else {
                 // There is no previous.
@@ -4304,19 +4312,23 @@ class VoiceBase
                 // Too close to the start?
                 if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
-                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-                    }
+//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+//                    }
                     
                     if let test = test, test() {
                         return
                     }
                     
-                    operationQueue.addOperation(op)
-                    return
+//                    operationQueue.addOperation(op)
+                    
+                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+                    }
+                  return
                 }
             }
             
@@ -4328,18 +4340,22 @@ class VoiceBase
             if let upperRange = upperRange {
                 if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
-                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-                    }
+//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+//                    }
                     
                     if let test = test, test() {
                         return
                     }
                     
-                    operationQueue.addOperation(op)
+//                    operationQueue.addOperation(op)
+
+                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+                    }
                     return
                 }
             } else {
@@ -4348,18 +4364,22 @@ class VoiceBase
                 // Too close to end?
                 if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
-                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-                    }
+//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+//                    }
                     
                     if let test = test, test() {
                         return
                     }
                     
-                    operationQueue.addOperation(op)
+//                    operationQueue.addOperation(op)
+
+                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+                    }
                     return
                 }
             }
@@ -5129,7 +5149,9 @@ class VoiceBase
                     
                     if Globals.shared.isVoiceBaseAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
+                            // This metadata call is how we verify that it is on VB.
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
+                                // If so, confirm reloading.
                                 viewController.yesOrNo(title: "Confirm Reloading",
                                         message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
                                         yesAction: { () -> (Void) in
@@ -5145,12 +5167,13 @@ class VoiceBase
                                                 Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                             } else {
                                                 Thread.onMain {
-                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: false)
                                                 }
                                             }
                                         }, yesStyle: .destructive,
                                         noAction: nil, noStyle: .default)
                             }, onError:  { (dict:[String:Any]?)->(Void) in
+                                // If not, tell the user.
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: nil))

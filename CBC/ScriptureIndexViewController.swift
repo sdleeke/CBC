@@ -1329,19 +1329,20 @@ class ScriptureIndexViewController : MediaItemsViewController
                     if scripture?.html?[reference] != nil {
                         self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
                     } else {
+                        // test:(()->(Bool))?
                         self.process(work: { [weak self] () -> (Any?) in
                             self?.scripture?.load() // reference
                             return self?.scripture?.html?[reference]
-                            }, completion: { [weak self] (data:Any?) in
-                                if let htmlString = data as? String {
-                                    if let vc = self {
-                                        vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
-                                    }
-                                } else {
-                                    if let vc = self {
-                                        vc.networkUnavailable("Scripture text unavailable.")
-                                    }
+                        }, completion: { [weak self] (data:Any?) in
+                            if let htmlString = data as? String {
+                                if let vc = self {
+                                    vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
                                 }
+                            } else {
+                                if let vc = self {
+                                    vc.networkUnavailable("Scripture text unavailable.")
+                                }
+                            }
                         })
                     }
                 }

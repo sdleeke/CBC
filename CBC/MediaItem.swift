@@ -3248,6 +3248,7 @@ class MediaItem : NSObject
 
     func view(viewController: UIViewController, bodyHTML:String?)
     {
+        // test:(()->(Bool))?
         viewController.process(work: { [weak self] () -> (Any?) in
             var htmlString:String?
             
@@ -3310,6 +3311,7 @@ class MediaItem : NSObject
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { [weak self]
                 () -> Void in
+                // test:(()->(Bool))?
                 viewController.process(work: { () -> (Any?) in
                     self?.clearCache(block:true)
                     return nil
@@ -3526,6 +3528,7 @@ class MediaItem : NSObject
                 return
             }
 
+            // test:(()->(Bool))?
             mtvc.process(work: { [weak self] () -> (Any?) in
                 self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
             }, completion: { [weak self, weak mtvc] (data:Any?) in
@@ -3553,6 +3556,7 @@ class MediaItem : NSObject
 //            } else {
                 if self.hasNotesHTML {
                     transcript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) { [weak self] in
+                        // test:(()->(Bool))?
                         viewController.process(work: { [weak self] () -> (Any?) in
                             self?.notesHTML?.load()
                         }, completion: { [weak self] (data:Any?) in
@@ -3576,6 +3580,7 @@ class MediaItem : NSObject
                     return
                 }
                 
+                // test:(()->(Bool))?
                 viewController.process(work: { [weak self] () -> (Any?) in
                     self?.scripture?.load()
                     return self?.scripture?.html?[reference]

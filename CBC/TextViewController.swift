@@ -324,8 +324,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                     var actions = [AlertAction]()
                     
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
+                        // test:(()->(Bool))?
                         self.process(work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(   interactive:false, makeVisible:true, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
+                            self?.addParagraphBreaks(   interactive:false, makeVisible:true, showGapTimes:showGapTimes,                                            gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
@@ -343,8 +344,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                     }))
                     
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
+                        // test:(()->(Bool))?
                         self.process(work: { [weak self] () -> (Any?) in
-                            self?.addParagraphBreaks(   interactive:false, makeVisible:false, showGapTimes:showGapTimes, gapThreshold:gapThreashold, words:words, text:text,
+                            self?.addParagraphBreaks(   interactive:false, makeVisible:false, showGapTimes:showGapTimes,                                           gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
@@ -1358,8 +1360,9 @@ class TextViewController : CBCViewController
                             var actions = [AlertAction]()
                             
                             actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
+                                // test:(()->(Bool))?
                                 vc.process(work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:true, tooClose:tooClose, words:words, text:text,
+                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:true,                                             tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
@@ -1375,8 +1378,9 @@ class TextViewController : CBCViewController
                             }))
                             
                             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
+                                // test:(()->(Bool))?
                                 vc.process(work: { [weak self] () -> (Any?) in
-                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:false, tooClose:tooClose, words:words, text:text,
+                                    self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:false,                                            tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
@@ -1401,6 +1405,7 @@ class TextViewController : CBCViewController
 
                     var alertActions = [AlertAction]()
                     alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
+                        // test:(()->(Bool))?
                         self?.process(work: { [weak self] () -> (Any?) in
                             let speakerNotesParagraph = Globals.shared.media.repository.list?.filter({ (mediaItem:MediaItem) -> Bool in
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
@@ -1416,11 +1421,12 @@ class TextViewController : CBCViewController
                         })
                     }))
                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
+                        // test:(()->(Bool))?
                         self?.process(work: { [weak self] () -> (Any?) in
                             return self?.wordRangeTiming?.result
-                            }, completion: { (data:Any?) in
-                                self?.updateBarButtons()
-                                block()
+                        }, completion: { (data:Any?) in
+                            self?.updateBarButtons()
+                            block()
                         })
                     }))
                     alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: { () -> (Void) in
@@ -1435,6 +1441,8 @@ class TextViewController : CBCViewController
                     }
 
                     // USE PROCESS TO SHOW SPINNER UNTIL FIRST CHANGE FOUND!
+                    
+                    // test:(()->(Bool))?
                     vc.process(work: { [weak self] () -> (Any?) in
                         guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                             return nil
@@ -1465,6 +1473,8 @@ class TextViewController : CBCViewController
                 }
                 
                 // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
+                
+                // test:(()->(Bool))?
                 vc.process(work: { [weak self] () -> (Any?) in
                     guard let changes = self?.transcript?.changes(interactive:true, longFormat:false) else {
                         return nil
@@ -1538,6 +1548,7 @@ class TextViewController : CBCViewController
                                             return
                                         }
                                         
+                                        // test:(()->(Bool))?
                                         popover?.process(work: { () -> (Any?) in
                                             guard var words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
                                                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
@@ -1635,6 +1646,7 @@ class TextViewController : CBCViewController
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
+                                    // test:(()->(Bool))?
                                     self?.process(work: { [weak self] () -> (Any?) in
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:true,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
@@ -1656,6 +1668,7 @@ class TextViewController : CBCViewController
                                 }))
                                 
                                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
+                                    // test:(()->(Bool))?
                                     self?.process(work: { [weak self] () -> (Any?) in
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:false,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
@@ -1703,6 +1716,7 @@ class TextViewController : CBCViewController
                     
                     var actions = [AlertAction]()
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
+                        // test:(()->(Bool))?
                         self?.process(work: { [weak self] () -> (Any?) in
                             let speakerNotesParagraph = Globals.shared.media.repository.list?.filter({ (mediaItem:MediaItem) -> Bool in
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
@@ -1719,6 +1733,7 @@ class TextViewController : CBCViewController
                         })
                     }))
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
+                        // test:(()->(Bool))?
                         self?.process(work: { [weak self] () -> (Any?) in
                             return self?.wordRangeTiming?.result
                         }, completion: { (data:Any?) in
@@ -1740,6 +1755,8 @@ class TextViewController : CBCViewController
                         }
                         
                         // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
+
+                        // test:(()->(Bool))?
                         vc.process(work: { [weak self] () -> (Any?) in
                             guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                                 return nil
@@ -1785,6 +1802,8 @@ class TextViewController : CBCViewController
                     }
                     
                     // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE
+                    
+                    // test:(()->(Bool))?
                     vc.process(work: { [weak self] () -> (Any?) in
                         guard let changes = self?.transcript?.changes(interactive:false, longFormat:false) else {
                             return nil
@@ -2235,12 +2254,11 @@ class TextViewController : CBCViewController
         }
         
         guard words.count > 0 else {
-            // This updates the text and the changedText
-            
             if !automatic {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                    // This is where the text can be updated.
                     completion?(text)
                 }))
                 
@@ -2300,20 +2318,24 @@ class TextViewController : CBCViewController
                 // NONE FOUND BEFORE
             }
             
+            let block = {
+                if !automatic {
+                    var actions = [AlertAction]()
+                    
+                    actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
+                        self.updateBarButtons()
+                    }))
+                    
+                    Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
+                }
+            }
+            
             // Too close to the previous?
             if let lowerRange = lowerRange {
                 // encodedOffset
                 if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     if !interactive, gap < gapThreshold {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                        }
+                        block()
                         return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
@@ -2330,16 +2352,8 @@ class TextViewController : CBCViewController
                 // Too close to the start?
                 if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     if !interactive, gap < gapThreshold {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                        }
-                        return
+                        block()
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
@@ -2359,16 +2373,8 @@ class TextViewController : CBCViewController
             if let upperRange = upperRange {
                 if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
                     if !interactive, gap < gapThreshold {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                        }
-                        return
+                        block()
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
@@ -2384,16 +2390,8 @@ class TextViewController : CBCViewController
                 // Too close to end?
                 if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
                     if !interactive, gap < gapThreshold {
-                        if !automatic {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, handler: {
-                                self.updateBarButtons()
-                            }))
-                            
-                            Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
-                        }
-                        return
+                        block()
+                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
                     }
                     
                     // This turns recursion into serial and avoids stack overflow.
@@ -2461,10 +2459,6 @@ class TextViewController : CBCViewController
             
             actions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
                 var newText = text
-                
-                /////////////////////////////////////////////////////////////
-                // Something seems to go wrong here due to diacritical marks
-                /////////////////////////////////////////////////////////////
                 
                 newText.insert(contentsOf:gapString, at: range.lowerBound)
                 
@@ -2729,6 +2723,8 @@ class TextViewController : CBCViewController
                             
                             // THIS ALLOWS THE TEXT TO CHANGE
                             // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
+                            
+                            // test:(()->(Bool))?
                             vc.process(work: { [weak self] () -> (Any?) in
                                 self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                                 
@@ -2749,6 +2745,8 @@ class TextViewController : CBCViewController
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         
                         // USE PROCESS TO SHOW THE USER A SPINNER UNTIL THE FIRST CHANGE IS FOUND!
+
+                        // test:(()->(Bool))?
                         vc.process(work: { [weak self] () -> (Any?) in
                             self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                             
@@ -2836,6 +2834,8 @@ class TextViewController : CBCViewController
             let text = self.textView.attributedText.string
             
             // USING PROCESS BECAUSE WE ARE USING THE OPERATION QUEUE - MAYBE, depends on automaticInteractive
+            
+            // test:(()->(Bool))?
             self.process(work: { [weak self] () -> (Any?) in
                 guard let changes = self?.transcript?.changes(interactive:self?.automaticInteractive == true, longFormat:false) else {
                     return nil

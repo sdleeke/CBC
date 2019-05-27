@@ -283,9 +283,10 @@ extension CloudViewController : UIActivityItemSource
         // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
         activityViewController.excludedActivityTypes = [.addToReadingList,.airDrop]
         
-        let popoverPresentationController = activityViewController.popoverPresentationController
+        activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
-        popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        // present the view controller
+        Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -636,6 +637,7 @@ class CloudViewController : CBCViewController
         self.navigationItem.setRightBarButton(actionButton, animated: true)
 
         if cloudWordDictsFunction != nil {
+            // test:(()->(Bool))?
             self.process(work: { [weak self] () -> (Any?) in
                 self?.cloudWordDicts = self?.cloudWordDictsFunction?()
 
