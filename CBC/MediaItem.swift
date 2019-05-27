@@ -2011,13 +2011,11 @@ class MediaItem : NSObject
         guard tags?.firstIndex(of: tag) == nil else {
             return
         }
-        
-        if (mediaItemSettings?[Field.tags] == nil) {
-            mediaItemSettings?[Field.tags] = tag
+
+        if let tags = mediaItemSettings?[Field.tags] {
+            mediaItemSettings?[Field.tags] = tags + Constants.SEPARATOR + tag
         } else {
-            if let tags = mediaItemSettings?[Field.tags] {
-                mediaItemSettings?[Field.tags] = tags + Constants.SEPARATOR + tag
-            }
+            mediaItemSettings?[Field.tags] = tag
         }
         
         let sortTag = tag.withoutPrefixes

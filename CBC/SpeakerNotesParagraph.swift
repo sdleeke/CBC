@@ -20,8 +20,24 @@ class SpeakerNotesParagraph
     
     var list : [MediaItem]?
     
-    init(name:String? = nil,list:[MediaItem]?)
+    init?(name:String? = nil,list:[MediaItem]?)
     {
+        guard list?.count > 0 else {
+            return nil
+        }
+
+        if let name = name {
+            if list?.filter({ (mediaItem) -> Bool in
+                if !mediaItem.hasNotesText {
+                    return false
+                } else {
+                    return mediaItem.speaker == name
+                }
+            }).count == 0 {
+                return nil
+            }
+        }
+        
         self.name = name
         self.list = list
     }
@@ -90,7 +106,11 @@ class SpeakerNotesParagraph
         
         fetch.fetch = {
             guard let mediaItems = self?.list?.filter({ (mediaItem) -> Bool in
-                return (mediaItem.speaker == self?.name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
+                if let name = self?.name {
+                    return (mediaItem.speaker == name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
+                } else {
+                    return true
+                }                    
             }) else {
                 return nil
             }

@@ -4753,9 +4753,13 @@ class VoiceBase
                 transcriptString == transcriptFromWordsString {
                 // Can insert paragraph breaks
                 
-                let speakerNotesParagraph = Globals.shared.media.repository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                    mediaItem.speaker == self?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
-                }).speakerNotesParagraph
+                let mediaItems = Globals.shared.media.repository.list
+//                ?.filter({ (mediaItem:MediaItem) -> Bool in
+//                    mediaItem.speaker == self?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
+//                })
+                
+                // First try using only transcripts from this speaker, if there aren't any, then use all that can be found.
+                let speakerNotesParagraph = mediaItems?.speakerNotesParagraph(name:self?.mediaItem?.speaker) ?? mediaItems?.speakerNotesParagraph
 
                 // self?.mediaItem?.teacher?.
                 let tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
@@ -4766,10 +4770,11 @@ class VoiceBase
                 // Multiply the gap time by the frequency of the word that appears after it and sort
                 // in descending order to suggest the most likely paragraph breaks.
                 
-                if let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
+                if  let speakerNotesParagraphWords = speakerNotesParagraphWords,
+                    let words = self?.wordRangeTiming?.sorted(by: { (first, second) -> Bool in
                     if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
                         if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
-                            return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
+                            return (firstGap * Double(speakerNotesParagraphWords[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords[secondWord.lowercased()] ?? 1))
                         }
                     }
                     
@@ -4783,6 +4788,8 @@ class VoiceBase
                         self?.transcript = string
                         textChanges()
                     })
+                } else {
+                    // Can't insert paragraph breaks.
                 }
             } else {
                 textChanges()

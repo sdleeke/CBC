@@ -159,7 +159,19 @@ extension Array where Element == MediaItem
             return SpeakerNotesParagraph(list:self)
         }
     }
-
+    
+    /**
+     Extension of Array of MediaItem to return the SpeakerNotesParagraph class for the array.
+     */
+    func speakerNotesParagraph(name:String?) -> SpeakerNotesParagraph?
+    {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        return SpeakerNotesParagraph(name:name,list:self)
+    }
+    
     /**
      Extension of Array of MediaItem to return the number of VB transcripts in the array.
      */
