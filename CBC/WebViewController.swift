@@ -398,7 +398,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.allowsSelection = search
                 
-                popover.navigationItem.title = navigationItem.title
+                popover.navigationItem.title = navigationItem.title?.qualifier(Constants.Strings.Word_Picker)
                 
                 popover.stringsFunction = { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -419,7 +419,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
-                popover.cloudTitle = navigationItem.title
+                popover.cloudTitle = navigationItem.title?.qualifier(Constants.Strings.Word_Cloud)
                 
                 if let mediaItem = mediaItem {
                     popover.cloudTitle = mediaItem.title
@@ -458,13 +458,13 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     } else {
                         return "\(word) (\(count))"
                     }
-                }).sorted().tableHTML(title:self?.navigationItem.title, test:test)
+                }).sorted().tableHTML(title:self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), test:test)
             }, completion: { [weak self] (data:Any?,test:(()->(Bool))?) in
-                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
             })
             
         case Constants.Strings.Words:
-            self.selectWord(title:navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction:{ [weak self] in
+            self.selectWord(title:navigationItem.title?.qualifier(Constants.Strings.Words), purpose:.selectingWord, allowsSelection:false, stringsFunction:{ [weak self] in
                 // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
@@ -550,11 +550,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
                     
-                    if let title = self.navigationItem.title {
-                        popover.navigationItem.title = title + " Lexical Analysis"
-                    } else {
-                        popover.navigationItem.title = Constants.Strings.Lexical_Analysis
-                    }
+                    popover.navigationItem.title = self.navigationItem.title?.qualifier(Constants.Strings.Lexical_Analysis)
                     
                     navigationController.isNavigationBarHidden = false
                     

@@ -655,6 +655,10 @@ class CloudViewController : CBCViewController
                 self?.wordsTableViewController.tableView.isHidden = false
                 self?.wordsTableViewController.tableView.reloadData()
             })
+        } else {
+            self.cancelAndRelayoutCloudWords()
+            self.wordsTableViewController.tableView.isHidden = false
+            self.wordsTableViewController.tableView.reloadData()
         }
     }
 
@@ -662,7 +666,6 @@ class CloudViewController : CBCViewController
     {
         super.viewDidAppear(animated)
         
-        self.cancelAndRelayoutCloudWords()
     }
     
     override func viewWillDisappear(_ animated: Bool)

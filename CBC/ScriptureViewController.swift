@@ -176,7 +176,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? WebViewController {
-                        popover.navigationItem.title = (self?.scripture?.reference ?? "") +  " Lexical Analysis"
+                        popover.navigationItem.title = self?.scripture?.reference?.qualifier(Constants.Strings.Lexical_Analysis)
                         navigationController.isNavigationBarHidden = false
                         
                         navigationController.modalPresentationStyle = .overCurrentContext
@@ -228,7 +228,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.allowsSelection = false
                     
-                    popover.navigationItem.title = navigationItem.title // Constants.Strings.Word_Picker
+                    popover.navigationItem.title = scripture?.reference?.qualifier(Constants.Strings.Word_Picker)
                     
                     popover.stringsFunction = { [weak self] in
                         // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
@@ -250,8 +250,10 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
+                    popover.cloudTitle = self.scripture?.reference?.qualifier(Constants.Strings.Word_Cloud)
+                    
                     if let mediaItem = mediaItem {
-                        popover.cloudTitle = mediaItem.title
+                        popover.cloudTitle = mediaItem.title?.qualifier(Constants.Strings.Word_Cloud)
                         
                         popover.cloudString = self.webViewController?.bodyHTML?.html2String
                         
@@ -263,8 +265,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                             return words
                         }
                     }
-                    
-                    popover.cloudTitle =  (self.scripture?.reference ?? "") // navigationItem.title
                     
                     popover.cloudWordDictsFunction = { [weak self] in
                         let words = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
@@ -284,14 +284,14 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                     return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
-                    }).sorted().tableHTML(title:self?.scripture?.reference, test:test)
+                    }).sorted().tableHTML(title:self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), test:test)
                 }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
                 })
                 break
                 
             case Constants.Strings.Words:
-                self.selectWord(title:navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
+                self.selectWord(title:scripture?.reference?.qualifier(Constants.Strings.Words), purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
                     // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                     return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"

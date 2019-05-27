@@ -4123,6 +4123,18 @@ extension String
 extension String
 {
     /**
+     Extension of String to return self plus the qualifing string appended w/ appropriate spacing.
+     */
+    func qualifier(_ qualifier:String) -> String?
+    {
+        guard !self.isEmpty else {
+            return qualifier
+        }
+        
+        return self + Constants.SINGLE_SPACE + qualifier
+    }
+    
+    /**
      Extension of String to return the substring up to the pattern " (".
      This pattern is what indicates a number or a part name.
      */
