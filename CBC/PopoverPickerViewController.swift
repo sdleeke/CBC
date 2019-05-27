@@ -381,6 +381,8 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
  */
 class PopoverPickerViewController : CBCViewController
 {
+    let name = "PPVC:" + UUID().uuidString
+    
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "PopoverPickerViewController" // Assumes there is only ever one at a time globally
@@ -393,8 +395,8 @@ class PopoverPickerViewController : CBCViewController
         debug(self)
         operationQueue.cancelAllOperations()
     
-        lexicon?.callBacks.unregister("PPVC")
-        stringTree?.callBacks.unregister("PPVC")
+        lexicon?.callBacks.unregister(name)
+        stringTree?.callBacks.unregister(name)
     }
     
     lazy var popover : [String:PopoverTableViewController]? = {
@@ -408,7 +410,8 @@ class PopoverPickerViewController : CBCViewController
     weak var lexicon : Lexicon?
     {
         didSet {
-            lexicon?.callBacks.register("PPVC",
+            // Right now lexicons are always incremental
+            lexicon?.callBacks.register(name,
                 [
                 "start": { [weak self] in
 
@@ -423,11 +426,14 @@ class PopoverPickerViewController : CBCViewController
                 }
                 ]
             )
-
-            if stringTree == nil {
-                stringTree = lexicon?.stringTreeFunction?()
-                
-                stringTree?.callBacks.register("PPVC",
+        }
+    }
+    
+    private var stringTree : StringTree?
+    {
+        didSet {
+            if stringTree?.incremental == true {
+                stringTree?.callBacks.register(name,
                    [
                     "start": { [weak self] in
                         self?.started()
@@ -438,13 +444,11 @@ class PopoverPickerViewController : CBCViewController
                     "complete":{ [weak self] in
                         self?.completed()
                     }
-                   ]
+                    ]
                 )
             }
         }
     }
-    
-    private var stringTree : StringTree?
     
     var allowsSelection = true
     
@@ -529,9 +533,10 @@ class PopoverPickerViewController : CBCViewController
             
             popover.delegate = self.delegate
             
+            popover.stringTree = self.stringTree
             popover.lexicon = self.lexicon
             
-            popover.stringsFunction = lexicon?.stringsFunction
+            popover.stringsFunction = self.lexicon?.stringsFunction
             
             self.presentingViewController?.present(navigationController, animated: true, completion: nil)
         }
@@ -636,7 +641,7 @@ class PopoverPickerViewController : CBCViewController
         didAppear = false
 
         if stringTree == nil {
-            stringTree = StringTree()
+            stringTree = lexicon?.stringTreeFunction?() ?? StringTree()
         }
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
@@ -910,6 +915,10 @@ class PopoverPickerViewController : CBCViewController
     
     func started()
     {
+        guard isViewLoaded else {
+            return
+        }
+        
         complete = false
         
         Thread.onMain {
@@ -926,6 +935,10 @@ class PopoverPickerViewController : CBCViewController
     
     @objc func updated()
     {
+        guard isViewLoaded else {
+            return
+        }
+        
         Thread.onMain {
             self.spinner.startAnimating()
         }
@@ -946,6 +959,10 @@ class PopoverPickerViewController : CBCViewController
     
     func completed()
     {
+        guard isViewLoaded else {
+            return
+        }
+        
         complete = true
         
         Thread.onMain {

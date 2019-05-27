@@ -52,6 +52,8 @@ class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
  */
 class LexiconIndexViewController : MediaItemsViewController
 {
+    let name = "LIVC:" + UUID().uuidString
+    
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         super.viewWillTransition(to: size, with: coordinator)
@@ -759,7 +761,7 @@ class LexiconIndexViewController : MediaItemsViewController
 
         addNotifications()
         
-        lexicon?.callBacks.register("LIVC",
+        lexicon?.callBacks.register(name,
             ["start":{[weak self] in
                 self?.started()
             },
@@ -1186,7 +1188,7 @@ class LexiconIndexViewController : MediaItemsViewController
         debug(self)
         operationQueue.cancelAllOperations()
     
-        lexicon?.callBacks.unregister("LIVC")
+        lexicon?.callBacks.unregister(name)
     }
     
     @objc func started()

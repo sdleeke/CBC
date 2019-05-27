@@ -36,17 +36,22 @@ class Lexicon : NSObject // Why an NSObject?
     private var stringTrees = [String:StringTree]()
     func stringTree(_ searchText:String?) -> StringTree?
     {
-        guard let activeWordsString = activeWords(searchText:searchText)?.sorted().joined() else {
-            return nil
+        // The problem with this is that activeWordsString is NOT the same at all points in time if
+        // the lexicon is being built!  Meaning, the stringTree handed back will change or be new depending
+        // upon when you ask for it!
+        //
+        // The only time this returns the same thing is AFTER the lexicon is completed.
+//        guard let activeWordsString = activeWords(searchText:searchText)?.sorted().joined() else {
+//            return nil
+//        }
+        
+        if stringTrees[searchText ?? ""] == nil {
+            stringTrees[searchText ?? ""] = StringTree(stringsFunction: { [weak self] in
+                                                            return self?.stringsFunction?()
+                                                        }, incremental:true)
         }
         
-        if stringTrees[activeWordsString] == nil {
-            stringTrees[activeWordsString] = StringTree(stringsFunction: { [weak self] in
-                return self?.stringsFunction?()
-                }, incremental:true)
-        }
-        
-        return stringTrees[activeWordsString]
+        return stringTrees[searchText ?? ""]
     }
     
     // This is required because the searchText that defines the active words is contained in the PTVC embedded
@@ -511,10 +516,15 @@ class Lexicon : NSObject // Why an NSObject?
     
     func activeWords(searchText:String?) -> [String]?
     {
+        // The problem with this is that activeWords is NOT the same at all points in time if
+        // the lexicon is being built!  Meaning, the array handed back will change depending
+        // upon when you ask for it!
+        //
+        // The only time this returns the same thing is AFTER the lexicon is completed.
         guard let searchText = searchText else {
             return words?.keys()?.sorted()
         }
-        
+
         return words?.keys()?.filter({ (string:String) -> Bool in
             return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }).sorted()

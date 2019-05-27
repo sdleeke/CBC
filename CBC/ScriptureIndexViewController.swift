@@ -344,6 +344,8 @@ extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
  */
 class ScriptureIndexViewController : MediaItemsViewController
 {
+    let name = "SIVC:" + UUID().uuidString
+    
     var includeVerses = false
     
     var finished:Float = 0.0
@@ -582,7 +584,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         debug(self)
         operationQueue.cancelAllOperations()
     
-        scriptureIndex?.callBacks.unregister("SIVC")
+        scriptureIndex?.callBacks.unregister(name)
     }
     
     func updateSearchResults()
@@ -792,7 +794,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         
         addNotifications()
         
-        scriptureIndex?.callBacks.register("SIVC",
+        scriptureIndex?.callBacks.register(name,
             [
             "start": { [weak self] in
                 self?.started()

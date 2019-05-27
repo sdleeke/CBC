@@ -37,13 +37,6 @@ class StringTree
         }
     }
     
-    weak var lexicon : Lexicon?
-    {
-        didSet {
-
-        }
-    }
-    
     var stringsFunction:(()->[String]?)?
     {
         didSet {
@@ -168,7 +161,6 @@ class StringTree
     
     deinit {
         debug(self)
-        lexicon?.callBacks.unregister("STRINGTREE")
         operationQueue.cancelAllOperations()
     }
     
