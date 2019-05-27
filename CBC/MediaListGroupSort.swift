@@ -46,8 +46,12 @@ class MLGSSection
         }
     }
     
-    init(_ mediaListGroupSort:MediaListGroupSort?)
+    init?(_ mediaListGroupSort:MediaListGroupSort?)
     {
+        guard mediaListGroupSort != nil else {
+            return nil
+        }
+        
         self.mediaListGroupSort = mediaListGroupSort
     }
     
@@ -637,7 +641,15 @@ class MediaListGroupSort // : NSObject
             return
         }
         
-        // MEANS MLGS's OF EPHEMERAL TAGS AREN'T UPDATED - BUT ALL IS AND THEN THE EPHEMERAL TAG MLGS IS RECREATED
+        // For MLGS's that consist of mediaItems all having the same ephemeral tag,
+        // nothing is done if the mediaItem didn't already have the tag because it isn't
+        // in the list.  I.E. IT IS CORRUPT.
+        //
+        // HOWEVER, ALL MLGS's BASED ON TAGS ARE RECREATED AND, IF SHOWING, THE NEW ONE IS DISPLAYED IN ITS PLACE
+        //
+        // When the all MLGS is updated not only are its tagMediaItems and tagNames updated,
+        // the tag MLGS is recreated and if it showing the new one is displayed
+        //
         guard mediaList?.list?.contains(mediaItem) == true else {
             return
         }
@@ -646,11 +658,9 @@ class MediaListGroupSort // : NSObject
      
         addTagMediaItem(mediaItem:mediaItem,sortTag:tag?.withoutPrefixes,tag:tag)
 
-        // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All {
-            // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
-            // SO SI/LI KEEP THE OLD IF THEY ARE USING IT AND RECREATE WHEN EXITED AND REENTERED!
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+            // THIS CAUSES THE VC (E.G. SI/LI) USING THE TAG MLGS TO KEEP IT BUT IF EXITED AND REENTERED THE NEW ONE IS USED!
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {
@@ -662,7 +672,7 @@ class MediaListGroupSort // : NSObject
             }
             
             if (Globals.shared.media.tags.selected == tag) {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
                 }
             }
@@ -675,7 +685,15 @@ class MediaListGroupSort // : NSObject
             return
         }
         
-        // MEANS MLGS's OF EPHEMERAL TAGS AREN'T UPDATED - BUT ALL IS AND THEN THE EPHEMERAL TAG MLGS IS RECREATED
+        // For MLGS's that consist of mediaItems all having the same ephemeral tag,
+        // tagMediaItems and tagNames are updated but the list is not updated to
+        // remove the mediaItem!  I.E. IT IS CORRUPT.
+        //
+        // HOWEVER, ALL MLGS's BASED ON TAGS ARE RECREATED AND, IF SHOWING, THE NEW ONE IS DISPLAYED IN ITS PLACE
+        //
+        // When the all MLGS is updated not only are its tagMediaItems and tagNames updated,
+        // the tag MLGS is recreated and if it showing, the new one is displayed
+        //
         guard mediaList?.list?.contains(mediaItem) == true else {
             return
         }
@@ -684,11 +702,9 @@ class MediaListGroupSort // : NSObject
 
         removeTagMediaItem(mediaItem:mediaItem,sortTag:tag?.withoutPrefixes,tag:tag)
         
-        // Seems like this should be done elsewhere, specific to all
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
-            // WHICH CAUSES THE LI and SI for the EPHEMERAL TAG MLGS TO BE CUT FREE.
-            // SO SI/LI KEEP THE OLD IF THEY ARE USING IT AND RECREATE WHEN EXITED AND REENTERED!
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+            // THIS CAUSES THE VC (E.G. SI/LI) USING THE TAG MLGS TO KEEP IT BUT IF EXITED AND REENTERED THE NEW ONE IS USED!
+            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {
@@ -700,7 +716,7 @@ class MediaListGroupSort // : NSObject
             }
             
             if (Globals.shared.media.tags.selected == tag) {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
                 }
             }
@@ -710,16 +726,10 @@ class MediaListGroupSort // : NSObject
     //////////////////////////////////////////////////////////////////////////////////////////////
     // Uses notifications for adding and removing tags since mediaItems could be in multiple MLGS
     //////////////////////////////////////////////////////////////////////////////////////////////
-    init(name:String? = nil, mediaItems:[MediaItem]?)
+    init?(name:String? = nil, mediaItems:[MediaItem]?)
     {
-        Thread.onMainThread {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
-        }
-        
-        Globals.shared.queue.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
-
-            NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
+        guard mediaItems?.count > 0 else {
+            return nil
         }
         
         self.name = name
@@ -762,6 +772,15 @@ class MediaListGroupSort // : NSObject
                     tagNames?[sortTag] = tag
                 }
             })
+        }
+        
+        Thread.onMain {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
+        
+        Globals.shared.queue.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
         }
     }
 

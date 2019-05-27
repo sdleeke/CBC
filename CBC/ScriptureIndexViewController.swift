@@ -353,7 +353,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             
         }
         didSet {
-            Thread.onMainThread {
+            Thread.onMain {
                 if self.finished > 0 {
                     self.progressIndicator.progress = self.progress / self.finished
                 }
@@ -594,7 +594,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         guard let selectedTestament = scriptureIndex.scripture.picked.testament else {
             mediaItems = nil
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self.updateUI()
                 self.tableView.reloadData()
                 self.scripturePicker.isUserInteractionEnabled = true
@@ -608,7 +608,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
             
             operationQueue.addOperation { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -623,7 +623,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byTestament[testament]
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -646,7 +646,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
 
             operationQueue.addOperation { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -661,7 +661,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -684,7 +684,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
             
             operationQueue.addOperation { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -699,7 +699,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -721,7 +721,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         operationQueue.cancelAllOperations()
         
         operationQueue.addOperation { [weak self] in
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.disableBarButtons()
                 self?.spinner.isHidden = false
                 self?.spinner.startAnimating()
@@ -734,7 +734,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             
             self?.mediaItems = nil // scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]?[scriptureIndex.scripture.picked.verse]
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.enableBarButtons()
                 self?.updateUI()
                 self?.tableView.reloadData()
@@ -996,7 +996,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         if (select) {
             // So UI operates as desired.
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                 }
             }
@@ -1006,7 +1006,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             // Scrolling when the user isn't expecting it can be jarring.
             // So UI operates as desired.
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                 }
             }
@@ -1026,7 +1026,7 @@ class ScriptureIndexViewController : MediaItemsViewController
 //        updateSearchResults()
 //
 //        // In case the search results were already computed.
-//        Thread.onMainThreadSync {
+//        Thread.onMainSync {
 //            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
 //        }
     }
@@ -1036,7 +1036,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         updateSearchResults()
         
         // In case the search results were already computed.
-        Thread.onMainThreadSync {
+        Thread.onMainSync {
             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
         }
     }
@@ -1205,7 +1205,11 @@ class ScriptureIndexViewController : MediaItemsViewController
             bookSwitch.isEnabled = false
         }
 
-        chapterSwitch.isOn = scriptureIndex?.scripture.picked.chapter > 0
+        if !bookSwitch.isOn {
+            scriptureIndex?.scripture.picked.chapter = 0
+        }
+        
+        chapterSwitch.isOn = bookSwitch.isOn && (scriptureIndex?.scripture.picked.chapter > 0)
         chapterSwitch.isEnabled = bookSwitch.isOn
     }
     
@@ -1450,10 +1454,14 @@ extension ScriptureIndexViewController : UITableViewDataSource
         cell.vc = self
         
         if let _ = scriptureIndex?.scripture.picked.book {
-            cell.mediaItem = mediaItems?[indexPath.row]
+            if indexPath.row < mediaItems?.count {
+                cell.mediaItem = mediaItems?[indexPath.row]
+            }
         } else {
-            if let sectionTitle = sectionTitles?[indexPath.section] {
-                cell.mediaItem = sections?[sectionTitle]?[indexPath.row]
+            if indexPath.section < sectionTitles?.count, let sectionTitle = sectionTitles?[indexPath.section] {
+                if indexPath.row < sections?[sectionTitle]?.count {
+                    cell.mediaItem = sections?[sectionTitle]?[indexPath.row]
+                }
             }
         }
         
@@ -1470,10 +1478,14 @@ extension ScriptureIndexViewController : UITableViewDelegate
         var mediaItem : MediaItem?
         
         if let _ = scriptureIndex?.scripture.picked.book {
-            mediaItem = mediaItems?[indexPath.row]
+            if indexPath.row < mediaItems?.count {
+                mediaItem = mediaItems?[indexPath.row]
+            }
         } else {
-            if let sectionTitle = sectionTitles?[indexPath.section] {
-                mediaItem = sections?[sectionTitle]?[indexPath.row]
+            if indexPath.section < sectionTitles?.count, let sectionTitle = sectionTitles?[indexPath.section] {
+                if indexPath.row < sections?[sectionTitle]?.count {
+                    mediaItem = sections?[sectionTitle]?[indexPath.row]
+                }
             }
         }
         
@@ -1503,10 +1515,14 @@ extension ScriptureIndexViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         if let _ = scriptureIndex?.scripture.picked.book {
-            selectedMediaItem = mediaItems?[indexPath.row]
+            if indexPath.row < mediaItems?.count {
+                selectedMediaItem = mediaItems?[indexPath.row]
+            }
         } else {
-            if let sectionTitle = sectionTitles?[indexPath.section] {
-                selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
+            if indexPath.section < sectionTitles?.count, let sectionTitle = sectionTitles?[indexPath.section] {
+                if indexPath.row < sections?[sectionTitle]?.count {
+                    selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
+                }
             }
         }
     }

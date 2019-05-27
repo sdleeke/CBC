@@ -192,7 +192,7 @@ extension PopoverTableViewController: UISearchBarDelegate
 
         updateToolbar()
         
-        Thread.onMainThread {
+        Thread.onMain {
             self.tableView.reloadData()
         }
     }
@@ -890,7 +890,7 @@ class PopoverTableViewController : CBCViewController
         let section = Section(tableView:tableView, stringsAction: nil)
 
         section.stringsAction = { (strings:[String]?,sorting:Bool) in
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
@@ -902,7 +902,7 @@ class PopoverTableViewController : CBCViewController
         let section = Section(tableView:tableView, stringsAction: nil)
         
         section.stringsAction = { (strings:[String]?,sorting:Bool) in
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
@@ -1092,7 +1092,7 @@ class PopoverTableViewController : CBCViewController
         } else {
             // Fallback on earlier versions
             if let refreshControl = self.refreshControl {
-                Thread.onMainThread {
+                Thread.onMain {
                     self.tableView?.addSubview(refreshControl)
                 }
             }
@@ -1105,7 +1105,7 @@ class PopoverTableViewController : CBCViewController
             tableView.refreshControl = nil
         } else {
             // Fallback on earlier versions
-            Thread.onMainThread {
+            Thread.onMain {
                 self.refreshControl?.removeFromSuperview()
             }
         }
@@ -1302,7 +1302,7 @@ class PopoverTableViewController : CBCViewController
                 let row = index - base
                 
                 if self.section.strings?.count > 0 {
-                    Thread.onMainThread {
+                    Thread.onMain {
                         if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                             let indexPath = IndexPath(row: row,section: section)
                             
@@ -1453,7 +1453,7 @@ class PopoverTableViewController : CBCViewController
         
         // This prevents the toolbarItems from being set if this is an embedded viewController.
         if (self == navigationController?.visibleViewController) {
-            Thread.onMainThread {
+            Thread.onMain {
                 self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
                 self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
             }
@@ -1567,7 +1567,7 @@ class PopoverTableViewController : CBCViewController
 
         if stringsFunction != nil, self.section.strings != nil, self.purpose == .selectingTime {
             let block = {
-                Thread.onMainThread {
+                Thread.onMain {
                     self.follow()
                 }
             }
@@ -1585,7 +1585,7 @@ class PopoverTableViewController : CBCViewController
 
             if self.navigationController?.topViewController == self {
                 // Where does it start?
-                Thread.onMainThread {
+                Thread.onMain {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                 }
@@ -1594,7 +1594,7 @@ class PopoverTableViewController : CBCViewController
             
         if stringsFunction != nil, self.section.strings == nil, operationQueue.operationCount == 0 {
             if self.navigationController?.topViewController == self {
-                Thread.onMainThread {
+                Thread.onMain {
                     self.activityIndicator.startAnimating()
                     self.activityIndicator.isHidden = false
                 }
@@ -1603,7 +1603,7 @@ class PopoverTableViewController : CBCViewController
             operationQueue.addOperation { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.tableView.reloadData()
                     
                     self?.setPreferredContentSize()
@@ -1614,7 +1614,7 @@ class PopoverTableViewController : CBCViewController
                         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
                         // Delay so UI works as desired.
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
                             }
                         }
@@ -1622,7 +1622,7 @@ class PopoverTableViewController : CBCViewController
                         // If we're going by the media player time to find the row that matches up to time we first need to have th right purpose
                         if self?.purpose == .selectingTime {
                             let block = {
-                                Thread.onMainThread {
+                                Thread.onMain {
                                     self?.follow()
                                 }
                             }
@@ -1927,7 +1927,7 @@ extension PopoverTableViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMainThread {
+            Thread.onMain {
                 self.tableView.reloadData()
             }
         }
@@ -2120,7 +2120,7 @@ extension PopoverTableViewController : UITableViewDelegate
             
             // This is a hack because it is being done because we know the delegate call makes a seek.
             Globals.shared.mediaPlayer.seekingCompletion = { [weak self] in
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.activityIndicator.stopAnimating()
                     self?.startTracking()
                 }

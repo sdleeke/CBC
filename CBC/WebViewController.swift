@@ -287,7 +287,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             // Because share is on the main thread I'm not even sure an activity view would run.
             share()
 //            DispatchQueue.global(qos: .background).async {
-//                Thread.onMainThread {
+//                Thread.onMain {
 //                    self.share()
 //                }
 //            }
@@ -617,7 +617,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self?.html.string = self?.html.string?.stripHead.insertHead(fontSize: fontSize)
                     
                     if let url = self?.html.fileURL {
-                        Thread.onMainThread {
+                        Thread.onMain {
                             self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                         }
                     }
@@ -650,7 +650,7 @@ extension WebViewController : WKNavigationDelegate
     {
         setupWKZoomScaleAndContentOffset(wkWebView)
         
-        Thread.onMainThread {
+        Thread.onMain {
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
             
@@ -865,7 +865,7 @@ class WebViewController: CBCViewController
             case .downloading:
                 download.state = .none
 
-                Thread.onMainThread {
+                Thread.onMain {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                     
@@ -896,14 +896,14 @@ class WebViewController: CBCViewController
         }
         didSet {
             if oldValue != nil {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: oldValue?.download)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: oldValue?.download)
                 }
             }
 
             if mediaItem != nil {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.mediaItem?.download)
                     NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.mediaItem?.download)
                 }
@@ -1054,7 +1054,7 @@ class WebViewController: CBCViewController
     {
         html.fontSize += 1
         
-        Thread.onMainThread {
+        Thread.onMain {
             if self.html.fontSize > Constants.HTML_MIN_FONT_SIZE {
                 self.minusButton?.isEnabled = true
             }
@@ -1075,7 +1075,7 @@ class WebViewController: CBCViewController
         if html.fontSize > Constants.HTML_MIN_FONT_SIZE {
             html.fontSize -= 1
             
-            Thread.onMainThread {
+            Thread.onMain {
                 if self.html.fontSize <= Constants.HTML_MIN_FONT_SIZE {
                     self.minusButton?.isEnabled = false
                 }
@@ -1174,7 +1174,7 @@ class WebViewController: CBCViewController
     
     func setWKZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             // The effects of the next two calls are strongly order dependent.
             if !scale.isNaN {
                 wkWebView.scrollView.setZoomScale(scale, animated: false)
@@ -1271,7 +1271,7 @@ class WebViewController: CBCViewController
         let contentOffset = CGPoint(x: CGFloat(contentOffsetX), //
                                     y: CGFloat(contentOffsetY)) //
         
-        Thread.onMainThread {
+        Thread.onMain {
             wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
         }
     }
@@ -1384,7 +1384,7 @@ class WebViewController: CBCViewController
     
     @objc func downloaded(_ notification : NSNotification)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
         }
@@ -1403,7 +1403,7 @@ class WebViewController: CBCViewController
     
     @objc func downloadFailed(_ notification : NSNotification)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
         }
@@ -1585,7 +1585,7 @@ class WebViewController: CBCViewController
         loadTimer?.invalidate()
         loadTimer = nil
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.removeObserver(self)
         }
     }

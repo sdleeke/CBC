@@ -79,7 +79,7 @@ class LiveViewController: CBCViewController
 
     @objc func clearView()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             Globals.shared.mediaPlayer.view?.isHidden = true
             self.logo.isHidden = false
         }
@@ -87,7 +87,7 @@ class LiveViewController: CBCViewController
     
     @objc func liveView()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             self.setupLivePlayerView()
             
             Globals.shared.mediaPlayer.view?.isHidden = false

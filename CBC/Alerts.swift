@@ -97,7 +97,7 @@ class Alerts
     
     init()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.viewer), userInfo: nil, repeats: true)
 //            _ = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { (Timer) in
 //                Alerts.shared.alert(title: "Testing")
@@ -180,7 +180,7 @@ class Alerts
         queue.async { [weak self] in
             self?.semaphore.wait()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 presenting.present(presented, animated: true, completion: {
                     if release?() == true {
                         self?.semaphore.signal()

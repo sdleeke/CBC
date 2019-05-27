@@ -472,7 +472,7 @@ class ScriptureViewController : CBCViewController
     
     func clearView()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             self.navigationItem.title = nil
             self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
             for view in self.view.subviews {
@@ -506,7 +506,7 @@ class ScriptureViewController : CBCViewController
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            Thread.onMainThread {
+            Thread.onMain {
                 self.setPreferredContentSize()
             }
         }
@@ -749,7 +749,7 @@ class ScriptureViewController : CBCViewController
                     }
                 }
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     self?.scripturePickerViewController?.updatePicker()
                     self?.showScripture()
                 }

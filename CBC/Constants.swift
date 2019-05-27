@@ -804,6 +804,7 @@ enum Constants {
         static let Transcribe = "Transcribe"
         static let Transcribing = "Transcribing"
         static let Transcription = "Transcription"
+        static let Transcripts = "Transcripts"
 
         static let Underway = "Underway"
         
@@ -825,6 +826,8 @@ enum Constants {
 
         static let Cancel_Transcription = Cancel + SINGLE_SPACE + Transcription
 
+        static let Remove = "Remove"
+
         static let Download = "Download"
         static let Downloaded = Download + "ed"
         static let Downloads = Download + "s"
@@ -838,8 +841,9 @@ enum Constants {
         static let Download_Audio = Download + SINGLE_SPACE + Audio
         static let Download_Video = Download + SINGLE_SPACE + Video
         
-        static let Download_All = Download  + SINGLE_SPACE + All
-        
+        static let Download_All = Download + SINGLE_SPACE + All
+        static let Remove_All   = Remove + SINGLE_SPACE + All
+
         static let Download_All_Audio = Download_All + SINGLE_SPACE + Audio
         static let Download_All_Video = Download_All + SINGLE_SPACE + Video
 
@@ -850,8 +854,11 @@ enum Constants {
         
         static let Auto_Edit_All = Auto_Edit + SINGLE_SPACE + All
         
-        static let Auto_Edit_All_Audio = Auto_Edit_All + SINGLE_SPACE + Audio
-        static let Auto_Edit_All_Video = Auto_Edit_All + SINGLE_SPACE + Video
+        static let Auto_Edit_All_Audio_Transcripts = Auto_Edit_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
+        static let Auto_Edit_All_Video_Transcripts = Auto_Edit_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
+        
+        static let Remove_All_Audio_Transcripts = Remove_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
+        static let Remove_All_Video_Transcripts = Remove_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
         
         static let Cancel_All_Auto_Edit_Audio = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Audio
         static let Cancel_All_Auto_Edit_Video = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Video

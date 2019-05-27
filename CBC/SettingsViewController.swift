@@ -19,7 +19,7 @@ class SettingsViewController: CBCViewController
     {
         Globals.shared.media.search.transcripts = sender.isOn
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
         }
     }
@@ -49,7 +49,7 @@ class SettingsViewController: CBCViewController
         //            operationQueue.cancelAllOperations()
         
         operationQueue.addOperation { [weak self] in
-            Thread.onMainThread {
+            Thread.onMain {
                 sender.isEnabled = false
                 self?.cacheSizeLabel.text = "Updating..."
             }
@@ -122,7 +122,7 @@ class SettingsViewController: CBCViewController
         cacheSwitch.isOn = Globals.shared.cacheDownloads
         
         operationQueue.addOperation { [weak self] in
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.clearCache.isEnabled = false
                 self?.cacheSizeLabel.text = "Updating..."
             }
@@ -184,7 +184,7 @@ class SettingsViewController: CBCViewController
             break
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
             sender?.isEnabled = size > 0
         }
@@ -230,7 +230,7 @@ class SettingsViewController: CBCViewController
                 break
             }
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
             }
         }

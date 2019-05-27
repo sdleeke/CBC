@@ -86,7 +86,7 @@ class Globals : NSObject
             }
 
             // Why?
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
             }
         }
@@ -337,7 +337,7 @@ class Globals : NSObject
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             }
         }
@@ -347,7 +347,7 @@ class Globals : NSObject
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
             }
         }
@@ -535,8 +535,6 @@ class Globals : NSObject
 //    }
 
     var mediaPlayer = MediaPlayer()
-
-//    var selectedMediaItem = SelectedMediaItem()
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
@@ -548,112 +546,13 @@ class Globals : NSObject
 
     var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
     ////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Would like to group these
-    ////////////////////////////////////////////////////////////////////////////
-//    var history = ThreadSafeArray<String>() // :[String]?
-//    
-//    // thread safe
-//    var relevantHistory:[String]?
-//    {
-//        get {
-//            // This is a problem for grouping these.
-//            guard let index = media.all?.mediaList?.index else {
-//                return nil
-//            }
-//            
-//            return history.reversed?.filter({ (string:String) -> Bool in
-//                if let range = string.range(of: Constants.SEPARATOR) {
-//                    let mediaItemID = String(string[range.upperBound...])
-//                    return index[mediaItemID] != nil
-//                } else {
-//                    return false
-//                }
-//            })
-//        }
-//    }
-//    
-//    var relevantHistoryFirst : MediaItem?
-//    {
-//        get {
-//            if let first = relevantHistory?.first {
-//                let components = first.components(separatedBy: Constants.SEPARATOR)
-//                
-//                if components.count == 2 {
-//                    let id = components[1]
-//                    
-//                    // This is a problem for grouping these.
-//                    return media.repository.index[id]
-//                }
-//            }
-//            
-//            return nil
-//        }
-//    }
-//    
-//    // thread safe
-//    var relevantHistoryList:[String]?
-//    {
-//        get {
-//            guard let index = media.all?.mediaList?.index else {
-//                return nil
-//            }
-//            
-//            return relevantHistory?.map({ (string:String) -> String in
-//                if  let range = string.range(of: Constants.SEPARATOR),
-//                    let mediaItem = index[String(string[range.upperBound...])],
-//                    let text = mediaItem.text {
-//                    return text
-//                }
-//
-//                return ("ERROR")
-//            })
-//        }
-//    }
-//    
-//    func addToHistory(_ mediaItem:MediaItem? = nil)
-//    {
-//        guard let mediaItem = mediaItem else {
-//            print("mediaItem NIL!")
-//            return
-//        }
-//        
-//        guard mediaItem.mediaCode != nil else {
-//            print("mediaItem ID NIL!")
-//            return
-//        }
-//        
-//        let entry = "\(Date())" + Constants.SEPARATOR + mediaItem.mediaCode
-//        
-////        if history == nil {
-////            history = [entry]
-////        } else {
-////            history?.append(entry)
-////        }
-//        
-//        history.append(entry)
-//        
-//        let defaults = UserDefaults.standard
-//        defaults.set(history.copy, forKey: Constants.SETTINGS.HISTORY)
-//        defaults.synchronize()
-//    }
-    ////////////////////////////////////////////////////////////////////////////
-
-//    var mediaCategory = MediaCategory()
-//
-//    var mediaStream = MediaStream()
-//
-//    var mediaTeachers = ThreadSafeDN<MediaTeacher>() // [String:String]?
-//
-//    var mediaRepository = MediaList()
-
+   
     var media = Media()
     
     func freeMemory()
     {
         // Free memory in classes
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
 
@@ -832,7 +731,7 @@ class Globals : NSObject
             mediaPlayer.pause()
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         }
     }

@@ -311,7 +311,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 })
                 
                 process(work: { [weak self] () -> (Any?) in
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = false
                     }
                     
@@ -325,7 +325,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     self?.presentHTMLModal(mediaItem: nil, style: style, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                     
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = true
                     }
                 })
@@ -337,7 +337,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 })
                 
                 self.process(work: { [weak self] () -> (Any?) in
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = false
                     }
 
@@ -351,7 +351,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
 
                     self?.presentHTMLModal(mediaItem: nil, style: style, title: "Word Index", htmlString: data as? String)
                     
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self?.navigationItem.rightBarButtonItem?.isEnabled = true
                     }
                 })
@@ -507,7 +507,7 @@ class PopoverPickerViewController : CBCViewController
     
     func updateActionButton()
     {
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             self?.navigationItem.rightBarButtonItem?.isEnabled = self?.stringTree?.root.depthBelow(0) > 0
         }
     }
@@ -825,7 +825,7 @@ class PopoverPickerViewController : CBCViewController
         
         var index = i
         
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             while index < self?.picker.numberOfComponents {
                 self?.pickerSelections.value?[index] = nil
                 index += 1
@@ -872,7 +872,7 @@ class PopoverPickerViewController : CBCViewController
     
     func updatePicker()
     {
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             self?.picker.reloadAllComponents()
         
             var i = 0
@@ -907,28 +907,28 @@ class PopoverPickerViewController : CBCViewController
     {
         complete = false
         
-        Thread.onMainThread {
+        Thread.onMain {
             self.spinner.startAnimating()
         }
         
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             self?.updateActionButton()
         }
     }
     
     @objc func updated()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             self.spinner.startAnimating()
         }
 
         self.updatePickerSelections()
         self.updatePicker()
         
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             self?.updateActionButton()
 //            
 //            if self?.complete == true { // self?.stringTree?.completed == true, (self?.stringTree?.lexicon == nil) || (self?.stringTree?.lexicon?.completed == true)
@@ -943,14 +943,14 @@ class PopoverPickerViewController : CBCViewController
     {
         complete = true
         
-        Thread.onMainThread {
+        Thread.onMain {
             self.spinner.startAnimating()
         }
 
         self.updatePickerSelections()
         self.updatePicker()
 
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             self?.updateActionButton()
         }
     }

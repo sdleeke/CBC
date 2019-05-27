@@ -231,14 +231,14 @@ class MediaTableViewCell: UITableViewCell
         }
         didSet {
             if (oldValue != nil) {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
                 }
             }
             
             if (mediaItem != nil) {
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     NotificationCenter.default.addObserver(self, selector: #selector(self.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                 }
@@ -333,7 +333,7 @@ class MediaTableViewCell: UITableViewCell
                     // Add the count
                     DispatchQueue.global(qos: .userInteractive).async {
                         if let count = mediaItem.notesTokens?.result?[searchText] {
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 // Make sure we're still in the right place.
                                 if self.mediaItem == mediaItem {
                                     self.countLabel.text = count.description

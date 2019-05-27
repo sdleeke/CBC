@@ -17,6 +17,11 @@ import UIKit
 
 class MediaList // : Sequence
 {
+    var count : Int?
+    {
+        return list?.count
+    }
+    
     lazy var checkIn : CheckIn = {
         return CheckIn()
     }()
@@ -67,9 +72,7 @@ class MediaList // : Sequence
             
             if checkIn.failure > 0, checkIn.failure < checkIn.total, checkIn.success > 0, checkIn.success < checkIn.total {
                 preamble = "Some "
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:self?.multiPartName)
-                
-                preamble = "Several "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:self?.multiPartName)                
                 Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Not Found\n(\(checkIn.failure) of \(checkIn.total))", message:self?.multiPartName)
             }
         }
@@ -185,17 +188,17 @@ class MediaList // : Sequence
         }
     }
     
-    func autoEditAllAudio(viewController:UIViewController)
+    func autoEditAllAudioTranscripts(viewController:UIViewController)
     {
-        autoEditAll(viewController:viewController,purpose:Purpose.audio)
+        autoEditAllTranscripts(viewController:viewController,purpose:Purpose.audio)
     }
     
-    func autoEditAllVideo(viewController:UIViewController)
+    func autoEditAllVideoTranscripts(viewController:UIViewController)
     {
-        autoEditAll(viewController:viewController,purpose:Purpose.video)
+        autoEditAllTranscripts(viewController:viewController,purpose:Purpose.video)
     }
     
-    func autoEditAll(viewController:UIViewController,purpose:String)
+    func autoEditAllTranscripts(viewController:UIViewController,purpose:String)
     {
         guard let mediaItems = list else {
             return
@@ -263,6 +266,43 @@ class MediaList // : Sequence
             
             transcript.getTranscript()
             transcript.alert(viewController: viewController)
+        }
+    }
+    
+    func removeAllAudioTranscripts(viewController:UIViewController)
+    {
+        removeAllTranscripts(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func removeAllVideoTranscripts(viewController:UIViewController)
+    {
+        removeAllTranscripts(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func removeAllTranscripts(viewController:UIViewController,purpose:String)
+    {
+        guard let mediaItems = list else {
+            return
+        }
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.remove(alert: true)
+            
+            if let text = mediaItem.text {
+                Alerts.shared.alert(title: "Transcript Removed",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\nhas been removed.")
+            }
         }
     }
     

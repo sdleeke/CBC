@@ -35,7 +35,7 @@ extension TextViewController: UISearchBarDelegate
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self.textView.attributedText = text
             }
         }
@@ -110,7 +110,7 @@ extension TextViewController: UISearchBarDelegate
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self.textView.attributedText = text
                 
                 if let lastRange = self.lastRange {
@@ -158,7 +158,7 @@ extension TextViewController: UISearchBarDelegate
             let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
             
             searchQueue.addOperation {
-                Thread.onMainThread {
+                Thread.onMain {
                     self.textView.attributedText = text
                 }
             }
@@ -737,7 +737,7 @@ class TextViewController : CBCViewController
     
     func updatePlayPauseButton()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let state = Globals.shared.mediaPlayer.state {
                 switch state {
                 case .playing:
@@ -753,7 +753,7 @@ class TextViewController : CBCViewController
     
     func updateSaveCancelButtons()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let changedText = self.changedText, let text = self.text, changedText != text {
                 print(prettyFirstDifferenceBetweenStrings(changedText as NSString, text as NSString))
                 
@@ -773,7 +773,7 @@ class TextViewController : CBCViewController
     
     func updateSyncButton()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if self.isTracking {
                 self.syncButton?.title = "Stop Sync"
             } else {
@@ -804,7 +804,7 @@ class TextViewController : CBCViewController
     
     func disableToolBarButtons()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = false
@@ -815,7 +815,7 @@ class TextViewController : CBCViewController
     
     func disableBarButtons()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = false
@@ -834,7 +834,7 @@ class TextViewController : CBCViewController
     
     func enableToolBarButtons()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let barButtons = self.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = true
@@ -845,7 +845,7 @@ class TextViewController : CBCViewController
     
     func enableBarButtons()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let barButtonItems = self.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = true
@@ -1014,7 +1014,7 @@ class TextViewController : CBCViewController
             if fetch.cache != nil {
                 self?.checkSync()
             }
-            Thread.onMainThread {
+            Thread.onMain {
                 self?.syncButton?.isEnabled = self?.wordRangeTiming != nil
                 self?.activityIndicator?.stopAnimating()
             }
@@ -1294,7 +1294,7 @@ class TextViewController : CBCViewController
         let searchOp = CancelableOperation { (test:(()->Bool)?) in
             let text = self.changedText?.markedBySearch(searchText: searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self.textView.attributedText = text
                 
                 if !searchText.isEmpty {
@@ -1606,7 +1606,7 @@ class TextViewController : CBCViewController
                                                 
                                                 webView.html.string = newText.insertHead(fontSize: 24)
                                                 
-                                                Thread.onMainThread {
+                                                Thread.onMain {
                                                     webView.navigationItem.title = self?.navigationItem.title
                                                     
                                                     popover?.present(navigationController, animated: true)
@@ -2413,7 +2413,7 @@ class TextViewController : CBCViewController
         fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.body))
         
         if interactive {
-            Thread.onMainThread {
+            Thread.onMain {
                 self.textView.attributedText = fullAttributedString
                 self.textView.scrollRangeToVisible(range)
             }
@@ -2448,7 +2448,7 @@ class TextViewController : CBCViewController
                         self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
-                    Thread.onMainThread {
+                    Thread.onMain {
                         textView.navigationItem.title = self.navigationItem.title
                         
                         self.present(navigationController, animated: true, completion: {
@@ -2524,7 +2524,7 @@ class TextViewController : CBCViewController
             
             if makeVisible {
                 // Should this be optional?  It makes it possible to see the changes happening.
-                Thread.onMainThread { () -> (Void) in
+                Thread.onMain { () -> (Void) in
                     self.textView.attributedText = fullAttributedString
                     self.textView.scrollRangeToVisible(range)
                 }
@@ -2577,13 +2577,13 @@ class TextViewController : CBCViewController
             editingQueue.addOperation { [weak self] in
                 // Why is completion called here?
                 // So the text is updated.
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(newText)
                 }
                 
                 if makeVisible {
                     ////////////////////////////////////////////////////////////////////////////////
-                    Thread.onMainThread { () -> (Void) in
+                    Thread.onMain { () -> (Void) in
                         if let newRange = newRange {
                             self?.textView.scrollRangeToVisible(newRange)
                         }
@@ -2613,7 +2613,7 @@ class TextViewController : CBCViewController
                 Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
             } else {
                 editingQueue.addOperation {
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self.dismiss(animated: true, completion: nil)
                         self.onDone?(self.textView.attributedText.string)
                         self.automaticCompletion?()
@@ -2681,7 +2681,7 @@ class TextViewController : CBCViewController
                     fullAttributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
                     fullAttributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.body))
 
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self.textView.attributedText = fullAttributedString
                         self.textView.scrollRangeToVisible(range)
                     }
@@ -2702,7 +2702,7 @@ class TextViewController : CBCViewController
                                 self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                             }
                             
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 textView.navigationItem.title = self.navigationItem.title
                                 
                                 self.present(navigationController, animated: true, completion: {
@@ -2769,7 +2769,7 @@ class TextViewController : CBCViewController
                     editingQueue.addOperation { [weak self] in
                         if makeVisible {
                             // Should this be optional?  It makes it possible to see the changes happening.
-                            Thread.onMainThread { () -> (Void) in
+                            Thread.onMain { () -> (Void) in
                                 self?.textView.attributedText = fullAttributedString
                                 self?.textView.scrollRangeToVisible(range)
                             }
@@ -2781,7 +2781,7 @@ class TextViewController : CBCViewController
                         text.replaceSubrange(range, with: newText)
 
                         // This makes the change visible
-                        Thread.onMainThread {
+                        Thread.onMain {
                             completion?(text)
                         }
 

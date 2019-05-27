@@ -403,7 +403,7 @@ class MediaItem : NSObject
         // fill cache
         document.fetchData.fill()
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
@@ -415,7 +415,7 @@ class MediaItem : NSObject
             return
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
@@ -438,7 +438,7 @@ class MediaItem : NSObject
                     document.download?.download(background: false)
                 }
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
                     NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
                 }
@@ -508,7 +508,7 @@ class MediaItem : NSObject
             self.storage?.update(storage:storage)
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
@@ -1946,27 +1946,27 @@ class MediaItem : NSObject
             return constantTags
         }
     }
-    
+
     var tags:String?
     {
         get {
             var tags:String?
-
-            if let dynamicTags = self.dynamicTags {
+            
+            if let dynamicTags = dynamicTags {
                 tags = tags != nil ? (tags! + "|" + dynamicTags) : dynamicTags
             }
             
-            if let constantTags = self.constantTags {
+            if let constantTags = constantTags {
                 tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
             }
             
-            let jsonTags = series
+            if let jsonTags = series {
+                tags = tags != nil ? (tags! + "|" + jsonTags) : jsonTags
+            }
             
-            let savedTags = mediaItemSettings?[Field.tags]
-            
-            tags = tags != nil ? tags! + (jsonTags != nil ? "|" + jsonTags! : "") : jsonTags
-            
-            tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : savedTags
+            if let savedTags = mediaItemSettings?[Field.tags] {
+                tags = tags != nil ? (tags! + "|" + savedTags) : savedTags
+            }
             
             // This coalesces the tags so there are no duplicates
             if let tagsArray = tags?.tagsArray {
@@ -1980,19 +1980,19 @@ class MediaItem : NSObject
                     if string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript) {
                         return false
                     }
-
+                    
                     // Check Downloaded
                     if string.contains(Constants.Strings.Downloaded) {
                         guard let audioDownload = audioDownload else {
                             return false
                         }
-
+                        
                         return audioDownload.exists
                     }
                     
                     return true
                 }).set.tagsString
-
+                
                 return tagsString // tags
             } else {
                 return nil
@@ -2025,12 +2025,13 @@ class MediaItem : NSObject
         guard !sortTag.isEmpty else {
             return
         }
-
+        
+        // Should this be sync? Doesn't make any difference.
         Globals.shared.queue.async {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: self, userInfo: ["TAG":tag])
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }
@@ -2064,11 +2065,12 @@ class MediaItem : NSObject
             return
         }
         
+        // Should this be sync? Doesn't make any difference.
         Globals.shared.queue.async {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: self, userInfo: ["TAG":tag])
         }
         
-        Thread.onMainThread {
+        Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }

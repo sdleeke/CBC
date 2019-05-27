@@ -15,7 +15,7 @@ extension AboutViewController : MFMailComposeViewControllerDelegate
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             controller.dismiss(animated: true, completion: nil)
         }
     }

@@ -323,11 +323,11 @@ extension VoiceBase // Class Methods
 //            }
 //
 //            if errorOccured {
-//                Thread.onMainThread {
+//                Thread.onMain {
 //                    onError?(json)
 //                }
 //            } else {
-//                Thread.onMainThread {
+//                Thread.onMain {
 //                    completion?(json)
 //                }
 //            }
@@ -381,11 +381,11 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
-                Thread.onMainThread {
+                Thread.onMain {
                     onError?(json)
                 }
             } else {
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(json)
                 }
             }
@@ -513,14 +513,14 @@ extension VoiceBase // Class Methods
                         Alerts.shared.alert(title:"Media NOT Removed From VoiceBase", message:"Media ID: " + mediaID)
                     }
                 }
-                Thread.onMainThread {
+                Thread.onMain {
                     onError?(json)
                 }
             } else {
                 if alert {
                     Alerts.shared.alert(title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
                 }
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(json)
                 }
             }
@@ -725,7 +725,7 @@ class VoiceBase
             
             mediaItem?.mediaItemSettings?["mediaID."+purpose] = mediaID
             
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
             }
         }
@@ -750,7 +750,7 @@ class VoiceBase
 
             mediaItem?.mediaItemSettings?["completed."+purpose] = completed ? "YES" : "NO"
 
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
             }
         }
@@ -770,9 +770,9 @@ class VoiceBase
             mediaItem?.mediaItemSettings?["transcribing."+purpose] = transcribing ? "YES" : "NO"
 
             if transcribing {
-                mediaItem?.addTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
             } else {
-                mediaItem?.removeTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
+                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
             }
         }
     }
@@ -793,9 +793,9 @@ class VoiceBase
             mediaItem?.mediaItemSettings?["aligning."+purpose] = aligning ? "YES" : "NO"
             
             if aligning {
-                mediaItem?.addTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
             } else {
-                mediaItem?.removeTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
+                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
             }
         }
     }
@@ -928,13 +928,15 @@ class VoiceBase
                 return
             }
 
-            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                return transcript._transcript != nil // self._
-            }).count == 0 {
-                // This blocks this thread until it finishes.
+//            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//                return transcript._transcript != nil // self._
+//            }).count == 0
+            
+            if _transcript == nil {
+                // This blocks this thread until it finishes. NO IT DOESN'T.
                 mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
             } else {
-                // This blocks this thread until it finishes.
+                // This blocks this thread until it finishes. NO IT DOESN'T.
                 mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
             }
         }
@@ -949,11 +951,13 @@ class VoiceBase
             guard mediaID != nil else {
                 return nil
             }
-
+            
             if completed {
                 if _transcript == nil {
                     // In case app was killed during auto editing.
-                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
+                    if Globals.shared.isLoading {
+                        mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
+                    }
                 }
                 
                 _transcript = filename?.fileSystemURL?.string16?.folding(options: .diacriticInsensitive, locale: nil)
@@ -966,7 +970,10 @@ class VoiceBase
             // TRANSCRIBING
             if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
-                Thread.onMainThread {
+                if Globals.shared.isLoading {
+                    mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+                }
+                Thread.onMain {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
@@ -982,7 +989,10 @@ class VoiceBase
             // ALIGNING
             if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
                 settingTimer = true
-                Thread.onMainThread {
+                if Globals.shared.isLoading {
+                    mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+                }
+                Thread.onMain {
                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     self.settingTimer = false
                 }
@@ -995,23 +1005,25 @@ class VoiceBase
                 }
             }
             
-            if !transcribing {
-                mediaItem?.removeTag(Constants.Strings.Transcribing + " - " + transcriptPurpose)
-            }
-            
-            if !aligning {
-                mediaItem?.removeTag(Constants.Strings.Aligning + " - " + transcriptPurpose)
-            }
-            
-            if !completed {
-                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+            if Globals.shared.isLoading {
+                if !transcribing {
+                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+                }
+
+                if !aligning {
+                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+                }
+
+                if !completed {
+                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+                }
             }
 
             // !settingTimer is CRUCIAL since the timer is set in a DISPATCH to the MAIN thread above.
             if _transcript == nil, resultsTimer == nil, !settingTimer, mediaID != nil {
                 mediaID = nil
             }
-            
+
             return _transcript
         }
         set {
@@ -1589,11 +1601,11 @@ class VoiceBase
             }
 
             if errorOccured {
-                Thread.onMainThread {
+                Thread.onMain {
                     onError?(json)
                 }
             } else {
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(json)
                 }
             }
@@ -1731,7 +1743,7 @@ class VoiceBase
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
                             self.remove(alert:false)
                             
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                             }
@@ -1815,7 +1827,7 @@ class VoiceBase
                 }
                 
                 if self.resultsTimer == nil {
-                    Thread.onMainThread {
+                    Thread.onMain {
                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     }
                 } else {
@@ -1835,7 +1847,7 @@ class VoiceBase
             
             self.uploadNotAccepted(json)
             
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
@@ -1949,11 +1961,11 @@ class VoiceBase
             
             if errorOccured {
                 // ???
-                Thread.onMainThread {
+                Thread.onMain {
                     onError?(json)
                 }
             } else {
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(json)
                 }
             }
@@ -2381,7 +2393,7 @@ class VoiceBase
                     Alerts.shared.alert(title:title, message:message)
                     
                     if self.resultsTimer == nil {
-                        Thread.onMainThread {
+                        Thread.onMain {
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                         }
                     } else {
@@ -2515,7 +2527,7 @@ class VoiceBase
                                                                     }
                                                                     
                                                                     if self.resultsTimer == nil {
-                                                                        Thread.onMainThread {
+                                                                        Thread.onMain {
                                                                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                                         }
                                                                     } else {
@@ -2547,7 +2559,7 @@ class VoiceBase
                                                             self.alignmentNotAccepted(json)
                         })
                         
-                        Thread.onMainThread {
+                        Thread.onMain {
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: newUserInfo, repeats: true)
                         }
                     } else {
@@ -2672,7 +2684,7 @@ class VoiceBase
             
             onSuccess?()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -2932,7 +2944,7 @@ class VoiceBase
             if alert, let text = self.mediaItem?.text {
                 Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             } else {
-                Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments is not available.")
+                Alerts.shared.alert(title: "Transcript Segments Not Available",message: "The transcript segments are not available.")
             }
             
             atEnd?()
@@ -3016,11 +3028,11 @@ class VoiceBase
             }
             
             if errorOccured {
-                Thread.onMainThread {
+                Thread.onMain {
                     onError?(json)
                 }
             } else {
-                Thread.onMainThread {
+                Thread.onMain {
                     completion?(json)
                 }
             }
@@ -4716,7 +4728,14 @@ class VoiceBase
                 
                 let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                     self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
-                        Alerts.shared.alert(title:"Auto Edit Completed", message:self?.mediaItem?.text)
+                        var message = String()
+                        
+                        if let text = self?.mediaItem?.text {
+                            message = "for\n\n\(text)"
+                            message += "\n(\(self?.transcriptPurpose ?? ""))"
+                        }
+                        
+                        Alerts.shared.alert(title:"Auto Edit Completed", message:message)
                         self?.transcript = string
                         self?.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
                     })
@@ -5118,7 +5137,7 @@ class VoiceBase
                                                 
                                                 Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                             } else {
-                                                Thread.onMainThread {
+                                                Thread.onMain {
                                                     self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                 }
                                             }
@@ -5204,7 +5223,7 @@ class VoiceBase
             
             navigationController.popoverPresentationController?.delegate = popover
             
-            Thread.onMainThread {
+            Thread.onMain {
                 textPopover.navigationController?.isNavigationBarHidden = false
                 textPopover.navigationItem.title = count // "Edit Text"
             }
@@ -5251,13 +5270,13 @@ class VoiceBase
                 textPopover.onSave?(text)
             self?.transcriptSegments?.store?(self?.transcriptSegmentComponents?.result?.transcriptSegmentsFromTranscriptSegmentComponents)
 
-                Thread.onMainThread {
+                Thread.onMain {
                     popover.tableView.isEditing = false
                     popover.tableView.reloadData()
                     popover.tableView.reloadData()
                 }
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     if popover.tableView.isValid(indexPath) {
                         popover.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.middle, animated: true)
                     }

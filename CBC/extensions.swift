@@ -1022,10 +1022,10 @@ extension Array where Element == String
             
         case Constants.Sort.Frequency:
             let newStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
-                if first.count == second.count {
+                if first.frequency == second.frequency {
                     return first < second
                 } else {
-                    return first.count > second.count
+                    return first.frequency > second.frequency
                 }
             })
             return newStrings
@@ -1041,7 +1041,7 @@ extension Array where Element == String
     var tagsString : String?
     {
         get {
-            return self.isEmpty ? self.joined(separator: Constants.SEPARATOR) : nil
+            return !self.isEmpty ? self.joined(separator: Constants.SEPARATOR) : nil
         }
     }
     
@@ -3191,7 +3191,7 @@ extension UIViewController
         Alerts.shared.queue.async {
             Alerts.shared.semaphore.wait()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 if let barButtonItem = self.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
@@ -3235,7 +3235,7 @@ extension UIViewController
         Alerts.shared.queue.async {
             Alerts.shared.semaphore.wait()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 if let barButtonItem = self.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
@@ -3301,7 +3301,7 @@ extension UIViewController
         Alerts.shared.queue.async {
             Alerts.shared.semaphore.wait()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 if let barButtonItem = self.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
@@ -3364,7 +3364,7 @@ extension UIViewController
         Alerts.shared.queue.async {
             Alerts.shared.semaphore.wait()
             
-            Thread.onMainThread {
+            Thread.onMain {
                 if let barButtonItem = self.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
@@ -3551,7 +3551,7 @@ extension UIViewController
         }
         
         if dismiss {
-            Thread.onMainThread {
+            Thread.onMain {
                 self.dismiss(animated: true, completion: nil)
             }
         }
@@ -3684,7 +3684,7 @@ extension UIViewController
         
         self.startAnimating()
         
-        Thread.onMainThread {
+        Thread.onMain {
             // Brute force disable
             if disableEnable {
                 self.barButtonItems(isEnabled: false)
@@ -3697,7 +3697,7 @@ extension UIViewController
                     }
                 })
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
@@ -3718,7 +3718,7 @@ extension UIViewController
      */
     func barButtonItems(isEnabled:Bool)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if let buttons = self.navigationItem.rightBarButtonItems {
                 for button in buttons {
                     button.isEnabled = isEnabled
@@ -3750,7 +3750,7 @@ extension UIViewController
         
         self.startAnimating()
         
-        Thread.onMainThread { [weak self] in
+        Thread.onMain { [weak self] in
             // Brute force disable
             if disableEnable {
                 self?.barButtonItems(isEnabled: false)
@@ -3760,7 +3760,7 @@ extension UIViewController
             DispatchQueue.global(qos: .background).async { [weak self] in
                 let data = work?()
                 
-                Thread.onMainThread {
+                Thread.onMain {
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
@@ -4123,19 +4123,39 @@ extension String
      */
     var frequency : Int?
     {
-        guard let startRange = self.range(of: " (") else {
+//        guard let startRange = self.range(of: " (") else {
+//            return nil
+//        }
+//
+//        guard let endRange = self.range(of: ")", options: .caseInsensitive, range: Range<String.Index>(uncheckedBounds: (lower: startRange.lowerBound, upper: self.endIndex)), locale: nil) else {
+//            return nil
+//        }
+//
+//        guard endRange.upperBound == self.endIndex else {
+//            return nil
+//        }
+//
+//        let frequency = String(self[startRange.upperBound..<endRange.lowerBound])
+//
+//        return Int(frequency)
+        
+        // OR
+
+        guard !self.isEmpty else {
             return nil
         }
-        
-        let remainder = String(self[startRange.upperBound...])
-        
-        guard let endRange = remainder.range(of: ")"), endRange.upperBound == self.endIndex else {
+
+        let strings = self.components(separatedBy: Constants.SINGLE_SPACE)
+
+        guard strings.count > 1 else {
             return nil
         }
-        
-        let count = String(remainder[..<endRange.lowerBound])
-        
-        return Int(count)
+
+        guard let frequency = strings.last?.trimmingCharacters(in: CharacterSet(charactersIn: "()")) else {
+            return nil
+        }
+
+        return Int(frequency)
     }
     
     /**
@@ -4241,7 +4261,7 @@ extension UIButton
 
 extension Thread
 {
-    static func onMainThread(block:(()->(Void))?)
+    static func onMain(block:(()->(Void))?)
     {
         if Thread.isMainThread {
             block?()
@@ -4251,8 +4271,8 @@ extension Thread
             }
         }
     }
-
-    static func onMainThreadSync(block:(()->(Void))?)
+    
+    static func onMainSync(block:(()->(Void))?)
     {
         if Thread.isMainThread {
             block?()
@@ -4406,7 +4426,7 @@ extension UIViewController
      */
     func stopAnimating()
     {
-        Thread.onMainThread {
+        Thread.onMain {
             self.loadingContainer?.removeFromSuperview()
         }
     }
@@ -4416,7 +4436,7 @@ extension UIViewController
      */
     func startAnimating(allowTouches:Bool = false)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             if allowTouches {
                 self.loadingContainer?.backgroundColor = UIColor.clear
                 self.loadingContainer?.tag = 102
@@ -4466,7 +4486,7 @@ extension UITextView
      */
     func scrollRangeToVisible(_ range:Range<String.Index>)
     {
-        Thread.onMainThread {
+        Thread.onMain {
             let nsRange = NSRange(range, in: self.attributedText.string)
             self.scrollRangeToVisible(nsRange)
         }
@@ -4823,22 +4843,22 @@ extension String
      */
     var log : String?
     {
-        guard !self.isEmpty else {
-            return nil
-        }
+//        guard !self.isEmpty else {
+//            return nil
+//        }
+//
+//        let strings = self.components(separatedBy: Constants.SINGLE_SPACE)
+//
+//        guard strings.count > 1 else {
+//            return nil
+//        }
+//
+//        guard let string = strings.last?.trimmingCharacters(in: CharacterSet(charactersIn: "()")) else {
+//            return nil
+//        }
         
-        let strings = self.components(separatedBy: Constants.SINGLE_SPACE)
-        
-        guard strings.count > 1 else {
-            return nil
-        }
-        
-        guard let string = strings.last?.trimmingCharacters(in: CharacterSet(charactersIn: "()")) else {
-            return nil
-        }
-        
-        if let number = Double(string) {
-            let value = Int(log10(number))
+        if let frequency = self.frequency { // Double(string)
+            let value = Int(log10(Double(frequency)))
             return pow(10,value+1).description
         }
         

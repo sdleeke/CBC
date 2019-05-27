@@ -177,7 +177,7 @@ extension CloudViewController : PopoverTableViewControllerDelegate
                 index += 1
             }
             
-            Thread.onMainThread {
+            Thread.onMain {
                 self.cancelAndRelayoutCloudWords()
             }
 
@@ -198,7 +198,7 @@ extension CloudViewController : CloudLayoutOperationDelegate
     {
         self.cloudWords = cloudWords
         
-        Thread.onMainThread { () -> (Void) in
+        Thread.onMain { () -> (Void) in
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
         }
@@ -215,7 +215,7 @@ extension CloudViewController : CloudLayoutOperationDelegate
         }
 
         labelQueue.addOperation {
-//            Thread.onMainThread {
+//            Thread.onMain {
                 let wordLabel = UILabel()
                 
                 wordLabel.frame = CGRect.zero
@@ -498,13 +498,13 @@ class CloudViewController : CBCViewController
                 for word in words {
                     if let cloudWord = cloudDict[word.0.uppercased()] {
 //                        print(cloudWord.wordText)
-                        Thread.onMainThread {
+                        Thread.onMain {
                             if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect {
                                 let layer = self.insertBoundingRect(boundingRect: overallGlyphBoundingRect)
                                 // So UI operates as expected
                                 DispatchQueue.global(qos: .background).async {
                                     Thread.sleep(forTimeInterval: 0.1)
-                                    Thread.onMainThread {
+                                    Thread.onMain {
                                         layer.removeFromSuperlayer()
                                     }
                                 }
@@ -813,7 +813,7 @@ class CloudViewController : CBCViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -835,7 +835,7 @@ class CloudViewController : CBCViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
 
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -868,7 +868,7 @@ class CloudViewController : CBCViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -890,7 +890,7 @@ class CloudViewController : CBCViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.unfilteredSection.strings)
 
-                            Thread.onMainThread {
+                            Thread.onMain {
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -938,7 +938,7 @@ class CloudViewController : CBCViewController
                     wordsTableViewController.search = false
                     
                     wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
-                        Thread.onMainThread {
+                        Thread.onMain {
                             self?.wordsTableViewController.segmentedControl?.isEnabled = (strings != nil) && (sorting == false)
                         }
                     }

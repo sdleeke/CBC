@@ -40,6 +40,7 @@ class Display
             Globals.shared.grouping = GROUPING.YEAR
         }
 
+        // Why is the section being recreated?
         active?.section = MLGSSection(active)
         
         mediaItems = active?.section?.mediaItems
