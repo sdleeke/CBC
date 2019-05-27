@@ -66,24 +66,24 @@ extension MediaViewController : UIActivityItemSource
     }
 }
 
-extension MediaViewController : MFMessageComposeViewControllerDelegate
-{
-    // MARK: MFMessageComposeViewControllerDelegate Method
-    
-    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension MediaViewController : MFMessageComposeViewControllerDelegate
+//{
+//    // MARK: MFMessageComposeViewControllerDelegate Method
+//
+//    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
-extension MediaViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate Method
-    
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
-    {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension MediaViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate Method
+//
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+//    {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
 extension MediaViewController : WKNavigationDelegate
 {
@@ -1732,22 +1732,22 @@ class MediaViewController : MediaItemsViewController
               completion:nil)
     }
     
-    func message(_ mediaItem:MediaItem?)
-    {
-        guard MFMessageComposeViewController.canSendText() else {
-            self.showSendMailErrorAlert()
-            return
-        }
-
-        let messageComposeViewController = MFMessageComposeViewController()
-        messageComposeViewController.messageComposeDelegate = self // Extremely important to set the --messageComposeDelegate-- property, NOT the --delegate-- property
-        
-        messageComposeViewController.recipients = nil
-        messageComposeViewController.subject = "Recommendation"
-        messageComposeViewController.body = mediaItem?.contents
-
-        Alerts.shared.blockPresent(presenting: self, presented: messageComposeViewController, animated: true, release:{true})
-    }
+//    func message(_ mediaItem:MediaItem?)
+//    {
+//        guard MFMessageComposeViewController.canSendText() else {
+//            self.showSendMailErrorAlert()
+//            return
+//        }
+//
+//        let messageComposeViewController = MFMessageComposeViewController()
+//        messageComposeViewController.messageComposeDelegate = self // Extremely important to set the --messageComposeDelegate-- property, NOT the --delegate-- property
+//        
+//        messageComposeViewController.recipients = nil
+//        messageComposeViewController.subject = "Recommendation"
+//        messageComposeViewController.body = mediaItem?.contents
+//
+//        Alerts.shared.blockPresent(presenting: self, presented: messageComposeViewController, animated: true, release:{true})
+//    }
     
     fileprivate func openMediaItemScripture(_ mediaItem:MediaItem?)
     {

@@ -330,14 +330,14 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
     }
 }
 
-extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate Method
-    
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate Method
+//    
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
 /**
  For displaying ScriptureIndex from an MLGS

@@ -634,13 +634,13 @@ extension WebViewController : PopoverTableViewControllerDelegate
     }
 }
 
-extension WebViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension WebViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate Method
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
 extension WebViewController : WKNavigationDelegate
 {

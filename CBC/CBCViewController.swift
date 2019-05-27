@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import MessageUI
 
 /**
  
@@ -47,6 +48,17 @@ extension CBCViewController : UIPopoverPresentationControllerDelegate
     func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
     {
         return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
+}
+
+extension CBCViewController : MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+    {
+        Thread.onMain {
+            controller.dismiss(animated: true, completion: nil)
+        }
     }
 }
 

@@ -32,15 +32,15 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
     }
 }
 
-extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate Method
-
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
-    {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate Method
+//
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+//    {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
 class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
 {

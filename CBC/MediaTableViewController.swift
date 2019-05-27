@@ -318,14 +318,14 @@ extension MediaTableViewController : UISearchBarDelegate
     }
 }
 
-extension MediaTableViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate
-    
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-}
+//extension MediaTableViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate
+//    
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+//        controller.dismiss(animated: true, completion: nil)
+//    }
+//}
 
 extension MediaTableViewController : URLSessionDownloadDelegate
 {

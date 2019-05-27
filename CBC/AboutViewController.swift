@@ -10,16 +10,16 @@ import UIKit
 import MapKit
 import MessageUI
 
-extension AboutViewController : MFMailComposeViewControllerDelegate
-{
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
-    {
-        Thread.onMain {
-            controller.dismiss(animated: true, completion: nil)
-        }
-    }
-}
+//extension AboutViewController : MFMailComposeViewControllerDelegate
+//{
+//    // MARK: MFMailComposeViewControllerDelegate Method
+//    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+//    {
+//        Thread.onMain {
+//            controller.dismiss(animated: true, completion: nil)
+//        }
+//    }
+//}
 
 extension AboutViewController : PopoverTableViewControllerDelegate
 {
