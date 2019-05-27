@@ -224,7 +224,8 @@ class ScriptureIndex
             return
         }
         
-        let op = CancelableOperation { [weak self] (test:(() -> (Bool))?) in
+//        let op = CancelableOperation { [weak self] (test:(() -> (Bool))?) in
+        operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             if let mediaList = self?.mediaListGroupSort?.mediaList?.list {
                 self?.callBacks.execute("start")
 
@@ -356,7 +357,7 @@ class ScriptureIndex
             self?.callBacks.execute("complete")
         }
         
-        operationQueue.addOperation(op)
+//        operationQueue.addOperation(op)
     }
 
     func html(includeURLs:Bool, includeColumns:Bool, test:(()->(Bool))? = nil) -> String?

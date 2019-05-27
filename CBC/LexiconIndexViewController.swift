@@ -1200,7 +1200,8 @@ class LexiconIndexViewController : MediaItemsViewController
             return
         }
         
-        let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
+//        let op = CancelableOperation { [weak self] (test:(() -> Bool)?) in
+        operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             Thread.onMainSync {
                 self?.wordsTableViewController.segmentedControl.isEnabled = false
 //                self.wordsTableViewController.tableView.isHidden = true // Turned out getting rid of this was the big innovation, NOT insertions!
@@ -1239,7 +1240,7 @@ class LexiconIndexViewController : MediaItemsViewController
                 self?.wordsTableViewController.segmentedControl.isEnabled = true
             }
         }
-        operationQueue.addOperation(op)
+//        operationQueue.addOperation(op)
     }
     
     @objc func completed()

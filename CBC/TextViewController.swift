@@ -32,15 +32,16 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
         
-        let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
+//        let searchOp = CancelableOperation { (test:(()->Bool)?) in
+        searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+            let text = self?.changedText?.markedBySearch(searchText: self?.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMain {
-                self.textView.attributedText = text
+                self?.textView.attributedText = text
             }
         }
         
-        searchQueue.addOperation(searchOp)
+//        searchQueue.addOperation(searchOp)
         
         return true
     }
@@ -107,27 +108,28 @@ extension TextViewController: UISearchBarDelegate
         
         searchQueue.cancelAllOperations()
 
-        let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = self.changedText?.markedBySearch(searchText: self.searchText, wholeWordsOnly: false, test: test)
+//        let searchOp = CancelableOperation { (test:(()->Bool)?) in
+        searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+            let text = self?.changedText?.markedBySearch(searchText: self?.searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMain {
-                self.textView.attributedText = text
+                self?.textView.attributedText = text
                 
-                if let lastRange = self.lastRange {
-                    let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: self.textView.attributedText.string.endIndex))
+                if let lastRange = self?.lastRange, let endIndex = self?.textView.attributedText.string.endIndex {
+                    let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: endIndex))
                     
-                    if let searchText = self.self.searchText,let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
-                        self.textView.scrollRangeToVisible(range)
-                        self.lastRange = range
+                    if let searchText = self?.searchText,let range = self?.textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+                        self?.textView.scrollRangeToVisible(range)
+                        self?.lastRange = range
                     } else {
-                        self.lastRange = nil
+                        self?.lastRange = nil
                     }
                 }
                 
-                if self.lastRange == nil {
-                    if let searchText = self.searchText,let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                        self.textView.scrollRangeToVisible(range)
-                        self.lastRange = range
+                if self?.lastRange == nil {
+                    if let searchText = self?.searchText,let range = self?.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+                        self?.textView.scrollRangeToVisible(range)
+                        self?.lastRange = range
                     } else {
                         Alerts.shared.alert(title: "Not Found", message: "")
                     }
@@ -135,7 +137,7 @@ extension TextViewController: UISearchBarDelegate
             }
         }
         
-        searchQueue.addOperation(searchOp)
+//        searchQueue.addOperation(searchOp)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
@@ -1293,16 +1295,17 @@ class TextViewController : CBCViewController
         
 //        let attributedText = self.textView.attributedText
         
-        let searchOp = CancelableOperation { (test:(()->Bool)?) in
-            let text = self.changedText?.markedBySearch(searchText: searchText, wholeWordsOnly: false, test: test)
+//        let searchOp = CancelableOperation { (test:(()->Bool)?) in
+        searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+            let text = self?.changedText?.markedBySearch(searchText: searchText, wholeWordsOnly: false, test: test)
             
             Thread.onMain {
-                self.textView.attributedText = text
+                self?.textView.attributedText = text
                 
                 if !searchText.isEmpty {
-                    if let range = self.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
-                        self.textView.scrollRangeToVisible(range)
-                        self.lastRange = range
+                    if let range = self?.textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+                        self?.textView.scrollRangeToVisible(range)
+                        self?.lastRange = range
                     } else {
                         Alerts.shared.alert(title: "Not Found", message: "")
                     }
@@ -1310,7 +1313,7 @@ class TextViewController : CBCViewController
             }
         }
         
-        searchQueue.addOperation(searchOp)
+//        searchQueue.addOperation(searchOp)
     }
     
     @objc func autoEdit()

@@ -192,7 +192,8 @@ class StringTree
             operationQueue.cancelAllOperations()
             operationQueue.waitUntilAllOperationsAreFinished()
 
-            let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
+//            let op = CancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
+            operationQueue.addCancelableOperation(tag: "StringTree") { [weak self] (test:(() -> Bool)?) in
                 self?.callBacks.execute("start")
 
                 // Walking the tree over and over again is slower than recreating it each time?
@@ -235,7 +236,7 @@ class StringTree
                 self?.callBacks.execute("complete")
             }
             
-            operationQueue.addOperation(op)
+//            operationQueue.addOperation(op)
         } else {
             // This blocks
             self.root = StringNode(nil)

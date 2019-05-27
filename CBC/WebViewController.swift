@@ -443,6 +443,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Word_Index:
             self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    // By using cache this only looks at mismatches if they are loaded
                     if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {
@@ -467,6 +468,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    // By using cache this only looks at mismatches if they are loaded
                     if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {
@@ -489,6 +491,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
+                    // By using cache this only looks at mismatches if they are loaded
                     if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {

@@ -318,7 +318,8 @@ class Lexicon : NSObject // Why an NSObject?
             return
         }
         
-        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
+//        let op = CancelableOperation { [weak self] (test:(()->Bool)?) in
+        operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             if let test = test, test() {
                 return
             }
@@ -420,8 +421,7 @@ class Lexicon : NSObject // Why an NSObject?
 
             self?.callBacks.execute("complete")
         }
-
-        operationQueue.addOperation(operation)
+//        operationQueue.addOperation(op)
     }
     
     func load()

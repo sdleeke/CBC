@@ -4301,7 +4301,7 @@ class VoiceBase
 
 //                    operationQueue.addOperation(op)
                     
-                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                    operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                   return
@@ -4325,7 +4325,7 @@ class VoiceBase
                     
 //                    operationQueue.addOperation(op)
                     
-                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                    operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                   return
@@ -4353,7 +4353,7 @@ class VoiceBase
                     
 //                    operationQueue.addOperation(op)
 
-                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                    operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     return
@@ -4377,7 +4377,7 @@ class VoiceBase
                     
 //                    operationQueue.addOperation(op)
 
-                    operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
+                    operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
                     return
@@ -4414,16 +4414,20 @@ class VoiceBase
             }
         }
         
-        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-            // Why is completion called here?
-            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
-        }
+//        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//            // Why is completion called here?
+//            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
+//        }
         
         if let test = test, test() {
             return
         }
         
-        operationQueue.addOperation(op)
+//        operationQueue.addOperation(op)
+
+        operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
+            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+        }
     }
     
     struct Change
@@ -4475,7 +4479,19 @@ class VoiceBase
             // what about other surrounding characters besides newlines and whitespaces, and periods if following?
             // what about other token delimiters?
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
-                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                
+                if let test = test, test() {
+                    return
+                }
+                
+                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+
+//                print("Changes left:",changes.count, percentComplete ?? "", "%")
+
+//                operationQueue.addOperation(op)
+
+                operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     text.replaceSubrange(range, with: newText)
                     
                     let before = String(text[..<range.lowerBound])
@@ -4487,6 +4503,8 @@ class VoiceBase
                         // ERROR
                     }
                 }
+            } else {
+//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
                 
                 if let test = test, test() {
                     return
@@ -4495,29 +4513,16 @@ class VoiceBase
                 percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
 //                print("Changes left:",changes.count, percentComplete ?? "", "%")
+                
+//                operationQueue.addOperation(op)
 
-                operationQueue.addOperation(op)
-            } else {
-                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                 }
-                
-                if let test = test, test() {
-                    return
-                }
-                
-                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
-
-//                print("Changes left:",changes.count, percentComplete ?? "", "%")
-                
-                operationQueue.addOperation(op)
             }
         } else {
-            let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                changes.removeFirst()
-                self?.changeText(text:text, startingRange:nil, changes:changes, test:test, completion:completion)
-            }
+//            let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
             
             if let test = test, test() {
                 return
@@ -4527,7 +4532,12 @@ class VoiceBase
 
 //            print("Changes left:",changes.count, percentComplete ?? "", "%")
             
-            operationQueue.addOperation(op)
+//            operationQueue.addOperation(op)
+
+            operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
+                changes.removeFirst()
+                self?.changeText(text:text, startingRange:nil, changes:changes, test:test, completion:completion)
+            }
         }
     }
     
@@ -4682,7 +4692,8 @@ class VoiceBase
             autoEditUnderway()
         }
         
-        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+        operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
             self?.mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
 
             func textChanges()
@@ -4746,7 +4757,15 @@ class VoiceBase
                 self?.totalChanges = changes.count
                 print("Total changes:",changes.count)
                 
-                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
+                
+                if let test = test, test() {
+                    return
+                }
+                
+//                self?.operationQueue.addOperation(op)
+                
+                self?.operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
                         var message = String()
                         
@@ -4760,12 +4779,6 @@ class VoiceBase
                         self?.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
                     })
                 }
-                
-                if let test = test, test() {
-                    return
-                }
-                
-                self?.operationQueue.addOperation(op)
             }
             
             if  let transcriptString = self?.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
@@ -4816,7 +4829,7 @@ class VoiceBase
             }
         }
         
-        self.operationQueue.addOperation(op)
+//        self.operationQueue.addOperation(op)
     }
     
     func alertActions(viewController:UIViewController) -> AlertAction?

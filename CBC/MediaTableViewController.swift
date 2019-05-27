@@ -1027,7 +1027,8 @@ class MediaTableViewController : MediaItemsViewController
         
         operationQueue.cancelAllOperations()
         
-        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
+//        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
+        operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             self?.setupSearchBar()
 
             self?.setupBarButtons()
@@ -1190,7 +1191,7 @@ class MediaTableViewController : MediaItemsViewController
             }
         }
         
-        operationQueue.addOperation(operation)
+//        operationQueue.addOperation(operation)
     }
     
     func setupCategoryButton()
@@ -1862,7 +1863,8 @@ class MediaTableViewController : MediaItemsViewController
         
         operationQueue.cancelAllOperations()
         
-        let op = CancelableOperation { [weak self] (test:(()->Bool)?) in
+//        let op = CancelableOperation { [weak self] (test:(()->Bool)?) in
+        operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             Thread.onMainSync {
                 _ = self?.loadingButton
             }
@@ -2006,7 +2008,7 @@ class MediaTableViewController : MediaItemsViewController
             
             abort = abort || shouldAbort()
         }
-        operationQueue.addOperation(op)
+//        operationQueue.addOperation(op)
 
         self.setupBarButtons()
     }

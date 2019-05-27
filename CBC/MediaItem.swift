@@ -1243,6 +1243,8 @@ class MediaItem : NSObject
         }
     }
 
+    // Runs a comparison between token frequency as parsed from the html transcript and
+    // the frequency as found when trying to mark the same token in the html.
     lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = { [weak self] in
         guard let mediaCode = mediaCode else {
             return nil

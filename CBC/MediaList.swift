@@ -814,7 +814,7 @@ class MediaList // : Sequence
         guard let list = list else {
             return
         }
-        
+
         list.forEach { (mediaItem) in
             mediaItem.loadTokenCountMarkCountMismatches()
         }
