@@ -151,17 +151,17 @@ class MediaList // : Sequence
         }
     }
     
-    func alignAllAudio(viewController:UIViewController)
+    func alignAllAudioTranscripts(viewController:UIViewController)
     {
-        alignAll(viewController:viewController,purpose:Purpose.audio)
+        alignAllTranscripts(viewController:viewController,purpose:Purpose.audio)
     }
     
-    func alignAllVideo(viewController:UIViewController)
+    func alignAllVideoTranscripts(viewController:UIViewController)
     {
-        alignAll(viewController:viewController,purpose:Purpose.video)
+        alignAllTranscripts(viewController:viewController,purpose:Purpose.video)
     }
     
-    func alignAll(viewController:UIViewController,purpose:String)
+    func alignAllTranscripts(viewController:UIViewController,purpose:String)
     {
         guard let mediaItems = list else {
             return

@@ -2476,10 +2476,9 @@ class MediaTableViewController : MediaItemsViewController
         }
     }
     
-    // MARK: PopoverTableViewControllerDelegate
-    override func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    func voiceBaseMediaActions(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath) -> [AlertAction]?
     {
-        var actions = super.rowActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [AlertAction]()
+        var actions = [AlertAction]()
         
         var searchIndex:StringIndex?
         
@@ -2659,7 +2658,85 @@ class MediaTableViewController : MediaItemsViewController
             }
         }
         
-        return actions
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func searchHistoryActions(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath) -> [AlertAction]?
+    {
+        var actions = [AlertAction]()
+        
+        actions.append(AlertAction(title: "Delete", style: .destructive) { [weak self] in
+            // Confirm deletion and then delete
+        })
+
+        return actions.count > 0 ? actions : nil
+    }
+    
+    // MARK: PopoverTableViewControllerDelegate
+    override func tableViewRowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        var actions = super.tableViewRowActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [UITableViewRowAction]()
+        
+        guard let purpose = popover.purpose else {
+            return actions.count > 0 ? actions : nil
+        }
+        
+        switch purpose {
+        case .showingVoiceBaseMediaItems:
+
+            break
+            
+        case .selectingSearch:
+            actions.append(UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction:UITableViewRowAction, indexPath:IndexPath) in
+                if let search = popover.section.strings?[indexPath.row] {
+                    if let keys = Globals.shared.media.search.searches?.keys() {
+                        for key in keys {
+                            if key.searchText == search {
+                                Globals.shared.media.search.searches?[key] = nil
+                                break
+                            }
+                        }
+                    }
+                    popover.section.strings?.remove(at: indexPath.row)
+                    popover.setPreferredContentSize()
+                    popover.tableView.reloadData()
+                }
+            })
+            break
+            
+        default:
+            break
+        }
+        
+        return actions.count > 0 ? actions : nil
+    }
+    
+    override func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    {
+        var actions = super.rowAlertActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [AlertAction]()
+        
+        guard let purpose = popover.purpose else {
+            return actions.count > 0 ? actions : nil
+        }
+        
+        switch purpose {
+        case .showingVoiceBaseMediaItems:
+            if let vbActions = voiceBaseMediaActions(popover:popover, tableView:tableView, indexPath:indexPath) {
+                actions.append(contentsOf: vbActions)
+            }
+            break
+            
+        case .selectingSearch: // Doesn't work because we're trying to alert w/ a popover showing.
+//            if let searchHistoryActions = searchHistoryActions(popover:popover, tableView:tableView, indexPath:indexPath) {
+//                actions.append(contentsOf: searchHistoryActions)
+//            }
+            break
+            
+        default:
+            break
+        }
+        
+        return actions.count > 0 ? actions : nil
     }
     
     func detailDisclosure(tableView:UITableView,indexPath:IndexPath) -> Bool
@@ -3116,7 +3193,7 @@ class MediaTableViewController : MediaItemsViewController
                             })
                         }
                     }
-                    },onError: nil)
+                },onError: nil)
             }
             break
             

@@ -25,6 +25,8 @@ protocol PopoverTableViewControllerDelegate : class
 {
     var popover : [String:PopoverTableViewController]? { get set }
 
+    func tableViewRowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+    
     /**
 
      Provides the alert actions for a given row in a PopoverTableViewController's tableview of strings.
@@ -38,7 +40,7 @@ protocol PopoverTableViewControllerDelegate : class
 
     */
     
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
 
     /**
      Handles selections from a PopoverTableViewController's tableview of strings.  The name popover is historical and does not imply
@@ -416,7 +418,12 @@ extension PopoverTableViewController: UISearchBarDelegate
 
 extension PopoverTableViewController : PopoverTableViewControllerDelegate
 {
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    func tableViewRowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return nil
+    }
+    
+    func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
         return nil
     }
@@ -2019,26 +2026,34 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         // Otherwise
-        return delegate?.rowActions(popover: self,tableView: tableView,indexPath: indexPath) != nil
+        guard let tableViewRowActions = delegate?.tableViewRowActions(popover: self, tableView: tableView, indexPath: indexPath) else {
+            return delegate?.rowAlertActions(popover: self,tableView: tableView,indexPath: indexPath) != nil
+        }
+        
+        return tableViewRowActions.count > 0
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        var alertActions : [AlertAction]?
-        
-        if let transcript = self.transcript {
-            alertActions = transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
-        } else {
-            alertActions = delegate?.rowActions(popover: self,tableView: tableView,indexPath: indexPath)
+        guard let tableViewRowActions = delegate?.tableViewRowActions(popover: self, tableView: tableView, indexPath: indexPath) else {
+            var alertActions : [AlertAction]?
+            
+            if let transcript = self.transcript {
+                alertActions = transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
+            } else {
+                alertActions = delegate?.rowAlertActions(popover: self,tableView: tableView,indexPath: indexPath)
+            }
+            
+            let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] (rowAction, indexPath) in
+                alertActions?.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
+                Alerts.shared.alert(title: Constants.Strings.Actions, message: self?.section.string(from: indexPath), actions: alertActions)
+            }
+            action.backgroundColor = UIColor.controlBlue()
+            
+            return alertActions != nil ? [action] : nil
         }
         
-        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { [weak self] (rowAction, indexPath) in
-            alertActions?.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
-            Alerts.shared.alert(title: Constants.Strings.Actions, message: self?.section.string(from: indexPath), actions: alertActions)
-        }
-        action.backgroundColor = UIColor.controlBlue()
-        
-        return alertActions != nil ? [action] : nil
+        return tableViewRowActions.count > 0 ? tableViewRowActions : nil
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)

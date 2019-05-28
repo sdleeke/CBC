@@ -1974,11 +1974,11 @@ class MediaViewController : MediaItemsViewController
         }
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
-            actionMenu.append(Constants.Strings.Align_All_Audio)
+            actionMenu.append(Constants.Strings.Align_All_Audio_Transcripts)
         }
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
-            actionMenu.append(Constants.Strings.Align_All_Video)
+            actionMenu.append(Constants.Strings.Align_All_Video_Transcripts)
         }
 
         return actionMenu.count > 0 ? actionMenu : nil
@@ -5194,9 +5194,9 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
-    override func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    override func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
-        return super.rowActions(popover: popover, tableView: tableView, indexPath: indexPath)
+        return super.rowAlertActions(popover: popover, tableView: tableView, indexPath: indexPath)
     }
     
     func actionMenu(action:String?,mediaItem:MediaItem?)
@@ -5380,12 +5380,12 @@ class MediaViewController : MediaItemsViewController
             break
             
             
-        case Constants.Strings.Align_All_Audio:
-            mediaItems?.alignAllAudio(viewController:self)
+        case Constants.Strings.Align_All_Audio_Transcripts:
+            mediaItems?.alignAllAudioTranscripts(viewController:self)
             break
             
-        case Constants.Strings.Align_All_Video:
-            mediaItems?.alignAllVideo(viewController: self)
+        case Constants.Strings.Align_All_Video_Transcripts:
+            mediaItems?.alignAllVideoTranscripts(viewController: self)
             break
             
             

@@ -865,8 +865,8 @@ enum Constants {
         
         static let Align_All = Align + SINGLE_SPACE + All
         
-        static let Align_All_Audio = Align_All + SINGLE_SPACE + Audio
-        static let Align_All_Video = Align_All + SINGLE_SPACE + Video
+        static let Align_All_Audio_Transcripts = Align_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
+        static let Align_All_Video_Transcripts = Align_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
         
         static let Cancel_All = Cancel + SINGLE_SPACE + All
         static let Delete_All = Delete + SINGLE_SPACE + All

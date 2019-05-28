@@ -29,8 +29,13 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         return [String:PopoverTableViewController]()
     }()
     
-    // Does nothing
-    func rowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [AlertAction]?
+    // Do nothing
+    func tableViewRowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return nil
+    }
+    
+    func rowAlertActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [AlertAction]?
     {
         return nil
     }
