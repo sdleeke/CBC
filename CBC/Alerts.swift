@@ -98,7 +98,7 @@ class Alerts
     init()
     {
         Thread.onMain {
-            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: self, selector: #selector(self.viewer), userInfo: nil, repeats: true)
+            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.viewer), userInfo: nil, repeats: true)
 //            _ = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { (Timer) in
 //                Alerts.shared.alert(title: "Testing")
 //            })

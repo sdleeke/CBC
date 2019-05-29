@@ -381,13 +381,13 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
-                Thread.onMain {
-                    onError?(json)
-                }
+                onError?(json)
+//                Thread.onMain {
+//                }
             } else {
-                Thread.onMain {
-                    completion?(json)
-                }
+                completion?(json)
+//                Thread.onMain {
+//                }
             }
         })
         
@@ -513,16 +513,16 @@ extension VoiceBase // Class Methods
                         Alerts.shared.alert(title:"Media NOT Removed From VoiceBase", message:"Media ID: " + mediaID)
                     }
                 }
-                Thread.onMain {
-                    onError?(json)
-                }
+                onError?(json)
+//                Thread.onMain {
+//                }
             } else {
                 if alert {
                     Alerts.shared.alert(title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
                 }
-                Thread.onMain {
-                    completion?(json)
-                }
+                completion?(json)
+//                Thread.onMain {
+//                }
             }
         })
         
@@ -1601,13 +1601,13 @@ class VoiceBase
             }
 
             if errorOccured {
-                Thread.onMain {
-                    onError?(json)
-                }
+                onError?(json)
+//                Thread.onMain {
+//                }
             } else {
-                Thread.onMain {
-                    completion?(json)
-                }
+                completion?(json)
+//                Thread.onMain {
+//                }
             }
         })
         
@@ -1961,13 +1961,13 @@ class VoiceBase
             
             if errorOccured {
                 // ???
-                Thread.onMain {
-                    onError?(json)
-                }
+                onError?(json)
+//                Thread.onMain {
+//                }
             } else {
-                Thread.onMain {
-                    completion?(json)
-                }
+                completion?(json)
+//                Thread.onMain {
+//                }
             }
         })
         
@@ -3028,13 +3028,13 @@ class VoiceBase
             }
             
             if errorOccured {
-                Thread.onMain {
-                    onError?(json)
-                }
+                onError?(json)
+//                Thread.onMain {
+//                }
             } else {
-                Thread.onMain {
-                    completion?(json)
-                }
+                completion?(json)
+//                Thread.onMain {
+//                }
             }
         })
         

@@ -45,7 +45,7 @@ class SpeakerNotesParagraph
     lazy var words : Fetch<[String:Int]>? = { [weak self] in
         let fetch = Fetch<[String:Int]>(name:nil)
         
-        fetch.fetch = {
+        fetch.fetch = { [weak fetch] in
             guard let mediaItems = self?.list?.filter({ (mediaItem) -> Bool in
                 if !mediaItem.hasNotesText {
                     return false
@@ -63,6 +63,9 @@ class SpeakerNotesParagraph
             var allNotesParagraphWords = [String:Int]()
             
             for mediaItem in mediaItems {
+                if fetch?.interrupt?() == true {
+                    break
+                }
                 if let notesParagraphWords = mediaItem.notesParagraphWords?.result {
                     // notesParagraphWords.count is the number of paragraphs.
                     // So we can get the distribution of the number of paragraphs
@@ -73,6 +76,10 @@ class SpeakerNotesParagraph
                 }
             }
             
+            if fetch?.interrupt?() == true {
+                return nil
+            }
+
             return allNotesParagraphWords.count > 0 ? allNotesParagraphWords : nil
         }
         
@@ -104,7 +111,7 @@ class SpeakerNotesParagraph
     lazy var lengths : Fetch<[String:[Int]]>? = { [weak self] in
         let fetch = Fetch<[String:[Int]]>(name:nil)
         
-        fetch.fetch = {
+        fetch.fetch = { [weak fetch] in
             guard let mediaItems = self?.list?.filter({ (mediaItem) -> Bool in
                 if let name = self?.name {
                     return (mediaItem.speaker == name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
@@ -118,9 +125,16 @@ class SpeakerNotesParagraph
             var allNotesParagraphLengths = [String:[Int]]()
             
             for mediaItem in mediaItems {
+                if fetch?.interrupt?() == true {
+                    break
+                }
                 if let notesParagraphLengths = mediaItem.notesParagraphLengths?.result {
                     allNotesParagraphLengths[mediaItem.mediaCode] = notesParagraphLengths
                 }
+            }
+            
+            if fetch?.interrupt?() == true {
+                return nil
             }
             
             return allNotesParagraphLengths.count > 0 ? allNotesParagraphLengths : nil

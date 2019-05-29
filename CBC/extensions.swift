@@ -5261,97 +5261,97 @@ extension String
             
             return ""
             
-            var stringBefore:String = Constants.EMPTY_STRING
-            var stringAfter:String = Constants.EMPTY_STRING
-            var newString:String = Constants.EMPTY_STRING
-            var foundString:String = Constants.EMPTY_STRING
-            
-            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
-                    break
-                }
-                
-                stringBefore = String(string[..<range.lowerBound])
-                stringAfter = String(string[range.upperBound...])
-                
-                var skip = false
-                
-                if wholeWordsOnly {
-                    if stringBefore == "" {
-                        if  let characterBefore:Character = newString.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    } else {
-                        if  let characterBefore:Character = stringBefore.last,
-                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                            if CharacterSet.letters.contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-                            if searchText.count == 1 {
-                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
-                                    skip = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    if let characterAfter:Character = stringAfter.first {
-                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
-                            skip = true
-                        } else {
-                            
-                        }
-                        
-                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
-                                if stringAfter.endIndex > stringAfter.startIndex {
-                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
-                                    
-                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                                        skip = CharacterSet.letters.contains(unicodeScalar)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if let characterBefore:Character = stringBefore.last {
-                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
-                            skip = true
-                        }
-                    }
-                }
-                
-                foundString = String(string[range.lowerBound...])
-                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                    foundString = String(foundString[..<newRange.upperBound])
-                }
-                
-                if !skip {
-                    markCounter += 1
-                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                }
-                
-                newString += stringBefore + foundString
-                
-                stringBefore += foundString
-                
-                string = stringAfter
-            }
-            
-            newString = newString + stringAfter
-            
-            return newString == Constants.EMPTY_STRING ? string : newString
+//            var stringBefore:String = Constants.EMPTY_STRING
+//            var stringAfter:String = Constants.EMPTY_STRING
+//            var newString:String = Constants.EMPTY_STRING
+//            var foundString:String = Constants.EMPTY_STRING
+//
+//            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+//                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+//                    break
+//                }
+//
+//                stringBefore = String(string[..<range.lowerBound])
+//                stringAfter = String(string[range.upperBound...])
+//
+//                var skip = false
+//
+//                if wholeWordsOnly {
+//                    if stringBefore == "" {
+//                        if  let characterBefore:Character = newString.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        if  let characterBefore:Character = stringBefore.last,
+//                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+//                            if CharacterSet.letters.contains(unicodeScalar) {
+//                                skip = true
+//                            }
+//
+//                            if searchText.count == 1 {
+//                                if CharacterSet(charactersIn: Constants.SINGLE_QUOTES).contains(unicodeScalar) {
+//                                    skip = true
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if let characterAfter:Character = stringAfter.first {
+//                        if  let unicodeScalar = UnicodeScalar(String(characterAfter)), CharacterSet.letters.contains(unicodeScalar) {
+//                            skip = true
+//                        } else {
+//
+//                        }
+//
+//                        if let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+//                            if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(unicodeScalar) {
+//                                if stringAfter.endIndex > stringAfter.startIndex {
+//                                    let nextChar = stringAfter[stringAfter.index(stringAfter.startIndex, offsetBy:1)]
+//
+//                                    if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                                        skip = CharacterSet.letters.contains(unicodeScalar)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if let characterBefore:Character = stringBefore.last {
+//                        if  let unicodeScalar = UnicodeScalar(String(characterBefore)), CharacterSet.letters.contains(unicodeScalar) {
+//                            skip = true
+//                        }
+//                    }
+//                }
+//
+//                foundString = String(string[range.lowerBound...])
+//                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+//                    foundString = String(foundString[..<newRange.upperBound])
+//                }
+//
+//                if !skip {
+//                    markCounter += 1
+//                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+//                }
+//
+//                newString += stringBefore + foundString
+//
+//                stringBefore += foundString
+//
+//                string = stringAfter
+//            }
+//
+//            newString = newString + stringAfter
+//
+//            return newString == Constants.EMPTY_STRING ? string : newString
         }
         
         searchTexts.insert(searchText.lowercased())
@@ -5483,86 +5483,86 @@ extension String
             return nsTaggerTokensAndCounts
         }
         
-        var tokens = [String:Int]()
-        
-        var str = self // .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //.replacingOccurrences(of: "\r\n", with: " ")
-        
-        // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
-    
-        for partPreamble in Constants.PART_PREAMBLES {
-            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
-                str = String(str[..<range.lowerBound])
-            }
-            break
-        }
-        
-        var token = Constants.EMPTY_STRING
-        
-        func processToken()
-        {
-            token = token.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            
-            let excludedWords = [String]() // ["and", "are", "can", "for", "the"]
-            
-            for word in excludedWords {
-                if token.lowercased() == word.lowercased() {
-                    token = Constants.EMPTY_STRING
-                    break
-                }
-            }
-            
-            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
-                token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
-            }
-            
-            if !token.isEmpty {
-                if let count = tokens[token.uppercased()] {
-                    tokens[token.uppercased()] = count + 1
-                } else {
-                    tokens[token.uppercased()] = 1
-                }
-                
-                token = Constants.EMPTY_STRING
-            }
-        }
-        
-        for index in str.indices {
-            //        print(char)
-            
-            var skip = false
-            
-            let char = str[index]
-            
-            if let charUnicodeScalar = UnicodeScalar(String(char)) {
-                if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
-                    if str.endIndex > str.index(index, offsetBy:1) {
-                        let nextChar = str[str.index(index, offsetBy:1)]
-                        
-                        if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                            skip = CharacterSet.letters.contains(unicodeScalar)
-                        }
-                    }
-                }
-            }
-            
-            if let unicodeScalar = UnicodeScalar(String(char)) {
-                if !CharacterSet.letters.contains(unicodeScalar), !skip {
-                    processToken()
-                } else {
-                    token.append(char)
-                }
-            }
-            
-            if Globals.shared.isRefreshing {
-                break
-            }
-        }
-        
-        if !token.isEmpty {
-            processToken()
-        }
-        
-        return tokens.count > 0 ? tokens : nil
+//        var tokens = [String:Int]()
+//
+//        var str = self // .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //.replacingOccurrences(of: "\r\n", with: " ")
+//
+//        // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
+//
+//        for partPreamble in Constants.PART_PREAMBLES {
+//            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
+//                str = String(str[..<range.lowerBound])
+//            }
+//            break
+//        }
+//
+//        var token = Constants.EMPTY_STRING
+//
+//        func processToken()
+//        {
+//            token = token.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//
+//            let excludedWords = [String]() // ["and", "are", "can", "for", "the"]
+//
+//            for word in excludedWords {
+//                if token.lowercased() == word.lowercased() {
+//                    token = Constants.EMPTY_STRING
+//                    break
+//                }
+//            }
+//
+//            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
+//                token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
+//            }
+//
+//            if !token.isEmpty {
+//                if let count = tokens[token.uppercased()] {
+//                    tokens[token.uppercased()] = count + 1
+//                } else {
+//                    tokens[token.uppercased()] = 1
+//                }
+//
+//                token = Constants.EMPTY_STRING
+//            }
+//        }
+//
+//        for index in str.indices {
+//            //        print(char)
+//
+//            var skip = false
+//
+//            let char = str[index]
+//
+//            if let charUnicodeScalar = UnicodeScalar(String(char)) {
+//                if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
+//                    if str.endIndex > str.index(index, offsetBy:1) {
+//                        let nextChar = str[str.index(index, offsetBy:1)]
+//
+//                        if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                            skip = CharacterSet.letters.contains(unicodeScalar)
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if let unicodeScalar = UnicodeScalar(String(char)) {
+//                if !CharacterSet.letters.contains(unicodeScalar), !skip {
+//                    processToken()
+//                } else {
+//                    token.append(char)
+//                }
+//            }
+//
+//            if Globals.shared.isRefreshing {
+//                break
+//            }
+//        }
+//
+//        if !token.isEmpty {
+//            processToken()
+//        }
+//
+//        return tokens.count > 0 ? tokens : nil
     }
     
     /**
@@ -5584,81 +5584,81 @@ extension String
             return nsTaggerTokens
         }
 
-        var tokens = Set<String>()
-        
-        var str = self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
-        
-        for partPreamble in Constants.PART_PREAMBLES {
-            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
-                str = String(str[..<range.lowerBound])
-            }
-            break
-        }
-        
-        var token = Constants.EMPTY_STRING
-        
-        func processToken()
-        {
-            let excludedWords = [String]() //["and", "are", "can", "for", "the"]
-            
-            for word in excludedWords {
-                if token.lowercased() == word.lowercased() {
-                    token = Constants.EMPTY_STRING
-                    break
-                }
-            }
-            
-            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
-                //                print("\(token)")
-                token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
-                //                print("\(token)")
-            }
-            
-            if !token.isEmpty {
-                tokens.insert(token.uppercased())
-                token = Constants.EMPTY_STRING
-            }
-        }
-        
-        for index in str.indices {
-            var skip = false
-            
-            let char = str[index]
-            
-            if let charUnicodeScalar = UnicodeScalar(String(char)) {
-                if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
-                    if str.endIndex > str.index(index, offsetBy:1) {
-                        let nextChar = str[str.index(index, offsetBy:1)]
-                        
-                        if let unicodeScalar = UnicodeScalar(String(nextChar)) {
-                            skip = CharacterSet.letters.contains(unicodeScalar)
-                        }
-                    }
-                }
-            }
-            
-            if let unicodeScalar = UnicodeScalar(String(char)) {
-                if !CharacterSet.letters.contains(unicodeScalar), !skip {
-                    processToken()
-                } else {
-                    token.append(char)
-                }
-            }
-            
-            if Globals.shared.isRefreshing {
-                break
-            }
-        }
-        
-        if !token.isEmpty {
-            processToken()
-        }
-        
-        let tokenArray = Array(tokens).sorted() {
-            $0.lowercased() < $1.lowercased()
-        }
-        
-        return tokenArray.count > 0 ? tokenArray : nil
+//        var tokens = Set<String>()
+//
+//        var str = self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
+//
+//        for partPreamble in Constants.PART_PREAMBLES {
+//            if let range = str.range(of: partPreamble + Constants.PART_INDICATOR) {
+//                str = String(str[..<range.lowerBound])
+//            }
+//            break
+//        }
+//
+//        var token = Constants.EMPTY_STRING
+//
+//        func processToken()
+//        {
+//            let excludedWords = [String]() //["and", "are", "can", "for", "the"]
+//
+//            for word in excludedWords {
+//                if token.lowercased() == word.lowercased() {
+//                    token = Constants.EMPTY_STRING
+//                    break
+//                }
+//            }
+//
+//            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars)) {
+//                //                print("\(token)")
+//                token = token.trimmingCharacters(in: CharacterSet(charactersIn: Constants.Strings.TrimChars))
+//                //                print("\(token)")
+//            }
+//
+//            if !token.isEmpty {
+//                tokens.insert(token.uppercased())
+//                token = Constants.EMPTY_STRING
+//            }
+//        }
+//
+//        for index in str.indices {
+//            var skip = false
+//
+//            let char = str[index]
+//
+//            if let charUnicodeScalar = UnicodeScalar(String(char)) {
+//                if CharacterSet(charactersIn: Constants.RIGHT_SINGLE_QUOTE + Constants.SINGLE_QUOTE).contains(charUnicodeScalar) {
+//                    if str.endIndex > str.index(index, offsetBy:1) {
+//                        let nextChar = str[str.index(index, offsetBy:1)]
+//
+//                        if let unicodeScalar = UnicodeScalar(String(nextChar)) {
+//                            skip = CharacterSet.letters.contains(unicodeScalar)
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if let unicodeScalar = UnicodeScalar(String(char)) {
+//                if !CharacterSet.letters.contains(unicodeScalar), !skip {
+//                    processToken()
+//                } else {
+//                    token.append(char)
+//                }
+//            }
+//
+//            if Globals.shared.isRefreshing {
+//                break
+//            }
+//        }
+//
+//        if !token.isEmpty {
+//            processToken()
+//        }
+//
+//        let tokenArray = Array(tokens).sorted() {
+//            $0.lowercased() < $1.lowercased()
+//        }
+//
+//        return tokenArray.count > 0 ? tokenArray : nil
     }
 }
 

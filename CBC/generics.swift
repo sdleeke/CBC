@@ -784,6 +784,8 @@ class Fetch<T>
         self.fetch = fetch
     }
     
+    var interrupt : (()->Bool)?
+    
     var fetch : (()->(T?))?
     
     var store : ((T?)->())?

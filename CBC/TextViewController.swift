@@ -333,7 +333,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
+                                                                Thread.onMain {
+                                                                    self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
+                                                                }
                                                             }
                                                         })
                             
@@ -353,7 +355,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
+                                                                Thread.onMain {
+                                                                    self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
+                                                                }
                                                             }
                                                         })
                             
@@ -1016,6 +1020,7 @@ class TextViewController : CBCViewController
         let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming") // Assumes there is only one at a time globally.
         
         fetch.fetch = {
+            // Not interruptable until wordRangeTiming is.
             return self?.transcript?.wordRangeTiming
         }
         
@@ -1346,11 +1351,12 @@ class TextViewController : CBCViewController
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
                     //                    print(wordRangeTiming)
                     
-                    var speakerNotesParagraphWords : [String:Int]?
+//                    var speakerNotesParagraphWords : [String:Int]?
 
-                    var tooClose : Int?
+//                    var tooClose : Int?
 
-                    let block = { // clean this up so it doesn't use variables from outside its scope but parameters passed in?
+                    let block = { (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
+                        // clean this up so it doesn't use variables from outside its scope but parameters passed in?
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
@@ -1375,7 +1381,9 @@ class TextViewController : CBCViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                                                                        Thread.onMain {
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                                                                        }
                                                                     }
                                                                 })
 
@@ -1393,7 +1401,9 @@ class TextViewController : CBCViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                        Thread.onMain {
+                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                        }
                                                                     }
                                                                 })
 
@@ -1414,18 +1424,27 @@ class TextViewController : CBCViewController
                     var alertActions = [AlertAction]()
                     alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         // test:(()->(Bool))?
-                        self?.process(work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                             let speakerNotesParagraph = Globals.shared.media.repository.list?.filter({ (mediaItem:MediaItem) -> Bool in
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
                             }).speakerNotesParagraph
                             
-                            tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            speakerNotesParagraph?.lengths?.interrupt = test
+                            let tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
 
-                            speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
-                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
+                            speakerNotesParagraph?.words?.interrupt = test
+                            let speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
+                            
+                            self?.wordRangeTiming?.load() // ?? self?.transcript?.wordRangeTiming
+                            
+                            return (speakerNotesParagraphWords,tooClose)
+                        }, completion: { (data:Any?,test:(()->(Bool))?) in
                             self?.updateBarButtons()
-                            block()
+                            if test?() != true {
+                                if let tuple = data as? ([String:Int]?, Int?) {
+                                    block(tuple.0, tuple.1)
+                                }
+                            }
                         })
                     }))
                     alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
@@ -1434,7 +1453,7 @@ class TextViewController : CBCViewController
                             return self?.wordRangeTiming?.result
                         }, completion: { (data:Any?) in
                             self?.updateBarButtons()
-                            block()
+                            block(nil,nil)
                         })
                     }))
                     alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: { () -> (Void) in
@@ -1459,7 +1478,9 @@ class TextViewController : CBCViewController
                         self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                            Thread.onMain {
+                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                            }
                         })
                         
                         self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1491,7 +1512,9 @@ class TextViewController : CBCViewController
                     self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                         self?.updateBarButtons()
                         self?.changedText = string
-                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                        Thread.onMain {
+                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                        }
                     })
 
                     self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1514,11 +1537,11 @@ class TextViewController : CBCViewController
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
-                    var speakerNotesParagraphWords : [String:Int]?
+//                    var speakerNotesParagraphWords : [String:Int]?
+//
+//                    var tooClose : Int?
                     
-                    var tooClose : Int?
-                    
-                    let block = {
+                    let block = { (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
@@ -1663,7 +1686,9 @@ class TextViewController : CBCViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                            Thread.onMain {
+                                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                            }
                                                                         }
                                                                     })
                                         
@@ -1685,7 +1710,9 @@ class TextViewController : CBCViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                            Thread.onMain {
+                                                                                self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
+                                                                            }
                                                                         }
                                                                     })
                                         
@@ -1725,19 +1752,27 @@ class TextViewController : CBCViewController
                     var actions = [AlertAction]()
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         // test:(()->(Bool))?
-                        self?.process(work: { [weak self] () -> (Any?) in
+                        self?.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                             let speakerNotesParagraph = Globals.shared.media.repository.list?.filter({ (mediaItem:MediaItem) -> Bool in
                                 mediaItem.speaker == self?.transcript?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
                             }).speakerNotesParagraph
 
-                            tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
+                            speakerNotesParagraph?.lengths?.interrupt = test
+                            let tooClose = speakerNotesParagraph?.overallAverageLength ?? 700 // default value is arbitrary - at best based on trial and error
                             
-                            speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
+                            speakerNotesParagraph?.words?.interrupt = test
+                            let speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
                             
-                            return self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
-                        }, completion: { (data:Any?) in
+                            self?.wordRangeTiming?.load() // ?? self?.transcript?.wordRangeTiming
+                            
+                            return (speakerNotesParagraphWords,tooClose)
+                        }, completion: { (data:Any?,test:(()->(Bool))?) in
                             self?.updateBarButtons()
-                            block()
+                            if test?() != true {
+                                if let tuple = data as? ([String:Int]?,Int?) {
+                                    block(tuple.0,tuple.1)
+                                }
+                            }
                         })
                     }))
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: { () -> (Void) in
@@ -1746,7 +1781,7 @@ class TextViewController : CBCViewController
                             return self?.wordRangeTiming?.result
                         }, completion: { (data:Any?) in
                             self?.updateBarButtons()
-                            block()
+                            block(nil,nil)
                         })
                     }))
                     actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: { () -> (Void) in
@@ -1773,7 +1808,9 @@ class TextViewController : CBCViewController
                             self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
-                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                                Thread.onMain {
+                                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                                }
                             })
                             
                             self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1820,7 +1857,9 @@ class TextViewController : CBCViewController
                         self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                            Thread.onMain {
+                                self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                            }
                         })
                         
                         self?.editingQueue.waitUntilAllOperationsAreFinished()
@@ -1941,10 +1980,6 @@ class TextViewController : CBCViewController
             popover.automaticCompletion = self.automaticCompletion
             popover.automaticInteractive = self.automaticInteractive
 
-            // Can't copy this or the sync button may never become active
-            // because the following data structure must be setup in and by the full screen view
-//            popover.creatingWordRangeTiming = self.creatingWordRangeTiming
-            
             popover.editingActive = self.editingActive
             
             popover.wordRangeTiming = self.wordRangeTiming
@@ -2255,6 +2290,7 @@ class TextViewController : CBCViewController
         updateBarButtons()
     }
     
+    // This has to be made interruptable.
     func addParagraphBreaks(automatic:Bool = false, interactive:Bool, makeVisible:Bool, showGapTimes:Bool, gapThreshold:Double? = nil, tooClose:Int? = nil, words:[[String:Any]]?, text:String?, completion:((String?)->(Void))?)
     {
         guard var words = words else {
@@ -2579,9 +2615,9 @@ class TextViewController : CBCViewController
             editingQueue.addOperation { [weak self] in
                 // Why is completion called here?
                 // So the text is updated.
-                Thread.onMain {
-                    completion?(newText)
-                }
+                completion?(newText)
+//                Thread.onMain {
+//                }
                 
                 if makeVisible {
                     ////////////////////////////////////////////////////////////////////////////////
@@ -2617,9 +2653,9 @@ class TextViewController : CBCViewController
                 editingQueue.addOperation {
                     Thread.onMain {
                         self.dismiss(animated: true, completion: nil)
-                        self.onDone?(self.textView.attributedText.string)
-                        self.automaticCompletion?()
                     }
+                    self.onDone?(self.textView.attributedText.string)
+                    self.automaticCompletion?()
                 }
             }
             return
@@ -2787,9 +2823,9 @@ class TextViewController : CBCViewController
                         text.replaceSubrange(range, with: newText)
 
                         // This makes the change visible
-                        Thread.onMain {
-                            completion?(text)
-                        }
+                        completion?(text)
+//                        Thread.onMain {
+//                        }
 
                         if makeVisible {
                             ////////////////////////////////////////////////////////////////////////////////
@@ -2851,7 +2887,9 @@ class TextViewController : CBCViewController
                 
                 self?.changeText(interactive: self?.automaticInteractive == true, makeVisible:self?.automaticVisible == true, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                     self?.changedText = string
-                    self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                    Thread.onMain {
+                        self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
+                    }
                 })
                 
                 self?.editingQueue.waitUntilAllOperationsAreFinished()

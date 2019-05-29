@@ -39,6 +39,7 @@ class MediaStream
     func loadLive(completion:(()->(Void))? = nil)
     {
         operationQueue.addOperation { [weak self] in
+            // To get a visible amount of delay
             Thread.sleep(forTimeInterval: 1.0)
             
             var key = ""

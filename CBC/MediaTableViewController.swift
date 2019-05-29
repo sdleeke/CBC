@@ -1889,16 +1889,17 @@ class MediaTableViewController : MediaItemsViewController
                     self?.updateDisplay(context:context)
                 }
                 
-                Thread.onMain {
-                    completion?()
-                    
-                    Globals.shared.media.search.searches?[context]?.complete = true
-                    Globals.shared.media.search.searches?[context]?.cancelled = cancel
-                    
-                    self?.setupListActivityIndicator()
-                    
-                    self?.setupBarButtons()
-                }
+                completion?()
+                
+                Globals.shared.media.search.searches?[context]?.complete = true
+                Globals.shared.media.search.searches?[context]?.cancelled = cancel
+                
+                self?.setupListActivityIndicator()
+                
+                self?.setupBarButtons()
+                
+//                Thread.onMain {
+//                }
             }
             
             Thread.onMainSync {
@@ -3111,6 +3112,9 @@ class MediaTableViewController : MediaItemsViewController
                     self?.popover?["VOICEBASE"]?.tableView?.reloadData()
                     
                     VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
+                        // To get a visible amount of delay
+                        Thread.sleep(forTimeInterval: 1.0)
+                        
                         guard let mediaItems = json?["media"] as? [[String:Any]] else {
                             return
                         }
@@ -3145,7 +3149,7 @@ class MediaTableViewController : MediaItemsViewController
                                 }
                             }
                         }
-                        },onError: nil)
+                    },onError: nil)
                 }
                 
                 self.popover?["VOICEBASE"]?.delegate = self
