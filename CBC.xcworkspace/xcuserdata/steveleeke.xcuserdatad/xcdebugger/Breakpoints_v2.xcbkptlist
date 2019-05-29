@@ -10,7 +10,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "580818956.3420171"
+            timestampString = "580821229.613898"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1419"
@@ -73,7 +73,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "580818956.342752"
+            timestampString = "580821229.613976"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1747"
@@ -152,7 +152,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "580818956.343056"
+            timestampString = "580821229.6140569"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "766"
@@ -168,7 +168,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/TextViewController.swift"
-            timestampString = "580818956.3433011"
+            timestampString = "580821229.614104"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "765"
@@ -207,6 +207,22 @@
                   offsetFromSymbolStart = "130">
                </Location>
             </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "580823728.0882159"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2491"
+            endingLineNumber = "2491"
+            landmarkName = "tableViewRowActions(popover:tableView:indexPath:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

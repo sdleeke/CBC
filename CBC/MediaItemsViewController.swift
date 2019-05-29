@@ -153,8 +153,6 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                     return strings
                 }
                 
-                //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
                 self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break
@@ -292,9 +290,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                     
                     return strings
                 }
-                
-                //                popover.editActionsAtIndexPath = popover.transcript?.rowActions
-                
+                                
                 self.popover?["TIMINGINDEXPHRASE"]?.navigationController?.pushViewController(popover, animated: true)
             }
             break

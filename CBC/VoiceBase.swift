@@ -5336,7 +5336,7 @@ class VoiceBase
         }
     }
     
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
+    func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
         var actions = [AlertAction]()
         

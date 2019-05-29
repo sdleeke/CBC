@@ -2022,7 +2022,7 @@ extension PopoverTableViewController : UITableViewDelegate
         
         if let transcript = transcript, purpose == .selectingTime {
             // .selectingTime using Timed Segments
-            return transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath) != nil
+            return transcript.rowAlertActions(popover: self, tableView: tableView, indexPath: indexPath) != nil
         }
         
         // Otherwise
@@ -2039,7 +2039,7 @@ extension PopoverTableViewController : UITableViewDelegate
             var alertActions : [AlertAction]?
             
             if let transcript = self.transcript {
-                alertActions = transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
+                alertActions = transcript.rowAlertActions(popover: self, tableView: tableView, indexPath: indexPath)
             } else {
                 alertActions = delegate?.rowAlertActions(popover: self,tableView: tableView,indexPath: indexPath)
             }
@@ -2181,9 +2181,7 @@ extension PopoverTableViewController : UITableViewDelegate
                 
                 popover.search = false // This keeps it to one level deep.
                 
-//                popover.editActionsAtIndexPath = self.editActionsAtIndexPath
-                
-                popover.delegate = self.delegate // as? PopoverTableViewControllerDelegate
+                popover.delegate = self.delegate
                 popover.purpose = self.purpose
                 
                 popover.parser = self.parser

@@ -2477,7 +2477,49 @@ class MediaTableViewController : MediaItemsViewController
         }
     }
     
-    func voiceBaseMediaActions(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath) -> [AlertAction]?
+    // MARK: PopoverTableViewControllerDelegate
+    override func tableViewRowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        var actions = super.tableViewRowActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [UITableViewRowAction]()
+        
+        guard let purpose = popover.purpose else {
+            return actions.count > 0 ? actions : nil
+        }
+        
+        switch purpose {
+        case .showingVoiceBaseMediaItems:
+            // We return row alert actions, not more general tableview row actions.
+            break
+            
+        case .selectingSearch:
+            actions.append(UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction:UITableViewRowAction, indexPath:IndexPath) in
+                if let search = popover.section.strings?[indexPath.row] {
+                    if let keys = Globals.shared.media.search.searches?.keys() {
+                        for key in keys {
+                            if key.searchText == search {
+                                Globals.shared.media.search.searches?[key] = nil
+                                break
+                            }
+                        }
+                    }
+                    popover.section.strings?.remove(at: indexPath.row)
+                    popover.setPreferredContentSize()
+                    popover.tableView.reloadData()
+                    if popover.section.strings?.count == 0 {
+                        popover.navigationItem.leftBarButtonItem?.isEnabled = false
+                    }
+                }
+            })
+            break
+            
+        default:
+            break
+        }
+        
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func voiceBaseMediaRowAlertActions(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath) -> [AlertAction]?
     {
         var actions = [AlertAction]()
         
@@ -2662,56 +2704,6 @@ class MediaTableViewController : MediaItemsViewController
         return actions.count > 0 ? actions : nil
     }
     
-    func searchHistoryActions(popover:PopoverTableViewController, tableView:UITableView, indexPath:IndexPath) -> [AlertAction]?
-    {
-        var actions = [AlertAction]()
-        
-        actions.append(AlertAction(title: "Delete", style: .destructive) { [weak self] in
-            // Confirm deletion and then delete
-        })
-
-        return actions.count > 0 ? actions : nil
-    }
-    
-    // MARK: PopoverTableViewControllerDelegate
-    override func tableViewRowActions(popover: PopoverTableViewController, tableView: UITableView, indexPath: IndexPath) -> [UITableViewRowAction]?
-    {
-        var actions = super.tableViewRowActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [UITableViewRowAction]()
-        
-        guard let purpose = popover.purpose else {
-            return actions.count > 0 ? actions : nil
-        }
-        
-        switch purpose {
-        case .showingVoiceBaseMediaItems:
-
-            break
-            
-        case .selectingSearch:
-            actions.append(UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction:UITableViewRowAction, indexPath:IndexPath) in
-                if let search = popover.section.strings?[indexPath.row] {
-                    if let keys = Globals.shared.media.search.searches?.keys() {
-                        for key in keys {
-                            if key.searchText == search {
-                                Globals.shared.media.search.searches?[key] = nil
-                                break
-                            }
-                        }
-                    }
-                    popover.section.strings?.remove(at: indexPath.row)
-                    popover.setPreferredContentSize()
-                    popover.tableView.reloadData()
-                }
-            })
-            break
-            
-        default:
-            break
-        }
-        
-        return actions.count > 0 ? actions : nil
-    }
-    
     override func rowAlertActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
         var actions = super.rowAlertActions(popover: popover, tableView: tableView, indexPath: indexPath) ?? [AlertAction]()
@@ -2722,7 +2714,7 @@ class MediaTableViewController : MediaItemsViewController
         
         switch purpose {
         case .showingVoiceBaseMediaItems:
-            if let vbActions = voiceBaseMediaActions(popover:popover, tableView:tableView, indexPath:indexPath) {
+            if let vbActions = voiceBaseMediaRowAlertActions(popover:popover, tableView:tableView, indexPath:indexPath) {
                 actions.append(contentsOf: vbActions)
             }
             break
@@ -2731,6 +2723,7 @@ class MediaTableViewController : MediaItemsViewController
 //            if let searchHistoryActions = searchHistoryActions(popover:popover, tableView:tableView, indexPath:indexPath) {
 //                actions.append(contentsOf: searchHistoryActions)
 //            }
+            // Instead, return a more general tableView row action.
             break
             
         default:
@@ -2740,56 +2733,56 @@ class MediaTableViewController : MediaItemsViewController
         return actions.count > 0 ? actions : nil
     }
     
-    func detailDisclosure(tableView:UITableView,indexPath:IndexPath) -> Bool
-    {
-        guard indexPath.section >= 0, indexPath.section < self.stringIndex?.keys?.count else {
-            return false
-        }
-        
-        if let keys = self.stringIndex?.keys?.sorted() {
-            if (indexPath.section >= 0) && (indexPath.section < keys.count) {
-                let key = keys[indexPath.section]
-                
-                if (key == Constants.Strings.LocalDevice) || (key == Constants.Strings.OtherDevices) {
-                    return false
-                }
-                
-                if let values = self.stringIndex?[key], indexPath.row >= 0, indexPath.row < values.count {
-                    let value = values[indexPath.row]
-                    
-                    guard let mediaID = value["mediaId"] as? String else {
-                        return true
-                    }
-                    
-                    guard let metadata = value["metadata"] as? [String:Any] else {
-                        return true
-                    }
-                    
-                    guard let device = metadata["device"] as? [String:Any] else {
-                        return true
-                    }
-                    
-                    guard let deviceName = device["name"] as? String else {
-                        return true
-                    }
-                    
-                    guard deviceName == UIDevice.current.name else {
-                        return false
-                    }
-                    
-                    if Globals.shared.media.all?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                            return transcript.mediaID == mediaID
-                        }).count > 0
-                    }).count == 0 {
-                        return true
-                    }
-                }
-            }
-        }
-        
-        return false
-    }
+//    func detailDisclosure(tableView:UITableView,indexPath:IndexPath) -> Bool
+//    {
+//        guard indexPath.section >= 0, indexPath.section < self.stringIndex?.keys?.count else {
+//            return false
+//        }
+//
+//        if let keys = self.stringIndex?.keys?.sorted() {
+//            if (indexPath.section >= 0) && (indexPath.section < keys.count) {
+//                let key = keys[indexPath.section]
+//
+//                if (key == Constants.Strings.LocalDevice) || (key == Constants.Strings.OtherDevices) {
+//                    return false
+//                }
+//
+//                if let values = self.stringIndex?[key], indexPath.row >= 0, indexPath.row < values.count {
+//                    let value = values[indexPath.row]
+//
+//                    guard let mediaID = value["mediaId"] as? String else {
+//                        return true
+//                    }
+//
+//                    guard let metadata = value["metadata"] as? [String:Any] else {
+//                        return true
+//                    }
+//
+//                    guard let device = metadata["device"] as? [String:Any] else {
+//                        return true
+//                    }
+//
+//                    guard let deviceName = device["name"] as? String else {
+//                        return true
+//                    }
+//
+//                    guard deviceName == UIDevice.current.name else {
+//                        return false
+//                    }
+//
+//                    if Globals.shared.media.all?.mediaList?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//                            return transcript.mediaID == mediaID
+//                        }).count > 0
+//                    }).count == 0 {
+//                        return true
+//                    }
+//                }
+//            }
+//        }
+//
+//        return false
+//    }
 
     @objc func historyActions()
     {
