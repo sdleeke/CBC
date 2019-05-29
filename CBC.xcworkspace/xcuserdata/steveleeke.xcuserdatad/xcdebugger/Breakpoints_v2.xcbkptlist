@@ -216,11 +216,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "580823728.0882159"
+            timestampString = "580830323.869979"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2491"
-            endingLineNumber = "2491"
+            startingLineNumber = "2489"
+            endingLineNumber = "2489"
             landmarkName = "tableViewRowActions(popover:tableView:indexPath:)"
             landmarkType = "7">
          </BreakpointContent>

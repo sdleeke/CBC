@@ -465,7 +465,7 @@ enum Constants {
         static let POSTFIX = "&version=NASB"
     }
     
-    static let SEARCH_RESULTS_BETWEEN_UPDATES = 100
+    static let SEARCH_RESULTS_BETWEEN_UPDATES = 10 //0
     
     static let DICT = "dict"
 

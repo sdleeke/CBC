@@ -1852,7 +1852,6 @@ class MediaTableViewController : MediaItemsViewController
             return !Globals.shared.media.search.isValid || (Globals.shared.media.active?.context != context)
         }
         
-        // toSearch? // searchText
         Globals.shared.media.search.searches?[context]?.complete = false
 
         display.clear()
@@ -1877,7 +1876,7 @@ class MediaTableViewController : MediaItemsViewController
                         Globals.shared.media.search.searches?[context] = MediaListGroupSort(mediaItems: searchMediaItems)
                     } else {
                         if let contextSearchText = context.searchText, let range = searchText.range(of: contextSearchText), range.lowerBound == searchText.startIndex, range.upperBound <= searchText.endIndex, Globals.shared.media.search.searches?[context]?.complete == false {
-                            // delete incremental searches
+                            // delete intermediate searches
                             Globals.shared.media.search.searches?[context] = nil
                         }
                     }
@@ -1924,7 +1923,6 @@ class MediaTableViewController : MediaItemsViewController
                         return
                     }
 
-                    // toSearch? // searchText
                     Globals.shared.media.search.searches?[context]?.complete = false
                     
                     self?.setupListActivityIndicator(allowTouches:true)
