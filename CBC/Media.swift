@@ -52,10 +52,6 @@ class Media
         return History(self)
     }()
     
-    var category = MediaCategory()
-    
-//    var categories = MediaCategories() // MediaCategory()
-    
     var stream = MediaStream()
     
     var categories = ThreadSafeDN<Category>() // [String:String]?
@@ -66,6 +62,10 @@ class Media
     
     var repository = MediaList()
 
+    lazy var category:MediaCategory! = {
+        return MediaCategory(self)
+    }()
+    
     lazy var search : Search! = {
         return Search(self)
     }()

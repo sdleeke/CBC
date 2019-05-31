@@ -33,7 +33,7 @@ enum Field {
     static let vimeo_mp4    = "vimeo_mp4"
     static let vimeo_m3u8   = "vimeo_m3u8"
 
-//    static let id           = "mediacode" // "id" in new format
+    static let id           = "id"
     static let mediaCode    = "mediacode"
 
     static let date         = "date"
@@ -961,6 +961,8 @@ enum Constants {
         static let Expanded_View = "Expanded View"
         
 //        static let View_Words = "View Words"
+
+        static let Podcast = "Podcast"
 
         static let View_List = "View List"
         static let List = "List"

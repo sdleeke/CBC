@@ -457,7 +457,7 @@ class Scripture : NSObject
 //
 //        return xml.dict.data
 //    }
-
+//
 //    func loadXML(_ reference:String?)
 //    {
 //        guard let reference = reference else {

@@ -471,7 +471,7 @@ class ThreadSafeArray<T>
 }
 
 /**
-
+ 
  Generic class that implements a thread safe nested heirarchy of any depth of dictionaries the keys of which are always strings.  The final value is not a dictionary of key:String but T.  I.e. the subscript's keys are a variadic parameter.
  
  This means that the basic dictionary is [String:Any] since we don't know if the Any will be another [String:Any] or T.
@@ -485,22 +485,22 @@ class ThreadSafeDN<T>
     deinit {
         debug(self)
         
-     }
+    }
     
     // Make it thread safe
     lazy var queue : DispatchQueue = { [weak self] in
         return DispatchQueue(label: self?.name ?? UUID().uuidString)
-    }()
+        }()
     
-    private var storage = [String:Any]()
-  
+    internal var storage = [String:Any]()
+    
     var name : String?
     
     init(name:String? = nil) // ,levels:Int
     {
         self.name = name
     }
-
+    
     var count : Int
     {
         get {
@@ -525,7 +525,7 @@ class ThreadSafeDN<T>
             self?.storage = [String:Any]()
         }
     }
-
+    
     func update(storage:[String:Any]?)
     {
         queue.sync { [weak self] in
@@ -614,132 +614,373 @@ class ThreadSafeDN<T>
         }
     }
     
-    subscript(keys:String...) -> T?
+    func get(_ keys:[String]) -> T?
     {
-        get {
-            guard keys.count > 0 else {
-                return nil
-            }
-            
-            guard keys.count > 1 else {
-                return queue.sync { [weak self] in
-                    return self?.storage[keys[0]] as? T
-                }
-            }
-
-            // keys.count is the number of levels deep in the hierarchy of dictionaries we are to go
-            // the array.last is key to the last dictionary, it returns the value which is cast to T and returned
-
-            // This differs from the keys algorithm in the return before return nil
+        guard keys.count > 0 else {
+            return nil
+        }
+        
+        guard keys.count > 1 else {
             return queue.sync { [weak self] in
-                // start with a copy of storage
-                var dict:[String:Any]? = self?.storage
-                
-                for index in keys.indices {
-                    // go through all of the levels but the last
-                    guard index < keys.indices.last else {
-                        break
-                    }
-                    
-                    // keep going deeper into the nested dictionaries
-                    dict = dict?[keys[index]] as? [String:Any]
-                }
-                
-                if let index = keys.indices.last {
-                    // we've reached the last index, the value of which in the current dictionary (the last)
-                    // is the value we return as? T
-                    return dict?[keys[index]] as? T
-                } else {
-                    return nil
-                }
+                return self?.storage[keys[0]] as? T
             }
         }
-        set {
-            guard keys.count > 0 else {
-                return
+        
+        // keys.count is the number of levels deep in the hierarchy of dictionaries we are to go
+        // the array.last is key to the last dictionary, it returns the value which is cast to T and returned
+        
+        // This differs from the keys algorithm in the return before return nil
+        return queue.sync { [weak self] in
+            // start with a copy of storage
+            var dict:[String:Any]? = self?.storage
+            
+            for index in keys.indices {
+                // go through all of the levels but the last
+                guard index < keys.indices.last else {
+                    break
+                }
+                
+                // keep going deeper into the nested dictionaries
+                dict = dict?[keys[index]] as? [String:Any]
             }
             
-            guard keys.count > 1 else {
-                queue.sync { [weak self] in
-                    self?.storage[keys[0]] = newValue
-                }
-                return
-            }
-            
-//            print(keys)
-            queue.sync { [weak self] in
-                // start with a copy of storage
-                var dict:[String:Any]? = storage
-                
-                // keey an array of all the dictionaries we traverse
-                // since everytime we touch a new level we make a copy
-                // since dictionaries are value, not reference, objects
-                // in order to copy them back after we finally set the value
-                var dicts = [[String:Any]]()
-
-                // Go through the levels, turning the hierarchy into an array of dicts
-                for index in 0..<keys.count {
-                    // Except the last since that's the dictionary in which we have to set the value
-                    guard index < (keys.count - 1) else {
-                        break
-                    }
-                    
-                    guard dict != nil else {
-                        // If this ever happens something is very wrong.
-                        break
-                    }
-                    
-                    // keep a copy of each dict we touch
-                    dicts.append(dict!)
-                    
-                    // If this level's value is nil, set a blank dictionary in its place
-                    // as we'll need that in the next level, i.e. be self-assembling
-                    if dict?[keys[index]] == nil {
-                        dict?[keys[index]] = [String:Any]()
-                    }
-
-                    // keep going deeper into the nested dictionaries
-                    dict = dict?[keys[index]] as? [String:Any]
-                }
-
-                // Don't append the last dict since we have it in hand (i.e. the var dict)
-//                dicts.append(dict!)
-
-                // Set the new value at the deepest level, which is assumed to be the leaf level
-                // i.e. no dictionaries as values at this level
-                if let index = keys.indices.last {
-//                    print(keys[index])
-                    dict?[keys[index]] = newValue
-                }
-
-                // Now we have to reconstruct the hierarchy
-                // Start with the deepest level
-                var newDict:[String:Any]? = dict
-                
-                // got through the other levels in the hierarchy
-                for index in 0..<(keys.count - 1) {
-                    // In reverse order, of course
-                    let maxIndex = keys.count - 2 // since keys.count - 1 is one more than we'll ever go.
-                    let index = maxIndex - index // Do it in reverse order since the highest index in the array is the deepest level in the hierarchy other than the last, ie. the "leaf" where the Any is T.
-                    
-                    dicts[index][keys[index]] = newDict
-                    
-                    // Move to the next level higher up
-                    newDict = dicts[index]
-                }
-
-                // Reset storage to the modified dict hierarchy
-//                print(newDict!)
-                
-                guard newDict != nil else {
-                    return
-                }
-                
-                self?.storage = newDict! // Yes, this could crash.  If it does, it probably should because something is very, very wrong, like the wrong number of keys is used to access T.
+            if let index = keys.indices.last {
+                // we've reached the last index, the value of which in the current dictionary (the last)
+                // is the value we return as? T
+                return dict?[keys[index]] as? T
+            } else {
+                return nil
             }
         }
     }
+    
+    func set(_ keys:[String],_ newValue:T?)
+    {
+        guard keys.count > 0 else {
+            return
+        }
+        
+        guard keys.count > 1 else {
+            queue.sync { [weak self] in
+                self?.storage[keys[0]] = newValue
+            }
+            return
+        }
+        
+        //            print(keys)
+        queue.sync { [weak self] in
+            // start with a copy of storage
+            var dict:[String:Any]? = storage
+            
+            // keey an array of all the dictionaries we traverse
+            // since everytime we touch a new level we make a copy
+            // since dictionaries are value, not reference, objects
+            // in order to copy them back after we finally set the value
+            var dicts = [[String:Any]]()
+            
+            // Go through the levels, turning the hierarchy into an array of dicts
+            for index in 0..<keys.count {
+                // Except the last since that's the dictionary in which we have to set the value
+                guard index < (keys.count - 1) else {
+                    break
+                }
+                
+                guard dict != nil else {
+                    // If this ever happens something is very wrong.
+                    break
+                }
+                
+                // keep a copy of each dict we touch
+                dicts.append(dict!)
+                
+                // If this level's value is nil, set a blank dictionary in its place
+                // as we'll need that in the next level, i.e. be self-assembling
+                if dict?[keys[index]] == nil {
+                    dict?[keys[index]] = [String:Any]()
+                }
+                
+                // keep going deeper into the nested dictionaries
+                dict = dict?[keys[index]] as? [String:Any]
+            }
+            
+            // Don't append the last dict since we have it in hand (i.e. the var dict)
+            //                dicts.append(dict!)
+            
+            // Set the new value at the deepest level, which is assumed to be the leaf level
+            // i.e. no dictionaries as values at this level
+            if let last = keys.last {
+//                print(keys[index])
+                dict?[last] = newValue
+            }
+            
+            // Now we have to reconstruct the hierarchy
+            // Start with the deepest level
+            var newDict:[String:Any]? = dict
+            
+            // got through the other levels in the hierarchy
+            for index in 0..<(keys.count - 1) {
+                // In reverse order, of course
+                let maxIndex = keys.count - 2 // since keys.count - 1 is one more than we'll ever go.
+                let index = maxIndex - index // Do it in reverse order since the highest index in the array is the deepest level in the hierarchy other than the last, ie. the "leaf" where the Any is T.
+                
+                dicts[index][keys[index]] = newDict
+                
+                // Move to the next level higher up
+                newDict = dicts[index]
+            }
+            
+            // Reset storage to the modified dict hierarchy
+            //                print(newDict!)
+            
+            guard newDict != nil else {
+                return
+            }
+            
+            self?.storage = newDict! // Yes, this could crash.  If it does, it probably should because something is very, very wrong, like the wrong number of keys is used to access T.
+        }
+    }
+    
+    subscript(keys:[String]) -> T?
+    {
+        get {
+            return get(keys)
+        }
+        set {
+            set(keys,newValue)
+        }
+    }
+    
+    subscript(keys:String...) -> T?
+    {
+        get {
+            return get(keys)
+        }
+        set {
+            set(keys,newValue)
+        }
+    }
 }
+
+///**
+//
+// Generic class that implements a thread safe nested heirarchy of any depth of dictionaries, [String:Any], or arrays of dictionaries, [[String:Any]], the keys of which are always strings.  The final value returns is cast to T.  I.e. the subscript's keys are a variadic parameter.
+//
+// When a set is made through the subscript, because we have a variable number of keys, we must keep track of where we are in the hierarchy, keeping track of the level in the hierarchy, which amounts to have a variable dict:[String:Any]? for the current level, and because dictionaries are value, not reference, objects, when that variables value is set, a copy is made, so by the time the "leaf" value is set, e.g. a T, and all the intermediate dictionaries for all the keys traversed, e.g. [String:Any]() is inserted where needed, the final dictionary hierarchy is NOT what is contained in the storage property, but is in a temporary variable which must be copied back into storage.
+//
+// When a level is an array of dictionaries it is assumed we are always getting or setting the last one.
+//
+// */
+//
+//enum ADN {
+//    case dictionary(_ dictionary:[String:Any]?)
+//    case array(_ array:[[String:Any]]?)
+//}
+//
+//class ThreadSafeADN<T> : ThreadSafeDN<T>
+//{
+//    override func set(_ keys:[String],_ newValue:T?)
+//    {
+//        guard keys.count > 0 else {
+//            return
+//        }
+//
+//        guard keys.count > 1 else {
+//            queue.sync { [weak self] in
+//                self?.storage[keys[0]] = newValue
+//            }
+//            return
+//        }
+//
+//        //            print(keys)
+//        queue.sync { [weak self] in
+//            // start with a copy of storage
+//            var dict:ADN? = ADN.dictionary(storage)
+////            var lastdict:[String:Any]?
+//
+//            // keey an array of all the dictionaries we traverse
+//            // since everytime we touch a new level we make a copy
+//            // since dictionaries are value, not reference, objects
+//            // in order to copy them back after we finally set the value
+//            var dicts = [ADN]()
+//
+//            guard dict != nil else {
+//                // If this ever happens something is very wrong.
+//                return
+//            }
+//
+//            // keep a copy of each dict we touch
+//            dicts.append(dict!)
+//
+//            // Go through the levels, turning the hierarchy into an array of dicts
+//            for index in 0..<keys.count {
+//                // Except the last since that's the dictionary in which we have to set the value
+//                guard index < (keys.count - 1) else {
+//                    break
+//                }
+//
+//                guard dict != nil else {
+//                    // If this ever happens something is very wrong.
+//                    break
+//                }
+//
+//                // If this level's value is nil, set a blank dictionary in its place
+//                // as we'll need that in the next level, i.e. be self-assembling
+//                switch dict! {
+//                case .array(var arrayValue):
+//                    // keep going deeper into the nested dictionaries
+//                    dict = ADN.dictionary(arrayValue?.last)
+//
+//                    // keep a copy of each level
+//                    dicts.append(ADN.array(arrayValue))
+//                    break
+//
+//                case .dictionary(var dictionaryValue):
+//                    if dictionaryValue?[keys[index]] == nil {
+//                        dictionaryValue?[keys[index]] = [String:Any]()
+//                    }
+//
+//                    if let value = dictionaryValue?[keys[index]] as? [String:Any] {
+//                        // keep going deeper into the nested dictionaries
+//                        dict = ADN.dictionary(value)
+//
+//                        // keep a copy of each level
+//                        dicts.append(ADN.dictionary(value))
+//                    }
+//
+//                    if let value = dictionaryValue?[keys[index]] as? [[String:Any]] {
+//                        // keep going deeper into the nested dictionaries
+//                        dict = ADN.dictionary(value.last)
+//
+//                        // keep a copy of each level
+//                        dicts.append(ADN.array(value))
+//                    }
+//                    break
+//                }
+//            }
+//
+//            // Don't append the last dict since we have it in hand (i.e. the var dict)
+//            //                dicts.append(dict!)
+//
+//            // Set the new value at the deepest level, which is assumed to be the leaf level
+//            // i.e. no dictionaries as values at this level
+//            if let last = keys.last {
+//                //                    print(keys[index])
+//                switch dict! {
+//                case .array(var value):
+//                    // Error
+//                    break
+//
+//                case .dictionary(var dictValue):
+//                    dictValue?[last] = newValue
+//                    dict = ADN.dictionary(dictValue)
+//
+//                    if let last = dicts.last {
+//                        switch last {
+//                        case .array(var value):
+//                            if let dictValue = dictValue, let count = value?.count {
+//                                value?[count - 1] = dictValue
+//                            }
+//                            dicts[dicts.count - 1] = ADN.array(value)
+//                            break
+//
+//                        case .dictionary(let value):
+//                            // Do nothing
+//                            dicts[dicts.count - 1] = ADN.dictionary(dictValue)
+//                            break
+//                        }
+//                    }
+//                    break
+//                }
+//            }
+//
+////            var count = keys.count
+////
+////            if let dictArray = dictArray {
+////                count -= 1
+////                lastdict?[keys[count - 1]] = dictArray
+////                dict = lastdict
+////            }
+//
+//            // Now we have to reconstruct the hierarchy
+//            // Start with the deepest level
+//            var newDict:ADN? //= dict
+//
+//            // reverse the hierarchy
+//            for index in 0..<(keys.count - 1) {
+//                let maxIndex = keys.count - 2 // since keys.count - 1 is one more than we'll ever go.
+//                let index = maxIndex - index // Do it in reverse order since the highest index in the array is the deepest level in the hierarchy other than the last, ie. the "leaf" where the Any is T.
+//
+//                switch dicts[index] {
+//                case .array(var value):
+//                    if let newDict = newDict {
+//                        if let count = value?.count {
+//                            switch newDict {
+//                            case .array(let newValue):
+//                                //ERROR
+//                                break
+//
+//                            case .dictionary(let newValue):
+//                                value?[count - 1][keys[index]] = newValue
+//                                break
+//                            }
+//                        }
+//                        dicts[index] = ADN.array(value)
+//                    }
+//                    break
+//
+//                case .dictionary(var value):
+//                    if let newDict = newDict {
+//                        switch newDict {
+//                        case .array(let newValue):
+//                            //ERROR
+//                            break
+//
+//                        case .dictionary(let newValue):
+//                            value?[keys[index]] = newValue
+////                            if (value?[keys[index]] as? [String:Any]) != nil {
+////                                value?[keys[index]] = newValue
+////                            } else
+////
+////                            if var array = (value?[keys[index]] as? [[String:Any]]), var dict = array.last {
+////                                dict[keys[index]] = newValue
+////                                array[array.count - 1] = dict
+////                                value?[keys[index]] = array
+////                            }
+//                            break
+//                        }
+//
+//                        dicts[index] = ADN.dictionary(value)
+//                    }
+//                    break
+//                }
+//
+////                dicts[index][keys[index]] = newDict
+//
+//                // Move to the next level higher up
+//                newDict = dicts[index]
+//            }
+//
+//            // Reset storage to the modified dict hierarchy
+//            //                print(newDict!)
+//
+//            guard let finalDict = newDict else {
+//                return
+//            }
+//
+//            switch finalDict {
+//            case .array(let value):
+//                // Should never happen
+//                break
+//
+//            case .dictionary(let value):
+//                self?.storage = value! // WHY does this have to be unwrapped?
+//                break
+//            }
+//
+////            self?.storage = newDict! // Yes, this could crash.  If it does, it probably should because something is very, very wrong, like the wrong number of keys is used to access T.
+//        }
+//    }
+//}
 
 /**
  

@@ -17,6 +17,23 @@ import Foundation
 
 class MediaCategory
 {
+    weak var media:Media?
+    
+    init(_ media:Media?)
+    {
+        self.media = media
+    }
+    
+    var current : Category?
+    {
+        get {
+            guard let selected = selected else {
+                return nil
+            }
+            return media?.categories[selected]
+        }
+    }
+    
     // This doesn't work if we someday allow multiple categories to be selected at the same time - unless the string contains multiple categories, as with tags.
     // In that case it would need to be an array.  Not a big deal, just a change.
     var selected:String?

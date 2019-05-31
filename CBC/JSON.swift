@@ -86,8 +86,10 @@ class JSON
             return filename?.fileSystemURL?.data?.json
         }
         
-        operationQueue.addOperation {
-            _ = data.save(to: filename?.fileSystemURL)
+        if data.json != nil {
+            operationQueue.addOperation {
+                _ = data.save(to: filename?.fileSystemURL)
+            }
         }
         
         return data.json

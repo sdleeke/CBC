@@ -20,10 +20,10 @@ import Foundation
 
 class Base : Storage
 {
-    var id : Int?
+    var id : String? // New API: Int?
     {
         get {
-            return self[Field.mediaCode] as? Int
+            return self[Field.id] as? String // New API: Int
         }
     }
     

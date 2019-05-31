@@ -18,7 +18,16 @@ import Foundation
  
  */
 
-class Storage
+protocol StorageProtocol
+{
+    var storage:[String:Any]? { get set }
+    
+    subscript(key:String?) -> Any? { get set }
+
+    init?(_ storage:[String:Any]?)
+}
+
+class Storage : StorageProtocol
 {
     var storage:[String:Any]?
     
@@ -38,7 +47,7 @@ class Storage
         }
     }
     
-    init?(_ storage:[String:Any]?)
+    required init?(_ storage:[String:Any]?)
     {
         guard let storage = storage else {
             return nil
@@ -52,3 +61,5 @@ class Storage
     }
 }
 
+
+var description: String?

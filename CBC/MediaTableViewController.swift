@@ -1595,7 +1595,15 @@ class MediaTableViewController : MediaItemsViewController
     func actionMenu() -> [String]?
     {
         var actionMenu = [String]()
-        
+
+        if let url = Globals.shared.media.category.current?.podcast?.url {
+            if let range = url.absoluteString.range(of: "https://"), let url = "podcast://\(url.absoluteString[range.upperBound...])".url {
+                if UIApplication.shared.canOpenURL(url) {
+                    actionMenu.append(Constants.Strings.Podcast)
+                }
+            }
+        }
+
         if Globals.shared.media.active?.mediaList?.list?.count > 0 {
             actionMenu.append(Constants.Strings.View_List)
         }
@@ -3570,6 +3578,15 @@ class MediaTableViewController : MediaItemsViewController
             popover?["ACTION"]?.dismiss(animated: true, completion: nil)
             
             switch string {
+            case Constants.Strings.Podcast:
+                // Works - just not on the simulator. pcast: opens Podcasts app but doesn't ask if you want to subscribe, podcast: does.
+                if let url = Globals.shared.media.category.current?.podcast?.url {
+                    if let range = url.absoluteString.range(of: "https://") {
+                        UIApplication.shared.open(scheme: "podcast://\(url.absoluteString[range.upperBound...])", cannotOpen: nil)
+                    }
+                }
+                break
+                
             case Constants.Strings.View_List:
                 self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                     if Globals.shared.media.active?.html?.string == nil {
