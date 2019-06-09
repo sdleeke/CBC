@@ -100,13 +100,13 @@ class Search
         }
     }
     
-    var text:String?
+    var _text:String?
     {
         willSet {
             
         }
         didSet {
-            guard text != oldValue else {
+            guard _text != oldValue else {
                 return
             }
             
@@ -115,12 +115,21 @@ class Search
             }
             
             if isExtant {
-                UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
+                UserDefaults.standard.set(_text, forKey: Constants.SEARCH_TEXT)
                 UserDefaults.standard.synchronize()
             } else {
                 UserDefaults.standard.removeObject(forKey: Constants.SEARCH_TEXT)
                 UserDefaults.standard.synchronize()
             }
+        }
+    }
+    var text:String?
+    {
+        get {
+            return _text
+        }
+        set {
+            _text = newValue
         }
     }
     

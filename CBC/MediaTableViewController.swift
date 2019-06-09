@@ -1120,6 +1120,12 @@ class MediaTableViewController : MediaItemsViewController
                         }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
                             return MediaItem(storage: mediaItemDict)
                         })
+                        
+                        if let playing = Globals.shared.media.category.playing {
+                            Globals.shared.mediaPlayer.mediaItem = Globals.shared.media.repository.index[playing]
+                        } else {
+                            Globals.shared.mediaPlayer.mediaItem = nil
+                        }
                     } else {
                         Globals.shared.media.repository.list = nil
                         print("FAILED TO LOAD")

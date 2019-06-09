@@ -368,7 +368,7 @@ class Globals : NSObject
     var groupings = Constants.groupings
     var groupingTitles = Constants.GroupingTitles
     
-    var grouping:String? = GROUPING.YEAR
+    var _grouping:String?
     {
         willSet {
             
@@ -378,8 +378,8 @@ class Globals : NSObject
             media.need.grouping = (grouping != oldValue)
             
             let defaults = UserDefaults.standard
-            if (grouping != nil) {
-                defaults.set(grouping,forKey: Constants.SETTINGS.GROUPING)
+            if (_grouping != nil) {
+                defaults.set(_grouping,forKey: Constants.SETTINGS.GROUPING)
             } else {
                 //Should not happen
                 defaults.removeObject(forKey: Constants.SETTINGS.GROUPING)
@@ -387,8 +387,25 @@ class Globals : NSObject
             defaults.synchronize()
         }
     }
+    var grouping:String? // = GROUPING.YEAR
+    {
+        get {
+            if _grouping == nil {
+                if let groupingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.GROUPING) {
+                    _grouping = groupingString
+                } else {
+                    _grouping = GROUPING.YEAR
+                }
+            }
+            
+            return _grouping
+        }        
+        set {
+            _grouping = newValue
+        }
+    }
 
-    var sorting:String? = SORTING.REVERSE_CHRONOLOGICAL
+    var _sorting:String?
     {
         willSet {
             
@@ -398,13 +415,30 @@ class Globals : NSObject
             media.need.sorting = (sorting != oldValue)
             
             let defaults = UserDefaults.standard
-            if (sorting != nil) {
-                defaults.set(sorting,forKey: Constants.SETTINGS.SORTING)
+            if (_sorting != nil) {
+                defaults.set(_sorting,forKey: Constants.SETTINGS.SORTING)
             } else {
                 //Should not happen
                 defaults.removeObject(forKey: Constants.SETTINGS.SORTING)
             }
             defaults.synchronize()
+        }
+    }
+    var sorting:String? // = SORTING.REVERSE_CHRONOLOGICAL
+    {
+        get {
+            if _sorting == nil {
+                if let sortingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.SORTING) {
+                    _sorting = sortingString
+                } else {
+                    _sorting = SORTING.REVERSE_CHRONOLOGICAL
+                }
+            }
+            
+            return _sorting
+        }
+        set {
+            _sorting = newValue
         }
     }
     /////////////////////////////////////////////////////////////////////////////////////
@@ -534,7 +568,20 @@ class Globals : NSObject
 //        return string
 //    }
 
-    var mediaPlayer = MediaPlayer()
+    var mediaPlayerInit = true
+    lazy var mediaPlayer:MediaPlayer! = {
+        let player = MediaPlayer()
+        
+        if let playing = media.category.playing {
+            // This ONLY works if media.repository.index is loaded before this is instantiated.
+            player.mediaItem = media.repository.index[playing]
+        } else {
+            player.mediaItem = nil
+        }
+
+        mediaPlayerInit = false
+        return player
+    }()
     
     // These are hidden behind custom accessors in MediaItem
     // May want to put into a struct Settings w/ multiPart an mediaItem as vars
@@ -542,9 +589,31 @@ class Globals : NSObject
     ////////////////////////////////////////////////////////////////////////////
     // Would like to group these
     ////////////////////////////////////////////////////////////////////////////
-    var multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+//    var multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+    
+    lazy var multiPartSettings : ThreadSafeDN<String>! = // [String:[String:String]]? // ictionaryOfDictionaries
+        {
+            let multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS")
+            
+            if let multiPartSettingsDictionary = UserDefaults.standard.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
+                multiPartSettings.update(storage: multiPartSettingsDictionary)
+            }
+            
+            return multiPartSettings
+    }()
 
-    var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+//    var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+    
+    lazy var mediaItemSettings : ThreadSafeDN<String>! = // [String:[String:String]]? // ictionaryOfDictionaries
+        {
+            let mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS")
+            
+            if let mediaItemSettingsDictionary = UserDefaults.standard.dictionary(forKey: Constants.SETTINGS.MEDIA) {
+                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
+            }
+            
+            return mediaItemSettings
+    }()
     ////////////////////////////////////////////////////////////////////////////
    
     var media = Media()
@@ -619,48 +688,50 @@ class Globals : NSObject
             return
         }
         
+        if (media.tags.selected == Constants.Strings.New) {
+            media.tags.selected = nil
+        }
+        
+//        media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
+//        media.search.isActive = media.search.text != nil
+        
+//        if let playing = media.category.playing {
+//            mediaPlayer.mediaItem = media.repository.index[playing]
+//        } else {
+//            mediaPlayer.mediaItem = nil
+//        }
+        
         if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
-            if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
-                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
-            }
+//            if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
+//                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
+//            }
+//
+//            if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
+//                multiPartSettings.update(storage: seriesSettingsDictionary)
+//            }
+//
+//            if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
+//                media.category.settings.update(storage: categorySettingsDictionary)
+//            }
             
-            if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
-                multiPartSettings.update(storage: seriesSettingsDictionary)
-            }
+//            if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
+//                sorting = sortingString
+//            } else {
+//                sorting = SORTING.REVERSE_CHRONOLOGICAL
+//            }
             
-            if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
-                media.category.settings.update(storage: categorySettingsDictionary)
-            }
-            
-            if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
-                sorting = sortingString
-            } else {
-                sorting = SORTING.REVERSE_CHRONOLOGICAL
-            }
-            
-            if let groupingString = defaults.string(forKey: Constants.SETTINGS.GROUPING) {
-                grouping = groupingString
-            } else {
-                grouping = GROUPING.YEAR
-            }
-            
-            if (media.tags.selected == Constants.Strings.New) {
-                media.tags.selected = nil
-            }
+//            if let groupingString = defaults.string(forKey: Constants.SETTINGS.GROUPING) {
+//                grouping = groupingString
+//            } else {
+//                grouping = GROUPING.YEAR
+//            }
 
-            media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-            media.search.isActive = media.search.text != nil
-
-            if let playing = media.category.playing {
-                mediaPlayer.mediaItem = media.repository.index[playing]
-            } else {
-                mediaPlayer.mediaItem = nil
-            }
-
-            if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
-//                history = historyArray as? [String]
-                media.history.list.update(storage: historyArray as? [String])
-            }
+            //
+            
+//            if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
+////                history = historyArray as? [String]
+//                media.history.list.update(storage: historyArray as? [String])
+//            }
         } else {
             //This is where we should map the old version on to the new one and preserve the user's information.
             defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)

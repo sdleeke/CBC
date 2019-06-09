@@ -56,7 +56,17 @@ class MediaCategory
         }
     }
     
-    var settings = ThreadSafeDN<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+//    var settings = ThreadSafeDN<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+    
+    lazy var settings:ThreadSafeDN<String>! = {
+        let settings = ThreadSafeDN<String>(name: "CATEGORY" + "SETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
+
+        if let categorySettingsDictionary = UserDefaults.standard.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
+            settings.update(storage: categorySettingsDictionary)
+        }
+        
+        return settings
+    }()
     
     var allowSaveSettings = true
     

@@ -4307,8 +4307,6 @@ class MediaViewController : MediaItemsViewController
         if let mediaItem = Globals.shared.mediaPlayer.mediaItem, mediaItem == selectedMediaItem, Globals.shared.mediaPlayer.isPaused, mediaItem.hasCurrentTime, let currentTime = mediaItem.currentTime {
             Globals.shared.mediaPlayer.seek(to: Double(currentTime))
         }
-
-        
         
         updateUI()
 

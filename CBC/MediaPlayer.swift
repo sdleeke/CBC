@@ -1184,6 +1184,10 @@ class MediaPlayer : NSObject
             
         }
         didSet {
+            guard !Globals.shared.mediaPlayerInit else {
+                return
+            }
+            
             Globals.shared.media.category.playing = mediaItem?.mediaCode
 
             if oldValue != nil {

@@ -23,7 +23,18 @@ class History
         self.media = media
     }
     
-    var list = ThreadSafeArray<String>() // :[String]?
+//    var list = ThreadSafeArray<String>() // :[String]?
+    
+    lazy var list:ThreadSafeArray<String>! = {
+        let list = ThreadSafeArray<String>() // :[String]?
+
+        if let historyArray = UserDefaults.standard.array(forKey: Constants.SETTINGS.HISTORY) {
+            //                history = historyArray as? [String]
+            list.update(storage: historyArray as? [String])
+        }
+        
+        return list
+    }()
     
     // thread safe
     var relevant:[String]?
