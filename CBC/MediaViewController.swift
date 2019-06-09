@@ -2703,7 +2703,7 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
-    @objc func downloadFailed(_ notification:NSNotification)
+    @objc override func downloadFailed(_ notification:NSNotification)
     {
         if let download = notification.object as? Download, document?.download == download {
             Thread.onMain {
@@ -3088,15 +3088,15 @@ class MediaViewController : MediaItemsViewController
                 if document?.fetchData.cache == nil, !Globals.shared.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
-                        self.alert(title: "Slides Not Available", message: nil, completion: nil)
+                        self.alert(title: "Slides Not Available")
                         break
                         
                     case Showing.notes:
-                        self.alert(title: "Transcript Not Available", message: nil, completion: nil)
+                        self.alert(title: "Transcript Not Available")
                         break
                         
                     case Showing.outline:
-                        self.alert(title: "Outline Not Available", message: nil, completion: nil)
+                        self.alert(title: "Outline Not Available")
                         break
 
                     default:
@@ -5252,19 +5252,19 @@ class MediaViewController : MediaItemsViewController
             mediaItems?.cancelAllAudioDownloads()
             break
             
-        case Constants.Strings.Delete_Audio_Download:
-            var actions = [AlertAction]()
-            
-            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                self.selectedMediaItem?.audioDownload?.delete(block:true)
-            }))
-            
-            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
-                
-            }))
-            
-            Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
-            break
+//        case Constants.Strings.Delete_Audio_Download:
+//            var actions = [AlertAction]()
+//
+//            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+//                self.selectedMediaItem?.audioDownload?.delete(block:true)
+//            }))
+//
+//            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+//
+//            }))
+//
+//            Alerts.shared.alert(title: "Confirm Deletion of Audio Download", actions: actions)
+//            break
             
         case Constants.Strings.Delete_All_Audio_Downloads:
             var actions = [AlertAction]()
@@ -5413,29 +5413,29 @@ class MediaViewController : MediaItemsViewController
         }
         
         switch purpose {
-        case .selectingCellAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                Thread.onMain {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
-                }
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
+//        case .selectingCellAction:
+//            dismiss(animated: true, completion: nil)
+//
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                Thread.onMain {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                }
+//                break
+//
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//
+//            default:
+//                break
+//            }
+//            break
             
         case .selectingAction:
             dismiss(animated: true, completion: nil)

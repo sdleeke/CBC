@@ -3022,7 +3022,7 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert with actions, and a specific cancel action, on the Alert singleton.
      */
-    func alertActionsCancel(title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
+    func alertActionsCancel(title:String?,message:String? = nil,alertActions:[AlertAction]?,cancelAction:(()->(Void))? = nil)
     {
         guard var alertActions = alertActions else {
             return
@@ -3036,7 +3036,7 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert with actions, and a specific okay action, on the Alert singleton.
      */
-    func alertActionsOkay(title:String?,message:String?,alertActions:[AlertAction]?,okayAction:(()->(Void))?)
+    func alertActionsOkay(title:String?,message:String? = nil,alertActions:[AlertAction]?,okayAction:(()->(Void))? = nil)
     {
         guard var alertActions = alertActions else {
             return
@@ -3050,7 +3050,7 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert on the Alert singleton that includes a text field with searchText and a searchAction.
      */
-    func searchAlert(title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
+    func searchAlert(title:String?,message:String? = nil,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
     {
         let alert = CBCAlertController(  title: title,
                                         message: message,
@@ -3085,7 +3085,7 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert on the Alert singleton with actions for Yes and No.
      */
-    func yesOrNo(title:String?,message:String?,
+    func yesOrNo(title:String?,message:String? = nil,
                  yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
                  noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
     {
@@ -3100,7 +3100,7 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert on the Alert singleton with two actions and a cancel action.
      */
-    func firstSecondCancel(title:String?,message:String?,
+    func firstSecondCancel(title:String?,message:String? = nil,
                            firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertAction.Style,
                            secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
                            cancelAction:(()->(Void))? = nil)
@@ -3444,7 +3444,7 @@ extension UIViewController
      */
     func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
     {
-        self.firstSecondCancel(title: "Page Orientation", message: nil,
+        self.firstSecondCancel(title: "Page Orientation",
                           firstTitle: "Portrait", firstAction: portrait, firstStyle: .default,
                           secondTitle: "Landscape", secondAction: landscape, secondStyle: .default,
                           cancelAction: cancel)
@@ -5724,7 +5724,6 @@ extension String
         get {
             guard !self.isEmpty else {
                 return nil
-                
             }
             
             guard url != nil, self != url?.lastPathComponent else {

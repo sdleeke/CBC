@@ -31,6 +31,32 @@ class Search
         return ThreadSafeDN<MediaListGroupSort>(name: "SEARCH" + UUID().uuidString)
     }()
     
+    var candidates : MediaListGroupSort?
+    {
+        get {
+            var toSearch:MediaListGroupSort?
+            
+            if let showing = media?.tags.showing {
+                switch showing {
+                case Constants.TAGGED:
+                    if let selected = media?.tags.selected {
+                        toSearch = media?.tags.tagged[selected]
+                    }
+                    break
+                    
+                case Constants.ALL:
+                    toSearch = media?.all
+                    break
+                    
+                default:
+                    break
+                }
+            }
+            
+            return toSearch
+        }
+    }
+    
     var current:MediaListGroupSort?
     {
         get {

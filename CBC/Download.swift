@@ -45,7 +45,7 @@ extension Download : URLSessionDownloadDelegate
                 Alerts.shared.alert(title: title, message: mediaItem.title)
             }
         } else {
-            Alerts.shared.alert(title: title, message: nil)
+            Alerts.shared.alert(title: title)
         }
         
         cancel()

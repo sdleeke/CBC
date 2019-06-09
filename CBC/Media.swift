@@ -87,7 +87,7 @@ class Media
     
     var need = MediaNeed()
     
-    // Globals.shared.media.category.selected as the key
+    // Globals.shared.media.category.selected is the key
     // That way work can be saved when a category is changed.
     var cache = ThreadSafeDN<MediaListGroupSort>()
     
@@ -95,56 +95,13 @@ class Media
     var all:MediaListGroupSort?
     {
         didSet {
-            // WHY?
-//            all?.lexicon?.eligible = nil
-//            all?.scriptureIndex?.eligible = nil
-        }
-    }
-    
-    // Is tagged really necessary?
-    // It's the same as:
-    
-    func tagged(tag:String?) -> MediaListGroupSort?
-    {
-        guard let tag = tag else {
-            return nil
-        }
 
-        return MediaListGroupSort(mediaItems: all?.tagMediaItems?[tag.withoutPrefixes])
+        }
     }
-    
-    // The mediaItems with the selected tags, although now we only support one tag being selected
-    var tagged = ThreadSafeDN<MediaListGroupSort>(name: UUID().uuidString + "TAGGED") // [String:MediaListGroupSort]() // ictionary
     
     lazy var tags:Tags! = {
         return Tags(media:self)
     }()
-    
-    var toSearch:MediaListGroupSort?
-    {
-        get {
-            var toSearch:MediaListGroupSort?
-            
-            if let showing = tags.showing {
-                switch showing {
-                case Constants.TAGGED:
-                    if let selected = tags.selected {
-                        toSearch = tagged[selected]
-                    }
-                    break
-                    
-                case Constants.ALL:
-                    toSearch = all
-                    break
-                    
-                default:
-                    break
-                }
-            }
-            
-            return toSearch
-        }
-    }
     
     var active:MediaListGroupSort?
     {
@@ -155,7 +112,7 @@ class Media
                 switch showing {
                 case Constants.TAGGED:
                     if let selected = tags.selected {
-                        active = tagged[selected]
+                        active = tags.tagged[selected]
                     }
                     break
                     
@@ -168,14 +125,10 @@ class Media
                 }
             }
             
-            // Globals.shared.
             if search.isActive {
-                if let context = active?.context, let search = search.searches?[context] { // Globals.shared.
-                    active = search // active?
+                if let context = active?.context, let search = search.searches?[context] {
+                    active = search
                 }
-//                if let searchText = search.text?.uppercased() { // Globals.shared.
-//                    active = search.searches?[searchText] // active?
-//                }
             }
             
             return active

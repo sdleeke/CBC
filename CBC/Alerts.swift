@@ -57,7 +57,7 @@ class CBCActivityViewController : UIActivityViewController
  
  */
 
-class CBCAlertController : UIAlertController
+class CBCAlertController : UIAlertController // DOES NOT SUPPORT SUBCLASSING!!!
 {
     override func viewDidDisappear(_ animated: Bool)
     {
@@ -65,6 +65,16 @@ class CBCAlertController : UIAlertController
 
         Alerts.shared.semaphore.signal()
     }
+//
+//    init(title:String?,message:String? = nil,preferredStyle:UIAlertController.Style = .alert)
+//    {
+//        super.init(title: title, message: message, preferredStyle: preferredStyle)
+//    }
+//
+//    required init?(coder aDecoder: NSCoder)
+//    {
+//        super.init(coder: aDecoder)
+//    }
 }
 
 /**

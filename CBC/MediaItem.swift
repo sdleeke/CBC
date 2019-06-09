@@ -1969,32 +1969,35 @@ class MediaItem : NSObject
             if let savedTags = mediaItemSettings?[Field.tags] {
                 tags = tags != nil ? (tags! + "|" + savedTags) : savedTags
             }
-            
+
+            // Check Downloaded
+            if let audioDownload = audioDownload, audioDownload.exists {
+                tags = tags != nil ? (tags! + "|" + Constants.Strings.Downloaded) : Constants.Strings.Downloaded
+            }
+
             // This coalesces the tags so there are no duplicates
-            if let tagsArray = tags?.tagsArray {
-                let tagsString = tagsArray.filter({ (string:String) -> Bool in
-                    // WHY? Backwards compatibility
-                    
-                    if string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) {
-                        return false
-                    }
-                    
-                    if string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript) {
-                        return false
-                    }
-                    
-                    // Check Downloaded
-                    if string.contains(Constants.Strings.Downloaded) {
-                        guard let audioDownload = audioDownload else {
-                            return false
-                        }
-                        
-                        return audioDownload.exists
-                    }
-                    
-                    return true
-                }).set.tagsString
+            if let tagsString = tags?.tagsArray?.filter({ (string:String) -> Bool in
+                // WHY? Backwards compatibility
                 
+                if string.contains(Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript) {
+                    return false
+                }
+                
+                if string.contains(Constants.Strings.HTML + " " + Constants.Strings.Transcript) {
+                    return false
+                }
+                
+                // Check Downloaded
+                if string.contains(Constants.Strings.Downloaded) {
+                    guard let audioDownload = audioDownload else {
+                        return false
+                    }
+                    
+                    return audioDownload.exists
+                }
+                
+                return true
+            }).set.tagsString {
                 return tagsString // tags
             } else {
                 return nil
@@ -3358,6 +3361,10 @@ class MediaItem : NSObject
                     break
                     
                 case Constants.Strings.Delete_Audio_Download:
+                    guard let text = self.text else {
+                        break
+                    }
+                    
                     var alertActions = [AlertAction]()
 
                     let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { [weak self]
@@ -3372,7 +3379,7 @@ class MediaItem : NSObject
                     })
                     alertActions.append(noAction)
                     
-                    Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                    Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: text, actions: alertActions)
                     break
                     
                 case Constants.Strings.Cancel_Audio_Download:
@@ -3382,6 +3389,10 @@ class MediaItem : NSObject
                         break
                         
                     case .downloaded:
+                        guard let text = self.text else {
+                            break
+                        }
+                        
                         var alertActions = [AlertAction]()
                         
                         let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { [weak self]
@@ -3396,7 +3407,7 @@ class MediaItem : NSObject
                         })
                         alertActions.append(noAction)
                         
-                        Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: nil, actions: alertActions)
+                        Alerts.shared.alert(title: "Confirm Deletion of Audio Download", message: text, actions: alertActions)
                         break
                         
                     default:

@@ -452,28 +452,28 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
         let string = strings[index]
         
         switch purpose {
-        case .selectingSorting:
-            section.method = string
-            
-            switch string {
-            case Constants.Sort.Alphabetical:
-                section.showIndex = true
-                break
-                
-            case Constants.Sort.Frequency:
-                section.showIndex = false
-                break
-                
-            default:
-                break
-            }
-            
-            if let function = section.function {
-                section.strings = function(section.method,section.strings)
-            }
-            
-            tableView.reloadData()
-            break
+//        case .selectingSorting:
+//            section.method = string
+//
+//            switch string {
+//            case Constants.Sort.Alphabetical:
+//                section.showIndex = true
+//                break
+//
+//            case Constants.Sort.Frequency:
+//                section.showIndex = false
+//                break
+//
+//            default:
+//                break
+//            }
+//
+//            if let function = section.function {
+//                section.strings = function(section.method,section.strings)
+//            }
+//
+//            tableView.reloadData()
+//            break
 
         default:
             break

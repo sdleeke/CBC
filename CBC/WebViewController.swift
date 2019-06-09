@@ -268,7 +268,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
-                self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
+                self.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
                     firstAction: { [weak self] in
                         // test:(()->(Bool))?
@@ -299,7 +299,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //            }
             
         case Constants.Strings.Search:
-            let alert = CBCAlertController(  title: Constants.Strings.Search,
+            let alert = CBCAlertController( title: Constants.Strings.Search,
                                             message: nil,
                                             preferredStyle: .alert)
             alert.makeOpaque()

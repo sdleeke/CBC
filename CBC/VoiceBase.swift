@@ -540,9 +540,9 @@ extension VoiceBase // Class Methods
                 if mediaItems.count > 0 {
                     if alert {
                         if mediaItems.count > 1 {
-                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
+                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library")
                         } else {
-                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                            Alerts.shared.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library")
                         }
                     }
                     
@@ -560,12 +560,12 @@ extension VoiceBase // Class Methods
             } else {
                 // No mediaItems
                 if alertNone {
-                    Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library", message: nil)
+                    Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library")
                 }
             }
         }, onError:  { (json:[String : Any]?) -> (Void) in
             if alertNone {
-                Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library", message: nil)
+                Alerts.shared.alert(title: "No Items Deleted from the VoiceBase Media Library")
             }
         })
     }
@@ -4861,7 +4861,7 @@ class VoiceBase
             if self.transcript == nil {
                 guard Globals.shared.isVoiceBaseAvailable ?? false else {
                     if Globals.shared.voiceBaseAPIKey == nil {
-                        let alert = CBCAlertController(  title: "Please add an API Key to use VoiceBase",
+                        let alert = CBCAlertController( title: "Please add an API Key to use VoiceBase",
                                                         message: nil,
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
@@ -5956,9 +5956,7 @@ class VoiceBase
             }))
             
             viewController.alertActionsCancel( title: "Show Timing Index",
-                                               message: nil,
-                                               alertActions: alertActions,
-                                               cancelAction: nil)
+                                               alertActions: alertActions)
         }
         
         return action

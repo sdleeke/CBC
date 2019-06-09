@@ -140,7 +140,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Print:
                 if let string = webViewController?.html.string, string.contains(" href=") {
-                    self.firstSecondCancel(title: "Remove Links?", message: nil, //"This can take some time.",
+                    self.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
                         firstTitle: Constants.Strings.Yes,
                         firstAction: {
                             // test:(()->(Bool))?
@@ -196,7 +196,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Search:
-                self.searchAlert(title: "Search", message: nil, searchText:webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
+                self.searchAlert(title: "Search", searchText:webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
                     self.webViewController?.searchText = alert.textFields?[0].text
                     
                     self.webViewController?.wkWebView?.isHidden = true

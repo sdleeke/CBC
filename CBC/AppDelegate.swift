@@ -422,11 +422,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         
         if newCategory || newTag {
             // Clear the tag
-            Globals.shared.media.tagged.clear() // Why should newTag cause this?
+            Globals.shared.media.tags.tagged.clear() // Why should newTag cause this?
             
             if let tag = Globals.shared.media.tags.selected {
                 // Update the list of tagged mediaItem.
-                Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+                Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
             }
         }
         

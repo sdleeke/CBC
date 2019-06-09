@@ -1258,7 +1258,7 @@ class TextViewController : CBCViewController
             })
 
         case "Cancel":
-            self.yesOrNo(title: "Discard Changes?", message: nil, yesAction: { () -> (Void) in
+            self.yesOrNo(title: "Discard Changes?", yesAction: { () -> (Void) in
                 self.dismiss(animated: true, completion: {
                     if self.isTracking {
                         self.stopTracking()

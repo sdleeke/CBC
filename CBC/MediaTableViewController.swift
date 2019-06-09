@@ -518,11 +518,11 @@ class MediaTableViewController : MediaItemsViewController
             },onError: nil)
     }
     
-    @objc func downloadFailed(_ notification:NSNotification)
-    {
-
-    }
-    
+//    @objc func downloadFailed(_ notification:NSNotification)
+//    {
+//
+//    }
+//    
     @IBOutlet weak var logo: UIImageView!
     {
         didSet {
@@ -1145,15 +1145,15 @@ class MediaTableViewController : MediaItemsViewController
                 }))
             }
             
-            if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.category.tag, Globals.shared.media.tagged[tag] == nil {
+            if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.category.tag, Globals.shared.media.tags.tagged[tag] == nil {
                 if Globals.shared.media.all == nil {
                     //This is filtering, i.e. searching all mediaItems => s/b in background
-                    Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+                    Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
                         return mediaItem.category == Globals.shared.media.category.selected
                     }).withTag(tag: Globals.shared.media.tags.selected))
                 } else {
                     if let sortTag = Globals.shared.media.tags.selected?.withoutPrefixes {
-                        Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+                        Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
                     }
                 }
             }            
@@ -1338,7 +1338,7 @@ class MediaTableViewController : MediaItemsViewController
         
         Globals.shared.isRefreshing = true
         
-        self.yesOrNo(title: "Reload Media List?", message: nil,
+        self.yesOrNo(title: "Reload Media List?",
                 yesAction: { () -> (Void) in
                     self.setupListActivityIndicator()
                     
@@ -1919,7 +1919,7 @@ class MediaTableViewController : MediaItemsViewController
                 return
             }
             
-            if let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
+            if let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
                 for mediaItem in mediaItems {
                     Thread.onMainSync {
                         if self?.loadingButton?.tag == 1 {
@@ -1964,7 +1964,7 @@ class MediaTableViewController : MediaItemsViewController
                     self?.updateDisplay(context:context)
                 }
                 
-                if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.toSearch?.mediaList?.list {
+                if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
                     // toSearch?
                     Globals.shared.media.search.searches?[context]?.complete = false
                     
@@ -3267,10 +3267,10 @@ class MediaTableViewController : MediaItemsViewController
                     Globals.shared.media.cache[selected] = Globals.shared.media.all
                 }
                 
-                Globals.shared.media.tagged.clear()
+                Globals.shared.media.tags.tagged.clear()
                 
                 if let tag = Globals.shared.media.tags.selected {
-                    Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
+                    Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes])
                 }
                 
                 self?.display.setup(Globals.shared.media.active)
@@ -3330,32 +3330,32 @@ class MediaTableViewController : MediaItemsViewController
             updateSearchResults(Globals.shared.media.active?.context,completion: nil)
             break
             
-        case .selectingCellAction:
-            popover?.values.forEach({ (popover:PopoverTableViewController) in
-                popover.dismiss(animated: true, completion: nil)
-            })
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                Thread.onMain {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
-                }
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
-            
+//        case .selectingCellAction:
+//            popover?.values.forEach({ (popover:PopoverTableViewController) in
+//                popover.dismiss(animated: true, completion: nil)
+//            })
+//
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                Thread.onMain {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                }
+//                break
+//
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//
+//            default:
+//                break
+//            }
+//            break
+//
         case .selectingSearch:
             self.popover?["SEARCH_HISTORY"]?.dismiss(animated: true, completion: nil)
             

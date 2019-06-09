@@ -40,6 +40,11 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         return nil
     }
     
+    @objc func downloadFailed(_ notification:NSNotification)
+    {
+        
+    }
+    
     // Handles only the selectingTimingIndex and selectingTime row actions.
     // selectingTimingIndex has four variants: Word, Phrase, Topic, and Keyword
     // While all are implemented only the Word variant is used in the app because
@@ -69,7 +74,32 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         let string = strings[index]
         
         switch purpose {
-        // Used
+        case .selectingCellAction:
+            popover?.values.forEach({ (popover:PopoverTableViewController) in
+                popover.dismiss(animated: true, completion: nil)
+            })
+            
+            switch string {
+            case Constants.Strings.Download_Audio:
+                mediaItem?.audioDownload?.download(background: true)
+                Thread.onMain {
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                }
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                mediaItem?.audioDownload?.delete(block:true)
+                break
+                
+            case Constants.Strings.Cancel_Audio_Download:
+                mediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+            break
+            
         case .selectingTimingIndexWord:
             guard let searchText = string.components(separatedBy: Constants.SINGLE_SPACE).first else {
                 return

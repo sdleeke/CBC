@@ -660,7 +660,7 @@ class MediaListGroupSort // : NSObject
 
         if let tag = tag, self.name == Constants.Strings.All {
             // THIS CAUSES THE VC (E.G. SI/LI) USING THE TAG MLGS TO KEEP IT BUT IF EXITED AND REENTERED THE NEW ONE IS USED!
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
+            Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {
@@ -704,7 +704,7 @@ class MediaListGroupSort // : NSObject
         
         if let tag = tag, self.name == Constants.Strings.All { // , Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes] == nil
             // THIS CAUSES THE VC (E.G. SI/LI) USING THE TAG MLGS TO KEEP IT BUT IF EXITED AND REENTERED THE NEW ONE IS USED!
-            Globals.shared.media.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
+            Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[tag.withoutPrefixes]) // nil if mediaItems are nil or count == 0
 
             // Any search in mediaItems w/ that tag must be removed and recalculated since the starting list of mediaItems has changed.
             if let keys = Globals.shared.media.search.searches?.keys() {

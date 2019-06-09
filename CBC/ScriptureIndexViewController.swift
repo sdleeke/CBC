@@ -1355,26 +1355,26 @@ class ScriptureIndexViewController : MediaItemsViewController
             }
             break
             
-        case .selectingCellAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch strings[index] {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
+//        case .selectingCellAction:
+//            dismiss(animated: true, completion: nil)
+//            
+//            switch strings[index] {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                break
+//                
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//                
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//                
+//            default:
+//                break
+//            }
+//            break
             
         default:
             break

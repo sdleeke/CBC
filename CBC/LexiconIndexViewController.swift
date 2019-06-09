@@ -1558,28 +1558,28 @@ class LexiconIndexViewController : MediaItemsViewController
         let string = strings[index]
         
         switch purpose {
-        case .selectingSorting:
-            dismiss(animated: true, completion: nil)
-            
-            wordsTableViewController.section.method = string
-            
-            switch string {
-            case Constants.Sort.Alphabetical:
-                wordsTableViewController.section.showIndex = true
-                break
-                
-            case Constants.Sort.Frequency:
-                wordsTableViewController.section.showIndex = false
-                break
-                
-            default:
-                break
-            }
-            
-            wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
-            
-            wordsTableViewController.tableView.reloadData()
-            break
+//        case .selectingSorting:
+//            dismiss(animated: true, completion: nil)
+//
+//            wordsTableViewController.section.method = string
+//
+//            switch string {
+//            case Constants.Sort.Alphabetical:
+//                wordsTableViewController.section.showIndex = true
+//                break
+//
+//            case Constants.Sort.Frequency:
+//                wordsTableViewController.section.showIndex = false
+//                break
+//
+//            default:
+//                break
+//            }
+//
+//            wordsTableViewController.section.strings = wordsTableViewController.section.function?(wordsTableViewController.section.method,wordsTableViewController.section.strings)
+//
+//            wordsTableViewController.tableView.reloadData()
+//            break
             
         case .selectingSection:
             dismiss(animated: true, completion: nil)
@@ -1627,26 +1627,26 @@ class LexiconIndexViewController : MediaItemsViewController
             actionMenu(action:string,mediaItem:mediaItem)
             break
             
-        case .selectingCellAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
+//        case .selectingCellAction:
+//            dismiss(animated: true, completion: nil)
+//            
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                break
+//                
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//                
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//                
+//            default:
+//                break
+//            }
+//            break
             
         default:
             break
