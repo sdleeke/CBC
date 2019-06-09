@@ -1134,10 +1134,10 @@ class MediaTableViewController : MediaItemsViewController
                 }
             }
 
-            Thread.onMain {
-                self?.navigationItem.title = Constants.Title.Loading_Settings
-            }
-            Globals.shared.loadSettings()
+//            Thread.onMain {
+//                self?.navigationItem.title = Constants.Title.Loading_Settings
+//            }
+//            Globals.shared.loadSettings()
             
             Thread.onMain {
                 self?.navigationItem.title = Constants.Title.Sorting_and_Grouping

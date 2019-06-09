@@ -667,77 +667,77 @@ class Globals : NSObject
         defaults.synchronize()
     }
     
-    func clearSettings()
-    {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: Constants.SETTINGS.MEDIA)
-        defaults.removeObject(forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
-        defaults.removeObject(forKey: Constants.SETTINGS.CATEGORY)
-        defaults.synchronize()
-    }
+//    func clearSettings()
+//    {
+//        let defaults = UserDefaults.standard
+//        defaults.removeObject(forKey: Constants.SETTINGS.MEDIA)
+//        defaults.removeObject(forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
+//        defaults.removeObject(forKey: Constants.SETTINGS.CATEGORY)
+//        defaults.synchronize()
+//    }
     
-    func loadSettings()
-    {
-        let defaults = UserDefaults.standard
-        
-        guard let settingsVersion = defaults.string(forKey: Constants.SETTINGS.VERSION.KEY) else {
-            //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
-            clearSettings()
-            defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)
-            defaults.synchronize()
-            return
-        }
-        
-        if (media.tags.selected == Constants.Strings.New) {
-            media.tags.selected = nil
-        }
-        
-//        media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-//        media.search.isActive = media.search.text != nil
-        
-//        if let playing = media.category.playing {
-//            mediaPlayer.mediaItem = media.repository.index[playing]
-//        } else {
-//            mediaPlayer.mediaItem = nil
+//    func loadSettings()
+//    {
+//        let defaults = UserDefaults.standard
+//
+//        guard let settingsVersion = defaults.string(forKey: Constants.SETTINGS.VERSION.KEY) else {
+//            //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
+//            clearSettings()
+//            defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)
+//            defaults.synchronize()
+//            return
 //        }
-        
-        if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
-//            if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
-//                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
-//            }
 //
-//            if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
-//                multiPartSettings.update(storage: seriesSettingsDictionary)
-//            }
+//        if (media.tags.selected == Constants.Strings.New) {
+//            media.tags.selected = nil
+//        }
 //
-//            if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
-//                media.category.settings.update(storage: categorySettingsDictionary)
-//            }
-            
-//            if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
-//                sorting = sortingString
-//            } else {
-//                sorting = SORTING.REVERSE_CHRONOLOGICAL
-//            }
-            
-//            if let groupingString = defaults.string(forKey: Constants.SETTINGS.GROUPING) {
-//                grouping = groupingString
-//            } else {
-//                grouping = GROUPING.YEAR
-//            }
-
-            //
-            
-//            if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
-////                history = historyArray as? [String]
-//                media.history.list.update(storage: historyArray as? [String])
-//            }
-        } else {
-            //This is where we should map the old version on to the new one and preserve the user's information.
-            defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)
-            defaults.synchronize()
-        }
-    }
+////        media.search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
+////        media.search.isActive = media.search.text != nil
+//
+////        if let playing = media.category.playing {
+////            mediaPlayer.mediaItem = media.repository.index[playing]
+////        } else {
+////            mediaPlayer.mediaItem = nil
+////        }
+//
+//        if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
+////            if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA) {
+////                mediaItemSettings.update(storage: mediaItemSettingsDictionary)
+////            }
+////
+////            if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.MULTI_PART_MEDIA) {
+////                multiPartSettings.update(storage: seriesSettingsDictionary)
+////            }
+////
+////            if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.CATEGORY) {
+////                media.category.settings.update(storage: categorySettingsDictionary)
+////            }
+//
+////            if let sortingString = defaults.string(forKey: Constants.SETTINGS.SORTING) {
+////                sorting = sortingString
+////            } else {
+////                sorting = SORTING.REVERSE_CHRONOLOGICAL
+////            }
+//
+////            if let groupingString = defaults.string(forKey: Constants.SETTINGS.GROUPING) {
+////                grouping = groupingString
+////            } else {
+////                grouping = GROUPING.YEAR
+////            }
+//
+//            //
+//
+////            if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
+//////                history = historyArray as? [String]
+////                media.history.list.update(storage: historyArray as? [String])
+////            }
+//        } else {
+//            //This is where we should map the old version on to the new one and preserve the user's information.
+//            defaults.set(Constants.SETTINGS.VERSION.NUMBER, forKey: Constants.SETTINGS.VERSION.KEY)
+//            defaults.synchronize()
+//        }
+//    }
     
 //    func cancelAllDownloads()
 //    {
