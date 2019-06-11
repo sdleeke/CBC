@@ -885,7 +885,7 @@ class LexiconIndexViewController : MediaItemsViewController
             bodyString += "Search: \(searchText)"
         }
         
-        if mediaListGroupSort?.search.value?.transcripts == true {
+        if mediaListGroupSort?.search.value?.transcripts.value == true {
             bodyString += " (including transcripts)"
         }
         

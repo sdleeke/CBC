@@ -4546,6 +4546,7 @@ class VoiceBase
 
     func cancelAutoEdit(alert:Bool)
     {
+        // Not sure why we tag cancellable operations with tag:Constants.Strings.Auto_Edit when we just cancel everything.
         self.operationQueue.cancelAllOperations()
         self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
         

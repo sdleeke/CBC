@@ -1970,7 +1970,7 @@ class MediaTableViewController : MediaItemsViewController
                     self?.updateDisplay(context:context)
                 }
                 
-                if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
+                if !abort, Globals.shared.media.search.transcripts.value == true, let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
                     // toSearch?
                     Globals.shared.media.search.searches?[context]?.complete = false
                     
@@ -1983,7 +1983,7 @@ class MediaTableViewController : MediaItemsViewController
                             searchHit = mediaItem.searchNotes(context.searchText)
                         }
 
-                        abort = abort || shouldAbort() || (test?() ?? false) || !Globals.shared.media.search.transcripts
+                        abort = abort || shouldAbort() || (test?() ?? false) || (Globals.shared.media.search.transcripts.value == false)
                         
                         Thread.onMainSync {
                             if self?.loadingButton?.tag == 1 {

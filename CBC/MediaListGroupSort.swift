@@ -132,14 +132,7 @@ class MediaListGroupSort // : NSObject
     lazy var grouping = Default<String>({ return Globals.shared.grouping })
     
     // In case we want different search in different MLGS's some day?
-    lazy var search:Default<Search>! = {
-        let search = Default<Search>({ return Globals.shared.media.search })
-        
-        search.value?.text = UserDefaults.standard.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-        search.value?.isActive = search.value?.text != nil
-
-        return search
-    }()
+    lazy var search = Default<Search>({ return Globals.shared.media.search })
     
     // In case we want different categories in different MLGS's some day?
     lazy var category:Default<String>! = {
@@ -226,7 +219,7 @@ class MediaListGroupSort // : NSObject
                 string += "|TAG:" + tag
             }
             
-            if search.value?.transcripts == true {
+            if search.value?.transcripts.value == true {
                 string += "|TRANSCRIPTS:YES"
             }
 
@@ -846,7 +839,7 @@ class MediaListGroupSort // : NSObject
             bodyString += "Search: \(searchText)"
         }
         
-        if search.value?.transcripts == true {
+        if search.value?.transcripts.value == true {
             bodyString += " (including transcripts)"
         }
 

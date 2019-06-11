@@ -29,7 +29,7 @@ class Document : NSObject
         fetchData.fetch = {
             var data : Data?
             
-            if Globals.shared.cacheDownloads {
+            if Globals.shared.settings.cacheDownloads {
                 data = self?.download?.fileSystemURL?.data ?? self?.download?.downloadURL?.data?.save(to: self?.download?.fileSystemURL)
             } else {
                 data = self?.download?.downloadURL?.data

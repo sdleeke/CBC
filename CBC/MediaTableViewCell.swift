@@ -311,7 +311,7 @@ class MediaTableViewCell: UITableViewCell
         
         if mediaItem.hasNotes {
             if (vc as? MediaTableViewController) != nil {
-                if Globals.shared.media.search.transcripts, Globals.shared.media.search.isActive {
+                if Globals.shared.media.search.transcripts.value == true, Globals.shared.media.search.isActive {
                     if mediaItem.searchHit(self.searchText).transcript {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                     } else {

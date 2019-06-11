@@ -32,6 +32,8 @@ class Globals : NSObject
 {
     static var shared = Globals()
     
+    var settings = Settings()
+
     private var rootViewController : UIViewController?
     {
         get {
@@ -443,39 +445,39 @@ class Globals : NSObject
     }
     /////////////////////////////////////////////////////////////////////////////////////
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    // Would like to group these settings
-    /////////////////////////////////////////////////////////////////////////////////////
-    var autoAdvance:Bool
-    {
-        get {
-            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.AUTO_ADVANCE)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.AUTO_ADVANCE)
-            UserDefaults.standard.synchronize()
-        }
-    }
-    
-    var cacheDownloads:Bool
-    {
-        get {
-            if UserDefaults.standard.object(forKey: Constants.SETTINGS.CACHE_DOWNLOADS) == nil {
-                if #available(iOS 9.0, *) {
-                    UserDefaults.standard.set(true, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
-                } else {
-                    UserDefaults.standard.set(false, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
-                }
-            }
-            
-            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
-            UserDefaults.standard.synchronize()
-        }
-    }
-    /////////////////////////////////////////////////////////////////////////////////////
+//    /////////////////////////////////////////////////////////////////////////////////////
+//    // Would like to group these settings
+//    /////////////////////////////////////////////////////////////////////////////////////
+//    var autoAdvance:Bool
+//    {
+//        get {
+//            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.AUTO_ADVANCE)
+//        }
+//        set {
+//            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.AUTO_ADVANCE)
+//            UserDefaults.standard.synchronize()
+//        }
+//    }
+//    
+//    var cacheDownloads:Bool
+//    {
+//        get {
+//            if UserDefaults.standard.object(forKey: Constants.SETTINGS.CACHE_DOWNLOADS) == nil {
+//                if #available(iOS 9.0, *) {
+//                    UserDefaults.standard.set(true, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
+//                } else {
+//                    UserDefaults.standard.set(false, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
+//                }
+//            }
+//            
+//            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
+//        }
+//        set {
+//            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.CACHE_DOWNLOADS)
+//            UserDefaults.standard.synchronize()
+//        }
+//    }
+//    /////////////////////////////////////////////////////////////////////////////////////
 
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
@@ -497,7 +499,7 @@ class Globals : NSObject
                 string += ", " + "\"\(search)\""  // Search:
             }
             
-            if media.search.transcripts {
+            if media.search.transcripts.value == true {
                 string += " (including transcripts)"  // Search:
             }
             

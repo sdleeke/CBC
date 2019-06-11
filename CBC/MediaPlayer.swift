@@ -762,7 +762,7 @@ class MediaPlayer : NSObject
         
         mediaItem?.atEnd = true
         
-        if Globals.shared.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
+        if Globals.shared.settings.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
             let mediaItems = mediaItem.multiPartMediaItems,
             let index = mediaItems.firstIndex(of: mediaItem), index < (mediaItems.count - 1) {
             let nextMediaItem = mediaItems[index + 1]

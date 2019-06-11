@@ -2753,7 +2753,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard Globals.shared.cacheDownloads else {
+        guard Globals.shared.settings.cacheDownloads else {
             loadWeb()
             return
         }
@@ -3085,7 +3085,7 @@ class MediaViewController : MediaItemsViewController
         
         if var showing = selectedMediaItem.showing {            
             if !Globals.shared.reachability.isReachable {
-                if document?.fetchData.cache == nil, !Globals.shared.cacheDownloads || (download?.exists == false) {
+                if document?.fetchData.cache == nil, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
                         self.alert(title: "Slides Not Available")

@@ -1431,7 +1431,7 @@ class WebViewController: CBCViewController
             return
         }
         
-        if Globals.shared.cacheDownloads {
+        if Globals.shared.settings.cacheDownloads {
             if let destinationURL = urlString.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
                 _ = wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                 

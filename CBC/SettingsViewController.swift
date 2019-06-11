@@ -17,7 +17,7 @@ class SettingsViewController: CBCViewController
     
     @IBAction func searchTranscriptsAction(_ sender: UISwitch)
     {
-        Globals.shared.media.search.transcripts = sender.isOn
+        Globals.shared.settings.transcripts = sender.isOn
         
         Thread.onMain {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
@@ -28,7 +28,7 @@ class SettingsViewController: CBCViewController
     
     @IBAction func autoAdvanceAction(_ sender: UISwitch)
     {
-        Globals.shared.autoAdvance = sender.isOn
+        Globals.shared.settings.autoAdvance = sender.isOn
     }
     
     @IBOutlet weak var audioSizeLabel: UILabel!
@@ -37,7 +37,7 @@ class SettingsViewController: CBCViewController
     
     @IBAction func cacheAction(_ sender: UISwitch)
     {
-        Globals.shared.cacheDownloads = sender.isOn
+        Globals.shared.settings.cacheDownloads = sender.isOn
     }
     
     @IBOutlet weak var clearCache: UIButton!
@@ -117,9 +117,9 @@ class SettingsViewController: CBCViewController
             cacheSwitch.isEnabled = false
         }
         
-        searchTranscriptsSwitch.isOn = Globals.shared.media.search.transcripts
-        autoAdvanceSwitch.isOn = Globals.shared.autoAdvance
-        cacheSwitch.isOn = Globals.shared.cacheDownloads
+        searchTranscriptsSwitch.isOn = Globals.shared.settings.transcripts
+        autoAdvanceSwitch.isOn = Globals.shared.settings.autoAdvance
+        cacheSwitch.isOn = Globals.shared.settings.cacheDownloads
         
         operationQueue.addOperation { [weak self] in
             Thread.onMain {

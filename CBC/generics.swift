@@ -933,7 +933,7 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
         super.init(name: name, fetch: fetch)
 
         store = { [weak self] (t:T?) in
-            guard Globals.shared.cacheDownloads else {
+            guard Globals.shared.settings.cacheDownloads else {
                 return
             }
 
@@ -966,7 +966,7 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
         }
 
         retrieve = { [weak self] in
-            guard Globals.shared.cacheDownloads else {
+            guard Globals.shared.settings.cacheDownloads else {
                 return nil
             }
 

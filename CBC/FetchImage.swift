@@ -109,7 +109,7 @@ class FetchImage : Fetch<UIImage>, Size
     
     func retrieveIt() -> UIImage?
     {
-        guard Globals.shared.cacheDownloads else {
+        guard Globals.shared.settings.cacheDownloads else {
             return nil
         }
         
@@ -122,7 +122,7 @@ class FetchImage : Fetch<UIImage>, Size
             return
         }
         
-        guard Globals.shared.cacheDownloads else {
+        guard Globals.shared.settings.cacheDownloads else {
             return
         }
         

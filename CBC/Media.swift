@@ -67,7 +67,12 @@ class Media
     }()
     
     lazy var search : Search! = {
-        return Search(self)
+        let search = Search(self)
+        
+        search.text = UserDefaults.standard.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
+        search.isActive = search.text?.isEmpty == false
+
+        return search
     }()
     
     var metadata : [String:Any]?

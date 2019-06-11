@@ -432,7 +432,7 @@ class MediaItem : NSObject
             return
         }
         
-        if Globals.shared.cacheDownloads {
+        if Globals.shared.settings.cacheDownloads {
             guard document.download?.exists == true else {
                 if document.download?.state != .downloading {
                     document.download?.download(background: false)
@@ -3261,7 +3261,7 @@ class MediaItem : NSObject
                 htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
             } else
                 
-            if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
+            if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts.value == true {
                 htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, index: true).0
             }
             

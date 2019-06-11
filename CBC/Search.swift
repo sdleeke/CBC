@@ -132,16 +132,17 @@ class Search
             _text = newValue
         }
     }
-    
-    var transcripts:Bool
-    {
-        get {
-            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
-            UserDefaults.standard.synchronize()
-        }
-    }
+
+    lazy var transcripts = Default<Bool>({ return Globals.shared.settings.transcripts })
+//    var transcripts:Bool
+//    {
+//        get {
+//            return UserDefaults.standard.bool(forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
+//        }
+//        set {
+//            UserDefaults.standard.set(newValue, forKey: Constants.SETTINGS.SEARCH_TRANSCRIPTS)
+//            UserDefaults.standard.synchronize()
+//        }
+//    }
 }
 
