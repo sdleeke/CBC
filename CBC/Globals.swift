@@ -635,7 +635,7 @@ class Globals : NSObject
     
     @objc func handleReset(_ notification: Notification)
     {
-        
+        mediaPlayer.reload()
     }
     
     @objc func handleInterruption(_ notification: Notification)
