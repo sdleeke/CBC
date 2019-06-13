@@ -147,31 +147,14 @@ class Globals : NSObject
     private var _voiceBaseAPIKey : String?
     {
         didSet {
-            checkVoiceBaseAvailability()
-        }
-    }
-    var voiceBaseAPIKey : String?
-    {
-        get {
-            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
-                if key.isEmpty {
-                    return nil
-                }
-
-                return key
-            } else {
-                return nil
-            }
-        }
-        set {
-            if let key = newValue {
+            if let key = _voiceBaseAPIKey {
                 if !key.isEmpty {
-                    UserDefaults.standard.set(newValue, forKey: Constants.Strings.VoiceBase_API_Key)
+                    UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
                 } else {
                     isVoiceBaseAvailable = false
                     UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
                 }
-
+                
                 // Do we need to notify VoiceBase objects?
                 // No, because if it was nil before there shouldn't be anything on VB.com
                 // No, because if it was not nil before then they either the new KEY is good or bad.
@@ -181,12 +164,76 @@ class Globals : NSObject
                 isVoiceBaseAvailable = false
                 UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
             }
-
+            
             UserDefaults.standard.synchronize()
-
+            
+            if isVoiceBaseAvailable == true {
+                checkVoiceBaseAvailability()
+            }
+        }
+    }
+    var voiceBaseAPIKey : String?
+    {
+        get {
+            if _voiceBaseAPIKey == nil {
+                if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key), !key.isEmpty {
+                    _voiceBaseAPIKey = key
+                } else {
+                    // For testing ONLY
+                    _voiceBaseAPIKey = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+                }
+            }
+            
+            return _voiceBaseAPIKey
+        }
+        set {
             _voiceBaseAPIKey = newValue
         }
     }
+
+//    private var _voiceBaseAPIKey : String?
+//    {
+//        didSet {
+//            checkVoiceBaseAvailability()
+//        }
+//    }
+//    var voiceBaseAPIKey : String?
+//    {
+//        get {
+//            if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key) {
+//                if key.isEmpty {
+//                    return nil
+//                }
+//
+//                return key
+//            } else {
+//                return nil
+//            }
+//        }
+//        set {
+//            if let key = newValue {
+//                if !key.isEmpty {
+//                    UserDefaults.standard.set(newValue, forKey: Constants.Strings.VoiceBase_API_Key)
+//                } else {
+//                    isVoiceBaseAvailable = false
+//                    UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+//                }
+//
+//                // Do we need to notify VoiceBase objects?
+//                // No, because if it was nil before there shouldn't be anything on VB.com
+//                // No, because if it was not nil before then they either the new KEY is good or bad.
+//                // If bad, then it will fail.  If good, then they will finish.
+//                // So, nothing needs to be done.
+//            } else {
+//                isVoiceBaseAvailable = false
+//                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+//            }
+//
+//            UserDefaults.standard.synchronize()
+//
+//            _voiceBaseAPIKey = newValue
+//        }
+//    }
     
 //    func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
 //    {
@@ -570,10 +617,65 @@ class Globals : NSObject
 //        return string
 //    }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TRIED TO DO THIS W/IN MediaPlayer class and could not get it to work.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleInterruption(_:)),
+                                               name: AVAudioSession.interruptionNotification,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleReset(_:)),
+                                               name: AVAudioSession.mediaServicesWereResetNotification,
+                                               object: nil)
+    }
+    
+    @objc func handleReset(_ notification: Notification)
+    {
+        
+    }
+    
+    @objc func handleInterruption(_ notification: Notification)
+    {
+        guard let userInfo = notification.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+                return
+        }
+        
+        switch type {
+        case .began:
+            // Interruption began, take appropriate actions
+            mediaPlayer.pause()
+            break
+            
+        case .ended:
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    // Interruption Ended - playback should resume
+                    mediaPlayer.play()
+                } else {
+                    // Interruption Ended - playback should NOT resume
+                }
+            }
+            break
+            
+        @unknown default:
+            break
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     var mediaPlayerInit = true
     lazy var mediaPlayer:MediaPlayer! = {
         let player = MediaPlayer()
-        
+
+        addNotifications()
+
         if let playing = media.category.playing {
             // This ONLY works if media.repository.index is loaded before this is instantiated.
             player.mediaItem = media.repository.index[playing]
@@ -585,14 +687,9 @@ class Globals : NSObject
         return player
     }()
     
-    // These are hidden behind custom accessors in MediaItem
-    // May want to put into a struct Settings w/ multiPart an mediaItem as vars
-    
     ////////////////////////////////////////////////////////////////////////////
-    // Would like to group these
+    // SETTINGS
     ////////////////////////////////////////////////////////////////////////////
-//    var multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
-    
     lazy var multiPartSettings : ThreadSafeDN<String>! = // [String:[String:String]]? // ictionaryOfDictionaries
         {
             let multiPartSettings = ThreadSafeDN<String>(name: "MULTIPARTSETTINGS")
@@ -604,8 +701,6 @@ class Globals : NSObject
             return multiPartSettings
     }()
 
-//    var mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS") // [String:[String:String]]? // ictionaryOfDictionaries
-    
     lazy var mediaItemSettings : ThreadSafeDN<String>! = // [String:[String:String]]? // ictionaryOfDictionaries
         {
             let mediaItemSettings = ThreadSafeDN<String>(name: "MEDIAITEMSETTINGS")
@@ -616,6 +711,41 @@ class Globals : NSObject
             
             return mediaItemSettings
     }()
+    
+    func saveSettingsBackground()
+    {
+        guard allowSaveSettings else {
+            return
+        }
+        
+        print("saveSettingsBackground")
+        
+        operationQueue.addOperation {
+            self.saveSettings()
+        }
+    }
+    
+    func saveSettings()
+    {
+        guard allowSaveSettings else {
+            return
+        }
+        
+        print("saveSettings")
+        let defaults = UserDefaults.standard
+        defaults.set(mediaItemSettings.copy,forKey: Constants.SETTINGS.MEDIA)
+        defaults.set(multiPartSettings.copy, forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
+        defaults.synchronize()
+    }
+    
+    func clearSettings()
+    {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: Constants.SETTINGS.MEDIA)
+        defaults.removeObject(forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
+        defaults.removeObject(forKey: Constants.SETTINGS.CATEGORY)
+        defaults.synchronize()
+    }
     ////////////////////////////////////////////////////////////////////////////
    
     var media = Media()
@@ -642,41 +772,6 @@ class Globals : NSObject
         debug(self)
         operationQueue.cancelAllOperations()
     }
-    
-    func saveSettingsBackground()
-    {
-        guard allowSaveSettings else {
-            return
-        }
-
-        print("saveSettingsBackground")
-        
-        operationQueue.addOperation {
-            self.saveSettings()
-        }
-    }
-    
-    func saveSettings()
-    {
-        guard allowSaveSettings else {
-            return
-        }
-        
-        print("saveSettings")
-        let defaults = UserDefaults.standard
-        defaults.set(mediaItemSettings.copy,forKey: Constants.SETTINGS.MEDIA)
-        defaults.set(multiPartSettings.copy, forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
-        defaults.synchronize()
-    }
-    
-//    func clearSettings()
-//    {
-//        let defaults = UserDefaults.standard
-//        defaults.removeObject(forKey: Constants.SETTINGS.MEDIA)
-//        defaults.removeObject(forKey: Constants.SETTINGS.MULTI_PART_MEDIA)
-//        defaults.removeObject(forKey: Constants.SETTINGS.CATEGORY)
-//        defaults.synchronize()
-//    }
     
 //    func loadSettings()
 //    {

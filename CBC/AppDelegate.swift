@@ -570,7 +570,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         
-        if Globals.shared.mediaPlayer.isPlaying && (Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video) && (Globals.shared.mediaPlayer.pip != .started) {
+        if Globals.shared.mediaPlayer.isPlaying, Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video, Globals.shared.mediaPlayer.pip != .started {
             Globals.shared.mediaPlayer.pause()
         }
     }
@@ -579,10 +579,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
     {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 
-        if (Globals.shared.mediaPlayer.rate == 0) && Globals.shared.mediaPlayer.isPaused && (Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+        // Do we need to do this for audio? NO.
+        if Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video, Globals.shared.mediaPlayer.rate == 0, Globals.shared.mediaPlayer.isPaused, Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM) {
             // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
-            
-            // Do we need to do this for audio?
             
             if (Globals.shared.mediaPlayer.mediaItem != nil) { // && Globals.shared.mediaPlayer.mediaItem!.hasVideo && (Globals.shared.mediaPlayer.mediaItem!.playing == Playing.video)
                 Globals.shared.mediaPlayer.playOnLoad = false

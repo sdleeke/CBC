@@ -1054,6 +1054,7 @@ class MediaItem : NSObject
                 return
             }
             
+            print(newValue)
             self[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
             
             mediaItemSettings?[Constants.SETTINGS.CURRENT_TIME+playing] = newValue

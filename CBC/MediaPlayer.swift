@@ -211,9 +211,10 @@ class MediaPlayer : NSObject
             return
         }
         
-        if rate == 0, !fullScreen {
-            didPlayToEnd()
-        }
+        // Why did we do this?
+//        if rate == 0, !fullScreen {
+//            didPlayToEnd()
+//        }
 
         if Int(currentTime) >= Int(duration) {
             didPlayToEnd()

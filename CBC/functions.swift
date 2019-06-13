@@ -19,19 +19,27 @@ func debug(_ any:Any...)
 }
 
 // Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertFromAVAudioSessionCategory(_ input: AVAudioSession.Category) -> String {
-    return input.rawValue
-}
+//fileprivate func convertFromAVAudioSessionCategory(_ input: AVAudioSession.Category) -> String {
+//    return input.rawValue
+//}
 
 func startAudio()
 {
     let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
     
     do {
-        try audioSession.setCategory(AVAudioSession.Category(rawValue: convertFromAVAudioSessionCategory(AVAudioSession.Category.playback)))
+        try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+        
+        // These two don't seem to matter.
+//        try AVAudioSession.sharedInstance().setMode(AVAudioSession.Mode.default)
+//        try AVAudioSession.sharedInstance().setActive(true)
+        
+//        try audioSession.setCategory(AVAudioSession.Category(rawValue: convertFromAVAudioSessionCategory(AVAudioSession.Category.playback)))
     } catch let error {
         NSLog("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
     }
+    
+    
     
     UIApplication.shared.beginReceivingRemoteControlEvents()
 }
