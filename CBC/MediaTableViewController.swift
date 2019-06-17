@@ -2207,34 +2207,34 @@ class MediaTableViewController : MediaItemsViewController
         }
     }
     
-    func setupSplitViewController()
-    {
-        if (UIDevice.current.orientation.isPortrait) {
-            if (Globals.shared.media.all == nil) {
-                splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
-            } else {
-                if let count = splitViewController?.viewControllers.count, count > 1 {
-                    if let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                        if let _ = nvc.visibleViewController as? WebViewController {
-                            splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
-                        } else {
-                            splitViewController?.preferredDisplayMode = .automatic //iPad only
-                        }
-                    }
-                }
-            }
-        } else {
-            if let count = splitViewController?.viewControllers.count, count > 1 {
-                if let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                    if let _ = nvc.visibleViewController as? WebViewController {
-                        splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
-                    } else {
-                        splitViewController?.preferredDisplayMode = .automatic //iPad only
-                    }
-                }
-            }
-        }
-    }
+//    func setupSplitViewController()
+//    {
+//        if (UIDevice.current.orientation.isPortrait) {
+//            if (Globals.shared.media.all == nil) {
+//                splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
+//            } else {
+//                if let count = splitViewController?.viewControllers.count, count > 1 {
+//                    if let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                        if let _ = nvc.visibleViewController as? WebViewController {
+//                            splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
+//                        } else {
+//                            splitViewController?.preferredDisplayMode = .automatic //iPad only
+//                        }
+//                    }
+//                }
+//            }
+//        } else {
+//            if let count = splitViewController?.viewControllers.count, count > 1 {
+//                if let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                    if let _ = nvc.visibleViewController as? WebViewController {
+//                        splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
+//                    } else {
+//                        splitViewController?.preferredDisplayMode = .automatic //iPad only
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     @objc func updateSearch()
     {

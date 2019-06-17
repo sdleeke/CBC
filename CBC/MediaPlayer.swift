@@ -1185,6 +1185,8 @@ class MediaPlayer : NSObject
             
         }
         didSet {
+            // To keep Globals.shared.media.category.playing from being set to nil
+            // when the mediaPlayer is being initialized.
             guard !Globals.shared.mediaPlayerInit else {
                 return
             }

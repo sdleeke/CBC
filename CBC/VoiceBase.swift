@@ -590,11 +590,12 @@ class VoiceBase
     
     static let separator = "\n\n" // "------------"
     
-    static let customVocab = ",\"transcripts\":{\"vocabularies\": [{\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"]}]}"
+    // ,\"transcripts\":
+    static let customVocab = "{\"vocabularies\": [{\"terms\":[\"Genesis\",\"Exodus\",\"Leviticus\",\"Numbers\",\"Deuteronomy\",\"Joshua\",\"Judges\",\"Ruth\",\"1 Samuel\",\"2 Samuel\",\"1 Kings\",\"2 Kings\",\"1 Chronicles\",\"2 Chronicles\",\"Ezra\",\"Nehemiah\",\"Esther\",\"Job\",\"Psalms\",\"Proverbs\",\"Ecclesiastes\",\"Song of Solomon\",\"Isaiah\",\"Jeremiah\",\"Lamentations\",\"Ezekiel\",\"Daniel\",\"Hosea\",\"Joel\",\"Amos\",\"Obadiah\",\"Jonah\",\"Micah\",\"Nahum\",\"Habakkuk\",\"Zephaniah\",\"Haggai\",\"Zechariah\",\"Malachi\",\"Matthew\",\"Mark\",\"Luke\",\"John\",\"Acts\",\"Romans\",\"1 Corinthians\",\"2 Corinthians\",\"Galatians\",\"Ephesians\",\"Philippians\",\"Colossians\",\"1 Thessalonians\",\"2 Thessalonians\",\"1 Timothy\",\"2 Timothy\",\"Titus\",\"Philemon\",\"Hebrews\",\"James\",\"1 Peter\",\"2 Peter\",\"1 John\",\"2 John\",\"3 John\",\"Jude\",\"Revelation\"]}]}"
     
-    static let includeVocab = true
+    static let includeVocab = false
     
-    static let configuration:String? = "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
+    static let configuration:String? = includeVocab ? customVocab : "" // "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
     
     var title:String?
     {
@@ -1264,20 +1265,22 @@ class VoiceBase
     }
     
     // thread safe?
-    var transcriptsJSON : [String:Any]?
+    // s
+    var transcriptJSON : [String:Any]?
     {
         get {
-            return mediaJSON?["transcripts"] as? [String:Any]
+            // s
+            return mediaJSON?["transcript"] as? [String:Any]
         }
     }
     
     // thread safe?
-    var transcriptLatest : [String:Any]?
-    {
-        get {
-            return transcriptsJSON?["latest"] as? [String:Any]
-        }
-    }
+//    var transcriptLatest : [String:Any]?
+//    {
+//        get {
+//            return transcriptsJSON?["latest"] as? [String:Any]
+//        }
+//    }
     
     // thread safe?
     var tokensAndCounts : [String:Int]?
@@ -1308,7 +1311,8 @@ class VoiceBase
     var words : [[String:Any]]?
     {
         get {
-            return transcriptLatest?["words"] as? [[String:Any]]
+            // Latest
+            return transcriptJSON?["words"] as? [[String:Any]]
         }
     }
     
@@ -1672,17 +1676,15 @@ class VoiceBase
                     break
                 }
                 
-                guard let tasks = progress["tasks"] as? [String:Any] else {
+                guard let tasks = progress["tasks"] as? [[String:Any]] else {
                     print("\(title) (\(self.transcriptPurpose)) no tasks")
                     break
                 }
                 
                 let count = tasks.count
-                let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                    if let dict = value as? [String:Any] {
-                        if let status = dict["status"] as? String {
-                            return (status == "finished") || (status == "completed")
-                        }
+                let finished = tasks.filter({ (dict:[String:Any]) -> Bool in
+                    if let status = dict["status"] as? String {
+                        return (status == "finished") || (status == "completed")
                     }
                     
                     return false
@@ -1791,9 +1793,9 @@ class VoiceBase
         
         transcribing = true
 
-        var parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata] //
+        var parameters:[String:String] = ["mediaUrl":url] //,"metadata":self.metadata
         
-        parameters["configuration"] = VoiceBase.configuration
+//        parameters["configuration"] = VoiceBase.configuration
         
         let path = "media" + (mediaID != nil ? "/\(mediaID!)" : "")
         
@@ -2153,16 +2155,20 @@ class VoiceBase
     private func details(alert:Bool, atEnd:(()->())?)
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
-            if let json = json?["media"] as? [String:Any] {
-                self.mediaJSON = json
-                if alert, let text = self.mediaItem?.text {
-                    Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
-                }
-            } else {
-                if alert, let text = self.mediaItem?.text {
-                    Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
-                }
+            self.mediaJSON = json
+            if alert, let text = self.mediaItem?.text {
+                Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
             }
+//            if let json = json?["media"] as? [String:Any] {
+//                self.mediaJSON = json
+//                if alert, let text = self.mediaItem?.text {
+//                    Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
+//                }
+//            } else {
+//                if alert, let text = self.mediaItem?.text {
+//                    Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+//                }
+//            }
 
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -2185,23 +2191,23 @@ class VoiceBase
         VoiceBase.get(accept:nil, path:"media/\(mediaID)/metadata", query:nil, completion:completion, onError:onError)
     }
     
-    func addMetaData()
-    {
-        guard let mediaID = mediaID else {
-            return
-        }
-        
-        var parameters:[String:String] = ["metadata":metadata]
-        
-        parameters["configuration"] = VoiceBase.configuration
-
-        // mediaID:mediaID,
-        post(path:"media/\(mediaID)/metadata", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
-            
-        }, onError: { (json:[String : Any]?) -> (Void) in
-            
-        })
-    }
+//    func addMetaData()
+//    {
+//        guard let mediaID = mediaID else {
+//            return
+//        }
+//
+//        var parameters:[String:String] = ["metadata":metadata]
+//
+//        parameters["configuration"] = VoiceBase.configuration
+//
+//        // mediaID:mediaID,
+//        post(path:"media/\(mediaID)/metadata", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
+//
+//        }, onError: { (json:[String : Any]?) -> (Void) in
+//
+//        })
+//    }
     
     // Not possible.  VB introduces errors in capitalization and extraneous spaces
     // Even if we took a sample before or after the string to match to try and put
@@ -2334,7 +2340,7 @@ class VoiceBase
         progress(completion: { (json:[String : Any]?) -> (Void) in
             var parameters:[String:String] = ["transcript":transcript]
             
-            parameters["configuration"] = VoiceBase.configuration
+//            parameters["configuration"] = VoiceBase.configuration
 
             // mediaID:self.mediaID,
             self.post(path:"media/\(mediaID)", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
@@ -2429,9 +2435,9 @@ class VoiceBase
             // Upload then align
             self.mediaID = nil
             
-            var parameters:[String:String] = ["media":url,"metadata":self.metadata]
+            var parameters:[String:String] = ["media":url] // ,"metadata":self.metadata
             
-            parameters["configuration"] = VoiceBase.configuration
+//            parameters["configuration"] = VoiceBase.configuration
 
             // mediaID:self.mediaID,
             self.post(path:"media", parameters:parameters, completion: { (json:[String : Any]?) -> (Void) in
@@ -2474,7 +2480,7 @@ class VoiceBase
                                                             // Now do the relignment
                                                             var parameters:[String:String] = ["transcript":transcript]
                                                             
-                                                            parameters["configuration"] = VoiceBase.configuration
+//                                                            parameters["configuration"] = VoiceBase.configuration
 
                                                             // mediaID:mediaID,
                                                             self.post(path:"media/\(mediaID)", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
@@ -2631,8 +2637,8 @@ class VoiceBase
             return
         }
         
-        // mediaID:mediaID,
-        VoiceBase.get(accept:"text/plain", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
+        // mediaID:mediaID, // latest // s
+        VoiceBase.get(accept:"text/plain", path:"media/\(mediaID)/transcript/text", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             var error : String?
             
             if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
@@ -2926,7 +2932,8 @@ class VoiceBase
             return
         }
         
-        VoiceBase.get(accept:"text/vtt", path:"media/\(mediaID)/transcripts/latest", query:nil, completion: { (json:[String : Any]?) -> (Void) in
+        // s/latest
+        VoiceBase.get(accept:"text/vtt", path:"media/\(mediaID)/transcript/webvtt", query:nil, completion: { (json:[String : Any]?) -> (Void) in
             if let transcriptSegments = json?["text"] as? String {
                 self.transcriptSegments?.store?(transcriptSegments)
                 

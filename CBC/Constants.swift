@@ -296,7 +296,7 @@ enum Constants {
         static let LIVE_STREAM_OLD = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         static let LIVE_STREAM = LIVE_STREAM_OLD
         
-        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/"
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v3/" // v2-beta
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
