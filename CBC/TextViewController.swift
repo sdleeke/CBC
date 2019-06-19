@@ -2345,7 +2345,7 @@ class TextViewController : CBCViewController
             
             var rng : Range<String.Index>?
             
-            var searchRange : Range<String.Index>!
+            var searchRange : Range<String.Index>?
             
             searchRange = Range(uncheckedBounds: (lower: text.startIndex, upper: range.lowerBound))
             
@@ -2356,7 +2356,7 @@ class TextViewController : CBCViewController
                 repeat {
                     lowerRange = rng
                     searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: range.lowerBound))
-                    rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+                    rng = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
                 } while rng != nil
             } else {
                 // NONE FOUND BEFORE
@@ -2376,7 +2376,6 @@ class TextViewController : CBCViewController
             
             // Too close to the previous?
             if let lowerRange = lowerRange {
-                // encodedOffset
                 if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     if !interactive, gap < gapThreshold {
                         block()
@@ -2411,7 +2410,7 @@ class TextViewController : CBCViewController
             
             searchRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
             
-            upperRange = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            upperRange = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
             
             // Too close to the next?
             if let upperRange = upperRange {

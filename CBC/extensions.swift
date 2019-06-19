@@ -4605,7 +4605,7 @@ extension String
             
             if !found {
                 if let string = strings.first {
-                    if let last = workingString.components(separatedBy: " ").last, last.range(of: string, options: String.CompareOptions.caseInsensitive) != nil {
+                    if let last = workingString.components(separatedBy: " ").last, last.range(of: string, options: .caseInsensitive) != nil {
                         var list = workingString.lowercased().components(separatedBy: " ")
                         list.removeLast()
                         let first = list.joined(separator: " ") + " "
@@ -5447,7 +5447,7 @@ extension String
                 var count = 0
                 var string = self
                 
-                while let range = string.range(of: token, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                while let range = string.range(of: token, options: .caseInsensitive, range: nil, locale: nil) {
                     count += 1
                     string = String(string[range.upperBound...])
                 }

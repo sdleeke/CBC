@@ -304,8 +304,8 @@ class Scripture : NSObject
                                 var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
                                 //                                print(text.substring(with: range))
                                 
-                                while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
-                                    if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                while text.range(of: "</h3>", options: .caseInsensitive, range: range, locale: nil) != nil {
+                                    if let newRange = text.range(of: "</h3>", options: .caseInsensitive, range: range, locale: nil) {
                                         lastRange = newRange
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
                                         //                                        print(text.substring(with: range))
@@ -320,8 +320,8 @@ class Scripture : NSObject
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
                                         //                                        print(text.substring(with: range))
                                         
-                                        while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
-                                            if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                        while text.range(of: "<h3 class=\"s\">", options: .caseInsensitive, range: range, locale: nil) != nil {
+                                            if let newRange = text.range(of: "<h3 class=\"s\">", options: .caseInsensitive, range: range, locale: nil) {
                                                 lastRange = newRange
                                                 range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
                                                 //                                                print(text.substring(with: range))

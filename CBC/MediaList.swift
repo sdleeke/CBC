@@ -1055,7 +1055,7 @@ class MediaList // : Sequence
         }
         
         for mediaItem in list {
-            if (mediaItem.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
+            if (mediaItem.title?.range(of: "(Part ", options: .caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
                 print("Series missing in: \(mediaItem.title ?? mediaItem.description)")
             }
         }

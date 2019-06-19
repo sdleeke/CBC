@@ -595,7 +595,9 @@ class VoiceBase
     
     static let includeVocab = false
     
-    static let configuration:String? = includeVocab ? customVocab : "" // "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
+//    static let configuration:String? = "{\"transcript\": { \"formatting\":{ \"enableNumberFormatting\": true } } }"
+    
+    //includeVocab ? customVocab : "" // "{\"configuration\":{\"executor\":\"v2\"\(includeVocab ? customVocab : "")}}"
     
     var title:String?
     {
@@ -1088,6 +1090,7 @@ class VoiceBase
 
                 if offset != nil {
                     let startingRange = Range(uncheckedBounds: (lower: offset!, upper: transcript.endIndex))
+                    
                     if let range = transcript.range(of: text, options: .caseInsensitive, range: startingRange, locale: nil) {
                         dict["range"] = range
                         dict["lowerBound"] = range.lowerBound.utf16Offset(in: transcript)// encodedOffset
@@ -1797,6 +1800,8 @@ class VoiceBase
         
 //        parameters["configuration"] = VoiceBase.configuration
         
+        parameters["configuration"] = "{\"transcript\":{\"formatting\":{\"enableNumberFormatting\":false}}}"
+
         let path = "media" + (mediaID != nil ? "/\(mediaID!)" : "")
         
         // mediaID:mediaID,
@@ -4258,10 +4263,6 @@ class VoiceBase
             gapString = "<\(gap)>" + gapString
         }
 
-//        let beforeFull = String(text[..<range.lowerBound])
-//        let stringFull = String(text[range])
-//        let afterFull = String(text[range.upperBound...])
-        
         //////////////////////////////////////////////////////////////////////////////
         // If words.first["range"] (either lowerBound or upperBound) is "too close"
         // (whatever that is defined to be) to a paragraph break then we should skip
@@ -4274,10 +4275,10 @@ class VoiceBase
             
             var rng : Range<String.Index>?
             
-            var searchRange : Range<String.Index>!
+            var searchRange : Range<String.Index>?
             
             searchRange = Range(uncheckedBounds: (lower: text.startIndex, upper: range.lowerBound))
-            
+
             rng = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
             
             // But even if there is a match we have to find the LAST match
@@ -4285,7 +4286,7 @@ class VoiceBase
                 repeat {
                     lowerRange = rng
                     searchRange = Range(uncheckedBounds: (lower: rng!.upperBound, upper: range.lowerBound))
-                    rng = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+                    rng = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
                 } while rng != nil
             } else {
                 // NONE FOUND BEFORE
@@ -4295,23 +4296,18 @@ class VoiceBase
             if let lowerRange = lowerRange {
                 if (lowerRange.upperBound.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
+                        return
                     }
-                    
-//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-//                    }
                     
                     if let test = test, test() {
                         return
                     }
 
-//                    operationQueue.addOperation(op)
-                    
+                    // This turns recursion into serial and avoids stack overflow.
                     operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
-                  return
+                    return
                 }
             } else {
                 // There is no previous.
@@ -4319,47 +4315,37 @@ class VoiceBase
                 // Too close to the start?
                 if (text.startIndex.utf16Offset(in: text) + tooClose) > range.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
+                        return
                     }
-                    
-//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-//                    }
                     
                     if let test = test, test() {
                         return
                     }
                     
-//                    operationQueue.addOperation(op)
-                    
+                    // This turns recursion into serial and avoids stack overflow.
                     operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
-                  return
+                    return
                 }
             }
             
             searchRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
             
-            upperRange = text.range(of: "\n\n", options: String.CompareOptions.caseInsensitive, range:searchRange, locale: nil)
+            upperRange = text.range(of: "\n\n", options: .caseInsensitive, range:searchRange, locale: nil)
             
             // Too close to the next?
             if let upperRange = upperRange {
                 if (range.upperBound.utf16Offset(in: text) + tooClose) > upperRange.lowerBound.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
+                        return
                     }
-                    
-//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-//                    }
                     
                     if let test = test, test() {
                         return
                     }
                     
-//                    operationQueue.addOperation(op)
-
+                    // This turns recursion into serial and avoids stack overflow.
                     operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
@@ -4371,19 +4357,14 @@ class VoiceBase
                 // Too close to end?
                 if (range.lowerBound.utf16Offset(in: text) + tooClose) > text.endIndex.utf16Offset(in: text) {
                     guard gap >= gapThreshold else {
-                        return //even though we use this code 4 times, if we put it in a block we don't get this return!
+                        return
                     }
-                    
-//                    let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-//                        self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
-//                    }
                     
                     if let test = test, test() {
                         return
                     }
-                    
-//                    operationQueue.addOperation(op)
 
+                    // This turns recursion into serial and avoids stack overflow.
                     operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                         self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
                     }
@@ -4421,19 +4402,12 @@ class VoiceBase
             }
         }
         
-//        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-//            // Why is completion called here?
-//            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
-//        }
-        
         if let test = test, test() {
             return
         }
-        
-//        operationQueue.addOperation(op)
 
         operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
-            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+            self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:newText, test:test, completion:completion)
         }
     }
     
@@ -4486,8 +4460,6 @@ class VoiceBase
             // what about other surrounding characters besides newlines and whitespaces, and periods if following?
             // what about other token delimiters?
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
-//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                
                 if let test = test, test() {
                     return
                 }
@@ -4495,8 +4467,6 @@ class VoiceBase
                 percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
 //                print("Changes left:",changes.count, percentComplete ?? "", "%")
-
-//                operationQueue.addOperation(op)
 
                 operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     text.replaceSubrange(range, with: newText)
@@ -4505,14 +4475,13 @@ class VoiceBase
                     
                     if let completedRange = text.range(of: before + newText) {
                         let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                        
                         self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                     } else {
                         // ERROR
                     }
                 }
             } else {
-//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                
                 if let test = test, test() {
                     return
                 }
@@ -4520,17 +4489,14 @@ class VoiceBase
                 percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
 
 //                print("Changes left:",changes.count, percentComplete ?? "", "%")
-                
-//                operationQueue.addOperation(op)
 
                 operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                    
                     self?.changeText(text:text, startingRange:startingRange, changes:changes, test:test, completion:completion)
                 }
             }
         } else {
-//            let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-            
             if let test = test, test() {
                 return
             }
@@ -4539,8 +4505,6 @@ class VoiceBase
 
 //            print("Changes left:",changes.count, percentComplete ?? "", "%")
             
-//            operationQueue.addOperation(op)
-
             operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                 changes.removeFirst()
                 self?.changeText(text:text, startingRange:nil, changes:changes, test:test, completion:completion)
@@ -4700,7 +4664,6 @@ class VoiceBase
             autoEditUnderway()
         }
         
-//        let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
         operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
             self?.mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
 
@@ -4765,13 +4728,9 @@ class VoiceBase
                 self?.totalChanges = changes.count
                 print("Total changes:",changes.count)
                 
-//                let op = CancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(()->Bool)?) in
-                
                 if let test = test, test() {
                     return
                 }
-                
-//                self?.operationQueue.addOperation(op)
                 
                 self?.operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                     self?.changeText(text: text, startingRange: nil, changes: changes, test:test, completion: { (string:String) -> (Void) in
@@ -4836,8 +4795,6 @@ class VoiceBase
                 textChanges()
             }
         }
-        
-//        self.operationQueue.addOperation(op)
     }
     
     func alertActions(viewController:UIViewController) -> AlertAction?
@@ -5654,7 +5611,7 @@ class VoiceBase
                                                                     for lemma in lemmas {
                                                                         if lemma.0 != lemma.1 {
                                                                             if let word = lemma.1 {
-                                                                                phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: String.CompareOptions.caseInsensitive, range: lemma.2)
+                                                                                phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: .caseInsensitive, range: lemma.2)
                                                                             }
                                                                         }
                                                                     }

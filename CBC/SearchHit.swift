@@ -36,7 +36,7 @@ class SearchHit
             guard mediaItem.hasTitle, let searchText = searchText else {
                 return false
             }
-            return mediaItem.title?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.title?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var formattedDate:Bool {
@@ -48,7 +48,7 @@ class SearchHit
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem.formattedDate?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.formattedDate?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var speaker:Bool {
@@ -60,7 +60,7 @@ class SearchHit
             guard mediaItem.hasSpeaker, let searchText = searchText else {
                 return false
             }
-            return mediaItem.speaker?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.speaker?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var scriptureReference:Bool {
@@ -72,7 +72,7 @@ class SearchHit
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem.scriptureReference?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.scriptureReference?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var className:Bool {
@@ -84,7 +84,7 @@ class SearchHit
             guard mediaItem.hasClassName, let searchText = searchText else {
                 return false
             }
-            return mediaItem.className?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.className?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var eventName:Bool {
@@ -96,7 +96,7 @@ class SearchHit
             guard mediaItem.hasEventName, let searchText = searchText else {
                 return false
             }
-            return mediaItem.eventName?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.eventName?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var tags:Bool {
@@ -108,7 +108,7 @@ class SearchHit
             guard let searchText = searchText else {
                 return false
             }
-            return mediaItem.tags?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.tags?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
     var transcript:Bool {
@@ -128,7 +128,7 @@ class SearchHit
                 return false
             }
             
-            return mediaItem.notesHTML?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return mediaItem.notesHTML?.result?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
     }
 //    @available(iOS 11.0, *)
@@ -142,7 +142,7 @@ class SearchHit
 //                return false
 //            }
 //
-//            return mediaItem.notesPDFText?.result?.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+//            return mediaItem.notesPDFText?.result?.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
 //        }
 //    }
 }

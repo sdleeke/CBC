@@ -1824,7 +1824,7 @@ class MediaItem : NSObject
         get {
             if (self[Field.multi_part_name] as? String == nil) {
                 for partPreamble in Constants.PART_PREAMBLES {
-                    if let title = title, let range = title.range(of: partPreamble + Constants.PART_INDICATOR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                    if let title = title, let range = title.range(of: partPreamble + Constants.PART_INDICATOR, options: .caseInsensitive, range: nil, locale: nil) {
                         let seriesString = String(title[..<range.lowerBound]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                         self[Field.multi_part_name] = seriesString
                         break
@@ -1845,7 +1845,7 @@ class MediaItem : NSObject
             
             if hasMultipleParts, self[Field.part] as? String == nil {
                 for partPreamble in Constants.PART_PREAMBLES {
-                    if let range = title.range(of: partPreamble + Constants.PART_INDICATOR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                    if let range = title.range(of: partPreamble + Constants.PART_INDICATOR, options: .caseInsensitive, range: nil, locale: nil) {
                         let partString = String(title[range.upperBound...])
                         
                         if let index = Constants.PART_PREAMBLES.firstIndex(of: partPreamble) {

@@ -2545,7 +2545,7 @@ class MediaTableViewController : MediaItemsViewController
                     for key in keys {
                         if let values = self.stringIndex?[key] {
                             for value in values {
-                                if (value["title"] as? String)?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE,with: " ").range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                                if (value["title"] as? String)?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE,with: " ").range(of:text, options: .caseInsensitive, range: nil, locale: nil) != nil {
                                     if searchIndex?[key] == nil {
                                         searchIndex?[key] = [[String:Any]]()
                                     }

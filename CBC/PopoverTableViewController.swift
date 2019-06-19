@@ -173,7 +173,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             for key in keys {
                 if let values = unfilteredSection.stringIndex?[key] {
                     for value in values {
-                        if value.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ").range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                        if value.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ").range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil {
                             if filteredStringIndex[key] == nil {
                                 filteredStringIndex[key] = [String]()
                             }
@@ -187,7 +187,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         } else
             
         if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-            return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return string.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }) {
             filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
         }
