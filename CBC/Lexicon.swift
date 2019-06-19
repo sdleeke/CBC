@@ -526,7 +526,7 @@ class Lexicon : NSObject // Why an NSObject?
         }
 
         return words?.keys()?.filter({ (string:String) -> Bool in
-            return string.range(of:searchText, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            return string.range(of:searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }).sorted()
     }
 }
