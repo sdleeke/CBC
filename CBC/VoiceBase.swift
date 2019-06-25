@@ -4252,6 +4252,9 @@ class VoiceBase
         let first = words.removeFirst()
         
         guard let range = first["range"] as? Range<String.Index> else {
+            operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
+                self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
+            }
             return
         }
 
