@@ -312,55 +312,51 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
             switch string {
             case Constants.Strings.Expanded_View:
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
-                    self?.popover?["ACTION"] = nil
-                })
-                
-                // test:(()->(Bool))?
-                process(work: { [weak self] () -> (Any?) in
-                    Thread.onMain {
-                        self?.navigationItem.rightBarButtonItem?.isEnabled = false
-                    }
-                    
-                    return self?.stringTree?.expandedHTML
-                }, completion: { [weak self] (data:Any?) in
-                    var style:UIModalPresentationStyle = .overCurrentContext
-                    
-                    if self?.lexicon != nil {
-                        style = .fullScreen
-                    }
-                    
-                    self?.presentHTMLModal(mediaItem: nil, style: style, title: Constants.Strings.Expanded_View, htmlString: data as? String)
-                    
-                    Thread.onMain {
-                        self?.navigationItem.rightBarButtonItem?.isEnabled = true
-                    }
+                    // test:(()->(Bool))?
+                    self?.process(work: { [weak self] () -> (Any?) in
+                        Thread.onMain {
+                            self?.navigationItem.rightBarButtonItem?.isEnabled = false
+                        }
+                        
+                        return self?.stringTree?.expandedHTML
+                        }, completion: { [weak self] (data:Any?) in
+                            var style:UIModalPresentationStyle = .overCurrentContext
+                            
+                            if self?.lexicon != nil {
+                                style = .fullScreen
+                            }
+                            
+                            self?.presentHTMLModal(mediaItem: nil, style: style, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                            
+                            Thread.onMain {
+                                self?.navigationItem.rightBarButtonItem?.isEnabled = true
+                            }
+                    })
                 })
                 break
 
             case Constants.Strings.Word_Index:
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
-                    self?.popover?["ACTION"] = nil
-                })
-                
-                // test:(()->(Bool))?
-                process(work: { [weak self] () -> (Any?) in
-                    Thread.onMain {
-                        self?.navigationItem.rightBarButtonItem?.isEnabled = false
-                    }
-
-                    return self?.stringTree?.wordsHTML
-                }, completion: { [weak self] (data:Any?) in
-                    var style:UIModalPresentationStyle = .overCurrentContext
-
-                    if self?.navigationController?.modalPresentationStyle == .popover {
-                        style = .fullScreen
-                    }
-
-                    self?.presentHTMLModal(mediaItem: nil, style: style, title: "Word Index", htmlString: data as? String)
-                    
-                    Thread.onMain {
-                        self?.navigationItem.rightBarButtonItem?.isEnabled = true
-                    }
+                    // test:(()->(Bool))?
+                    self?.process(work: { [weak self] () -> (Any?) in
+                        Thread.onMain {
+                            self?.navigationItem.rightBarButtonItem?.isEnabled = false
+                        }
+                        
+                        return self?.stringTree?.wordsHTML
+                        }, completion: { [weak self] (data:Any?) in
+                            var style:UIModalPresentationStyle = .overCurrentContext
+                            
+                            if self?.navigationController?.modalPresentationStyle == .popover {
+                                style = .fullScreen
+                            }
+                            
+                            self?.presentHTMLModal(mediaItem: nil, style: style, title: "Word Index", htmlString: data as? String)
+                            
+                            Thread.onMain {
+                                self?.navigationItem.rightBarButtonItem?.isEnabled = true
+                            }
+                    })
                 })
                 break
 
@@ -525,10 +521,20 @@ class PopoverPickerViewController : CBCViewController
     
     @objc func showFullScreen()
     {
-        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-            dismiss(animated: false, completion: nil)
+        guard self.popover?.count == 0 else {
+            return
+        }
+        
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverPickerViewController else {
+            return
+        }
+
+        let presentingViewController = self.presentingViewController
+        
+        dismiss(animated: false, completion: {
             popover.navigationItem.title = "Select"
+            
             navigationController.isNavigationBarHidden = false
             
             navigationController.modalPresentationStyle = .overFullScreen
@@ -543,8 +549,8 @@ class PopoverPickerViewController : CBCViewController
             
             popover.stringsFunction = self.lexicon?.stringsFunction
             
-            self.presentingViewController?.present(navigationController, animated: true, completion: nil)
-        }
+            presentingViewController?.present(navigationController, animated: true, completion: nil)
+        })
     }
     
     func setupActionButton()
@@ -736,9 +742,9 @@ class PopoverPickerViewController : CBCViewController
     {
         string = wordFromPicker()
         
-        delegate?.stringPicked(string,purpose:purpose)
-
-        dismiss(animated: false, completion: nil)
+        dismiss(animated: false, completion: {
+            self.delegate?.stringPicked(self.string,purpose:self.purpose)
+        })
     }
     
     @objc func doBarButtonAction()

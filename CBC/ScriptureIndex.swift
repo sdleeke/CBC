@@ -510,7 +510,13 @@ class ScriptureIndex
                 let speakers = Array(speakerCounts.keys)
                 
                 if speakerCount == 1{
-                    bodyString += " by \(speakers[0])"
+                    if var speaker = mediaItems[0].speaker { // , name != speaker
+                        if let speakerTitle = mediaItems[0].speakerTitle {
+                            speaker += ", \(speakerTitle)"
+                        }
+                        bodyString += " by " + speaker
+                    }
+//                    bodyString += " by \(speakers[0])"
                 }
                 
                 if mediaItems.count > 1 {

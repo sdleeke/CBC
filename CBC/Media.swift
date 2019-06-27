@@ -100,7 +100,8 @@ class Media
     var all:MediaListGroupSort?
     {
         didSet {
-
+            _ = all?.lexicon?.eligible
+            _ = all?.scriptureIndex?.eligible
         }
     }
     

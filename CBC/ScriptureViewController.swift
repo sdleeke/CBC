@@ -107,215 +107,213 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         }
         
         popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
-            self?.popover?["ACTION"] = nil
-        })
-
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingAction:
-            switch strings[index] {
-            case Constants.Strings.Full_Screen:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? WebViewController {
-                    navigationController.modalPresentationStyle = .overFullScreen
-                    navigationController.popoverPresentationController?.delegate = popover
-                    
-                    popover.navigationItem.title = self.navigationItem.title
-                    
-                    if let webViewController = self.webViewController {
-                        popover.html.fontSize = webViewController.html.fontSize
-                        popover.html.string = webViewController.html.string
-                        popover.mediaItem = webViewController.mediaItem
-                        popover.content = webViewController.content
-                    }
-                                        
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    present(navigationController, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.Strings.Print:
-                if let string = webViewController?.html.string, string.contains(" href=") {
-                    self.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
-                        firstTitle: Constants.Strings.Yes,
-                        firstAction: {
-                            // test:(()->(Bool))?
-                            self.process(work: { [weak self] () -> (Any?) in
-                                return self?.webViewController?.html.string?.stripLinks
-                            }, completion: { [weak self] (data:Any?) in
-                                if let vc = self {
-                                    vc.printHTML(htmlString: data as? String)
-                                }
-                            })
-                    }, firstStyle: .default,
-                       secondTitle: Constants.Strings.No,
-                       secondAction: {
-                        self.printHTML(htmlString: self.webViewController?.html.string)
-                    }, secondStyle: .default)
-                } else {
-                    self.printHTML(htmlString: self.webViewController?.html.string)
-                }
-                break
-                
-            case Constants.Strings.Lexical_Analysis:
-                self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in
-                    if #available(iOS 12.0, *) {
-                        return self.scripture?.text(self.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
-                    } else {
-                        // Fallback on earlier versions
-                        return self.scripture?.text(self.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
-                    }
-                }) { [weak self] (data:Any?, test:(()->(Bool))?) in
-                    guard test?() != true else {
-                        return
-                    }
-                    
-                    guard let data = data else {
-                        Alerts.shared.alert(title:"Lexical Analysis Not Available")
-                        return
-                    }
-                    
+            guard let strings = strings else {
+                return
+            }
+            
+            switch purpose {
+            case .selectingAction:
+                switch strings[index] {
+                case Constants.Strings.Full_Screen:
                     if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? WebViewController {
-                        popover.navigationItem.title = self?.scripture?.reference?.qualifier(Constants.Strings.Lexical_Analysis)
-                        navigationController.isNavigationBarHidden = false
+                        navigationController.modalPresentationStyle = .overFullScreen
+                        navigationController.popoverPresentationController?.delegate = popover
                         
-                        navigationController.modalPresentationStyle = .overCurrentContext
-                        navigationController.popoverPresentationController?.delegate = self
+                        popover.navigationItem.title = self?.navigationItem.title
                         
-                        popover.html.string = data as? String
-                        popover.content = .html
+                        if let webViewController = self?.webViewController {
+                            popover.html.fontSize = webViewController.html.fontSize
+                            popover.html.string = webViewController.html.string
+                            popover.mediaItem = webViewController.mediaItem
+                            popover.content = webViewController.content
+                        }
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
                         
                         self?.present(navigationController, animated: true, completion: nil)
                     }
-                }
-                break
-                
-            case Constants.Strings.Search:
-                self.searchAlert(title: "Search", searchText:webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
-                    self.webViewController?.searchText = alert.textFields?[0].text
+                    break
                     
-                    self.webViewController?.wkWebView?.isHidden = true
-                    
-                    self.webViewController?.activityIndicator.isHidden = false
-                    self.webViewController?.activityIndicator.startAnimating()
-                    
-                    if let isEmpty = self.webViewController?.searchText?.isEmpty, isEmpty {
-                        self.webViewController?.html.string = self.webViewController?.html.original?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                case Constants.Strings.Print:
+                    if let string = self?.webViewController?.html.string, string.contains(" href=") {
+                        self?.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
+                            firstTitle: Constants.Strings.Yes,
+                            firstAction: {
+                                // test:(()->(Bool))?
+                                self?.process(work: { [weak self] () -> (Any?) in
+                                    return self?.webViewController?.html.string?.stripLinks
+                                    }, completion: { [weak self] (data:Any?) in
+                                        if let vc = self {
+                                            vc.printHTML(htmlString: data as? String)
+                                        }
+                                })
+                        }, firstStyle: .default,
+                           secondTitle: Constants.Strings.No,
+                           secondAction: {
+                            self?.printHTML(htmlString: self?.webViewController?.html.string)
+                        }, secondStyle: .default)
                     } else {
-                        if self.webViewController?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                            self.webViewController?.html.string = self.webViewController?.bodyHTML?.markHTML(headerHTML: self.webViewController?.headerHTML, searchText:self.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                        self?.printHTML(htmlString: self?.webViewController?.html.string)
+                    }
+                    break
+                    
+                case Constants.Strings.Lexical_Analysis:
+                    self?.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in
+                        if #available(iOS 12.0, *) {
+                            return self?.scripture?.text(self?.scripture?.reference)?.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                         } else {
-                            self.webViewController?.html.string = self.webViewController?.html.original?.markHTML(searchText:self.webViewController?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            // Fallback on earlier versions
+                            return self?.scripture?.text(self?.scripture?.reference)?.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
+                        }
+                    }) { [weak self] (data:Any?, test:(()->(Bool))?) in
+                        guard test?() != true else {
+                            return
+                        }
+                        
+                        guard let data = data else {
+                            Alerts.shared.alert(title:"Lexical Analysis Not Available")
+                            return
+                        }
+                        
+                        if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                            let popover = navigationController.viewControllers[0] as? WebViewController {
+                            popover.navigationItem.title = self?.scripture?.reference?.qualifier(Constants.Strings.Lexical_Analysis)
+                            navigationController.isNavigationBarHidden = false
+                            
+                            navigationController.modalPresentationStyle = .overCurrentContext
+                            navigationController.popoverPresentationController?.delegate = self
+                            
+                            popover.html.string = data as? String
+                            popover.content = .html
+                            
+                            self?.present(navigationController, animated: true, completion: nil)
                         }
                     }
+                    break
                     
-                    if let url = self.webViewController?.html.fileURL {
-                        self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                    }
-                })
-                break
-                
-            case Constants.Strings.Word_Picker:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.delegate = webViewController
-                    
-                    popover.allowsSelection = false
-                    
-                    popover.navigationItem.title = scripture?.reference?.qualifier(Constants.Strings.Word_Picker)
-                    
-                    popover.stringsFunction = { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return word
-                        }).sorted()
-                    }
-
-                    present(navigationController, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.Strings.Word_Cloud:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? CloudViewController {
-                    navigationController.modalPresentationStyle = .fullScreen
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.cloudTitle = self.scripture?.reference?.qualifier(Constants.Strings.Word_Cloud)
-                    
-                    if let mediaItem = mediaItem {
-                        popover.cloudTitle = mediaItem.title?.qualifier(Constants.Strings.Word_Cloud)
+                case Constants.Strings.Search:
+                    self?.searchAlert(title: "Search", searchText:self?.webViewController?.searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
+                        self?.webViewController?.searchText = alert.textFields?[0].text
                         
-                        popover.cloudString = self.webViewController?.bodyHTML?.html2String
+                        self?.webViewController?.wkWebView?.isHidden = true
+                        
+                        self?.webViewController?.activityIndicator.isHidden = false
+                        self?.webViewController?.activityIndicator.startAnimating()
+                        
+                        if let isEmpty = self?.webViewController?.searchText?.isEmpty, isEmpty {
+                            self?.webViewController?.html.string = self?.webViewController?.html.original?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                        } else {
+                            if self?.webViewController?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                                self?.webViewController?.html.string = self?.webViewController?.bodyHTML?.markHTML(headerHTML: self?.webViewController?.headerHTML, searchText:self?.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            } else {
+                                self?.webViewController?.html.string = self?.webViewController?.html.original?.markHTML(searchText:self?.webViewController?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                            }
+                        }
+                        
+                        if let url = self?.webViewController?.html.fileURL {
+                            self?.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    })
+                    break
+                    
+                case Constants.Strings.Word_Picker:
+                    if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                        navigationController.modalPresentationStyle = .overCurrentContext
+                        
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.delegate = self?.webViewController
+                        
+                        popover.allowsSelection = false
+                        
+                        popover.navigationItem.title = self?.scripture?.reference?.qualifier(Constants.Strings.Word_Picker)
+                        
+                        popover.stringsFunction = { [weak self] in
+                            // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                            return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                return word
+                            }).sorted()
+                        }
+                        
+                        self?.present(navigationController, animated: true, completion: nil)
+                    }
+                    break
+                    
+                case Constants.Strings.Word_Cloud:
+                    if let navigationController = self?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? CloudViewController {
+                        navigationController.modalPresentationStyle = .fullScreen
+                        
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.cloudTitle = self?.scripture?.reference?.qualifier(Constants.Strings.Word_Cloud)
+                        
+                        if let mediaItem = mediaItem {
+                            popover.cloudTitle = mediaItem.title?.qualifier(Constants.Strings.Word_Cloud)
+                            
+                            popover.cloudString = self?.webViewController?.bodyHTML?.html2String
+                            
+                            popover.cloudWordDictsFunction = { [weak self] in
+                                let words:[[String:Any]]? = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
+                                    return ["word":key,"count":value,"selected":true]
+                                })
+                                
+                                return words
+                            }
+                        }
                         
                         popover.cloudWordDictsFunction = { [weak self] in
-                            let words:[[String:Any]]? = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
-                                return ["word":key,"count":value,"selected":true]
+                            let words = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
+                                return ["word":word,"count":count,"selected":true]
                             })
                             
                             return words
                         }
-                    }
-                    
-                    popover.cloudWordDictsFunction = { [weak self] in
-                        let words = self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> [String:Any] in
-                            return ["word":word,"count":count,"selected":true]
-                        })
                         
-                        return words
+                        popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
+                        
+                        self?.present(navigationController, animated: true, completion:  nil)
                     }
+                    break
                     
-                    popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
+                case Constants.Strings.Word_Index:
+                    self?.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                            return "\(word) (\(count))"
+                        }).sorted().tableHTML(title:self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), test:test)
+                        }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                            self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
+                    })
+                    break
                     
-                    present(navigationController, animated: true, completion:  nil)
+                case Constants.Strings.Words:
+                    self?.selectWord(title:self?.scripture?.reference?.qualifier(Constants.Strings.Words), purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
+                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                        return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                            return "\(word) (\(count))"
+                        }).sorted()
+                    })
+                    break
+                    
+                case Constants.Strings.Share:
+                    self?.share()
+                    break
+                    
+                default:
+                    break
                 }
-                break
-                
-            case Constants.Strings.Word_Index:
-                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                    return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                        return "\(word) (\(count))"
-                    }).sorted().tableHTML(title:self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), test:test)
-                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.scripture?.reference?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
-                })
-                break
-                
-            case Constants.Strings.Words:
-                self.selectWord(title:scripture?.reference?.qualifier(Constants.Strings.Words), purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
-                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                    return self?.webViewController?.bodyHTML?.html2String?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                        return "\(word) (\(count))"
-                    }).sorted()
-                })
-                break
-                
-            case Constants.Strings.Share:
-                share()
                 break
                 
             default:
                 break
             }
-            break
-            
-        default:
-            break
-        }
+        })
     }
 }
 
@@ -618,23 +616,30 @@ class ScriptureViewController : CBCViewController
     
     @objc func showFullScreen()
     {
-        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_VIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? ScriptureViewController else {
+        guard self.popover?.count == 0 else {
             return
         }
+        
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? ScriptureViewController else {
+                return
+        }
+        
+        let presentingViewController = self.presentingViewController
+        
+        self.dismiss(animated: false, completion: {
+            navigationController.modalPresentationStyle = .overFullScreen
+            navigationController.popoverPresentationController?.delegate = popover
+            
+            popover.navigationItem.title = self.scripture?.description
+            
+            popover.scripture = self.scripture
+            popover.mediaItem = self.mediaItem
 
-        dismiss(animated: false, completion: nil)
-        
-        navigationController.modalPresentationStyle = .overFullScreen
-        navigationController.popoverPresentationController?.delegate = popover
-        
-        popover.navigationItem.title = self.scripture?.description
-
-        popover.scripture = scripture
-        
-        popover.navigationController?.isNavigationBarHidden = false
-        
-        self.presentingViewController?.present(navigationController, animated: true, completion: nil)
+            popover.navigationController?.isNavigationBarHidden = false
+            
+            presentingViewController?.present(navigationController, animated: true, completion: nil)
+        })
     }
     
     @objc func resetScripture()

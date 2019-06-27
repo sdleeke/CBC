@@ -504,10 +504,10 @@ struct SegmentAction
  lable : UILabel to show the segment name (header only)
 
  */
-class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
-{
-    var label : UILabel?
-}
+//class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
+//{
+//    var label : UILabel?
+//}
 
 /**
  View controller for showing a tableview of strings
@@ -809,7 +809,7 @@ class PopoverTableViewController : CBCViewController
     @IBOutlet weak var tableView: UITableView!
     {
         didSet {
-            tableView.register(PopoverTableViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "PopoverTableViewController")
+            tableView.register(LabelHeaderFooterView.self, forHeaderFooterViewReuseIdentifier: "PopoverTableViewController")
         }
     }
     
@@ -1977,11 +1977,11 @@ extension PopoverTableViewController : UITableViewDelegate
             return nil
         }
         
-        var view : PopoverTableViewControllerHeaderView?
+        var view : LabelHeaderFooterView?
         
-        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "PopoverTableViewController") as? PopoverTableViewControllerHeaderView
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "PopoverTableViewController") as? LabelHeaderFooterView
         if view == nil {
-            view = PopoverTableViewControllerHeaderView()
+            view = LabelHeaderFooterView()
         }
         
         view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)

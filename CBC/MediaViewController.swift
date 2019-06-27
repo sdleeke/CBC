@@ -369,22 +369,22 @@ extension MediaViewController: UIScrollViewDelegate
 //    }
 //}
 
-extension MediaViewController : PopoverPickerControllerDelegate
-{
-    func stringPicked(_ string: String?, purpose:PopoverPurpose?)
-    {
-        guard self.isViewLoaded else {
-            return
-        }
-        
-        guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
-            return
-        }
-        
-        dismiss(animated: true, completion: nil)
-    }
-}
+//extension MediaViewController : PopoverPickerControllerDelegate
+//{
+//    func stringPicked(_ string: String?, purpose:PopoverPurpose?)
+//    {
+//        guard self.isViewLoaded else {
+//            return
+//        }
+//        
+//        guard Thread.isMainThread else {
+//            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+//            return
+//        }
+//        
+//        dismiss(animated: true, completion: nil)
+//    }
+//}
 
 enum VideoLocation {
     case withDocuments
@@ -781,8 +781,8 @@ class MediaViewController : MediaItemsViewController
 
             // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
             // Is that what we want? No, not unless the value of multiPartMediaItems should really change
-            if selectedMediaItem?.multiPartMediaItems != mediaItems?.list {
-                mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
+            if selectedMediaItem?.multiPartMediaItems != mediaList?.list {
+                mediaList = MediaList(selectedMediaItem?.multiPartMediaItems)
             }
             
 //            if selectedMediaItem?.multiPartMediaItems?.count != mediaItems?.list?.count {
@@ -823,11 +823,11 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
-    var mediaItems:MediaList? // [MediaItem]?
+    var mediaList:MediaList? // [MediaItem]?
     {
         didSet {
-            if mediaItems?.list != oldValue?.list {
-                mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+            if mediaList?.list != oldValue?.list {
+                mediaList?.list?.forEach({ (mediaItem:MediaItem) in
                     mediaItem.loadDocuments()
                 })
                 tableView?.reloadData()
@@ -1772,7 +1772,7 @@ class MediaViewController : MediaItemsViewController
             return nil
         }
         
-        guard let mediaItems = mediaItems?.list else {
+        guard let mediaItems = mediaList?.list else {
             return nil
         }
         
@@ -1909,75 +1909,74 @@ class MediaViewController : MediaItemsViewController
         if let state = selectedMediaItem.audioDownload?.state {
             switch state {
             case .none:
-                
-                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 1) {
+                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (self.mediaItems?.audioDownloading > 0) {
+                if (self.mediaList?.list?.audioDownloading > 0) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (self.mediaItems?.audioDownloaded > 0) {
+                if (self.mediaList?.list?.audioDownloaded > 0) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
                 
             case .downloading:
-                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 0) {
+                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (self.mediaItems?.audioDownloading > 1) {
+                if (self.mediaList?.list?.audioDownloading > 1) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (self.mediaItems?.audioDownloaded > 0) {
+                if (self.mediaList?.list?.audioDownloaded > 0) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
                 
             case .downloaded:
-                if self.mediaItems?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaItems?.audioDownloads > 0) {
+                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 0) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
-                if (self.mediaItems?.audioDownloading > 0) {
+                if (self.mediaList?.list?.audioDownloading > 0) {
                     actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                 }
-                if (self.mediaItems?.audioDownloaded > 1) {
+                if (self.mediaList?.list?.audioDownloaded > 1) {
                     actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                 }
                 break
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedAudio > self.mediaItems?.autoEditingAudio {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedAudio > self.mediaList?.list?.autoEditingAudio {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Audio_Transcripts)
             actionMenu.append(Constants.Strings.Remove_All_Audio_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.transcribedVideo > self.mediaItems?.autoEditingVideo {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedVideo > self.mediaList?.list?.autoEditingVideo {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Video_Transcripts)
             actionMenu.append(Constants.Strings.Remove_All_Video_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.autoEditingAudio > 0 {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.autoEditingAudio > 0 {
             actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.autoEditingVideo > 0 {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.autoEditingVideo > 0 {
             actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaItems?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
+        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video_Transcripts)
         }
 
@@ -1987,7 +1986,7 @@ class MediaViewController : MediaItemsViewController
     @objc func actions()
     {
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        popover?["TAGS"]?.dismiss(animated: true, completion: nil)
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -2108,7 +2107,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard mediaItems?.list?.count > 0 else {
+        guard mediaList?.list?.count > 0 else {
             return
         }
         
@@ -3220,7 +3219,7 @@ class MediaViewController : MediaItemsViewController
 
         var indexPath = IndexPath(row: 0, section: 0)
         
-        if mediaItems?.list?.count > 0, let mediaItemIndex = mediaItems?.list?.firstIndex(of: mediaItem) {
+        if mediaList?.list?.count > 0, let mediaItemIndex = mediaList?.list?.firstIndex(of: mediaItem) {
             indexPath = IndexPath(row: mediaItemIndex, section: 0)
         }
         
@@ -3326,7 +3325,7 @@ class MediaViewController : MediaItemsViewController
         //And when the user chooses one, scroll to the first time in that section.
         
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        popover?["ACTION"]?.dismiss(animated: true, completion: nil)
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3748,7 +3747,7 @@ class MediaViewController : MediaItemsViewController
         if let constant = constantForSplitView(verticalSplit) {
             newConstraintConstant = (constant * (bounds.height - controlView.frame.height)) + controlView.frame.height
         } else {
-            if let count = mediaItems?.list?.count {
+            if let count = mediaList?.list?.count {
                 let numberOfAdditionalRows = CGFloat(count)
                 newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
                 
@@ -4604,11 +4603,11 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard !timeNow.isNaN else {
+        guard !timeNow.isNaN, !timeNow.isInfinite else {
             return
         }
         
-        guard !length.isNaN else {
+        guard !length.isNaN, !length.isInfinite else {
             return
         }
         
@@ -5213,11 +5212,11 @@ class MediaViewController : MediaItemsViewController
             break
             
         case Constants.Strings.Add_All_to_Favorites:
-            mediaItems?.addAllToFavorites()
+            mediaList?.list?.addAllToFavorites()
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
-            mediaItems?.removeAllFromFavorites()
+            mediaList?.list?.removeAllFromFavorites()
             break
             
         case Constants.Strings.Scripture_Viewer:
@@ -5243,11 +5242,11 @@ class MediaViewController : MediaItemsViewController
             break
             
         case Constants.Strings.Download_All_Audio:
-            mediaItems?.downloadAllAudio()
+            mediaList?.downloadAllAudio()
             break
             
         case Constants.Strings.Cancel_All_Audio_Downloads:
-            mediaItems?.cancelAllAudioDownloads()
+            mediaList?.cancelAllAudioDownloads()
             break
             
 //        case Constants.Strings.Delete_Audio_Download:
@@ -5268,20 +5267,20 @@ class MediaViewController : MediaItemsViewController
             var actions = [AlertAction]()
             
             actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                self.mediaItems?.deleteAllAudioDownloads()
+                self.mediaList?.deleteAllAudioDownloads()
             }))
             
             actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
                 
             }))
             
-            Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaItems?.multiPartName, actions: actions)
+            Alerts.shared.alert(title: "Confirm Deletion of All Audio Downloads", message: mediaList?.list?.multiPartName, actions: actions)
             break
             
         case Constants.Strings.Print:
             // test:(()->(Bool))?
             self.process(work: { [weak self] in
-                return self?.mediaItems?.list?.html(includeURLs:false, includeColumns:true)
+                return self?.mediaList?.list?.html(includeURLs:false, includeColumns:true)
             }, completion: { [weak self] (data:Any?) in
                     if let vc = self {
                         vc.printHTML(htmlString: data as? String)
@@ -5303,36 +5302,36 @@ class MediaViewController : MediaItemsViewController
             
             
         case Constants.Strings.Transcribe_All_Audio:
-            mediaItems?.transcribeAllAudio(viewController: self)
+            mediaList?.list?.transcribeAllAudio(viewController: self)
             break
             
         case Constants.Strings.Transcribe_All_Video:
-            mediaItems?.transcribeAllVideo(viewController: self)
+            mediaList?.list?.transcribeAllVideo(viewController: self)
             break
             
             
         case Constants.Strings.Remove_All_Audio_Transcripts:
-            mediaItems?.removeAllAudioTranscripts(viewController: self)
+            mediaList?.list?.removeAllAudioTranscripts(viewController: self)
             break
             
         case Constants.Strings.Remove_All_Video_Transcripts:
-            mediaItems?.removeAllVideoTranscripts(viewController: self)
+            mediaList?.list?.removeAllVideoTranscripts(viewController: self)
             break
             
             
         case Constants.Strings.Auto_Edit_All_Audio_Transcripts:
-            mediaItems?.autoEditAllAudioTranscripts(viewController:self)
+            mediaList?.list?.autoEditAllAudioTranscripts(viewController:self)
             break
             
         case Constants.Strings.Auto_Edit_All_Video_Transcripts:
-            mediaItems?.autoEditAllVideoTranscripts(viewController:self)
+            mediaList?.list?.autoEditAllVideoTranscripts(viewController:self)
             break
             
             
         case Constants.Strings.Cancel_All_Auto_Edit_Audio:
             var message = ""
             
-            if let multiPartName = self.mediaItems?.multiPartName {
+            if let multiPartName = self.mediaList?.list?.multiPartName {
                 message += multiPartName + "\n\n"
             }
             
@@ -5342,21 +5341,21 @@ class MediaViewController : MediaItemsViewController
             
             // We have to cancel and wait until they are finished to we need to do this in the background.
             DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                self.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
                         mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
                     //                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
                 })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaItems?.multiPartName)
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaList?.list?.multiPartName)
             }
             break
             
         case Constants.Strings.Cancel_All_Auto_Edit_Video:
             var message = ""
             
-            if let multiPartName = self.mediaItems?.multiPartName {
+            if let multiPartName = self.mediaList?.list?.multiPartName {
                 message += multiPartName + "\n\n"
             }
             
@@ -5366,24 +5365,24 @@ class MediaViewController : MediaItemsViewController
             
             // We have to cancel and wait until they are finished to we need to do this in the background.
             DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaItems?.list?.forEach({ (mediaItem:MediaItem) in
+                self.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
                         mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
                     //                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
                 })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaItems?.multiPartName)
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaList?.list?.multiPartName)
             }
             break
             
             
         case Constants.Strings.Align_All_Audio_Transcripts:
-            mediaItems?.alignAllAudioTranscripts(viewController:self)
+            mediaList?.list?.alignAllAudioTranscripts(viewController:self)
             break
             
         case Constants.Strings.Align_All_Video_Transcripts:
-            mediaItems?.alignAllVideoTranscripts(viewController: self)
+            mediaList?.list?.alignAllVideoTranscripts(viewController: self)
             break
             
             
@@ -5436,8 +5435,9 @@ class MediaViewController : MediaItemsViewController
 //            break
             
         case .selectingAction:
-            dismiss(animated: true, completion: nil)
-            actionMenu(action:string,mediaItem:mediaItem)
+            popover?["ACTION"]?.dismiss(animated: true, completion: {
+                self.actionMenu(action:string,mediaItem:mediaItem)
+            })
             break
 
         default:
@@ -5458,7 +5458,7 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        guard let mediaItems = mediaItems?.list else {
+        guard let mediaItems = mediaList?.list else {
             return 0
         }
 
@@ -5473,31 +5473,31 @@ extension MediaViewController : UITableViewDataSource
         
         cell.vc = self
         
-        if indexPath.row < mediaItems?.count {
-            cell.mediaItem = mediaItems?[indexPath.row]
+        if indexPath.row < mediaList?.count {
+            cell.mediaItem = mediaList?[indexPath.row]
         }
         
         return cell
     }
     
-    func cancel()
-    {
-        dismiss(animated: true, completion: nil)
-    }
+//    func cancel()
+//    {
+//        dismiss(animated: true, completion: nil)
+//    }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        guard indexPath.row < mediaItems?.count else {
+        guard indexPath.row < mediaList?.count else {
             return false
         }
-        
-        guard let mediaItem = mediaItems?[indexPath.row] else {
+
+        guard let mediaItem = mediaList?[indexPath.row] else {
             return false
         }
-        
+
         return mediaItem.editActions(viewController: self) != nil
     }
-    
+
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
@@ -5507,14 +5507,14 @@ extension MediaViewController : UITableViewDataSource
                 }
 
                 alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
-                
+
                 Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
             }
             action.backgroundColor = UIColor.controlBlue()
-            
+
             return [action]
         }
-        
+
         return nil
     }
 }
@@ -5529,8 +5529,8 @@ extension MediaViewController : UITableViewDelegate
             captureContentOffset(document)
         }
 
-        if indexPath.row < mediaItems?.count {
-            selectedMediaItem = mediaItems?[indexPath.row]
+        if indexPath.row < mediaList?.count {
+            selectedMediaItem = mediaList?[indexPath.row]
         }
         
         updateUI()

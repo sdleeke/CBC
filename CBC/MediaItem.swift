@@ -3500,9 +3500,9 @@ class MediaItem : NSObject
             if let searchStrings = self?.searchStrings(),
                 let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
-                    popover.dismiss(animated: true, completion: nil)
-                })
+//                mtvc.popover?.values.forEach({ (popover:PopoverTableViewController) in
+//                    popover.dismiss(animated: true, completion: nil)
+//                })
                 
                 navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 

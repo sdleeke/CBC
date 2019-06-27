@@ -9,10 +9,10 @@
 import UIKit
 import MessageUI
 
-class ScriptureIndexViewControllerHeaderView : UITableViewHeaderFooterView
-{
-    var label : UILabel?
-}
+//class ScriptureIndexViewControllerHeaderView : UITableViewHeaderFooterView
+//{
+//    var label : UILabel?
+//}
 
 extension ScriptureIndexViewController : UIPickerViewDelegate
 {
@@ -452,7 +452,7 @@ class ScriptureIndexViewController : MediaItemsViewController
     @IBOutlet weak var tableView: UITableView!
     {
         didSet {
-            tableView.register(ScriptureIndexViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "ScriptureIndexViewController")
+            tableView.register(LabelHeaderFooterView.self, forHeaderFooterViewReuseIdentifier: "ScriptureIndexViewController")
         }
     }
 
@@ -937,7 +937,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
 
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -1297,62 +1297,62 @@ class ScriptureIndexViewController : MediaItemsViewController
         
         switch purpose {
         case .selectingSection:
-            dismiss(animated: true, completion: nil)
-            
-            let indexPath = IndexPath(row: 0, section: index)
-            
-            //Can't use this reliably w/ variable row heights.
-            if tableView.isValid(indexPath) {
-                tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
-            }
+            dismiss(animated: true, completion: {
+                let indexPath = IndexPath(row: 0, section: index)
+                
+                //Can't use this reliably w/ variable row heights.
+                if self.tableView.isValid(indexPath) {
+                    self.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                }
+            })
             break
             
         case .selectingAction:
-            dismiss(animated: true, completion: nil)
-            
-            switch strings[index] {
-            case Constants.Strings.View_List:
-                self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                    if self?.scriptureIndex?.html?.string == nil {
-                        self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true, test:test)
-                    }
-                    
-                    return self?.scriptureIndex?.html?.string
-                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        if let vc = self {
-                            vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
+            dismiss(animated: true, completion: {
+                switch strings[index] {
+                case Constants.Strings.View_List:
+                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                        if self?.scriptureIndex?.html?.string == nil {
+                            self?.scriptureIndex?.html?.string = self?.scriptureIndex?.html(includeURLs:true, includeColumns:true, test:test)
                         }
-                })
-                break
-                
-            case Constants.Strings.View_Scripture:
-                if let reference = scriptureIndex?.scripture.picked.reference {
-                    scripture?.reference = reference
-                    if scripture?.html?[reference] != nil {
-                        self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:scripture?.html?[reference], search:false)
-                    } else {
-                        // test:(()->(Bool))?
-                        self.process(work: { [weak self] () -> (Any?) in
-                            self?.scripture?.load() // reference
-                            return self?.scripture?.html?[reference]
-                        }, completion: { [weak self] (data:Any?) in
-                            if let htmlString = data as? String {
-                                if let vc = self {
-                                    vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
-                                }
-                            } else {
-                                if let vc = self {
-                                    vc.networkUnavailable("Scripture text unavailable.")
-                                }
+                        
+                        return self?.scriptureIndex?.html?.string
+                        }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                            if let vc = self {
+                                vc.presentHTMLModal(mediaItem: nil, style: .overFullScreen, title: Globals.shared.contextTitle, htmlString: data as? String)
                             }
-                        })
+                    })
+                    break
+                    
+                case Constants.Strings.View_Scripture:
+                    if let reference = self.scriptureIndex?.scripture.picked.reference {
+                        self.scripture?.reference = reference
+                        if self.scripture?.html?[reference] != nil {
+                            self.popoverHTML(title:reference, bodyHTML:self.scripture?.text(reference), barButtonItem:self.navigationItem.rightBarButtonItem, htmlString:self.scripture?.html?[reference], search:false)
+                        } else {
+                            // test:(()->(Bool))?
+                            self.process(work: { [weak self] () -> (Any?) in
+                                self?.scripture?.load() // reference
+                                return self?.scripture?.html?[reference]
+                                }, completion: { [weak self] (data:Any?) in
+                                    if let htmlString = data as? String {
+                                        if let vc = self {
+                                            vc.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), barButtonItem:self?.navigationItem.rightBarButtonItem, htmlString:htmlString, search:false)
+                                        }
+                                    } else {
+                                        if let vc = self {
+                                            vc.networkUnavailable("Scripture text unavailable.")
+                                        }
+                                    }
+                            })
+                        }
                     }
+                    break
+                    
+                default:
+                    break
                 }
-                break
-                
-            default:
-                break
-            }
+            })
             break
             
 //        case .selectingCellAction:
@@ -1500,18 +1500,18 @@ extension ScriptureIndexViewController : UITableViewDelegate
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text else {
             return nil
         }
-        
+
         let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
             guard var alertActions = cell.mediaItem?.editActions(viewController: self) else {
                 return
             }
-            
+
             alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
 
             Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
         }
         action.backgroundColor = UIColor.controlBlue()
-        
+
         return [action]
     }
     
@@ -1544,11 +1544,11 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
     {
-        var view : ScriptureIndexViewControllerHeaderView?
+        var view : LabelHeaderFooterView?
         
-        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "ScriptureIndexViewController") as? ScriptureIndexViewControllerHeaderView
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "ScriptureIndexViewController") as? LabelHeaderFooterView
         if view == nil {
-            view = ScriptureIndexViewControllerHeaderView()
+            view = LabelHeaderFooterView()
         }
         
         view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)

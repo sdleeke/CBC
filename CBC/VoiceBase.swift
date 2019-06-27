@@ -74,13 +74,22 @@ extension VoiceBase // Class Methods
     
     static func html(_ json:[String:Any]?) -> String?
     {
-        guard json != nil else {
+        guard let media = json else {
             return nil
         }
         
         var htmlString = "<!DOCTYPE html><html><body>"
         
-        if let media = json?["media"] as? [String:Any] {
+//        if let media = json?["media"] as? [String:Any] {
+        
+            if let accountName = media["accountName"] as? String {
+                htmlString = htmlString + "Account Name: \(accountName)\n"
+            }
+        
+            if let accountId = media["accountId"] as? String {
+                htmlString = htmlString + "Account ID: \(accountId)\n"
+            }
+        
             if let mediaID = media["mediaId"] as? String {
                 htmlString = htmlString + "MediaID: \(mediaID)\n"
             }
@@ -89,77 +98,71 @@ extension VoiceBase // Class Methods
                 htmlString = htmlString + "Status: \(status)\n"
             }
             
+//            if let length = media["length"] as? [String:Any] {
+//                if let length = length["milliseconds"] as? Int, let hms = (Double(length) / 1000.0).secondsToHMS {
+//                    htmlString = htmlString + "Length: \(hms)\n"
+//                }
+//            }
+        
+            if let length = media["length"] as? String {
+                htmlString = htmlString + "Length: \(length)\n"
+            }
+        
             if let dateCreated = media["dateCreated"] as? String {
                 htmlString = htmlString + "Date Created: \(dateCreated)\n"
             }
-            
-            if let job = media["job"] as? [String:Any] {
-                htmlString = htmlString + "\nJob\n"
-                
-                if let jobProgress = job["progress"] as? [String:Any] {
-                    if let jobStatus = jobProgress["status"] as? String {
-                        htmlString = htmlString + "Job Status: \(jobStatus)\n"
-                    }
-                    if let jobTasks = jobProgress["tasks"] as? [String:Any] {
-                        htmlString = htmlString + "Job Tasks: \(jobTasks.count)\n"
-                        
-                        var stats = [String:Int]()
-                        
-                        for task in jobTasks.keys {
-                            if let status = (jobTasks[task] as? [String:Any])?["status"] as? String {
-                                if let count = stats[status] {
-                                    stats[status] = count + 1
-                                } else {
-                                    stats[status] = 1
-                                }
-                            }
-                        }
-                        
-                        for key in stats.keys {
-                            if let value = stats[key] {
-                                htmlString = htmlString + "\(key): \(value)\n"
-                            }
-                        }
-                    }
-                }
+        
+            if let dateFinished = media["dateFinished"] as? String {
+                htmlString = htmlString + "Date Finished: \(dateFinished)\n"
             }
-            
+        
+            if let mediaContentType = media["mediaContentType"] as? String {
+                htmlString = htmlString + "Media Content Type: \(mediaContentType)\n"
+            }
+        
+            if let formatVersion = media["formatVersion"] as? String {
+                htmlString = htmlString + "Format Version: \(formatVersion)\n"
+            }
+        
+//            if let job = media["job"] as? [String:Any] {
+//                htmlString = htmlString + "\nJob\n"
+//
+//                if let jobProgress = job["progress"] as? [String:Any] {
+//                    if let jobStatus = jobProgress["status"] as? String {
+//                        htmlString = htmlString + "Job Status: \(jobStatus)\n"
+//                    }
+//                    if let jobTasks = jobProgress["tasks"] as? [String:Any] {
+//                        htmlString = htmlString + "Job Tasks: \(jobTasks.count)\n"
+//
+//                        var stats = [String:Int]()
+//
+//                        for task in jobTasks.keys {
+//                            if let status = (jobTasks[task] as? [String:Any])?["status"] as? String {
+//                                if let count = stats[status] {
+//                                    stats[status] = count + 1
+//                                } else {
+//                                    stats[status] = 1
+//                                }
+//                            }
+//                        }
+//
+//                        for key in stats.keys {
+//                            if let value = stats[key] {
+//                                htmlString = htmlString + "\(key): \(value)\n"
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+        
             if let metadata = media["metadata"] as? [String:Any] {
                 htmlString = htmlString + "\nMetadata\n"
-                
-                if let length = metadata["length"] as? [String:Any] {
-                    if let length = length["milliseconds"] as? Int, let hms = (Double(length) / 1000.0).secondsToHMS {
-                        htmlString = htmlString + "Length: \(hms)\n"
-                    }
+
+                if let title = metadata["title"] as? String {
+                    htmlString = htmlString + "Title: \(title)\n"
                 }
                 
-                if let metadataTitle = metadata["title"] as? String {
-                    htmlString = htmlString + "Title: \(metadataTitle)\n"
-                }
-                
-                if let device = metadata["device"] as? [String:String] {
-                    htmlString = htmlString + "\nDevice Information:\n"
-                    
-                    if let model = device["model"] {
-                        htmlString = htmlString + "Model: \(model)\n"
-                    }
-                    
-                    if let modelName = device["modelName"] {
-                        htmlString = htmlString + "Model Name: \(modelName)\n"
-                    }
-                    
-                    if let name = device["name"] {
-                        htmlString = htmlString + "Name: \(name)\n"
-                    }
-                    
-                    if let deviceUUID = device["UUID"] {
-                        htmlString = htmlString + "UUID: \(deviceUUID)\n"
-                    }
-                }
-                
-                if let mediaItem = metadata["mediaItem"] as? [String:String] {
-                    htmlString = htmlString + "\nMediaItem\n"
-                    
+                if let mediaItem = metadata["extended"] as? [String:Any] {
                     if let category = mediaItem["category"] {
                         htmlString = htmlString + "Category: \(category)\n"
                     }
@@ -191,49 +194,65 @@ extension VoiceBase // Class Methods
                     if let purpose = mediaItem["purpose"] {
                         htmlString = htmlString + "Purpose: \(purpose)\n"
                     }
-                }
-            }
-            
-            if let transcripts = media["transcripts"] as? [String:Any] {
-                htmlString = htmlString + "\nTranscripts\n"
-                
-                if let latest = transcripts["latest"] as? [String:Any] {
-                    htmlString = htmlString + "Latest\n"
                     
-                    if let engine = latest["engine"] as? String {
-                        htmlString = htmlString + "Engine: \(engine)\n"
-                    }
-                    
-                    if let confidence = latest["confidence"] as? String {
-                        htmlString = htmlString + "Confidence: \(confidence)\n"
-                    }
-                    
-                    if let words = latest["words"] as? [[String:Any]] {
-                        htmlString = htmlString + "Words: \(words.count)\n"
-                    }
-                }
-            }
-            
-            if let keywords = media["keywords"] as? [String:Any] {
-                htmlString = htmlString + "\nKeywords\n"
-                
-                if let keywordsLatest = keywords["latest"] as? [String:Any] {
-                    if let words = keywordsLatest["words"] as? [[String:Any]] {
-                        htmlString = htmlString + "Keywords: \(words.count)\n"
+                    if let device = mediaItem["device"] as? [String:Any] {
+                        htmlString = htmlString + "\nDevice Information:\n"
+                        
+                        if let model = device["model"] {
+                            htmlString = htmlString + "Model: \(model)\n"
+                        }
+                        
+                        if let modelName = device["modelName"] {
+                            htmlString = htmlString + "Model Name: \(modelName)\n"
+                        }
+                        
+                        if let name = device["name"] {
+                            htmlString = htmlString + "Name: \(name)\n"
+                        }
+                        
+                        if let deviceUUID = device["UUID"] {
+                            htmlString = htmlString + "UUID: \(deviceUUID)\n"
+                        }
                     }
                 }
             }
             
-            if let topics = media["topics"] as? [String:Any] {
-                htmlString = htmlString + "\nTopics\n"
+            if let transcript = media["transcript"] as? [String:Any] {
+                htmlString = htmlString + "\nTranscript\n"
                 
-                if let topicsLatest = topics["latest"] as? [String:Any] {
-                    if let topics = topicsLatest["topics"] as? [[String:Any]] {
-                        htmlString = htmlString + "Topics: \(topics.count)\n"
-                    }
+                if let engine = transcript["engine"] as? String {
+                    htmlString = htmlString + "Engine: \(engine)\n"
+                }
+                
+                if let confidence = transcript["confidence"] {
+                    htmlString = htmlString + "Confidence: \(confidence)\n"
+                }
+                
+                if let words = transcript["words"] as? [[String:Any]] {
+                    htmlString = htmlString + "Words: \(words.count)\n"
                 }
             }
-        }
+            
+//            if let keywords = media["keywords"] as? [String:Any] {
+//                htmlString = htmlString + "\nKeywords\n"
+//
+//                if let keywordsLatest = keywords["latest"] as? [String:Any] {
+//                    if let words = keywordsLatest["words"] as? [[String:Any]] {
+//                        htmlString = htmlString + "Keywords: \(words.count)\n"
+//                    }
+//                }
+//            }
+//
+//            if let topics = media["topics"] as? [String:Any] {
+//                htmlString = htmlString + "\nTopics\n"
+//
+//                if let topicsLatest = topics["latest"] as? [String:Any] {
+//                    if let topics = topicsLatest["topics"] as? [[String:Any]] {
+//                        htmlString = htmlString + "Topics: \(topics.count)\n"
+//                    }
+//                }
+//            }
+//        }
         
         htmlString = htmlString.replacingOccurrences(of: "\n", with: "<br/>") + "</body></html>"
 
@@ -367,7 +386,7 @@ extension VoiceBase // Class Methods
                     json = ["text":string as Any]
                 } else {
                     json = data.json as? [String:Any]
-                    
+//                    print(json)
                     if let errors = json?["errors"] {
                         print(string as Any)
                         print(json as Any)
@@ -648,60 +667,57 @@ class VoiceBase
 
         var mediaItemString = "{"
         
-            mediaItemString += "\"metadata\":{"
-        
-                if let text = mediaItem.text {
+                if let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\n", with: "") {
                     if let mediaID = mediaID {
-                        mediaItemString += "\"title\":\"\(text) (\(transcriptPurpose))\n\(mediaID)\","
+                        mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\n\(mediaID)\","
                     } else {
-                        mediaItemString += "\"title\":\"\(text) (\(transcriptPurpose))\","
+                        mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\","
                     }
                 }
+
+            mediaItemString += "\"extended\":{" // mediaItem
+
+                if let category = mediaItem.category {
+                    mediaItemString += "\"category\":\"\(category)\","
+                }
         
-                mediaItemString += "\"mediaItem\":{"
-                
-                    if let category = mediaItem.category {
-                        mediaItemString += "\"category\":\"\(category)\","
-                    }
-                    
-                    if let id = mediaItem.mediaCode {
-                        mediaItemString += "\"id\":\"\(id)\","
-                    }
-                    
-                    if let date = mediaItem.date {
-                        mediaItemString += "\"date\":\"\(date)\","
-                    }
-                    
-                    if let service = mediaItem.service {
-                        mediaItemString += "\"service\":\"\(service)\","
-                    }
-                    
-                    if let title = mediaItem.title {
-                        mediaItemString += "\"title\":\"\(title)\","
-                    }
-            
-                    if let text = mediaItem.text {
-                        mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\","
-                    }
-                    
-                    if let scripture = mediaItem.scripture {
-                        mediaItemString += "\"scripture\":\"\(scripture.description)\","
-                    }
-                    
-                    if let speaker = mediaItem.speaker {
-                        mediaItemString += "\"speaker\":\"\(speaker)\","
-                    }
-                    
-                    mediaItemString += "\"purpose\":\"\(transcriptPurpose)\""
-            
-                mediaItemString += "},"
-            
+                if let id = mediaItem.mediaCode {
+                    mediaItemString += "\"id\":\"\(id)\","
+                }
+        
+                if let date = mediaItem.date {
+                    mediaItemString += "\"date\":\"\(date)\","
+                }
+
+                if let service = mediaItem.service {
+                    mediaItemString += "\"service\":\"\(service)\","
+                }
+
+                //
+                if let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\n", with: "") {
+                    mediaItemString += "\"title\":\"\(title)\","
+                }
+
+//                if let text = mediaItem.text {
+//                    mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\","
+//                }
+
+                if let scripture = mediaItem.scripture {
+                    mediaItemString += "\"scripture\":\"\(scripture.description)\","
+                }
+
+                if let speaker = mediaItem.speaker {
+                    mediaItemString += "\"speaker\":\"\(speaker)\","
+                }
+
+                mediaItemString += "\"purpose\":\"\(transcriptPurpose)\","
+
                 mediaItemString += "\"device\":{"
-                
+        
                     mediaItemString += "\"name\":\"\(UIDevice.current.name)\","
-                    
+        
                     mediaItemString += "\"model\":\"\(UIDevice.current.localizedModel)\","
-                    
+        
                     if let uuid = UIDevice.current.identifierForVendor?.description {
                         mediaItemString += "\"UUID\":\"\(uuid)\""
                     }
@@ -709,9 +725,9 @@ class VoiceBase
                 mediaItemString += "}"
         
             mediaItemString += "}"
-        
+
         mediaItemString += "}"
-        
+
         return mediaItemString
     }
     
@@ -1796,9 +1812,11 @@ class VoiceBase
         
         transcribing = true
 
-        var parameters:[String:String] = ["mediaUrl":url] //,"metadata":self.metadata
+        var parameters:[String:String] = ["mediaUrl":url] //,"metadata":metadata
         
 //        parameters["configuration"] = VoiceBase.configuration
+        
+        parameters["metadata"] = self.metadata
         
         parameters["configuration"] = "{\"transcript\":{\"formatting\":{\"enableNumberFormatting\":false}}}"
 
@@ -2442,6 +2460,8 @@ class VoiceBase
             
             var parameters:[String:String] = ["media":url] // ,"metadata":self.metadata
             
+            parameters["metadata"] = self.metadata
+
 //            parameters["configuration"] = VoiceBase.configuration
 
             // mediaID:self.mediaID,
@@ -5081,18 +5101,14 @@ class VoiceBase
                         })
                     }))
                     
-                    alertActions.append(AlertAction(title: "Align", style: .destructive, handler: {
+                    alertActions.append(AlertAction(title: Constants.Strings.Align, style: .destructive, handler: {
                         guard !self.aligning else {
                             if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
                                 viewController.alertActionsCancel( title: "Alignment Underway",
-                                                                   message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                                    alertActions: nil,
-                                    cancelAction: nil)
+                                                                   message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.")
                             } else {
                                 viewController.alertActionsCancel( title: "Alignment Underway",
-                                                                   message: "There is an alignment already underway.\n\nPlease try again later.",
-                                    alertActions: nil,
-                                    cancelAction: nil)
+                                                                   message: "There is an alignment already underway.\n\nPlease try again later.")
                             }
                             return
                         }

@@ -180,7 +180,7 @@ extension WebViewController : PopoverPickerControllerDelegate
             return
         }
         
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
 
         self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
         
@@ -219,12 +219,18 @@ extension WebViewController : PopoverTableViewControllerDelegate
     
     @objc func showFullScreen()
     {
-        let vc = presentingViewController
+        guard self.popover?.count == 0 else {
+            return
+        }
         
-        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? WebViewController {
-            dismiss(animated: false, completion: nil)
-            
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? WebViewController else {
+                return
+        }
+        
+        let presentingViewController = self.presentingViewController
+        
+        dismiss(animated: false, completion: {
             navigationController.modalPresentationStyle = .overFullScreen
             navigationController.popoverPresentationController?.delegate = popover
             
@@ -235,16 +241,16 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             popover.search = self.search
             popover.mediaItem = self.mediaItem
-
+            
             popover.bodyHTML = self.bodyHTML
             popover.headerHTML = self.headerHTML
-
+            
             popover.content = self.content
-
+            
             popover.navigationController?.isNavigationBarHidden = false
             
-            vc?.present(navigationController, animated: true, completion: nil) // Globals.shared.splitViewController
-        }
+            presentingViewController?.present(navigationController, animated: true, completion: nil) // Globals.shared.splitViewController
+        })
     }
 
     func selectingAction(action: String?, mediaItem:MediaItem?)
@@ -601,37 +607,38 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 return
             }
             
-            popover?["WORD"]?.dismiss(animated: true, completion: nil)
-            
-            self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
-            
-            let searchText = string.word ?? string
-            
-            wkWebView?.isHidden = true
-            
-            activityIndicator.isHidden = false
-            activityIndicator.startAnimating()
-            
-            // This serializes the webView loading
-            operationQueue.addOperation { [weak self] in
-                if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
-                    self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
-                }
+            popover?["WORD"]?.dismiss(animated: true, completion: {
+                self.navigationController?.popToRootViewController(animated: true) // Why are we doing this?
                 
-                if let fontSize = self?.html.fontSize {
-                    self?.html.string = self?.html.string?.stripHead.insertHead(fontSize: fontSize)
+                let searchText = string.word ?? string
+                
+                self.wkWebView?.isHidden = true
+                
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+                
+                // This serializes the webView loading
+                self.operationQueue.addOperation { [weak self] in
+                    if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
+                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+                    }
                     
-                    if let url = self?.html.fileURL {
-                        Thread.onMain {
-                            self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                    if let fontSize = self?.html.fontSize {
+                        self?.html.string = self?.html.string?.stripHead.insertHead(fontSize: fontSize)
+                        
+                        if let url = self?.html.fileURL {
+                            Thread.onMain {
+                                self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                            }
                         }
                     }
                 }
-            }
+            })
             
         case .selectingAction:
-            popover?["ACTION"]?.dismiss(animated: true, completion: nil)
-            selectingAction(action: string, mediaItem:mediaItem)
+            popover?["ACTION"]?.dismiss(animated: true, completion: {
+                self.selectingAction(action: string, mediaItem:mediaItem)
+            })
             
         default:
             break
@@ -1136,7 +1143,11 @@ class WebViewController: CBCViewController
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done)), animated: true)
 
                     if Globals.shared.splitViewController?.isCollapsed == false {
-                        navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
+                        if presentingViewController?.modalPresentationStyle == .overFullScreen {
+                            navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
+                        } else {
+                            navigationItem.setRightBarButtonItems([actionButton,fullScreenButton,minusButton,plusButton,activityButton], animated: true)
+                        }
                     } else {
                         navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton,activityButton], animated: true)
                     }

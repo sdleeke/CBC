@@ -285,7 +285,7 @@ extension TextViewController : PopoverPickerControllerDelegate
             return
         }
         
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
         
         guard let string = string else {
             return
@@ -503,213 +503,213 @@ extension TextViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingWord:
-            popover?["WORD"]?.dismiss(animated: true, completion: nil)
-
-            let searchText = string.word ?? string
-
-            self.searchActive = true
-            self.searchText = searchText
-            
-            self.searchBar.text = searchText
-            
-            self.searchBar.becomeFirstResponder()
-            
-            startSearch(searchText)
+            popover?["WORD"]?.dismiss(animated: true, completion: {
+                let searchText = string.word ?? string
+                
+                self.searchActive = true
+                self.searchText = searchText
+                
+                self.searchBar.text = searchText
+                
+                self.searchBar.becomeFirstResponder()
+                
+                self.startSearch(searchText)
+            })
             break
             
         case .selectingAction:
-            popover?["ACTION"]?.dismiss(animated: true, completion: nil)
-            
-            switch string {
-            case Constants.Strings.Full_Screen:
-                showFullScreen()
-                break
-                
-            case Constants.Strings.Print:
-                self.printText(string: self.textView.text)
-                break
-                
-            case Constants.Strings.Share:
-                share()
-                break
-                
-            case Constants.Strings.Word_Picker:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
+            popover?["ACTION"]?.dismiss(animated: true, completion: {
+                switch string {
+                case Constants.Strings.Full_Screen:
+                    self.showFullScreen()
+                    break
                     
-                    navigationController.popoverPresentationController?.delegate = self
+                case Constants.Strings.Print:
+                    self.printText(string: self.textView.text)
+                    break
                     
-                    popover.navigationController?.isNavigationBarHidden = false
+                case Constants.Strings.Share:
+                    self.share()
+                    break
                     
-                    popover.delegate = self
-                    
-                    popover.allowsSelection = search
-                    
-                    popover.purpose = .selectingWord
-                    
-                    if let mediaItem = mediaItem {
-                        popover.navigationItem.title = mediaItem.title
+                case Constants.Strings.Word_Picker:
+                    if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                        navigationController.modalPresentationStyle = .overCurrentContext
                         
-                        popover.stringsFunction = {
-                            if let keys = mediaItem.notesTokens?.result?.keys {
-                                let strings = [String](keys).sorted()
-                                return strings
-                            }
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.delegate = self
+                        
+                        popover.allowsSelection = self.search
+                        
+                        popover.purpose = .selectingWord
+                        
+                        if let mediaItem = mediaItem {
+                            popover.navigationItem.title = mediaItem.title
                             
-                            return nil
+                            popover.stringsFunction = {
+                                if let keys = mediaItem.notesTokens?.result?.keys {
+                                    let strings = [String](keys).sorted()
+                                    return strings
+                                }
+                                
+                                return nil
+                            }
+                        } else
+                            
+                            if let transcript = self.transcript {
+                                popover.navigationItem.title = transcript.mediaItem?.title
+                                
+                                popover.stringsFunction = {
+                                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                    return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                        return word
+                                    }).sorted()
+                                }
+                            } else {
+                                popover.navigationItem.title = self.navigationItem.title
+                                
+                                let text = self.textView.text
+                                
+                                popover.stringsFunction = {
+                                    // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                    return text?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                        return word
+                                    }).sorted()
+                                }
+                        }
+                        
+                        self.present(navigationController, animated: true, completion: nil)
+                    }
+                    break
+                    
+                case Constants.Strings.Word_Cloud:
+                    if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? CloudViewController {
+                        navigationController.modalPresentationStyle = .fullScreen
+                        
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.cloudTitle = self.navigationItem.title
+                        
+                        let string = self.textView.text
+                        
+                        popover.cloudString = string
+                        
+                        popover.cloudWordDictsFunction = {
+                            let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
+                                return ["word":key,"count":value,"selected":true]
+                            })
+                            
+                            return words
+                        }
+                        
+                        popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
+                        
+                        self.present(navigationController, animated: true, completion:  nil)
+                    }
+                    break
+                    
+                case Constants.Strings.Word_Index:
+                    if let mediaItem = mediaItem, mediaItem.hasNotesText {
+                        self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
+                            }).sorted().tableHTML(title:mediaItem.title, test:test)
+                            }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                                self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                                self?.updateBarButtons()
+                        })
+                    } else
+                        if let transcript = self.transcript {
+                            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                                return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                    return "\(word) (\(count))"
+                                }).sorted().tableHTML(title:transcript.title,test:test)
+                                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                                    self?.updateBarButtons()
+                            })
+                        } else {
+                            self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
+                                return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
+                                    return "\(string) (\(count))"
+                                }).sorted().tableHTML(test:test)
+                                }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
+                                    self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
+                                    self?.updateBarButtons()
+                            })
+                    }
+                    break
+                    
+                case Constants.Strings.Words:
+                    if let mediaItem = mediaItem, mediaItem.hasNotesText {
+                        self.selectWord(title:mediaItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
+                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
+                            }).sorted()
+                        }) { (popover:PopoverTableViewController) in
+                            popover.selectedMediaItem = mediaItem
                         }
                     } else
-                        
-                    if let transcript = transcript {
-                        popover.navigationItem.title = transcript.mediaItem?.title
-                        
-                        popover.stringsFunction = {
-                            // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                            return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                                return word
+                        if let transcript = self.transcript {
+                            self.selectWord(title:transcript.mediaItem?.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
+                                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                    return "\(word) (\(count))"
+                                }).sorted()
+                            })
+                        } else {
+                            self.selectWord(title:self.navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
+                                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
+                                    return "\(string) (\(count))"
+                                }).sorted()
+                            })
+                    }
+                    
+                case Constants.Strings.Word_Search:
+                    if let mediaItem = mediaItem, mediaItem.hasNotesText {
+                        self.selectWord(title:mediaItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
+                            return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
                             }).sorted()
+                        }) { (popover:PopoverTableViewController) in
+                            popover.selectedMediaItem = mediaItem
                         }
-                    } else {
-                        popover.navigationItem.title = navigationItem.title
-                        
-                        let text = self.textView.text
-                        
-                        popover.stringsFunction = {
-                            // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                            return text?.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                                return word
-                            }).sorted()
-                        }
+                    } else
+                        if let transcript = self.transcript {
+                            self.selectWord(title:transcript.mediaItem?.title, purpose:.selectingWord, stringsFunction: { [weak self] in
+                                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
+                                    return "\(word) (\(count))"
+                                }).sorted()
+                            })
+                        } else {
+                            self.selectWord(title:self.navigationItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
+                                // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
+                                return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
+                                    return "\(string) (\(count))"
+                                }).sorted()
+                            })
                     }
+                    break
                     
-                    present(navigationController, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.Strings.Word_Cloud:
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? CloudViewController {
-                    navigationController.modalPresentationStyle = .fullScreen
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.cloudTitle = navigationItem.title
-
-                    let string = textView.text
-
-                    popover.cloudString = string
-                    
-                    popover.cloudWordDictsFunction = {
-                        let words:[[String:Any]]? = string?.tokensAndCounts?.map({ (key:String, value:Int) -> [String:Any] in
-                            return ["word":key,"count":value,"selected":true]
-                        })
-                        
-                        return words
+                case Constants.Strings.Email_One:
+                    if let title = self.navigationItem.title, let string = self.textView.text {
+                        self.mailText(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, body: string)
                     }
+                    break
                     
-                    popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
-                    
-                    present(navigationController, animated: true, completion:  nil)
+                default:
+                    break
                 }
-                break
-                
-            case Constants.Strings.Word_Index:
-                if let mediaItem = mediaItem, mediaItem.hasNotesText {
-                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                        return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted().tableHTML(title:mediaItem.title, test:test)
-                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
-                        self?.updateBarButtons()
-                    })
-                } else
-                if let transcript = transcript {
-                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                        return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return "\(word) (\(count))"
-                        }).sorted().tableHTML(title:transcript.title,test:test)
-                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
-                        self?.updateBarButtons()
-                    })
-                } else {
-                    self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
-                        return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted().tableHTML(test:test)
-                    }, completion: { [weak self] (data:Any?, test:(()->(Bool))?) in
-                        self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: Constants.Strings.Word_Index, htmlString: data as? String)
-                        self?.updateBarButtons()
-                    })
-                }
-                break
-                
-            case Constants.Strings.Words:
-                if let mediaItem = mediaItem, mediaItem.hasNotesText {
-                    self.selectWord(title:mediaItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
-                        return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                    }) { (popover:PopoverTableViewController) in
-                        popover.selectedMediaItem = mediaItem
-                    }
-                } else
-                if let transcript = transcript {
-                    self.selectWord(title:transcript.mediaItem?.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return "\(word) (\(count))"
-                        }).sorted()
-                    })
-                } else {
-                    self.selectWord(title:navigationItem.title, purpose:.selectingWord, allowsSelection:false, stringsFunction: { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                    })
-                }
-                
-            case Constants.Strings.Word_Search:
-                if let mediaItem = mediaItem, mediaItem.hasNotesText {
-                    self.selectWord(title:mediaItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
-                        return mediaItem.notesTokens?.result?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                    }) { (popover:PopoverTableViewController) in
-                        popover.selectedMediaItem = mediaItem
-                    }
-                } else
-                if let transcript = transcript {
-                    self.selectWord(title:transcript.mediaItem?.title, purpose:.selectingWord, stringsFunction: { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return transcript.tokensAndCounts?.map({ (word:String,count:Int) -> String in
-                            return "\(word) (\(count))"
-                        }).sorted()
-                    })
-                } else {
-                    self.selectWord(title:navigationItem.title, purpose:.selectingWord, stringsFunction: { [weak self] in
-                        // tokens is a generated results, i.e. get only, which takes time to derive from another data structure
-                        return self?.textView.text?.tokensAndCounts?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                    })
-                }
-                break
-                
-            case Constants.Strings.Email_One:
-                if let title = navigationItem.title, let string = textView.text {
-                    mailText(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, body: string)
-                }
-                break
-                
-            default:
-                break
-            }
+            })
             break
             
         default:
@@ -1947,39 +1947,47 @@ class TextViewController : CBCViewController
 
     @objc func showFullScreen()
     {
-        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? TextViewController {
-            dismiss(animated: false, completion: nil)
-            
+        guard self.popover?.count == 0 else {
+            return
+        }
+        
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.TEXT_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? TextViewController else {
+            return
+        }
+        
+        let presentingViewController = self.presentingViewController
+        
+        dismiss(animated: false, completion: {
             navigationController.modalPresentationStyle = .overFullScreen
             
             popover.navigationItem.title = self.navigationItem.title
-
+            
             popover.text = self.text
             popover.changedText = self.changedText
-
+            
             popover.assist = self.assist
             popover.track = self.track
             popover.readOnly = self.readOnly
-
+            
             // The full scren view will create its own trackingTime
-//            popover.trackingTimer = self.trackingTimer
-
+            //            popover.trackingTimer = self.trackingTimer
+            
             popover.search = self.search
             popover.searchText = self.searchText
             popover.searchActive = self.searchActive
             popover.searchInteractive = self.searchInteractive
             
             popover.transcript = self.transcript
-
+            
             popover.onSave = self.onSave
             popover.onCancel = self.onCancel
             popover.onDone = self.onDone
-
+            
             popover.automatic = self.automatic
             popover.automaticCompletion = self.automaticCompletion
             popover.automaticInteractive = self.automaticInteractive
-
+            
             popover.editingActive = self.editingActive
             
             popover.wordRangeTiming = self.wordRangeTiming
@@ -1988,11 +1996,11 @@ class TextViewController : CBCViewController
             
             popover.keyboardShowing = self.keyboardShowing
             popover.shrink = self.shrink
-
+            
             popover.lastRange = self.lastRange
-
+            
             // Don't
-//            popover.operationQueue = self.operationQueue
+            //            popover.operationQueue = self.operationQueue
             
             popover.oldRange = self.oldRange
             
@@ -2000,11 +2008,11 @@ class TextViewController : CBCViewController
             popover.wasTracking = self.wasTracking
             
             popover.wholeWordsOnly = self.wholeWordsOnly
-
+            
             popover.navigationController?.isNavigationBarHidden = false
             
-            self.presentingViewController?.present(navigationController, animated: true, completion: nil)
-        }
+            presentingViewController?.present(navigationController, animated: true, completion: nil)
+        })
     }
     
     @objc func playPause()
@@ -2651,10 +2659,11 @@ class TextViewController : CBCViewController
             } else {
                 editingQueue.addOperation {
                     Thread.onMain {
-                        self.dismiss(animated: true, completion: nil)
+                        self.dismiss(animated: true, completion: {
+                            self.onDone?(self.textView.attributedText.string)
+                            self.automaticCompletion?()
+                        })
                     }
-                    self.onDone?(self.textView.attributedText.string)
-                    self.automaticCompletion?()
                 }
             }
             return

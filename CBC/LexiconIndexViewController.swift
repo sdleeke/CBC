@@ -24,7 +24,7 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
             return
         }
         
-        self.dismiss(animated: true, completion: nil)
+//        self.dismiss(animated: true, completion: nil)
         self.tableView.setEditing(false, animated: true)
         self.wordsTableViewController.selectString(string, scroll: true, select: true)
         
@@ -42,10 +42,10 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
 //    }
 //}
 
-class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
-{
-    var label : UILabel?
-}
+//class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
+//{
+//    var label : UILabel?
+//}
 
 /**
  For displaying a lexicon
@@ -258,7 +258,7 @@ class LexiconIndexViewController : MediaItemsViewController
     @IBOutlet weak var tableView: UITableView!
     {
         didSet {
-            tableView.register(LexiconIndexViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "LexiconIndexViewController")
+            tableView.register(LabelHeaderFooterView.self, forHeaderFooterViewReuseIdentifier: "LexiconIndexViewController")
         }
     }
     
@@ -949,7 +949,10 @@ class LexiconIndexViewController : MediaItemsViewController
                     }
                     
                     if speakerCount == 1 {
-                        if let speaker = mediaItems[0].speaker, name != speaker {
+                        if var speaker = mediaItems[0].speaker, name != speaker {
+                            if let speakerTitle = mediaItems[0].speakerTitle {
+                                speaker += ", \(speakerTitle)"
+                            }
                             bodyString += " by " + speaker
                         }
                     }
@@ -1268,7 +1271,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.shared.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -1582,25 +1585,25 @@ class LexiconIndexViewController : MediaItemsViewController
 //            break
             
         case .selectingSection:
-            dismiss(animated: true, completion: nil)
-            
-            if let headerStrings = results?.section?.headerStrings {
-                var i = 0
-                for headerString in headerStrings {
-                    if headerString == string {
-                        break
+            dismiss(animated: true, completion: {
+                if let headerStrings = self.results?.section?.headerStrings {
+                    var i = 0
+                    for headerString in headerStrings {
+                        if headerString == string {
+                            break
+                        }
+                        
+                        i += 1
                     }
                     
-                    i += 1
+                    let indexPath = IndexPath(row: 0, section: i)
+                    
+                    //Can't use this reliably w/ variable row heights.
+                    if self.tableView.isValid(indexPath) {
+                        self.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
+                    }
                 }
-                
-                let indexPath = IndexPath(row: 0, section: i)
-                
-                //Can't use this reliably w/ variable row heights.
-                if tableView.isValid(indexPath) {
-                    tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.top, animated: true)
-                }
-            }
+            })
             break
             
         case .selectingLexicon:
@@ -1622,9 +1625,9 @@ class LexiconIndexViewController : MediaItemsViewController
             break
             
         case .selectingAction:
-            dismiss(animated: true, completion: nil)
-            
-            actionMenu(action:string,mediaItem:mediaItem)
+            dismiss(animated: true, completion: {
+                self.actionMenu(action:string,mediaItem:mediaItem)
+            })
             break
             
 //        case .selectingCellAction:
@@ -1796,7 +1799,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     {
         if let header = view as? UITableViewHeaderFooterView {
             header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-            
+
             header.textLabel?.text = nil
             header.textLabel?.textColor = UIColor.black
             
@@ -1806,12 +1809,12 @@ extension LexiconIndexViewController : UITableViewDataSource
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
     {
-        var view : LexiconIndexViewControllerHeaderView?
+        var view : LabelHeaderFooterView?
         
-        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "LexiconIndexViewController") as? LexiconIndexViewControllerHeaderView
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "LexiconIndexViewController") as? LabelHeaderFooterView
         
         if view == nil {
-            view = LexiconIndexViewControllerHeaderView()
+            view = LabelHeaderFooterView()
         }
         
         view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)

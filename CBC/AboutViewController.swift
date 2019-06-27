@@ -46,44 +46,44 @@ extension AboutViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        dismiss(animated: true, completion: nil)
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingAction:
-            switch strings[index] {
-                
-            case Constants.Strings.Email_CBC:
-                self.mailHTML(to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
-                break
-                
-            case Constants.Strings.CBC_WebSite:
-                openWebSite(Constants.CBC.WEBSITE)
-                break
-                
-            case Constants.Strings.CBC_in_Apple_Maps:
-                openInAppleMaps()
-                break
-                
-            case Constants.Strings.CBC_in_Google_Maps:
-                openInGoogleMaps()
-                break
-                
-            case Constants.Strings.Share_This_App:
-                share()
+        dismiss(animated: true, completion: {
+            guard let strings = strings else {
+                return
+            }
+            
+            switch purpose {
+            case .selectingAction:
+                switch strings[index] {
+                    
+                case Constants.Strings.Email_CBC:
+                    self.mailHTML(to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
+                    break
+                    
+                case Constants.Strings.CBC_WebSite:
+                    self.openWebSite(Constants.CBC.WEBSITE)
+                    break
+                    
+                case Constants.Strings.CBC_in_Apple_Maps:
+                    self.openInAppleMaps()
+                    break
+                    
+                case Constants.Strings.CBC_in_Google_Maps:
+                    self.openInGoogleMaps()
+                    break
+                    
+                case Constants.Strings.Share_This_App:
+                    self.share()
+                    break
+                    
+                default:
+                    break
+                }
                 break
                 
             default:
                 break
             }
-            break
-            
-        default:
-            break
-        }
+        })
     }
 }
 
@@ -214,7 +214,7 @@ class AboutViewController: CBCViewController
     @objc func actions(_ sender: UIBarButtonItem)
     {
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+//        dismiss(animated: true, completion: nil)
         
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {

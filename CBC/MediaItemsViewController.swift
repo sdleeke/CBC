@@ -23,6 +23,11 @@ import UIKit
  
  */
 
+class LabelHeaderFooterView : UITableViewHeaderFooterView
+{
+    var label : UILabel?
+}
+
 class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDelegate
 {
     lazy var popover : [String:PopoverTableViewController]? = {
@@ -44,6 +49,41 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
     {
         
     }
+    
+    // UITableViewDataSource Protocol - This never gets called.  It must be in subclasses since that is where the LabelHeaderFooterView is registered.
+//    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
+//    {
+//        if let header = view as? UITableViewHeaderFooterView {
+//            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+//            
+//            header.textLabel?.text = nil
+//            header.textLabel?.textColor = UIColor.black
+//            
+//            header.alpha = 0.85
+//        }
+//    }
+    //////////////////////////////
+    
+    // UITableViewDelegate Protocol - Never gets called, must be in the subclass.
+//    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+//    {
+//        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
+//            let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+//                guard var alertActions = cell.mediaItem?.editActions(viewController: self) else {
+//                    return
+//                }
+//                
+//                alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.default, handler: nil))
+//                Alerts.shared.alert(title: Constants.Strings.Actions, message: message, actions: alertActions)
+//            }
+//            action.backgroundColor = UIColor.controlBlue()
+//            
+//            return [action]
+//        }
+//        
+//        return nil
+//    }
+    //////////////////////////////
     
     // Handles only the selectingTimingIndex and selectingTime row actions.
     // selectingTimingIndex has four variants: Word, Phrase, Topic, and Keyword
@@ -74,31 +114,31 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         let string = strings[index]
         
         switch purpose {
-        case .selectingCellAction:
-            popover?.values.forEach({ (popover:PopoverTableViewController) in
-                popover.dismiss(animated: true, completion: nil)
-            })
-            
-            switch string {
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download(background: true)
-                Thread.onMain {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
-                }
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete(block:true)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
+//        case .selectingCellAction:
+//            popover?.values.forEach({ (popover:PopoverTableViewController) in
+//                popover.dismiss(animated: true, completion: nil)
+//            })
+//
+//            switch string {
+//            case Constants.Strings.Download_Audio:
+//                mediaItem?.audioDownload?.download(background: true)
+//                Thread.onMain {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                }
+//                break
+//
+//            case Constants.Strings.Delete_Audio_Download:
+//                mediaItem?.audioDownload?.delete(block:true)
+//                break
+//
+//            case Constants.Strings.Cancel_Audio_Download:
+//                mediaItem?.audioDownload?.cancelOrDelete()
+//                break
+//
+//            default:
+//                break
+//            }
+//            break
             
         case .selectingTimingIndexWord:
             guard let searchText = string.components(separatedBy: Constants.SINGLE_SPACE).first else {

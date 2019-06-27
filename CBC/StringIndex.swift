@@ -97,7 +97,7 @@ class StringIndex : NSObject
                 
                 var category = "Other"
                 
-                if  let metadata = mediaItem["metadata"] as? [String:Any] { //,
+                if  let metadata = mediaItem["metadata"] as? [String:Any], !metadata.isEmpty { //,
                     newDict["metadata"] = metadata as Any
                     
                     if let string = metadata["title"] as? String {
@@ -120,7 +120,7 @@ class StringIndex : NSObject
                         newDict["length"] = hms
                     }
                 } else {
-                    
+                    newDict["title"] = "Unknown"
                 }
                 
                 let dateStringFormatter = DateFormatter()

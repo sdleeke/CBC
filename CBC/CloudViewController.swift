@@ -126,29 +126,29 @@ extension CloudViewController : PopoverTableViewControllerDelegate
     {
         switch purpose {
         case .selectingAction:
-            dismiss(animated: true, completion: nil)
-            
-            guard let string = strings?[index] else {
-                return
-            }
-            
-            switch string {
-            case Constants.Strings.Share:
-                share()
-                break
-                
-            case Constants.Strings.Print:
-                if #available(iOS 11.0, *) {
-                    printJob(data: cloudView.image?.pdf?.data)
-                } else {
-                    // Fallback on earlier versions
-                    printJob(data: cloudView.image?.jpegData(compressionQuality: 1.0))
+            dismiss(animated: true, completion: {
+                guard let string = strings?[index] else {
+                    return
                 }
-                break
                 
-            default:
-                break
-            }
+                switch string {
+                case Constants.Strings.Share:
+                    self.share()
+                    break
+                    
+                case Constants.Strings.Print:
+                    if #available(iOS 11.0, *) {
+                        self.printJob(data: self.cloudView.image?.pdf?.data)
+                    } else {
+                        // Fallback on earlier versions
+                        self.printJob(data: self.cloudView.image?.jpegData(compressionQuality: 1.0))
+                    }
+                    break
+                    
+                default:
+                    break
+                }
+            })
             
         case .selectingWordCloud:
             guard let cloudWordDicts = cloudWordDicts else {

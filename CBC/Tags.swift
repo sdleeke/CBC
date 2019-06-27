@@ -86,6 +86,9 @@ class Tags
             }
 
             tagged[newValue] = MediaListGroupSort(mediaItems: media?.all?.tagMediaItems?[newValue.withoutPrefixes])
+            
+            _ = tagged[newValue]?.lexicon?.eligible
+            _ = tagged[newValue]?.scriptureIndex?.eligible
         }
     }
 }

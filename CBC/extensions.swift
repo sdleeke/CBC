@@ -608,7 +608,13 @@ extension Array where Element == MediaItem
                     }
                     
                     if speakerCount == 1, let speaker = mediaItems[0].speaker, key != speaker {
-                        bodyString += " by " + speaker
+                        if var speaker = mediaItems[0].speaker, key != speaker {
+                            if let speakerTitle = mediaItems[0].speakerTitle {
+                                speaker += ", \(speakerTitle)"
+                            }
+                            bodyString += " by " + speaker
+                        }
+//                        bodyString += " by " + speaker
                     }
                     
                     if mediaItems.count > 1 {
@@ -729,6 +735,636 @@ extension Array where Element == MediaItem
         bodyString += "</body></html>"
         
         return bodyString.insertHead(fontSize: Constants.FONT_SIZE)
+    }
+    
+    func alignAllAudioTranscripts(viewController:UIViewController)
+    {
+        alignAllTranscripts(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func alignAllVideoTranscripts(viewController:UIViewController)
+    {
+        alignAllTranscripts(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func alignAllTranscripts(viewController:UIViewController,purpose:String)
+    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+
+        let mediaItems = self
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.aligning == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.selectAlignmentSource(viewController: viewController)
+        }
+    }
+    
+    func autoEditAllAudioTranscripts(viewController:UIViewController)
+    {
+        autoEditAllTranscripts(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func autoEditAllVideoTranscripts(viewController:UIViewController)
+    {
+        autoEditAllTranscripts(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func autoEditAllTranscripts(viewController:UIViewController,purpose:String)
+    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+
+        let mediaItems = self
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.aligning == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.autoEdit(notify:false)
+        }
+        
+        if let multiPartName = multiPartName {
+            Alerts.shared.alert(title: "All Auto Edits Underway", message: "\(multiPartName)\n(\(purpose.lowercased()))")
+        } else {
+            if self.count == 1, let mediaItem = self.first, let title = mediaItem.title {
+                Alerts.shared.alert(title: "All Auto Edits Underway", message: "\(title)\n(\(purpose.lowercased()))")
+            } else {
+                Alerts.shared.alert(title: "All Auto Edits Underway")
+            }
+        }
+    }
+    
+    func transcribeAllAudio(viewController:UIViewController)
+    {
+        transcribeAll(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func transcribeAllVideo(viewController:UIViewController)
+    {
+        transcribeAll(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func transcribeAll(viewController:UIViewController,purpose:String)
+    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+
+        let mediaItems = self
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.completed == false else {
+                continue
+            }
+            
+            transcript.getTranscript()
+            transcript.alert(viewController: viewController)
+        }
+    }
+    
+    func removeAllAudioTranscripts(viewController:UIViewController)
+    {
+        removeAllTranscripts(viewController:viewController,purpose:Purpose.audio)
+    }
+    
+    func removeAllVideoTranscripts(viewController:UIViewController)
+    {
+        removeAllTranscripts(viewController:viewController,purpose:Purpose.video)
+    }
+    
+    func removeAllTranscripts(viewController:UIViewController,purpose:String)
+    {
+//        guard let mediaItems = list else {
+//            return
+//        }
+        
+        let mediaItems = self
+        
+        for mediaItem in mediaItems {
+            guard let transcript = mediaItem.transcripts[purpose] else {
+                continue
+            }
+            
+            guard transcript.transcribing == false else {
+                continue
+            }
+            
+            guard transcript.completed == true else {
+                continue
+            }
+            
+            transcript.remove(alert: true)
+            
+            if let text = mediaItem.text {
+                Alerts.shared.alert(title: "Transcript Removed",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\nhas been removed.")
+            }
+        }
+    }
+    
+    func toTranscribe(purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return (mediaItem.transcripts[purpose]?.transcribing == false) && (mediaItem.transcripts[purpose]?.completed == false)
+        }).count
+    }
+    
+    var transcribedAudio : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasAudio && (mediaItem.audioTranscript?.completed == true)
+            }).count
+        }
+    }
+    
+    var transcribedVideo : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasVideo && (mediaItem.videoTranscript?.completed == true)
+            }).count
+        }
+    }
+    
+    var autoEditingAudio : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasAudio && (mediaItem.audioTranscript?.operationQueue?.operationCount > 0)
+            }).count
+        }
+    }
+    
+    var autoEditingVideo : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.hasVideo && (mediaItem.videoTranscript?.operationQueue?.operationCount > 0)
+            }).count
+        }
+    }
+    
+    var toTranscribeAudio : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return  mediaItem.hasAudio &&
+                        (mediaItem.audioTranscript?.transcribing == false) &&
+                        (mediaItem.audioTranscript?.completed == false)
+            }).count
+        }
+    }
+    
+    var toTranscribeVideo : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return  mediaItem.hasVideo &&
+                        (mediaItem.videoTranscript?.transcribing == false) &&
+                        (mediaItem.videoTranscript?.completed == false)
+            }).count
+        }
+    }
+    
+    func toAlign(purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return  (mediaItem.transcripts[purpose]?.transcribing == false) &&
+                    (mediaItem.transcripts[purpose]?.completed == false) &&
+                    (mediaItem.transcripts[purpose]?.aligning == false)
+        }).count
+    }
+    
+    var toAlignAudio : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return  mediaItem.hasAudio &&
+                        (mediaItem.audioTranscript?.transcribing == false) &&
+                        (mediaItem.audioTranscript?.completed == true) &&
+                        (mediaItem.audioTranscript?.aligning == false)
+            }).count
+        }
+    }
+    
+    var toAlignVideo : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return  mediaItem.hasVideo &&
+                        (mediaItem.videoTranscript?.transcribing == false) &&
+                        (mediaItem.videoTranscript?.completed == true) &&
+                        (mediaItem.videoTranscript?.aligning == false)
+            }).count
+        }
+    }
+    
+    func downloads(purpose:String) -> Int?
+    {
+        guard Globals.shared.reachability.isReachable else {
+            return nil
+        }
+        
+        return self.filter({ (mediaItem) -> Bool in
+            return (mediaItem.downloads[purpose]?.active == false) &&
+                (mediaItem.downloads[purpose]?.exists == false)
+        }).count
+    }
+    
+    var audioDownloads : Int?
+    {
+        get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.audioDownload?.active == false) &&
+                    (mediaItem.audioDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    func downloading(purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads[purpose]?.active == true
+        }).count
+    }
+    
+    var audioDownloading : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.audioDownload?.active == true)
+            }).count
+        }
+    }
+    
+    func downloaded(purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads[purpose]?.exists == true
+        }).count
+    }
+    
+    var audioDownloaded : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.audioDownload?.exists == true
+            }).count
+        }
+    }
+    
+    var videoDownloads : Int?
+    {
+        get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var videoDownloading : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.videoDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var videoDownloaded : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return mediaItem.videoDownload?.exists == true
+            }).count
+        }
+    }
+    
+    var slidesDownloads : Int?
+    {
+        get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var slidesDownloading : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var slidesDownloaded : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.slidesDownload?.exists == true)
+            }).count
+        }
+    }
+    
+    var notesDownloads : Int?
+    {
+        get {
+            guard Globals.shared.reachability.isReachable else {
+                return nil
+            }
+            
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
+            }).count
+        }
+    }
+    
+    var notesDownloading : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.active == true)
+            }).count
+        }
+    }
+    
+    var notesDownloaded : Int?
+    {
+        get {
+            return self.filter({ (mediaItem) -> Bool in
+                return (mediaItem.notesDownload?.exists == true)
+            }).count
+        }
+    }
+    
+    func addAllToFavorites()
+    {
+        self.forEach({ (mediaItem) in
+            mediaItem.addToFavorites(alert:false)
+        })
+        Alerts.shared.alert(title: "All Added to Favorites",message: multiPartName)
+    }
+    
+    func removeAllFromFavorites()
+    {
+        self.forEach({ (mediaItem) in
+            mediaItem.removeFromFavorites(alert:false)
+        })
+        Alerts.shared.alert(title: "All Removed to Favorites",message: multiPartName)
+    }
+    
+    var multiPartName : String?
+    {
+        get {
+//            guard let set = list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                return mediaItem.multiPartName != nil
+//            }).map({ (mediaItem:MediaItem) -> String in
+//                return mediaItem.multiPartName!
+//            }) else {
+//                return nil
+//            }
+            
+            let set = self.compactMap({ (mediaItem:MediaItem) -> String? in
+                return mediaItem.multiPartName
+            })
+            
+            guard Set(set).count == 1 else {
+                return nil
+            }
+            
+            return set.first
+        }
+    }
+    
+    func loadAllDocuments()
+    {
+        self.forEach({ (mediaItem:MediaItem) in
+            mediaItem.loadDocuments()
+        })
+    }
+    
+    func loadTokenCountMarkCountMismatches()
+    {
+        self.forEach { (mediaItem) in
+            mediaItem.loadTokenCountMarkCountMismatches()
+        }
+    }
+
+    func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
+    {
+//        guard let mediaItems = self else {
+//            print("Testing the availability of mediaItem PDF's - no list")
+//            return
+//        }
+
+        let mediaItems = self
+        
+        var counter = 1
+        
+        if (testExisting) {
+            print("Testing the availability of mediaItem PDFs that we DO have in the mediaItemDicts - start")
+            
+            for mediaItem in mediaItems {
+                if (showTesting) {
+                    print("Testing: \(counter) \(mediaItem.title ?? mediaItem.description)")
+                } else {
+                    //                    print(".", terminator: Constants.EMPTY_STRING)
+                }
+                
+                if let title = mediaItem.title, let notesURLString = mediaItem.notes, let notesURL = mediaItem.notes?.url {
+                    if ((try? Data(contentsOf: notesURL)) == nil) {
+                        print("Transcript DOES NOT exist for: \(title) PDF: \(notesURLString)")
+                    } else {
+                        
+                    }
+                }
+                
+                if let title = mediaItem.title, let slidesURLString = mediaItem.slides, let slidesURL = mediaItem.slides?.url {
+                    if ((try? Data(contentsOf: slidesURL)) == nil) {
+                        print("Slides DO NOT exist for: \(title) PDF: \(slidesURLString)")
+                    } else {
+                        
+                    }
+                }
+                
+                counter += 1
+            }
+            
+            print("\nTesting the availability of mediaItem PDFs that we DO have in the mediaItemDicts - end")
+        }
+        
+        if (testMissing) {
+            print("Testing the availability of mediaItem PDFs that we DO NOT have in the mediaItemDicts - start")
+            
+            counter = 1
+            for mediaItem in mediaItems {
+                if (showTesting) {
+                    print("Testing: \(counter) \(mediaItem.title ?? mediaItem.description)")
+                } else {
+                    
+                }
+                
+                if (mediaItem.audioURL == nil) {
+                    print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
+                } else {
+                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let notesURL = mediaItem.notes?.url {
+                        if ((try? Data(contentsOf: notesURL)) != nil) {
+                            print("Transcript DOES exist for: \(title) ID:\(id)")
+                        } else {
+                            
+                        }
+                    }
+                    
+                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let slidesURL = mediaItem.slides?.url {
+                        if ((try? Data(contentsOf: slidesURL)) != nil) {
+                            print("Slides DO exist for: \(title) ID: \(id)")
+                        } else {
+                            
+                        }
+                    }
+                }
+                
+                counter += 1
+            }
+            
+            print("\nTesting the availability of mediaItem PDFs that we DO NOT have in the mediaItemDicts - end")
+        }
+    }
+    
+    func testMediaItemsTagsAndSeries()
+    {
+        print("Testing for mediaItem series and tags the same - start")
+        defer {
+            print("Testing for mediaItem series and tags the same - end")
+        }
+        
+        let mediaItems = self
+
+        for mediaItem in mediaItems {
+            if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
+                if (mediaItem.multiPartName == mediaItem.tags) {
+                    print("Multiple Part Name and Tags the same in: \(mediaItem.title ?? mediaItem.description) Multiple Part Name:\(mediaItem.multiPartName ?? mediaItem.description) Tags:\(mediaItem.tags ?? mediaItem.description)")
+                }
+            }
+        }
+    }
+    
+    func testMediaItemsForAudio()
+    {
+        print("Testing for audio - start")
+        defer {
+            print("Testing for audio - end")
+        }
+        
+//        guard let list = self else {
+//            print("Testing for audio - list empty")
+//            return
+//        }
+
+        let list = self
+        
+        for mediaItem in list {
+            if (!mediaItem.hasAudio) {
+                print("Audio missing in: \(mediaItem.title ?? mediaItem.description)")
+            } else {
+                
+            }
+        }
+        
+    }
+    
+    func testMediaItemsForSpeaker()
+    {
+        print("Testing for speaker - start")
+        defer {
+            print("Testing for speaker - end")
+        }
+        
+//        guard let list = self else {
+//            print("Testing for speaker - no list")
+//            return
+//        }
+
+        let list = self
+        
+        for mediaItem in list {
+            if (!mediaItem.hasSpeaker) {
+                print("Speaker missing in: \(mediaItem.title ?? mediaItem.description)")
+            }
+        }
+    }
+    
+    func testMediaItemsForSeries()
+    {
+        print("Testing for mediaItems with \"(Part \" in the title but no series - start")
+        defer {
+            print("Testing for mediaItems with \"(Part \" in the title but no series - end")
+        }
+        
+//        guard let list = self else {
+//            print("Testing for speaker - no list")
+//            return
+//        }
+
+        let list = self
+        
+        for mediaItem in list {
+            if (mediaItem.title?.range(of: "(Part ", options: .caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
+                print("Series missing in: \(mediaItem.title ?? mediaItem.description)")
+            }
+        }
     }
 }
 
@@ -3022,11 +3658,9 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert with actions, and a specific cancel action, on the Alert singleton.
      */
-    func alertActionsCancel(title:String?,message:String? = nil,alertActions:[AlertAction]?,cancelAction:(()->(Void))? = nil)
+    func alertActionsCancel(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,cancelAction:(()->(Void))? = nil)
     {
-        guard var alertActions = alertActions else {
-            return
-        }
+        var alertActions = alertActions ?? [AlertAction]()
         
         alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
 
@@ -3036,12 +3670,10 @@ extension UIViewController
     /**
      Extension of UIViewController that presents an alert with actions, and a specific okay action, on the Alert singleton.
      */
-    func alertActionsOkay(title:String?,message:String? = nil,alertActions:[AlertAction]?,okayAction:(()->(Void))? = nil)
+    func alertActionsOkay(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,okayAction:(()->(Void))? = nil)
     {
-        guard var alertActions = alertActions else {
-            return
-        }
-        
+        var alertActions = alertActions ?? [AlertAction]()
+
         alertActions.append(AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: okayAction))
         
         Alerts.shared.alert(title: title, message: message, actions: alertActions)
@@ -3561,28 +4193,34 @@ extension UIViewController
         guard let popover = navigationController.viewControllers[0] as? WebViewController else {
             return
         }
+
+        let presentingViewController = dismiss ? self.presentingViewController : self
         
-        if dismiss {
-            Thread.onMain {
-                self.dismiss(animated: true, completion: nil)
-            }
+        let block = {
+            navigationController.modalPresentationStyle = style
+            
+            navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
+            
+            popover.navigationItem.title = title
+            
+            popover.search = true
+            popover.mediaItem = mediaItem
+            
+            popover.html.string = htmlString
+            popover.content = .html
+            
+            popover.navigationController?.isNavigationBarHidden = false
+            
+            presentingViewController?.present(navigationController, animated: true, completion: nil)
         }
         
-        navigationController.modalPresentationStyle = style
-        
-        navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
-        
-        popover.navigationItem.title = title
-
-        popover.search = true
-        popover.mediaItem = mediaItem
-        
-        popover.html.string = htmlString
-        popover.content = .html
-        
-        popover.navigationController?.isNavigationBarHidden = false
-        
-        present(navigationController, animated: true, completion: nil)
+        Thread.onMain {
+            if dismiss {
+                self.dismiss(animated: true, completion:{ block() })
+            } else {
+                block()
+            }
+        }
     }
     
     /**
