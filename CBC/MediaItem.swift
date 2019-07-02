@@ -193,6 +193,17 @@ extension MediaItem : UIActivityItemSource
  */
 class MediaItem : NSObject //, Downloader
 {
+    var percentComplete = [String:Double]()
+    {
+        didSet {
+            if percentComplete != oldValue {
+                Thread.onMain {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self)
+                }
+            }
+        }
+    }
+    
     var multiPartMediaItems:[MediaItem]?
     {
         get {

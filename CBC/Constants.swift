@@ -360,6 +360,8 @@ enum Constants {
         static let LIVE_VIEW                = "LIVE VIEW"
         static let PLAYER_VIEW              = "PLAYER VIEW"
         
+        static let PERCENT_COMPLETE         = "PERCENT COMPLETE"
+        
         static let MEDIA_UPDATE_CELL        = "MEDIA UPDATE CELL"
         static let MEDIA_STOP_EDITING_CELL  = "MEDIA STOP EDITING CELL"
         

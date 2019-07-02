@@ -2344,9 +2344,9 @@ class TextViewController : CBCViewController
         let first = words.removeFirst()
         
         if let total = transcript?.totalChanges, total > 0 {
-            transcript?.percentComplete = String(format: "%0.0f",(1.0 - Double(words.count)/Double(total)) * 100.0)
+            transcript?.percentComplete = 1.0 - Double(words.count)/Double(total) // String(format: "%0.0f",()) //  * 100.0
         } else {
-            transcript?.percentComplete = "0"
+            transcript?.percentComplete = 0
         }
 
         guard let range = first["range"] as? Range<String.Index> else {

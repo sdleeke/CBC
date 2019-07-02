@@ -1213,14 +1213,21 @@ class VoiceBase
     
     var totalChanges = 0
     
-    var percentComplete:String?
+    var percentComplete:Double?
     {
-        didSet {
-            if percentComplete != oldValue {
-                Thread.onMain {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem, userInfo: ["PERCENTAGE":self.percentComplete])
-                }
+        get {
+            guard let purpose = purpose else {
+                return nil
             }
+            
+            return mediaItem?.percentComplete["TRANSCRIPT"+purpose]
+        }
+        set {
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.percentComplete["TRANSCRIPT"+purpose] = newValue
         }
     }
 
@@ -1974,9 +1981,9 @@ class VoiceBase
                 }).count
                 
                 if count > 0 {
-                    self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+                    self.percentComplete = Double(finished)/Double(count) // String(format: "%0.0f",) //  * 100.0
                 } else {
-                    self.percentComplete = "0"
+                    self.percentComplete = 0
                 }
                 
                 if let percentComplete = self.percentComplete {
@@ -3241,7 +3248,7 @@ class VoiceBase
             return
         }
         
-        let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(percentComplete!)% complete)" : "")
+        let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(String(format: "%0.0f",percentComplete! * 100))% complete)" : "")
         
         var title = "Machine Generated Transcript "
         
@@ -4413,9 +4420,9 @@ class VoiceBase
         let first = words.removeFirst()
         
         if totalChanges > 0 {
-            percentComplete = String(format: "%0.0f",(1.0 - Double(words.count)/Double(totalChanges)) * 100.0)
+            percentComplete = 1.0 - Double(words.count)/Double(totalChanges) // String(format: "%0.0f",()) //  * 100.0
         } else {
-            percentComplete = "0"
+            percentComplete = 0
         }
         
         guard let range = first["range"] as? Range<String.Index> else {
@@ -4634,7 +4641,7 @@ class VoiceBase
                     return
                 }
                 
-                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+                percentComplete = 1.0 - Double(changes.count)/Double(totalChanges) // String(format: "%0.0f",()) //  * 100.0
 
 //                print("Changes left:",changes.count, percentComplete ?? "", "%")
 
@@ -4656,7 +4663,7 @@ class VoiceBase
                     return
                 }
                 
-                percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+                percentComplete = 1.0 - Double(changes.count)/Double(totalChanges) // String(format: "%0.0f",()) //  * 100.0
 
 //                print("Changes left:",changes.count, percentComplete ?? "", "%")
 
@@ -4671,7 +4678,7 @@ class VoiceBase
                 return
             }
             
-            percentComplete = String(format: "%0.0f",(1.0 - Double(changes.count)/Double(totalChanges)) * 100.0)
+            percentComplete = 1.0 - Double(changes.count)/Double(totalChanges) // String(format: "%0.0f",())  //  * 100.0
 
 //            print("Changes left:",changes.count, percentComplete ?? "", "%")
             
@@ -4742,13 +4749,17 @@ class VoiceBase
     
     func autoEditUnderway()
     {
+        guard let purpose = purpose else {
+            return
+        }
+        
         var message = String()
         
         if let text = self.mediaItem?.text {
             message = "for\n\n\(text)"
             message += "\n(\(self.transcriptPurpose))"
             if let percentComplete = self.percentComplete {
-                message += "\n(\(percentComplete)% complete)"
+                message += "\n(\(String(format: "%0.0f",percentComplete * 100))% complete)"
             }
             message += "\n\n"
         }
@@ -4813,7 +4824,7 @@ class VoiceBase
                 message = "for\n\n\(text)"
                 message += "\n(\(self.transcriptPurpose))"
                 if let percentComplete = self.percentComplete {
-                    message += "\n(\(percentComplete)% complete)"
+                    message += "\n(\(String(format: "%0.0f",percentComplete * 100))% complete)"
                 }
                 message += "\n\n"
             }

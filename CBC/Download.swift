@@ -69,8 +69,10 @@ extension Download : URLSessionDownloadDelegate
             switch purpose {
             case Purpose.audio:
                 if bytesWritten > 0 {
+                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
                     Thread.onMain {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
                     }
                 }
                 break
@@ -402,17 +404,20 @@ class Download : NSObject, Size
                 case .downloaded:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.addTag(Constants.Strings.Downloaded)
+                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
                     break
                     
                 case .none:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.removeTag(Constants.Strings.Downloaded)
+                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
                     break
                 }
                 
                 Thread.onMain {
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
                 }
                 break
                 

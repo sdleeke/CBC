@@ -192,7 +192,53 @@ class MediaTableViewCell: UITableViewCell
         }
     }
     
-//    var overlay = [String:UIProgressView]()
+    //    var overlay = [String:UIProgressView]()
+    
+    var percentComplete : [String:Double]?
+    {
+        get {
+            guard let percentComplete = mediaItem?.percentComplete, percentComplete.values.count > 0 else {
+                return nil
+            }
+            
+            return percentComplete
+        }
+    }
+
+    var max : Double?
+    {
+        get {
+            guard let values = self.percentComplete?.values, values.count > 0 else {
+                return nil
+            }
+
+            var max = 0.0
+
+            values.forEach { (value:Double) in
+                if value > max {
+                    max = value
+                }
+            }
+
+            return max
+        }
+    }
+
+    @objc func percentComplete(_ notification : NSNotification)
+    {
+        guard let mediaItem = notification.object as? MediaItem, self.mediaItem == mediaItem else {
+            return
+        }
+        
+//        guard let percentComplete = mediaItem.percentComplete else {
+//            downloadProgressBar.isHidden = true
+//            downloadProgressBar.progress = 0
+//            return
+//        }
+        
+        downloadProgressBar.isHidden = max == nil
+        downloadProgressBar.progress = Float(max ?? 0)
+    }
     
     @objc func updateUI()
     {
@@ -211,64 +257,66 @@ class MediaTableViewCell: UITableViewCell
             isHiddenUI(false)
         }
         
-        if let values = mediaItem?.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-            transcript.percentComplete != nil
-        }), values.count > 0 {
-            let transcripts = Array(values)
-//            var count = 1
-            for transcript in transcripts {
-                if let purpose = transcript.purpose, let percentComplete = transcript.percentComplete, var factor = Double(percentComplete) {
-//                    overlay[purpose]?.removeFromSuperview()
-                    
-                    factor /= 100.0
-
-                    transcriptWorking = true
-                    downloadProgressBar.isHidden = false
-                    downloadProgressBar.progress = Float(factor)
-                    
-//                    overlay[purpose] = UIProgressView()
-//
-//                    let frame = downloadProgressBar.frame
-//                    overlay[purpose]?.frame = frame
-//                    overlay[purpose]?.frame.origin.y -= CGFloat(count) * frame.height
-//
-//                    //  * CGFloat(factor)
-//
-//                    overlay[purpose]?.progress = Float(factor)
-//
-//                    switch purpose {
-//                    case Purpose.audio:
-////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
-//                        break
-//
-//                    case Purpose.video:
-////                        overlay[purpose]?.backgroundColor = UIColor.darkGray
-//                        break
-//
-//                    default:
-////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
-//                        break
-//                    }
-//
-////                    overlay[purpose]?.alpha = 0.35
-//
-//                    if let overlay = overlay[purpose] {
-//                        self.addSubview(overlay)
-//                    }
-                }
-//                count += 1
-            }
-        } else {
-            transcriptWorking = false
-            downloadProgressBar.isHidden = true
-            downloadProgressBar.progress = 0
-
-//            overlay.values.forEach({ (view:UIView) in
-//                view.removeFromSuperview()
-//            })
-        }
+        downloadProgressBar.isHidden = self.percentComplete == nil
         
-        setupProgressBarForAudio()
+//        if let values = mediaItem?.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//            transcript.percentComplete != nil
+//        }), values.count > 0 {
+//            let transcripts = Array(values)
+////            var count = 1
+//            for transcript in transcripts {
+//                if let purpose = transcript.purpose, let percentComplete = transcript.percentComplete, var factor = Double(percentComplete) {
+////                    overlay[purpose]?.removeFromSuperview()
+//
+//                    factor /= 100.0
+//
+//                    transcriptWorking = true
+//                    downloadProgressBar.isHidden = false
+//                    downloadProgressBar.progress = Float(factor)
+//
+////                    overlay[purpose] = UIProgressView()
+////
+////                    let frame = downloadProgressBar.frame
+////                    overlay[purpose]?.frame = frame
+////                    overlay[purpose]?.frame.origin.y -= CGFloat(count) * frame.height
+////
+////                    //  * CGFloat(factor)
+////
+////                    overlay[purpose]?.progress = Float(factor)
+////
+////                    switch purpose {
+////                    case Purpose.audio:
+//////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
+////                        break
+////
+////                    case Purpose.video:
+//////                        overlay[purpose]?.backgroundColor = UIColor.darkGray
+////                        break
+////
+////                    default:
+//////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
+////                        break
+////                    }
+////
+//////                    overlay[purpose]?.alpha = 0.35
+////
+////                    if let overlay = overlay[purpose] {
+////                        self.addSubview(overlay)
+////                    }
+//                }
+////                count += 1
+//            }
+//        } else {
+//            transcriptWorking = false
+//            downloadProgressBar.isHidden = true
+//            downloadProgressBar.progress = 0
+//
+////            overlay.values.forEach({ (view:UIView) in
+////                view.removeFromSuperview()
+////            })
+//        }
+        
+//        setupProgressBarForAudio()
         setupIcons()
         setupText()
     }
@@ -289,9 +337,14 @@ class MediaTableViewCell: UITableViewCell
             
         }
         didSet {
+//            if mediaItem != oldValue {
+//                percentComplete = nil
+//            }
+            
             if (oldValue != nil) {
                 Thread.onMain {
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
                 }
             }
@@ -299,6 +352,7 @@ class MediaTableViewCell: UITableViewCell
             if (mediaItem != nil) {
                 Thread.onMain {
                     NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.percentComplete(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
                     NotificationCenter.default.addObserver(self, selector: #selector(self.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                 }
             }
@@ -447,44 +501,44 @@ class MediaTableViewCell: UITableViewCell
         self.icons.attributedText = attrString
     }
     
-    var transcriptWorking = false
+//    var transcriptWorking = false
     
-    func setupProgressBarForAudio()
-    {
-        guard Thread.isMainThread else {
-            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
-            return
-        }
-        
-        guard let download = mediaItem?.audioDownload else {
-            return
-        }
-        
-        switch download.state {
-        case .none:
-            if !transcriptWorking {
-                self.downloadProgressBar.isHidden = true
-                self.downloadProgressBar.progress = 0
-            }
-            break
-            
-        case .downloaded:
-            if !transcriptWorking {
-                self.downloadProgressBar.isHidden = true
-                self.downloadProgressBar.progress = 1
-            }
-            break
-            
-        case .downloading:
-            self.downloadProgressBar.isHidden = false
-            if (download.totalBytesExpectedToWrite > 0) {
-                self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
-            } else {
-                self.downloadProgressBar.progress = 0
-            }
-            break
-        }
-    }
+//    func setupProgressBarForAudio()
+//    {
+//        guard Thread.isMainThread else {
+//            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
+//            return
+//        }
+//
+//        guard let download = mediaItem?.audioDownload else {
+//            return
+//        }
+//
+//        switch download.state {
+//        case .none:
+//            self.downloadProgressBar.isHidden = true
+//            self.downloadProgressBar.progress = 0
+////            if !transcriptWorking {
+////            }
+//            break
+//
+//        case .downloaded:
+//            self.downloadProgressBar.isHidden = true
+//            self.downloadProgressBar.progress = 1
+////            if !transcriptWorking {
+////            }
+//            break
+//
+//        case .downloading:
+//            self.downloadProgressBar.isHidden = false
+//            if (download.totalBytesExpectedToWrite > 0) {
+//                self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
+//            } else {
+//                self.downloadProgressBar.progress = 0
+//            }
+//            break
+//        }
+//    }
     
     @IBOutlet weak var downloadProgressBar: UIProgressView!
     
