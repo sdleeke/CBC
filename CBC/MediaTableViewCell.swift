@@ -192,6 +192,8 @@ class MediaTableViewCell: UITableViewCell
         }
     }
     
+//    var overlay = [String:UIProgressView]()
+    
     @objc func updateUI()
     {
         guard Thread.isMainThread else {
@@ -207,6 +209,63 @@ class MediaTableViewCell: UITableViewCell
 
         if (detail.text != nil) || (detail.attributedText != nil) {
             isHiddenUI(false)
+        }
+        
+        if let values = mediaItem?.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+            transcript.percentComplete != nil
+        }), values.count > 0 {
+            let transcripts = Array(values)
+//            var count = 1
+            for transcript in transcripts {
+                if let purpose = transcript.purpose, let percentComplete = transcript.percentComplete, var factor = Double(percentComplete) {
+//                    overlay[purpose]?.removeFromSuperview()
+                    
+                    factor /= 100.0
+
+                    transcriptWorking = true
+                    downloadProgressBar.isHidden = false
+                    downloadProgressBar.progress = Float(factor)
+                    
+//                    overlay[purpose] = UIProgressView()
+//
+//                    let frame = downloadProgressBar.frame
+//                    overlay[purpose]?.frame = frame
+//                    overlay[purpose]?.frame.origin.y -= CGFloat(count) * frame.height
+//
+//                    //  * CGFloat(factor)
+//
+//                    overlay[purpose]?.progress = Float(factor)
+//
+//                    switch purpose {
+//                    case Purpose.audio:
+////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
+//                        break
+//
+//                    case Purpose.video:
+////                        overlay[purpose]?.backgroundColor = UIColor.darkGray
+//                        break
+//
+//                    default:
+////                        overlay[purpose]?.backgroundColor = UIColor.lightGray
+//                        break
+//                    }
+//
+////                    overlay[purpose]?.alpha = 0.35
+//
+//                    if let overlay = overlay[purpose] {
+//                        self.addSubview(overlay)
+//                    }
+                }
+//                count += 1
+            }
+        } else {
+            transcriptWorking = false
+            downloadProgressBar.isHidden = true
+            downloadProgressBar.progress = 0
+
+//            overlay.values.forEach({ (view:UIView) in
+//                view.removeFromSuperview()
+//            })
         }
         
         setupProgressBarForAudio()
@@ -243,6 +302,10 @@ class MediaTableViewCell: UITableViewCell
                     NotificationCenter.default.addObserver(self, selector: #selector(self.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                 }
             }
+
+//            overlay.values.forEach({ (view:UIView) in
+//                view.removeFromSuperview()
+//            })
             
             updateUI()
         }
@@ -384,6 +447,8 @@ class MediaTableViewCell: UITableViewCell
         self.icons.attributedText = attrString
     }
     
+    var transcriptWorking = false
+    
     func setupProgressBarForAudio()
     {
         guard Thread.isMainThread else {
@@ -397,13 +462,17 @@ class MediaTableViewCell: UITableViewCell
         
         switch download.state {
         case .none:
-            self.downloadProgressBar.isHidden = true
-            self.downloadProgressBar.progress = 0
+            if !transcriptWorking {
+                self.downloadProgressBar.isHidden = true
+                self.downloadProgressBar.progress = 0
+            }
             break
             
         case .downloaded:
-            self.downloadProgressBar.isHidden = true
-            self.downloadProgressBar.progress = 1
+            if !transcriptWorking {
+                self.downloadProgressBar.isHidden = true
+                self.downloadProgressBar.progress = 1
+            }
             break
             
         case .downloading:

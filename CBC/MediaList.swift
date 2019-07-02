@@ -164,7 +164,7 @@ class MediaList // : Sequence
         operationQueue.addOperation {
             self.list?.forEach({ (mediaItem) in
                 // Could be audio, video, slides, or notes
-                mediaItem.downloads.values.forEach({ (download) in
+                mediaItem.downloads?.values.forEach({ (download) in
                     download.delete(block:true)
                 })
             })
@@ -189,7 +189,7 @@ class MediaList // : Sequence
             Alerts.shared.alert(title: "Deleting All \(name) Downloads", message: message)
             
             self.list?.forEach({ (mediaItem) in
-                mediaItem.downloads[purpose]?.delete(block:true)
+                mediaItem.downloads?[purpose]?.delete(block:true)
             })
             
             if self.list?.audioDownloaded == 0 {
@@ -215,7 +215,7 @@ class MediaList // : Sequence
         operationQueue.addOperation {
             self.list?.forEach({ (mediaItem) in
                 // Could be audio, video, slides, or notes
-                mediaItem.downloads.values.forEach({ (download) in
+                mediaItem.downloads?.values.forEach({ (download) in
                     download.cancel()
                 })
             })
@@ -236,7 +236,7 @@ class MediaList // : Sequence
             Alerts.shared.alert(title: "Canceling All \(name) Downloads", message: message)
             
             self?.list?.forEach({ (mediaItem) in
-                mediaItem.downloads[purpose]?.cancel()
+                mediaItem.downloads?[purpose]?.cancel()
             })
             
             if self?.list?.downloading(purpose:purpose) == 0 {
@@ -301,7 +301,7 @@ class MediaList // : Sequence
         }
         
         for mediaItem in list {
-            let download = mediaItem.downloads[purpose]
+            let download = mediaItem.downloads?[purpose]
             
             if download?.exists == true  {
                 continue

@@ -827,9 +827,7 @@ class MediaViewController : MediaItemsViewController
     {
         didSet {
             if mediaList?.list != oldValue?.list {
-                mediaList?.list?.forEach({ (mediaItem:MediaItem) in
-                    mediaItem.loadDocuments()
-                })
+                mediaList?.list?.loadDocuments()
                 tableView?.reloadData()
             }
             

@@ -871,7 +871,7 @@ class Globals : NSObject
 //        var totalFileSize = 0
 //        
 //        for mediaItem in list {
-//            if let download = mediaItem.downloads[purpose], download.isDownloaded {
+//            if let download = mediaItem.downloads?[purpose], download.isDownloaded {
 //                totalFileSize += download.fileSize
 //            }
 //        }

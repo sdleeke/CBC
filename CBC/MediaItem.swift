@@ -181,10 +181,17 @@ extension MediaItem : UIActivityItemSource
     }
 }
 
+// Must be @objc funcs but Swift doesn't allow that declaration here.
+//protocol Downloader
+//{
+//    func downloaded(_ notification : NSNotification)
+//    func downloadFailed(_ notification : NSNotification)
+//}
+
 /**
  Handles everything to do with an individual mediaItem
  */
-class MediaItem : NSObject
+class MediaItem : NSObject //, Downloader
 {
     var multiPartMediaItems:[MediaItem]?
     {
@@ -303,7 +310,24 @@ class MediaItem : NSObject
     }
     
     lazy var documents : ThreadSafeDN<Document>! = { [weak self] in
-        return ThreadSafeDN<Document>(name:mediaCode+"Documents")
+        let documents = ThreadSafeDN<Document>(name:mediaCode+"Documents")
+        
+        if hasNotes {
+            let document = Document(purpose: Purpose.notes, mediaItem: self)
+            documents[mediaCode,Purpose.notes] = document
+        }
+        
+        if hasOutline {
+            let document = Document(purpose: Purpose.outline, mediaItem: self)
+            documents[mediaCode,Purpose.outline] = document
+        }
+        
+        if hasSlides {
+            let document = Document(purpose: Purpose.slides, mediaItem: self)
+            documents[mediaCode,Purpose.slides] = document
+        }
+
+        return documents
     }()
     
     var cacheSize : Int
@@ -331,7 +355,7 @@ class MediaItem : NSObject
 
     func cacheSize(_ purpose:String) -> Int
     {
-        return downloads[purpose]?.fileSize ?? 0
+        return downloads?[purpose]?.fileSize ?? 0
     }
     
     var hasCacheFiles : Bool
@@ -423,11 +447,11 @@ class MediaItem : NSObject
     
     func loadDocument(purpose:String)
     {
-        if documents?[mediaCode,purpose] == nil {
-            let document = Document(purpose: purpose, mediaItem: self)
-            documents?[mediaCode,purpose] = document
-        }
-        
+//        if documents?[mediaCode,purpose] == nil {
+//            let document = Document(purpose: purpose, mediaItem: self)
+//            documents?[mediaCode,purpose] = document
+//        }
+
         guard let document = documents?[mediaCode,purpose] else {
             return
         }
@@ -452,13 +476,26 @@ class MediaItem : NSObject
 
     func loadDocuments()
     {
-        if hasNotes {
-            loadDocument(purpose: Purpose.notes)
+        // documents[mediaCode] doesn't work because it returns a Document not an Any.
+        guard let documents = documents.storage[mediaCode] as? [String:Document] else {
+            return
         }
         
-        if hasSlides {
-            loadDocument(purpose: Purpose.slides)
+        documents.keys.forEach { (purpose:String) in
+            loadDocument(purpose: purpose)
         }
+        
+//        if hasNotes {
+//            loadDocument(purpose: Purpose.notes)
+//        }
+//
+//        if hasOutline {
+//            loadDocument(purpose: Purpose.outline)
+//        }
+//
+//        if hasSlides {
+//            loadDocument(purpose: Purpose.slides)
+//        }
     }
     
     static func ==(lhs: MediaItem, rhs: MediaItem) -> Bool
@@ -514,7 +551,31 @@ class MediaItem : NSObject
     }
     
     // Make thread safe?
-    var downloads = [String:Download]()
+    lazy var downloads:[String:Download]? = {
+        var downloads = [String:Download]()
+
+        if hasAudio {
+            downloads[Purpose.audio] = audioDownload
+        }
+
+        if hasVideo {
+            downloads[Purpose.video] = videoDownload
+        }
+        
+        if hasSlides {
+            downloads[Purpose.slides] = slidesDownload
+        }
+        
+        if hasNotes {
+            downloads[Purpose.notes] = notesDownload
+        }
+        
+        if hasOutline {
+            downloads[Purpose.outline] = outlineDownload
+        }
+        
+        return downloads.count > 0 ? downloads : nil
+    }()
     
     lazy var audioDownload:Download? = { [weak self] in
         // unowned self is not needed unless self is capture by a closure that outlives the initialization closure.
@@ -525,7 +586,6 @@ class MediaItem : NSObject
 
         let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self?.audioURL?.url) // ,fileSystemURL:self.audioFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self?.downloads[Purpose.audio] = download
         return download
     }()
     
@@ -538,7 +598,6 @@ class MediaItem : NSObject
 
         let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self?.videoURL?.url) // ,fileSystemURL:self.videoFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self?.downloads[Purpose.video] = download
         return download
     }()
     
@@ -551,7 +610,6 @@ class MediaItem : NSObject
         
         let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self?.slides?.url) // ,fileSystemURL:self.slidesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self?.downloads[Purpose.slides] = download
         return download
     }()
     
@@ -564,7 +622,6 @@ class MediaItem : NSObject
         
         let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self?.notes?.url) // ,fileSystemURL:self.notesFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self?.downloads[Purpose.notes] = download
         return download
     }()
     
@@ -577,7 +634,6 @@ class MediaItem : NSObject
         
         let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self?.outline?.url) // ,fileSystemURL:self.outlineFileSystemURL
         // NEVER EVER set properties here unless you know the didSets not trigger bad behavior
-        self?.downloads[Purpose.outline] = download
         return download
     }()
     
@@ -959,7 +1015,7 @@ class MediaItem : NSObject
                 return nil
             }
             
-            return downloads[showing]
+            return downloads?[showing]
         }
     }
     
@@ -2749,6 +2805,8 @@ class MediaItem : NSObject
             return nil
         }
         
+        voicebase.initialize()
+        
         if let purpose = voicebase.purpose {
             self?.transcripts[purpose] = voicebase
         }
@@ -2765,7 +2823,9 @@ class MediaItem : NSObject
         guard let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video) else {// CRITICAL: This initializer sets mediaID and completed from settings.
             return nil
         }
-
+        
+        voicebase.initialize()
+        
         if let purpose = voicebase.purpose {
             self?.transcripts[purpose] = voicebase
         }
@@ -3623,7 +3683,7 @@ class MediaItem : NSObject
                 let actions = self?.audioTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController,name:String)->(Void) in
                 vc.popover?[name] = popover
             }) {
-                if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.audio, self?.audioTranscript?.keywords != nil {
+                if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.audio, self?.audioTranscript?.mediaJSON != nil {
                     alertActions.append(actions)
                 }
             }
@@ -3631,7 +3691,7 @@ class MediaItem : NSObject
                 let actions = self?.videoTranscript?.timingIndexAlertActions(viewController:viewController, completion: { (popover:PopoverTableViewController,name:String)->(Void) in
                 vc.popover?[name] = popover
             }) {
-                if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.video, self?.videoTranscript?.keywords != nil {
+                if self == Globals.shared.mediaPlayer.mediaItem, self?.playing == Playing.video, self?.videoTranscript?.mediaJSON != nil {
                     alertActions.append(actions)
                 }
             }
@@ -3642,10 +3702,16 @@ class MediaItem : NSObject
                 message += "\n\n\(text)"
             }
             
-            viewController.alertActionsCancel( title: Constants.Strings.VoiceBase,
-                                               message: message,
-                                               alertActions: alertActions,
-                                               cancelAction: nil)
+            if alertActions.count > 1 {
+                viewController.alertActionsCancel( title: Constants.Strings.VoiceBase,
+                                                   message: message,
+                                                   alertActions: alertActions,
+                                                   cancelAction: nil)
+            } else {
+                if alertActions.count == 1 {
+                    alertActions[0].handler?()
+                }
+            }
         }
         
         topics = AlertAction(title: "List", style: .default) { [weak self] in

@@ -627,7 +627,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             
             if let mediaItems = Globals.shared.media.repository.list {
                 for mediaItem in mediaItems {
-                    if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
+                    if let download = mediaItem.downloads?.filter({ (key:String, value:Download) -> Bool in
                         //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                         return value.task?.taskDescription == filename
                     }).first?.value {

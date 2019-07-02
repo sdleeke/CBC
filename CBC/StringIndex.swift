@@ -103,7 +103,8 @@ class StringIndex : NSObject
                     if let string = metadata["title"] as? String {
                         newDict["title"] = string
                         
-                        if let range = string.lowercased().range(of: " (\(Constants.Strings.Audio)".lowercased()) {
+                        // range is NOT the same if string and the string to match are both lowercased!
+                        if let range = string.range(of: " (\(Constants.Strings.Audio)") {
                             newDict["title"] = String(string[..<range.lowerBound])
                             category = Constants.Strings.Audio
                         }

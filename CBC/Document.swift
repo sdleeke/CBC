@@ -79,38 +79,61 @@ class Document : NSObject
         return fetchData
     }()
     
+//    func load(downloader:Downloader)
+//    {
+//        if Globals.shared.settings.cacheDownloads {
+//            guard download?.exists == true else {
+//                if download?.state != .downloading {
+//                    download?.download(background: false)
+//                }
+//
+//                Thread.onMain { // Can't specify @objc in a protocol definition.
+//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+//                }
+//                return
+//            }
+//        }
+//
+//        // fill cache
+//        fetchData.fill()
+//    }
+    
     var download:Download?
     {
         get {
             guard let purpose = purpose else {
                 return nil
             }
+  
+            // Wouldn't work before because downloads dictionary was populated by lazy vars below rather than in its own lazy initialization.
+            return mediaItem?.downloads?[purpose]
             
-            var download:Download?
-            
-            switch purpose {
-            case Purpose.notes:
-                download = mediaItem?.notesDownload
-                break
-                
-            case Purpose.slides:
-                download = mediaItem?.slidesDownload
-                break
-                
-            case Purpose.outline:
-                download = mediaItem?.outlineDownload
-                break
-                
-            default:
-                download = nil
-                break
-            }
-            
-            if download == nil {
-                print("download == nil")
-            }
-            
-            return download
+//            var download:Download?
+//
+//            switch purpose {
+//            case Purpose.notes:
+//                download = mediaItem?.notesDownload
+//                break
+//
+//            case Purpose.slides:
+//                download = mediaItem?.slidesDownload
+//                break
+//
+//            case Purpose.outline:
+//                download = mediaItem?.outlineDownload
+//                break
+//
+//            default:
+//                download = nil
+//                break
+//            }
+//
+//            if download == nil {
+//                print("download == nil")
+//            }
+//
+//            return download
         }
     }
     

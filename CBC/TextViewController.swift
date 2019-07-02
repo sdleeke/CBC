@@ -328,6 +328,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                     actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                         // test:(()->(Bool))?
                         self.process(work: { [weak self] () -> (Any?) in
+                            self?.transcript?.totalChanges = words.count
+                            print("Total changes:",words.count)
+
                             self?.addParagraphBreaks(   interactive:false, makeVisible:true, showGapTimes:showGapTimes,                                            gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
@@ -350,6 +353,9 @@ extension TextViewController : PopoverPickerControllerDelegate
                     actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                         // test:(()->(Bool))?
                         self.process(work: { [weak self] () -> (Any?) in
+                            self?.transcript?.totalChanges = words.count
+                            print("Total changes:",words.count)
+                            
                             self?.addParagraphBreaks(   interactive:false, makeVisible:false, showGapTimes:showGapTimes,                                           gapThreshold:gapThreashold, words:words, text:text,
                                                         completion: { (string:String?) -> (Void) in
                                                             self?.updateBarButtons()
@@ -1376,6 +1382,9 @@ class TextViewController : CBCViewController
                             actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                 // test:(()->(Bool))?
                                 vc.process(work: { [weak self] () -> (Any?) in
+                                    self?.transcript?.totalChanges = words.count
+                                    print("Total changes:",words.count)
+                                    
                                     self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:true,                                             tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
@@ -1396,6 +1405,9 @@ class TextViewController : CBCViewController
                             actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                 // test:(()->(Bool))?
                                 vc.process(work: { [weak self] () -> (Any?) in
+                                    self?.transcript?.totalChanges = words.count
+                                    print("Total changes:",words.count)
+                                    
                                     self?.addParagraphBreaks(   interactive:true, makeVisible:false, showGapTimes:false,                                            tooClose:tooClose, words:words, text:text,
                                                                 completion: { (string:String?) -> (Void) in
                                                                     self?.updateBarButtons()
@@ -1679,6 +1691,9 @@ class TextViewController : CBCViewController
                                 actions.append(AlertAction(title: Constants.Strings.Yes, style: .default, handler: { () -> (Void) in
                                     // test:(()->(Bool))?
                                     self?.process(work: { [weak self] () -> (Any?) in
+                                        self?.transcript?.totalChanges = words.count
+                                        print("Total changes:",words.count)
+                                        
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:true,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
                                                                     tooClose:tooClose, words:words, text:text,
@@ -1703,6 +1718,9 @@ class TextViewController : CBCViewController
                                 actions.append(AlertAction(title: Constants.Strings.No, style: .default, handler:{
                                     // test:(()->(Bool))?
                                     self?.process(work: { [weak self] () -> (Any?) in
+                                        self?.transcript?.totalChanges = words.count
+                                        print("Total changes:",words.count)
+                                        
                                         self?.addParagraphBreaks(   interactive:false, makeVisible:false,
                                                                     showGapTimes:showGapTimes, gapThreshold:nil,
                                                                     tooClose:tooClose, words:words, text:text,
@@ -2325,6 +2343,12 @@ class TextViewController : CBCViewController
         
         let first = words.removeFirst()
         
+        if let total = transcript?.totalChanges, total > 0 {
+            transcript?.percentComplete = String(format: "%0.0f",(1.0 - Double(words.count)/Double(total)) * 100.0)
+        } else {
+            transcript?.percentComplete = "0"
+        }
+
         guard let range = first["range"] as? Range<String.Index> else {
             return
         }

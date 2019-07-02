@@ -1695,8 +1695,12 @@ class PopoverTableViewController : CBCViewController
             if let stringsAnyArray = self.stringsAnyArray {
                 var strings = [String]()
                 for stringsAny in stringsAnyArray {
+//                    strings.append(contentsOf: stringsAny.keys)
                     if let string = stringsAny["w"] as? String {
                         strings.append(string)
+                    } else
+                    if let string = stringsAny["s"] as? Int {
+                        strings.append(string.description)
                     } else
                     if let string = stringsAny["keyword"] as? String {
                         strings.append(string)

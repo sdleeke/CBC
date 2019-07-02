@@ -1005,8 +1005,8 @@ extension Array where Element == MediaItem
         }
         
         return self.filter({ (mediaItem) -> Bool in
-            return (mediaItem.downloads[purpose]?.active == false) &&
-                (mediaItem.downloads[purpose]?.exists == false)
+            return (mediaItem.downloads?[purpose]?.active == false) &&
+                (mediaItem.downloads?[purpose]?.exists == false)
         }).count
     }
     
@@ -1027,7 +1027,7 @@ extension Array where Element == MediaItem
     func downloading(purpose:String) -> Int?
     {
         return self.filter({ (mediaItem) -> Bool in
-            return mediaItem.downloads[purpose]?.active == true
+            return mediaItem.downloads?[purpose]?.active == true
         }).count
     }
     
@@ -1043,7 +1043,7 @@ extension Array where Element == MediaItem
     func downloaded(purpose:String) -> Int?
     {
         return self.filter({ (mediaItem) -> Bool in
-            return mediaItem.downloads[purpose]?.exists == true
+            return mediaItem.downloads?[purpose]?.exists == true
         }).count
     }
     
@@ -1188,7 +1188,7 @@ extension Array where Element == MediaItem
         }
     }
     
-    func loadAllDocuments()
+    func loadDocuments()
     {
         self.forEach({ (mediaItem:MediaItem) in
             mediaItem.loadDocuments()

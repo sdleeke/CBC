@@ -590,6 +590,398 @@ extension VoiceBase // Class Methods
     }
 }
 
+// Transcript
+extension VoiceBase
+{
+    // thread safe?
+    // s
+    var transcriptJSON : [String:Any]?
+    {
+        get {
+            // s
+            return mediaJSON?["transcript"] as? [String:Any]
+        }
+    }
+}
+
+// Words
+extension VoiceBase
+{
+    // thread safe?
+    var words : [[String:Any]]?
+    {
+        get {
+            // Latest
+            return transcriptJSON?["words"] as? [[String:Any]]
+        }
+    }
+    
+    // thread safe?
+    var tokensAndCounts : [String:Int]?
+    {
+        get {
+            guard let words = words else {
+                return nil
+            }
+            
+            var tokens = [String:Int]()
+            
+            for word in words {
+                // This isn't going to handle Greek or Hebrew letters.
+                if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty && CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:".")).isEmpty {
+                    if let count = tokens[text] {
+                        tokens[text] = count + 1
+                    } else {
+                        tokens[text] = 1
+                    }
+                }
+            }
+            
+            return tokens.count > 0 ? tokens : nil
+        }
+    }
+    
+    var transcriptFromWords : String?
+    {
+        get {
+            var transcript:String?
+            
+            if let words = words {
+                var index = 0
+                
+                for word in words {
+                    if let string = (word["w"] as? String)?.folding(options: .diacriticInsensitive, locale: nil) {
+                        if let metadata = word["m"] as? String, metadata == "punc" {
+                            var spacing = String()
+                            
+                            switch string {
+                            case ".":
+                                spacing = " "
+                                
+                            default:
+                                spacing = ""
+                                break
+                            }
+                            
+                            transcript = (transcript != nil ? transcript! : "") + string + (index < (words.count - 1) ? spacing : " ")
+                        } else {
+                            transcript = (transcript != nil ? transcript! + (!transcript!.isEmpty ? " " : "") : "") + string
+                        }
+                    }
+                    index += 1
+                }
+            }
+            
+            return transcript?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //?.replacingOccurrences(of: ".   ", with: ".  ")
+        }
+    }
+}
+
+// Knowledge - cleaned up for v3 but not used.
+extension VoiceBase
+{
+    var knowledgeJSON: [String:Any]?
+    {
+        get {
+            return mediaJSON?["knowledge"] as? [String:Any]
+        }
+    }
+}
+
+// Keywords - cleaned up for v3 but not used.
+extension VoiceBase
+{
+    // thread safe?
+    var keywordsJSON: [[String:Any]]?
+    {
+        get {
+            return knowledgeJSON?["keywords"] as? [[String:Any]]
+        }
+    }
+    
+    func keywordTimes(keyword:String?) -> [String]?
+    {
+        guard let keyword = keyword else {
+            return nil
+        }
+        
+        if let keywordDictionary = keywordDictionaries?[keyword] {
+            if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
+                if let times = speakerTimes["unknown"] {
+                    return times
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    // thread safe?
+    var keywordTimes : [String:[String]]?
+    {
+        get {
+            guard let keywordDictionaries = keywordDictionaries else {
+                return nil
+            }
+            
+            var keywordTimes = [String:[String]]()
+            
+            for name in keywordDictionaries.keys {
+                if let dict = keywordDictionaries[name], let mentions = dict["mentions"] as? [[String:Any]] {
+                    for mention in mentions {
+                        if let occurences = mention["occurrences"] as? [[String:Any]] {
+                            keywordTimes[name] = occurences.compactMap({ (dict) -> String? in
+                                return (Double((dict["s"] as? Int) ?? 0) / 1000.0).description.secondsToHMS
+                            })
+                        }
+                    }
+                }
+            }
+            
+            return keywordTimes.count > 0 ? keywordTimes : nil
+        }
+    }
+    
+    // thread safe?
+    var keywordDictionaries : [String:[String:Any]]?
+    {
+        get {
+            //            if let latest = keywordsJSON?["latest"] as? [String:Any] {
+            //                if let wordDictionaries = latest["words"] as? [[String:Any]] {
+            if let wordDictionaries = keywordsJSON {
+                var kwdd = [String:[String:Any]]()
+                
+                for dict in wordDictionaries {
+                    if let name = dict["keyword"] as? String {
+                        kwdd[name.uppercased()] = dict
+                    }
+                }
+                
+                return kwdd.count > 0 ? kwdd : nil
+            }
+            //            }
+            
+            return nil
+        }
+    }
+    
+    // thread safe?
+    var keywords : [String]?
+    {
+        get {
+            guard let keys = keywordDictionaries?.keys else {
+                return nil
+            }
+            
+            return Array(keys).sorted()
+//            if let keywords = keywordDictionaries?.filter({ (key: String, value: [String : Any]) -> Bool in
+//                if let speakerTimes = value["mentions"] as? [String:[String]] {
+//                    if let times = speakerTimes["occurences"] {
+//                        return times.count > 0
+//                    }
+//                }
+//                return false
+//            }).map({ (key: String, value: [String : Any]) -> String in
+//                return key.uppercased()
+//            }) {
+//                return keywords.count > 0 ? keywords : nil
+//            } else {
+//                return nil
+//            }
+        }
+    }
+}
+
+// Topics - cleaned up for v3 but not used.
+extension VoiceBase
+{
+    // thread safe?
+    var topicsJSON : [[String:Any]]?
+    {
+        get {
+            return knowledgeJSON?["topics"] as? [[String:Any]]
+        }
+    }
+    
+    // thread safe?
+    var topicsDictionaries : [String:[String:Any]]?
+    {
+        get {
+            //            if let latest = topicsJSON?["latest"] as? [String:Any] {
+            //                if let words = latest["topics"] as? [[String:Any]] {
+            if let words = topicsJSON {
+                var tdd = [String:[String:Any]]()
+                
+                for dict in words {
+                    if let name = dict["topicName"] as? String {
+                        tdd[name] = dict
+                    }
+                }
+                
+                return tdd.count > 0 ? tdd : nil
+            } else {
+                return nil
+            }
+            //            } else {
+            //                return nil
+            //            }
+        }
+    }
+    
+    // thread safe?
+    var topics : [String]?
+    {
+        get {
+            if let topics = topicsDictionaries?.map({ (key: String, value: [String : Any]) -> String in
+                return key
+            }) {
+                return topics
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
+    {
+        guard let topic = topic else {
+            return nil
+        }
+        
+        if let topicDictionary = topicsDictionaries?[topic] {
+            if let keywordsDictionaries = topicDictionary["keywords"] as? [[String:Any]] {
+                var kwdd = [String:[String:Any]]()
+                
+                for dict in keywordsDictionaries {
+                    if let name = dict["keyword"] as? String {
+                        kwdd[name.lowercased()] = dict
+                    }
+                }
+                
+                return kwdd.count > 0 ? kwdd : nil
+            }
+        }
+        
+        return nil
+    }
+    
+    func topicKeywords(topic:String?) -> [String]?
+    {
+        guard let topic = topic else {
+            return nil
+        }
+        
+        if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
+            let topicKeywords = topicKeywordDictionaries.map({ (key: String, value: [String : Any]) -> String in
+                return key
+            })
+            
+            return topicKeywords.count > 0 ? topicKeywords : nil
+        }
+        
+        return nil
+    }
+    
+    func topicKeywordTimes(topic:String?,keyword:String?) -> [String]?
+    {
+        guard let topic = topic else {
+            return nil
+        }
+        
+        guard let keyword = keyword else {
+            return nil
+        }
+        
+        if let keywordDictionaries = topicKeywordDictionaries(topic:topic) {
+            if let keywordDictionary = keywordDictionaries[keyword] {
+                if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
+                    if let times = speakerTimes["unknown"] {
+                        return times
+                    }
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    // Why not a dict of topics, each w/ all of their keywords
+    // var allTopicKeywords : [String:[String]]?
+
+    // OR ADD TIMES AS WELL
+    // var allTopicKeywordsAndTimes : [String:[String:[String]]]? // where time is always a string.
+    
+    // Because we don't use them...
+    
+    // thread safe?
+    var allTopicKeywords : [String]?
+    {
+        get {
+            guard let topics = topics else {
+                return nil
+            }
+            
+            var keywords = Set<String>()
+            
+            for topic in topics {
+                if let topicsKeywords = topicKeywords(topic: topic) {
+                    keywords = keywords.union(Set(topicsKeywords))
+                }
+            }
+            
+            return keywords.count > 0 ? Array(keywords) : nil
+        }
+    }
+    
+    // thread safe?
+    var allTopicKeywordDictionaries : [String:[String:Any]]?
+    {
+        get {
+            guard let topics = topics else {
+                return nil
+            }
+            
+            var allTopicKeywordDictionaries = [String:[String:Any]]()
+            
+            for topic in topics {
+                if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
+                    for topicKeywordDictionary in topicKeywordDictionaries {
+                        if allTopicKeywordDictionaries[topicKeywordDictionary.key] == nil {
+                            allTopicKeywordDictionaries[topicKeywordDictionary.key.lowercased()] = topicKeywordDictionary.value
+                        } else {
+                            print("allTopicKeywordDictionaries key occupied")
+                        }
+                    }
+                }
+            }
+            
+            return allTopicKeywordDictionaries.count > 0 ? allTopicKeywordDictionaries : nil
+        }
+    }
+    
+    // Needs work
+//    func allTopicKeywordTimes(keyword:String?) -> [String]?
+//    {
+//        guard let keyword = keyword else {
+//            return nil
+//        }
+//
+//        if let keywordDictionary = allTopicKeywordDictionaries?[keyword] {
+//            if let mentions = keywordDictionary["mentions"] as? [[String:Any]] {
+//                for mention in mentions { // Assumes there is only one mention!
+//                    if let occurences = mention["occurences"] as? [[String:Any]] {
+//                        return occurences.compactMap({ (dict:[String : Any]) -> String? in
+//                            return (dict["s"] as? Int)?.description
+//                        }).sorted()
+//                    }
+//                }
+//            }
+//        }
+//
+//        return nil
+//    }
+}
+
 // All downloading depends on app being active / foregroun until transcription is started
 // because URLSessions are not setup for background because that requires the use of a delegate
 // and not completion handlers.
@@ -655,25 +1047,27 @@ class VoiceBase
         }
     }
 
-    var metadata : String
+    var metadata : String?
     {
         guard let mediaItem = mediaItem else {
-            return "ERROR no mediaItem"
+            return nil
         }
         
         guard mediaItem.mediaCode != nil else {
-            return "ERROR no mediaItem.mediaCode"
+            return nil
         }
 
+        guard let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\t", with: "").replacingOccurrences(of: "\n", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")) else {
+            return nil
+        }
+        
         var mediaItemString = "{"
         
-                if let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\n", with: "") {
-                    if let mediaID = mediaID {
-                        mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\n\(mediaID)\","
-                    } else {
-                        mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\","
-                    }
-                }
+            if let mediaID = mediaID {
+                mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\n\(mediaID)\","
+            } else {
+                mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\","
+            }
 
             mediaItemString += "\"extended\":{" // mediaItem
 
@@ -694,9 +1088,7 @@ class VoiceBase
                 }
 
                 //
-                if let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\n", with: "") {
-                    mediaItemString += "\"title\":\"\(title)\","
-                }
+                mediaItemString += "\"title\":\"\(title)\","
 
 //                if let text = mediaItem.text {
 //                    mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\","
@@ -824,7 +1216,11 @@ class VoiceBase
     var percentComplete:String?
     {
         didSet {
-
+            if percentComplete != oldValue {
+                Thread.onMain {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem, userInfo: ["PERCENTAGE":self.percentComplete])
+                }
+            }
         }
     }
 
@@ -833,7 +1229,7 @@ class VoiceBase
     
     // Prevents a background thread from creating multiple timers accidentally
     // by accessing transcript before the timer creation on the main thread is complete.
-    var settingTimer = false
+//    var settingTimer = false
 
     var resultsTimer:Timer?
     {
@@ -939,6 +1335,71 @@ class VoiceBase
         }
     }
     
+    func initialize()
+    {
+        // Assumed to be called from lazy initializer.
+        
+        // In case app was killed during auto editing.
+        mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
+//        if Globals.shared.isLoading {
+//        }
+        
+        // TRANSCRIBING
+        if !completed && transcribing && !aligning && (self.resultsTimer == nil) { //  && !settingTimer
+//            settingTimer = true
+            if Globals.shared.isLoading {
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+            }
+            Thread.onMain {
+                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                self.settingTimer = false
+            }
+        } else {
+            // Overkill to make sure the cloud storage is cleaned-up?
+            //                mediaItem.voicebase?.delete()
+            // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+            if self.resultsTimer != nil {
+                debug("TIMER NOT NIL!")
+            }
+        }
+        
+        // ALIGNING
+        if completed && !transcribing && aligning && (self.resultsTimer == nil) { //  && !settingTimer
+//            settingTimer = true
+            if Globals.shared.isLoading {
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+            }
+            Thread.onMain {
+                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                self.settingTimer = false
+            }
+        } else {
+            // Overkill to make sure the cloud storage is cleaned-up?
+            //                mediaItem.voicebase?.delete()
+            // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+            if self.resultsTimer != nil {
+                debug("TIMER NOT NIL!")
+            }
+        }
+        
+        // !settingTimer is CRUCIAL since the timer is set in a DISPATCH to the MAIN thread above.
+//        if _transcript == nil, resultsTimer == nil, mediaID != nil { // , !settingTimer
+//            mediaID = nil
+//        }
+        
+        if !transcribing {
+            mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+        }
+        
+        if !aligning {
+            mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+        }
+        
+        if !completed {
+            mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+        }
+    }
+    
     // Replaced with Fetch?
     private var _transcript:String?
     {
@@ -967,81 +1428,89 @@ class VoiceBase
                 return _transcript
             }
 
-            guard mediaID != nil else {
-                return nil
-            }
-            
-            if completed {
-                if _transcript == nil {
-                    // In case app was killed during auto editing.
-                    if Globals.shared.isLoading {
-                        mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
-                    }
-                }
-                
-                _transcript = filename?.fileSystemURL?.string16?.folding(options: .diacriticInsensitive, locale: nil)
+//            guard mediaID != nil else {
+//                return nil
+//            }
 
+            if completed {
+                _transcript = filename?.fileSystemURL?.string16?.folding(options: .diacriticInsensitive, locale: nil)
+                
                 if _transcript == nil {
                     completed = false
                 }
             }
 
-            // TRANSCRIBING
-            if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
-                settingTimer = true
-                if Globals.shared.isLoading {
-                    mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
-                }
-                Thread.onMain {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                    self.settingTimer = false
-                }
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-                //                mediaItem.voicebase?.delete()
-                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                if self.resultsTimer != nil {
-                    debug("TIMER NOT NIL!")
-                }
-            }
+//            if completed {
+//                if _transcript == nil {
+//                    // In case app was killed during auto editing.
+//                    if Globals.shared.isLoading {
+//                        mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + transcriptPurpose)
+//                    }
+//                }
+//
+//                _transcript = filename?.fileSystemURL?.string16?.folding(options: .diacriticInsensitive, locale: nil)
+//
+//                if _transcript == nil {
+//                    completed = false
+//                }
+//            }
 
-            // ALIGNING
-            if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
-                settingTimer = true
-                if Globals.shared.isLoading {
-                    mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
-                }
-                Thread.onMain {
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
-                    self.settingTimer = false
-                }
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-                //                mediaItem.voicebase?.delete()
-                // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                if self.resultsTimer != nil {
-                    debug("TIMER NOT NIL!")
-                }
-            }
-            
-            if Globals.shared.isLoading {
-                if !transcribing {
-                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
-                }
-
-                if !aligning {
-                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
-                }
-
-                if !completed {
-                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-                }
-            }
-
-            // !settingTimer is CRUCIAL since the timer is set in a DISPATCH to the MAIN thread above.
-            if _transcript == nil, resultsTimer == nil, !settingTimer, mediaID != nil {
-                mediaID = nil
-            }
+//            if Globals.shared.isLoading {
+//                // TRANSCRIBING
+//                if !completed && transcribing && !aligning && (self.resultsTimer == nil) && !settingTimer {
+//                    settingTimer = true
+//                    if Globals.shared.isLoading {
+//                        mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+//                    }
+//                    Thread.onMain {
+//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                        self.settingTimer = false
+//                    }
+//                } else {
+//                    // Overkill to make sure the cloud storage is cleaned-up?
+//                    //                mediaItem.voicebase?.delete()
+//                    // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+//                    if self.resultsTimer != nil {
+//                        debug("TIMER NOT NIL!")
+//                    }
+//                }
+//
+//                // ALIGNING
+//                if completed && !transcribing && aligning && (self.resultsTimer == nil) && !settingTimer {
+//                    settingTimer = true
+//                    if Globals.shared.isLoading {
+//                        mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+//                    }
+//                    Thread.onMain {
+//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                        self.settingTimer = false
+//                    }
+//                } else {
+//                    // Overkill to make sure the cloud storage is cleaned-up?
+//                    //                mediaItem.voicebase?.delete()
+//                    // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+//                    if self.resultsTimer != nil {
+//                        debug("TIMER NOT NIL!")
+//                    }
+//                }
+//
+//                // !settingTimer is CRUCIAL since the timer is set in a DISPATCH to the MAIN thread above.
+//                if _transcript == nil, resultsTimer == nil, !settingTimer, mediaID != nil {
+//                    mediaID = nil
+//                }
+//
+//                if !transcribing {
+//                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
+//                }
+//
+//                if !aligning {
+//                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
+//                }
+//
+//                if !completed {
+//                    mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+//                }
+//            }
 
             return _transcript
         }
@@ -1210,212 +1679,6 @@ class VoiceBase
         }
     }
 
-    // thread safe?
-    var keywordsJSON: [String:Any]?
-    {
-        get {
-            return mediaJSON?["keywords"] as? [String:Any]
-        }
-    }
-    
-    // thread safe?
-    var keywordTimes : [String:[String]]?
-    {
-        get {
-            guard let keywordDictionaries = keywordDictionaries else {
-                return nil
-            }
-            
-            var keywordTimes = [String:[String]]()
-            
-            for name in keywordDictionaries.keys {
-                if let dict = keywordDictionaries[name], let speakers = dict["t"] as? [String:Any], let times = speakers["unknown"] as? [String] {
-                    keywordTimes[name] = times.map({ (time) -> String in
-                        return time.secondsToHMS!
-                    })
-                }
-            }
-            
-            return keywordTimes.count > 0 ? keywordTimes : nil
-        }
-    }
-    
-    // thread safe?
-    var keywordDictionaries : [String:[String:Any]]?
-    {
-        get {
-            if let latest = keywordsJSON?["latest"] as? [String:Any] {
-                if let wordDictionaries = latest["words"] as? [[String:Any]] {
-                    var kwdd = [String:[String:Any]]()
-                    
-                    for dict in wordDictionaries {
-                        if let name = dict["name"] as? String {
-                            kwdd[name.uppercased()] = dict
-                        }
-                    }
-                    
-                    return kwdd.count > 0 ? kwdd : nil
-                }
-            }
-            
-            return nil
-        }
-    }
-    
-    // thread safe?
-    var keywords : [String]?
-    {
-        get {
-            if let keywords = keywordDictionaries?.filter({ (key: String, value: [String : Any]) -> Bool in
-                if let speakerTimes = value["t"] as? [String:[String]] {
-                    if let times = speakerTimes["unknown"] {
-                        return times.count > 0
-                    }
-                }
-                return false
-            }).map({ (key: String, value: [String : Any]) -> String in
-                return key.uppercased()
-            }) {
-                return keywords
-            } else {
-                return nil
-            }
-        }
-    }
-    
-    // thread safe?
-    // s
-    var transcriptJSON : [String:Any]?
-    {
-        get {
-            // s
-            return mediaJSON?["transcript"] as? [String:Any]
-        }
-    }
-    
-    // thread safe?
-//    var transcriptLatest : [String:Any]?
-//    {
-//        get {
-//            return transcriptsJSON?["latest"] as? [String:Any]
-//        }
-//    }
-    
-    // thread safe?
-    var tokensAndCounts : [String:Int]?
-    {
-        get {
-            guard let words = words else {
-                return nil
-            }
-            
-            var tokens = [String:Int]()
-            
-            for word in words {
-                // This isn't going to handle Greek or Hebrew letters.
-                if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty && CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:".")).isEmpty {
-                    if let count = tokens[text] {
-                        tokens[text] = count + 1
-                    } else {
-                        tokens[text] = 1
-                    }
-                }
-            }
-            
-            return tokens.count > 0 ? tokens : nil
-        }
-    }
-    
-    // thread safe?
-    var words : [[String:Any]]?
-    {
-        get {
-            // Latest
-            return transcriptJSON?["words"] as? [[String:Any]]
-        }
-    }
-    
-    var transcriptFromWords : String?
-    {
-        get {
-            var transcript:String?
-            
-            if let words = words {
-                var index = 0
-                
-                for word in words {
-                    if let string = (word["w"] as? String)?.folding(options: .diacriticInsensitive, locale: nil) {
-                        if let metadata = word["m"] as? String, metadata == "punc" {
-                            var spacing = String()
-                            
-                            switch string {
-                            case ".":
-                                spacing = " "
-                                
-                            default:
-                                spacing = ""
-                                break
-                            }
-                            
-                            transcript = (transcript != nil ? transcript! : "") + string + (index < (words.count - 1) ? spacing : " ")
-                        } else {
-                            transcript = (transcript != nil ? transcript! + (!transcript!.isEmpty ? " " : "") : "") + string
-                        }
-                    }
-                    index += 1
-                }
-            }
-            
-            return transcript?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //?.replacingOccurrences(of: ".   ", with: ".  ")
-        }
-    }
-    
-    // thread safe?
-    var topicsJSON : [String:Any]?
-    {
-        get {
-            return mediaJSON?["topics"] as? [String:Any]
-        }
-    }
-    
-    // thread safe?
-    var topicsDictionaries : [String:[String:Any]]?
-    {
-        get {
-            if let latest = topicsJSON?["latest"] as? [String:Any] {
-                if let words = latest["topics"] as? [[String:Any]] {
-                    var tdd = [String:[String:Any]]()
-                    
-                    for dict in words {
-                        if let name = dict["name"] as? String {
-                            tdd[name] = dict
-                        }
-                    }
-                    
-                    return tdd.count > 0 ? tdd : nil
-                } else {
-                    return nil
-                }
-            } else {
-                return nil
-            }
-        }
-    }
-    
-    // thread safe?
-    var topics : [String]?
-    {
-        get {
-            if let topics = topicsDictionaries?.map({ (key: String, value: [String : Any]) -> String in
-                return key
-            }) {
-                return topics
-            } else {
-                return nil
-            }
-        }
-    }
-    
     init?(mediaItem:MediaItem?,purpose:String?)
     {
         guard let mediaItem = mediaItem else {
@@ -1470,6 +1733,7 @@ class VoiceBase
     deinit {
         debug(self)
         operationQueue.cancelAllOperations()
+        fileQueue.cancelAllOperations()
     }
     
     func createBody(parameters: [String: String],boundary: String) -> NSData
@@ -1818,7 +2082,21 @@ class VoiceBase
         
         parameters["metadata"] = self.metadata
         
-        parameters["configuration"] = "{\"transcript\":{\"formatting\":{\"enableNumberFormatting\":false}}}"
+        parameters["configuration"] = """
+            {
+                "transcript":
+                {
+                    "formatting":{
+                        "enableNumberFormatting" : false
+                    }
+                },
+                "knowledge":
+                {
+                    "enableDiscovery" : false,
+                    "enableExternalDataSources" : false
+                }
+            }
+        """
 
         let path = "media" + (mediaID != nil ? "/\(mediaID!)" : "")
         
@@ -2030,149 +2308,6 @@ class VoiceBase
         
         transcript = nil
         transcriptSegments = nil
-    }
-    
-    func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        if let topicDictionary = topicsDictionaries?[topic] {
-            if let keywordsDictionaries = topicDictionary["keywords"] as? [[String:Any]] {
-                var kwdd = [String:[String:Any]]()
-                
-                for dict in keywordsDictionaries {
-                    if let name = dict["name"] as? String {
-                        kwdd[name.lowercased()] = dict
-                    }
-                }
-                
-                return kwdd.count > 0 ? kwdd : nil
-            }
-        }
-        
-        return nil
-    }
-    
-    func topicKeywords(topic:String?) -> [String]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
-            let topicKeywords = topicKeywordDictionaries.map({ (key: String, value: [String : Any]) -> String in
-                return key
-            })
-            
-            return topicKeywords.count > 0 ? topicKeywords : nil
-        }
-        
-        return nil
-    }
-    
-    func topicKeywordTimes(topic:String?,keyword:String?) -> [String]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionaries = topicKeywordDictionaries(topic:topic) {
-            if let keywordDictionary = keywordDictionaries[keyword] {
-                if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                    if let times = speakerTimes["unknown"] {
-                        return times
-                    }
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    // thread safe?
-    var allTopicKeywords : [String]?
-    {
-        get {
-            guard let topics = topics else {
-                return nil
-            }
-            
-            var keywords = Set<String>()
-            
-            for topic in topics {
-                if let topicsKeywords = topicKeywords(topic: topic) {
-                    keywords = keywords.union(Set(topicsKeywords))
-                }
-            }
-            
-            return keywords.count > 0 ? Array(keywords) : nil
-        }
-    }
-    
-    // thread safe?
-    var allTopicKeywordDictionaries : [String:[String:Any]]?
-    {
-        get {
-            guard let topics = topics else {
-                return nil
-            }
-            
-            var allTopicKeywordDictionaries = [String:[String:Any]]()
-            
-            for topic in topics {
-                if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
-                    for topicKeywordDictionary in topicKeywordDictionaries {
-                        if allTopicKeywordDictionaries[topicKeywordDictionary.key] == nil {
-                            allTopicKeywordDictionaries[topicKeywordDictionary.key.lowercased()] = topicKeywordDictionary.value
-                        } else {
-                            print("allTopicKeywordDictionaries key occupied")
-                        }
-                    }
-                }
-            }
-            
-            return allTopicKeywordDictionaries.count > 0 ? allTopicKeywordDictionaries : nil
-        }
-    }
-    
-    func allTopicKeywordTimes(keyword:String?) -> [String]?
-    {
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionary = allTopicKeywordDictionaries?[keyword] {
-            if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    func keywordTimes(keyword:String?) -> [String]?
-    {
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionary = keywordDictionaries?[keyword] {
-            if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times
-                }
-            }
-        }
-        
-        return nil
     }
     
     private func details(alert:Bool, atEnd:(()->())?)
@@ -2629,6 +2764,12 @@ class VoiceBase
                     } else {
                         self.transcribing = false
                         self.completed = true
+                        self.percentComplete = nil
+                    }
+                    
+                    guard !self.isAutoEditUnderway else {
+                        // AutoEdit underway
+                        return
                     }
                     
                     // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
@@ -4271,6 +4412,12 @@ class VoiceBase
         
         let first = words.removeFirst()
         
+        if totalChanges > 0 {
+            percentComplete = String(format: "%0.0f",(1.0 - Double(words.count)/Double(totalChanges)) * 100.0)
+        } else {
+            percentComplete = "0"
+        }
+        
         guard let range = first["range"] as? Range<String.Index> else {
             operationQueue.addCancelableOperation(tag:Constants.Strings.Auto_Edit) { [weak self] (test:(() -> Bool)?) in
                 self?.addParagraphBreaks(showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, test:test, completion:completion)
@@ -4544,6 +4691,8 @@ class VoiceBase
         self.operationQueue.cancelAllOperations()
         self.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + self.transcriptPurpose)
         
+        self.percentComplete = nil
+        
         //                            self.operationQueue.waitUntilAllOperationsAreFinished()
         
         guard alert else {
@@ -4648,9 +4797,16 @@ class VoiceBase
         Alerts.shared.alert(title: Constants.Strings.Confirm_Auto_Edit, message: message, actions: alertActions)
     }
     
+    var isAutoEditUnderway : Bool
+    {
+        get {
+            return operationQueue.operationCount != 0
+        }
+    }
+    
     func autoEdit(notify:Bool = true)
     {
-        guard self.operationQueue.operationCount == 0 else {
+        guard !isAutoEditUnderway else {
             var message = String()
         
             if let text = self.mediaItem?.text {
@@ -4766,6 +4922,7 @@ class VoiceBase
                         
                         Alerts.shared.alert(title:"Auto Edit Completed", message:message)
                         self?.transcript = string
+                        self?.percentComplete = nil
                         self?.mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Auto_Edit + " - " + (self?.transcriptPurpose ?? ""))
                     })
                 }
@@ -4780,6 +4937,8 @@ class VoiceBase
 //                ?.filter({ (mediaItem:MediaItem) -> Bool in
 //                    mediaItem.speaker == self?.mediaItem?.speaker // self?.mediaItem?.teacher?.name
 //                })
+                
+                // speakerNotesParagraph has a lot of work inside.  How do we update percentComplete while this is going on?
                 
                 // First try using only transcripts from this speaker, if there aren't any, then use all that can be found.
                 let speakerNotesParagraph = mediaItems?.speakerNotesParagraph(name:self?.mediaItem?.speaker) ?? mediaItems?.speakerNotesParagraph
@@ -4807,6 +4966,9 @@ class VoiceBase
                         return
                     }
                     
+                    self?.totalChanges = words.count
+                    print("Total changes:",words.count)
+
                     self?.addParagraphBreaks(showGapTimes:false, tooClose:tooClose, words:words, text:text, test:test, completion: { (string:String?) -> (Void) in
                         self?.transcript = string
                         textChanges()
@@ -4844,6 +5006,12 @@ class VoiceBase
         }
         
         var action : AlertAction!
+        
+        print(topicsJSON)
+        print(topicsDictionaries)
+        print(topics)
+        print(allTopicKeywords)
+        print(allTopicKeywordDictionaries)
 
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
@@ -4993,7 +5161,7 @@ class VoiceBase
                 }))
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, handler: {
-                    guard self.operationQueue.operationCount == 0 else {
+                    guard !self.isAutoEditUnderway else {
                         self.autoEditUnderway()
                         return
                     }
@@ -5051,7 +5219,7 @@ class VoiceBase
                     }
                 }))
 
-                if self.operationQueue.operationCount == 0 {
+                if !self.isAutoEditUnderway {
                     alertActions.append(AlertAction(title: Constants.Strings.Auto_Edit, style: .destructive, handler: {
                         self.confirmAutoEdit()
                     }))
@@ -5199,6 +5367,11 @@ class VoiceBase
                                                                 alertActions: nil,
                                                                 cancelAction: nil)
                         }
+                        return
+                    }
+                    
+                    guard !self.isAutoEditUnderway else {
+                        self.autoEditUnderway()
                         return
                     }
                     
@@ -5508,308 +5681,308 @@ class VoiceBase
                 }
             }))
             
-            let byPhrase = AlertAction(title: "By Phrase", style: .default, handler: {
-                if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))"
-                    
-                    popover.selectedMediaItem = self.mediaItem
-                    popover.transcript = self
-                    
-                    popover.search = true
-                    
-                    popover.delegate = viewController as? PopoverTableViewControllerDelegate
-                    popover.purpose = .selectingTimingIndexPhrase
-                    
-                    popover.section.showIndex = true
-                    
-                    popover.stringsFunction = { [weak self] () -> [String]? in
-                        guard let keywordDictionaries = self?.keywordDictionaries else {
-                            return nil
-                        }
-                        
-                        var keywordCounts = [String:Int]()
-                        
-                        for keyword in keywordDictionaries.keys {
-                            // This gets the number of SEGMENTS not the number of total occurences if it occurs more than once in a segment.
-                            if let speakers = keywordDictionaries[keyword]?["t"] as? [String:Any],  let times = speakers["unknown"] as? [String] {
-                                for time in 0..<times.count {
-                                    if let time = Double(times[time]) {
-                                        if let component = self?.transcriptSegmentComponents?.result?.component(atTime: Double(time).secondsToHMSms, returnClosest: true) {
-                                            let range = NSRange(location: 0, length: component.utf16.count)
-                                            
-                                            // "\\b" +  + "\\b"
-                                            if let regex = try? NSRegularExpression(pattern: keyword, options: .caseInsensitive) {
-                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
-                                                
-                                                if matches.count > 0 {
-                                                    if let oldCount = keywordCounts[keyword] {
-                                                        keywordCounts[keyword] = oldCount + matches.count
-                                                    } else {
-                                                        keywordCounts[keyword] = matches.count
-                                                    }
-                                                } else {
-                                                    let words = keyword.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
-                                                        String(substring)
-                                                    }
-                                                    
-                                                    if words.count > 1 {
-                                                        var strings = [String]()
-                                                        var phrase : String?
-                                                        
-                                                        // Assemble the list of "less than the full phrase" phrases to look for.
-                                                        for i in 0..<words.count {
-                                                            if i == (words.count - 1) {
-                                                                break
-                                                            }
-                                                            
-                                                            if phrase == nil {
-                                                                phrase = words[i]
-                                                            } else {
-                                                                phrase = (phrase ?? "") + " " + words[i]
-                                                            }
-                                                            
-                                                            if let phrase = phrase {
-                                                                strings.append(phrase)
-                                                            }
-                                                        }
-                                                        
-                                                        // reverse them since we want to look for the longest first.
-                                                        strings.reverse()
-                                                        
-                                                        // Now look for them.
-                                                        var found = false
-                                                        
-                                                        for string in strings {
-                                                            if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
-                                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
-                                                                if matches.count > 0 {
-                                                                    for match in matches {
-                                                                        if match.range.upperBound == component.endIndex.utf16Offset(in: component) {
-                                                                            if let oldCount = keywordCounts[keyword] {
-                                                                                keywordCounts[keyword] = oldCount + 1
-                                                                            } else {
-                                                                                keywordCounts[keyword] = 1
-                                                                            }
-                                                                            found = true
-                                                                            break
-                                                                        } else {
-
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                
-                                                                }
-                                                            }
-                                                            
-                                                            if found {
-                                                                break
-                                                            }
-                                                        }
-                                                        
-                                                        if !found {
-                                                            if let string = strings.first {
-                                                                if let range = component.components(separatedBy: " ").last?.range(of: string) {
-                                                                    if let oldCount = keywordCounts[keyword] {
-                                                                        keywordCounts[keyword] = oldCount + 1
-                                                                    } else {
-                                                                        keywordCounts[keyword] = 1
-                                                                    }
-                                                                    found = true
-                                                                }
-                                                            }
-                                                        }
-                                                        
-                                                        if !found {
-                                                            var phrase = keyword
-                                                            
-                                                            if #available(iOS 12.0, *) {
-                                                                if let lemmas = keyword.lowercased().nlLemmas {
-                                                                    for lemma in lemmas {
-                                                                        if lemma.0 != lemma.1 {
-                                                                            if let word = lemma.1 {
-                                                                                phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: .caseInsensitive, range: lemma.2)
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                // Fallback on earlier versions
-                                                                if let lemmas = keyword.nsLemmas {
-                                                                    
-                                                                }
-                                                            }
-
-                                                            print(keyword,phrase)
-
-                                                            if phrase != keyword {
-                                                                if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
-                                                                    let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
-                                                                    
-                                                                    if matches.count > 0 {
-                                                                        if let oldCount = keywordCounts[keyword] {
-                                                                            keywordCounts[keyword] = oldCount + matches.count
-                                                                        } else {
-                                                                            keywordCounts[keyword] = matches.count
-                                                                        }
-                                                                        found = true
-                                                                    } else {
-                                                                        
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                
-                                                            }
-                                                            
-                                                            if !found {
-                                                                // Lemmas didn't help
-                                                                // try to match part of the last word?
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        return keywordCounts.keys.sorted().map({ (keyword:String) -> String in
-                            if let count = keywordCounts[keyword] {
-                                return keyword + " (\(count))"
-                            } else {
-                                return keyword
-                            }
-                        })
-                    }
-                    
-                    popover.segments = true
-                    
-                    popover.section.function = { (method:String?,strings:[String]?) in
-                        return strings?.sort(method: method)
-                    }
-                    popover.section.method = Constants.Sort.Alphabetical
-                    
-                    popover.bottomBarButton = true
-                    
-                    var segmentActions = [SegmentAction]()
-                    
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
-                        guard let popover = popover else {
-                            return
-                        }
-                        
-                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                        
-                        if popover.segmentedControl.selectedSegmentIndex == 0 {
-                            popover.section.method = Constants.Sort.Alphabetical
-                            
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            
-                            popover.section.indexStringsTransform = nil
-                            popover.section.indexHeadersTransform = nil
-                            popover.section.indexSort = nil
-                            
-                            popover.section.strings = strings
-                            
-                            popover.section.stringsAction?(strings, popover.section.sorting)
-                            
-                            popover.tableView?.reloadData()
-                        }
-                    }))
-                    
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
-                        guard let popover = popover else {
-                            return
-                        }
-                        
-                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                        
-                        if popover.segmentedControl.selectedSegmentIndex == 1 {
-                            popover.section.method = Constants.Sort.Frequency
-                            
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-                                return string?.log
-                            }
-                            
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                                return string
-                            }
-                            
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-                                guard let first = first else {
-                                    return false
-                                }
-                                guard let second = second else {
-                                    return true
-                                }
-                                return Int(first) > Int(second)
-                            }
-                            
-                            popover.section.strings = strings
-                            
-                            popover.section.stringsAction?(strings, popover.section.sorting)
-                            
-                            popover.tableView?.reloadData()
-                        }
-                    }))
-                    
-                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
-                        guard let popover = popover else {
-                            return
-                        }
-                        
-                        let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
-                        
-                        if popover.segmentedControl.selectedSegmentIndex == 2 {
-                            popover.section.method = Constants.Sort.Length
-                            
-                            popover.section.showHeaders = false
-                            popover.section.showIndex = true
-                            
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
-                                guard let word = string?.word else {
-                                    return nil
-                                }
-                                
-                                return word.count.description
-                            }
-                            
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
-                                return string
-                            }
-                            
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
-                                guard let first = first else {
-                                    return false
-                                }
-                                guard let second = second else {
-                                    return true
-                                }
-                                return Int(first) > Int(second)
-                            }
-                            
-                            popover.section.strings = strings
-                            
-                            popover.section.stringsAction?(strings, popover.section.sorting)
-                            
-                            popover.tableView?.reloadData()
-                        }
-                    }))
-                    
-                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-                    
-                    viewController.navigationController?.pushViewController(popover, animated: true)
-                    completion?(popover,"TIMINGINDEXPHRASE")
-                }
-            })
+//            let byPhrase = AlertAction(title: "By Phrase", style: .default, handler: {
+//                if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    popover.navigationController?.isNavigationBarHidden = false
+//
+//                    popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))"
+//
+//                    popover.selectedMediaItem = self.mediaItem
+//                    popover.transcript = self
+//
+//                    popover.search = true
+//
+//                    popover.delegate = viewController as? PopoverTableViewControllerDelegate
+//                    popover.purpose = .selectingTimingIndexPhrase
+//
+//                    popover.section.showIndex = true
+//
+//                    popover.stringsFunction = { [weak self] () -> [String]? in
+//                        guard let keywordDictionaries = self?.keywordDictionaries else {
+//                            return nil
+//                        }
+//
+//                        var keywordCounts = [String:Int]()
+//
+//                        for keyword in keywordDictionaries.keys {
+//                            // This gets the number of SEGMENTS not the number of total occurences if it occurs more than once in a segment.
+//                            if let speakers = keywordDictionaries[keyword]?["t"] as? [String:Any],  let times = speakers["unknown"] as? [String] {
+//                                for time in 0..<times.count {
+//                                    if let time = Double(times[time]) {
+//                                        if let component = self?.transcriptSegmentComponents?.result?.component(atTime: Double(time).secondsToHMSms, returnClosest: true) {
+//                                            let range = NSRange(location: 0, length: component.utf16.count)
+//
+//                                            // "\\b" +  + "\\b"
+//                                            if let regex = try? NSRegularExpression(pattern: keyword, options: .caseInsensitive) {
+//                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+//
+//                                                if matches.count > 0 {
+//                                                    if let oldCount = keywordCounts[keyword] {
+//                                                        keywordCounts[keyword] = oldCount + matches.count
+//                                                    } else {
+//                                                        keywordCounts[keyword] = matches.count
+//                                                    }
+//                                                } else {
+//                                                    let words = keyword.components(separatedBy: Constants.SINGLE_SPACE).map { (substring) -> String in
+//                                                        String(substring)
+//                                                    }
+//
+//                                                    if words.count > 1 {
+//                                                        var strings = [String]()
+//                                                        var phrase : String?
+//
+//                                                        // Assemble the list of "less than the full phrase" phrases to look for.
+//                                                        for i in 0..<words.count {
+//                                                            if i == (words.count - 1) {
+//                                                                break
+//                                                            }
+//
+//                                                            if phrase == nil {
+//                                                                phrase = words[i]
+//                                                            } else {
+//                                                                phrase = (phrase ?? "") + " " + words[i]
+//                                                            }
+//
+//                                                            if let phrase = phrase {
+//                                                                strings.append(phrase)
+//                                                            }
+//                                                        }
+//
+//                                                        // reverse them since we want to look for the longest first.
+//                                                        strings.reverse()
+//
+//                                                        // Now look for them.
+//                                                        var found = false
+//
+//                                                        for string in strings {
+//                                                            if let regex = try? NSRegularExpression(pattern: "\\b" + string + "\\b", options: .caseInsensitive) {
+//                                                                let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+//                                                                if matches.count > 0 {
+//                                                                    for match in matches {
+//                                                                        if match.range.upperBound == component.endIndex.utf16Offset(in: component) {
+//                                                                            if let oldCount = keywordCounts[keyword] {
+//                                                                                keywordCounts[keyword] = oldCount + 1
+//                                                                            } else {
+//                                                                                keywordCounts[keyword] = 1
+//                                                                            }
+//                                                                            found = true
+//                                                                            break
+//                                                                        } else {
+//
+//                                                                        }
+//                                                                    }
+//                                                                } else {
+//
+//                                                                }
+//                                                            }
+//
+//                                                            if found {
+//                                                                break
+//                                                            }
+//                                                        }
+//
+//                                                        if !found {
+//                                                            if let string = strings.first {
+//                                                                if let range = component.components(separatedBy: " ").last?.range(of: string) {
+//                                                                    if let oldCount = keywordCounts[keyword] {
+//                                                                        keywordCounts[keyword] = oldCount + 1
+//                                                                    } else {
+//                                                                        keywordCounts[keyword] = 1
+//                                                                    }
+//                                                                    found = true
+//                                                                }
+//                                                            }
+//                                                        }
+//
+//                                                        if !found {
+//                                                            var phrase = keyword
+//
+//                                                            if #available(iOS 12.0, *) {
+//                                                                if let lemmas = keyword.lowercased().nlLemmas {
+//                                                                    for lemma in lemmas {
+//                                                                        if lemma.0 != lemma.1 {
+//                                                                            if let word = lemma.1 {
+//                                                                                phrase = phrase.replacingOccurrences(of: lemma.0, with: word.uppercased(), options: .caseInsensitive, range: lemma.2)
+//                                                                            }
+//                                                                        }
+//                                                                    }
+//                                                                }
+//                                                            } else {
+//                                                                // Fallback on earlier versions
+//                                                                if let lemmas = keyword.nsLemmas {
+//
+//                                                                }
+//                                                            }
+//
+//                                                            print(keyword,phrase)
+//
+//                                                            if phrase != keyword {
+//                                                                if let regex = try? NSRegularExpression(pattern: phrase, options: .caseInsensitive) {
+//                                                                    let matches = regex.matches(in: component, options: .withTransparentBounds, range: range)
+//
+//                                                                    if matches.count > 0 {
+//                                                                        if let oldCount = keywordCounts[keyword] {
+//                                                                            keywordCounts[keyword] = oldCount + matches.count
+//                                                                        } else {
+//                                                                            keywordCounts[keyword] = matches.count
+//                                                                        }
+//                                                                        found = true
+//                                                                    } else {
+//
+//                                                                    }
+//                                                                }
+//                                                            } else {
+//
+//                                                            }
+//
+//                                                            if !found {
+//                                                                // Lemmas didn't help
+//                                                                // try to match part of the last word?
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        return keywordCounts.keys.sorted().map({ (keyword:String) -> String in
+//                            if let count = keywordCounts[keyword] {
+//                                return keyword + " (\(count))"
+//                            } else {
+//                                return keyword
+//                            }
+//                        })
+//                    }
+//
+//                    popover.segments = true
+//
+//                    popover.section.function = { (method:String?,strings:[String]?) in
+//                        return strings?.sort(method: method)
+//                    }
+//                    popover.section.method = Constants.Sort.Alphabetical
+//
+//                    popover.bottomBarButton = true
+//
+//                    var segmentActions = [SegmentAction]()
+//
+//                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
+//                        guard let popover = popover else {
+//                            return
+//                        }
+//
+//                        let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
+//
+//                        if popover.segmentedControl.selectedSegmentIndex == 0 {
+//                            popover.section.method = Constants.Sort.Alphabetical
+//
+//                            popover.section.showHeaders = false
+//                            popover.section.showIndex = true
+//
+//                            popover.section.indexStringsTransform = nil
+//                            popover.section.indexHeadersTransform = nil
+//                            popover.section.indexSort = nil
+//
+//                            popover.section.strings = strings
+//
+//                            popover.section.stringsAction?(strings, popover.section.sorting)
+//
+//                            popover.tableView?.reloadData()
+//                        }
+//                    }))
+//
+//                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
+//                        guard let popover = popover else {
+//                            return
+//                        }
+//
+//                        let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+//
+//                        if popover.segmentedControl.selectedSegmentIndex == 1 {
+//                            popover.section.method = Constants.Sort.Frequency
+//
+//                            popover.section.showHeaders = false
+//                            popover.section.showIndex = true
+//
+//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+//                                return string?.log
+//                            }
+//
+//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                                return string
+//                            }
+//
+//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+//                                guard let first = first else {
+//                                    return false
+//                                }
+//                                guard let second = second else {
+//                                    return true
+//                                }
+//                                return Int(first) > Int(second)
+//                            }
+//
+//                            popover.section.strings = strings
+//
+//                            popover.section.stringsAction?(strings, popover.section.sorting)
+//
+//                            popover.tableView?.reloadData()
+//                        }
+//                    }))
+//
+//                    segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
+//                        guard let popover = popover else {
+//                            return
+//                        }
+//
+//                        let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
+//
+//                        if popover.segmentedControl.selectedSegmentIndex == 2 {
+//                            popover.section.method = Constants.Sort.Length
+//
+//                            popover.section.showHeaders = false
+//                            popover.section.showIndex = true
+//
+//                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+//                                guard let word = string?.word else {
+//                                    return nil
+//                                }
+//
+//                                return word.count.description
+//                            }
+//
+//                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+//                                return string
+//                            }
+//
+//                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+//                                guard let first = first else {
+//                                    return false
+//                                }
+//                                guard let second = second else {
+//                                    return true
+//                                }
+//                                return Int(first) > Int(second)
+//                            }
+//
+//                            popover.section.strings = strings
+//
+//                            popover.section.stringsAction?(strings, popover.section.sorting)
+//
+//                            popover.tableView?.reloadData()
+//                        }
+//                    }))
+//
+//                    popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+//
+//                    viewController.navigationController?.pushViewController(popover, animated: true)
+//                    completion?(popover,"TIMINGINDEXPHRASE")
+//                }
+//            })
             
             alertActions.append(AlertAction(title: "By Timed Segment", style: .default, handler: {
                 if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
