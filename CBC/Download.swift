@@ -575,7 +575,11 @@ class Download : NSObject, Size
         guard active else {
             return
         }
-
+        
+        guard let purpose = purpose else {
+            return
+        }
+        
         state = .none
         
         task?.cancel()
@@ -583,6 +587,8 @@ class Download : NSObject, Size
         
         totalBytesWritten = 0
         totalBytesExpectedToWrite = 0
+        
+        mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
     }
 }
 
