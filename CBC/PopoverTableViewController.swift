@@ -194,8 +194,8 @@ extension PopoverTableViewController: UISearchBarDelegate
 
         updateToolbar()
         
-        Thread.onMain {
-            self.tableView.reloadData()
+        Thread.onMain { [weak self] in 
+            self?.tableView.reloadData()
         }
     }
     
@@ -896,8 +896,8 @@ class PopoverTableViewController : CBCViewController
     lazy var filteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
 
-        section.stringsAction = { (strings:[String]?,sorting:Bool) in
-            Thread.onMain {
+        section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
+            Thread.onMain { [weak self] in 
                 self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
@@ -908,8 +908,8 @@ class PopoverTableViewController : CBCViewController
     lazy var unfilteredSection:Section! = { [weak self] in
         let section = Section(tableView:tableView, stringsAction: nil)
         
-        section.stringsAction = { (strings:[String]?,sorting:Bool) in
-            Thread.onMain {
+        section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
+            Thread.onMain { [weak self] in 
                 self?.segmentedControl?.isEnabled = (strings != nil) && !sorting
             }
         }
@@ -1099,8 +1099,8 @@ class PopoverTableViewController : CBCViewController
         } else {
             // Fallback on earlier versions
             if let refreshControl = self.refreshControl {
-                Thread.onMain {
-                    self.tableView?.addSubview(refreshControl)
+                Thread.onMain { [weak self] in 
+                    self?.tableView?.addSubview(refreshControl)
                 }
             }
         }
@@ -1112,8 +1112,8 @@ class PopoverTableViewController : CBCViewController
             tableView.refreshControl = nil
         } else {
             // Fallback on earlier versions
-            Thread.onMain {
-                self.refreshControl?.removeFromSuperview()
+            Thread.onMain { [weak self] in 
+                self?.refreshControl?.removeFromSuperview()
             }
         }
     }
@@ -1309,16 +1309,16 @@ class PopoverTableViewController : CBCViewController
                 let row = index - base
                 
                 if self.section.strings?.count > 0 {
-                    Thread.onMain {
-                        if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
+                    Thread.onMain { [weak self] in 
+                        if section >= 0, section < self?.tableView.numberOfSections, row >= 0, row < self?.tableView.numberOfRows(inSection: section) {
                             let indexPath = IndexPath(row: row,section: section)
                             
-                            if self.tableView.isValid(indexPath) {
+                            if self?.tableView.isValid(indexPath) == true {
                                 if scroll {
-                                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                    self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                                 }
                                 if select {
-                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                    self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
                                 }
                             }
                         } else {
@@ -1438,7 +1438,7 @@ class PopoverTableViewController : CBCViewController
                     if barButtonItems.count > 0 {
                         barButtonItems.append(spaceButton)
                     }
-                    barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(self.barButtonAction(_:))))
+                    barButtonItems.append(UIBarButtonItem(title: key, style: .plain, target: self, action: #selector(barButtonAction(_:))))
                 }
             }
         }
@@ -1446,7 +1446,7 @@ class PopoverTableViewController : CBCViewController
         if bottomBarButton {
             // Set the toobar button for bottom access
             let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
-            let bottomButton = UIBarButtonItem(title: "Bottom", style: .plain, target: self, action: #selector(self.bottomButtonAction(_:)))
+            let bottomButton = UIBarButtonItem(title: "Bottom", style: .plain, target: self, action: #selector(bottomButtonAction(_:)))
             
             barButtonItems.append(spaceButton)
             barButtonItems.append(bottomButton)
@@ -1460,9 +1460,9 @@ class PopoverTableViewController : CBCViewController
         
         // This prevents the toolbarItems from being set if this is an embedded viewController.
         if (self == navigationController?.visibleViewController) {
-            Thread.onMain {
-                self.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
-                self.navigationController?.isToolbarHidden = !(self.toolbarItems?.count > 0)
+            Thread.onMain { [weak self] in 
+                self?.toolbarItems = barButtonItems.count > 0 ? barButtonItems : nil
+                self?.navigationController?.isToolbarHidden = !(self?.toolbarItems?.count > 0)
             }
         }
     }
@@ -1574,8 +1574,8 @@ class PopoverTableViewController : CBCViewController
 
         if stringsFunction != nil, self.section.strings != nil, self.purpose == .selectingTime {
             let block = {
-                Thread.onMain {
-                    self.follow()
+                Thread.onMain { [weak self] in 
+                    self?.follow()
                 }
             }
             
@@ -1592,25 +1592,25 @@ class PopoverTableViewController : CBCViewController
 
             if self.navigationController?.topViewController == self {
                 // Where does it start?
-                Thread.onMain {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
+                Thread.onMain { [weak self] in 
+                    self?.activityIndicator.stopAnimating()
+                    self?.activityIndicator.isHidden = true
                 }
             }
         } else
             
         if stringsFunction != nil, self.section.strings == nil, operationQueue.operationCount == 0 {
             if self.navigationController?.topViewController == self {
-                Thread.onMain {
-                    self.activityIndicator.startAnimating()
-                    self.activityIndicator.isHidden = false
+                Thread.onMain { [weak self] in 
+                    self?.activityIndicator.startAnimating()
+                    self?.activityIndicator.isHidden = false
                 }
             }
 
             operationQueue.addOperation { [weak self] in
                 self?.section.strings = self?.stringsFunction?()
 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.tableView.reloadData()
                     
                     self?.setPreferredContentSize()
@@ -1621,7 +1621,7 @@ class PopoverTableViewController : CBCViewController
                         // MIGHT need to make this .background to provide enough delay but throwing it back on the main thread may accomplish that.
                         // Delay so UI works as desired.
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
                             }
                         }
@@ -1629,7 +1629,7 @@ class PopoverTableViewController : CBCViewController
                         // If we're going by the media player time to find the row that matches up to time we first need to have th right purpose
                         if self?.purpose == .selectingTime {
                             let block = {
-                                Thread.onMain {
+                                Thread.onMain { [weak self] in 
                                     self?.follow()
                                 }
                             }
@@ -1938,8 +1938,8 @@ extension PopoverTableViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMain {
-                self.tableView.reloadData()
+            Thread.onMain { [weak self] in 
+                self?.tableView.reloadData()
             }
         }
         
@@ -2139,7 +2139,7 @@ extension PopoverTableViewController : UITableViewDelegate
             
             // This is a hack because it is being done because we know the delegate call makes a seek.
             Globals.shared.mediaPlayer.seekingCompletion = { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.activityIndicator.stopAnimating()
                     self?.startTracking()
                 }
@@ -2191,10 +2191,10 @@ extension PopoverTableViewController : UITableViewDelegate
                 popover.parser = self.parser
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                     return string?.century
                 } // century
-                popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                     guard let first = first else {
                         return false
                     }
@@ -2203,7 +2203,7 @@ extension PopoverTableViewController : UITableViewDelegate
                     }
                     return Int(first) < Int(second)
                 }
-                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                     return string
                 }
                 

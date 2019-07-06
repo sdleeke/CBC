@@ -314,7 +314,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
                     // test:(()->(Bool))?
                     self?.process(work: { [weak self] () -> (Any?) in
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.navigationItem.rightBarButtonItem?.isEnabled = false
                         }
                         
@@ -328,7 +328,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                             
                             self?.presentHTMLModal(mediaItem: nil, style: style, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.navigationItem.rightBarButtonItem?.isEnabled = true
                             }
                     })
@@ -339,7 +339,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                 self.popover?["ACTION"]?.dismiss(animated: true, completion: { [weak self] in
                     // test:(()->(Bool))?
                     self?.process(work: { [weak self] () -> (Any?) in
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.navigationItem.rightBarButtonItem?.isEnabled = false
                         }
                         
@@ -353,7 +353,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                             
                             self?.presentHTMLModal(mediaItem: nil, style: style, title: "Word Index", htmlString: data as? String)
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.navigationItem.rightBarButtonItem?.isEnabled = true
                             }
                     })
@@ -932,8 +932,8 @@ class PopoverPickerViewController : CBCViewController
         
         complete = false
         
-        Thread.onMain {
-            self.spinner.startAnimating()
+        Thread.onMain { [weak self] in 
+            self?.spinner.startAnimating()
         }
         
         self.updatePickerSelections()
@@ -950,8 +950,8 @@ class PopoverPickerViewController : CBCViewController
             return
         }
         
-        Thread.onMain {
-            self.spinner.startAnimating()
+        Thread.onMain { [weak self] in 
+            self?.spinner.startAnimating()
         }
 
         self.updatePickerSelections()
@@ -976,8 +976,8 @@ class PopoverPickerViewController : CBCViewController
         
         complete = true
         
-        Thread.onMain {
-            self.spinner.startAnimating()
+        Thread.onMain { [weak self] in 
+            self?.spinner.startAnimating()
         }
 
         self.updatePickerSelections()

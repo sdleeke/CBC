@@ -88,7 +88,7 @@ class Globals : NSObject
             }
 
             // Why?
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
             }
         }
@@ -386,7 +386,7 @@ class Globals : NSObject
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             }
         }
@@ -396,7 +396,7 @@ class Globals : NSObject
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
             }
         }
@@ -773,7 +773,7 @@ class Globals : NSObject
     func freeMemory()
     {
         // Free memory in classes
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
 
@@ -919,7 +919,7 @@ class Globals : NSObject
             mediaPlayer.pause()
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         }
     }

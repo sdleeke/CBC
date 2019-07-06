@@ -36,7 +36,7 @@ extension TextViewController: UISearchBarDelegate
         searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             let text = self?.changedText?.markedBySearch(searchText: self?.searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.textView.attributedText = text
             }
         }
@@ -112,7 +112,7 @@ extension TextViewController: UISearchBarDelegate
         searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             let text = self?.changedText?.markedBySearch(searchText: self?.searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.textView.attributedText = text
                 
                 if let lastRange = self?.lastRange, let endIndex = self?.textView.attributedText.string.endIndex {
@@ -160,8 +160,8 @@ extension TextViewController: UISearchBarDelegate
             let text = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
             
             searchQueue.addOperation {
-                Thread.onMain {
-                    self.textView.attributedText = text
+                Thread.onMain { [weak self] in 
+                    self?.textView.attributedText = text
                 }
             }
         }
@@ -336,7 +336,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                Thread.onMain {
+                                                                Thread.onMain { [weak self] in 
                                                                     self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
                                                                 }
                                                             }
@@ -361,7 +361,7 @@ extension TextViewController : PopoverPickerControllerDelegate
                                                             self?.updateBarButtons()
                                                             self?.changedText = string
                                                             if let string = string {
-                                                                Thread.onMain {
+                                                                Thread.onMain { [weak self] in 
                                                                     self?.textView.attributedText = NSMutableAttributedString(string:string, attributes:Constants.Fonts.Attributes.body)
                                                                 }
                                                             }
@@ -756,14 +756,14 @@ class TextViewController : CBCViewController
     
     func updatePlayPauseButton()
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if let state = Globals.shared.mediaPlayer.state {
                 switch state {
                 case .playing:
-                    self.playPauseButton?.title = "Pause"
+                    self?.playPauseButton?.title = "Pause"
                     
                 default:
-                    self.playPauseButton?.title = "Play"
+                    self?.playPauseButton?.title = "Play"
                     break
                 }
             }
@@ -772,31 +772,31 @@ class TextViewController : CBCViewController
     
     func updateSaveCancelButtons()
     {
-        Thread.onMain {
-            if let changedText = self.changedText, let text = self.text, changedText != text {
+        Thread.onMain { [weak self] in 
+            if let changedText = self?.changedText, let text = self?.text, changedText != text {
                 print(prettyFirstDifferenceBetweenStrings(changedText as NSString, text as NSString))
                 
-                if !self.readOnly {
-                    self.saveButton?.isEnabled = self.cancelButton?.isEnabled ?? false
-                    self.cancelButton?.title = "Cancel"
+                if self?.readOnly == false {
+                    self?.saveButton?.isEnabled = self?.cancelButton?.isEnabled ?? false
+                    self?.cancelButton?.title = "Cancel"
                 } else {
-                    self.saveButton?.isEnabled = false
-                    self.cancelButton?.title = "Done"
+                    self?.saveButton?.isEnabled = false
+                    self?.cancelButton?.title = "Done"
                 }
             } else {
-                self.saveButton?.isEnabled = false
-                self.cancelButton?.title = "Done"
+                self?.saveButton?.isEnabled = false
+                self?.cancelButton?.title = "Done"
             }
         }
     }
     
     func updateSyncButton()
     {
-        Thread.onMain {
-            if self.isTracking {
-                self.syncButton?.title = "Stop Sync"
+        Thread.onMain { [weak self] in 
+            if self?.isTracking == true {
+                self?.syncButton?.title = "Stop Sync"
             } else {
-                self.syncButton?.title = "Sync"
+                self?.syncButton?.title = "Sync"
             }
         }
     }
@@ -823,8 +823,8 @@ class TextViewController : CBCViewController
     
     func disableToolBarButtons()
     {
-        Thread.onMain {
-            if let barButtons = self.toolbarItems {
+        Thread.onMain { [weak self] in 
+            if let barButtons = self?.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = false
                 }
@@ -834,14 +834,14 @@ class TextViewController : CBCViewController
     
     func disableBarButtons()
     {
-        Thread.onMain {
-            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+        Thread.onMain { [weak self] in 
+            if let barButtonItems = self?.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = false
                 }
             }
             
-            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+            if let barButtonItems = self?.navigationItem.rightBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = false
                 }
@@ -853,8 +853,8 @@ class TextViewController : CBCViewController
     
     func enableToolBarButtons()
     {
-        Thread.onMain {
-            if let barButtons = self.toolbarItems {
+        Thread.onMain { [weak self] in 
+            if let barButtons = self?.toolbarItems {
                 for barButton in barButtons {
                     barButton.isEnabled = true
                 }
@@ -864,20 +864,20 @@ class TextViewController : CBCViewController
     
     func enableBarButtons()
     {
-        Thread.onMain {
-            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+        Thread.onMain { [weak self] in 
+            if let barButtonItems = self?.navigationItem.leftBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = true
                 }
             }
             
-            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+            if let barButtonItems = self?.navigationItem.rightBarButtonItems {
                 for barButtonItem in barButtonItems {
                     barButtonItem.isEnabled = true
                 }
             }
             
-            self.updateBarButtons()
+            self?.updateBarButtons()
         }
         
         enableToolBarButtons()
@@ -943,8 +943,8 @@ class TextViewController : CBCViewController
     var automaticInteractive = false
     var automaticCompletion : (()->(Void))?
     
-    var onDone : ((String)->(Void))?
-    var onSave : ((String)->(Void))?
+    var onDone : ((String?)->(Void))?
+    var onSave : ((String?)->(Void))?
     var onCancel : (()->(Void))?
 
     @objc func singleTapAction(_ tap:UITapGestureRecognizer)
@@ -1030,11 +1030,11 @@ class TextViewController : CBCViewController
             return self?.transcript?.wordRangeTiming
         }
         
-        fetch.didSet = { (array:[[String:Any]]?) in
+        fetch.didSet = { [weak self] (array:[[String:Any]]?) in
             if fetch.result != nil {
                 self?.checkSync()
             }
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.syncButton?.isEnabled = self?.wordRangeTiming != nil
                 self?.activityIndicator?.stopAnimating()
             }
@@ -1315,7 +1315,7 @@ class TextViewController : CBCViewController
         searchQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             let text = self?.changedText?.markedBySearch(searchText: searchText, wholeWordsOnly: false, test: test)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.textView.attributedText = text
                 
                 if !searchText.isEmpty {
@@ -1361,7 +1361,7 @@ class TextViewController : CBCViewController
 
 //                    var tooClose : Int?
 
-                    let block = { (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
+                    let block = { [weak self] (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
                         // clean this up so it doesn't use variables from outside its scope but parameters passed in?
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
@@ -1390,7 +1390,7 @@ class TextViewController : CBCViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        Thread.onMain {
+                                                                        Thread.onMain { [weak self] in 
                                                                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                                                                         }
                                                                     }
@@ -1413,7 +1413,7 @@ class TextViewController : CBCViewController
                                                                     self?.updateBarButtons()
                                                                     self?.changedText = string
                                                                     if let string = string {
-                                                                        Thread.onMain {
+                                                                        Thread.onMain { [weak self] in 
                                                                             self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                         }
                                                                     }
@@ -1490,7 +1490,7 @@ class TextViewController : CBCViewController
                         self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                             }
                         })
@@ -1524,7 +1524,7 @@ class TextViewController : CBCViewController
                     self?.changeText(interactive: true, makeVisible:false, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                         self?.updateBarButtons()
                         self?.changedText = string
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                         }
                     })
@@ -1553,7 +1553,7 @@ class TextViewController : CBCViewController
 //
 //                    var tooClose : Int?
                     
-                    let block = { (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
+                    let block = { [weak self] (speakerNotesParagraphWords : [String:Int]?, tooClose : Int?) in
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
@@ -1660,7 +1660,7 @@ class TextViewController : CBCViewController
                                                 
                                                 webView.html.string = newText.insertHead(fontSize: 24)
                                                 
-                                                Thread.onMain {
+                                                Thread.onMain { [weak self] in 
                                                     webView.navigationItem.title = self?.navigationItem.title
                                                     
                                                     popover?.present(navigationController, animated: true)
@@ -1701,7 +1701,7 @@ class TextViewController : CBCViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            Thread.onMain {
+                                                                            Thread.onMain { [weak self] in 
                                                                                 self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                             }
                                                                         }
@@ -1728,7 +1728,7 @@ class TextViewController : CBCViewController
                                                                         self?.updateBarButtons()
                                                                         self?.changedText = string
                                                                         if let string = string {
-                                                                            Thread.onMain {
+                                                                            Thread.onMain { [weak self] in 
                                                                                 self?.textView.attributedText = NSMutableAttributedString(string:string, attributes: Constants.Fonts.Attributes.body)
                                                                             }
                                                                         }
@@ -1826,7 +1826,7 @@ class TextViewController : CBCViewController
                             self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                                 self?.updateBarButtons()
                                 self?.changedText = string
-                                Thread.onMain {
+                                Thread.onMain { [weak self] in 
                                     self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                                 }
                             })
@@ -1875,7 +1875,7 @@ class TextViewController : CBCViewController
                         self?.changeText(interactive: false, makeVisible:makeVisible, text:text, startingRange:nil, changes:changes, completion: { (string:String) -> (Void) in
                             self?.updateBarButtons()
                             self?.changedText = string
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                             }
                         })
@@ -2486,9 +2486,9 @@ class TextViewController : CBCViewController
         fullAttributedString.append(NSAttributedString(string: afterFull, attributes: Constants.Fonts.Attributes.body))
         
         if interactive {
-            Thread.onMain {
-                self.textView.attributedText = fullAttributedString
-                self.textView.scrollRangeToVisible(range)
+            Thread.onMain { [weak self] in 
+                self?.textView.attributedText = fullAttributedString
+                self?.textView.scrollRangeToVisible(range)
             }
             
             let before = "..." + String(text[..<range.lowerBound]).dropFirst(max(String(text[..<range.lowerBound]).count - 10,0))
@@ -2516,15 +2516,15 @@ class TextViewController : CBCViewController
                     
                     textView.text = fullAttributedString.string
 
-                    textView.onDone = { (string:String) in
+                    textView.onDone = { [weak self] (string:String?) in
                         words.insert(first, at:0)
-                        self.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
+                        self?.addParagraphBreaks(interactive:interactive, makeVisible:makeVisible, showGapTimes:showGapTimes, gapThreshold:gapThreshold, tooClose:tooClose, words:words, text:text, completion:completion)
                     }
                     
-                    Thread.onMain {
-                        textView.navigationItem.title = self.navigationItem.title
+                    Thread.onMain { [weak self] in 
+                        textView.navigationItem.title = self?.navigationItem.title
                         
-                        self.present(navigationController, animated: true, completion: {
+                        self?.present(navigationController, animated: true, completion: {
                             textView.textView.attributedText = fullAttributedString
                             textView.textView.scrollRangeToVisible(range)
                         })
@@ -2647,7 +2647,7 @@ class TextViewController : CBCViewController
                 // Why is completion called here?
                 // So the text is updated.
                 completion?(newText)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
                 
                 if makeVisible {
@@ -2682,10 +2682,10 @@ class TextViewController : CBCViewController
                 Alerts.shared.alert(category:nil,title:"Assisted Editing Complete",message:nil,attributedText: nil, actions: actions)
             } else {
                 editingQueue.addOperation {
-                    Thread.onMain {
-                        self.dismiss(animated: true, completion: {
-                            self.onDone?(self.textView.attributedText.string)
-                            self.automaticCompletion?()
+                    Thread.onMain { [weak self] in 
+                        self?.dismiss(animated: true, completion: {
+                            self?.onDone?(self?.textView.attributedText.string)
+                            self?.automaticCompletion?()
                         })
                     }
                 }
@@ -2751,9 +2751,9 @@ class TextViewController : CBCViewController
                     fullAttributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
                     fullAttributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.body))
 
-                    Thread.onMain {
-                        self.textView.attributedText = fullAttributedString
-                        self.textView.scrollRangeToVisible(range)
+                    Thread.onMain { [weak self] in 
+                        self?.textView.attributedText = fullAttributedString
+                        self?.textView.scrollRangeToVisible(range)
                     }
                     
                     var actions = [AlertAction]()
@@ -2767,15 +2767,15 @@ class TextViewController : CBCViewController
                             
                             textView.text = fullAttributedString.string
                             
-                            textView.onDone = { (string:String) in
+                            textView.onDone = { [weak self] (string:String?) in
                                 let startingRange = Range(uncheckedBounds: (lower: range.lowerBound, upper: text.endIndex))
-                                self.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
+                                self?.changeText(interactive:interactive, makeVisible:makeVisible, text:text, startingRange:startingRange, changes:changes, completion:completion)
                             }
                             
-                            Thread.onMain {
-                                textView.navigationItem.title = self.navigationItem.title
+                            Thread.onMain { [weak self] in 
+                                textView.navigationItem.title = self?.navigationItem.title
                                 
-                                self.present(navigationController, animated: true, completion: {
+                                self?.present(navigationController, animated: true, completion: {
                                     textView.textView.attributedText = fullAttributedString
                                     textView.textView.scrollRangeToVisible(range)
                                 })
@@ -2856,7 +2856,7 @@ class TextViewController : CBCViewController
 
                         // This makes the change visible
                         completion?(text)
-//                        Thread.onMain {
+//                        Thread.onMain { [weak self] in 
 //                        }
 
                         if makeVisible {
@@ -2919,7 +2919,7 @@ class TextViewController : CBCViewController
                 
                 self?.changeText(interactive: self?.automaticInteractive == true, makeVisible:self?.automaticVisible == true, text: text, startingRange: nil, changes: changes, completion: { (string:String) -> (Void) in
                     self?.changedText = string
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         self?.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.body)
                     }
                 })

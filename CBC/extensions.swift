@@ -3908,11 +3908,11 @@ extension UIViewController
         
         pic.printingItem = data // Causes orientation to be ignored
         
-        Alerts.shared.queue.async {
+        Alerts.shared.queue.async { [weak self] in
             Alerts.shared.semaphore.wait()
             
-            Thread.onMain {
-                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+            Thread.onMain { [weak self] in 
+                if let barButtonItem = self?.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
                     })
@@ -3952,11 +3952,11 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Alerts.shared.queue.async {
+        Alerts.shared.queue.async { [weak self] in
             Alerts.shared.semaphore.wait()
             
-            Thread.onMain {
-                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+            Thread.onMain { [weak self] in 
+                if let barButtonItem = self?.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
                     })
@@ -4018,11 +4018,11 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Alerts.shared.queue.async {
+        Alerts.shared.queue.async { [weak self] in
             Alerts.shared.semaphore.wait()
             
-            Thread.onMain {
-                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+            Thread.onMain { [weak self] in 
+                if let barButtonItem = self?.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
                     })
@@ -4081,11 +4081,11 @@ extension UIViewController
         renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
         pic.printPageRenderer = renderer
 
-        Alerts.shared.queue.async {
+        Alerts.shared.queue.async { [weak self] in
             Alerts.shared.semaphore.wait()
             
-            Thread.onMain {
-                if let barButtonItem = self.navigationItem.rightBarButtonItem {
+            Thread.onMain { [weak self] in 
+                if let barButtonItem = self?.navigationItem.rightBarButtonItem {
                     pic.present(from: barButtonItem, animated: true, completionHandler: { (pic:UIPrintInteractionController, finished:Bool, error:Error?) in
                         Alerts.shared.semaphore.signal()
                     })
@@ -4290,9 +4290,9 @@ extension UIViewController
             presentingViewController?.present(navigationController, animated: true, completion: nil)
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if dismiss {
-                self.dismiss(animated: true, completion:{ block() })
+                self?.dismiss(animated: true, completion:{ block() })
             } else {
                 block()
             }
@@ -4410,10 +4410,10 @@ extension UIViewController
 
         self.startAnimating()
 
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             // Brute force disable
             if disableEnable {
-                self.barButtonItems(isEnabled: false)
+                self?.barButtonItems(isEnabled: false)
             }
 
             // Should be an OperationQueue but as an extension either the UIViewController has it or its global
@@ -4425,7 +4425,7 @@ extension UIViewController
                     }
                 })
 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
@@ -4446,20 +4446,20 @@ extension UIViewController
      */
     func barButtonItems(isEnabled:Bool)
     {
-        Thread.onMain {
-            if let buttons = self.navigationItem.rightBarButtonItems {
+        Thread.onMain { [weak self] in 
+            if let buttons = self?.navigationItem.rightBarButtonItems {
                 for button in buttons {
                     button.isEnabled = isEnabled
                 }
             }
             
-            if let buttons = self.navigationItem.leftBarButtonItems {
+            if let buttons = self?.navigationItem.leftBarButtonItems {
                 for button in buttons {
                     button.isEnabled = isEnabled
                 }
             }
             
-            if let buttons = self.toolbarItems {
+            if let buttons = self?.toolbarItems {
                 for button in buttons {
                     button.isEnabled = isEnabled
                 }
@@ -4488,7 +4488,7 @@ extension UIViewController
             DispatchQueue.global(qos: .background).async { [weak self] in
                 let data = work?()
 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     // Brute force enable => need to be set according to state in completion.
                     if disableEnable {
                         self?.barButtonItems(isEnabled: true)
@@ -4530,7 +4530,7 @@ extension UIViewController
             
             popover.segments = true
             
-            popover.section.function = { (method:String?,strings:[String]?) in
+            popover.section.function = { [weak self] (method:String?,strings:[String]?) in
                 return strings?.sort(method: method)
             }
             popover.section.method = Constants.Sort.Alphabetical
@@ -4579,15 +4579,15 @@ extension UIViewController
                     popover.section.showHeaders = false
                     popover.section.showIndex = true
                     
-                    popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                         return string?.log
                     }
                     
-                    popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                    popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                         return string
                     }
                     
-                    popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                    popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                         guard let first = first else {
                             return false
                         }
@@ -4618,15 +4618,15 @@ extension UIViewController
                     popover.section.showHeaders = false
                     popover.section.showIndex = true
                     
-                    popover.section.indexStringsTransform = { (string:String?) -> String? in
+                    popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                         return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
                     }
                     
-                    popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                    popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                         return string
                     }
                     
-                    popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                    popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                         guard let first = first else {
                             return false
                         }
@@ -5211,8 +5211,8 @@ extension UIViewController
      */
     func stopAnimating()
     {
-        Thread.onMain {
-            self.loadingContainer?.removeFromSuperview()
+        Thread.onMain { [weak self] in 
+            self?.loadingContainer?.removeFromSuperview()
         }
     }
     
@@ -5221,15 +5221,15 @@ extension UIViewController
      */
     func startAnimating(allowTouches:Bool = false)
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if allowTouches {
-                self.loadingContainer?.backgroundColor = UIColor.clear
-                self.loadingContainer?.tag = 102
+                self?.loadingContainer?.backgroundColor = UIColor.clear
+                self?.loadingContainer?.tag = 102
             }
             
-            self.loadingContainer?.isHidden = false
-            self.loadingView?.isHidden = false
-            self.loadingActivity?.startAnimating()
+            self?.loadingContainer?.isHidden = false
+            self?.loadingView?.isHidden = false
+            self?.loadingActivity?.startAnimating()
         }
     }
 }
@@ -5271,9 +5271,12 @@ extension UITextView
      */
     func scrollRangeToVisible(_ range:Range<String.Index>)
     {
-        Thread.onMain {
-            let nsRange = NSRange(range, in: self.attributedText.string)
-            self.scrollRangeToVisible(nsRange)
+        Thread.onMain { [weak self] in
+            guard let string = self?.attributedText.string else {
+                return
+            }
+            let nsRange = NSRange(range, in: string)
+            self?.scrollRangeToVisible(nsRange)
         }
     }
 }

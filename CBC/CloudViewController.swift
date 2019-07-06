@@ -182,8 +182,8 @@ extension CloudViewController : PopoverTableViewControllerDelegate
                 index += 1
             }
             
-            Thread.onMain {
-                self.cancelAndRelayoutCloudWords()
+            Thread.onMain { [weak self] in 
+                self?.cancelAndRelayoutCloudWords()
             }
 
         default:
@@ -220,7 +220,7 @@ extension CloudViewController : CloudLayoutOperationDelegate
         }
 
         labelQueue.addOperation {
-//            Thread.onMain {
+//            Thread.onMain { [weak self] in 
                 let wordLabel = UILabel()
                 
                 wordLabel.frame = CGRect.zero
@@ -504,13 +504,12 @@ class CloudViewController : CBCViewController
                 for word in words {
                     if let cloudWord = cloudDict[word.0.uppercased()] {
 //                        print(cloudWord.wordText)
-                        Thread.onMain {
-                            if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect {
-                                let layer = self.insertBoundingRect(boundingRect: overallGlyphBoundingRect)
+                        Thread.onMain { [weak self] in 
+                            if let overallGlyphBoundingRect = cloudWord.overallGlyphBoundingRect, let layer = self?.insertBoundingRect(boundingRect: overallGlyphBoundingRect) {
                                 // So UI operates as expected
-                                DispatchQueue.global(qos: .background).async {
+                                DispatchQueue.global(qos: .background).async { [weak self] in
                                     Thread.sleep(forTimeInterval: 0.1)
-                                    Thread.onMain {
+                                    Thread.onMain { [weak self] in 
                                         layer.removeFromSuperlayer()
                                     }
                                 }
@@ -810,7 +809,7 @@ class CloudViewController : CBCViewController
                     }
                     wordsTableViewController.segments = true
                     
-                    wordsTableViewController.section.function = { (method:String?,strings:[String]?) in
+                    wordsTableViewController.section.function = { [weak self] (method:String?,strings:[String]?) in
                         return strings?.sort(method: method)
                     }
                     
@@ -823,7 +822,7 @@ class CloudViewController : CBCViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -845,7 +844,7 @@ class CloudViewController : CBCViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.wordsTableViewController.section.strings)
 
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -878,7 +877,7 @@ class CloudViewController : CBCViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -900,7 +899,7 @@ class CloudViewController : CBCViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.wordsTableViewController.unfilteredSection.strings)
 
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -910,13 +909,13 @@ class CloudViewController : CBCViewController
                                         section.method = Constants.Sort.Frequency
                                         section.showHeaders = false
                                         section.showIndex = true
-                                        section.indexStringsTransform = { (string:String?) -> String? in
+                                        section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                                             return string?.log
                                         }
-                                        section.indexHeadersTransform = { (string:String?) -> String? in
+                                        section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                                             return string
                                         }
-                                        section.indexSort = { (first:String?,second:String?) -> Bool in
+                                        section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                                             guard let first = first else {
                                                 return false
                                             }
@@ -948,20 +947,20 @@ class CloudViewController : CBCViewController
                     wordsTableViewController.search = false
                     
                     wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.wordsTableViewController.segmentedControl?.isEnabled = (strings != nil) && (sorting == false)
                         }
                     }
 
                     wordsTableViewController.section.method = Constants.Sort.Frequency
                     wordsTableViewController.section.showIndex = true
-                    wordsTableViewController.section.indexStringsTransform = { (string:String?) -> String? in
+                    wordsTableViewController.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                         return string?.log
                     }
-                    wordsTableViewController.section.indexHeadersTransform = { (string:String?) -> String? in
+                    wordsTableViewController.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                         return string
                     }
-                    wordsTableViewController.section.indexSort = { (first:String?,second:String?) -> Bool in
+                    wordsTableViewController.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                         guard let first = first else {
                             return false
                         }

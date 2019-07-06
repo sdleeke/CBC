@@ -54,7 +54,7 @@ class MediaStream
 
             self?.streamEntries = self?.liveEvents?[key] as? [[String:Any]]
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 completion?()
             }
         }

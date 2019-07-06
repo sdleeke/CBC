@@ -88,8 +88,8 @@ class Document : NSObject
 //                }
 //
 //                Thread.onMain { // Can't specify @objc in a protocol definition.
-//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
+//                    NotificationCenter.default.addObserver(downloader, selector: #selector(downloader.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
 //                }
 //                return
 //            }

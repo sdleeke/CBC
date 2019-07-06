@@ -355,12 +355,12 @@ class ScriptureIndexViewController : MediaItemsViewController
             
         }
         didSet {
-            Thread.onMain {
-                if self.finished > 0 {
-                    self.progressIndicator.progress = self.progress / self.finished
+            Thread.onMain { [weak self] in 
+                if self?.finished > 0 {
+                    self?.progressIndicator.progress = (self?.progress ?? 0) / (self?.finished ?? 0)
                 }
-                if self.progressIndicator.progress == 1.0 {
-                    self.progressIndicator.isHidden = true
+                if self?.progressIndicator.progress == 1.0 {
+                    self?.progressIndicator.isHidden = true
                 }
             }
         }
@@ -596,10 +596,10 @@ class ScriptureIndexViewController : MediaItemsViewController
         guard let selectedTestament = scriptureIndex.scripture.picked.testament else {
             mediaItems = nil
             
-            Thread.onMain {
-                self.updateUI()
-                self.tableView.reloadData()
-                self.scripturePicker.isUserInteractionEnabled = true
+            Thread.onMain { [weak self] in 
+                self?.updateUI()
+                self?.tableView.reloadData()
+                self?.scripturePicker.isUserInteractionEnabled = true
             }
             return
         }
@@ -610,7 +610,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
             
             operationQueue.addOperation { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -625,7 +625,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byTestament[testament]
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -648,7 +648,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
 
             operationQueue.addOperation { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -663,7 +663,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -686,7 +686,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             operationQueue.cancelAllOperations()
             
             operationQueue.addOperation { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.disableBarButtons()
                     self?.spinner.isHidden = false
                     self?.spinner.startAnimating()
@@ -701,7 +701,7 @@ class ScriptureIndexViewController : MediaItemsViewController
                 
                 self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.enableBarButtons()
                     self?.updateUI()
                     self?.tableView.reloadData()
@@ -723,7 +723,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         operationQueue.cancelAllOperations()
         
         operationQueue.addOperation { [weak self] in
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.disableBarButtons()
                 self?.spinner.isHidden = false
                 self?.spinner.startAnimating()
@@ -736,7 +736,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             
             self?.mediaItems = nil // scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.scripture.picked.chapter]?[scriptureIndex.scripture.picked.verse]
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.enableBarButtons()
                 self?.updateUI()
                 self?.tableView.reloadData()
@@ -998,7 +998,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         if (select) {
             // So UI operates as desired.
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                 }
             }
@@ -1008,7 +1008,7 @@ class ScriptureIndexViewController : MediaItemsViewController
             // Scrolling when the user isn't expecting it can be jarring.
             // So UI operates as desired.
             DispatchQueue.global(qos: .background).async { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                 }
             }

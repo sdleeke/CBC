@@ -476,12 +476,13 @@ class ScriptureViewController : CBCViewController
     
     func clearView()
     {
-        Thread.onMain {
-            self.navigationItem.title = nil
-            self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-            for view in self.view.subviews {
+        Thread.onMain { [weak self] in 
+            self?.navigationItem.title = nil
+            self?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+            
+            self?.view.subviews.forEach({ (view:UIView) in
                 view.isHidden = true
-            }
+            })
         }
     }
     
@@ -510,8 +511,8 @@ class ScriptureViewController : CBCViewController
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            Thread.onMain {
-                self.setPreferredContentSize()
+            Thread.onMain { [weak self] in 
+                self?.setPreferredContentSize()
             }
         }
     }
@@ -761,7 +762,7 @@ class ScriptureViewController : CBCViewController
                     }
                 }
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.scripturePickerViewController?.updatePicker()
                     self?.showScripture()
                 }

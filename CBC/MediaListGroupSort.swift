@@ -678,7 +678,7 @@ class MediaListGroupSort // : NSObject
             }
             
             if (Globals.shared.media.tags.selected == tag) {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
                 }
             }
@@ -722,7 +722,7 @@ class MediaListGroupSort // : NSObject
             }
             
             if (Globals.shared.media.tags.selected == tag) {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
                 }
             }
@@ -780,13 +780,13 @@ class MediaListGroupSort // : NSObject
             })
         }
         
-        Thread.onMain {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        Thread.onMain { [weak self] in 
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         
-        Globals.shared.queue.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
+        Globals.shared.queue.async { [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
         }
     }
 

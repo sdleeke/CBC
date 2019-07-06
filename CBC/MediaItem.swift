@@ -197,7 +197,7 @@ class MediaItem : NSObject //, Downloader
     {
         didSet {
             if percentComplete != oldValue {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self)
                 }
             }
@@ -450,7 +450,7 @@ class MediaItem : NSObject //, Downloader
         // fill cache
         document.fetchData.fill()
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
@@ -462,7 +462,7 @@ class MediaItem : NSObject //, Downloader
             return
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
@@ -485,9 +485,9 @@ class MediaItem : NSObject //, Downloader
                     document.download?.download(background: false)
                 }
                 
-                Thread.onMain {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
+                Thread.onMain { [weak self] in 
+                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
                 }
                 return
             }
@@ -568,8 +568,8 @@ class MediaItem : NSObject //, Downloader
             self.storage?.update(storage:storage)
         }
         
-        Thread.onMain {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        Thread.onMain { [weak self] in 
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
     
@@ -1332,7 +1332,7 @@ class MediaItem : NSObject //, Downloader
         
         let fetch = FetchCodable<[String]>(name: notesTokensMarkMismatchesFilename)
 
-        fetch.didSet = { (strings:[String]?) in
+        fetch.didSet = { [weak self] (strings:[String]?) in
             guard let strings = strings, strings.count > 0 else {
                 return
             }
@@ -2110,11 +2110,11 @@ class MediaItem : NSObject //, Downloader
         }
         
         // Should this be sync? Doesn't make any difference.
-        Globals.shared.queue.async {
+        Globals.shared.queue.async { [weak self] in
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: self, userInfo: ["TAG":tag])
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }
@@ -2149,11 +2149,11 @@ class MediaItem : NSObject //, Downloader
         }
         
         // Should this be sync? Doesn't make any difference.
-        Globals.shared.queue.async {
+        Globals.shared.queue.async { [weak self] in
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: self, userInfo: ["TAG":tag])
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self)
         }

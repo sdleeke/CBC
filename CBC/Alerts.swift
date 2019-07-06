@@ -107,8 +107,8 @@ class Alerts
     
     init()
     {
-        Thread.onMain {
-            self.alertTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.viewer), userInfo: nil, repeats: true)
+        Thread.onMain { [weak self] in 
+            self?.alertTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self?.viewer), userInfo: nil, repeats: true)
 //            _ = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { (Timer) in
 //                Alerts.shared.alert(title: "Testing")
 //            })
@@ -185,12 +185,16 @@ class Alerts
         blockPresent(presenting:viewController,presented:alertVC, animated:true)
     }
     
-    func blockPresent(presenting:UIViewController, presented:UIViewController, animated:Bool, release:(()->(Bool))? = nil, completion:(()->())? = nil)
+    func blockPresent(presenting:UIViewController?, presented:UIViewController, animated:Bool, release:(()->(Bool))? = nil, completion:(()->())? = nil)
     {
+        guard let presenting = presenting else {
+            return
+        }
+        
         queue.async { [weak self] in
             self?.semaphore.wait()
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 presenting.present(presented, animated: true, completion: {
                     if release?() == true {
                         self?.semaphore.signal()

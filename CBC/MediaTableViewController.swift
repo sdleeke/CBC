@@ -137,7 +137,7 @@ extension MediaTableViewController : UISearchBarDelegate
                     return string.searchText ?? ""
                 }).set.array.sorted()
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
                     popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                 }
@@ -502,7 +502,7 @@ class MediaTableViewController : MediaItemsViewController
                 }
             })
 
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 if self?.stringIndex?.keys == nil {
                     Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
                 } else {
@@ -603,8 +603,8 @@ class MediaTableViewController : MediaItemsViewController
             } else {
                 // Fallback on earlier versions
                 if let refreshControl = self.refreshControl {
-                    Thread.onMain {
-                        self.tableView?.addSubview(refreshControl)
+                    Thread.onMain { [weak self] in 
+                        self?.tableView?.addSubview(refreshControl)
                     }
                 }
             }
@@ -839,7 +839,7 @@ class MediaTableViewController : MediaItemsViewController
                 
             case GROUPING.TITLE:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = { (string:String?) -> String? in
+                popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
                     return string?.withoutPrefixes
                 }
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
@@ -848,7 +848,7 @@ class MediaTableViewController : MediaItemsViewController
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = { (string:String?) -> String? in
+                popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
                     return string?.withoutPrefixes
                 }
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
@@ -857,7 +857,7 @@ class MediaTableViewController : MediaItemsViewController
                 
             case GROUPING.SPEAKER:
                 popover.section.showIndex = true
-                popover.indexStringsTransform = { (string:String?) -> String? in
+                popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
                     return string?.lastName
                 } // lastNameFromName
                 popover.section.strings = Globals.shared.media.active?.section?.headerStrings
@@ -1047,7 +1047,7 @@ class MediaTableViewController : MediaItemsViewController
             
             self?.setupListActivityIndicator()
 
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
             
@@ -1148,12 +1148,12 @@ class MediaTableViewController : MediaItemsViewController
 //                }
 //            }
 
-//            Thread.onMain {
+//            Thread.onMain { [weak self] in 
 //                self?.navigationItem.title = Constants.Title.Loading_Settings
 //            }
 //            Globals.shared.loadSettings()
             
-//            Thread.onMain {
+//            Thread.onMain { [weak self] in 
 //                self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
 //            }
 //
@@ -1181,7 +1181,7 @@ class MediaTableViewController : MediaItemsViewController
 //            }
 
             if Globals.shared.media.search.isValid {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     self?.searchBar.text = Globals.shared.media.search.text
                     self?.searchBar.showsCancelButton = true
                 }
@@ -1191,7 +1191,7 @@ class MediaTableViewController : MediaItemsViewController
 
             self?.display.setup(Globals.shared.media.active)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.navigationItem.title = Constants.Title.Setting_up_Player
                 
                 if (Globals.shared.mediaPlayer.mediaItem != nil) {
@@ -1218,16 +1218,16 @@ class MediaTableViewController : MediaItemsViewController
     
     func setupCategoryButton()
     {
-        Thread.onMain {
-            self.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
+        Thread.onMain { [weak self] in 
+            self?.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
 
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
-                self.mediaCategoryButton.isEnabled = false
+                self?.mediaCategoryButton.isEnabled = false
             } else {
                 if !Globals.shared.media.search.isActive {
-                    self.mediaCategoryButton.isEnabled = true
+                    self?.mediaCategoryButton.isEnabled = true
                 } else {
-                    self.mediaCategoryButton.isEnabled = Globals.shared.media.search.current?.complete ?? false
+                    self?.mediaCategoryButton.isEnabled = Globals.shared.media.search.current?.complete ?? false
                 }
             }
         }
@@ -1235,14 +1235,14 @@ class MediaTableViewController : MediaItemsViewController
     
     func setupShowButton()
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
-                self.navigationItem.leftBarButtonItem?.isEnabled = false
+                self?.navigationItem.leftBarButtonItem?.isEnabled = false
             } else {
                 if !Globals.shared.media.search.isActive {
-                    self.navigationItem.leftBarButtonItem?.isEnabled = true
+                    self?.navigationItem.leftBarButtonItem?.isEnabled = true
                 } else {
-                    self.navigationItem.leftBarButtonItem?.isEnabled = Globals.shared.media.search.current?.complete ?? false
+                    self?.navigationItem.leftBarButtonItem?.isEnabled = Globals.shared.media.search.current?.complete ?? false
                 }
             }
         }
@@ -1250,19 +1250,19 @@ class MediaTableViewController : MediaItemsViewController
     
     func setupToolbarButtons()
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if Globals.shared.isLoading || Globals.shared.isRefreshing {
-                self.toolbarItems?.forEach({ (button:UIBarButtonItem) in
+                self?.toolbarItems?.forEach({ (button:UIBarButtonItem) in
                     button.isEnabled = Globals.shared.media.active?.mediaList?.list != nil
                 })
             } else {
                 if !Globals.shared.media.search.isActive {
-                    self.toolbarItems?.forEach({ (button:UIBarButtonItem) in
+                    self?.toolbarItems?.forEach({ (button:UIBarButtonItem) in
                         button.isEnabled = Globals.shared.media.active?.mediaList?.list != nil
                     })
                 } else {
-                    self.toolbarItems?.forEach({ (button:UIBarButtonItem) in
-                        button.isEnabled = (Globals.shared.media.search.current?.complete ?? false) && (self.display.mediaItems != nil)
+                    self?.toolbarItems?.forEach({ (button:UIBarButtonItem) in
+                        button.isEnabled = (Globals.shared.media.search.current?.complete ?? false) && (self?.display.mediaItems != nil)
                     })
                 }
             }
@@ -1281,17 +1281,17 @@ class MediaTableViewController : MediaItemsViewController
     {
         if Globals.shared.isLoading || (Globals.shared.media.search.isValid && ((Globals.shared.media.search.current?.complete ?? false) == false)) {
             if !Globals.shared.isRefreshing {
-                Thread.onMain {
-                    self.startAnimating(allowTouches:allowTouches)
+                Thread.onMain { [weak self] in 
+                    self?.startAnimating(allowTouches:allowTouches)
                 }
             } else {
-                Thread.onMain {
-                    self.stopAnimating()
+                Thread.onMain { [weak self] in 
+                    self?.stopAnimating()
                 }
             }
         } else {
-            Thread.onMain {
-                self.stopAnimating()
+            Thread.onMain { [weak self] in 
+                self?.stopAnimating()
             }
         }
     }
@@ -1331,11 +1331,11 @@ class MediaTableViewController : MediaItemsViewController
 
     func setupSearchBar()
     {
-        Thread.onMain {
-            self.searchBar.resignFirstResponder()
-            self.searchBar.placeholder = nil
-            self.searchBar.text = nil
-            self.searchBar.showsCancelButton = false
+        Thread.onMain { [weak self] in 
+            self?.searchBar.resignFirstResponder()
+            self?.searchBar.placeholder = nil
+            self?.searchBar.text = nil
+            self?.searchBar.showsCancelButton = false
         }
     }
     
@@ -1462,14 +1462,14 @@ class MediaTableViewController : MediaItemsViewController
                 self.updateSearchResults(Globals.shared.media.active?.context,completion: {
                     // Delay so UI works correctly.
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                         }
                     }
                 })
             } else {
                 DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         // Reload the table
                         self?.tableView?.reloadData()
                         
@@ -1501,9 +1501,9 @@ class MediaTableViewController : MediaItemsViewController
                
                 // Delay required for iPhone
                 // Delay so UI works correctly.
-                DispatchQueue.global(qos: .background).async {
-                    Thread.onMain {
-                        self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    Thread.onMain { [weak self] in 
+                        self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
                 }
             }
@@ -1700,8 +1700,8 @@ class MediaTableViewController : MediaItemsViewController
     func setupActionAndTagsButtons()
     {
         guard !Globals.shared.isLoading && !Globals.shared.isRefreshing else {
-            Thread.onMain {
-                self.navigationItem.rightBarButtonItems = nil
+            Thread.onMain { [weak self] in 
+                self?.navigationItem.rightBarButtonItems = nil
             }
             return
         }
@@ -1752,11 +1752,11 @@ class MediaTableViewController : MediaItemsViewController
             barButtons.append(tagsButton)
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             if barButtons.count > 0 {
-                self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
+                self?.navigationItem.setRightBarButtonItems(barButtons, animated: true)
             } else {
-                self.navigationItem.rightBarButtonItems = nil
+                self?.navigationItem.rightBarButtonItems = nil
             }
         }
     }
@@ -1822,7 +1822,7 @@ class MediaTableViewController : MediaItemsViewController
             popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
             
             popover.section.showIndex = true
-            popover.indexStringsTransform = { (string:String?) -> String? in
+            popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
                 return string?.withoutPrefixes
             }
 
@@ -1850,11 +1850,11 @@ class MediaTableViewController : MediaItemsViewController
         if (Globals.shared.media.active?.context == context) {
             display.setup(Globals.shared.media.active)
             
-            Thread.onMain {
-                if !self.tableView.isEditing {
-                    self.tableView.reloadData()
+            Thread.onMain { [weak self] in 
+                if self?.tableView.isEditing == false {
+                    self?.tableView.reloadData()
                 } else {
-                    self.changesPending = true
+                    self?.changesPending = true
                 }
             }
         }
@@ -1891,8 +1891,8 @@ class MediaTableViewController : MediaItemsViewController
 
         display.clear()
 
-        Thread.onMain {
-            self.tableView?.reloadData()
+        Thread.onMain { [weak self] in 
+            self?.tableView?.reloadData()
         }
         
         operationQueue.cancelAllOperations()
@@ -1932,7 +1932,7 @@ class MediaTableViewController : MediaItemsViewController
                 
                 self?.setupBarButtons()
                 
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
             
@@ -2143,20 +2143,20 @@ class MediaTableViewController : MediaItemsViewController
             return
         }
         
-        Thread.onMain {
-            self.tableView?.setEditing(false, animated: true)
+        Thread.onMain { [weak self] in 
+            self?.tableView?.setEditing(false, animated: true)
 
-            guard self.tableView?.isValid(indexPath) == true else {
+            guard self?.tableView?.isValid(indexPath) == true else {
                 return
             }
 
             if (select) {
-                self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableView.ScrollPosition.none)
+                self?.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableView.ScrollPosition.none)
             }
 
             if (scroll) {
                 //Scrolling when the user isn't expecting it can be jarring.
-                self.tableView?.scrollToRow(at: indexPath, at: position, animated: false)
+                self?.tableView?.scrollToRow(at: indexPath, at: position, animated: false)
             }
         }
     }
@@ -2167,14 +2167,14 @@ class MediaTableViewController : MediaItemsViewController
             return
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             switch showing {
             case Constants.ALL:
-                self.tagLabel.text = Constants.Strings.All // searchBar.placeholder
+                self?.tagLabel.text = Constants.Strings.All // searchBar.placeholder
                 break
                 
             case Constants.TAGGED:
-                self.tagLabel.text = Globals.shared.media.tags.selected // searchBar.placeholder
+                self?.tagLabel.text = Globals.shared.media.tags.selected // searchBar.placeholder
                 break
                 
             default:
@@ -2635,7 +2635,7 @@ class MediaTableViewController : MediaItemsViewController
                     
                     popover?.updateToolbar()
                     
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         popover?.tableView?.isEditing = false
                         popover?.tableView?.reloadData()
                         popover?.tableView?.reloadData()
@@ -2665,7 +2665,7 @@ class MediaTableViewController : MediaItemsViewController
 //                    popover.search = true
 //                    popover.content = .html
 //
-//                    Thread.onMain {
+//                    Thread.onMain { [weak self] in 
 //                        self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
 //                        self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
 //
@@ -2696,7 +2696,7 @@ class MediaTableViewController : MediaItemsViewController
                         popover.search = true
                         popover.content = .html
 
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
                             self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
 
@@ -2726,7 +2726,7 @@ class MediaTableViewController : MediaItemsViewController
                         popover.purpose = .showingVoiceBaseMediaItem
                         popover.navigationItem.title = "Inspector"
                         
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.popover?["VOICEBASE"]?.activityIndicator.stopAnimating()
                             self?.popover?["VOICEBASE"]?.activityIndicator.isHidden = true
                             
@@ -2952,7 +2952,7 @@ class MediaTableViewController : MediaItemsViewController
                 popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
                     let strings = Globals.shared.media.history.relevantText
                     
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.historyActions))
                         popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
                     }
@@ -3184,7 +3184,7 @@ class MediaTableViewController : MediaItemsViewController
                         
                         self?.popover?["VOICEBASE"]?.unfilteredSection.stringIndex = self?.stringIndex?.stringIndex(key: "title", sort: nil)
                         
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.popover?["VOICEBASE"]?.updateSearchResults()
                             
                             self?.popover?["VOICEBASE"]?.updateToolbar()
@@ -3239,7 +3239,7 @@ class MediaTableViewController : MediaItemsViewController
                     
                     self?.stopAnimating()
                     
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         if self?.stringIndex?.keys == nil {
                             Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
                         } else {
@@ -3295,10 +3295,10 @@ class MediaTableViewController : MediaItemsViewController
             
             self.display.clear()
             
-            Thread.onMain {
-                self.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
-                self.tagLabel.text = nil
-                self.tableView?.reloadData()
+            Thread.onMain { [weak self] in 
+                self?.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
+                self?.tagLabel.text = nil
+                self?.tableView?.reloadData()
             }
             
             // test:(()->(Bool))?
@@ -3334,12 +3334,12 @@ class MediaTableViewController : MediaItemsViewController
             }) { [weak self] (data:Any?) in
                 self?.updateUI()
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     if Globals.shared.media.search.isActive { //  && !Globals.shared.media.search.complete
                         self?.updateSearchResults(Globals.shared.media.active?.context,completion: {
                             // Delay so UI works correctly.
                             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                                Thread.onMain {
+                                Thread.onMain { [weak self] in 
                                     self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top)
                                 }
                             }
@@ -3395,8 +3395,8 @@ class MediaTableViewController : MediaItemsViewController
 //            switch string {
 //            case Constants.Strings.Download_Audio:
 //                mediaItem?.audioDownload?.download(background: true)
-//                Thread.onMain {
-//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                Thread.onMain { [weak self] in 
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
 //                }
 //                break
 //
@@ -3504,7 +3504,7 @@ class MediaTableViewController : MediaItemsViewController
                 }
                 
                 if (new) {
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         self?.display.clear()
                         
                         self?.tableView?.reloadData()
@@ -3518,7 +3518,7 @@ class MediaTableViewController : MediaItemsViewController
                         self?.updateSearchResults(Globals.shared.media.active?.context,completion: nil)
                     }
                     
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         self?.display.setup(Globals.shared.media.active)
                         
                         self?.tableView?.reloadData()
@@ -3580,7 +3580,7 @@ class MediaTableViewController : MediaItemsViewController
                     self.operationQueue.addOperation { [weak self] in
                         self?.display.setup(Globals.shared.media.active)
                         
-                        Thread.onMain {
+                        Thread.onMain { [weak self] in 
                             self?.tableView?.reloadData()
                             
                             self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.none) // was Middle
@@ -3601,17 +3601,17 @@ class MediaTableViewController : MediaItemsViewController
                 if (Globals.shared.media.need.sorting) {
                     self.display.clear()
                     
-                    Thread.onMain {
-                        self.tableView?.reloadData()
+                    Thread.onMain { [weak self] in 
+                        self?.tableView?.reloadData()
                         
-                        self.startAnimating()
+                        self?.startAnimating()
                         
-                        self.barButtonItems(isEnabled:false)
+                        self?.barButtonItems(isEnabled:false)
                         
-                        self.operationQueue.addOperation { [weak self] in
+                        self?.operationQueue.addOperation { [weak self] in
                             self?.display.setup(Globals.shared.media.active)
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.tableView?.reloadData()
                                 
                                 self?.selectOrScrollToMediaItem(self?.selectedMediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.none) // was Middle
@@ -3826,8 +3826,8 @@ extension MediaTableViewController : UITableViewDelegate
     func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
     {
         // Tells the delegate that the table view is about to go into editing mode.
-        Thread.onMain {
-            self.searchBar.resignFirstResponder()
+        Thread.onMain { [weak self] in 
+            self?.searchBar.resignFirstResponder()
         }
     }
     
@@ -3835,8 +3835,8 @@ extension MediaTableViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMain {
-                self.tableView?.reloadData()
+            Thread.onMain { [weak self] in 
+                self?.tableView?.reloadData()
             }
         }
         

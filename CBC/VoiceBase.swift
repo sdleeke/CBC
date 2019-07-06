@@ -342,11 +342,11 @@ extension VoiceBase // Class Methods
 //            }
 //
 //            if errorOccured {
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                    onError?(json)
 //                }
 //            } else {
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                    completion?(json)
 //                }
 //            }
@@ -401,11 +401,11 @@ extension VoiceBase // Class Methods
             
             if errorOccured {
                 onError?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             } else {
                 completion?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
         })
@@ -533,14 +533,14 @@ extension VoiceBase // Class Methods
                     }
                 }
                 onError?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             } else {
                 if alert {
                     Alerts.shared.alert(title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
                 }
                 completion?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
         })
@@ -1136,8 +1136,8 @@ class VoiceBase
             
             mediaItem?.mediaItemSettings?["mediaID."+purpose] = mediaID
             
-            Thread.onMain {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+            Thread.onMain { [weak self] in 
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
             }
         }
     }
@@ -1161,8 +1161,8 @@ class VoiceBase
 
             mediaItem?.mediaItemSettings?["completed."+purpose] = completed ? "YES" : "NO"
 
-            Thread.onMain {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+            Thread.onMain { [weak self] in 
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
             }
         }
     }
@@ -1357,8 +1357,8 @@ class VoiceBase
             if Globals.shared.isLoading {
                 mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
             }
-            Thread.onMain {
-                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+            Thread.onMain { [weak self] in 
+                self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                self.settingTimer = false
             }
         } else {
@@ -1376,8 +1376,8 @@ class VoiceBase
             if Globals.shared.isLoading {
                 mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
             }
-            Thread.onMain {
-                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+            Thread.onMain { [weak self] in 
+                self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                self.settingTimer = false
             }
         } else {
@@ -1469,8 +1469,8 @@ class VoiceBase
 //                    if Globals.shared.isLoading {
 //                        mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Transcribing + " - " + transcriptPurpose)
 //                    }
-//                    Thread.onMain {
-//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                    Thread.onMain { [weak self] in 
+//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                        self.settingTimer = false
 //                    }
 //                } else {
@@ -1488,8 +1488,8 @@ class VoiceBase
 //                    if Globals.shared.isLoading {
 //                        mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Aligning + " - " + transcriptPurpose)
 //                    }
-//                    Thread.onMain {
-//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+//                    Thread.onMain { [weak self] in 
+//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
 //                        self.settingTimer = false
 //                    }
 //                } else {
@@ -1896,11 +1896,11 @@ class VoiceBase
 
             if errorOccured {
                 onError?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             } else {
                 completion?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
         })
@@ -1914,22 +1914,26 @@ class VoiceBase
     {
         var userInfo = [String:Any]()
         
-        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+        userInfo["completion"] = { [weak self] (json:[String : Any]?) -> (Void) in
+            guard let transcriptPurpose = self?.transcriptPurpose else {
+                return
+            }
+            
             guard let status = json?["status"] as? String else {
                 if alert, let errorTitle = errorTitle {
                     Alerts.shared.alert(title: errorTitle,message: errorMessage)
                 }
                 
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
+                self?.resultsTimer?.invalidate()
+                self?.resultsTimer = nil
                 
-                self.percentComplete = nil
+                self?.percentComplete = nil
                 
                 onError?()
                 return
             }
 
-            guard let title = self.mediaItem?.title else {
+            guard let title = self?.mediaItem?.title else {
                 return
             }
             
@@ -1939,10 +1943,10 @@ class VoiceBase
                     Alerts.shared.alert(title: finishedTitle,message: finishedMessage)
                 }
                 
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
+                self?.resultsTimer?.invalidate()
+                self?.resultsTimer = nil
                 
-                self.percentComplete = nil
+                self?.percentComplete = nil
                 
                 onFinished?()
                 break
@@ -1952,22 +1956,22 @@ class VoiceBase
                     Alerts.shared.alert(title: errorTitle,message: errorMessage)
                 }
                 
-                self.resultsTimer?.invalidate()
-                self.resultsTimer = nil
+                self?.resultsTimer?.invalidate()
+                self?.resultsTimer = nil
                 
-                self.percentComplete = nil
+                self?.percentComplete = nil
                 
                 onError?()
                 break
                 
             default:
                 guard let progress = json?["progress"] as? [String:Any] else {
-                    print("\(title) (\(self.transcriptPurpose)) no progress")
+                    print("\(title) (\(transcriptPurpose)) no progress")
                     break
                 }
                 
                 guard let tasks = progress["tasks"] as? [[String:Any]] else {
-                    print("\(title) (\(self.transcriptPurpose)) no tasks")
+                    print("\(title) (\(transcriptPurpose)) no tasks")
                     break
                 }
                 
@@ -1981,19 +1985,19 @@ class VoiceBase
                 }).count
                 
                 if count > 0 {
-                    self.percentComplete = Double(finished)/Double(count) // String(format: "%0.0f",) //  * 100.0
+                    self?.percentComplete = Double(finished)/Double(count) // String(format: "%0.0f",) //  * 100.0
                 } else {
-                    self.percentComplete = 0
+                    self?.percentComplete = 0
                 }
                 
-                if let percentComplete = self.percentComplete {
-                    print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                if let percentComplete = self?.percentComplete {
+                    print("\(title) (\(transcriptPurpose)) is \(percentComplete)% finished")
                 }
                 break
             }
         }
         
-        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+        userInfo["onError"] = { [weak self] (json:[String : Any]?) -> (Void) in
             var error : String?
             
             if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
@@ -2009,7 +2013,7 @@ class VoiceBase
                     Alerts.shared.alert(title: errorTitle,message: (errorMessage ?? "") + "\n\nError: \(error)")
                 }
             } else {
-                if let text = self.mediaItem?.text {
+                if let text = self?.mediaItem?.text {
                     print("An unknown error occured while monitoring the transcription of \n\n\(text).")
                 } else {
                     print("An unknown error occured while monitoring a transcription.")
@@ -2035,9 +2039,9 @@ class VoiceBase
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
                             self.remove(alert:false)
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
                             }
                         })
     }
@@ -2137,8 +2141,8 @@ class VoiceBase
                 }
                 
                 if self.resultsTimer == nil {
-                    Thread.onMain {
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                    Thread.onMain { [weak self] in 
+                        self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.uploadUserInfo(alert:true,detailedAlerts:false), repeats: true)
                     }
                 } else {
                     debug("TIMER NOT NIL!")
@@ -2157,10 +2161,10 @@ class VoiceBase
             
             self.uploadNotAccepted(json)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
             }
         })
     }
@@ -2272,11 +2276,11 @@ class VoiceBase
             if errorOccured {
                 // ???
                 onError?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             } else {
                 completion?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
         })
@@ -2564,8 +2568,8 @@ class VoiceBase
                     Alerts.shared.alert(title:title, message:message)
                     
                     if self.resultsTimer == nil {
-                        Thread.onMain {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                        Thread.onMain { [weak self] in 
+                            self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                         }
                     } else {
                         debug("TIMER NOT NIL!")
@@ -2700,8 +2704,8 @@ class VoiceBase
                                                                     }
                                                                     
                                                                     if self.resultsTimer == nil {
-                                                                        Thread.onMain {
-                                                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
+                                                                        Thread.onMain { [weak self] in 
+                                                                            self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.alignUserInfo(alert:true,detailedAlerts:false), repeats: true)
                                                                         }
                                                                     } else {
                                                                         debug("TIMER NOT NIL!")
@@ -2732,8 +2736,8 @@ class VoiceBase
                                                             self.alignmentNotAccepted(json)
                         })
                         
-                        Thread.onMain {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: newUserInfo, repeats: true)
+                        Thread.onMain { [weak self] in 
+                            self?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: newUserInfo, repeats: true)
                         }
                     } else {
                         debug("TIMER NOT NIL!")
@@ -2863,7 +2867,7 @@ class VoiceBase
             
             onSuccess?()
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -3209,11 +3213,11 @@ class VoiceBase
             
             if errorOccured {
                 onError?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             } else {
                 completion?(json)
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                }
             }
         })
@@ -5216,12 +5220,12 @@ class VoiceBase
                         textPopover.assist = true
                         textPopover.search = true
                         
-                        textPopover.onSave = { (text:String) -> Void in
+                        textPopover.onSave = { [weak self] (text:String?) -> Void in
                             guard text != textPopover.text else {
                                 return
                             }
                             
-                            self.transcript = text
+                            self?.transcript = text
                         }
                         
                         viewController.present(navigationController, animated: true, completion: nil)
@@ -5342,8 +5346,8 @@ class VoiceBase
                                                 
                                                 Alerts.shared.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
                                             } else {
-                                                Thread.onMain {
-                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(alert:true,detailedAlerts:false), repeats: false)
+                                                Thread.onMain { [weak self] in 
+                                                    self?.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self?.monitor(_:)), userInfo: self?.relaodUserInfo(alert:true,detailedAlerts:false), repeats: false)
                                                 }
                                             }
                                         }, yesStyle: .destructive,
@@ -5434,7 +5438,7 @@ class VoiceBase
             
             navigationController.popoverPresentationController?.delegate = popover
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 textPopover.navigationController?.isNavigationBarHidden = false
                 textPopover.navigationItem.title = count // "Edit Text"
             }
@@ -5455,7 +5459,7 @@ class VoiceBase
                 }
             }
             
-            textPopover.onSave = { [weak self] (text:String) -> Void in
+            textPopover.onSave = { [weak self] (text:String?) -> Void in
                 // This guard condition will be false after save
                 guard text != textPopover.text else {
                     if playing {
@@ -5477,17 +5481,17 @@ class VoiceBase
                 popover.unfilteredSection.strings?[transcriptSegmentIndex] = "\(count)\n\(timing)\n\(text)"
             }
             
-            textPopover.onDone = { [weak self] (text:String) -> Void in
+            textPopover.onDone = { [weak self] (text:String?) -> Void in
                 textPopover.onSave?(text)
             self?.transcriptSegments?.store?(self?.transcriptSegmentComponents?.result?.transcriptSegmentsFromTranscriptSegmentComponents)
 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     popover.tableView.isEditing = false
                     popover.tableView.reloadData()
                     popover.tableView.reloadData()
                 }
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     if popover.tableView.isValid(indexPath) {
                         popover.tableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.middle, animated: true)
                     }
@@ -5573,7 +5577,7 @@ class VoiceBase
 
                     popover.segments = true
                     
-                    popover.section.function = { (method:String?,strings:[String]?) in
+                    popover.section.function = { [weak self] (method:String?,strings:[String]?) in
                         return strings?.sort(method: method)
                     }
                     popover.section.method = Constants.Sort.Alphabetical
@@ -5620,15 +5624,15 @@ class VoiceBase
                             popover.section.showHeaders = false
                             popover.section.showIndex = true
                             
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                            popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                                 return string?.log
                             }
                             
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                            popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                                 return string
                             }
                             
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                            popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                                 guard let first = first else {
                                     return false
                                 }
@@ -5659,15 +5663,15 @@ class VoiceBase
                             popover.section.showHeaders = false
                             popover.section.showIndex = true
                             
-                            popover.section.indexStringsTransform = { (string:String?) -> String? in
+                            popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                                 return (string?.word?.count ?? string?.count)?.description
                             }
                             
-                            popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                            popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                                 return string
                             }
                             
-                            popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                            popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                                 guard let first = first else {
                                     return false
                                 }
@@ -6011,7 +6015,7 @@ class VoiceBase
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
                     popover.purpose = .selectingTime
                     
-                    popover.parser = { (string:String) -> [String] in
+                    popover.parser = { [weak self] (string:String) -> [String] in
                         var strings = string.components(separatedBy: "\n")
                         while strings.count > 2 {
                             strings.removeLast()
@@ -6020,11 +6024,11 @@ class VoiceBase
                     }
                     
                     popover.section.showIndex = true
-                    popover.section.indexStringsTransform = { (string:String?)->(String?) in // century
+                    popover.section.indexStringsTransform = { [weak self] (string:String?)->(String?) in // century
                         return string?.century
                     }
                     
-                    popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                    popover.section.indexHeadersTransform = { [weak self] (string:String?)->(String?) in
                         return string
                     }
                     
@@ -6077,11 +6081,11 @@ class VoiceBase
                     popover.purpose = .selectingTime
                     
                     popover.section.showIndex = true
-                    popover.section.indexStringsTransform = { (string:String?) -> String? in // century
+                    popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in // century
                         return string?.century
                     }
                     
-                    popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                    popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                         guard let first = first else {
                             return false
                         }
@@ -6090,7 +6094,7 @@ class VoiceBase
                         }
                         return Int(first) < Int(second)
                     }
-                    popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                    popover.section.indexHeadersTransform = { [weak self] (string:String?)->(String?) in
                         return string
                     }
                     

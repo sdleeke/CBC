@@ -122,8 +122,8 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
 //            switch string {
 //            case Constants.Strings.Download_Audio:
 //                mediaItem?.audioDownload?.download(background: true)
-//                Thread.onMain {
-//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                Thread.onMain { [weak self] in 
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
 //                }
 //                break
 //
@@ -249,7 +249,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
-                popover.parser = { (string:String) -> [String] in
+                popover.parser = { [weak self] (string:String) -> [String] in
                     var strings = string.components(separatedBy: "\n")
                     while strings.count > 2 {
                         strings.removeLast()
@@ -264,10 +264,10 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                 //                popover.wholeWordsOnly = true // Phrase analysis does not always return a phrase that ends on a word boundary, e.g. "romans chapter" includes "romans chapters"
                 
                 popover.section.showIndex = true
-                popover.section.indexStringsTransform = { (string:String?) -> String? in
+                popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                     return string?.century
                 } // century
-                popover.section.indexHeadersTransform = { (string:String?) -> String? in
+                popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                     return string
                 }
                 
@@ -407,7 +407,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
-                popover.parser = { (string:String) -> [String] in
+                popover.parser = { [weak self] (string:String) -> [String] in
                     var strings = string.components(separatedBy: "\n")
                     while strings.count > 2 {
                         strings.removeLast()

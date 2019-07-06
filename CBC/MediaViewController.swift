@@ -19,24 +19,26 @@ extension MediaViewController : UIActivityItemSource
 {
     func share()
     {
-        operationQueue.addOperation {
+        operationQueue.addOperation { [weak self] in
             var activityViewController : UIActivityViewController!
 
-            if self.document != nil {
+            if self?.document != nil {
 
             } else {
 
             }
 
-            self.document?.fetchData.block { (result) in
-                activityViewController = CBCActivityViewController(activityItems: [result, self.selectedMediaItem], applicationActivities: nil)
-                
-                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-                
-                activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-                
-                Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+            self?.document?.fetchData.block { (result) in
+                Thread.onMain { [weak self] in
+                    activityViewController = CBCActivityViewController(activityItems: [result, self?.selectedMediaItem], applicationActivities: nil)
+                    
+                    // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+                    activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+                    
+                    activityViewController.popoverPresentationController?.barButtonItem = self?.navigationItem.rightBarButtonItem
+                    
+                    Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+                }
             }
         }
     }
@@ -112,14 +114,16 @@ extension MediaViewController : WKNavigationDelegate
         
         if statusCode >= 400 {
             // error has occurred
-            Thread.onMain {
+            Thread.onMain { [weak self] in
                 webView.isHidden = true
                 
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator.isHidden = true
+                self?.activityIndicator.stopAnimating()
+                self?.activityIndicator.isHidden = true
                 
-                self.logo.isHidden = false
-                self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
+                self?.logo.isHidden = false
+                if let logo = self?.logo {
+                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                }
             }
             
             if let purpose = document?.purpose {
@@ -182,9 +186,9 @@ extension MediaViewController : WKNavigationDelegate
             // Delay has to be longest to deal with cold start delays
             Thread.sleep(forTimeInterval: 0.5)
 
-            Thread.onMain {
-                self.setDocumentZoomScale(self.document)
-                self.setDocumentContentOffset(self.document)
+            Thread.onMain { [weak self] in
+                self?.setDocumentZoomScale(self?.document)
+                self?.setDocumentContentOffset(self?.document)
             }
         }
     }
@@ -240,13 +244,15 @@ extension MediaViewController : WKNavigationDelegate
 
         stvControl.isEnabled = true
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in
             wkWebView.isHidden = true
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
+            self?.activityIndicator.stopAnimating()
+            self?.activityIndicator.isHidden = true
             
-            self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
-            self.logo.isHidden = false
+            if let logo = self?.logo {
+                self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+            }
+            self?.logo.isHidden = false
         }
         
         if let purpose = self.document?.download?.purpose {
@@ -450,9 +456,9 @@ class MediaViewController : MediaItemsViewController
         }
         set {
             if document != nil {
-                Thread.onMain {
-                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.document?.download)
-                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.document?.download)
+                Thread.onMain { [weak self] in
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.document?.download)
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.document?.download)
                 }
             }
 
@@ -510,9 +516,9 @@ class MediaViewController : MediaItemsViewController
             break
             
         case .downloaded:
-            Thread.onMain {
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+            Thread.onMain { [weak self] in
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
             }
             break
         }
@@ -520,9 +526,9 @@ class MediaViewController : MediaItemsViewController
     
     @objc func cancelDocument(_ notification:NSNotification)
     {
-        Thread.onMain {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+        Thread.onMain { [weak self] in
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
         }
         
         guard let download = notification.object as? Download else {
@@ -540,32 +546,34 @@ class MediaViewController : MediaItemsViewController
         case .downloading:
             download.state = .none
             if document?.showing(selectedMediaItem) == true {
-                Thread.onMain {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
+                Thread.onMain { [weak self] in
+                    self?.activityIndicator.stopAnimating()
+                    self?.activityIndicator.isHidden = true
                     
-                    self.progressIndicator.isHidden = true
+                    self?.progressIndicator.isHidden = true
                     
-                    self.wkWebView?.isHidden = true
+                    self?.wkWebView?.isHidden = true
 
                     Globals.shared.mediaPlayer.view?.isHidden = true
                     
-                    self.logo.isHidden = false
-                    self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
+                    self?.logo.isHidden = false
+                    if let logo = self?.logo {
+                        self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                    }
                     
                     // Can't prevent this from getting called twice in succession.
-                    if let purpose = self.document?.purpose {
+                    if let purpose = self?.document?.purpose {
                         switch purpose {
                         case Purpose.slides:
-                            self.networkUnavailable("Slides unavailable.")
+                            self?.networkUnavailable("Slides unavailable.")
                             break
                             
                         case Purpose.notes:
-                            self.networkUnavailable("Transcript unavailable.")
+                            self?.networkUnavailable("Transcript unavailable.")
                             break
                             
                         case Purpose.outline:
-                            self.networkUnavailable("Outline unavailable.")
+                            self?.networkUnavailable("Outline unavailable.")
                             break
                             
                         default:
@@ -658,7 +666,7 @@ class MediaViewController : MediaItemsViewController
                 return
             }
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in
                 if let activityIndicator = self?.activityIndicator {
                     self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
                 }
@@ -671,13 +679,13 @@ class MediaViewController : MediaItemsViewController
 
             guard let data = self?.document?.fetchData.result else { // , (data != self?.webData) || (self?.webData == nil)
                 if self?.document?.showing(self?.selectedMediaItem) == true {
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in
                         self?.activityIndicator.stopAnimating()
                         self?.activityIndicator.isHidden = true
                         self?.logo.isHidden = false
                     }
                 }
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in
 //                    self?.activityIndicator.stopAnimating()
 //                    self?.activityIndicator.isHidden = true
 //
@@ -693,7 +701,7 @@ class MediaViewController : MediaItemsViewController
 //            self?.webData = data
             
             if self?.document?.showing(self?.selectedMediaItem) == true { // let url = Globals.shared.cacheDownloads ? self?.download?.fileSystemURL : self?.download?.downloadURL
-                Thread.onMain {
+                Thread.onMain { [weak self] in
 //                    if let wkWebView = self?.wkWebView {
 //                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
 //                    }
@@ -763,17 +771,19 @@ class MediaViewController : MediaItemsViewController
             NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem)
             
             if isViewLoaded {
-                Thread.onMain {
-                    self.wkWebView?.isHidden = true
-                    self.wkWebView?.stopLoading()
+                Thread.onMain { [weak self] in
+                    self?.wkWebView?.isHidden = true
+                    self?.wkWebView?.stopLoading()
                     
-                    if let logo = UIImage(named:"CBC_logo") {
+                    if let image = UIImage(named:"CBC_logo") {
                         // Need to adjust aspect ratio contraint
-                        let ratio = logo.size.width / logo.size.height
+                        let ratio = image.size.width / image.size.height
                         
-                        self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                        self.logo.image = logo
-                        self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
+                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                        self?.logo.image = image
+                        if let logo = self?.logo {
+                            self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                        }
                     }
                 }
             }
@@ -786,8 +796,8 @@ class MediaViewController : MediaItemsViewController
             // Is that what we want? No, not unless the value of multiPartMediaItems should really change
             if let selectedMediaItem = selectedMediaItem {
                 if mediaList?.list?.contains(selectedMediaItem) != true {
-                    operationQueue.addOperation {
-                        self.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
+                    operationQueue.addOperation { [weak self] in
+                        self?.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
                     }
                 }
             } else {
@@ -836,12 +846,12 @@ class MediaViewController : MediaItemsViewController
     {
         didSet {
             if mediaList?.list != oldValue?.list {
-                operationQueue.addOperation {
-                    self.mediaList?.list?.loadDocuments()
+                operationQueue.addOperation { [weak self] in
+                    self?.mediaList?.list?.loadDocuments()
                 }
-                Thread.onMain {
-                    self.tableView?.reloadData()
-                    self.updateUI()
+                Thread.onMain { [weak self] in
+                    self?.tableView?.reloadData()
+                    self?.updateUI()
 //                    self.setupVerticalSplit()
                 }
             }
@@ -854,7 +864,7 @@ class MediaViewController : MediaItemsViewController
 //                mediaItemNotesAndSlides.gestureRecognizers = nil
 //            } else {
 //                if mediaItemNotesAndSlides.gestureRecognizers == nil {
-//                    let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+//                    let pan = UIPanGestureRecognizer(target: self, action: #selector(self?.changeVerticalSplit(_:)))
 //                    mediaItemNotesAndSlides.addGestureRecognizer(pan)
 //                }
 //            }
@@ -1648,7 +1658,7 @@ class MediaViewController : MediaItemsViewController
     @IBOutlet weak var mediaItemNotesAndSlides: UIView!
     {
         didSet {
-//            let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+//            let pan = UIPanGestureRecognizer(target: self, action: #selector(self?.changeVerticalSplit(_:)))
 //            self.mediaItemNotesAndSlides.addGestureRecognizer(pan)
         }
     }
@@ -1656,7 +1666,7 @@ class MediaViewController : MediaItemsViewController
     @IBOutlet weak var logo: UIImageView!
     {
         didSet {
-//            let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+//            let pan = UIPanGestureRecognizer(target: self, action: #selector(self?.changeVerticalSplit(_:)))
 //            self.logo.addGestureRecognizer(pan)
         }
     }
@@ -2453,7 +2463,7 @@ class MediaViewController : MediaItemsViewController
             // Purely for the delay?
             // Delay so UI works as desired.
             DispatchQueue.global(qos: .background).async { // [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in
                     Globals.shared.mediaPlayer.play()
                 }
             }
@@ -2533,7 +2543,7 @@ class MediaViewController : MediaItemsViewController
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         // Delay so UI works as desired.
         DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMain {
+            Thread.onMain { [weak self] in
                 self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
             }
         }
@@ -2547,33 +2557,33 @@ class MediaViewController : MediaItemsViewController
             selectedMediaItem = Globals.shared.media.selected.detail
         }
         
-        tableView.reloadData()
-        
-        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        // Delay so UI works as desired.
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMain {
-                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
-            }
-        }
-        
-        updateUI()
+//        tableView.reloadData()
+//
+//        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+//        // Delay so UI works as desired.
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+//            Thread.onMain { [weak self] in
+//                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+//            }
+//        }
+//
+//        updateUI()
     }
     
     @objc func clearView()
     {
-        Thread.onMain {
-            self.navigationController?.popToRootViewController(animated: true)
+        Thread.onMain { [weak self] in
+            self?.navigationController?.popToRootViewController(animated: true)
             
-            self.dismiss(animated: true, completion: nil) // In case a dialog is visible.
+            self?.dismiss(animated: true, completion: nil) // In case a dialog is visible.
             
-            self.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
+            self?.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
 
-            self.selectedMediaItem = nil
+            self?.selectedMediaItem = nil
             
-            self.tableView.reloadData()
+            self?.tableView.reloadData()
             
-            self.updateUI()
+            self?.updateUI()
         }
     }
 
@@ -2609,42 +2619,44 @@ class MediaViewController : MediaItemsViewController
             logo.isHidden = false
 
             if selectedMediaItem.hasPosterImage {
-                operationQueue.addOperation {
-                    Thread.onMain {
-                        guard self.selectedMediaItem == selectedMediaItem else {
+                operationQueue.addOperation { [weak self] in
+                    Thread.onMain { [weak self] in
+                        guard self?.selectedMediaItem == selectedMediaItem else {
                             return
                         }
                         
-                        self.mediaItemNotesAndSlides.bringSubviewToFront(self.activityIndicator)
-                        self.activityIndicator.isHidden = false
-                        self.activityIndicator.startAnimating()
+                        if let activityIndicator = self?.activityIndicator {
+                            self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+                        }
+                        self?.activityIndicator.isHidden = false
+                        self?.activityIndicator.startAnimating()
                     }
                 
                     if let posterImage = selectedMediaItem.posterImage?.image {
-                        guard self.selectedMediaItem == selectedMediaItem else {
+                        guard self?.selectedMediaItem == selectedMediaItem else {
                             return
                         }
                         
-                        Thread.onMain {
-                            guard self.selectedMediaItem == selectedMediaItem else {
+                        Thread.onMain { [weak self] in
+                            guard self?.selectedMediaItem == selectedMediaItem else {
                                 return
                             }
                             
                             // Need to adjust aspect ratio contraint
                             let ratio = posterImage.size.width / posterImage.size.height
                             
-                            self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                            self.logo.image = posterImage
+                            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                            self?.logo.image = posterImage
                         }
                     }
 
-                    Thread.onMain {
-                        guard self.selectedMediaItem == selectedMediaItem else {
+                    Thread.onMain { [weak self] in
+                        guard self?.selectedMediaItem == selectedMediaItem else {
                             return
                         }
                         
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator.isHidden = true
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
                     }
                 }
             }
@@ -2716,12 +2728,14 @@ class MediaViewController : MediaItemsViewController
     @objc override func downloadFailed(_ notification:NSNotification)
     {
         if let download = notification.object as? Download, document?.download == download {
-            Thread.onMain {
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator.isHidden = true
+            Thread.onMain { [weak self] in
+                self?.activityIndicator.stopAnimating()
+                self?.activityIndicator.isHidden = true
                 
-                self.logo.isHidden = false
-                self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
+                self?.logo.isHidden = false
+                if let logo = self?.logo {
+                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                }
             }
         }
     }
@@ -2793,12 +2807,12 @@ class MediaViewController : MediaItemsViewController
         self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
         self.progressIndicator.isHidden = false
         
-        Thread.onMain {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+        Thread.onMain { [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
             
-            NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
         }
         
         if download.state != .downloading {
@@ -2814,12 +2828,12 @@ class MediaViewController : MediaItemsViewController
 //                    self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
 //                    self.progressIndicator.isHidden = false
 //
-//                    Thread.onMain {
-//                        NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
-//                        NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
+//                    Thread.onMain { [weak self] in
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self?.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self?.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
 //
-//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
-//                        NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self?.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
+//                        NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
 //                    }
 //
 //                    if download.state != .downloading {
@@ -2829,7 +2843,7 @@ class MediaViewController : MediaItemsViewController
 //            } else {
 //                self.loadWeb()
 ////                    operationQueue.addOperation { [weak self] in
-////                        Thread.onMain {
+////                        Thread.onMain { [weak self] in
 ////                            self?.activityIndicator.isHidden = false
 ////                            self?.activityIndicator.startAnimating()
 ////
@@ -2841,7 +2855,7 @@ class MediaViewController : MediaItemsViewController
 ////                        }
 ////
 ////                        guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-////                            Thread.onMain {
+////                            Thread.onMain { [weak self] in
 ////                                self?.activityIndicator.stopAnimating()
 ////                                self?.activityIndicator.isHidden = true
 ////
@@ -2860,7 +2874,7 @@ class MediaViewController : MediaItemsViewController
 ////                            document.mediaItem == self?.selectedMediaItem,
 ////                            document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
 ////
-////                            Thread.onMain {
+////                            Thread.onMain { [weak self] in
 ////                                self?.wkWebView?.isHidden = true
 //////                                    self?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
 ////                                self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: fileSystemURL)
@@ -2871,7 +2885,7 @@ class MediaViewController : MediaItemsViewController
 //        } else {
 //            self.loadWeb()
 ////                operationQueue.addOperation { [weak self] in
-////                    Thread.onMain {
+////                    Thread.onMain { [weak self] in
 ////                        if document.showing(self?.selectedMediaItem) {
 ////                            self?.activityIndicator.isHidden = false
 ////                            self?.activityIndicator.startAnimating()
@@ -2881,7 +2895,7 @@ class MediaViewController : MediaItemsViewController
 ////                    }
 ////
 ////                    guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-////                        Thread.onMain {
+////                        Thread.onMain { [weak self] in
 ////                            self?.activityIndicator.stopAnimating()
 ////                            self?.activityIndicator.isHidden = true
 ////
@@ -2899,7 +2913,7 @@ class MediaViewController : MediaItemsViewController
 ////                    if  let url = document.download?.downloadURL,
 ////                        document.mediaItem == self?.selectedMediaItem,
 ////                        document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-////                        Thread.onMain {
+////                        Thread.onMain { [weak self] in
 ////                            self?.wkWebView?.isHidden = true
 ////                            self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
 ////                        }
@@ -2909,7 +2923,7 @@ class MediaViewController : MediaItemsViewController
 ////        } else {
 ////            self.loadWeb()
 ////            operationQueue.addOperation { [weak self] in
-////                Thread.onMain {
+////                Thread.onMain { [weak self] in
 ////                    if document.showing(self?.selectedMediaItem) {
 ////                        self?.activityIndicator.isHidden = false
 ////                        self?.activityIndicator.startAnimating()
@@ -2921,7 +2935,7 @@ class MediaViewController : MediaItemsViewController
 ////                }
 ////
 ////                guard let data = document.fetchData.result, (data != self?.webData) || (self?.webData == nil) else {
-////                    Thread.onMain {
+////                    Thread.onMain { [weak self] in
 ////                        self?.activityIndicator.stopAnimating()
 ////                        self?.activityIndicator.isHidden = true
 ////
@@ -2939,7 +2953,7 @@ class MediaViewController : MediaItemsViewController
 ////                if  let url = document.download?.downloadURL,
 ////                    document.mediaItem == self?.selectedMediaItem,
 ////                    document.download?.purpose == self?.selectedMediaItem?.showing { // self?.stvControl.selectedSegmentIndex.description
-////                    Thread.onMain {
+////                    Thread.onMain { [weak self] in
 ////                        self?.wkWebView?.isHidden = true
 ////                        self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
 ////                    }
@@ -3217,7 +3231,7 @@ class MediaViewController : MediaItemsViewController
         
         if selectedMediaItem.showing == Showing.none {
             mediaItemNotesAndSlides.gestureRecognizers = nil
-            let pan = UIPanGestureRecognizer(target: self, action: #selector(self.changeVerticalSplit(_:)))
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(changeVerticalSplit(_:)))
             mediaItemNotesAndSlides.addGestureRecognizer(pan)
         }
     }
@@ -3493,7 +3507,7 @@ class MediaViewController : MediaItemsViewController
 //                x: CGFloat(contentOffsetX),
 //                y: CGFloat(contentOffsetY))
 //
-//            Thread.onMain {
+//            Thread.onMain { [weak self] in
 //                wkWebView.scrollView.setContentOffset(contentOffset, animated: false)
 //            }
 //        }
@@ -4332,7 +4346,7 @@ class MediaViewController : MediaItemsViewController
 //        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
 //        // Delay so UI works as desired.
 //        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-//            Thread.onMain {
+//            Thread.onMain { [weak self] in
 //                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
 //            }
 //        }
@@ -4376,7 +4390,7 @@ class MediaViewController : MediaItemsViewController
             //Without this background/main dispatching there isn't time to scroll correctly after a reload.
             // Delay so UI works as desired.
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMain {
+                Thread.onMain { [weak self] in
                     self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
                 }
             }
@@ -4940,8 +4954,8 @@ class MediaViewController : MediaItemsViewController
         
         removeSliderTimer()
 
-        Thread.onMain {
-            self.sliderTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(self.updateSlider), userInfo: nil, repeats: true)
+        Thread.onMain { [weak self] in
+            self?.sliderTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(self?.updateSlider), userInfo: nil, repeats: true)
         }
     }
 
@@ -5123,7 +5137,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         document?.fetchData.block { (result) in
-            Thread.onMain {
+            Thread.onMain { [weak self] in
                 if #available(iOS 11.0, *) {
                     if zoomScale == nil {
                         if let data = result, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
@@ -5131,10 +5145,13 @@ class MediaViewController : MediaItemsViewController
                             // I have no idea why these magic numbers are required.
                             // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
                             // varies by device.
-                            if page.bounds(for: .mediaBox).width > self.mediaItemNotesAndSlides.frame.width {
-                                zoomScale = (self.mediaItemNotesAndSlides.frame.width * 0.75) / page.bounds(for: .mediaBox).width
-                            } else {
-                                zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / self.mediaItemNotesAndSlides.frame.width
+                            
+                            if let frame = self?.mediaItemNotesAndSlides.frame {
+                                if page.bounds(for: .mediaBox).width > frame.width {
+                                    zoomScale = (frame.width * 0.75) / page.bounds(for: .mediaBox).width
+                                } else {
+                                    zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / frame.width
+                                }
                             }
                         }
                     }
@@ -5145,7 +5162,7 @@ class MediaViewController : MediaItemsViewController
                 }
                 
                 if !zoomScale.isNaN {
-                    self.document?.setZoom = true
+                    self?.document?.setZoom = true
                     wkWebView.scrollView.setZoomScale(zoomScale, animated: false)
                 }
             }
@@ -5185,7 +5202,7 @@ class MediaViewController : MediaItemsViewController
             
         }
         
-        Thread.onMain { () -> (Void) in
+        Thread.onMain { [weak self] () -> (Void) in
             guard wkWebView.scrollView.contentSize != CGSize.zero else {
                 return
             }
@@ -5194,7 +5211,7 @@ class MediaViewController : MediaItemsViewController
                 y: CGFloat(contentOffsetY)) //
             
             if (!contentOffset.x.isNaN && !contentOffset.y.isNaN) {
-                self.document?.setOffset = true
+                self?.document?.setOffset = true
                 if (contentOffset.x > wkWebView.scrollView.contentSize.width) || (contentOffset.y > wkWebView.scrollView.contentSize.height)  {
                     wkWebView.scrollView.setContentOffset(CGPoint.zero,animated: false)
                 } else {
@@ -5203,10 +5220,10 @@ class MediaViewController : MediaItemsViewController
             }
 
             // Why?  This shouldn't be here.
-            self.progressIndicator.isHidden = true
+            self?.progressIndicator.isHidden = true
             
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
+            self?.activityIndicator.stopAnimating()
+            self?.activityIndicator.isHidden = true
             
             wkWebView.isHidden = false
         }
@@ -5361,15 +5378,15 @@ class MediaViewController : MediaItemsViewController
             Alerts.shared.alert(title: "Canceling All Auto Edits for Audio Transcripts", message: message)
             
             // We have to cancel and wait until they are finished to we need to do this in the background.
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                self?.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
                         mediaItem.audioTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.audioTranscript?.operationQueue.operationCount > 0
                     //                    mediaItem.audioTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
                 })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self.mediaList?.list?.multiPartName)
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Audio Transcripts",message:self?.mediaList?.list?.multiPartName)
             }
             break
             
@@ -5385,15 +5402,15 @@ class MediaViewController : MediaItemsViewController
             Alerts.shared.alert(title: "Canceling All Auto Edits for Video Transcripts", message: message)
             
             // We have to cancel and wait until they are finished to we need to do this in the background.
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                self?.mediaList?.list?.forEach({ (mediaItem:MediaItem) in
                     repeat {
                         mediaItem.videoTranscript?.cancelAutoEdit(alert:false)
                         Thread.sleep(forTimeInterval: 0.1) // Need to wait to see if another op was started
                     } while mediaItem.videoTranscript?.operationQueue.operationCount > 0
                     //                    mediaItem.videoTranscript?.operationQueue.waitUntilAllOperationsAreFinished() // Can hang
                 })
-                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts",message:self.mediaList?.list?.multiPartName)
+                Alerts.shared.alert(title: "All Auto Edits Cancelled for Video Transcripts", message:self?.mediaList?.list?.multiPartName)
             }
             break
             
@@ -5437,8 +5454,8 @@ class MediaViewController : MediaItemsViewController
 //            switch string {
 //            case Constants.Strings.Download_Audio:
 //                mediaItem?.audioDownload?.download(background: true)
-//                Thread.onMain {
-//                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+//                Thread.onMain { [weak self] in
+//                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
 //                }
 //                break
 //

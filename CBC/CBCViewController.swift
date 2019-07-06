@@ -56,7 +56,7 @@ extension CBCViewController : MFMailComposeViewControllerDelegate
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             controller.dismiss(animated: true, completion: nil)
         }
     }

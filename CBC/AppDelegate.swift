@@ -408,7 +408,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         
         if newCategory {
             // Change the category
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 mtvc.mediaCategoryButton.setTitle(Globals.shared.media.category.selected)
                 mtvc.tagLabel.text = nil // Effectively hides the tag(s) icon.
             }
@@ -433,14 +433,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // If svc is collapsed, pop to the root view controller.
         // To show the change
         if let isCollapsed = mtvc.splitViewController?.isCollapsed, isCollapsed {
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 nvc.popToRootViewController(animated: false)
             }
         }
 
         // If new category or tag, or sorting or grouping is needed:
         if newCategory || newTag || Globals.shared.media.need.sorting || Globals.shared.media.need.grouping {
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 // Pop to the root view controller
                 // And show the change
                 nvc.popToRootViewController(animated: false)
@@ -462,7 +462,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             // Show the results.
             mtvc.display.setup(Globals.shared.media.active)
             
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 mtvc.tableView?.reloadData()
                 
                 let indexPath = IndexPath(row:0,section:0)
@@ -483,7 +483,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             }
         } else {
             // No new category or tag.
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 let indexPath = IndexPath(row:0,section:0) // Top of the list.
                 if mtvc.tableView.isValid(indexPath) {
                     mtvc.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
@@ -494,7 +494,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // If the url contains a media code, segue to it.
         if let mediaCode = Globals.shared.media.goto {
             if let mediaItem = Globals.shared.media.repository.index[mediaCode] {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     nvc.popToRootViewController(animated: false)
                 }
                 
@@ -503,8 +503,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
                 
                 // Delay required for iPhone
                 // Delay so UI works correctly.
-                DispatchQueue.global(qos: .background).async {
-                    Thread.onMain {
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    Thread.onMain { [weak self] in 
                         mtvc.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
                 }
@@ -526,7 +526,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             return UISplitViewController.DisplayMode.automatic
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
         }
         

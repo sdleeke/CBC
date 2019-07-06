@@ -2,4 +2,70 @@
 <Bucket
    type = "0"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "584145074.505319"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2556"
+            endingLineNumber = "2556"
+            landmarkName = "updateView()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "584145074.505392"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2575"
+            endingLineNumber = "2575"
+            landmarkName = "clearView()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.MediaViewController.clearView() -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v35%20-%20V3/CBC/MediaViewController.swift"
+                  timestampString = "584140905.150498"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "2567"
+                  endingLineNumber = "2567"
+                  offsetFromSymbolStart = "56">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in CBC.MediaViewController.clearView() -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v35%20-%20V3/CBC/MediaViewController.swift"
+                  timestampString = "584140905.15258"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "2568"
+                  endingLineNumber = "2568"
+                  offsetFromSymbolStart = "52">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

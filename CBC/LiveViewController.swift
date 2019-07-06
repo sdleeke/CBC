@@ -79,19 +79,19 @@ class LiveViewController: CBCViewController
 
     @objc func clearView()
     {
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             Globals.shared.mediaPlayer.view?.isHidden = true
-            self.logo.isHidden = false
+            self?.logo.isHidden = false
         }
     }
     
     @objc func liveView()
     {
-        Thread.onMain {
-            self.setupLivePlayerView()
+        Thread.onMain { [weak self] in 
+            self?.setupLivePlayerView()
             
             Globals.shared.mediaPlayer.view?.isHidden = false
-            self.logo.isHidden = true
+            self?.logo.isHidden = true
         }
     }
     

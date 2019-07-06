@@ -43,7 +43,7 @@ func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFl
     
     let reachability = Unmanaged<Reachability>.fromOpaque(info).takeUnretainedValue()
     
-    Thread.onMain {
+    Thread.onMain { // [weak self] in 
         reachability.reachabilityChanged()
     }
 }
@@ -166,8 +166,8 @@ public extension Reachability
         }
         
         // Perform an intial check
-        reachabilitySerialQueue.async {
-            self.reachabilityChanged()
+        reachabilitySerialQueue.async { [weak self] in
+            self?.reachabilityChanged()
         }
         
         notifierRunning = true

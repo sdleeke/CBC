@@ -342,7 +342,7 @@ class MediaTableViewCell: UITableViewCell
 //            }
             
             if (oldValue != nil) {
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
@@ -350,10 +350,10 @@ class MediaTableViewCell: UITableViewCell
             }
             
             if (mediaItem != nil) {
-                Thread.onMain {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.percentComplete(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+                Thread.onMain { [weak self] in 
+                    NotificationCenter.default.addObserver(self, selector: #selector(self?.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self?.percentComplete(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self?.mediaItem)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self?.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
                 }
             }
 
@@ -448,12 +448,12 @@ class MediaTableViewCell: UITableViewCell
                     }
                     
                     // Add the count
-                    DispatchQueue.global(qos: .userInteractive).async {
+                    DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                         if let count = mediaItem.notesTokens?.result?[searchText] {
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 // Make sure we're still in the right place.
-                                if self.mediaItem == mediaItem {
-                                    self.countLabel.text = count.description
+                                if self?.mediaItem == mediaItem {
+                                    self?.countLabel.text = count.description
                                 }
                             }
                         }

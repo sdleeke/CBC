@@ -31,7 +31,7 @@ extension Download : URLSessionDownloadDelegate
             return
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
@@ -61,7 +61,7 @@ extension Download : URLSessionDownloadDelegate
             return
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
         
@@ -70,9 +70,9 @@ extension Download : URLSessionDownloadDelegate
             case Purpose.audio:
                 if bytesWritten > 0 {
                     self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
-                    Thread.onMain {
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
+                    Thread.onMain { [weak self] in 
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self?.mediaItem)
                     }
                 }
                 break
@@ -83,7 +83,7 @@ extension Download : URLSessionDownloadDelegate
                 fallthrough
             case Purpose.slides:
                 if bytesWritten > 0 {
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self)
                     }
                 }
@@ -169,7 +169,7 @@ extension Download : URLSessionDownloadDelegate
                 state = .downloaded
             } else {
                 // Nothing was downloaded
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self)
                 }
                 
@@ -180,7 +180,7 @@ extension Download : URLSessionDownloadDelegate
             state = .none
         }
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
     }
@@ -221,7 +221,7 @@ extension Download : URLSessionDownloadDelegate
         
         session.invalidateAndCancel()
         
-        Thread.onMain {
+        Thread.onMain { [weak self] in 
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
     }
@@ -265,8 +265,8 @@ extension Download : URLSessionDownloadDelegate
             let filename = String(identifier[range.upperBound...])
             
             if task?.taskDescription == filename {
-                Thread.onMain {
-                    self.completionHandler?()
+                Thread.onMain { [weak self] in 
+                    self?.completionHandler?()
                 }
             }
         }
@@ -367,7 +367,7 @@ class Download : NSObject, Size
             
             switch state {
             case .downloading:
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADING), object: self)
                 }
@@ -376,7 +376,7 @@ class Download : NSObject, Size
             case .downloaded:
                 fileSize = fileSystemURL?.fileSize
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     // The following must appear AFTER we change the state
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self)
                 }
@@ -414,10 +414,10 @@ class Download : NSObject, Size
                     break
                 }
                 
-                Thread.onMain {
+                Thread.onMain { [weak self] in 
                     // The following must appear AFTER we change the state
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self?.mediaItem)
                 }
                 break
                 
@@ -429,9 +429,9 @@ class Download : NSObject, Size
                     break
                     
                 case .downloaded:
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         // The following must appear AFTER we change the state
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self?.mediaItem)
                     }
                     break
                     
@@ -511,7 +511,7 @@ class Download : NSObject, Size
                     task.taskDescription = self.fileSystemURL?.lastPathComponent
                     task.resume()
                     
-                    Thread.onMain {
+                    Thread.onMain { [weak self] in 
                         UIApplication.shared.isNetworkActivityIndicatorVisible = true
                     }
                 }

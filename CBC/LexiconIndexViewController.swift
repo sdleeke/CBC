@@ -438,7 +438,7 @@ class LexiconIndexViewController : MediaItemsViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -448,7 +448,7 @@ class LexiconIndexViewController : MediaItemsViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Alphabetical,self?.lexicon?.words?.keys())
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -482,7 +482,7 @@ class LexiconIndexViewController : MediaItemsViewController
                                     // Need to throw this on the opQueue so it doesn't happen before
                                     // the one in completed()
                                     self?.operationQueue.addOperation {
-                                        Thread.onMain {
+                                        Thread.onMain { [weak self] in 
                                             wordsTableViewController.activityIndicator.stopAnimating()
                                         }
                                     }
@@ -500,7 +500,7 @@ class LexiconIndexViewController : MediaItemsViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -510,7 +510,7 @@ class LexiconIndexViewController : MediaItemsViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Frequency,self?.lexicon?.words?.keys())
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -525,15 +525,15 @@ class LexiconIndexViewController : MediaItemsViewController
                                     section.showHeaders = false
                                     section.showIndex = true
                                     
-                                    section.indexStringsTransform = { (string:String?) -> String? in
+                                    section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                                         return string?.log
                                     }
                                     
-                                    section.indexHeadersTransform = { (string:String?) -> String? in
+                                    section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                                         return string
                                     }
                                     
-                                    section.indexSort = { (first:String?,second:String?) -> Bool in
+                                    section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                                         guard let first = first else {
                                             return false
                                         }
@@ -557,7 +557,7 @@ class LexiconIndexViewController : MediaItemsViewController
                                     // Need to throw this on the opQueue so it doesn't happen before
                                     // the one in completed()
                                     self?.operationQueue.addOperation {
-                                        Thread.onMain {
+                                        Thread.onMain { [weak self] in 
                                             wordsTableViewController.activityIndicator.stopAnimating()
                                         }
                                     }
@@ -575,7 +575,7 @@ class LexiconIndexViewController : MediaItemsViewController
                         self?.operationQueue.cancelAllOperations()
                         
                         self?.operationQueue.addOperation { [weak self] in
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 self?.wordsTableViewController.tableView.isHidden = true
                                 self?.wordsTableViewController.activityIndicator.startAnimating()
                                 self?.wordsTableViewController.segmentedControl.isEnabled = false
@@ -585,7 +585,7 @@ class LexiconIndexViewController : MediaItemsViewController
                             
                             let strings = self?.wordsTableViewController.section.function?(Constants.Sort.Length,self?.lexicon?.words?.keys())
                             
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in 
                                 guard let wordsTableViewController = self?.wordsTableViewController else {
                                     return
                                 }
@@ -600,15 +600,15 @@ class LexiconIndexViewController : MediaItemsViewController
                                     section.showHeaders = false
                                     section.showIndex = true
                                     
-                                    section.indexStringsTransform = { (string:String?) -> String? in
+                                    section.indexStringsTransform = { [weak self] (string:String?) -> String? in
                                         return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
                                     }
                                     
-                                    section.indexHeadersTransform = { (string:String?) -> String? in
+                                    section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
                                         return string
                                     }
                                     
-                                    section.indexSort = { (first:String?,second:String?) -> Bool in
+                                    section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
                                         guard let first = first else {
                                             return false
                                         }
@@ -632,7 +632,7 @@ class LexiconIndexViewController : MediaItemsViewController
                                     // Need to throw this on the opQueue so it doesn't happen before
                                     // the one in completed()
                                     self?.operationQueue.addOperation {
-                                        Thread.onMain {
+                                        Thread.onMain { [weak self] in 
                                             wordsTableViewController.activityIndicator.stopAnimating()
                                         }
                                     }
@@ -689,9 +689,9 @@ class LexiconIndexViewController : MediaItemsViewController
     func updateSelectedWord()
     {
         guard let searchText = self.searchText else {
-            Thread.onMain {
-                self.locateView.isHidden = true
-                self.selectedWord.text = Constants.EMPTY_STRING
+            Thread.onMain { [weak self] in 
+                self?.locateView.isHidden = true
+                self?.selectedWord.text = Constants.EMPTY_STRING
             }
             return
         }
@@ -704,9 +704,9 @@ class LexiconIndexViewController : MediaItemsViewController
             return
         }
         
-        Thread.onMain {
-            self.locateView.isHidden = false
-            self.selectedWord.text = "\(searchText) (\(occurrences) in \(documents))" // searchText
+        Thread.onMain { [weak self] in 
+            self?.locateView.isHidden = false
+            self?.selectedWord.text = "\(searchText) (\(occurrences) in \(documents))" // searchText
         }
     }
 
@@ -720,24 +720,24 @@ class LexiconIndexViewController : MediaItemsViewController
         setTableViewHeightConstraint(change:0)
 
         guard self.searchText != nil else {
-            Thread.onMain {
-                self.locateView.isHidden = true
-                self.locateButton.isHidden = true
-                self.locateButton.isEnabled = false
+            Thread.onMain { [weak self] in 
+                self?.locateView.isHidden = true
+                self?.locateButton.isHidden = true
+                self?.locateButton.isEnabled = false
             }
             return
         }
 
-        Thread.onMain {
-            self.locateView.isHidden = false
-            self.locateButton.isHidden = false
+        Thread.onMain { [weak self] in 
+            self?.locateView.isHidden = false
+            self?.locateButton.isHidden = false
             
-            if !self.wordsTableViewController.tableView.isHidden {
+            if self?.wordsTableViewController.tableView.isHidden == false {
                 // This creates an ordering dependency, if sorting is true and then becomes false a notification is required or the button will remain disabled.
                 // See notification SORTING_CHANGED
-                self.locateButton.isEnabled = !self.wordsTableViewController.section.sorting && (self.tableViewHeightConstraint.isActive ? self.locateButton.isEnabled : true)
+                self?.locateButton.isEnabled = (self?.wordsTableViewController.section.sorting == false) && (self?.tableViewHeightConstraint.isActive == true ? (self?.locateButton.isEnabled ?? false) : true)
             } else {
-                self.locateButton.isEnabled = false
+                self?.locateButton.isEnabled = false
             }
         }
     }
@@ -780,7 +780,7 @@ class LexiconIndexViewController : MediaItemsViewController
 //            // eligible property is computationally expensive if not cached in shadow.
 //            if let count = self?.lexicon?.entries?.count,
 //                let total = self?.lexicon?.eligible?.count {
-//                Thread.onMain {
+//                Thread.onMain { [weak self] in 
 //                    self?.navigationItem.title = "Lexicon Index \(count) of \(total)"
 //                }
 //            }
@@ -789,7 +789,7 @@ class LexiconIndexViewController : MediaItemsViewController
         wordsTableViewController.selectedText = searchText
         
         wordsTableViewController.section.stringsAction = { [weak self] (strings:[String]?,sorting:Bool) in
-            Thread.onMain {
+            Thread.onMain { [weak self] in 
                 self?.updateActionMenu()
                 self?.wordsTableViewController.segmentedControl.isEnabled = (strings != nil) && (sorting == false)
             }
@@ -1619,8 +1619,8 @@ class LexiconIndexViewController : MediaItemsViewController
             
             searchText = text.uppercased()
             
-            Thread.onMain {
-                self.tableView.setEditing(false, animated: true)
+            Thread.onMain { [weak self] in 
+                self?.tableView.setEditing(false, animated: true)
             }
             break
             
@@ -1677,8 +1677,8 @@ extension LexiconIndexViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            Thread.onMain {
-                self.tableView.reloadData()
+            Thread.onMain { [weak self] in 
+                self?.tableView.reloadData()
             }
         }
         
